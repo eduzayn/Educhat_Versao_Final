@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import QRCode from 'qrcode';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
 
@@ -269,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API integration routes
   app.get('/api/zapi/qr-code', async (req, res) => {
     try {
-      const QRCode = require('qrcode');
+
       const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
