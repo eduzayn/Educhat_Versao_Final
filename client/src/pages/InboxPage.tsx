@@ -17,7 +17,8 @@ import { insertContactSchema } from '@shared/schema';
 import type { InsertContact } from '@shared/schema';
 import { 
   Search, 
-  Filter, 
+  Filter,
+  X, 
   MoreVertical, 
   Send, 
   Paperclip, 
