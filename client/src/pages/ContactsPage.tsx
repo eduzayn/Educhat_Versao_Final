@@ -139,6 +139,43 @@ export function ContactsPage() {
 
   const handleCreateContact = async () => {
     try {
+      // First, try to add contact to Z-API WhatsApp
+      if (createForm.phone && isWhatsAppAvailable) {
+        try {
+          const [firstName, ...lastNameParts] = createForm.name.split(' ');
+          const lastName = lastNameParts.join(' ');
+          
+          const response = await fetch("/api/zapi/contacts/add", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              firstName,
+              lastName,
+              phone: createForm.phone
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to add contact to WhatsApp: ${response.status}`);
+          }
+          
+          toast({
+            title: "Contato adicionado ao WhatsApp",
+            description: "O contato foi adicionado à sua agenda do WhatsApp."
+          });
+        } catch (zapiError) {
+          console.warn('Failed to add contact to Z-API:', zapiError);
+          toast({
+            title: "Aviso",
+            description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
+            variant: "destructive"
+          });
+        }
+      }
+      
+      // Then create in local database
       await createContact.mutateAsync({
         name: createForm.name,
         email: createForm.email,
@@ -147,7 +184,9 @@ export function ContactsPage() {
       
       toast({
         title: "Contato criado",
-        description: "O novo contato foi adicionado com sucesso."
+        description: isWhatsAppAvailable && createForm.phone 
+          ? "Contato criado no sistema e adicionado ao WhatsApp." 
+          : "Contato criado no sistema."
       });
       
       setIsCreating(false);
@@ -237,6 +276,16 @@ export function ContactsPage() {
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Novo Contato</DialogTitle>
+                {isWhatsAppAvailable && (
+                  <p className="text-sm text-green-600 bg-green-50 p-2 rounded-md mt-2">
+                    ✓ Contatos com telefone serão automaticamente adicionados ao seu WhatsApp
+                  </p>
+                )}
+                {!isWhatsAppAvailable && (
+                  <p className="text-sm text-gray-500 bg-gray-50 p-2 rounded-md mt-2">
+                    ⚠ WhatsApp não conectado. Configure nas Configurações → Canais para sincronização automática
+                  </p>
+                )}
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 {/* Nome completo */}

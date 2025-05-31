@@ -204,6 +204,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add contact to Z-API WhatsApp
+  app.post("/api/zapi/contacts/add", async (req, res) => {
+    try {
+      const { firstName, lastName, phone } = req.body;
+      
+      if (!firstName || !phone) {
+        return res.status(400).json({ error: 'firstName and phone are required' });
+      }
+
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: "Z-API credentials not configured" 
+        });
+      }
+
+      // Format phone number (remove non-numeric characters)
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const contactData = [{
+        firstName,
+        lastName: lastName || '',
+        phone: cleanPhone
+      }];
+
+      const response = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/add`, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Z-API add contact error:', errorData);
+        throw new Error(`Z-API add contact failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Contact added to Z-API successfully:', data);
+      res.json(data);
+      
+    } catch (error) {
+      console.error('Z-API add contact error:', error);
+      res.status(500).json({ error: 'Failed to add contact to Z-API' });
+    }
+  });
+
   app.post("/api/contacts/import-from-zapi", async (req, res) => {
     try {
       console.log('Iniciando importação de contatos da Z-API...');
