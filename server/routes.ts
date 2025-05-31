@@ -5,6 +5,18 @@ import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Temporariamente removendo autenticação para demonstração
+  app.get('/api/auth/user', (req, res) => {
+    // Simulando usuário logado para demonstração
+    res.json({
+      id: "demo-user",
+      email: "demo@educhat.com",
+      firstName: "Admin",
+      lastName: "EduChat",
+      profileImageUrl: null
+    });
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time communication

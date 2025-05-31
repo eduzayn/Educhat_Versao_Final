@@ -4,7 +4,8 @@ import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
 
 export function Login() {
   const handleLogin = () => {
-    window.location.href = '/api/login';
+    // Para demonstração, vamos simular o login
+    window.location.reload();
   };
 
   return (
