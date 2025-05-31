@@ -115,7 +115,7 @@ export function Dashboard() {
             <div>
               <h1 className="text-3xl font-bold text-educhat-dark">Dashboard</h1>
               <p className="text-educhat-medium mt-2">
-                Bem-vindo ao EduChat, {user?.firstName}! Visão geral da sua plataforma omnichannel.
+                Bem-vindo ao EduChat! Visão geral da sua plataforma omnichannel.
               </p>
             </div>
 
