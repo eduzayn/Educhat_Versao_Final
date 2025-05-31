@@ -42,6 +42,7 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
@@ -58,14 +59,23 @@ export function InboxPage() {
   const { status: zapiStatus, isConfigured } = useZApiStore();
   useGlobalZApiMonitor();
   
+  // Inicializar WebSocket para mensagens em tempo real
+  useWebSocket();
+  
   const { data: conversations = [], isLoading } = useConversations();
-  const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
+  const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
     markConversationAsRead(conversation.id);
   };
-  const { data: messages = [] } = useMessages(activeConversation?.id || null);
+  
+  const { data: queryMessages = [] } = useMessages(activeConversation?.id || null);
+  
+  // Combinar mensagens do React Query com mensagens do store para tempo real
+  const messages = activeConversation 
+    ? storeMessages[activeConversation.id] || queryMessages 
+    : [];
   const createContact = useCreateContact();
   const { toast } = useToast();
   

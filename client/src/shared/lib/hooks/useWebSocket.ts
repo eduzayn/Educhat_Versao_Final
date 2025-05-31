@@ -1,9 +1,11 @@
 import { useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChatStore } from '../../store/store/chatStore';
 import type { WebSocketMessage } from '../../../types/chat';
 
 export function useWebSocket() {
   const socketRef = useRef<WebSocket | null>(null);
+  const queryClient = useQueryClient();
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
 
   const connect = useCallback(() => {
@@ -33,8 +35,13 @@ export function useWebSocket() {
         switch (data.type) {
           case 'new_message':
             if (data.message && data.conversationId) {
+              console.log('📨 Mensagem recebida via WebSocket:', data.message);
               addMessage(data.conversationId, data.message);
               updateConversationLastMessage(data.conversationId, data.message);
+              
+              // Invalidar cache do React Query para atualizar a interface
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations', data.conversationId, 'messages'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             }
             break;
           case 'typing':
