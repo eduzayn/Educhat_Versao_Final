@@ -107,9 +107,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Z-API Base URL:', process.env.ZAPI_BASE_URL);
       console.log('Z-API Token exists:', !!process.env.ZAPI_CLIENT_TOKEN);
       
-      const response = await fetch(`${process.env.ZAPI_BASE_URL}/contacts`, {
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts`, {
         headers: {
-          'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
           'Content-Type': 'application/json'
         }
       });
@@ -144,10 +143,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Test with a simple status endpoint first
-      const statusResponse = await fetch(`${process.env.ZAPI_BASE_URL}/status`, {
+      // Test with a simple status endpoint first  
+      const statusResponse = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/status`, {
         headers: {
-          'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
           'Content-Type': 'application/json'
         }
       });
@@ -184,9 +182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Buscar contatos da Z-API
-        const response = await fetch(`${process.env.ZAPI_BASE_URL}/contacts`, {
+        const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts`, {
           headers: {
-            'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
             'Content-Type': 'application/json'
           }
         });
