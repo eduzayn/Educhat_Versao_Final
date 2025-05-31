@@ -36,7 +36,7 @@ export interface IStorage {
   updateContactOnlineStatus(id: number, isOnline: boolean): Promise<void>;
 
   // Conversation operations
-  getConversations(): Promise<ConversationWithContact[]>;
+  getConversations(limit?: number, offset?: number): Promise<ConversationWithContact[]>;
   getConversation(id: number): Promise<ConversationWithContact | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: number, conversation: Partial<InsertConversation>): Promise<Conversation>;
@@ -159,12 +159,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Conversation operations
-  async getConversations(): Promise<ConversationWithContact[]> {
+  async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
     const conversationsWithContacts = await db
       .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt));
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(limit)
+      .offset(offset);
 
     const result: ConversationWithContact[] = [];
     

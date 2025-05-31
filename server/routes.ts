@@ -456,7 +456,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Conversations endpoints
   app.get('/api/conversations', async (req, res) => {
     try {
-      const conversations = await storage.getConversations();
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = (page - 1) * limit;
+      
+      const conversations = await storage.getConversations(limit, offset);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
