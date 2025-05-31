@@ -34,9 +34,9 @@ export function ZApiStatusIndicator() {
 
   if (status.connected && !status.session) {
     return (
-      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
         <Wifi className="w-3 h-3 mr-1" />
-        Aguardando QR Code
+        API Conectada - Aguardando Sessão
       </Badge>
     );
   }
