@@ -5,11 +5,13 @@ import { Input } from '@/shared/ui/ui/input';
 import { Label } from '@/shared/ui/ui/label';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Eye, EyeOff } from 'lucide-react';
 import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
 
 export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const [loginData, setLoginData] = useState({
@@ -169,15 +171,30 @@ export function Login() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                    required
-                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      required
+                      className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <Button
                   type="submit"
