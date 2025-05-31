@@ -658,6 +658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
       console.log('📨 Webhook Z-API recebido:', JSON.stringify(req.body, null, 2));
+      console.log('📨 Headers do webhook:', JSON.stringify(req.headers, null, 2));
       
       const webhookData = req.body;
       

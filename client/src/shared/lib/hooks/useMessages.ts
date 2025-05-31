@@ -6,6 +6,8 @@ export function useMessages(conversationId: number | null) {
   return useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId,
+    refetchInterval: 3000, // Refetch a cada 3 segundos para capturar novas mensagens
+    refetchIntervalInBackground: true,
   });
 }
 
