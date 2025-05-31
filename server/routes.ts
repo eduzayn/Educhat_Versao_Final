@@ -269,7 +269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API integration routes
   app.get('/api/zapi/qr-code', async (req, res) => {
     try {
-      const baseUrl = 'https://api.z-api.io'; // URL fixa da Z-API
+      const QRCode = require('qrcode');
+      const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
@@ -280,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code-bytes`;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code`;
       const response = await fetch(url, {
         headers: {
           'Client-Token': clientToken,
@@ -293,7 +294,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
-      res.json(data);
+      
+      if (data.value) {
+        // Gerar QR Code visual a partir do token
+        const qrCodeDataURL = await QRCode.toDataURL(data.value, {
+          errorCorrectionLevel: 'M',
+          type: 'image/png',
+          quality: 0.92,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          },
+          width: 256
+        });
+        
+        // Extrair apenas a parte base64
+        const base64Data = qrCodeDataURL.split(',')[1];
+        
+        res.json({ value: base64Data });
+      } else {
+        res.json(data);
+      }
     } catch (error) {
       console.error('Erro ao obter QR Code:', error);
       res.status(500).json({ 
