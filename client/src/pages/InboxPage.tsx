@@ -66,8 +66,10 @@ export function InboxPage() {
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
 
   const handleSelectConversation = (conversation: any) => {
+    console.log('🎯 Selecionando conversa:', conversation);
     setActiveConversation(conversation);
     markConversationAsRead(conversation.id);
+    console.log('✅ Conversa ativa definida. ID:', conversation?.id);
   };
   
   const { data: queryMessages = [] } = useMessages(activeConversation?.id || null);
