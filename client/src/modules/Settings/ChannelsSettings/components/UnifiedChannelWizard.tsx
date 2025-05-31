@@ -6,6 +6,7 @@ import { Label } from '@/shared/ui/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Card } from '@/shared/ui/ui/card';
 import { MessageSquare, Instagram, Facebook, Mail, MessageSquareText, Phone, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ZApiQRCode } from './ZApiQRCode';
 
 interface Channel {
   id: string;
@@ -77,11 +78,23 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
     }
   });
 
-  const steps = [
-    { id: 1, title: "Tipo de Canal", description: "Escolha o tipo de canal" },
-    { id: 2, title: "Configurações", description: "Configure as credenciais" },
-    { id: 3, title: "Finalização", description: "Revisar e confirmar" }
-  ];
+  const getSteps = () => {
+    const baseSteps = [
+      { id: 1, title: "Tipo de Canal", description: "Escolha o tipo de canal" },
+      { id: 2, title: "Configurações", description: "Configure as credenciais" }
+    ];
+
+    if (selectedChannelType === 'whatsapp') {
+      baseSteps.push({ id: 3, title: "Conectar WhatsApp", description: "Escaneie o QR Code" });
+      baseSteps.push({ id: 4, title: "Finalização", description: "Revisar e confirmar" });
+    } else {
+      baseSteps.push({ id: 3, title: "Finalização", description: "Revisar e confirmar" });
+    }
+
+    return baseSteps;
+  };
+
+  const steps = getSteps();
 
   const handleChannelTypeSelect = (type: string) => {
     setSelectedChannelType(type);
@@ -182,6 +195,18 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
               {selectedChannelType === 'whatsapp' && (
                 <>
                   <div>
+                    <Label htmlFor="base-url">URL Base da Z-API</Label>
+                    <Input
+                      id="base-url"
+                      placeholder="https://api.z-api.io"
+                      value={channelConfigData.configuration.baseUrl || 'https://api.z-api.io'}
+                      onChange={(e) => setChannelConfigData(prev => ({
+                        ...prev,
+                        configuration: { ...prev.configuration, baseUrl: e.target.value }
+                      }))}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="instance-id">Instance ID</Label>
                     <Input
                       id="instance-id"
@@ -202,6 +227,18 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
                       onChange={(e) => setChannelConfigData(prev => ({
                         ...prev,
                         configuration: { ...prev.configuration, token: e.target.value }
+                      }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="client-token">Client Token</Label>
+                    <Input
+                      id="client-token"
+                      placeholder="Client Token da Z-API"
+                      value={channelConfigData.configuration.clientToken}
+                      onChange={(e) => setChannelConfigData(prev => ({
+                        ...prev,
+                        configuration: { ...prev.configuration, clientToken: e.target.value }
                       }))}
                     />
                   </div>
@@ -241,6 +278,29 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
         );
 
       case 3:
+        if (selectedChannelType === 'whatsapp') {
+          return (
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">Conectar WhatsApp</h3>
+                <p className="text-muted-foreground">Escaneie o QR Code para conectar sua conta WhatsApp</p>
+              </div>
+
+              <ZApiQRCode
+                baseUrl={channelConfigData.configuration.baseUrl || 'https://api.z-api.io'}
+                instanceId={channelConfigData.configuration.instanceId}
+                token={channelConfigData.configuration.token}
+                clientToken={channelConfigData.configuration.clientToken}
+                onConnectionSuccess={() => {
+                  // Quando conectar com sucesso, avança para o próximo passo
+                  setCurrentStep(4);
+                }}
+              />
+            </div>
+          );
+        }
+        
+        // Para outros tipos de canal, vai direto para finalização
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -253,6 +313,25 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
                 <div><strong>Tipo:</strong> {channelTypes.find(t => t.type === selectedChannelType)?.name}</div>
                 <div><strong>Nome:</strong> {channelConfigData.name}</div>
                 <div><strong>Status:</strong> Ativo</div>
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 4:
+        // Passo de finalização para WhatsApp (após QR code)
+        return (
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Revisar Configuração</h3>
+              <p className="text-muted-foreground">Verifique as informações antes de finalizar</p>
+            </div>
+
+            <Card className="p-4">
+              <div className="space-y-2">
+                <div><strong>Tipo:</strong> {channelTypes.find(t => t.type === selectedChannelType)?.name}</div>
+                <div><strong>Nome:</strong> {channelConfigData.name}</div>
+                <div><strong>Status:</strong> Conectado</div>
               </div>
             </Card>
           </div>
