@@ -111,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Z-API Base URL:', process.env.ZAPI_BASE_URL);
       console.log('Z-API Token exists:', !!process.env.ZAPI_CLIENT_TOKEN);
       
-      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/contacts`, {
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts`, {
         headers: {
           'Content-Type': 'application/json'
         }
