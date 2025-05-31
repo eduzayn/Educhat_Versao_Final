@@ -25,14 +25,20 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   const [status, setStatus] = useState<ZApiStatus | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
+  // Usar credenciais das variáveis de ambiente se disponíveis
+  const apiBaseUrl = baseUrl || import.meta.env.VITE_ZAPI_BASE_URL || 'https://api.z-api.io';
+  const apiInstanceId = instanceId || import.meta.env.VITE_ZAPI_INSTANCE_ID;
+  const apiToken = token || import.meta.env.VITE_ZAPI_TOKEN;
+  const apiClientToken = clientToken || import.meta.env.VITE_ZAPI_CLIENT_TOKEN;
+
   const headers = {
-    'Client-Token': clientToken,
+    'Client-Token': apiClientToken,
     'Content-Type': 'application/json'
   };
 
   const fetchQRCode = async () => {
-    if (!baseUrl || !instanceId || !token) {
-      setError('Preencha todos os campos obrigatórios');
+    if (!apiBaseUrl || !apiInstanceId || !apiToken || !apiClientToken) {
+      setError('Credenciais da Z-API não configuradas');
       return;
     }
 
@@ -40,7 +46,7 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
     setError(null);
 
     try {
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code-bytes`;
+      const url = `${apiBaseUrl}/instances/${apiInstanceId}/token/${apiToken}/qr-code-bytes`;
       const response = await fetch(url, { headers });
 
       if (!response.ok) {
@@ -65,10 +71,10 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   };
 
   const checkStatus = async () => {
-    if (!baseUrl || !instanceId || !token) return;
+    if (!apiBaseUrl || !apiInstanceId || !apiToken) return;
 
     try {
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+      const url = `${apiBaseUrl}/instances/${apiInstanceId}/token/${apiToken}/status`;
       const response = await fetch(url, { headers });
 
       if (response.ok) {
@@ -106,10 +112,10 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
 
   useEffect(() => {
     // Verificar status inicial
-    if (baseUrl && instanceId && token) {
+    if (apiBaseUrl && apiInstanceId && apiToken) {
       checkStatus();
     }
-  }, [baseUrl, instanceId, token]);
+  }, [apiBaseUrl, apiInstanceId, apiToken]);
 
   const getStatusDisplay = () => {
     if (!status) return null;
@@ -160,7 +166,7 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
         {!qrCodeImage && !loading && (
           <Button 
             onClick={fetchQRCode} 
-            disabled={!baseUrl || !instanceId || !token || !clientToken}
+            disabled={!apiBaseUrl || !apiInstanceId || !apiToken || !apiClientToken}
             className="w-full"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
