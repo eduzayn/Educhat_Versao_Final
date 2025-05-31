@@ -504,23 +504,23 @@ export function InboxPage() {
               >
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <Avatar className="w-9 h-9">
+                    <Avatar className="w-10 h-10">
                       <AvatarImage src={conversation.contact.profileImageUrl || ''} />
-                      <AvatarFallback className="text-sm">
+                      <AvatarFallback className="text-sm font-medium">
                         {conversation.contact.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full text-xs flex items-center justify-center ${channelInfo.color}`}>
+                    <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${channelInfo.color} bg-white border border-white`}>
                       {channelInfo.icon}
                     </span>
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-gray-900 truncate text-sm">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900 truncate">
                         {conversation.contact.name}
                       </h3>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
                         {lastMessage && (
                           <span className="text-xs text-gray-400">
                             {formatTime(lastMessage.sentAt || new Date())}
@@ -530,7 +530,7 @@ export function InboxPage() {
                       </div>
                     </div>
                     
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-sm text-gray-600 truncate mt-1">
                       {lastMessage?.content || 'Sem mensagens'}
                     </p>
                   </div>
