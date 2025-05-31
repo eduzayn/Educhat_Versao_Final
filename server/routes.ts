@@ -115,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const instanceId = process.env.ZAPI_INSTANCE_ID || '3DF871A7ADFB20FB49998E66062CE0C1';
       const token = process.env.ZAPI_TOKEN || 'A4E42029C248B72DA0842F47';
       
-      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${token}/contacts`, {
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${token}/chats?page=1`, {
         headers: {
           'Content-Type': 'application/json'
         }
