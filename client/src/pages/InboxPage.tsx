@@ -75,6 +75,11 @@ export function InboxPage() {
   // Combinar mensagens do React Query com mensagens do store para tempo real
   // Usar sempre os dados mais recentes do React Query para garantir sincronização
   const messages = queryMessages;
+  
+  // Debug para verificar se as mensagens estão sendo carregadas
+  console.log('Conversa ativa:', activeConversation?.id);
+  console.log('Mensagens carregadas:', messages.length);
+  console.log('Dados das mensagens:', messages);
   const createContact = useCreateContact();
   const { toast } = useToast();
   
