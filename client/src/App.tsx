@@ -7,6 +7,11 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPage } from "@/pages/InboxPage";
+import ChatInternoPage from "@/pages/ChatInternoPage";
+import CrmPage from "@/pages/CrmPage";
+import ReportsPage from "@/pages/ReportsPage";
+import PaymentsPage from "@/pages/PaymentsPage";
+import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
 import NotFound from "@/pages/not-found";
@@ -33,6 +38,11 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
+          <Route path="/chat-interno" component={ChatInternoPage} />
+          <Route path="/crm" component={CrmPage} />
+          <Route path="/reports" component={ReportsPage} />
+          <Route path="/payments" component={PaymentsPage} />
+          <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/settings/channels" component={ChannelsSettingsPage} />
         </>
