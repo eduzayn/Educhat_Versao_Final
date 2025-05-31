@@ -1047,5 +1047,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Endpoint para obter URL do webhook
+  app.get('/api/webhook-url', (req, res) => {
+    const host = req.get('host');
+    const webhookUrl = host?.includes('replit.dev') 
+      ? `https://${host}/api/zapi/webhook`
+      : `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
+    
+    res.json({ 
+      webhookUrl,
+      instructions: "Configure esta URL no painel da Z-API na seção 'Ao receber'"
+    });
+  });
+
   return httpServer;
 }
