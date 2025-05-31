@@ -79,11 +79,15 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
 
   // Observar mudanças no status para limpar QR code e notificar sucesso
   useEffect(() => {
-    if (status?.connected && status?.session) {
-      console.log('✅ WhatsApp conectado com sucesso!');
+    if (status?.connected) {
+      console.log('✅ Z-API instância conectada!');
       setConfigured(true, instanceId);
-      onConnectionSuccess?.();
-      setQrCodeImage(null); // Limpar QR Code quando conectado
+      
+      if (status?.session) {
+        console.log('✅ WhatsApp sessão ativa!');
+        onConnectionSuccess?.();
+        setQrCodeImage(null); // Limpar QR Code quando conectado
+      }
     }
   }, [status, onConnectionSuccess, instanceId, setConfigured]);
 

@@ -4,30 +4,55 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 export function useGlobalZApiMonitor() {
   const { 
     isConfigured, 
+    status,
+    connectionMonitorActive,
     startConnectionMonitor, 
     stopConnectionMonitor, 
-    restoreConnection 
+    restoreConnection,
+    checkConnection,
+    setConfigured
   } = useZApiStore();
 
   useEffect(() => {
-    // Restaurar conexão existente ao inicializar a aplicação
-    restoreConnection();
+    // Verificar imediatamente se há uma conexão ativa no servidor
+    const initializeConnection = async () => {
+      try {
+        // Verificar status atual no servidor
+        await checkConnection();
+        
+        // Se o servidor retorna connected=true mas não temos configuração local, corrigir
+        const currentState = useZApiStore.getState();
+        if (currentState.status?.connected && !currentState.isConfigured) {
+          setConfigured(true);
+        }
+        
+        // Restaurar conexão se necessário
+        if (!connectionMonitorActive) {
+          await restoreConnection();
+        }
+      } catch (error) {
+        console.log('Verificação inicial Z-API:', error);
+      }
+    };
+
+    initializeConnection();
 
     // Limpar monitoramento ao desmontar
     return () => {
       stopConnectionMonitor();
     };
-  }, [restoreConnection, stopConnectionMonitor]);
+  }, []);
 
   useEffect(() => {
-    if (isConfigured) {
+    if (isConfigured && !connectionMonitorActive) {
       startConnectionMonitor();
-    } else {
+    } else if (!isConfigured && connectionMonitorActive) {
       stopConnectionMonitor();
     }
-  }, [isConfigured, startConnectionMonitor, stopConnectionMonitor]);
+  }, [isConfigured, connectionMonitorActive, startConnectionMonitor, stopConnectionMonitor]);
 
   return {
-    isConfigured
+    isConfigured,
+    status
   };
 }

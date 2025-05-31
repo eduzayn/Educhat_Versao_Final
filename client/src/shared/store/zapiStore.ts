@@ -35,9 +35,12 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
     // Salvar no localStorage para persistência
     localStorage.setItem('zapi-status', JSON.stringify(newStatus));
     
-    // Se conectado, marcar como configurado
+    // Se conectado, marcar como configurado e salvar
     if (status.connected) {
-      get().setConfigured(true);
+      const currentState = get();
+      if (!currentState.isConfigured) {
+        get().setConfigured(true);
+      }
     }
   },
 
@@ -129,31 +132,24 @@ const initializeFromLocalStorage = () => {
   if (typeof window === 'undefined') return;
 
   try {
-    const savedStatus = localStorage.getItem('zapi-status');
     const savedConfig = localStorage.getItem('zapi-configured');
-    
-    let initialState: Partial<ZApiState> = {};
-
-    if (savedStatus) {
-      const status = JSON.parse(savedStatus);
-      // Verificar se o status não está muito antigo (mais de 5 minutos)
-      const lastUpdated = new Date(status.lastUpdated);
-      const now = new Date();
-      const timeDiff = now.getTime() - lastUpdated.getTime();
-      
-      if (timeDiff < 5 * 60 * 1000) { // 5 minutos
-        initialState.status = status;
-      }
-    }
     
     if (savedConfig) {
       const config = JSON.parse(savedConfig);
-      initialState.isConfigured = config.isConfigured;
-      initialState.instanceId = config.instanceId;
-    }
-
-    if (Object.keys(initialState).length > 0) {
-      useZApiStore.setState(initialState);
+      useZApiStore.setState({ 
+        isConfigured: config.isConfigured,
+        instanceId: config.instanceId 
+      });
+      
+      // Se configurado, iniciar monitoramento automaticamente
+      if (config.isConfigured) {
+        setTimeout(() => {
+          const store = useZApiStore.getState();
+          if (!store.connectionMonitorActive) {
+            store.startConnectionMonitor();
+          }
+        }, 100);
+      }
     }
   } catch (error) {
     console.error('Erro ao recuperar dados do localStorage:', error);
