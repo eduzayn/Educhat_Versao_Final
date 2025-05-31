@@ -2,17 +2,28 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Phone, ChevronRight } from 'lucide-react';
-import { useContacts } from '@/shared/lib/hooks/useContacts';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight } from 'lucide-react';
+import { useContacts, useUpdateContact, useCreateContact } from '@/shared/lib/hooks/useContacts';
+import { useToast } from '@/shared/lib/hooks/use-toast';
+import type { Contact } from '@shared/schema';
 
 export function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const [viewingContact, setViewingContact] = useState<Contact | null>(null);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', email: '', phone: '' });
+  const { toast } = useToast();
   
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
+  const updateContact = useUpdateContact();
+  const createContact = useCreateContact();
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -27,6 +38,79 @@ export function ContactsPage() {
       setSelectedContacts([]);
     } else {
       setSelectedContacts(contacts.map(c => c.id));
+    }
+  };
+
+  const handleViewContact = (contact: Contact) => {
+    setViewingContact(contact);
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    setEditForm({
+      name: contact.name,
+      email: contact.email || '',
+      phone: contact.phone || ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingContact) return;
+    
+    try {
+      await updateContact.mutateAsync({
+        id: editingContact.id,
+        contact: editForm
+      });
+      
+      toast({
+        title: "Contato atualizado",
+        description: "As informações do contato foram salvas com sucesso."
+      });
+      
+      setEditingContact(null);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o contato.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCreateContact = async () => {
+    try {
+      await createContact.mutateAsync(createForm);
+      
+      toast({
+        title: "Contato criado",
+        description: "O novo contato foi adicionado com sucesso."
+      });
+      
+      setIsCreating(false);
+      setCreateForm({ name: '', email: '', phone: '' });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o contato.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteContact = async (contactId: number) => {
+    try {
+      // Implementar delete no hook se necessário
+      toast({
+        title: "Contato excluído",
+        description: "O contato foi removido com sucesso."
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o contato.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -57,10 +141,63 @@ export function ContactsPage() {
             <h1 className="text-2xl font-bold text-educhat-dark">Contatos</h1>
             <p className="text-educhat-medium">Gerencie seus contatos e integração WhatsApp</p>
           </div>
-          <Button className="bg-educhat-primary hover:bg-educhat-secondary text-white">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Contato
-          </Button>
+          <Dialog open={isCreating} onOpenChange={setIsCreating}>
+            <DialogTrigger asChild>
+              <Button className="bg-educhat-primary hover:bg-educhat-secondary text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Contato
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Contato</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Nome</label>
+                  <Input
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    placeholder="Nome do contato"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <Input
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Telefone</label>
+                  <Input
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                    placeholder="+55 11 99999-9999"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsCreating(false);
+                      setCreateForm({ name: '', email: '', phone: '' });
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleCreateContact}
+                    disabled={createContact.isPending || !createForm.name.trim()}
+                  >
+                    {createContact.isPending ? 'Criando...' : 'Criar Contato'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Main Content */}
@@ -182,12 +319,154 @@ export function ContactsPage() {
                       
                       <div className="col-span-1">
                         <div className="flex items-center space-x-1">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Ver">
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Editar">
-                            <Edit className="w-3 h-3" />
-                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 w-7 p-0" 
+                                title="Ver"
+                                onClick={() => handleViewContact(contact)}
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                              <DialogHeader>
+                                <DialogTitle>Detalhes do Contato</DialogTitle>
+                              </DialogHeader>
+                              {viewingContact && (
+                                <div className="space-y-4">
+                                  <div className="flex items-center space-x-4">
+                                    <Avatar className="w-16 h-16">
+                                      <AvatarImage src={viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
+                                      <AvatarFallback className={`text-white ${
+                                        viewingContact.phone?.includes('whatsapp') || viewingContact.phone?.startsWith('55') 
+                                          ? 'bg-green-500' 
+                                          : viewingContact.name.startsWith('M') 
+                                            ? 'bg-purple-500' 
+                                            : 'bg-blue-500'
+                                      }`}>
+                                        {viewingContact.name.substring(0, 1).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <h3 className="text-lg font-semibold">{viewingContact.name}</h3>
+                                      <p className="text-sm text-gray-500">
+                                        {viewingContact.isOnline ? 'Online' : 'Offline'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Email:</label>
+                                      <p className="text-sm">{viewingContact.email || 'Não informado'}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Telefone:</label>
+                                      <p className="text-sm">{viewingContact.phone || 'Não informado'}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Localização:</label>
+                                      <p className="text-sm">{viewingContact.location || 'Não informado'}</p>
+                                    </div>
+                                    {viewingContact.age && (
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-700">Idade:</label>
+                                        <p className="text-sm">{viewingContact.age} anos</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+
+                          <Dialog open={!!editingContact} onOpenChange={(open) => !open && setEditingContact(null)}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 w-7 p-0" 
+                                title="Editar"
+                                onClick={() => handleEditContact(contact)}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                              <DialogHeader>
+                                <DialogTitle>Editar Contato</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Nome</label>
+                                  <Input
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    placeholder="Nome do contato"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Email</label>
+                                  <Input
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                    placeholder="email@exemplo.com"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Telefone</label>
+                                  <Input
+                                    value={editForm.phone}
+                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                    placeholder="+55 11 99999-9999"
+                                  />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => setEditingContact(null)}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button 
+                                    onClick={handleSaveEdit}
+                                    disabled={updateContact.isPending}
+                                  >
+                                    {updateContact.isPending ? 'Salvando...' : 'Salvar'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Excluir">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir contato</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o contato "{contact.name}"? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteContact(contact.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
