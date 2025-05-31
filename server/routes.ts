@@ -654,6 +654,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para testar webhook manualmente
+  app.post('/api/test-webhook', async (req, res) => {
+    try {
+      console.log('🧪 Teste manual do webhook - forçando broadcast');
+      
+      // Forçar broadcast de uma mensagem de teste
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: 305, // ID da conversa da Ana Vivo
+        message: {
+          id: Date.now(),
+          conversationId: 305,
+          content: 'Mensagem de teste via webhook manual',
+          isFromContact: true,
+          messageType: 'text',
+          sentAt: new Date(),
+          metadata: null,
+          deliveredAt: null,
+          readAt: null
+        }
+      });
+      
+      res.json({ success: true, message: 'Broadcast enviado' });
+    } catch (error) {
+      console.error('Erro no teste do webhook:', error);
+      res.status(500).json({ error: 'Erro no teste' });
+    }
+  });
+
   // Z-API webhook endpoint baseado na documentação oficial
   app.post('/api/zapi/webhook', async (req, res) => {
     try {

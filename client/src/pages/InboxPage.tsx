@@ -73,9 +73,8 @@ export function InboxPage() {
   const { data: queryMessages = [] } = useMessages(activeConversation?.id || null);
   
   // Combinar mensagens do React Query com mensagens do store para tempo real
-  const messages = activeConversation 
-    ? storeMessages[activeConversation.id] || queryMessages 
-    : [];
+  // Usar sempre os dados mais recentes do React Query para garantir sincronização
+  const messages = queryMessages;
   const createContact = useCreateContact();
   const { toast } = useToast();
   
