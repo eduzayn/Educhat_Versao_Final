@@ -8,8 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
 import { BackButton } from '@/shared/components/BackButton';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
 import { Link } from 'wouter';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { insertContactSchema } from '@shared/schema';
+import type { InsertContact } from '@shared/schema';
 import { 
   Search, 
   Filter, 
@@ -34,6 +39,8 @@ import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
+import { useCreateContact } from '@/shared/lib/hooks/useContacts';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
@@ -52,9 +59,40 @@ export function InboxPage() {
   const { data: conversations = [], isLoading } = useConversations();
   const { activeConversation, setActiveConversation } = useChatStore();
   const { data: messages = [] } = useMessages(activeConversation?.id || null);
+  const createContact = useCreateContact();
+  const { toast } = useToast();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const form = useForm<InsertContact>({
+    resolver: zodResolver(insertContactSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      email: ''
+    }
+  });
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
+
+  const onSubmit = async (data: InsertContact) => {
+    try {
+      await createContact.mutateAsync(data);
+      toast({
+        title: "Contato criado com sucesso!",
+        description: `O contato ${data.name} foi adicionado.`
+      });
+      setIsModalOpen(false);
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "Erro ao criar contato",
+        description: "Ocorreu um erro ao criar o contato. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Filtrar conversas baseado na aba ativa e filtros
   const filteredConversations = conversations.filter(conversation => {
