@@ -45,6 +45,13 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
   },
 
   setConfigured: (configured: boolean, instanceId?: string) => {
+    const currentState = get();
+    
+    // Evitar atualizações desnecessárias que causam loops
+    if (currentState.isConfigured === configured && currentState.instanceId === (instanceId || null)) {
+      return;
+    }
+    
     set({ 
       isConfigured: configured,
       instanceId: instanceId || null

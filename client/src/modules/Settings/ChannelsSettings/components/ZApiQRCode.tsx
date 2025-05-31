@@ -69,27 +69,14 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
     }
   };
 
-  // Verificar status inicial e começar monitoramento global
+  // Observar mudanças no status apenas para notificar sucesso
   useEffect(() => {
-    // Se já estiver configurado, apenas iniciar o monitoramento
-    if (isConfigured) {
-      startConnectionMonitor();
+    if (status?.connected && status?.session) {
+      console.log('✅ WhatsApp conectado com sucesso!');
+      onConnectionSuccess?.();
+      setQrCodeImage(null); // Limpar QR Code quando conectado
     }
-  }, [isConfigured, startConnectionMonitor]);
-
-  // Observar mudanças no status para limpar QR code e notificar sucesso
-  useEffect(() => {
-    if (status?.connected) {
-      console.log('✅ Z-API instância conectada!');
-      setConfigured(true, instanceId);
-      
-      if (status?.session) {
-        console.log('✅ WhatsApp sessão ativa!');
-        onConnectionSuccess?.();
-        setQrCodeImage(null); // Limpar QR Code quando conectado
-      }
-    }
-  }, [status, onConnectionSuccess, instanceId, setConfigured]);
+  }, [status?.connected, status?.session, onConnectionSuccess]);
 
   // Cleanup do monitoramento quando componente for desmontado
   useEffect(() => {
