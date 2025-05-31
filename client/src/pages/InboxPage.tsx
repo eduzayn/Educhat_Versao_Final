@@ -251,15 +251,25 @@ export function InboxPage() {
 
             {/* Mensagens */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <MessageBubble 
-                  key={message.id} 
-                  message={message} 
-                  contact={activeConversation.contact}
-                  channelIcon={getChannelInfo(activeConversation.channel).icon}
-                  channelColor={getChannelInfo(activeConversation.channel).color}
-                />
-              ))}
+              {messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="text-center">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>Nenhuma mensagem ainda</p>
+                    <p className="text-sm">Envie uma mensagem para começar a conversa</p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message} 
+                    contact={activeConversation.contact}
+                    channelIcon={getChannelInfo(activeConversation.channel).icon}
+                    channelColor={getChannelInfo(activeConversation.channel).color}
+                  />
+                ))
+              )}
             </div>
 
             {/* Área de Input */}
