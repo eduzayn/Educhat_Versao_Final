@@ -82,6 +82,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  function broadcastToAll(message: any, sender?: WebSocket) {
+    clients.forEach((clientData, client) => {
+      if (
+        client !== sender &&
+        client.readyState === WebSocket.OPEN
+      ) {
+        client.send(JSON.stringify(message));
+      }
+    });
+  }
+
   // API Routes
 
   // Contacts endpoints
@@ -740,7 +751,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: message.content
         });
         
+        // Enviar para clientes da conversa específica
         broadcast(conversation.id, {
+          type: 'new_message',
+          conversationId: conversation.id,
+          message: message
+        });
+        
+        // Enviar para TODOS os clientes para atualizar a lista de conversas
+        broadcastToAll({
           type: 'new_message',
           conversationId: conversation.id,
           message: message
