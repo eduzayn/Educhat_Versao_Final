@@ -45,6 +45,9 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
       
       if (data && data.qrCode) {
         setQrCodeImage(data.qrCode);
+      } else if (data && data.connected) {
+        // Se a API retorna connected: true, significa que já está conectada
+        setError('WhatsApp já está conectado! Não é necessário escanear o QR Code.');
       } else {
         throw new Error('QR Code não encontrado na resposta da API');
       }

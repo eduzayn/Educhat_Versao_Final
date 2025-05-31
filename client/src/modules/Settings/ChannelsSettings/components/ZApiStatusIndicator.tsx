@@ -27,7 +27,16 @@ export function ZApiStatusIndicator() {
     return (
       <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
         <CheckCircle className="w-3 h-3 mr-1" />
-        Conectado
+        WhatsApp Conectado
+      </Badge>
+    );
+  }
+
+  if (status.connected && !status.session && status.smartphoneConnected) {
+    return (
+      <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+        <CheckCircle className="w-3 h-3 mr-1" />
+        Conectado e Ativo
       </Badge>
     );
   }
@@ -36,7 +45,7 @@ export function ZApiStatusIndicator() {
     return (
       <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
         <Wifi className="w-3 h-3 mr-1" />
-        API Conectada - Aguardando Sessão
+        API Conectada
       </Badge>
     );
   }
