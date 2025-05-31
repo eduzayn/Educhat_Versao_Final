@@ -105,90 +105,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Z-API Integration endpoints
-  app.get("/api/zapi/contacts", async (req, res) => {
-    try {
-      // Usar credenciais corretas: ZAPI_TOKEN na URL e ZAPI_CLIENT_TOKEN no header
-      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_TOKEN || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
-        return res.status(400).json({ 
-          message: "Z-API credentials not configured. Please check all ZAPI credentials." 
-        });
-      }
-      
-      // URL usa o token da instância, header usa o client token
-      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/contacts?page=1&pageSize=100`;
-      
-      console.log('Fetching Z-API contacts with correct token configuration...');
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Client-Token': process.env.ZAPI_CLIENT_TOKEN,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-      console.log('Z-API chats response:', response.status, data);
-      
-      if (!response.ok) {
-        console.error('Z-API Error:', response.status, data);
-        return res.status(response.status).json({ 
-          message: "Failed to fetch WhatsApp contacts",
-          error: data.error || 'Unknown error'
-        });
-      }
-      
-      // Processar contatos conforme formato da documentação Z-API
-      if (Array.isArray(data)) {
-        const contacts = data.map((contact: any) => ({
-          id: contact.phone,
-          name: contact.name || contact.short || contact.vname || contact.notify || 'Sem nome',
-          phone: contact.phone,
-          shortName: contact.short || '',
-          vname: contact.vname || '',
-          notify: contact.notify || ''
-        }));
-        
-        console.log(`Successfully fetched ${contacts.length} contacts from Z-API`);
-        res.json({ contacts, total: contacts.length });
-      } else {
-        // Se não for array, retornar a resposta como está
-        res.json(data);
-      }
-      
-    } catch (error) {
-      console.error("Error fetching Z-API contacts:", error);
-      res.status(500).json({ message: "Failed to fetch WhatsApp contacts" });
+  // Função helper para validar credenciais Z-API
+  function validateZApiCredentials() {
+    const instanceId = process.env.ZAPI_INSTANCE_ID;
+    const token = process.env.ZAPI_TOKEN;
+    const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+    
+    if (!instanceId || !token || !clientToken) {
+      return { valid: false, error: 'Credenciais da Z-API não configuradas' };
     }
-  });
+    
+    return { valid: true, instanceId, token, clientToken };
+  }
 
   // Test Z-API connection
   app.get("/api/zapi/test", async (req, res) => {
     try {
-      console.log('Testing Z-API connection...');
-      console.log('Base URL:', process.env.ZAPI_BASE_URL);
-      
-      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN) {
-        return res.status(400).json({ 
-          message: "Z-API credentials not configured",
-          hasBaseUrl: !!process.env.ZAPI_BASE_URL,
-          hasToken: !!process.env.ZAPI_CLIENT_TOKEN
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ message: credentials.error });
       }
 
-      // Test with a simple status endpoint first  
-      const statusResponse = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/status`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const { instanceId, token } = credentials;
+      const statusResponse = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/status`, {
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      console.log('Status response:', statusResponse.status);
-      
       if (!statusResponse.ok) {
         const errorText = await statusResponse.text();
-        console.error('Status error:', errorText);
         return res.status(statusResponse.status).json({ 
           message: `Z-API connection failed: ${statusResponse.status}`,
           error: errorText
@@ -200,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error("Z-API test error:", error);
-      res.status(500).json({ message: "Failed to test Z-API connection", error: error.message });
+      res.status(500).json({ message: "Failed to test Z-API connection", error: (error as Error).message });
     }
   });
 
@@ -213,17 +157,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'firstName and phone are required' });
       }
 
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: "Z-API credentials not configured" 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      // Format phone number (remove non-numeric characters)
+      const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
       const contactData = [{
@@ -248,7 +187,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const data = await response.json();
-      console.log('Contact added to Z-API successfully:', data);
       res.json(data);
       
     } catch (error) {
@@ -266,20 +204,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Phone parameter is required' });
       }
       
-      // Remove non-numeric characters from phone
-      const cleanPhone = (phone as string).replace(/\D/g, '');
-      
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Z-API credentials not configured' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      // Use correct Z-API endpoint for profile picture
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = (phone as string).replace(/\D/g, '');
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
       
       const response = await fetch(url, {
@@ -297,7 +228,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
-      console.log('Profile picture retrieved successfully for:', cleanPhone);
       res.json(data);
       
     } catch (error) {
