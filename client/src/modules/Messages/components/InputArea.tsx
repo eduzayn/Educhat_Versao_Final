@@ -77,6 +77,7 @@ export function InputArea() {
           isFromContact: false,
           messageType: 'text',
         },
+        contact: activeConversation.contact,
       });
     } catch (error) {
       toast({
