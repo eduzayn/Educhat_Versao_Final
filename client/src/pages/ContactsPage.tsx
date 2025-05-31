@@ -6,7 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
+import { Textarea } from '@/shared/ui/ui/textarea';
+import { Badge } from '@/shared/ui/ui/badge';
 import { useContacts, useUpdateContact, useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact } from '@shared/schema';
@@ -18,7 +21,18 @@ export function ContactsPage() {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [isCreating, setIsCreating] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: '', email: '', phone: '' });
+  const [createForm, setCreateForm] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    company: '', 
+    address: '', 
+    contactType: 'Lead', 
+    owner: '', 
+    notes: '' 
+  });
+  const [newTags, setNewTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState('');
   const { toast } = useToast();
   
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
@@ -78,9 +92,24 @@ export function ContactsPage() {
     }
   };
 
+  const handleAddTag = () => {
+    if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
+      setNewTags([...newTags, currentTag.trim()]);
+      setCurrentTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setNewTags(newTags.filter(tag => tag !== tagToRemove));
+  };
+
   const handleCreateContact = async () => {
     try {
-      await createContact.mutateAsync(createForm);
+      await createContact.mutateAsync({
+        name: createForm.name,
+        email: createForm.email,
+        phone: createForm.phone
+      });
       
       toast({
         title: "Contato criado",
@@ -88,7 +117,17 @@ export function ContactsPage() {
       });
       
       setIsCreating(false);
-      setCreateForm({ name: '', email: '', phone: '' });
+      setCreateForm({ 
+        name: '', 
+        email: '', 
+        phone: '', 
+        company: '', 
+        address: '', 
+        contactType: 'Lead', 
+        owner: '', 
+        notes: '' 
+      });
+      setNewTags([]);
     } catch (error) {
       toast({
         title: "Erro",
@@ -148,21 +187,25 @@ export function ContactsPage() {
                 Novo Contato
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Criar Novo Contato</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">Novo Contato</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Nome</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                {/* Nome completo */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Nome completo</label>
                   <Input
                     value={createForm.name}
                     onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                     placeholder="Nome do contato"
+                    className="w-full"
                   />
                 </div>
+
+                {/* Email */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Email</label>
                   <Input
                     type="email"
                     value={createForm.email}
@@ -170,31 +213,144 @@ export function ContactsPage() {
                     placeholder="email@exemplo.com"
                   />
                 </div>
+
+                {/* Telefone */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Telefone</label>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Telefone</label>
                   <Input
                     value={createForm.phone}
                     onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
                     placeholder="+55 11 99999-9999"
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsCreating(false);
-                      setCreateForm({ name: '', email: '', phone: '' });
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={handleCreateContact}
-                    disabled={createContact.isPending || !createForm.name.trim()}
-                  >
-                    {createContact.isPending ? 'Criando...' : 'Criar Contato'}
-                  </Button>
+
+                {/* Empresa */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Empresa</label>
+                  <Input
+                    value={createForm.company}
+                    onChange={(e) => setCreateForm({ ...createForm, company: e.target.value })}
+                    placeholder="Nome da empresa"
+                  />
                 </div>
+
+                {/* Tipo de contato */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Tipo de contato</label>
+                  <Select value={createForm.contactType} onValueChange={(value) => setCreateForm({ ...createForm, contactType: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Lead">Lead</SelectItem>
+                      <SelectItem value="Cliente">Cliente</SelectItem>
+                      <SelectItem value="Parceiro">Parceiro</SelectItem>
+                      <SelectItem value="Fornecedor">Fornecedor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Endereço */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Endereço</label>
+                  <Input
+                    value={createForm.address}
+                    onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })}
+                    placeholder="Rua, número, complemento"
+                  />
+                </div>
+
+                {/* Proprietário */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Proprietário</label>
+                  <Select value={createForm.owner} onValueChange={(value) => setCreateForm({ ...createForm, owner: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o proprietário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="João da Silva">João da Silva</SelectItem>
+                      <SelectItem value="Maria Santos">Maria Santos</SelectItem>
+                      <SelectItem value="Pedro Oliveira">Pedro Oliveira</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Tags */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Tags</label>
+                  <div className="space-y-2">
+                    {newTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {newTags.map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                            {tag}
+                            <X 
+                              className="w-3 h-3 cursor-pointer hover:text-red-500" 
+                              onClick={() => handleRemoveTag(tag)}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        value={currentTag}
+                        onChange={(e) => setCurrentTag(e.target.value)}
+                        placeholder="Nova tag"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                        className="flex-1"
+                      />
+                      <Button type="button" onClick={handleAddTag} variant="outline" size="sm">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {newTags.length === 0 && (
+                      <p className="text-sm text-gray-500">Nenhuma tag adicionada</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Notas */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Notas</label>
+                  <Textarea
+                    value={createForm.notes}
+                    onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+                    placeholder="Adicione observações importantes sobre este contato"
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsCreating(false);
+                    setCreateForm({ 
+                      name: '', 
+                      email: '', 
+                      phone: '', 
+                      company: '', 
+                      address: '', 
+                      contactType: 'Lead', 
+                      owner: '', 
+                      notes: '' 
+                    });
+                    setNewTags([]);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleCreateContact}
+                  disabled={createContact.isPending || !createForm.name.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                >
+                  {createContact.isPending ? 'Criando...' : 'Criar Contato'}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
