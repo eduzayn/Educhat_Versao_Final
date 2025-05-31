@@ -185,19 +185,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        // Buscar contatos da Z-API
-        const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts`, {
-          headers: {
-            'Content-Type': 'application/json'
+        // Tentar diferentes endpoints da Z-API para buscar contatos
+        let response;
+        let endpoint = '';
+        
+        // Lista de endpoints possíveis para contatos na Z-API
+        const endpoints = [
+          'chats',
+          'phone-contacts', 
+          'all-contacts',
+          'contacts',
+          'list-contacts'
+        ];
+
+        for (const ep of endpoints) {
+          endpoint = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/${ep}`;
+          console.log(`Tentando endpoint: ${ep}`);
+          
+          response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          console.log(`Endpoint ${ep} - Status:`, response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`Endpoint ${ep} funcionou! Dados:`, data);
+            break;
+          } else {
+            const errorText = await response.text();
+            console.log(`Endpoint ${ep} falhou:`, errorText);
           }
-        });
+        }
 
-        console.log('Contacts response status:', response.status);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Contacts error response:', errorText);
-          throw new Error(`Z-API error: ${response.status} - ${errorText}`);
+        if (!response || !response.ok) {
+          const errorText = await response?.text() || 'Nenhum endpoint funcionou';
+          console.error('Todos os endpoints falharam:', errorText);
+          throw new Error(`Z-API error: Nenhum endpoint de contatos funcionou`);
         }
 
         const zapiData = await response.json();
