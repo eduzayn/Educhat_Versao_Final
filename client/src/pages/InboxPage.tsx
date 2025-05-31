@@ -503,17 +503,12 @@ export function InboxPage() {
                 onClick={() => setActiveConversation(conversation)}
               >
                 <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={conversation.contact.profileImageUrl || ''} />
-                      <AvatarFallback className="text-sm font-medium">
-                        {conversation.contact.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${channelInfo.color} bg-white border border-white`}>
-                      {channelInfo.icon}
-                    </span>
-                  </div>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={conversation.contact.profileImageUrl || ''} />
+                    <AvatarFallback className="text-sm font-medium">
+                      {conversation.contact.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
