@@ -3,8 +3,8 @@ import { Search } from 'lucide-react';
 import { Input } from '@/shared/ui/ui/input';
 import { Button } from '@/shared/ui/ui/button';
 import { ConversationList } from './ConversationList';
-import { useConversations } from '../hooks/useInbox';
-import { CHANNELS } from '../types/inbox.types';
+import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { CHANNELS } from '@/types/chat';
 import { cn } from '@/lib/utils';
 
 export function InboxPanel() {

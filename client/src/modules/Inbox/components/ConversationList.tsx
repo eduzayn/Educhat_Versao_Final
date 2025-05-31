@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Badge } from '@/shared/ui/ui/badge';
 import { useChatStore } from '@/shared/store/store/chatStore';
-import { CHANNELS, STATUS_CONFIG } from '../types/inbox.types';
+import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { ConversationWithContact } from '@/types/chat';

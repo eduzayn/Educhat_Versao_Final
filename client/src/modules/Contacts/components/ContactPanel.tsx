@@ -4,7 +4,7 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
 import { useChatStore } from '@/shared/store/store/chatStore';
-import { CHANNELS } from '../../Inbox/types/inbox.types';
+import { CHANNELS } from '@/types/chat';
 import { formatDistanceToNow } from 'date-fns';
 
 export function ContactPanel() {
