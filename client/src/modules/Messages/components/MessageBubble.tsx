@@ -1,5 +1,5 @@
 import { Check, CheckCheck } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import type { Message, Contact } from '@/types/chat';
 

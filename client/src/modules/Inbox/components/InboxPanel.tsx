@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/shared/ui/ui/input';
+import { Button } from '@/shared/ui/ui/button';
 import { ConversationList } from './ConversationList';
 import { useConversations } from '../hooks/useInbox';
 import { CHANNELS } from '../types/inbox.types';

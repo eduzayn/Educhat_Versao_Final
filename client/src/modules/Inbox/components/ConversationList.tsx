@@ -1,6 +1,6 @@
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { useChatStore } from '@/store/chatStore';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
+import { Badge } from '@/shared/ui/ui/badge';
+import { useChatStore } from '@/shared/store/store/chatStore';
 import { CHANNELS, STATUS_CONFIG } from '../types/inbox.types';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';

@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Paperclip, Smile, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/shared/ui/ui/button';
+import { Textarea } from '@/shared/ui/ui/textarea';
 import { useSendMessage } from '../hooks/useMessages';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { useChatStore } from '@/store/chatStore';
-import { useToast } from '@/hooks/use-toast';
+import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
+import { useChatStore } from '@/shared/store/store/chatStore';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const QUICK_REPLIES = [

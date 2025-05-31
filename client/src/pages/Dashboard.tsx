@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { Header } from '@/components/Header';
-import { ConversationSidebar } from '@/components/ConversationSidebar';
-import { ChatArea } from '@/components/ChatArea';
-import { ContactPanel } from '@/components/ContactPanel';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { useConversations } from '@/hooks/useConversations';
-import { useChatStore } from '@/store/chatStore';
+import { InboxPanel } from '@/modules/Inbox/components/InboxPanel';
+import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
+import { InputArea } from '@/modules/Messages/components/InputArea';
+import { ContactPanel } from '@/modules/Contacts/components/ContactPanel';
+import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
+import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { useChatStore } from '@/shared/store/store/chatStore';
 
 export function Dashboard() {
   const { data: conversations = [] } = useConversations();
