@@ -113,9 +113,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Usar credenciais corretas da instância ativa
       const instanceId = '3DF871A7ADFB20FB49998E66062CE0C1';
-      const clientToken = 'Fe4f45c32c552449dbf8b290c83f520d5S';
+      const token = 'A4E42029C248B72DA0842F47';
       
-      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${clientToken}/chats`, {
+      // Testar o endpoint exato da documentação
+      const baseUrl = process.env.ZAPI_BASE_URL || 'https://api.z-api.io';
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/chats`;
+      console.log('Z-API URL being called:', url);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
