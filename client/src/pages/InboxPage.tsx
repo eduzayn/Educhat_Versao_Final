@@ -41,6 +41,7 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
@@ -63,32 +64,102 @@ export function InboxPage() {
   const { toast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const form = useForm<InsertContact>({
-    resolver: zodResolver(insertContactSchema),
-    defaultValues: {
-      name: '',
-      phone: '',
-      email: ''
-    }
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    address: '',
+    contactType: 'Lead',
+    owner: '',
+    notes: ''
   });
+  const [newTags, setNewTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState('');
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
-  const onSubmit = async (data: InsertContact) => {
+  // Funções para manipular tags
+  const handleAddTag = () => {
+    if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
+      setNewTags([...newTags, currentTag.trim()]);
+      setCurrentTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setNewTags(newTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleCreateContact = async () => {
     try {
-      await createContact.mutateAsync(data);
-      toast({
-        title: "Contato criado com sucesso!",
-        description: `O contato ${data.name} foi adicionado.`
+      // First, try to add contact to Z-API WhatsApp
+      if (createForm.phone && isWhatsAppAvailable) {
+        try {
+          const [firstName, ...lastNameParts] = createForm.name.split(' ');
+          const lastName = lastNameParts.join(' ');
+          
+          const response = await fetch("/api/zapi/contacts/add", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              firstName,
+              lastName,
+              phone: createForm.phone
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to add contact to WhatsApp: ${response.status}`);
+          }
+          
+          toast({
+            title: "Contato adicionado ao WhatsApp",
+            description: "O contato foi adicionado à sua agenda do WhatsApp."
+          });
+        } catch (zapiError) {
+          console.warn('Failed to add contact to Z-API:', zapiError);
+          toast({
+            title: "Aviso",
+            description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
+            variant: "destructive"
+          });
+        }
+      }
+      
+      // Then create in local database
+      await createContact.mutateAsync({
+        name: createForm.name,
+        email: createForm.email,
+        phone: createForm.phone
       });
+      
+      toast({
+        title: "Contato criado",
+        description: isWhatsAppAvailable && createForm.phone 
+          ? "Contato criado no sistema e adicionado ao WhatsApp." 
+          : "Contato criado no sistema."
+      });
+      
       setIsModalOpen(false);
-      form.reset();
+      setCreateForm({ 
+        name: '', 
+        email: '', 
+        phone: '', 
+        company: '', 
+        address: '', 
+        contactType: 'Lead', 
+        owner: '', 
+        notes: '' 
+      });
+      setNewTags([]);
     } catch (error) {
       toast({
-        title: "Erro ao criar contato",
-        description: "Ocorreu um erro ao criar o contato. Tente novamente.",
+        title: "Erro",
+        description: "Não foi possível criar o contato.",
         variant: "destructive"
       });
     }
@@ -171,71 +242,181 @@ export function InboxPage() {
                     <Plus className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Novo Contato</DialogTitle>
                   </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome completo</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nome do contato" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                  
+                  {/* Aviso sobre WhatsApp */}
+                  {isWhatsAppAvailable && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <span className="text-green-700 text-sm">
+                        Contatos com telefone serão automaticamente adicionados ao seu WhatsApp
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Nome completo */}
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Nome completo</label>
+                      <Input
+                        value={createForm.name}
+                        onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                        placeholder="Nome do contato"
                       />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="email@exemplo.com" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Telefone</FormLabel>
-                              <FormControl>
-                                <Input placeholder="+55 11 99999-9999" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                    </div>
+
+                    {/* Email e Telefone */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Email</label>
+                      <Input
+                        type="email"
+                        value={createForm.email}
+                        onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                        placeholder="email@exemplo.com"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Telefone</label>
+                      <Input
+                        value={createForm.phone}
+                        onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                        placeholder="+55 11 99999-9999"
+                      />
+                    </div>
+
+                    {/* Empresa e Tipo de contato */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Empresa</label>
+                      <Input
+                        value={createForm.company}
+                        onChange={(e) => setCreateForm({ ...createForm, company: e.target.value })}
+                        placeholder="Nome da empresa"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Tipo de contato</label>
+                      <Select value={createForm.contactType} onValueChange={(value) => setCreateForm({ ...createForm, contactType: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Lead">Lead</SelectItem>
+                          <SelectItem value="Cliente">Cliente</SelectItem>
+                          <SelectItem value="Parceiro">Parceiro</SelectItem>
+                          <SelectItem value="Fornecedor">Fornecedor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Endereço */}
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Endereço</label>
+                      <Input
+                        value={createForm.address}
+                        onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })}
+                        placeholder="Rua, número, complemento"
+                      />
+                    </div>
+
+                    {/* Proprietário */}
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Proprietário</label>
+                      <Select value={createForm.owner} onValueChange={(value) => setCreateForm({ ...createForm, owner: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o proprietário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="João da Silva">João da Silva</SelectItem>
+                          <SelectItem value="Maria Santos">Maria Santos</SelectItem>
+                          <SelectItem value="Pedro Oliveira">Pedro Oliveira</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Tags</label>
+                      <div className="space-y-2">
+                        {newTags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {newTags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {tag}
+                                <X 
+                                  className="w-3 h-3 cursor-pointer hover:text-red-500" 
+                                  onClick={() => handleRemoveTag(tag)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Input
+                            value={currentTag}
+                            onChange={(e) => setCurrentTag(e.target.value)}
+                            placeholder="Nova tag"
+                            onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                            className="flex-1"
+                          />
+                          <Button type="button" onClick={handleAddTag} variant="outline" size="sm">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {newTags.length === 0 && (
+                          <p className="text-sm text-gray-500">Nenhuma tag adicionada</p>
+                        )}
                       </div>
-                      <div className="flex justify-end gap-3 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsModalOpen(false)}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button 
-                          type="submit"
-                          disabled={createContact.isPending}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          {createContact.isPending ? "Criando..." : "Criar Contato"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
+                    </div>
+
+                    {/* Notas */}
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Notas</label>
+                      <Textarea
+                        value={createForm.notes}
+                        onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+                        placeholder="Adicione observações importantes sobre este contato"
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setCreateForm({ 
+                          name: '', 
+                          email: '', 
+                          phone: '', 
+                          company: '', 
+                          address: '', 
+                          contactType: 'Lead', 
+                          owner: '', 
+                          notes: '' 
+                        });
+                        setNewTags([]);
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleCreateContact}
+                      disabled={createContact.isPending || !createForm.name.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    >
+                      {createContact.isPending ? 'Criando...' : 'Criar Contato'}
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
