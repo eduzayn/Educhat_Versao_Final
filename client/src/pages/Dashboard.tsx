@@ -292,7 +292,13 @@ export function Dashboard() {
                     ? 'bg-educhat-primary text-white' 
                     : 'text-educhat-medium hover:text-educhat-dark hover:bg-educhat-purple-50'
                 }`}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => {
+                  if (item.id === 'settings') {
+                    setLocation('/settings');
+                  } else {
+                    setActiveSection(item.id);
+                  }
+                }}
               >
                 <item.icon className={`w-5 h-5 ${isSidebarOpen ? 'mr-3' : ''}`} />
                 {isSidebarOpen && (
