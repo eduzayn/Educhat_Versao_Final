@@ -26,16 +26,11 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   const { status } = useZApiStore();
 
   const fetchQRCode = async () => {
-    if (!instanceId || !token) {
-      setError('Instance ID e Token são obrigatórios');
-      return;
-    }
-
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
+      const response = await fetch('/api/zapi/qrcode', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -48,9 +43,8 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
 
       const data = await response.json();
       
-      if (data && data.value) {
-        const imageData = `data:image/png;base64,${data.value}`;
-        setQrCodeImage(imageData);
+      if (data && data.qrCode) {
+        setQrCodeImage(data.qrCode);
       } else {
         throw new Error('QR Code não encontrado na resposta da API');
       }
