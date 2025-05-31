@@ -267,6 +267,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Z-API webhook endpoint
+  app.post('/api/zapi/webhook', async (req, res) => {
+    try {
+      console.log('📨 Webhook Z-API recebido:', JSON.stringify(req.body, null, 2));
+      
+      const webhookData = req.body;
+      
+      // Processar mensagens recebidas
+      if (webhookData.phone && webhookData.text) {
+        console.log('📱 Nova mensagem via WhatsApp:', {
+          de: webhookData.phone,
+          mensagem: webhookData.text.message,
+          timestamp: webhookData.timestamp
+        });
+        
+        // Buscar ou criar contato pelo telefone
+        const contacts = await storage.searchContacts(webhookData.phone);
+        let contact = contacts.find(c => c.phone === webhookData.phone);
+        
+        if (!contact) {
+          contact = await storage.createContact({
+            name: webhookData.senderName || webhookData.phone,
+            phone: webhookData.phone,
+            isOnline: true,
+            lastSeenAt: new Date()
+          });
+        } else {
+          await storage.updateContactOnlineStatus(contact.id, true);
+        }
+        
+        // Buscar ou criar conversa
+        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+        if (!conversation) {
+          conversation = await storage.createConversation({
+            contactId: contact.id,
+            channel: 'whatsapp',
+            status: 'open',
+            lastMessageAt: new Date()
+          });
+        }
+        
+        // Criar mensagem
+        const message = await storage.createMessage({
+          conversationId: conversation.id,
+          content: webhookData.text.message,
+          isFromContact: true
+        });
+        
+        // Broadcast para clientes conectados
+        broadcast(conversation.id, {
+          type: 'new_message',
+          conversationId: conversation.id,
+          message: message
+        });
+        
+        console.log('✅ Mensagem processada e salva');
+      }
+      
+      res.status(200).json({ success: true });
+      
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Z-API:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Configurar webhook da Z-API
+  app.post('/api/zapi/configure-webhook', async (req, res) => {
+    try {
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // URL do webhook será a URL do Replit + /api/zapi/webhook
+      const webhookUrl = `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
+      
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/webhook`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: webhookUrl,
+          enabled: true,
+          webhookByEvents: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      res.json({ 
+        success: true, 
+        webhookUrl,
+        response: data 
+      });
+      
+    } catch (error) {
+      console.error('Erro ao configurar webhook:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Z-API integration routes
   app.get('/api/zapi/qr-code', async (req, res) => {
     try {
