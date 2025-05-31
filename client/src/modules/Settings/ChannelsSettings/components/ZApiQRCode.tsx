@@ -41,9 +41,9 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
 
       const data = await response.json();
       
-      if (data.value && data.value.base64) {
-        // Converter os bytes para uma imagem base64
-        setQrCodeImage(`data:image/png;base64,${data.value.base64}`);
+      if (data.value) {
+        // A Z-API retorna o QR code como imagem base64 diretamente
+        setQrCodeImage(`data:image/png;base64,${data.value}`);
         // Começar a verificar o status
         startStatusCheck();
       } else {
