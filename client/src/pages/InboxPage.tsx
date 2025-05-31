@@ -59,7 +59,12 @@ export function InboxPage() {
   useGlobalZApiMonitor();
   
   const { data: conversations = [], isLoading } = useConversations();
-  const { activeConversation, setActiveConversation } = useChatStore();
+  const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
+
+  const handleSelectConversation = (conversation: any) => {
+    setActiveConversation(conversation);
+    markConversationAsRead(conversation.id);
+  };
   const { data: messages = [] } = useMessages(activeConversation?.id || null);
   const createContact = useCreateContact();
   const { toast } = useToast();
@@ -520,6 +525,11 @@ export function InboxPage() {
                           <span className="text-xs text-gray-400">
                             {formatTime(lastMessage.sentAt || new Date())}
                           </span>
+                        )}
+                        {conversation.unreadCount && conversation.unreadCount > 0 && (
+                          <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                          </Badge>
                         )}
                         {getStatusBadge(conversation.status)}
                       </div>

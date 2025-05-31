@@ -10,6 +10,7 @@ interface ChatStore extends ChatState {
   setConnectionStatus: (isConnected: boolean) => void;
   setSelectedContactId: (contactId: number | null) => void;
   updateConversationLastMessage: (conversationId: number, message: Message) => void;
+  markConversationAsRead: (conversationId: number) => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -78,8 +79,31 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       if (conv.id === conversationId) {
         return {
           ...conv,
-          lastMessageAt: message.sentAt,
+          lastMessageAt: message.sentAt || new Date(),
           messages: [message],
+          unreadCount: (conv.unreadCount || 0) + (message.isFromContact ? 1 : 0),
+        };
+      }
+      return conv;
+    });
+    
+    // Reordenar conversas por data da última mensagem
+    const sortedConversations = updatedConversations.sort((a, b) => {
+      const dateA = new Date(a.lastMessageAt || 0);
+      const dateB = new Date(b.lastMessageAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    set({ conversations: sortedConversations });
+  },
+
+  markConversationAsRead: (conversationId) => {
+    const { conversations } = get();
+    const updatedConversations = conversations.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          unreadCount: 0,
         };
       }
       return conv;
