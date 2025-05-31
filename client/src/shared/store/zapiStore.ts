@@ -105,9 +105,12 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
       if (response.ok) {
         const status = await response.json();
         get().setStatus(status);
+      } else {
+        console.warn('Status Z-API indisponível:', response.status);
       }
     } catch (error) {
-      console.error('Erro ao verificar status Z-API:', error);
+      console.warn('Erro de conectividade Z-API (será reativado automaticamente):', error.message || 'Network error');
+      // Não parar o monitoramento em caso de erro temporário de rede
     }
   },
 

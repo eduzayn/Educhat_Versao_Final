@@ -562,7 +562,6 @@ export function ContactsPage() {
                   <div className="col-span-1">Empresa</div>
                   <div className="col-span-1">Tipo</div>
                   <div className="col-span-1">Proprietário</div>
-                  <div className="col-span-1">Tags</div>
                   <div className="col-span-1">Ações</div>
                 </div>
               </div>
@@ -635,7 +634,7 @@ export function ContactsPage() {
                       </div>
                       
                       <div className="col-span-1">
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center justify-end space-x-1">
                           <Button 
                             size="sm" 
                             variant="ghost" 
