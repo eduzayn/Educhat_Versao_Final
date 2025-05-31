@@ -115,14 +115,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Usar CLIENT_TOKEN para acessar chats/contatos
-      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/chats`;
+      // Usar endpoint correto /contacts com paginação conforme documentação
+      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts?page=1&pageSize=100`;
       
-      console.log('Fetching Z-API contacts using status endpoint pattern...');
+      console.log('Fetching Z-API contacts using correct /contacts endpoint...');
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
+          'Client-Token': process.env.ZAPI_CLIENT_TOKEN,
           'Content-Type': 'application/json'
         }
       });
@@ -138,17 +139,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Se a resposta for um array, processar os contatos
+      // Processar contatos conforme formato da documentação Z-API
       if (Array.isArray(data)) {
-        const contacts = data.map((chat: any) => ({
-          id: chat.id?.user || chat.id,
-          name: chat.name || chat.id?.user || 'Sem nome',
-          phone: chat.id?.user?.replace('@c.us', '') || '',
-          lastMessage: chat.lastMessage?.body || '',
-          lastMessageTime: chat.lastMessage?.messageTimestamp ? 
-            new Date(chat.lastMessage.messageTimestamp * 1000).toISOString() : null,
-          isGroup: chat.isGroup || false,
-          unreadCount: chat.unreadCount || 0
+        const contacts = data.map((contact: any) => ({
+          id: contact.phone,
+          name: contact.name || contact.short || contact.vname || contact.notify || 'Sem nome',
+          phone: contact.phone,
+          shortName: contact.short || '',
+          vname: contact.vname || '',
+          notify: contact.notify || ''
         }));
         
         console.log(`Successfully fetched ${contacts.length} contacts from Z-API`);
