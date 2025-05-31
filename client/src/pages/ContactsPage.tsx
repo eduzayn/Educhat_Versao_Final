@@ -42,6 +42,7 @@ export function ContactsPage() {
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [selectedContactPhone, setSelectedContactPhone] = useState<string | null>(null);
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
+  const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
@@ -109,6 +110,52 @@ export function ContactsPage() {
 
   const handleFetchProfilePicture = (phone: string) => {
     setProfilePicturePhone(phone);
+  };
+
+  const handleUpdateAllProfilePictures = async () => {
+    if (!isWhatsAppAvailable) {
+      toast({
+        title: "WhatsApp não conectado",
+        description: "Configure o WhatsApp nas Configurações → Canais para atualizar fotos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUpdatingAllPhotos(true);
+    try {
+      const response = await fetch('/api/contacts/update-profile-pictures', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar fotos de perfil');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Fotos atualizadas",
+        description: `${result.updated} fotos de perfil foram atualizadas com sucesso.`
+      });
+
+      // Recarregar a lista de contatos para mostrar as fotos atualizadas
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar as fotos de perfil.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingAllPhotos(false);
+    }
   };
 
   const handleEditContact = (contact: Contact) => {
@@ -698,6 +745,17 @@ export function ContactsPage() {
                   >
                     <Download className="w-4 h-4 mr-2" />
                     {importZApiContacts.isPending ? 'Sincronizando...' : 'Sincronizar WhatsApp'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleUpdateAllProfilePictures}
+                    disabled={updatingAllPhotos || !isWhatsAppAvailable}
+                    title={!isWhatsAppAvailable ? 'WhatsApp não está conectado. Configure nas Configurações → Canais' : 'Atualizar fotos de perfil de todos os contatos'}
+                    className={isWhatsAppAvailable ? 'border-blue-200 text-blue-700 hover:bg-blue-50' : 'border-gray-200 text-gray-400'}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {updatingAllPhotos ? 'Atualizando...' : 'Atualizar Fotos'}
                   </Button>
                 </div>
               </div>
