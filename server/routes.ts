@@ -523,7 +523,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      console.log(`🔍 Buscando mensagens para conversa ${id}, limit: ${limit}`);
+      
       const messages = await storage.getMessages(id, limit);
+      console.log(`📨 Encontradas ${messages.length} mensagens para conversa ${id}`);
+      
       res.json(messages.reverse()); // Return in chronological order
     } catch (error) {
       console.error('Error fetching messages:', error);
