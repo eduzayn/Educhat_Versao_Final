@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/ui/button';
 import { Card } from '@/shared/ui/ui/card';
 import { RefreshCw, PlusCircle, MessageSquare, Instagram, Facebook, Mail, MessageSquareText, Phone } from 'lucide-react';
 import { UnifiedChannelWizard } from './components/UnifiedChannelWizard';
+import { ZApiStatusIndicator } from './components/ZApiStatusIndicator';
 
 interface Channel {
   id: string;
@@ -59,12 +60,36 @@ export const ChannelsSettingsModule = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true);
-    // Aqui seria feita a chamada para a API
-    setTimeout(() => {
+    try {
+      // Força uma verificação imediata do status Z-API
+      const response = await fetch('/api/zapi/status');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Atualizar o store global com o status real
+        const { setStatus, setConfigured } = await import('@/shared/store/zapiStore').then(m => m.useZApiStore.getState());
+        
+        setStatus({
+          connected: data.connected || false,
+          session: data.session || false,
+          smartphoneConnected: data.smartphoneConnected || false,
+          lastUpdated: new Date()
+        });
+        
+        // Se conectado, marcar como configurado
+        if (data.connected) {
+          setConfigured(true);
+        }
+        
+        console.log('Status Z-API atualizado:', data);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleChannelAdded = (newChannel: Channel) => {
@@ -132,14 +157,15 @@ export const ChannelsSettingsModule = () => {
             Configure os canais de comunicação com seus clientes
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <ZApiStatusIndicator />
           <Button 
             variant="outline" 
             onClick={handleRefresh}
             disabled={isLoading}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Atualizar
+            Atualizar Status
           </Button>
           <Button onClick={() => setOpenAddChannelWizard(true)}>
             <PlusCircle className="h-4 w-4 mr-2" />
