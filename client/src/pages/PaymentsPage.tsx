@@ -1,4 +1,5 @@
 import { CreditCard } from 'lucide-react';
+import { BackButton } from '@/shared/components/BackButton';
 
 export function PaymentsPage() {
   return (

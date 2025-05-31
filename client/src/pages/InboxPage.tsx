@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
+import { BackButton } from '@/shared/components/BackButton';
 import { 
   Search, 
   Filter, 
@@ -102,6 +103,7 @@ export function InboxPage() {
       <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
+          <BackButton to="/" label="Dashboard" className="mb-2" />
           <h1 className="text-xl font-semibold text-educhat-dark mb-4">Conversas</h1>
           
           {/* Abas */}
