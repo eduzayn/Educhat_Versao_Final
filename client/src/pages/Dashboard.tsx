@@ -23,6 +23,31 @@ import {
   Mail
 } from 'lucide-react';
 import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
+import { InboxPanel } from '@/modules/Inbox/components/InboxPanel';
+import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { useMessages } from '@/shared/lib/hooks/useMessages';
+import { useChatStore } from '@/shared/store/store/chatStore';
+
+// Componente da Caixa de Entrada integrado
+function InboxContent() {
+  const { data: conversations, isLoading } = useConversations();
+  const { activeConversation } = useChatStore();
+  const { data: messages } = useMessages(activeConversation?.id || null);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-educhat-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full">
+      <InboxPanel />
+    </div>
+  );
+}
 
 export function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -227,24 +252,7 @@ export function Dashboard() {
         );
       
       case 'inbox':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-educhat-dark">Caixa de Entrada</h1>
-              <p className="text-educhat-medium mt-2">
-                Gerencie todas as suas conversas em um só lugar.
-              </p>
-            </div>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-educhat-medium">
-                  Módulo da caixa de entrada unificada será implementado aqui.
-                  Todas as conversas dos diferentes canais aparecerão nesta seção.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <InboxContent />;
 
       default:
         return (
