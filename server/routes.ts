@@ -280,7 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code`;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code-bytes`;
       const response = await fetch(url, {
         headers: {
           'Client-Token': clientToken,

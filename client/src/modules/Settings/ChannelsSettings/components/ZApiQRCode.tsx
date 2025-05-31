@@ -43,11 +43,8 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
       console.log('Resposta da Z-API QR Code:', data);
       
       if (data.value) {
-        // Verificar se o valor já contém o prefixo data:image
-        let imageData = data.value;
-        if (!imageData.startsWith('data:image')) {
-          imageData = `data:image/png;base64,${imageData}`;
-        }
+        // O endpoint qr-code-bytes retorna a imagem base64 real
+        const imageData = `data:image/png;base64,${data.value}`;
         console.log('Imagem processada:', imageData.substring(0, 100) + '...');
         setQrCodeImage(imageData);
         // Começar a verificar o status
