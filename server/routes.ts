@@ -108,31 +108,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API Integration endpoints
   app.get("/api/zapi/contacts", async (req, res) => {
     try {
-      // Usar credenciais das variáveis de ambiente
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-      
-      if (!instanceId || !clientToken) {
+      // Para chats, usar CLIENT_TOKEN em vez de TOKEN
+      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
         return res.status(400).json({ 
           message: "Z-API credentials not configured. Please check ZAPI_INSTANCE_ID and ZAPI_CLIENT_TOKEN." 
         });
       }
       
-      // Endpoint correto conforme documentação Z-API
-      const baseUrl = process.env.ZAPI_BASE_URL || 'https://api.z-api.io';
-      const url = `${baseUrl}/instances/${instanceId}/token/${clientToken}/chats`;
+      // Usar CLIENT_TOKEN para acessar chats/contatos
+      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/chats`;
       
-      console.log('Fetching Z-API contacts from:', url.replace(clientToken, '[HIDDEN]'));
+      console.log('Fetching Z-API contacts using status endpoint pattern...');
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Client-Token': clientToken,
           'Content-Type': 'application/json'
         }
       });
 
       const data = await response.json();
+      console.log('Z-API chats response:', response.status, data);
       
       if (!response.ok) {
         console.error('Z-API Error:', response.status, data);
@@ -142,20 +138,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Processar e formatar os contatos
-      const contacts = data.map((chat: any) => ({
-        id: chat.id?.user || chat.id,
-        name: chat.name || chat.id?.user || 'Sem nome',
-        phone: chat.id?.user?.replace('@c.us', '') || '',
-        lastMessage: chat.lastMessage?.body || '',
-        lastMessageTime: chat.lastMessage?.messageTimestamp ? 
-          new Date(chat.lastMessage.messageTimestamp * 1000).toISOString() : null,
-        isGroup: chat.isGroup || false,
-        unreadCount: chat.unreadCount || 0
-      }));
-      
-      console.log(`Successfully fetched ${contacts.length} contacts from Z-API`);
-      res.json({ contacts, total: contacts.length });
+      // Se a resposta for um array, processar os contatos
+      if (Array.isArray(data)) {
+        const contacts = data.map((chat: any) => ({
+          id: chat.id?.user || chat.id,
+          name: chat.name || chat.id?.user || 'Sem nome',
+          phone: chat.id?.user?.replace('@c.us', '') || '',
+          lastMessage: chat.lastMessage?.body || '',
+          lastMessageTime: chat.lastMessage?.messageTimestamp ? 
+            new Date(chat.lastMessage.messageTimestamp * 1000).toISOString() : null,
+          isGroup: chat.isGroup || false,
+          unreadCount: chat.unreadCount || 0
+        }));
+        
+        console.log(`Successfully fetched ${contacts.length} contacts from Z-API`);
+        res.json({ contacts, total: contacts.length });
+      } else {
+        // Se não for array, retornar a resposta como está
+        res.json(data);
+      }
       
     } catch (error) {
       console.error("Error fetching Z-API contacts:", error);
