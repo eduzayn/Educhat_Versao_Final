@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Alert, AlertDescription } from '@/shared/ui/ui/alert';
 import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { useZApiStore } from '@/shared/store/zapiStore';
 
 interface ZApiQRCodeProps {
   baseUrl: string;
@@ -22,8 +23,17 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<ZApiStatus | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  
+  // Usar a store global para persistir o status
+  const { 
+    status, 
+    setStatus, 
+    startConnectionMonitor, 
+    stopConnectionMonitor, 
+    setConfigured,
+    isConfigured 
+  } = useZApiStore();
 
   // As credenciais agora são gerenciadas pelo backend
 
@@ -47,8 +57,8 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
         const imageData = `data:image/png;base64,${data.value}`;
         console.log('Imagem processada:', imageData.substring(0, 100) + '...');
         setQrCodeImage(imageData);
-        // Começar a verificar o status
-        startStatusCheck();
+        // Começar a verificar o status globalmente
+        startConnectionMonitor();
       } else {
         throw new Error('QR Code não encontrado na resposta da API');
       }
@@ -59,46 +69,31 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
     }
   };
 
-  const checkStatus = async () => {
-    try {
-      const response = await fetch('/api/zapi/status');
-
-      if (response.ok) {
-        const data = await response.json();
-        setStatus(data);
-        
-        if (data.connected && data.session && data.smartphoneConnected) {
-          setQrCodeImage(null); // Remove QR code quando conectado
-          onConnectionSuccess?.();
-        }
-      }
-    } catch (err) {
-      console.error('Erro ao verificar status:', err);
-    }
-  };
-
-  const startStatusCheck = () => {
-    setCheckingStatus(true);
-    const interval = setInterval(async () => {
-      await checkStatus();
-      
-      // Para de verificar se estiver conectado
-      if (status?.connected && status?.session && status?.smartphoneConnected) {
-        clearInterval(interval);
-        setCheckingStatus(false);
-      }
-    }, 3000); // Verifica a cada 3 segundos
-
-    // Para de verificar após 5 minutos
-    setTimeout(() => {
-      clearInterval(interval);
-      setCheckingStatus(false);
-    }, 300000);
-  };
-
+  // Verificar status inicial e começar monitoramento global
   useEffect(() => {
-    // Verificar status inicial ao carregar o componente
-    checkStatus();
+    // Se já estiver configurado, apenas iniciar o monitoramento
+    if (isConfigured) {
+      startConnectionMonitor();
+    }
+  }, [isConfigured, startConnectionMonitor]);
+
+  // Observar mudanças no status para limpar QR code e notificar sucesso
+  useEffect(() => {
+    if (status?.connected && status?.session) {
+      console.log('✅ WhatsApp conectado com sucesso!');
+      setConfigured(true, instanceId);
+      onConnectionSuccess?.();
+      setQrCodeImage(null); // Limpar QR Code quando conectado
+    }
+  }, [status, onConnectionSuccess, instanceId, setConfigured]);
+
+  // Cleanup do monitoramento quando componente for desmontado
+  useEffect(() => {
+    return () => {
+      // Não parar o monitoramento global aqui, apenas limpar estados locais
+      setQrCodeImage(null);
+      setError(null);
+    };
   }, []);
 
   const getStatusDisplay = () => {
