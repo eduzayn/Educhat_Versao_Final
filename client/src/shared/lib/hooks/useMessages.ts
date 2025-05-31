@@ -3,12 +3,23 @@ import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
 export function useMessages(conversationId: number | null) {
-  return useQuery<Message[]>({
+  console.log('🔍 useMessages chamado com conversationId:', conversationId);
+  
+  const query = useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId,
     refetchInterval: 3000, // Refetch a cada 3 segundos para capturar novas mensagens
     refetchIntervalInBackground: true,
   });
+  
+  console.log('📨 useMessages resultado:', { 
+    isLoading: query.isLoading, 
+    data: query.data, 
+    error: query.error,
+    dataLength: query.data?.length 
+  });
+  
+  return query;
 }
 
 export function useSendMessage() {
