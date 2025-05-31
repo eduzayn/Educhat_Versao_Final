@@ -4,25 +4,30 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 export function useGlobalZApiMonitor() {
   const { 
     isConfigured, 
-    connectionMonitorActive, 
     startConnectionMonitor, 
-    stopConnectionMonitor 
+    stopConnectionMonitor, 
+    restoreConnection 
   } = useZApiStore();
 
   useEffect(() => {
-    // Se estiver configurado e não houver monitoramento ativo, iniciar
-    if (isConfigured && !connectionMonitorActive) {
-      startConnectionMonitor();
-    }
+    // Restaurar conexão existente ao inicializar a aplicação
+    restoreConnection();
 
-    // Cleanup apenas quando não há mais componentes usando
+    // Limpar monitoramento ao desmontar
     return () => {
-      // Não parar o monitoramento aqui para manter persistência global
+      stopConnectionMonitor();
     };
-  }, [isConfigured, connectionMonitorActive, startConnectionMonitor]);
+  }, [restoreConnection, stopConnectionMonitor]);
 
-  // Retornar uma função para parar manualmente se necessário
+  useEffect(() => {
+    if (isConfigured) {
+      startConnectionMonitor();
+    } else {
+      stopConnectionMonitor();
+    }
+  }, [isConfigured, startConnectionMonitor, stopConnectionMonitor]);
+
   return {
-    stopMonitoring: stopConnectionMonitor
+    isConfigured
   };
 }

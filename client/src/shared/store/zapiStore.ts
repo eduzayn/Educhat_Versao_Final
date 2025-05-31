@@ -18,6 +18,7 @@ interface ZApiState {
   startConnectionMonitor: () => void;
   stopConnectionMonitor: () => void;
   checkConnection: () => Promise<void>;
+  restoreConnection: () => Promise<void>;
 }
 
 export const useZApiStore = create<ZApiState>((set, get) => ({
@@ -97,6 +98,21 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
       }
     } catch (error) {
       console.error('Erro ao verificar status Z-API:', error);
+    }
+  },
+
+  restoreConnection: async () => {
+    try {
+      // Tentar verificar conexão existente
+      await get().checkConnection();
+      
+      // Se não há configuração salva, não fazer nada
+      const { isConfigured } = get();
+      if (isConfigured) {
+        get().startConnectionMonitor();
+      }
+    } catch (error) {
+      console.error('Erro ao restaurar conexão Z-API:', error);
     }
   }
 }));
