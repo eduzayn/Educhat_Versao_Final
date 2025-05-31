@@ -114,3 +114,22 @@ export function useImportZApiContacts() {
     }
   });
 }
+
+// Hook to get contact metadata from Z-API
+export function useZApiContactMetadata(phone: string | null) {
+  return useQuery({
+    queryKey: ['/api/zapi/contacts', phone],
+    queryFn: async () => {
+      if (!phone) throw new Error('Phone number is required');
+      
+      const response = await fetch(`/api/zapi/contacts/${phone}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch contact metadata');
+      }
+      return response.json();
+    },
+    enabled: !!phone,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 2
+  });
+}

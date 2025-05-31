@@ -24,7 +24,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  User
+  User,
+  Plus
 } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
@@ -115,12 +116,23 @@ export function InboxPage() {
         <div className="p-4 border-b border-gray-200">
           <BackButton to="/" label="Dashboard" className="mb-2" />
           
-          {/* Status da Conexão Z-API */}
+          {/* Header com Status e Ações */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-educhat-dark">Conversas</h1>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">WhatsApp:</span>
-              <ZApiStatusIndicator />
+              <Button 
+                size="sm" 
+                className="bg-educhat-primary hover:bg-educhat-secondary text-white"
+                onClick={() => window.open('/contacts', '_blank')}
+                title="Criar novo contato"
+              >
+                <User className="w-4 h-4 mr-1" />
+                Novo Contato
+              </Button>
+              <div className="flex items-center gap-2 ml-2">
+                <span className="text-sm text-gray-600">WhatsApp:</span>
+                <ZApiStatusIndicator />
+              </div>
             </div>
           </div>
 

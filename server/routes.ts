@@ -745,22 +745,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/zapi/contacts/:phone/metadata', async (req, res) => {
+  // Get contact metadata from Z-API
+  app.get('/api/zapi/contacts/:phone', async (req, res) => {
     try {
       const { phone } = req.params;
-      const baseUrl = 'https://api.z-api.io';
+      
+      // Remove non-numeric characters from phone
+      const cleanPhone = phone.replace(/\D/g, '');
+      
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
       if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
+          error: 'Z-API credentials not configured' 
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/phone-number/${phone}`;
+      // Use correct Z-API endpoint for contact metadata
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/${cleanPhone}`;
+      
       const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Client-Token': clientToken,
           'Content-Type': 'application/json'
@@ -768,15 +775,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Z-API contact metadata error:', errorData);
+        throw new Error(`Z-API request failed: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Contact metadata retrieved successfully:', data);
       res.json(data);
+      
     } catch (error) {
-      console.error('Erro ao buscar metadata do contato:', error);
+      console.error('Error fetching contact metadata:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+        error: 'Failed to fetch contact metadata from Z-API' 
       });
     }
   });
