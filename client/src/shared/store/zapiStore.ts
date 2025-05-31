@@ -103,12 +103,19 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
 
   restoreConnection: async () => {
     try {
-      // Tentar verificar conexão existente
+      // Primeiro, tentar recuperar dados do localStorage se ainda não estiverem carregados
+      const { status, isConfigured } = get();
+      
+      if (!status && !isConfigured) {
+        initializeFromLocalStorage();
+      }
+      
+      // Verificar conexão atual
       await get().checkConnection();
       
-      // Se não há configuração salva, não fazer nada
-      const { isConfigured } = get();
-      if (isConfigured) {
+      // Se configurado, iniciar monitoramento
+      const currentState = get();
+      if (currentState.isConfigured && !currentState.connectionMonitorActive) {
         get().startConnectionMonitor();
       }
     } catch (error) {
@@ -117,29 +124,44 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
   }
 }));
 
-// Inicializar com dados do localStorage ao carregar
-if (typeof window !== 'undefined') {
-  const savedStatus = localStorage.getItem('zapi-status');
-  const savedConfig = localStorage.getItem('zapi-configured');
-  
-  if (savedStatus) {
-    try {
+// Função para inicializar dados do localStorage
+const initializeFromLocalStorage = () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const savedStatus = localStorage.getItem('zapi-status');
+    const savedConfig = localStorage.getItem('zapi-configured');
+    
+    let initialState: Partial<ZApiState> = {};
+
+    if (savedStatus) {
       const status = JSON.parse(savedStatus);
-      useZApiStore.setState({ status });
-    } catch (error) {
-      console.error('Erro ao recuperar status do localStorage:', error);
+      // Verificar se o status não está muito antigo (mais de 5 minutos)
+      const lastUpdated = new Date(status.lastUpdated);
+      const now = new Date();
+      const timeDiff = now.getTime() - lastUpdated.getTime();
+      
+      if (timeDiff < 5 * 60 * 1000) { // 5 minutos
+        initialState.status = status;
+      }
     }
-  }
-  
-  if (savedConfig) {
-    try {
+    
+    if (savedConfig) {
       const config = JSON.parse(savedConfig);
-      useZApiStore.setState({ 
-        isConfigured: config.isConfigured,
-        instanceId: config.instanceId 
-      });
-    } catch (error) {
-      console.error('Erro ao recuperar configuração do localStorage:', error);
+      initialState.isConfigured = config.isConfigured;
+      initialState.instanceId = config.instanceId;
     }
+
+    if (Object.keys(initialState).length > 0) {
+      useZApiStore.setState(initialState);
+    }
+  } catch (error) {
+    console.error('Erro ao recuperar dados do localStorage:', error);
+    // Limpar dados corrompidos
+    localStorage.removeItem('zapi-status');
+    localStorage.removeItem('zapi-configured');
   }
-}
+};
+
+// Inicializar com dados do localStorage
+initializeFromLocalStorage();
