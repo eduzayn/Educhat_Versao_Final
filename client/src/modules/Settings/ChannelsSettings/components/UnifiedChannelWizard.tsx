@@ -75,6 +75,15 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
       instanceId: '',
       token: '',
       clientToken: '',
+      baseUrl: 'https://api.z-api.io',
+      host: '',
+      port: '',
+      username: '',
+      password: '',
+      appId: '',
+      appSecret: '',
+      pageId: '',
+      accessToken: ''
     }
   });
 
