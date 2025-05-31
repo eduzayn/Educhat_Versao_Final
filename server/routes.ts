@@ -108,41 +108,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API Integration endpoints
   app.get("/api/zapi/contacts", async (req, res) => {
     try {
-      console.log('Z-API Base URL:', process.env.ZAPI_BASE_URL);
-      console.log('Z-API Token exists:', !!process.env.ZAPI_CLIENT_TOKEN);
+      // Usar credenciais das variáveis de ambiente
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
       
-      // Usar credenciais corretas da instância ativa
-      const instanceId = '3DF871A7ADFB20FB49998E66062CE0C1';
-      const token = 'A4E42029C248B72DA0842F47';
+      if (!instanceId || !clientToken) {
+        return res.status(400).json({ 
+          message: "Z-API credentials not configured. Please check ZAPI_INSTANCE_ID and ZAPI_CLIENT_TOKEN." 
+        });
+      }
       
-      // Testar o endpoint exato da documentação
+      // Endpoint correto conforme documentação Z-API
       const baseUrl = process.env.ZAPI_BASE_URL || 'https://api.z-api.io';
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/chats`;
-      console.log('Z-API URL being called:', url);
+      const url = `${baseUrl}/instances/${instanceId}/token/${clientToken}/chats`;
+      
+      console.log('Fetching Z-API contacts from:', url.replace(clientToken, '[HIDDEN]'));
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
+          'Client-Token': clientToken,
           'Content-Type': 'application/json'
         }
       });
 
-      console.log('Z-API Response status:', response.status);
-      
       const data = await response.json();
-      console.log('Z-API full response:', JSON.stringify(data, null, 2));
       
       if (!response.ok) {
-        console.error('Z-API Error response:', data);
-        throw new Error(`Z-API error: ${response.status} - ${JSON.stringify(data)}`);
+        console.error('Z-API Error:', response.status, data);
+        return res.status(response.status).json({ 
+          message: "Failed to fetch WhatsApp contacts",
+          error: data.error || 'Unknown error'
+        });
       }
       
-      // Se há erro na resposta da Z-API, mas status 200, retornar o erro
-      if (data.error) {
-        return res.json({ error: data.error, message: "Z-API returned an error" });
-      }
+      // Processar e formatar os contatos
+      const contacts = data.map((chat: any) => ({
+        id: chat.id?.user || chat.id,
+        name: chat.name || chat.id?.user || 'Sem nome',
+        phone: chat.id?.user?.replace('@c.us', '') || '',
+        lastMessage: chat.lastMessage?.body || '',
+        lastMessageTime: chat.lastMessage?.messageTimestamp ? 
+          new Date(chat.lastMessage.messageTimestamp * 1000).toISOString() : null,
+        isGroup: chat.isGroup || false,
+        unreadCount: chat.unreadCount || 0
+      }));
       
-      res.json(data);
+      console.log(`Successfully fetched ${contacts.length} contacts from Z-API`);
+      res.json({ contacts, total: contacts.length });
+      
     } catch (error) {
       console.error("Error fetching Z-API contacts:", error);
       res.status(500).json({ message: "Failed to fetch WhatsApp contacts" });
