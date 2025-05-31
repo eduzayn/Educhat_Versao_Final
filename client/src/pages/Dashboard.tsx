@@ -20,7 +20,9 @@ import {
   Phone,
   Instagram,
   Facebook,
-  Mail
+  Mail,
+  MessageCircle,
+  UserCheck
 } from 'lucide-react';
 import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
 import { useLocation } from 'wouter';
@@ -55,16 +57,16 @@ export function Dashboard() {
       badge: '12'
     },
     {
-      id: 'conversations',
-      label: 'Conversas',
-      icon: MessageSquare,
-      description: 'Gerenciar mensagens'
+      id: 'chat-interno',
+      label: 'Chat Interno',
+      icon: MessageCircle,
+      description: 'Comunicação entre agentes'
     },
     {
-      id: 'contacts',
-      label: 'Contatos',
-      icon: Users,
-      description: 'CRM e leads'
+      id: 'crm',
+      label: 'CRM',
+      icon: UserCheck,
+      description: 'Gestão de leads e contatos'
     },
     {
       id: 'integrations',
