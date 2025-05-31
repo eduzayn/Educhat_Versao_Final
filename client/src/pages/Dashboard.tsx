@@ -259,25 +259,37 @@ export function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="md:w-64 flex-shrink-0">
-        <div className="bg-card border rounded-md p-4 sticky top-6 h-fit">
-          {/* Header */}
-          <div className="mb-4 pb-4 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <img src={logoPath} alt="EduChat" className="w-8 h-8" />
-              <span className="font-bold text-educhat-dark">EduChat</span>
-            </div>
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col`}>
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            {isSidebarOpen && (
+              <div className="flex items-center space-x-3">
+                <img src={logoPath} alt="EduChat" className="w-8 h-8" />
+                <span className="font-bold text-educhat-dark">EduChat</span>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2"
+            >
+              {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
           </div>
+        </div>
 
-          {/* Navigation */}
-          <nav className="space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 py-4">
+          <div className="space-y-1 px-3">
             {menuItems.map((item) => (
               <Button
                 key={item.id}
                 variant={activeSection === item.id ? "default" : "ghost"}
-                className={`w-full justify-start text-sm ${
+                className={`w-full justify-start h-auto p-3 ${
                   activeSection === item.id 
-                    ? 'bg-educhat-primary text-white hover:bg-educhat-primary/90' 
+                    ? 'bg-educhat-primary text-white' 
                     : 'text-educhat-medium hover:text-educhat-dark hover:bg-educhat-purple-50'
                 }`}
                 onClick={() => {
@@ -288,21 +300,25 @@ export function Dashboard() {
                   }
                 }}
               >
-                <item.icon className="w-5 h-5 mr-2" />
-                <div className="flex items-center justify-between w-full">
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="bg-educhat-secondary text-white">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </div>
+                <item.icon className={`w-5 h-5 ${isSidebarOpen ? 'mr-3' : ''}`} />
+                {isSidebarOpen && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="bg-educhat-secondary text-white">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </Button>
             ))}
-          </nav>
+          </div>
+        </nav>
 
-          {/* User Section */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
+        {/* User Section */}
+        <div className="p-3 border-t border-gray-200">
+          {isSidebarOpen ? (
             <div className="space-y-2">
               <div className="flex items-center space-x-3 p-2">
                 <div className="w-8 h-8 bg-educhat-primary rounded-full flex items-center justify-center">
@@ -320,13 +336,21 @@ export function Dashboard() {
               <Button
                 variant="ghost"
                 onClick={handleLogout}
-                className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <LogOut className="w-4 h-4 mr-3" />
                 Sair
               </Button>
             </div>
-          </div>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 
