@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useZApiPersistence } from "@/shared/lib/hooks/useZApiPersistence";
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
@@ -17,9 +16,6 @@ import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 
 export function ContactsPage() {
-  // Garantir persistência da conexão Zapi
-  useZApiPersistence();
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [viewingContact, setViewingContact] = useState<Contact | null>(null);

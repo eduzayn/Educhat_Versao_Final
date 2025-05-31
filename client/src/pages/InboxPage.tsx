@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useZApiPersistence } from "@/shared/lib/hooks/useZApiPersistence";
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
@@ -39,9 +38,6 @@ export function InboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
-  
-  // Garantir persistência da conexão Zapi
-  useZApiPersistence();
   
   const { data: conversations = [], isLoading } = useConversations();
   const { activeConversation, setActiveConversation } = useChatStore();
