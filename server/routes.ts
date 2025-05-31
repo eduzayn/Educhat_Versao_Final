@@ -92,8 +92,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (search && typeof search === 'string') {
         contacts = await storage.searchContacts(search);
+      } else {
+        // Se não há busca específica, retornar todos os contatos
+        contacts = await storage.searchContacts('');
       }
       
+      console.log('Returning contacts:', contacts.length);
       res.json(contacts);
     } catch (error) {
       console.error('Error fetching contacts:', error);

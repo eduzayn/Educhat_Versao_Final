@@ -125,6 +125,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchContacts(query: string): Promise<Contact[]> {
+    if (!query || query.trim() === '') {
+      // Retornar todos os contatos se não há query
+      return await db.select().from(contacts);
+    }
+    
     return await db
       .select()
       .from(contacts)
