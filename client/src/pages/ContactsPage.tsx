@@ -514,9 +514,14 @@ export function ContactsPage() {
                     <Filter className="w-4 h-4 mr-2" />
                     Filtros
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => importZApiContacts.mutate()}
+                    disabled={importZApiContacts.isPending}
+                  >
                     <Download className="w-4 h-4 mr-2" />
-                    Importar do WhatsApp
+                    {importZApiContacts.isPending ? 'Importando...' : 'Importar do WhatsApp'}
                   </Button>
                 </div>
               </div>
