@@ -108,17 +108,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API Integration endpoints
   app.get("/api/zapi/contacts", async (req, res) => {
     try {
-      // Para chats, usar CLIENT_TOKEN em vez de TOKEN
-      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
+      // Usar credenciais corretas: ZAPI_TOKEN na URL e ZAPI_CLIENT_TOKEN no header
+      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_TOKEN || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
         return res.status(400).json({ 
-          message: "Z-API credentials not configured. Please check ZAPI_INSTANCE_ID and ZAPI_CLIENT_TOKEN." 
+          message: "Z-API credentials not configured. Please check all ZAPI credentials." 
         });
       }
       
-      // Usar endpoint correto /contacts com paginação conforme documentação
-      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/contacts?page=1&pageSize=100`;
+      // URL usa o token da instância, header usa o client token
+      const url = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/contacts?page=1&pageSize=100`;
       
-      console.log('Fetching Z-API contacts using correct /contacts endpoint...');
+      console.log('Fetching Z-API contacts with correct token configuration...');
       
       const response = await fetch(url, {
         method: 'GET',
