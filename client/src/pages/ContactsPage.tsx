@@ -44,13 +44,13 @@ export function ContactsPage() {
   const { status: zapiStatus, isConfigured } = useZApiStore();
   useGlobalZApiMonitor();
   
+  // Verificar se WhatsApp está disponível para sincronização
+  const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
+  
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const importZApiContacts = useImportZApiContacts();
-
-  // Verificar se WhatsApp está disponível para importação de contatos
-  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -538,10 +538,11 @@ export function ContactsPage() {
                     size="sm"
                     onClick={() => importZApiContacts.mutate()}
                     disabled={importZApiContacts.isPending || !isWhatsAppAvailable}
-                    title={!isWhatsAppAvailable ? 'WhatsApp não está conectado. Configure nas Configurações → Canais' : ''}
+                    title={!isWhatsAppAvailable ? 'WhatsApp não está conectado. Configure nas Configurações → Canais' : 'Sincronizar contatos do WhatsApp'}
+                    className={isWhatsAppAvailable ? 'border-green-200 text-green-700 hover:bg-green-50' : 'border-gray-200 text-gray-400'}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    {importZApiContacts.isPending ? 'Importando...' : 'Importar do WhatsApp'}
+                    {importZApiContacts.isPending ? 'Sincronizando...' : 'Sincronizar WhatsApp'}
                   </Button>
                 </div>
               </div>

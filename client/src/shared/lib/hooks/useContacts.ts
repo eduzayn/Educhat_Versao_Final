@@ -58,14 +58,16 @@ export function useUpdateContact() {
 }
 
 // Z-API specific hooks (mantidas para configurações avançadas)
-export function useZApiContacts() {
+export function useZApiContacts(page = 1, pageSize = 20) {
   return useQuery({
-    queryKey: ['/api/zapi/contacts'],
+    queryKey: ['/api/zapi/contacts', { page, pageSize }],
     queryFn: async () => {
-      const response = await fetch('/api/zapi/contacts');
-      if (!response.ok) throw new Error('Failed to fetch Z-API contacts');
+      const response = await fetch(`/api/zapi/contacts?page=${page}&pageSize=${pageSize}`);
+      if (!response.ok) throw new Error('Falha ao buscar contatos da Z-API');
       return response.json();
-    }
+    },
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }
 

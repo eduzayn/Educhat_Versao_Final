@@ -206,156 +206,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/contacts/import-from-zapi", async (req, res) => {
     try {
-      console.log('Starting Z-API contact import...');
+      console.log('Iniciando importação de contatos da Z-API...');
       
-      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
-          message: "Z-API credentials not configured. Please provide ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN and ZAPI_INSTANCE_ID." 
+          message: "Credenciais da Z-API não configuradas. Verifique ZAPI_INSTANCE_ID, ZAPI_TOKEN e ZAPI_CLIENT_TOKEN." 
         });
       }
 
-      try {
-        // Tentar diferentes endpoints da Z-API para buscar contatos
-        let response;
-        let endpoint = '';
+      // Buscar todos os contatos da Z-API usando paginação
+      let allContacts: any[] = [];
+      let page = 1;
+      const pageSize = 50;
+      let hasMorePages = true;
+
+      while (hasMorePages) {
+        const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts?page=${page}&pageSize=${pageSize}`;
+        console.log(`Buscando página ${page} de contatos...`);
         
-        // Lista de endpoints possíveis para contatos na Z-API
-        const endpoints = [
-          'chats',
-          'phone-contacts', 
-          'all-contacts',
-          'contacts',
-          'list-contacts'
-        ];
+        const response = await fetch(url, {
+          headers: {
+            'Client-Token': clientToken,
+            'Content-Type': 'application/json'
+          }
+        });
 
-        for (const ep of endpoints) {
-          endpoint = `${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/${ep}`;
-          console.log(`Tentando endpoint: ${ep}`);
-          
-          response = await fetch(endpoint, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro na Z-API:', errorText);
+          throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        }
 
-          console.log(`Endpoint ${ep} - Status:`, response.status);
+        const pageData = await response.json();
+        
+        if (Array.isArray(pageData) && pageData.length > 0) {
+          allContacts.push(...pageData);
+          page++;
+          // Se retornou menos que pageSize, é a última página
+          if (pageData.length < pageSize) {
+            hasMorePages = false;
+          }
+        } else {
+          hasMorePages = false;
+        }
+      }
+
+      console.log(`Total de contatos encontrados na Z-API: ${allContacts.length}`);
+      
+      let importedCount = 0;
+      let updatedCount = 0;
+      
+      // Processar cada contato da Z-API
+      for (const zapiContact of allContacts) {
+        try {
+          const phone = zapiContact.phone || zapiContact.id;
+          if (!phone) continue;
+
+          // Verificar se o contato já existe
+          const existingContacts = await storage.searchContacts(phone);
           
-          if (response.ok) {
-            const data = await response.json();
-            console.log(`Endpoint ${ep} funcionou! Dados:`, data);
-            break;
+          const contactData = {
+            name: zapiContact.name || zapiContact.short || zapiContact.notify || zapiContact.vname || phone,
+            phone: phone,
+            email: null,
+            profileImageUrl: null,
+            location: null,
+            isOnline: null
+          };
+
+          if (existingContacts.length === 0) {
+            // Criar novo contato
+            await storage.createContact(contactData);
+            importedCount++;
           } else {
-            const errorText = await response.text();
-            console.log(`Endpoint ${ep} falhou:`, errorText);
-          }
-        }
-
-        if (!response || !response.ok) {
-          const errorText = await response?.text() || 'Nenhum endpoint funcionou';
-          console.error('Todos os endpoints falharam:', errorText);
-          throw new Error(`Z-API error: Nenhum endpoint de contatos funcionou`);
-        }
-
-        const zapiData = await response.json();
-        console.log('Received contacts from Z-API:', zapiData?.length || 0);
-        
-        let importedCount = 0;
-        
-        // Processar cada contato da Z-API
-        if (Array.isArray(zapiData)) {
-          for (const zapiContact of zapiData) {
-            try {
-              // Verificar se o contato já existe
-              const existingContacts = await storage.searchContacts(zapiContact.phone || zapiContact.id);
-              
-              if (existingContacts.length === 0) {
-                // Criar contato no banco local
-                await storage.createContact({
-                  name: zapiContact.name || zapiContact.pushname || zapiContact.id,
-                  phone: zapiContact.phone || zapiContact.id,
-                  email: null,
-                  profileImageUrl: zapiContact.profilePicThumbObj?.eurl || null,
-                  location: null,
-                  isOnline: null
-                });
-                
-                importedCount++;
-              }
-            } catch (contactError) {
-              console.error("Error importing contact:", zapiContact.id, contactError);
+            // Atualizar contato existente se necessário
+            const existing = existingContacts[0];
+            if (!existing.name || existing.name === existing.phone) {
+              await storage.updateContact(existing.id, { name: contactData.name });
+              updatedCount++;
             }
           }
+        } catch (contactError) {
+          console.error("Erro ao processar contato:", zapiContact, contactError);
         }
-
-        res.json({ 
-          message: `${importedCount} contatos importados com sucesso do WhatsApp`,
-          imported: importedCount 
-        });
-
-      } catch (apiError) {
-        // Se há erro na API, criar alguns contatos de demonstração
-        console.log('Z-API not available, creating demo contacts...');
-        
-        const demoContacts = [
-          {
-            name: "João Silva",
-            phone: "+55 11 99999-1111",
-            email: "joao.silva@email.com"
-          },
-          {
-            name: "Maria Santos", 
-            phone: "+55 11 99999-2222",
-            email: "maria.santos@email.com"
-          },
-          {
-            name: "Pedro Oliveira",
-            phone: "+55 11 99999-3333", 
-            email: "pedro.oliveira@email.com"
-          },
-          {
-            name: "Ana Costa",
-            phone: "+55 11 99999-4444",
-            email: "ana.costa@email.com"
-          },
-          {
-            name: "Carlos Ferreira",
-            phone: "+55 11 99999-5555",
-            email: "carlos.ferreira@email.com"
-          }
-        ];
-
-        let importedCount = 0;
-        
-        for (const contact of demoContacts) {
-          try {
-            const existing = await storage.searchContacts(contact.phone);
-            if (existing.length === 0) {
-              await storage.createContact({
-                name: contact.name,
-                phone: contact.phone,
-                email: contact.email,
-                profileImageUrl: null,
-                location: null,
-                isOnline: Math.random() > 0.5
-              });
-              importedCount++;
-            }
-          } catch (error) {
-            console.error("Error creating demo contact:", error);
-          }
-        }
-
-        res.json({ 
-          message: `${importedCount} contatos de demonstração criados. Configure as credenciais Z-API para importar contatos reais do WhatsApp.`,
-          imported: importedCount,
-          demo: true
-        });
       }
+
+      res.json({ 
+        message: `Sincronização concluída: ${importedCount} novos contatos importados, ${updatedCount} contatos atualizados`,
+        imported: importedCount,
+        updated: updatedCount,
+        total: allContacts.length
+      });
       
     } catch (error) {
-      console.error("Error importing contacts:", error);
-      res.status(500).json({ message: "Erro ao importar contatos" });
+      console.error("Erro ao importar contatos:", error);
+      res.status(500).json({ 
+        message: "Erro ao importar contatos da Z-API. Verifique suas credenciais e conexão.",
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
     }
   });
 
@@ -704,10 +656,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API contacts endpoints
   app.get('/api/zapi/contacts', async (req, res) => {
     try {
-      const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      const page = req.query.page || '1';
+      const pageSize = req.query.pageSize || '20';
 
       if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
@@ -715,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/contacts`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts?page=${page}&pageSize=${pageSize}`;
       const response = await fetch(url, {
         headers: {
           'Client-Token': clientToken,
@@ -724,6 +677,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro Z-API:', errorText);
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
       }
 
