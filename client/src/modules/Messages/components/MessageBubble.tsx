@@ -1,7 +1,7 @@
 import { Check, CheckCheck } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import type { Message, Contact } from '@/types/chat';
+import type { Message, Contact } from '@shared/schema';
 
 interface MessageBubbleProps {
   message: Message;
