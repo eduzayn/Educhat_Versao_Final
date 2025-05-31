@@ -111,90 +111,88 @@ export function InboxPage() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Lista de Conversas */}
-      <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
-          <BackButton to="/" label="Dashboard" className="mb-2" />
+          <BackButton to="/" label="Dashboard" className="mb-3" />
           
-          {/* Header com Status e Ações */}
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold text-educhat-dark">Conversas</h1>
+          {/* Header simplificado */}
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
             <div className="flex items-center gap-2">
+              <ZApiStatusIndicator />
               <Button 
                 size="sm" 
-                className="bg-educhat-primary hover:bg-educhat-secondary text-white"
+                variant="outline"
                 onClick={() => window.open('/contacts', '_blank')}
-                title="Criar novo contato"
+                title="Novo contato"
               >
-                <User className="w-4 h-4 mr-1" />
-                Novo Contato
+                <Plus className="w-4 h-4" />
               </Button>
-              <div className="flex items-center gap-2 ml-2">
-                <span className="text-sm text-gray-600">WhatsApp:</span>
-                <ZApiStatusIndicator />
-              </div>
             </div>
           </div>
 
           {/* Aviso quando Z-API não está conectada */}
           {!isWhatsAppAvailable && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-md">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600" />
-                <span className="text-sm text-amber-700">
-                  WhatsApp desconectado. Configure nas Configurações → Canais de Comunicação
+                <span className="text-xs text-amber-700">
+                  WhatsApp desconectado
                 </span>
               </div>
             </div>
           )}
           
-          {/* Abas */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="inbox">Caixa de Entrada</TabsTrigger>
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="resolved">Resolvidas</TabsTrigger>
+          {/* Busca */}
+          <div className="relative mb-3">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Buscar conversas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-9"
+            />
+          </div>
+          
+          {/* Abas simplificadas */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 h-8">
+              <TabsTrigger value="inbox" className="text-xs">Entrada</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
+              <TabsTrigger value="resolved" className="text-xs">Resolvidas</TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
 
-          {/* Filtros */}
-          <div className="space-y-2">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Buscar conversas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        {/* Filtros compactos */}
+        <div className="px-4 py-2 border-b border-gray-100">
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-8 text-xs">
+                <Filter className="w-3 h-3 mr-1" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="open">Aberta</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="resolved">Resolvida</SelectItem>
+              </SelectContent>
+            </Select>
             
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="open">Aberta</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="resolved">Resolvida</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={channelFilter} onValueChange={setChannelFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Canal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os canais</SelectItem>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                  <SelectItem value="instagram">Instagram</SelectItem>
-                  <SelectItem value="facebook">Facebook</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Canal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -208,42 +206,42 @@ export function InboxPage() {
             return (
               <div
                 key={conversation.id}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  isActive ? 'bg-educhat-purple-50 border-l-4 border-l-educhat-primary' : ''
+                className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
                 onClick={() => setActiveConversation(conversation)}
               >
-                <div className="flex items-start space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={conversation.contact.profileImageUrl || ''} />
-                    <AvatarFallback>
-                      {conversation.contact.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <Avatar className="w-9 h-9">
+                      <AvatarImage src={conversation.contact.profileImageUrl || ''} />
+                      <AvatarFallback className="text-sm">
+                        {conversation.contact.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full text-xs flex items-center justify-center ${channelInfo.color}`}>
+                      {channelInfo.icon}
+                    </span>
+                  </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">
+                      <h3 className="font-medium text-gray-900 truncate text-sm">
                         {conversation.contact.name}
                       </h3>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-sm ${channelInfo.color}`}>
-                          {channelInfo.icon}
-                        </span>
                         {lastMessage && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-400">
                             {formatTime(lastMessage.sentAt || new Date())}
                           </span>
                         )}
+                        {getStatusBadge(conversation.status)}
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-600 truncate">
-                        {lastMessage?.content || 'Sem mensagens'}
-                      </p>
-                      {getStatusBadge(conversation.status)}
-                    </div>
+                    <p className="text-xs text-gray-500 truncate">
+                      {lastMessage?.content || 'Sem mensagens'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -251,9 +249,9 @@ export function InboxPage() {
           })}
           
           {filteredConversations.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Nenhuma conversa encontrada</p>
+            <div className="p-6 text-center text-gray-500">
+              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">Nenhuma conversa encontrada</p>
             </div>
           )}
         </div>
@@ -264,32 +262,43 @@ export function InboxPage() {
         {activeConversation ? (
           <>
             {/* Header da Conversa */}
-            <div className="bg-white border-b border-gray-200 p-4">
+            <div className="bg-white border-b border-gray-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
+                  <Avatar className="w-9 h-9">
                     <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-sm">
                       {activeConversation.contact.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div>
-                    <h2 className="font-semibold text-gray-900">
-                      {activeConversation.contact.name}
-                    </h2>
                     <div className="flex items-center space-x-2">
+                      <h2 className="font-semibold text-gray-900 text-base">
+                        {activeConversation.contact.name}
+                      </h2>
                       <span className={`text-sm ${getChannelInfo(activeConversation.channel).color}`}>
-                        {getChannelInfo(activeConversation.channel).icon} {getChannelInfo(activeConversation.channel).name}
+                        {getChannelInfo(activeConversation.channel).icon}
                       </span>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-0.5">
+                      <span className="text-xs text-gray-500">
+                        {getChannelInfo(activeConversation.channel).name}
+                      </span>
+                      <span className="text-gray-300">•</span>
                       {getStatusBadge(activeConversation.status)}
                     </div>
                   </div>
                 </div>
                 
-                <Button variant="ghost" size="sm">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Phone className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -334,18 +343,18 @@ export function InboxPage() {
 
       {/* Painel de Detalhes do Contato */}
       {activeConversation && (
-        <div className="w-80 bg-white border-l border-gray-200 p-4">
-          <div className="space-y-6">
-            {/* Informações do Contato */}
-            <div className="text-center">
-              <Avatar className="w-20 h-20 mx-auto mb-4">
+        <div className="w-64 bg-white border-l border-gray-200">
+          <div className="p-4 border-b border-gray-100">
+            {/* Header do contato */}
+            <div className="text-center mb-4">
+              <Avatar className="w-16 h-16 mx-auto mb-3">
                 <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-lg">
                   {activeConversation.contact.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               
-              <h3 className="font-semibold text-lg text-gray-900 mb-1">
+              <h3 className="font-semibold text-base text-gray-900 mb-1">
                 {activeConversation.contact.name}
               </h3>
               
@@ -357,86 +366,79 @@ export function InboxPage() {
               </div>
             </div>
 
-            <Separator />
+            {/* Ações rápidas */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="text-xs">
+                <Phone className="w-3 h-3 mr-1" />
+                Ligar
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs">
+                <Mail className="w-3 h-3 mr-1" />
+                Email
+              </Button>
+            </div>
+          </div>
 
-            {/* Informações de Contato */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Informações de Contato</h4>
+          <div className="p-4 space-y-4">
+            {/* Informações essenciais */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900">Contato</h4>
               
               {activeConversation.contact.phone && (
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                <div className="flex items-center space-x-2 text-sm">
+                  <Phone className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600 truncate">
                     {activeConversation.contact.phone}
                   </span>
                 </div>
               )}
               
               {activeConversation.contact.email && (
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                <div className="flex items-center space-x-2 text-sm">
+                  <Mail className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600 truncate">
                     {activeConversation.contact.email}
                   </span>
                 </div>
               )}
-              
-              {activeConversation.contact.location && (
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    {activeConversation.contact.location}
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  Cliente desde {new Intl.DateTimeFormat('pt-BR', {
-                    month: 'long',
-                    year: 'numeric'
-                  }).format(new Date(activeConversation.contact.createdAt))}
-                </span>
-              </div>
             </div>
 
-            <Separator />
-
-            {/* Tags */}
-            <div className="space-y-3">
+            {/* Tags compactas */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-gray-900">Tags</h4>
-                <Button variant="ghost" size="sm">
-                  <Tag className="w-4 h-4" />
+                <h4 className="font-medium text-sm text-gray-900">Tags</h4>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Plus className="w-3 h-3" />
                 </Button>
               </div>
               
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="text-xs">Lead</Badge>
-                <Badge variant="secondary" className="text-xs">Ativo</Badge>
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">Lead</Badge>
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">Ativo</Badge>
               </div>
             </div>
 
-            <Separator />
-
-            {/* Estatísticas da Conversa */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Estatísticas</h4>
+            {/* Estatísticas simplificadas */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm text-gray-900">Resumo</h4>
               
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <MessageSquare className="w-5 h-5 mx-auto mb-1 text-gray-400" />
-                  <div className="text-lg font-semibold text-gray-900">
-                    {activeConversation.messages?.length || 0}
-                  </div>
-                  <div className="text-xs text-gray-600">Mensagens</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mensagens:</span>
+                  <span className="font-medium">{activeConversation.messages?.length || 0}</span>
                 </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <Clock className="w-5 h-5 mx-auto mb-1 text-gray-400" />
-                  <div className="text-lg font-semibold text-gray-900">2h</div>
-                  <div className="text-xs text-gray-600">Tempo médio</div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  {getStatusBadge(activeConversation.status)}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cliente desde:</span>
+                  <span className="font-medium text-xs">
+                    {new Intl.DateTimeFormat('pt-BR', {
+                      month: 'short',
+                      year: 'numeric'
+                    }).format(new Date(activeConversation.contact.createdAt || new Date()))}
+                  </span>
                 </div>
               </div>
             </div>
