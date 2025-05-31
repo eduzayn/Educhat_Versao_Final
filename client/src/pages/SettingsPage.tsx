@@ -1,5 +1,6 @@
 import { SettingsModule } from '@/modules/Settings';
 import { Card } from '@/shared/ui/ui/card';
+import { BackButton } from '@/shared/components/BackButton';
 
 const settingsCards = [
   {
@@ -44,6 +45,7 @@ export default function SettingsPage() {
   return (
     <SettingsModule>
       <div className="space-y-6">
+        <BackButton to="/" label="Voltar ao Dashboard" />
         <div>
           <h2 className="text-2xl font-bold">Configurações</h2>
           <p className="text-muted-foreground">
