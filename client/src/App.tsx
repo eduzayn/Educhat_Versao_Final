@@ -15,6 +15,7 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
+import { ContactsPage } from "@/pages/ContactsPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
+          <Route path="/contacts" component={ContactsPage} />
           <Route path="/chat-interno" component={ChatInternoPage} />
           <Route path="/crm" component={CrmPage} />
           <Route path="/reports" component={ReportsPage} />

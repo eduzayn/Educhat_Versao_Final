@@ -57,6 +57,12 @@ export function Dashboard() {
       badge: '12'
     },
     {
+      id: 'contacts',
+      label: 'Contatos',
+      icon: UserCheck,
+      description: 'Gerenciar contatos e WhatsApp'
+    },
+    {
       id: 'chat-interno',
       label: 'Chat Interno',
       icon: MessageCircle,
@@ -232,6 +238,10 @@ export function Dashboard() {
       
       case 'inbox':
         setLocation('/inbox');
+        return null;
+      
+      case 'contacts':
+        setLocation('/contacts');
         return null;
 
       default:

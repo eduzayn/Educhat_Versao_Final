@@ -226,6 +226,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contacts endpoints
+  app.get('/api/contacts', async (req, res) => {
+    try {
+      const { search } = req.query;
+      let contacts;
+      
+      if (search && typeof search === 'string') {
+        contacts = await storage.searchContacts(search);
+      } else {
+        // Buscar todos os contatos (implementar método getAllContacts)
+        contacts = await storage.searchContacts(''); 
+      }
+      
+      res.json(contacts);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      res.status(500).json({ message: 'Failed to fetch contacts' });
+    }
+  });
+
+  app.get('/api/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const contact = await storage.getContactWithTags(id);
+      
+      if (!contact) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      res.json(contact);
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      res.status(500).json({ message: 'Failed to fetch contact' });
+    }
+  });
+
+  app.post('/api/contacts', async (req, res) => {
+    try {
+      const validatedData = insertContactSchema.parse(req.body);
+      const contact = await storage.createContact(validatedData);
+      res.status(201).json(contact);
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      res.status(400).json({ message: 'Invalid contact data' });
+    }
+  });
+
+  app.put('/api/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertContactSchema.partial().parse(req.body);
+      const contact = await storage.updateContact(id, validatedData);
+      res.json(contact);
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      res.status(400).json({ message: 'Invalid contact data' });
+    }
+  });
+
   // Contact tags endpoints
   app.get('/api/contacts/:id/tags', async (req, res) => {
     try {
@@ -378,6 +437,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error('Erro ao configurar webhook:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Z-API contacts endpoints
+  app.get('/api/zapi/contacts', async (req, res) => {
+    try {
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/contacts`;
+      const response = await fetch(url, {
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao buscar contatos da Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  app.get('/api/zapi/contacts/:phone/metadata', async (req, res) => {
+    try {
+      const { phone } = req.params;
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/phone-number/${phone}`;
+      const response = await fetch(url, {
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao buscar metadata do contato:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  app.post('/api/zapi/contacts/:phone/validate', async (req, res) => {
+    try {
+      const { phone } = req.params;
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/phone-exists`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao validar número:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  app.post('/api/zapi/contacts/:phone/block', async (req, res) => {
+    try {
+      const { phone } = req.params;
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/block`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao bloquear contato:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
