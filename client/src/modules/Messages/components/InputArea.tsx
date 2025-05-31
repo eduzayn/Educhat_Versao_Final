@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Paperclip, Smile, Send } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
-import { useSendMessage } from '../hooks/useMessages';
+import { useSendMessage } from '@/shared/lib/hooks/useMessages';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useChatStore } from '@/shared/store/store/chatStore';
 import { useToast } from '@/shared/lib/hooks/use-toast';
