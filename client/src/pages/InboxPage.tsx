@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
 import { BackButton } from '@/shared/components/BackButton';
+
 import { Link } from 'wouter';
 import { 
   Search, 
