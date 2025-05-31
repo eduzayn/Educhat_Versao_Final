@@ -820,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Z-API integration routes
-  app.get('/api/zapi/qr-code', async (req, res) => {
+  app.get('/api/zapi/qrcode', async (req, res) => {
     try {
 
       const baseUrl = 'https://api.z-api.io';
@@ -859,10 +859,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
-        // Extrair apenas a parte base64
-        const base64Data = qrCodeDataURL.split(',')[1];
-        
-        res.json({ value: base64Data });
+        // Retornar o QR Code completo como data URL
+        res.json({ qrCode: qrCodeDataURL });
       } else {
         res.json(data);
       }
