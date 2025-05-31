@@ -238,19 +238,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update profile pictures for all contacts
+  app.post('/api/contacts/update-profile-pictures', async (req, res) => {
+    try {
+      console.log('Iniciando atualização de fotos de perfil dos contatos...');
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      
+      // Buscar todos os contatos que têm telefone
+      const allContacts = await storage.searchContacts('');
+      const contactsWithPhone = allContacts.filter(contact => contact.phone);
+      
+      console.log(`Encontrados ${contactsWithPhone.length} contatos com telefone para atualizar fotos`);
+      
+      let updatedCount = 0;
+      let errorCount = 0;
+      
+      for (const contact of contactsWithPhone) {
+        try {
+          const cleanPhone = contact.phone!.replace(/\D/g, '');
+          
+          // Buscar foto de perfil atualizada
+          const profileUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
+          const profileResponse = await fetch(profileUrl, {
+            method: 'GET',
+            headers: {
+              'Client-Token': clientToken,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            
+            if (profileData.link && profileData.link !== contact.profileImageUrl) {
+              // Atualizar contato com nova foto
+              await storage.updateContact(contact.id, {
+                profileImageUrl: profileData.link
+              });
+              updatedCount++;
+              console.log(`Foto atualizada para ${contact.name} (${cleanPhone})`);
+            }
+          }
+          
+          // Pequeno delay para não sobrecarregar a API
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+        } catch (contactError) {
+          console.error(`Erro ao atualizar foto do contato ${contact.name}:`, contactError);
+          errorCount++;
+        }
+      }
+
+      res.json({
+        message: `Atualização concluída: ${updatedCount} fotos atualizadas`,
+        updated: updatedCount,
+        errors: errorCount,
+        total: contactsWithPhone.length
+      });
+      
+    } catch (error) {
+      console.error('Erro ao atualizar fotos de perfil:', error);
+      res.status(500).json({ 
+        error: 'Erro interno ao atualizar fotos de perfil' 
+      });
+    }
+  });
+
   app.post("/api/contacts/import-from-zapi", async (req, res) => {
     try {
       console.log('Iniciando importação de contatos da Z-API...');
       
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          message: "Credenciais da Z-API não configuradas. Verifique ZAPI_INSTANCE_ID, ZAPI_TOKEN e ZAPI_CLIENT_TOKEN." 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ message: credentials.error });
       }
+
+      const { instanceId, token, clientToken } = credentials;
 
       // Buscar todos os contatos da Z-API usando paginação
       let allContacts: any[] = [];
@@ -687,20 +756,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Z-API contacts endpoints
+  // Z-API contacts endpoint - simplified version
   app.get('/api/zapi/contacts', async (req, res) => {
     try {
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
       const page = req.query.page || '1';
       const pageSize = req.query.pageSize || '20';
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
-      }
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts?page=${page}&pageSize=${pageSize}`;
       const response = await fetch(url, {
@@ -730,21 +796,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/zapi/contacts/:phone', async (req, res) => {
     try {
       const { phone } = req.params;
-      
-      // Remove non-numeric characters from phone
       const cleanPhone = phone.replace(/\D/g, '');
       
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Z-API credentials not configured' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      // Use correct Z-API endpoint for contact metadata
+      const { instanceId, token, clientToken } = credentials;
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/${cleanPhone}`;
       
       const response = await fetch(url, {
@@ -762,7 +821,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
-      console.log('Contact metadata retrieved successfully:', data);
       res.json(data);
       
     } catch (error) {
@@ -776,18 +834,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/zapi/contacts/:phone/validate', async (req, res) => {
     try {
       const { phone } = req.params;
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/phone-exists`;
+      const { instanceId, token, clientToken } = credentials;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/phone-exists`;
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
