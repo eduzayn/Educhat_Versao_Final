@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
+import { InboxPage } from "@/pages/InboxPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -29,6 +30,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Dashboard} />
+          <Route path="/inbox" component={InboxPage} />
         </>
       )}
       <Route component={NotFound} />
