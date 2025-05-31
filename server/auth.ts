@@ -35,17 +35,10 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const PostgresSessionStore = connectPg(session);
-  const sessionStore = new PostgresSessionStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-  });
-
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'educhat-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: sessionStore,
     cookie: {
       secure: false, // set to true in production with HTTPS
       httpOnly: true,
