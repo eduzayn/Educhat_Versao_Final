@@ -83,9 +83,9 @@ export function ConversationList({ conversations }: ConversationListProps) {
                     {status?.label || conversation.status}
                   </Badge>
                   
-                  {conversation.unreadCount > 0 && (
+                  {(conversation.unreadCount || 0) > 0 && (
                     <Badge className="bg-educhat-blue text-white text-xs px-2 py-1 rounded-full">
-                      {conversation.unreadCount}
+                      {conversation.unreadCount || 0}
                     </Badge>
                   )}
                 </div>
