@@ -10,7 +10,7 @@ import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
-import { useContacts, useUpdateContact, useCreateContact } from '@/shared/lib/hooks/useContacts';
+import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact } from '@shared/schema';
 
@@ -39,6 +39,7 @@ export function ContactsPage() {
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
+  const importZApiContacts = useImportZApiContacts();
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 

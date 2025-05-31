@@ -101,6 +101,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Z-API Integration endpoints
+  app.get("/api/zapi/contacts", async (req, res) => {
+    try {
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/contacts`, {
+        headers: {
+          'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Z-API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching Z-API contacts:", error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp contacts" });
+    }
+  });
+
+  app.post("/api/contacts/import-from-zapi", async (req, res) => {
+    try {
+      // Buscar contatos da Z-API
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/contacts`, {
+        headers: {
+          'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Z-API error: ${response.status}`);
+      }
+
+      const zapiData = await response.json();
+      let importedCount = 0;
+      
+      // Processar cada contato da Z-API
+      for (const zapiContact of zapiData) {
+        try {
+          // Verificar se o contato já existe
+          const existingContacts = await storage.searchContacts(zapiContact.phone || zapiContact.id);
+          
+          if (existingContacts.length === 0) {
+            // Buscar metadata adicional se disponível
+            let metadata = null;
+            try {
+              const metadataResponse = await fetch(`${process.env.ZAPI_BASE_URL}/contacts/${zapiContact.id}/metadata`, {
+                headers: {
+                  'Client-Token': process.env.ZAPI_CLIENT_TOKEN!,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (metadataResponse.ok) {
+                metadata = await metadataResponse.json();
+              }
+            } catch (metadataError) {
+              console.log("Metadata not available for contact:", zapiContact.id);
+            }
+
+            // Criar contato no banco local
+            await storage.createContact({
+              name: zapiContact.name || zapiContact.pushname || zapiContact.id,
+              phone: zapiContact.phone || zapiContact.id,
+              email: metadata?.email || null,
+              profileImageUrl: zapiContact.profilePicThumbObj?.eurl || null,
+              location: metadata?.location || null,
+              isOnline: null
+            });
+            
+            importedCount++;
+          }
+        } catch (contactError) {
+          console.error("Error importing contact:", zapiContact.id, contactError);
+        }
+      }
+
+      res.json({ 
+        message: `${importedCount} contatos importados com sucesso do WhatsApp`,
+        imported: importedCount 
+      });
+      
+    } catch (error) {
+      console.error("Error importing contacts from Z-API:", error);
+      res.status(500).json({ message: "Erro ao importar contatos do WhatsApp" });
+    }
+  });
+
   app.get('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);

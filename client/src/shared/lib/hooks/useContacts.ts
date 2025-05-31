@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact, ContactWithTags, InsertContact } from '@shared/schema';
 
 export function useContacts(search?: string) {
@@ -82,6 +83,32 @@ export function useBlockContact() {
     mutationFn: async (phone: string) => {
       const response = await apiRequest('POST', `/api/zapi/contacts/${encodeURIComponent(phone)}/block`);
       return response.json();
+    }
+  });
+}
+
+export function useImportZApiContacts() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/contacts/import-from-zapi');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      toast({
+        title: "Importação concluída",
+        description: data.message
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro na importação",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 }
