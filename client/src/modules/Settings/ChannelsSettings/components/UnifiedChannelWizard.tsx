@@ -207,8 +207,8 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
                     <Label htmlFor="base-url">URL Base da Z-API</Label>
                     <Input
                       id="base-url"
-                      placeholder="https://api.z-api.io"
-                      value={channelConfigData.configuration.baseUrl || 'https://api.z-api.io'}
+                      placeholder="https://api-z-api.io"
+                      value={channelConfigData.configuration.baseUrl || 'https://api-z-api.io'}
                       onChange={(e) => setChannelConfigData(prev => ({
                         ...prev,
                         configuration: { ...prev.configuration, baseUrl: e.target.value }
@@ -296,7 +296,7 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
               </div>
 
               <ZApiQRCode
-                baseUrl={channelConfigData.configuration.baseUrl || 'https://api.z-api.io'}
+                baseUrl={channelConfigData.configuration.baseUrl || 'https://api-z-api.io'}
                 instanceId={channelConfigData.configuration.instanceId}
                 token={channelConfigData.configuration.token}
                 clientToken={channelConfigData.configuration.clientToken}
