@@ -505,7 +505,7 @@ export function InboxPage() {
                 className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${
                   isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
-                onClick={() => setActiveConversation(conversation)}
+                onClick={() => handleSelectConversation(conversation)}
               >
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-10 h-10">
