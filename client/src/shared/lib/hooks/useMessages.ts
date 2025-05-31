@@ -6,12 +6,15 @@ export function useMessages(conversationId: number | null) {
   console.log('🔍 useMessages chamado com conversationId:', conversationId);
   
   const query = useQuery<Message[]>({
-    queryKey: ['/api/conversations', conversationId, 'messages'],
+    queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: !!conversationId,
-    refetchInterval: 3000, // Refetch a cada 3 segundos para capturar novas mensagens
+    refetchInterval: 3000,
     refetchIntervalInBackground: true,
+    staleTime: 0, // Sempre considerar dados como stale
+    gcTime: 0, // Não manter cache
   });
   
+  console.log('📨 URL que deveria ser chamada:', `/api/conversations/${conversationId}/messages`);
   console.log('📨 useMessages resultado:', { 
     isLoading: query.isLoading, 
     data: query.data, 
