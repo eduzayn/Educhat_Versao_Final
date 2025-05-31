@@ -1,128 +1,75 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useChatStore } from '@/store/chatStore';
-import type { WebSocketMessage, Message } from '@/types/chat';
+import { useEffect, useCallback, useRef } from 'react';
+import { useChatStore } from '../../store/store/chatStore';
+import type { WebSocketMessage } from '../../../types/chat';
 
 export function useWebSocket() {
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
-  const reconnectDelay = 1000;
-
-  const {
-    setConnectionStatus,
-    addMessage,
-    setTypingIndicator,
-    updateConversationLastMessage,
-    activeConversation,
-  } = useChatStore();
+  const socketRef = useRef<WebSocket | null>(null);
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
-    try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    socketRef.current = new WebSocket(wsUrl);
+
+    socketRef.current.onopen = () => {
+      console.log('WebSocket connected');
+      setConnectionStatus(true);
       
-      wsRef.current = new WebSocket(wsUrl);
+      if (activeConversation) {
+        sendMessage({
+          type: 'join_conversation',
+          conversationId: activeConversation.id,
+        });
+      }
+    };
 
-      wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
-        setConnectionStatus(true);
-        reconnectAttempts.current = 0;
-
-        // Join active conversation if exists
-        if (activeConversation) {
-          sendMessage({
-            type: 'join_conversation',
-            conversationId: activeConversation.id,
-          });
-        }
-      };
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const data: WebSocketMessage = JSON.parse(event.data);
-          
-          switch (data.type) {
-            case 'new_message':
-              if (data.message && data.conversationId) {
-                addMessage(data.conversationId, data.message);
-                updateConversationLastMessage(data.conversationId, data.message);
-              }
-              break;
-              
-            case 'typing':
-              if (data.conversationId !== undefined) {
-                setTypingIndicator(
-                  data.conversationId,
-                  data.isTyping
-                    ? {
-                        conversationId: data.conversationId,
-                        isTyping: data.isTyping,
-                        timestamp: new Date(),
-                      }
-                    : null
-                );
-              }
-              break;
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-
-      wsRef.current.onclose = () => {
-        console.log('WebSocket disconnected');
-        setConnectionStatus(false);
+    socketRef.current.onmessage = (event) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
         
-        // Attempt to reconnect
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          reconnectAttempts.current++;
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, reconnectDelay * reconnectAttempts.current);
+        switch (data.type) {
+          case 'new_message':
+            if (data.message && data.conversationId) {
+              addMessage(data.conversationId, data.message);
+            }
+            break;
+          case 'typing':
+            if (data.conversationId !== undefined && data.isTyping !== undefined) {
+              setTypingIndicator(data.conversationId, data.isTyping ? {
+                conversationId: data.conversationId,
+                isTyping: data.isTyping,
+                timestamp: new Date(),
+              } : null);
+            }
+            break;
         }
-      };
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
 
-      wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setConnectionStatus(false);
-      };
-
-    } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
+    socketRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
       setConnectionStatus(false);
-    }
-  }, [setConnectionStatus, addMessage, setTypingIndicator, updateConversationLastMessage, activeConversation]);
+      
+      // Attempt to reconnect after 3 seconds
+      setTimeout(connect, 3000);
+    };
 
-  const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-    
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-    
-    setConnectionStatus(false);
-  }, [setConnectionStatus]);
+    socketRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setConnectionStatus(false);
+    };
+  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket not connected. Message not sent:', message);
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
     }
   }, []);
-
-  const joinConversation = useCallback((conversationId: number) => {
-    sendMessage({
-      type: 'join_conversation',
-      conversationId,
-    });
-  }, [sendMessage]);
 
   const sendTypingIndicator = useCallback((conversationId: number, isTyping: boolean) => {
     sendMessage({
@@ -132,39 +79,18 @@ export function useWebSocket() {
     });
   }, [sendMessage]);
 
-  const sendChatMessage = useCallback((conversationId: number, content: string, isFromContact = false) => {
-    sendMessage({
-      type: 'send_message',
-      conversationId,
-      message: {
-        conversationId,
-        content,
-        isFromContact,
-      } as Message,
-    });
-  }, [sendMessage]);
-
   useEffect(() => {
     connect();
-    
-    return () => {
-      disconnect();
-    };
-  }, [connect, disconnect]);
 
-  // Join conversation when active conversation changes
-  useEffect(() => {
-    if (activeConversation && wsRef.current?.readyState === WebSocket.OPEN) {
-      joinConversation(activeConversation.id);
-    }
-  }, [activeConversation, joinConversation]);
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, [connect]);
 
   return {
     sendMessage,
-    joinConversation,
     sendTypingIndicator,
-    sendChatMessage,
-    connect,
-    disconnect,
   };
 }

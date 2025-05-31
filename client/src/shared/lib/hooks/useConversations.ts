@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import type { ConversationWithContact, InsertConversation } from '@/types/chat';
+import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
 export function useConversations() {
   return useQuery<ConversationWithContact[]>({
     queryKey: ['/api/conversations'],
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 
@@ -34,8 +33,8 @@ export function useUpdateConversation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertConversation> }) => {
-      const response = await apiRequest('PATCH', `/api/conversations/${id}`, data);
+    mutationFn: async ({ id, conversation }: { id: number; conversation: Partial<InsertConversation> }) => {
+      const response = await apiRequest('PATCH', `/api/conversations/${id}`, conversation);
       return response.json();
     },
     onSuccess: (_, { id }) => {
