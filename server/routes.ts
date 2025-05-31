@@ -269,12 +269,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API integration routes
   app.get('/api/zapi/qr-code', async (req, res) => {
     try {
-      const baseUrl = process.env.ZAPI_BASE_URL;
+      const baseUrl = 'https://api.z-api.io'; // URL fixa da Z-API
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
-      if (!baseUrl || !instanceId || !token || !clientToken) {
+      if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
           error: 'Credenciais da Z-API não configuradas' 
         });
@@ -304,12 +304,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/zapi/status', async (req, res) => {
     try {
-      const baseUrl = process.env.ZAPI_BASE_URL;
+      const baseUrl = 'https://api.z-api.io'; // URL fixa da Z-API
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
-      if (!baseUrl || !instanceId || !token || !clientToken) {
+      if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
           error: 'Credenciais da Z-API não configuradas' 
         });
