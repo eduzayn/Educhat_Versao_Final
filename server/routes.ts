@@ -1010,20 +1010,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
-      const response = await fetch(url, {
-        headers: {
-          'Client-Token': clientToken,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Tentar múltiplos endpoints para verificar status
+      const endpoints = [
+        `/instances/${instanceId}/token/${token}/status`,
+        `/instances/${instanceId}/token/${token}/connection-status`,
+        `/instances/${instanceId}/token/${token}`
+      ];
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      let finalData = null;
+      let finalError = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          const url = `${baseUrl}${endpoint}`;
+          const response = await fetch(url, {
+            headers: {
+              'Client-Token': clientToken,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            
+            // Se este endpoint retornou dados úteis, use ele
+            if (finalData === null || (data.session !== undefined)) {
+              finalData = data;
+            }
+            
+            // Log para debug
+            console.log(`Status de ${endpoint}:`, JSON.stringify(data, null, 2));
+          }
+        } catch (err) {
+          console.log(`Erro em ${endpoint}:`, err);
+        }
       }
 
-      const data = await response.json();
-      res.json(data);
+      if (finalData) {
+        res.json(finalData);
+      } else {
+        throw new Error('Nenhum endpoint de status funcionou');
+      }
     } catch (error) {
       console.error('Erro ao verificar status:', error);
       res.status(500).json({ 
@@ -1081,8 +1108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reiniciar instância Z-API
-  app.post('/api/zapi/restart', async (req, res) => {
+  // Desconectar instância Z-API
+  app.post('/api/zapi/disconnect', async (req, res) => {
     try {
       const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
@@ -1095,9 +1122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/restart`;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/disconnect`;
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Client-Token': clientToken,
           'Content-Type': 'application/json'
@@ -1111,7 +1138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = await response.json();
       res.json(data);
     } catch (error) {
-      console.error('Erro ao reiniciar instância Z-API:', error);
+      console.error('Erro ao desconectar instância Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
