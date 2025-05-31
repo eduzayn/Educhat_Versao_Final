@@ -23,17 +23,9 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkingStatus, setCheckingStatus] = useState(false);
   
-  // Usar a store global para persistir o status
-  const { 
-    status, 
-    setStatus, 
-    startConnectionMonitor, 
-    stopConnectionMonitor, 
-    setConfigured,
-    isConfigured 
-  } = useZApiStore();
+  // Usar apenas o status da store, sem modificá-la
+  const { status } = useZApiStore();
 
   // As credenciais agora são gerenciadas pelo backend
 
@@ -73,10 +65,12 @@ export function ZApiQRCode({ baseUrl, instanceId, token, clientToken, onConnecti
   useEffect(() => {
     if (status?.connected && status?.session) {
       console.log('✅ WhatsApp conectado com sucesso!');
-      onConnectionSuccess?.();
+      if (onConnectionSuccess) {
+        onConnectionSuccess();
+      }
       setQrCodeImage(null); // Limpar QR Code quando conectado
     }
-  }, [status?.connected, status?.session, onConnectionSuccess]);
+  }, [status?.connected, status?.session]);
 
   // Cleanup do monitoramento quando componente for desmontado
   useEffect(() => {
