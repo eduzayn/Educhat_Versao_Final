@@ -7,6 +7,8 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPage } from "@/pages/InboxPage";
+import SettingsPage from "@/pages/SettingsPage";
+import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,6 +33,8 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
+          <Route path="/settings" component={SettingsPage} />
+          <Route path="/settings/channels" component={ChannelsSettingsPage} />
         </>
       )}
       <Route component={NotFound} />
