@@ -5,7 +5,7 @@ import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Phone } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Phone, ChevronRight } from 'lucide-react';
 import { useContacts, useZApiContacts, useValidatePhoneNumber, useBlockContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 
@@ -49,6 +49,13 @@ export function ContactsPage() {
   return (
     <div className="min-h-screen bg-educhat-light">
       <div className="p-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+          <span>Contatos</span>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-educhat-dark">Lista de contatos</span>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -105,7 +112,8 @@ export function ContactsPage() {
                   <div className="col-span-2">Telefone</div>
                   <div className="col-span-1">Empresa</div>
                   <div className="col-span-1">Tipo</div>
-                  <div className="col-span-1">Última Atividade</div>
+                  <div className="col-span-1">Proprietário</div>
+                  <div className="col-span-1">Tags</div>
                   <div className="col-span-1">Ações</div>
                 </div>
               </div>
@@ -136,18 +144,18 @@ export function ContactsPage() {
                       <div className="col-span-3 flex items-center space-x-3">
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={contact.profileImageUrl || ''} alt={contact.name} />
-                          <AvatarFallback className="bg-educhat-primary text-white text-xs">
+                          <AvatarFallback className={`text-white text-xs ${
+                            contact.phone?.includes('whatsapp') || contact.phone?.startsWith('55') 
+                              ? 'bg-green-500' 
+                              : contact.name.startsWith('M') 
+                                ? 'bg-purple-500' 
+                                : 'bg-blue-500'
+                          }`}>
                             {contact.name.substring(0, 1).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-educhat-dark">{contact.name}</div>
-                          <div className="flex items-center space-x-1">
-                            <span className={`w-2 h-2 rounded-full ${contact.isOnline ? 'bg-green-400' : 'bg-gray-300'}`}></span>
-                            <span className="text-xs text-gray-500">
-                              {contact.isOnline ? 'Online' : 'Offline'}
-                            </span>
-                          </div>
                         </div>
                       </div>
                       
@@ -164,27 +172,25 @@ export function ContactsPage() {
                       </div>
                       
                       <div className="col-span-1">
-                        {contact.phone && contact.phone.includes('whatsapp') ? (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
-                            Contato
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-blue-100 text-blue-800 text-xs">
-                            Contato
-                          </Badge>
-                        )}
+                        <a href="#" className="text-blue-600 hover:text-blue-800 text-sm">
+                          Contato
+                        </a>
                       </div>
                       
                       <div className="col-span-1 text-gray-500">
-                        Hoje
+                        Não atribuído
+                      </div>
+                      
+                      <div className="col-span-1 text-gray-500">
+                        -
                       </div>
                       
                       <div className="col-span-1">
                         <div className="flex items-center space-x-1">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Ver">
                             <Eye className="w-3 h-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Editar">
                             <Edit className="w-3 h-3" />
                           </Button>
                         </div>
