@@ -734,6 +734,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Broadcast para clientes conectados
+        console.log('📡 Enviando broadcast para WebSocket:', {
+          conversationId: conversation.id,
+          messageId: message.id,
+          content: message.content
+        });
+        
         broadcast(conversation.id, {
           type: 'new_message',
           conversationId: conversation.id,

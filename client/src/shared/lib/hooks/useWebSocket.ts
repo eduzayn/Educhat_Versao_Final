@@ -4,7 +4,7 @@ import type { WebSocketMessage } from '../../../types/chat';
 
 export function useWebSocket() {
   const socketRef = useRef<WebSocket | null>(null);
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
 
   const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
@@ -34,6 +34,7 @@ export function useWebSocket() {
           case 'new_message':
             if (data.message && data.conversationId) {
               addMessage(data.conversationId, data.message);
+              updateConversationLastMessage(data.conversationId, data.message);
             }
             break;
           case 'typing':
