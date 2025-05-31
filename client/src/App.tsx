@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/shared/ui/ui/toaster";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPage } from "@/pages/InboxPage";
@@ -18,6 +19,9 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  
+  // Inicializar monitoramento global da Z-API
+  useGlobalZApiMonitor();
 
   if (isLoading) {
     return (
