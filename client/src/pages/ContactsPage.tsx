@@ -33,6 +33,7 @@ export function ContactsPage() {
   });
   const [newTags, setNewTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const { toast } = useToast();
   
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
@@ -137,13 +138,18 @@ export function ContactsPage() {
     }
   };
 
-  const handleDeleteContact = async (contactId: number) => {
+  const handleDeleteContact = (contact: Contact) => {
+    setContactToDelete(contact);
+  };
+
+  const handleConfirmDelete = async (contactId: number) => {
     try {
       // Implementar delete no hook se necessário
       toast({
         title: "Contato excluído",
         description: "O contato foi removido com sucesso."
       });
+      setContactToDelete(null);
     } catch (error) {
       toast({
         title: "Erro",
@@ -356,6 +362,135 @@ export function ContactsPage() {
           </Dialog>
         </div>
 
+        {/* Modal de Visualização */}
+        <Dialog open={!!viewingContact} onOpenChange={(open) => !open && setViewingContact(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Contato</DialogTitle>
+            </DialogHeader>
+            {viewingContact && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage src={viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
+                    <AvatarFallback className={`text-white ${
+                      viewingContact.phone?.includes('whatsapp') || viewingContact.phone?.startsWith('55') 
+                        ? 'bg-green-500' 
+                        : viewingContact.name.startsWith('M') 
+                          ? 'bg-purple-500' 
+                          : 'bg-blue-500'
+                    }`}>
+                      {viewingContact.name.substring(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-lg font-semibold">{viewingContact.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      {viewingContact.isOnline ? 'Online' : 'Offline'}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Email:</label>
+                    <p className="text-sm">{viewingContact.email || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Telefone:</label>
+                    <p className="text-sm">{viewingContact.phone || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Localização:</label>
+                    <p className="text-sm">{viewingContact.location || 'Não informado'}</p>
+                  </div>
+                  {viewingContact.age && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Idade:</label>
+                      <p className="text-sm">{viewingContact.age} anos</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Edição */}
+        <Dialog open={!!editingContact} onOpenChange={(open) => !open && setEditingContact(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Editar Contato</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nome</label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Nome do contato"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <Input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Telefone</label>
+                <Input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  placeholder="+55 11 99999-9999"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditingContact(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleSaveEdit}
+                  disabled={updateContact.isPending}
+                >
+                  {updateContact.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Confirmação de Exclusão */}
+        <AlertDialog open={!!contactToDelete} onOpenChange={(open) => !open && setContactToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir contato</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o contato "{contactToDelete?.name}"? 
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setContactToDelete(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (contactToDelete) {
+                    handleConfirmDelete(contactToDelete.id);
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Main Content */}
         <div>
           {/* Lista de Contatos */}
@@ -475,154 +610,33 @@ export function ContactsPage() {
                       
                       <div className="col-span-1">
                         <div className="flex items-center space-x-1">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-7 w-7 p-0" 
-                                title="Ver"
-                                onClick={() => handleViewContact(contact)}
-                              >
-                                <Eye className="w-3 h-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Detalhes do Contato</DialogTitle>
-                              </DialogHeader>
-                              {viewingContact && (
-                                <div className="space-y-4">
-                                  <div className="flex items-center space-x-4">
-                                    <Avatar className="w-16 h-16">
-                                      <AvatarImage src={viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
-                                      <AvatarFallback className={`text-white ${
-                                        viewingContact.phone?.includes('whatsapp') || viewingContact.phone?.startsWith('55') 
-                                          ? 'bg-green-500' 
-                                          : viewingContact.name.startsWith('M') 
-                                            ? 'bg-purple-500' 
-                                            : 'bg-blue-500'
-                                      }`}>
-                                        {viewingContact.name.substring(0, 1).toUpperCase()}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <h3 className="text-lg font-semibold">{viewingContact.name}</h3>
-                                      <p className="text-sm text-gray-500">
-                                        {viewingContact.isOnline ? 'Online' : 'Offline'}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-700">Email:</label>
-                                      <p className="text-sm">{viewingContact.email || 'Não informado'}</p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-700">Telefone:</label>
-                                      <p className="text-sm">{viewingContact.phone || 'Não informado'}</p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-700">Localização:</label>
-                                      <p className="text-sm">{viewingContact.location || 'Não informado'}</p>
-                                    </div>
-                                    {viewingContact.age && (
-                                      <div>
-                                        <label className="text-sm font-medium text-gray-700">Idade:</label>
-                                        <p className="text-sm">{viewingContact.age} anos</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-
-                          <Dialog open={!!editingContact} onOpenChange={(open) => !open && setEditingContact(null)}>
-                            <DialogTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-7 w-7 p-0" 
-                                title="Editar"
-                                onClick={() => handleEditContact(contact)}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Editar Contato</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="text-sm font-medium text-gray-700">Nome</label>
-                                  <Input
-                                    value={editForm.name}
-                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                    placeholder="Nome do contato"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium text-gray-700">Email</label>
-                                  <Input
-                                    type="email"
-                                    value={editForm.email}
-                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                    placeholder="email@exemplo.com"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium text-gray-700">Telefone</label>
-                                  <Input
-                                    value={editForm.phone}
-                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                    placeholder="+55 11 99999-9999"
-                                  />
-                                </div>
-                                <div className="flex justify-end space-x-2">
-                                  <Button 
-                                    variant="outline" 
-                                    onClick={() => setEditingContact(null)}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                  <Button 
-                                    onClick={handleSaveEdit}
-                                    disabled={updateContact.isPending}
-                                  >
-                                    {updateContact.isPending ? 'Salvando...' : 'Salvar'}
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Excluir">
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir contato</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o contato "{contact.name}"? 
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteContact(contact.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0" 
+                            title="Ver detalhes"
+                            onClick={() => handleViewContact(contact)}
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0" 
+                            title="Editar"
+                            onClick={() => handleEditContact(contact)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 text-red-600 hover:text-red-700" 
+                            title="Excluir"
+                            onClick={() => handleDeleteContact(contact)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
                     </div>
