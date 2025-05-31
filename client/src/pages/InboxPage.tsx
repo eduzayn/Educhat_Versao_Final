@@ -573,10 +573,6 @@ export function InboxPage() {
                       </span>
                     </div>
                     <div className="flex items-center space-x-2 mt-0.5">
-                      <span className="text-xs text-gray-500">
-                        {getChannelInfo(activeConversation.channel).name}
-                      </span>
-                      <span className="text-gray-300">•</span>
                       {getStatusBadge(activeConversation.status)}
                     </div>
                   </div>
@@ -649,11 +645,10 @@ export function InboxPage() {
                 {activeConversation.contact.name}
               </h3>
               
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+              <div className="flex items-center justify-center text-sm text-gray-600">
                 <span className={getChannelInfo(activeConversation.channel).color}>
                   {getChannelInfo(activeConversation.channel).icon}
                 </span>
-                <span>{getChannelInfo(activeConversation.channel).name}</span>
               </div>
             </div>
 
