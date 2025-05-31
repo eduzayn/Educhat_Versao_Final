@@ -26,7 +26,7 @@ export function ContactsPage() {
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const contactsPerPage = 20;
+  const contactsPerPage = 50;
   const [createForm, setCreateForm] = useState({ 
     name: '', 
     email: '', 
