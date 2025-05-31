@@ -3,13 +3,13 @@ import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
 import { Label } from '@/shared/ui/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
 
 export function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const { toast } = useToast();
 
   const [loginData, setLoginData] = useState({
@@ -124,123 +124,143 @@ export function Login() {
               </p>
             </div>
 
-            {/* Formulários de Login e Registro */}
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="register">Cadastrar</TabsTrigger>
-              </TabsList>
+            {/* Botões de alternância */}
+            <div className="flex rounded-lg bg-gray-100 p-1">
+              <Button
+                type="button"
+                onClick={() => setIsRegistering(false)}
+                className={`flex-1 text-sm py-2 px-4 rounded-md transition-all ${
+                  !isRegistering 
+                    ? 'bg-white text-educhat-primary shadow-sm' 
+                    : 'bg-transparent text-gray-600 hover:text-gray-800'
+                }`}
+                variant="ghost"
+              >
+                Entrar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setIsRegistering(true)}
+                className={`flex-1 text-sm py-2 px-4 rounded-md transition-all ${
+                  isRegistering 
+                    ? 'bg-white text-educhat-primary shadow-sm' 
+                    : 'bg-transparent text-gray-600 hover:text-gray-800'
+                }`}
+                variant="ghost"
+              >
+                Cadastrar
+              </Button>
+            </div>
 
-              <TabsContent value="login" className="space-y-4">
-                <form onSubmit={handleLogin} className="space-y-4">
+            {/* Formulário de Login */}
+            {!isRegistering ? (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={loginData.email}
+                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    required
+                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    required
+                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-educhat-primary hover:bg-educhat-secondary text-white py-3 rounded-xl font-medium transition-all duration-200"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Entrando..." : "Entrar"}
+                </Button>
+              </form>
+            ) : (
+              /* Formulário de Registro */
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="firstName">Nome</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      id="firstName"
+                      type="text"
+                      placeholder="João"
+                      value={registerData.firstName}
+                      onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
                       required
                       className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
+                    <Label htmlFor="lastName">Sobrenome</Label>
                     <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      id="lastName"
+                      type="text"
+                      placeholder="Silva"
+                      value={registerData.lastName}
+                      onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
                       required
                       className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
                     />
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-educhat-primary hover:bg-educhat-secondary text-white py-3 rounded-xl font-medium transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="register" className="space-y-4">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Nome</Label>
-                      <Input
-                        id="firstName"
-                        type="text"
-                        placeholder="João"
-                        value={registerData.firstName}
-                        onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
-                        required
-                        className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Sobrenome</Label>
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Silva"
-                        value={registerData.lastName}
-                        onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
-                        required
-                        className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <Input
-                      id="register-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={registerData.email}
-                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      required
-                      className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Senha</Label>
-                    <Input
-                      id="register-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={registerData.password}
-                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                      required
-                      className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={registerData.confirmPassword}
-                      onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
-                      required
-                      className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-educhat-primary hover:bg-educhat-secondary text-white py-3 rounded-xl font-medium transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Cadastrando..." : "Criar Conta"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    required
+                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-password">Senha</Label>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={registerData.password}
+                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                    required
+                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={registerData.confirmPassword}
+                    onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                    required
+                    className="focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-educhat-primary hover:bg-educhat-secondary text-white py-3 rounded-xl font-medium transition-all duration-200"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Cadastrando..." : "Criar Conta"}
+                </Button>
+              </form>
+            )}
 
             {/* Features */}
             <div className="pt-4 border-t border-gray-100">
