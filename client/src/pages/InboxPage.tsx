@@ -508,6 +508,10 @@ export function InboxPage() {
             const lastMessage = conversation.messages[0];
             const isActive = activeConversation?.id === conversation.id;
             
+            // Calcular mensagens não lidas: se não é a conversa ativa e a última mensagem é do contato
+            const hasUnreadMessages = !isActive && lastMessage && lastMessage.isFromContact;
+            const unreadCount = hasUnreadMessages ? 1 : 0;
+            
             return (
               <div
                 key={conversation.id}
@@ -535,9 +539,9 @@ export function InboxPage() {
                             {formatTime(lastMessage.sentAt || new Date())}
                           </span>
                         )}
-                        {conversation.unreadCount && conversation.unreadCount > 0 && (
-                          <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                        {unreadCount > 0 && (
+                          <Badge className="bg-purple-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                            {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}
                         {getStatusBadge(conversation.status)}
