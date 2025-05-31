@@ -126,8 +126,12 @@ export class DatabaseStorage implements IStorage {
 
   async searchContacts(query: string): Promise<Contact[]> {
     if (!query || query.trim() === '') {
-      // Retornar todos os contatos se não há query
-      return await db.select().from(contacts);
+      // Retornar todos os contatos ordenados por data de criação (mais recentes primeiro)
+      // Isso garantirá que os contatos reais da Z-API apareçam primeiro
+      return await db
+        .select()
+        .from(contacts)
+        .orderBy(desc(contacts.createdAt));
     }
     
     return await db
@@ -139,7 +143,8 @@ export class DatabaseStorage implements IStorage {
           ilike(contacts.email, `%${query}%`),
           ilike(contacts.phone, `%${query}%`)
         )
-      );
+      )
+      .orderBy(desc(contacts.createdAt));
   }
 
   async updateContactOnlineStatus(id: number, isOnline: boolean): Promise<void> {
