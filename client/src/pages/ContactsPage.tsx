@@ -13,6 +13,7 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact } from '@shared/schema';
+import { BackButton } from '@/shared/components/BackButton';
 
 export function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,6 +175,8 @@ export function ContactsPage() {
   return (
     <div className="min-h-screen bg-educhat-light">
       <div className="p-6">
+        <BackButton to="/" label="Voltar ao Dashboard" />
+        
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
           <span>Contatos</span>
