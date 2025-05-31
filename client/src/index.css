@@ -24,11 +24,14 @@
   --ring: 207 90% 64%; /* #4A9EFF */
   --radius: 0.5rem;
 
-  /* EduChat specific colors */
-  --educhat-blue: 213 93% 68%; /* #4A90E2 */
+  /* EduChat specific colors - Purple Theme */
+  --educhat-primary: 267 84% 59%; /* #7C3AED */
+  --educhat-secondary: 271 91% 65%; /* #A855F7 */
   --educhat-dark: 220 13% 18%; /* #1F2937 */
   --educhat-medium: 215 16% 47%; /* #6B7280 */
-  --educhat-light: 210 11% 98%; /* #F9FAFB */
+  --educhat-light: 270 100% 98%; /* #FDFCFF */
+  --educhat-purple-50: 270 100% 98%; /* #F9F5FF */
+  --educhat-purple-100: 269 100% 95%; /* #F3E8FF */
 }
 
 .dark {
@@ -53,7 +56,8 @@
   --ring: 207 90% 64%; /* #4A9EFF */
 
   /* EduChat dark theme colors */
-  --educhat-blue: 207 90% 64%; /* #4A9EFF */
+  --educhat-primary: 267 84% 59%; /* #7C3AED */
+  --educhat-secondary: 271 91% 65%; /* #A855F7 */
   --educhat-dark: 213 31% 91%; /* #E2E8F0 */
   --educhat-medium: 215 20% 65%; /* #94A3B8 */
   --educhat-light: 224 71% 4%; /* #0F172A */
@@ -71,16 +75,24 @@
 }
 
 @layer utilities {
-  .educhat-blue {
-    color: hsl(var(--educhat-blue));
+  .educhat-primary {
+    color: hsl(var(--educhat-primary));
   }
   
-  .bg-educhat-blue {
-    background-color: hsl(var(--educhat-blue));
+  .bg-educhat-primary {
+    background-color: hsl(var(--educhat-primary));
   }
   
-  .border-educhat-blue {
-    border-color: hsl(var(--educhat-blue));
+  .border-educhat-primary {
+    border-color: hsl(var(--educhat-primary));
+  }
+  
+  .educhat-secondary {
+    color: hsl(var(--educhat-secondary));
+  }
+  
+  .bg-educhat-secondary {
+    background-color: hsl(var(--educhat-secondary));
   }
   
   .text-educhat-dark {
@@ -93,6 +105,14 @@
   
   .bg-educhat-light {
     background-color: hsl(var(--educhat-light));
+  }
+  
+  .bg-educhat-purple-50 {
+    background-color: hsl(var(--educhat-purple-50));
+  }
+  
+  .bg-educhat-purple-100 {
+    background-color: hsl(var(--educhat-purple-100));
   }
 }
 

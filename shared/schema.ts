@@ -14,6 +14,17 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// User storage table for auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Contacts table
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
@@ -116,7 +127,14 @@ export const insertContactTagSchema = createInsertSchema(contactTags).omit({
   createdAt: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
+export type User = typeof users.$inferSelect;
+export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Conversation = typeof conversations.$inferSelect;
