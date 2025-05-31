@@ -161,15 +161,83 @@ export function InboxPage() {
             <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
             <div className="flex items-center gap-2">
               <ZApiStatusIndicator />
-              <Link href="/contacts">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  title="Novo contato"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </Link>
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    title="Novo contato"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Novo Contato</DialogTitle>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome completo</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome do contato" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="email@exemplo.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Telefone</FormLabel>
+                              <FormControl>
+                                <Input placeholder="+55 11 99999-9999" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsModalOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          type="submit"
+                          disabled={createContact.isPending}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          {createContact.isPending ? "Criando..." : "Criar Contato"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
