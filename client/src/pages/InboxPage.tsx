@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
 import { BackButton } from '@/shared/components/BackButton';
+import { Link } from 'wouter';
 import { 
   Search, 
   Filter, 
@@ -121,14 +122,15 @@ export function InboxPage() {
             <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
             <div className="flex items-center gap-2">
               <ZApiStatusIndicator />
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => window.open('/contacts', '_blank')}
-                title="Novo contato"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+              <Link href="/contacts">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  title="Novo contato"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
           </div>
 
