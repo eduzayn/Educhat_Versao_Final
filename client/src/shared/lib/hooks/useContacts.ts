@@ -133,3 +133,22 @@ export function useZApiContactMetadata(phone: string | null) {
     retry: 2
   });
 }
+
+// Hook to get updated profile picture from Z-API
+export function useZApiProfilePicture(phone: string | null) {
+  return useQuery({
+    queryKey: ['/api/zapi/profile-picture', phone],
+    queryFn: async () => {
+      if (!phone) throw new Error('Phone number is required');
+      
+      const response = await fetch(`/api/zapi/profile-picture?phone=${encodeURIComponent(phone)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile picture');
+      }
+      return response.json();
+    },
+    enabled: !!phone,
+    staleTime: 30 * 60 * 1000, // Cache for 30 minutes since pictures don't change often
+    retry: 2
+  });
+}

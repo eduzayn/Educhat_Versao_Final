@@ -257,6 +257,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get contact profile picture from Z-API
+  app.get('/api/zapi/profile-picture', async (req, res) => {
+    try {
+      const { phone } = req.query;
+      
+      if (!phone) {
+        return res.status(400).json({ error: 'Phone parameter is required' });
+      }
+      
+      // Remove non-numeric characters from phone
+      const cleanPhone = (phone as string).replace(/\D/g, '');
+      
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Z-API credentials not configured' 
+        });
+      }
+
+      // Use correct Z-API endpoint for profile picture
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Z-API profile picture error:', errorData);
+        throw new Error(`Z-API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Profile picture retrieved successfully for:', cleanPhone);
+      res.json(data);
+      
+    } catch (error) {
+      console.error('Error fetching profile picture:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch profile picture from Z-API' 
+      });
+    }
+  });
+
   app.post("/api/contacts/import-from-zapi", async (req, res) => {
     try {
       console.log('Iniciando importação de contatos da Z-API...');

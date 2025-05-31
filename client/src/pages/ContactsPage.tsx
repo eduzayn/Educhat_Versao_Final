@@ -10,7 +10,7 @@ import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
-import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts } from '@/shared/lib/hooks/useContacts';
+import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
@@ -40,6 +40,7 @@ export function ContactsPage() {
   const [newTags, setNewTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [selectedContactPhone, setSelectedContactPhone] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
@@ -53,6 +54,9 @@ export function ContactsPage() {
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const importZApiContacts = useImportZApiContacts();
+  
+  // Hook para buscar metadados detalhados do contato via Z-API
+  const { data: contactMetadata, isLoading: loadingMetadata, refetch: fetchMetadata } = useZApiContactMetadata(selectedContactPhone);
 
   // Calcular paginação
   const totalContacts = allContacts.length;
@@ -91,6 +95,11 @@ export function ContactsPage() {
 
   const handleViewContact = (contact: Contact) => {
     setViewingContact(contact);
+    setSelectedContactPhone(null); // Reset metadata
+  };
+
+  const handleFetchWhatsAppMetadata = (phone: string) => {
+    setSelectedContactPhone(phone);
   };
 
   const handleEditContact = (contact: Contact) => {
@@ -454,15 +463,15 @@ export function ContactsPage() {
 
         {/* Modal de Visualização */}
         <Dialog open={!!viewingContact} onOpenChange={(open) => !open && setViewingContact(null)}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Detalhes do Contato</DialogTitle>
             </DialogHeader>
             {viewingContact && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
+                    <AvatarImage src={contactMetadata?.imgUrl || viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
                     <AvatarFallback className={`text-white ${
                       viewingContact.phone?.includes('whatsapp') || viewingContact.phone?.startsWith('55') 
                         ? 'bg-green-500' 
@@ -473,13 +482,26 @@ export function ContactsPage() {
                       {viewingContact.name.substring(0, 1).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h3 className="text-lg font-semibold">{viewingContact.name}</h3>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold">{contactMetadata?.name || viewingContact.name}</h3>
                     <p className="text-sm text-gray-500">
                       {viewingContact.isOnline ? 'Online' : 'Offline'}
                     </p>
+                    {viewingContact.phone && isWhatsAppAvailable && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleFetchWhatsAppMetadata(viewingContact.phone || '')}
+                        disabled={loadingMetadata}
+                        className="mt-2"
+                      >
+                        {loadingMetadata ? 'Carregando...' : 'Buscar Info WhatsApp'}
+                      </Button>
+                    )}
                   </div>
                 </div>
+
+                {/* Informações Básicas */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700">Email:</label>
@@ -500,6 +522,51 @@ export function ContactsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Metadados do WhatsApp */}
+                {contactMetadata && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold mb-3 text-green-600">Informações do WhatsApp</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      {contactMetadata.notify && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Nome no WhatsApp:</label>
+                          <p className="text-sm">{contactMetadata.notify}</p>
+                        </div>
+                      )}
+                      {contactMetadata.short && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Nome Curto:</label>
+                          <p className="text-sm">{contactMetadata.short}</p>
+                        </div>
+                      )}
+                      {contactMetadata.vname && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Nome do VCard:</label>
+                          <p className="text-sm">{contactMetadata.vname}</p>
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Telefone (WhatsApp):</label>
+                        <p className="text-sm">{contactMetadata.phone}</p>
+                      </div>
+                      {contactMetadata.imgUrl && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Foto do Perfil:</label>
+                          <p className="text-xs text-gray-500 mb-2">URL válida por 48 horas</p>
+                          <img 
+                            src={contactMetadata.imgUrl} 
+                            alt="Foto do perfil" 
+                            className="w-20 h-20 rounded-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
