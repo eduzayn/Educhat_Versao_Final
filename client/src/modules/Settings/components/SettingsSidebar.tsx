@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Input } from '@/shared/ui/ui/input';
+import { Button } from '@/shared/ui/ui/button';
 import { useLocation } from 'wouter';
 
 interface MenuItem {
   href: string;
   icon: string;
   label: string;
+  variant?: 'ghost' | 'default';
 }
 
 interface MenuSection {
@@ -13,28 +15,45 @@ interface MenuSection {
   items: MenuItem[];
 }
 
+const iconMapping = {
+  company: "👤",
+  branding: "🎨", 
+  localization: "🌍",
+  users: "👥",
+  channels: "📱",
+  notifications: "🔔",
+  crm: "💼",
+  marketing: "📣",
+  goals: "🎯",
+  ai: "🤖",
+  integrations: "🔌",
+  security: "🔒",
+  subscription: "💳"
+};
+
 const menuSections: MenuSection[] = [
   {
     title: "Configurações Gerais",
     items: [
-      { href: "/settings/company", icon: "👤", label: "Perfil da Empresa" },
-      { href: "/settings/branding", icon: "🎨", label: "Aparência e Branding" },
-      { href: "/settings/localization", icon: "🌍", label: "Localização e Idioma" },
-      { href: "/settings/users", icon: "👥", label: "Usuários e Equipes" },
-      { href: "/settings/channels", icon: "📱", label: "Canais de Comunicação" },
-      { href: "/settings/notifications", icon: "🔔", label: "Notificações" }
+      { href: "/settings/company", icon: iconMapping.company, label: "Perfil da Empresa" },
+      { href: "/settings/branding", icon: iconMapping.branding, label: "Aparência e Branding" },
+      { href: "/settings/localization", icon: iconMapping.localization, label: "Localização e Idioma" },
+      { href: "/settings/users", icon: iconMapping.users, label: "Usuários e Equipes" },
+      { href: "/settings/channels", icon: iconMapping.channels, label: "Canais de Comunicação" },
+      { href: "/settings/notifications", icon: iconMapping.notifications, label: "Notificações" }
     ]
   },
   {
     title: "Módulos & Ferramentas",
     items: [
-      { href: "/settings/crm", icon: "💼", label: "CRM" },
-      { href: "/settings/marketing", icon: "📣", label: "Marketing" },
-      { href: "/settings/goals", icon: "🎯", label: "Metas e Gamificação" },
-      { href: "/settings/ai", icon: "🤖", label: "IA - Prof. Ana" },
-      { href: "/settings/integrations", icon: "🔌", label: "Integrações" },
-      { href: "/settings/security", icon: "🔒", label: "Segurança" },
-      { href: "/settings/subscription", icon: "💳", label: "Assinatura" }
+      { href: "/settings/users", icon: iconMapping.users, label: "Usuários e Equipes" },
+      { href: "/settings/crm", icon: iconMapping.crm, label: "CRM" },
+      { href: "/settings/marketing", icon: iconMapping.marketing, label: "Marketing" },
+      { href: "/settings/goals", icon: iconMapping.goals, label: "Metas e Gamificação" },
+      { href: "/settings/ai", icon: iconMapping.ai, label: "IA - Prof. Ana", variant: "default" },
+      { href: "/settings/integrations", icon: iconMapping.integrations, label: "Integrações" },
+      { href: "/settings/security", icon: iconMapping.security, label: "Segurança" },
+      { href: "/settings/subscription", icon: iconMapping.subscription, label: "Assinatura" }
     ]
   }
 ];
@@ -43,6 +62,7 @@ export function SettingsSidebar() {
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Filtrar todas as seções baseado no termo de busca
   const filteredSections = menuSections.map(section => ({
     ...section,
     items: section.items.filter(item =>
@@ -51,11 +71,11 @@ export function SettingsSidebar() {
   })).filter(section => section.items.length > 0);
 
   return (
-    <div className="space-y-4">
+    <div className="bg-card border rounded-md p-4 sticky top-6">
       {/* Barra de busca */}
       <Input 
         placeholder="Buscar configurações..." 
-        className="text-sm"
+        className="text-sm mb-4"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -68,20 +88,26 @@ export function SettingsSidebar() {
               {section.title}
             </h3>
             <div className="space-y-1">
-              {section.items.map((item, itemIndex) => (
-                <button
-                  key={itemIndex}
-                  onClick={() => setLocation(item.href)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md text-left transition-colors ${
-                    location === item.href
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  <span className="text-base">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              ))}
+              {section.items.map((item, itemIndex) => {
+                const isActive = location === item.href;
+                const variant = isActive || item.variant === 'default' ? 'default' : 'ghost';
+                
+                return (
+                  <Button
+                    key={itemIndex}
+                    variant={variant}
+                    className={`w-full justify-start text-sm ${
+                      isActive 
+                        ? 'bg-educhat-primary text-white hover:bg-educhat-primary/90' 
+                        : ''
+                    }`}
+                    onClick={() => setLocation(item.href)}
+                  >
+                    <span className="mr-2 text-base">{item.icon}</span>
+                    {item.label}
+                  </Button>
+                );
+              })}
             </div>
           </div>
         ))}
