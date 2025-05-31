@@ -9,13 +9,7 @@ import { storage } from "./storage";
 
 declare global {
   namespace Express {
-    interface User {
-      id: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-      profileImageUrl?: string;
-    }
+    interface User extends SelectUser {}
   }
 }
 

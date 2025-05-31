@@ -299,15 +299,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (data.value) {
         // Gerar QR Code visual a partir do token
         const qrCodeDataURL = await QRCode.toDataURL(data.value, {
-          errorCorrectionLevel: 'M',
-          type: 'image/png',
-          quality: 0.92,
+          width: 256,
           margin: 1,
           color: {
             dark: '#000000',
             light: '#FFFFFF'
-          },
-          width: 256
+          }
         });
         
         // Extrair apenas a parte base64

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import type { Message, InsertMessage } from '@/types/chat';
+import type { Message, InsertMessage } from '@shared/schema';
 
 export function useMessages(conversationId: number | null) {
   return useQuery<Message[]>({
