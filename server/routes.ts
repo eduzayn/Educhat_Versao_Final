@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Test with a simple status endpoint first  
-      const statusResponse = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_CLIENT_TOKEN}/status`, {
+      const statusResponse = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/status`, {
         headers: {
           'Content-Type': 'application/json'
         }
