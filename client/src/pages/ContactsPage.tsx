@@ -25,6 +25,8 @@ export function ContactsPage() {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [isCreating, setIsCreating] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const contactsPerPage = 20;
   const [createForm, setCreateForm] = useState({ 
     name: '', 
     email: '', 
@@ -47,10 +49,17 @@ export function ContactsPage() {
   // Verificar se WhatsApp está disponível para sincronização
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
-  const { data: contacts = [], isLoading } = useContacts(searchQuery);
+  const { data: allContacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const importZApiContacts = useImportZApiContacts();
+
+  // Calcular paginação
+  const totalContacts = allContacts.length;
+  const totalPages = Math.ceil(totalContacts / contactsPerPage);
+  const startIndex = (currentPage - 1) * contactsPerPage;
+  const endIndex = startIndex + contactsPerPage;
+  const contacts = allContacts.slice(startIndex, endIndex);
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -66,6 +75,18 @@ export function ContactsPage() {
     } else {
       setSelectedContacts(contacts.map(c => c.id));
     }
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleViewContact = (contact: Contact) => {
@@ -671,19 +692,45 @@ export function ContactsPage() {
               </div>
 
               {/* Pagination */}
-              {contacts.length > 0 && (
+              {totalContacts > 0 && (
                 <div className="border-t border-gray-200 p-4 flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Mostrando 1-{contacts.length} de {contacts.length} contatos
+                    Mostrando {startIndex + 1}-{Math.min(endIndex, totalContacts)} de {totalContacts} contatos
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" disabled>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handlePreviousPage}
+                      disabled={currentPage === 1}
+                    >
                       Anterior
                     </Button>
-                    <Button variant="outline" size="sm" className="bg-educhat-primary text-white">
-                      1
-                    </Button>
-                    <Button variant="outline" size="sm" disabled>
+                    
+                    {/* Páginas numeradas */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const page = Math.max(1, currentPage - 2) + i;
+                      if (page > totalPages) return null;
+                      
+                      return (
+                        <Button
+                          key={page}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageClick(page)}
+                          className={page === currentPage ? "bg-educhat-primary text-white" : ""}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                    >
                       Próximo
                     </Button>
                   </div>
