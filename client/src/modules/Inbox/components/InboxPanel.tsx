@@ -43,7 +43,7 @@ export function InboxPanel() {
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 focus:ring-2 focus:ring-educhat-primary focus:border-educhat-primary"
           />
         </div>
         
@@ -55,7 +55,7 @@ export function InboxPanel() {
             onClick={() => setSelectedChannel('all')}
             className={cn(
               "text-xs rounded-full",
-              selectedChannel === 'all' && "bg-educhat-blue text-white hover:bg-educhat-blue/90"
+              selectedChannel === 'all' && "bg-educhat-primary text-white hover:bg-educhat-secondary"
             )}
           >
             All
@@ -68,7 +68,7 @@ export function InboxPanel() {
               onClick={() => setSelectedChannel(key)}
               className={cn(
                 "text-xs rounded-full",
-                selectedChannel === key && "bg-educhat-blue text-white hover:bg-educhat-blue/90"
+                selectedChannel === key && "bg-educhat-primary text-white hover:bg-educhat-secondary"
               )}
             >
               <i className={`${channel.icon} mr-1`} />

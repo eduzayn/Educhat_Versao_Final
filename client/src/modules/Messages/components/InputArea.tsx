@@ -117,7 +117,7 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-blue focus:border-transparent"
+            className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             rows={1}
           />
           <Button 
@@ -133,7 +133,7 @@ export function InputArea() {
           onClick={handleSendMessage}
           disabled={!message.trim() || sendMessageMutation.isPending}
           className={cn(
-            "bg-educhat-blue hover:bg-blue-600 text-white p-3 rounded-xl transition-colors",
+            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3 rounded-xl transition-colors",
             sendMessageMutation.isPending && "opacity-50 cursor-not-allowed"
           )}
         >
