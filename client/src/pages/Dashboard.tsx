@@ -307,6 +307,10 @@ export function Dashboard() {
                 onClick={() => {
                   if (item.id === 'settings') {
                     setLocation('/settings');
+                  } else if (item.id === 'contacts') {
+                    setLocation('/contacts');
+                  } else if (item.id === 'inbox') {
+                    setLocation('/inbox');
                   } else {
                     setActiveSection(item.id);
                   }
