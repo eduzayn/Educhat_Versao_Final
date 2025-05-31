@@ -182,8 +182,8 @@ export function InboxPage() {
                       <h3 className="font-medium text-gray-900 truncate">
                         {conversation.contact.name}
                       </h3>
-                      <div className="flex items-center space-x-1">
-                        <span className={`text-lg ${channelInfo.color}`}>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-sm ${channelInfo.color}`}>
                           {channelInfo.icon}
                         </span>
                         {lastMessage && (
