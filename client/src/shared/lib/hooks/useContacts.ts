@@ -56,7 +56,7 @@ export function useUpdateContact() {
   });
 }
 
-// Z-API specific hooks
+// Z-API specific hooks (mantidas para configurações avançadas)
 export function useZApiContacts() {
   return useQuery({
     queryKey: ['/api/zapi/contacts'],
@@ -81,16 +81,6 @@ export function useBlockContact() {
   return useMutation({
     mutationFn: async (phone: string) => {
       const response = await apiRequest('POST', `/api/zapi/contacts/${encodeURIComponent(phone)}/block`);
-      return response.json();
-    }
-  });
-}
-
-export function useContactMetadata() {
-  return useMutation({
-    mutationFn: async (phone: string) => {
-      const response = await fetch(`/api/zapi/contacts/${encodeURIComponent(phone)}/metadata`);
-      if (!response.ok) throw new Error('Failed to fetch contact metadata');
       return response.json();
     }
   });

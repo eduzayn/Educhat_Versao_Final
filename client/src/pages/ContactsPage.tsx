@@ -2,22 +2,17 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
-import { Badge } from '@/shared/ui/ui/badge';
+
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { Search, Plus, Filter, Download, Eye, Edit, Phone, ChevronRight } from 'lucide-react';
-import { useContacts, useZApiContacts, useValidatePhoneNumber, useBlockContact } from '@/shared/lib/hooks/useContacts';
-import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useContacts } from '@/shared/lib/hooks/useContacts';
 
 export function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
-  const { toast } = useToast();
   
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
-  const { data: zapiContacts, isLoading: zapiLoading } = useZApiContacts();
-  const validatePhone = useValidatePhoneNumber();
-  const blockContact = useBlockContact();
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
