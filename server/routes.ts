@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Z-API Token exists:', !!process.env.ZAPI_CLIENT_TOKEN);
       
       // Usar credenciais corretas da instância ativa
-      const instanceId = process.env.ZAPI_INSTANCE_ID || '3DF871A7ADFB20FB49998E66062CE0C1';
+      const instanceId = '3DF871A7ADFB20FB49998E66062CE0C1';
       const clientToken = 'Fe4f45c32c552449dbf8b290c83f520d5S';
       
       const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${clientToken}/chats`, {
