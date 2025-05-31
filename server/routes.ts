@@ -83,13 +83,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/contacts', async (req, res) => {
     try {
       const { search } = req.query;
-      let contacts;
+      let contacts: any[] = [];
       
       if (search && typeof search === 'string') {
         contacts = await storage.searchContacts(search);
-      } else {
-        // For now, return empty array as we'll populate through conversations
-        contacts = [];
       }
       
       res.json(contacts);

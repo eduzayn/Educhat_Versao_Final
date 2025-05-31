@@ -200,14 +200,7 @@ export class DatabaseStorage implements IStorage {
       .update(conversations)
       .set({ 
         lastMessageAt: new Date(),
-        unreadCount: message.isFromContact ? 
-          // Increment unread count if message is from contact
-          db.select({ count: count() }).from(messages)
-            .where(and(
-              eq(messages.conversationId, message.conversationId),
-              eq(messages.isFromContact, true),
-              eq(messages.readAt, null)
-            )) as any : undefined,
+        // Note: unreadCount will be calculated separately to avoid SQL issues
         updatedAt: new Date() 
       })
       .where(eq(conversations.id, message.conversationId));

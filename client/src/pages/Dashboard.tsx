@@ -16,8 +16,10 @@ export function Dashboard() {
 
   // Update conversations in store when data changes
   useEffect(() => {
-    setConversations(conversations);
-  }, [conversations, setConversations]);
+    if (conversations.length > 0) {
+      setConversations(conversations);
+    }
+  }, [conversations]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
