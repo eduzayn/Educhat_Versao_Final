@@ -15,6 +15,7 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
+import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { ContactsPage } from "@/pages/ContactsPage";
 import NotFound from "@/pages/not-found";
 
@@ -52,6 +53,7 @@ function Router() {
           <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/settings/channels" component={ChannelsSettingsPage} />
+          <Route path="/settings/webhook" component={WebhookConfigPage} />
           <Route component={NotFound} />
         </>
       )}

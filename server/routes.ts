@@ -720,10 +720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // URL do webhook será a URL pública do Replit + /api/zapi/webhook  
-      const host = req.get('host');
-      const webhookUrl = host?.includes('replit.dev') 
-        ? `https://${host}/api/zapi/webhook`
-        : `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
+      const webhookUrl = 'https://omni-communicate-magonder.replit.app/api/zapi/webhook';
       
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
       const response = await fetch(url, {
@@ -1049,10 +1046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Endpoint para obter URL do webhook
   app.get('/api/webhook-url', (req, res) => {
-    const host = req.get('host');
-    const webhookUrl = host?.includes('replit.dev') 
-      ? `https://${host}/api/zapi/webhook`
-      : `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
+    const webhookUrl = 'https://omni-communicate-magonder.replit.app/api/zapi/webhook';
     
     res.json({ 
       webhookUrl,
