@@ -29,9 +29,12 @@ import {
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/store/chatStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
+import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
+import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
 export function InboxPage() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -39,9 +42,16 @@ export function InboxPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
   
+  // Integração com Z-API para comunicação em tempo real
+  const { status: zapiStatus, isConfigured } = useZApiStore();
+  useGlobalZApiMonitor();
+  
   const { data: conversations = [], isLoading } = useConversations();
   const { activeConversation, setActiveConversation } = useChatStore();
   const { data: messages = [] } = useMessages(activeConversation?.id || null);
+
+  // Verificar se WhatsApp está disponível para comunicação
+  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
   // Filtrar conversas baseado na aba ativa e filtros
   const filteredConversations = conversations.filter(conversation => {
@@ -104,7 +114,27 @@ export function InboxPage() {
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <BackButton to="/" label="Dashboard" className="mb-2" />
-          <h1 className="text-xl font-semibold text-educhat-dark mb-4">Conversas</h1>
+          
+          {/* Status da Conexão Z-API */}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-semibold text-educhat-dark">Conversas</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">WhatsApp:</span>
+              <ZApiStatusIndicator />
+            </div>
+          </div>
+
+          {/* Aviso quando Z-API não está conectada */}
+          {!isWhatsAppAvailable && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span className="text-sm text-amber-700">
+                  WhatsApp desconectado. Configure nas Configurações → Canais de Comunicação
+                </span>
+              </div>
+            </div>
+          )}
           
           {/* Abas */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">

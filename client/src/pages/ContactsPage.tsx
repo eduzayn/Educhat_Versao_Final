@@ -12,6 +12,9 @@ import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
 import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useZApiStore } from '@/shared/store/zapiStore';
+import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
+import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 
@@ -37,10 +40,17 @@ export function ContactsPage() {
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const { toast } = useToast();
   
+  // Integração com Z-API para comunicação em tempo real
+  const { status: zapiStatus, isConfigured } = useZApiStore();
+  useGlobalZApiMonitor();
+  
   const { data: contacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const importZApiContacts = useImportZApiContacts();
+
+  // Verificar se WhatsApp está disponível para importação de contatos
+  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -188,7 +198,13 @@ export function ContactsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-educhat-dark">Contatos</h1>
-            <p className="text-educhat-medium">Gerencie seus contatos e integração WhatsApp</p>
+            <div className="flex items-center gap-4">
+              <p className="text-educhat-medium">Gerencie seus contatos e integração WhatsApp</p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Status WhatsApp:</span>
+                <ZApiStatusIndicator />
+              </div>
+            </div>
           </div>
           <Dialog open={isCreating} onOpenChange={setIsCreating}>
             <DialogTrigger asChild>
@@ -521,7 +537,8 @@ export function ContactsPage() {
                     variant="outline" 
                     size="sm"
                     onClick={() => importZApiContacts.mutate()}
-                    disabled={importZApiContacts.isPending}
+                    disabled={importZApiContacts.isPending || !isWhatsAppAvailable}
+                    title={!isWhatsAppAvailable ? 'WhatsApp não está conectado. Configure nas Configurações → Canais' : ''}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     {importZApiContacts.isPending ? 'Importando...' : 'Importar do WhatsApp'}
