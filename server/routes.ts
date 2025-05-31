@@ -719,20 +719,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // URL do webhook será a URL do Replit + /api/zapi/webhook
-      const webhookUrl = `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
+      // URL do webhook será a URL pública do Replit + /api/zapi/webhook  
+      const host = req.get('host');
+      const webhookUrl = host?.includes('replit.dev') 
+        ? `https://${host}/api/zapi/webhook`
+        : `${req.protocol}://${req.get('host')}/api/zapi/webhook`;
       
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/webhook`;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Client-Token': clientToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          url: webhookUrl,
-          enabled: true,
-          webhookByEvents: false
+          value: webhookUrl
         })
       });
 
