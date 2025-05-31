@@ -41,6 +41,7 @@ export function ContactsPage() {
   const [currentTag, setCurrentTag] = useState('');
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [selectedContactPhone, setSelectedContactPhone] = useState<string | null>(null);
+  const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
@@ -57,6 +58,9 @@ export function ContactsPage() {
   
   // Hook para buscar metadados detalhados do contato via Z-API
   const { data: contactMetadata, isLoading: loadingMetadata, refetch: fetchMetadata } = useZApiContactMetadata(selectedContactPhone);
+  
+  // Hook para buscar foto de perfil atualizada via Z-API
+  const { data: profilePicture, isLoading: loadingProfilePicture, refetch: fetchProfilePicture } = useZApiProfilePicture(profilePicturePhone);
 
   // Calcular paginação
   const totalContacts = allContacts.length;
@@ -96,10 +100,15 @@ export function ContactsPage() {
   const handleViewContact = (contact: Contact) => {
     setViewingContact(contact);
     setSelectedContactPhone(null); // Reset metadata
+    setProfilePicturePhone(null); // Reset profile picture
   };
 
   const handleFetchWhatsAppMetadata = (phone: string) => {
     setSelectedContactPhone(phone);
+  };
+
+  const handleFetchProfilePicture = (phone: string) => {
+    setProfilePicturePhone(phone);
   };
 
   const handleEditContact = (contact: Contact) => {
@@ -471,7 +480,7 @@ export function ContactsPage() {
               <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={contactMetadata?.imgUrl || viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
+                    <AvatarImage src={profilePicture?.link || contactMetadata?.imgUrl || viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
                     <AvatarFallback className={`text-white ${
                       viewingContact.phone?.includes('whatsapp') || viewingContact.phone?.startsWith('55') 
                         ? 'bg-green-500' 
@@ -488,15 +497,24 @@ export function ContactsPage() {
                       {viewingContact.isOnline ? 'Online' : 'Offline'}
                     </p>
                     {viewingContact.phone && isWhatsAppAvailable && (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleFetchWhatsAppMetadata(viewingContact.phone || '')}
-                        disabled={loadingMetadata}
-                        className="mt-2"
-                      >
-                        {loadingMetadata ? 'Carregando...' : 'Buscar Info WhatsApp'}
-                      </Button>
+                      <div className="flex gap-2 mt-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleFetchWhatsAppMetadata(viewingContact.phone || '')}
+                          disabled={loadingMetadata}
+                        >
+                          {loadingMetadata ? 'Carregando...' : 'Buscar Info WhatsApp'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleFetchProfilePicture(viewingContact.phone || '')}
+                          disabled={loadingProfilePicture}
+                        >
+                          {loadingProfilePicture ? 'Carregando...' : 'Atualizar Foto'}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
