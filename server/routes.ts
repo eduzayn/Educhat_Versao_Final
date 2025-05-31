@@ -178,9 +178,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('Starting Z-API contact import...');
       
-      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN) {
+      if (!process.env.ZAPI_BASE_URL || !process.env.ZAPI_CLIENT_TOKEN || !process.env.ZAPI_INSTANCE_ID) {
         return res.status(400).json({ 
-          message: "Z-API credentials not configured. Please provide ZAPI_BASE_URL and ZAPI_CLIENT_TOKEN." 
+          message: "Z-API credentials not configured. Please provide ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN and ZAPI_INSTANCE_ID." 
         });
       }
 
