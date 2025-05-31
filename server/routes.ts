@@ -639,31 +639,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Z-API webhook endpoint
+  // Z-API webhook endpoint baseado na documentação oficial
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
       console.log('📨 Webhook Z-API recebido:', JSON.stringify(req.body, null, 2));
       
       const webhookData = req.body;
       
-      // Processar mensagens recebidas
-      if (webhookData.phone && webhookData.text) {
+      // Verificar se é um callback de mensagem recebida (baseado na documentação)
+      if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
+        const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
+        let messageContent = '';
+        let messageType = 'text';
+        
+        // Determinar o conteúdo da mensagem baseado no tipo (documentação Z-API)
+        if (webhookData.text && webhookData.text.message) {
+          messageContent = webhookData.text.message;
+          messageType = 'text';
+        } else if (webhookData.image) {
+          messageContent = webhookData.image.caption || 'Imagem enviada';
+          messageType = 'image';
+        } else if (webhookData.audio) {
+          messageContent = 'Áudio enviado';
+          messageType = 'audio';
+        } else if (webhookData.video) {
+          messageContent = webhookData.video.caption || 'Vídeo enviado';
+          messageType = 'video';
+        } else if (webhookData.document) {
+          messageContent = webhookData.document.fileName || 'Documento enviado';
+          messageType = 'document';
+        } else if (webhookData.location) {
+          messageContent = webhookData.location.name || 'Localização enviada';
+          messageType = 'location';
+        } else if (webhookData.buttonsResponseMessage) {
+          messageContent = webhookData.buttonsResponseMessage.message;
+          messageType = 'button_response';
+        } else if (webhookData.listResponseMessage) {
+          messageContent = webhookData.listResponseMessage.message;
+          messageType = 'list_response';
+        } else {
+          messageContent = 'Mensagem sem conteúdo de texto';
+        }
+        
         console.log('📱 Nova mensagem via WhatsApp:', {
-          de: webhookData.phone,
-          mensagem: webhookData.text.message,
-          timestamp: webhookData.timestamp
+          de: phone,
+          nome: webhookData.senderName || webhookData.chatName,
+          mensagem: messageContent,
+          tipo: messageType,
+          timestamp: new Date(webhookData.momment || Date.now())
         });
         
         // Buscar ou criar contato pelo telefone
-        const contacts = await storage.searchContacts(webhookData.phone);
-        let contact = contacts.find(c => c.phone === webhookData.phone);
+        const contacts = await storage.searchContacts(phone);
+        let contact = contacts.find(c => c.phone.replace(/\D/g, '') === phone);
         
         if (!contact) {
           contact = await storage.createContact({
-            name: webhookData.senderName || webhookData.phone,
-            phone: webhookData.phone,
+            name: webhookData.senderName || webhookData.chatName || phone,
+            phone: phone,
+            email: null,
+            notes: null,
+            tags: [],
             isOnline: true,
-            lastSeenAt: new Date()
+            profilePictureUrl: webhookData.photo || webhookData.senderPhoto || null
           });
         } else {
           await storage.updateContactOnlineStatus(contact.id, true);
@@ -676,15 +714,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             contactId: contact.id,
             channel: 'whatsapp',
             status: 'open',
-            lastMessageAt: new Date()
+            lastMessageAt: new Date(),
+            metadata: {}
           });
         }
         
         // Criar mensagem
         const message = await storage.createMessage({
           conversationId: conversation.id,
-          content: webhookData.text.message,
-          isFromContact: true
+          content: messageContent,
+          isFromContact: !webhookData.fromMe, // fromMe indica se foi enviada pela própria instância
+          messageType: messageType,
+          sentAt: new Date(webhookData.momment || Date.now()),
+          metadata: webhookData
         });
         
         // Broadcast para clientes conectados
@@ -694,7 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: message
         });
         
-        console.log('✅ Mensagem processada e salva');
+        console.log(`✅ Mensagem processada: ${contact.name} (${phone}) - ${messageContent}`);
       }
       
       res.status(200).json({ success: true });
@@ -1033,6 +1075,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       console.error('Erro ao enviar mensagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Reiniciar instância Z-API
+  app.post('/api/zapi/restart', async (req, res) => {
+    try {
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/restart`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao reiniciar instância Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
