@@ -113,9 +113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Usar credenciais corretas da instância ativa
       const instanceId = process.env.ZAPI_INSTANCE_ID || '3DF871A7ADFB20FB49998E66062CE0C1';
-      const token = process.env.ZAPI_TOKEN || 'A4E42029C248B72DA0842F47';
+      const clientToken = 'Fe4f45c32c552449dbf8b290c83f520d5S';
       
-      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${token}/chats?page=1`, {
+      const response = await fetch(`${process.env.ZAPI_BASE_URL}/instances/${instanceId}/token/${clientToken}/chats`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         }
@@ -123,13 +124,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Z-API Response status:', response.status);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Z-API Error response:', errorText);
-        throw new Error(`Z-API error: ${response.status} - ${errorText}`);
-      }
-
       const data = await response.json();
+      console.log('Z-API full response:', JSON.stringify(data, null, 2));
+      
+      if (!response.ok) {
+        console.error('Z-API Error response:', data);
+        throw new Error(`Z-API error: ${response.status} - ${JSON.stringify(data)}`);
+      }
+      
+      // Se há erro na resposta da Z-API, mas status 200, retornar o erro
+      if (data.error) {
+        return res.json({ error: data.error, message: "Z-API returned an error" });
+      }
+      
       res.json(data);
     } catch (error) {
       console.error("Error fetching Z-API contacts:", error);
