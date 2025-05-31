@@ -37,8 +37,9 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/login" component={Login} />
       {!isAuthenticated ? (
-        <Route path="/" component={Login} />
+        <Route path="*" component={Login} />
       ) : (
         <>
           <Route path="/" component={Dashboard} />
@@ -51,9 +52,9 @@ function Router() {
           <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/settings/channels" component={ChannelsSettingsPage} />
+          <Route component={NotFound} />
         </>
       )}
-      <Route component={NotFound} />
     </Switch>
   );
 }
