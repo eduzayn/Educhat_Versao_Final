@@ -164,7 +164,7 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
           </Button>
         </PopoverTrigger>
         
-        <PopoverContent className="w-80 p-0" align="start">
+        <PopoverContent className="w-96 p-0" align="start">
           <div className="p-3">
             {/* Categorias */}
             <div className="flex gap-1 mb-3 border-b pb-2">
