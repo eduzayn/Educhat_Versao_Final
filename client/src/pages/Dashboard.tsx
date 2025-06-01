@@ -62,12 +62,7 @@ export function Dashboard() {
       icon: UserCheck,
       description: 'Gerenciar contatos e WhatsApp'
     },
-    {
-      id: 'chat-interno',
-      label: 'Chat Interno',
-      icon: MessageCircle,
-      description: 'Comunicação entre agentes'
-    },
+
     {
       id: 'crm',
       label: 'CRM',
@@ -80,18 +75,7 @@ export function Dashboard() {
       icon: Zap,
       description: 'Canais e APIs'
     },
-    {
-      id: 'payments',
-      label: 'Pagamentos',
-      icon: CreditCard,
-      description: 'Cobranças e Asaas'
-    },
-    {
-      id: 'reports',
-      label: 'Relatórios',
-      icon: BarChart3,
-      description: 'Analytics e métricas'
-    },
+
     {
       id: 'settings',
       label: 'Configurações',
@@ -223,12 +207,12 @@ export function Dashboard() {
                     <span>Integrações</span>
                   </Button>
                   <Button 
-                    onClick={() => setActiveSection('payments')}
+                    onClick={() => setActiveSection('crm')}
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
                   >
-                    <CreditCard className="w-6 h-6" />
-                    <span>Cobranças</span>
+                    <UserCheck className="w-6 h-6" />
+                    <span>CRM</span>
                   </Button>
                 </div>
               </CardContent>
