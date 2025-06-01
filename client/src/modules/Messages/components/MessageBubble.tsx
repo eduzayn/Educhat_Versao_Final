@@ -14,13 +14,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor }: M
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
 
-  // Debug logs
-  console.log('MessageBubble renderizando:', {
-    messageId: message.id,
-    content: message.content,
-    isFromContact,
-    contactName: contact?.name
-  });
+
 
   return (
     <div className={`flex items-start space-x-3 ${isFromContact ? '' : 'flex-row-reverse space-x-reverse'}`}>
