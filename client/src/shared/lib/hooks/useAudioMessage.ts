@@ -24,39 +24,34 @@ export function useSendAudioMessage() {
         formData.append('duration', duration.toString());
         formData.append('conversationId', conversationId.toString());
 
-        try {
-          const response = await fetch('/api/zapi/send-audio', {
-            method: 'POST',
-            body: formData
-          });
+        const response = await fetch('/api/zapi/send-audio', {
+          method: 'POST',
+          body: formData
+        });
 
-          if (!response.ok) {
-            throw new Error(`Erro na API Z-API: ${response.status}`);
-          }
-
-          return await response.json();
-        } catch (error) {
-          console.error('Erro ao enviar áudio via Z-API:', error);
-          throw error;
+        if (!response.ok) {
+          throw new Error(`Erro na API Z-API: ${response.status}`);
         }
+
+        return await response.json();
       }
 
-      // Para outros canais, salvar no banco local
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'audio.webm');
-      formData.append('duration', duration.toString());
-      formData.append('messageType', 'audio');
-
-      const response = await fetch(`/api/conversations/${conversationId}/messages/audio`, {
+      // Para outros canais (não WhatsApp), usar endpoint de mensagens gerais
+      return await apiRequest(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
-        body: formData
+        body: JSON.stringify({
+          content: 'Mensagem de áudio (canal interno)',
+          messageType: 'audio',
+          isFromContact: false,
+          metadata: {
+            duration: duration,
+            audioSize: audioBlob.size
+          }
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao enviar áudio: ${response.status}`);
-      }
-
-      return await response.json();
     },
     onSuccess: (_, { conversationId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
