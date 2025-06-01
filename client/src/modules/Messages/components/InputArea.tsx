@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
+import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useChatStore } from '@/shared/store/store/chatStore';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { AudioRecorder } from './AudioRecorder';
 import { cn } from '@/lib/utils';
 
 const QUICK_REPLIES = [
@@ -17,12 +19,14 @@ const QUICK_REPLIES = [
 export function InputArea() {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { activeConversation } = useChatStore();
   const { sendTypingIndicator } = useWebSocket();
   const sendMessageMutation = useSendMessage();
+  const sendAudioMutation = useSendAudioMessage();
   const { toast } = useToast();
 
   // Auto-resize textarea
@@ -100,15 +104,68 @@ export function InputArea() {
     textareaRef.current?.focus();
   };
 
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    if (!activeConversation) return;
+
+    // Esconder o componente de gravação imediatamente
+    setShowAudioRecorder(false);
+
+    try {
+      await sendAudioMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        audioBlob,
+        duration,
+        contact: activeConversation.contact,
+      });
+      toast({
+        title: 'Áudio enviado',
+        description: 'Sua mensagem de áudio foi enviada com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar áudio',
+        description: 'Falha ao enviar mensagem de áudio. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCancelAudio = () => {
+    setShowAudioRecorder(false);
+  };
+
   if (!activeConversation) {
     return null;
   }
 
   return (
     <div className="bg-white border-t border-gray-200 p-4">
+      {/* Componente de gravação de áudio */}
+      {showAudioRecorder && (
+        <div className="mb-4 border rounded-lg p-3 bg-gray-50">
+          <AudioRecorder
+            onSendAudio={handleSendAudio}
+            onCancel={handleCancelAudio}
+          />
+        </div>
+      )}
+      
+      {/* Interface de digitação sempre visível */}
       <div className="flex items-end space-x-3">
         <Button variant="ghost" size="sm" className="p-2 text-educhat-medium hover:text-educhat-blue">
           <Paperclip className="w-5 h-5" />
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowAudioRecorder(!showAudioRecorder)}
+          className={cn(
+            "p-2 text-educhat-medium hover:text-educhat-blue",
+            showAudioRecorder && "bg-educhat-primary text-white"
+          )}
+        >
+          <Mic className="w-5 h-5" />
         </Button>
         
         <div className="flex-1 relative">

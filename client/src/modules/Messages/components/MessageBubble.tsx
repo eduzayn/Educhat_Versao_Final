@@ -1,7 +1,7 @@
 import { Check, CheckCheck } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import type { Message, Contact } from '@/types/chat';
+import type { Message, Contact } from '@shared/schema';
 
 interface MessageBubbleProps {
   message: Message;
@@ -15,34 +15,32 @@ export function MessageBubble({ message, contact, channelIcon, channelColor }: M
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
 
   return (
-    <div className={`flex items-start space-x-3 ${isFromContact ? '' : 'flex-row-reverse space-x-reverse'}`}>
-      <Avatar className="w-8 h-8">
+    <div className={`flex items-start gap-3 mb-4 ${isFromContact ? '' : 'flex-row-reverse'}`}>
+      <Avatar className="w-8 h-8 flex-shrink-0">
         <AvatarImage 
           src={isFromContact ? contact.profileImageUrl || '' : ''} 
-          alt={isFromContact ? contact.name : 'Agent'} 
+          alt={isFromContact ? contact.name : 'Agente'} 
         />
-        <AvatarFallback>
+        <AvatarFallback className="text-xs">
           {isFromContact 
-            ? contact.name.substring(0, 2).toUpperCase()
+            ? contact.name?.charAt(0)?.toUpperCase() || 'C'
             : 'A'
           }
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex-1 max-w-md">
-        <div className={`px-4 py-3 rounded-2xl ${
+      <div className={`flex-1 max-w-md ${isFromContact ? '' : 'flex flex-col items-end'}`}>
+        <div className={`px-4 py-2 rounded-lg ${
           isFromContact 
-            ? 'bg-white border border-gray-200 rounded-bl-sm' 
-            : 'bg-educhat-blue text-white rounded-br-sm ml-auto'
+            ? 'bg-gray-100 text-gray-900' 
+            : 'bg-blue-600 text-white'
         }`}>
-          <p className={isFromContact ? 'text-educhat-dark' : 'text-white'}>
-            {message.content}
-          </p>
+          <p className="text-sm">{message.content}</p>
         </div>
         
-        <div className={`flex items-center space-x-2 mt-1 ${isFromContact ? '' : 'justify-end'}`}>
+        <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isFromContact ? '' : 'justify-end'}`}>
           {!isFromContact && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center">
               {message.readAt ? (
                 <CheckCheck className="w-3 h-3 text-blue-500" />
               ) : message.deliveredAt ? (
@@ -52,10 +50,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor }: M
               )}
             </div>
           )}
-          <span className="text-xs text-educhat-medium">{messageTime}</span>
-          {isFromContact && channelIcon && (
-            <i className={`${channelIcon} ${channelColor} text-xs`} />
-          )}
+          <span>{messageTime}</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
+import multer from 'multer';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
 
@@ -9,6 +10,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
   const { setupAuth } = await import("./auth");
   setupAuth(app);
+
+  // Configurar multer para upload de arquivos
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+  });
 
   const httpServer = createServer(app);
 
@@ -523,11 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      console.log(`🔍 Buscando mensagens para conversa ${id}, limit: ${limit}`);
-      
       const messages = await storage.getMessages(id, limit);
-      console.log(`📨 Encontradas ${messages.length} mensagens para conversa ${id}`);
-      
       res.json(messages.reverse()); // Return in chronological order
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -1145,6 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1158,13 +1162,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
       res.json(data);
     } catch (error) {
       console.error('Erro ao enviar mensagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint para enviar áudio via Z-API
+  app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
+    try {
+      console.log('Recebendo solicitação de envio de áudio:', {
+        body: req.body,
+        file: req.file ? { 
+          originalname: req.file.originalname, 
+          mimetype: req.file.mimetype, 
+          size: req.file.size 
+        } : null
+      });
+
+      const { phone } = req.body;
+      const audioFile = req.file;
+
+      if (!phone || !audioFile) {
+        console.log('Dados ausentes:', { phone: !!phone, audioFile: !!audioFile });
+        return res.status(400).json({ 
+          error: 'Telefone e arquivo de áudio são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      console.log('Credenciais Z-API:', {
+        instanceId: instanceId ? 'OK' : 'MISSING',
+        token: token ? 'OK' : 'MISSING',
+        clientToken: clientToken ? 'OK' : 'MISSING'
+      });
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // Converter áudio para Base64 (formato aceito pela Z-API)
+      const audioBase64 = `data:${audioFile.mimetype};base64,${audioFile.buffer.toString('base64')}`;
+
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone,
+        audio: audioBase64,
+        waveform: true,
+        viewOnce: false
+      };
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
+      console.log('Enviando para Z-API:', url, { mimeType: audioFile.mimetype, size: audioFile.size });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro detalhado da Z-API:', errorText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Sucesso no envio de áudio:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });

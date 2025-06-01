@@ -17,7 +17,6 @@ export function useWebSocket() {
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {
-      console.log('WebSocket connected');
       setConnectionStatus(true);
       
       if (activeConversation) {
@@ -35,7 +34,6 @@ export function useWebSocket() {
         switch (data.type) {
           case 'new_message':
             if (data.message && data.conversationId) {
-              console.log('📨 Mensagem recebida via WebSocket:', data.message);
               addMessage(data.conversationId, data.message);
               updateConversationLastMessage(data.conversationId, data.message);
               
@@ -60,15 +58,12 @@ export function useWebSocket() {
     };
 
     socketRef.current.onclose = () => {
-      console.log('WebSocket disconnected');
       setConnectionStatus(false);
-      
       // Attempt to reconnect after 3 seconds
       setTimeout(connect, 3000);
     };
 
-    socketRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
+    socketRef.current.onerror = () => {
       setConnectionStatus(false);
     };
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation]);

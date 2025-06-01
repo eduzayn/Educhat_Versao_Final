@@ -3,26 +3,12 @@ import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
 export function useMessages(conversationId: number | null) {
-  console.log('🔍 useMessages chamado com conversationId:', conversationId);
-  
-  const query = useQuery<Message[]>({
+  return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: !!conversationId,
     refetchInterval: 3000,
     refetchIntervalInBackground: true,
-    staleTime: 0, // Sempre considerar dados como stale
-    gcTime: 0, // Não manter cache
   });
-  
-  console.log('📨 URL que deveria ser chamada:', `/api/conversations/${conversationId}/messages`);
-  console.log('📨 useMessages resultado:', { 
-    isLoading: query.isLoading, 
-    data: query.data, 
-    error: query.error,
-    dataLength: query.data?.length 
-  });
-  
-  return query;
 }
 
 export function useSendMessage() {
@@ -34,20 +20,22 @@ export function useSendMessage() {
       message: Omit<InsertMessage, 'conversationId'>;
       contact?: any;
     }) => {
-      // Se for um contato do WhatsApp e tiver telefone, enviar via Z-API
-      if (contact?.channel === 'whatsapp' && contact?.phone) {
+      // Se tiver telefone, enviar via Z-API (assumindo WhatsApp como padrão)
+      if (contact?.phone) {
         try {
           await apiRequest("POST", "/api/zapi/send-message", {
             phone: contact.phone,
             message: message.content
           });
+          // Para WhatsApp, não salvamos localmente - a mensagem voltará via webhook
+          return { success: true, via: 'zapi' };
         } catch (error) {
           console.error('Erro ao enviar via Z-API:', error);
-          // Continue com o envio normal se falhar
+          // Se falhar, continuar com o envio normal
         }
       }
 
-      // Sempre salvar a mensagem no banco de dados local
+      // Salvar mensagem no banco de dados local (para canais que não são WhatsApp)
       const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
       return response.json();
     },
