@@ -1254,17 +1254,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = await response.json();
       console.log('Sucesso no envio de áudio:', data);
 
-      // Salvar mensagem de áudio no banco de dados local
+      // Salvar mensagem de áudio no banco de dados local com conteúdo para reprodução
       const audioMessage = await storage.createMessage({
         conversationId: parseInt(req.body.conversationId),
-        content: `Áudio enviado (${audioFile.size} bytes)`,
+        content: audioBase64, // Salvar o áudio base64 para reprodução local
         isFromContact: false,
         messageType: 'audio',
         metadata: {
           zaapId: data.zaapId,
           messageId: data.messageId,
           audioSize: audioFile.size,
-          mimeType: audioFile.mimetype
+          mimeType: audioFile.mimetype,
+          duration: parseInt(req.body.duration || '0')
         }
       });
 

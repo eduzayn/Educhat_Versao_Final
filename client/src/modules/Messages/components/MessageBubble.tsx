@@ -54,6 +54,9 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
     }
   };
 
+  // Usar duração dos metadados se disponível
+  const effectiveDuration = audioDuration || duration;
+
   const handleEnded = () => {
     setIsPlaying(false);
     setCurrentTime(0);
@@ -100,16 +103,16 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
             {audioUrl ? 'Mensagem de áudio' : 'Mensagem de áudio (não disponível)'}
             {sizeText}
           </span>
-          {duration > 0 && (
+          {effectiveDuration > 0 && (
             <span className="text-xs opacity-75">
-              {formatTime(currentTime)} / {formatTime(duration)}
+              {formatTime(currentTime)} / {formatTime(effectiveDuration)}
             </span>
           )}
         </div>
         <div className={`text-xs ${isFromContact ? 'text-gray-500' : 'text-blue-100'}`}>
           Enviado via WhatsApp
         </div>
-        {duration > 0 && (
+        {effectiveDuration > 0 && (
           <div className={`w-full h-1 mt-2 rounded overflow-hidden ${
             isFromContact ? 'bg-gray-300' : 'bg-blue-400'
           }`}>
@@ -117,7 +120,7 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
               className={`h-full transition-all duration-100 ${
                 isFromContact ? 'bg-blue-600' : 'bg-white'
               }`}
-              style={{ width: `${(currentTime / duration) * 100}%` }}
+              style={{ width: `${(currentTime / effectiveDuration) * 100}%` }}
             />
           </div>
         )}
