@@ -699,7 +699,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const webhookData = req.body;
       
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
-      if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
+      // Ignorar mensagens enviadas por nós mesmos (fromMe: true) para evitar duplicação
+      if (webhookData.type === 'ReceivedCallback' && webhookData.phone && !webhookData.fromMe) {
         const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
         let messageContent = '';
         let messageType = 'text';
