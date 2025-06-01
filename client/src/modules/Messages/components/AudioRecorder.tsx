@@ -1,9 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Play, Pause, Trash2, Send, RotateCcw } from 'lucide-react';
-import { Button } from '@/shared/ui/ui/button';
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Mic, Square, Trash2, Send, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-type RecordingState = 'inactive' | 'recording' | 'preview';
 
 interface AudioRecorderProps {
   onSendAudio: (audioBlob: Blob, duration: number) => void;
@@ -11,145 +9,105 @@ interface AudioRecorderProps {
   className?: string;
 }
 
+type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'preview' | 'sending';
+
 export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorderProps) {
-  const [recordingState, setRecordingState] = useState<RecordingState>('inactive');
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [state, setState] = useState<RecordingState>('idle');
   const [duration, setDuration] = useState(0);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [permission, setPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
-  const MAX_RECORDING_TIME = 300; // 5 minutos em segundos
+  const MAX_DURATION = 300; // 5 minutos em segundos
 
-  // Cleanup na desmontagem do componente
   useEffect(() => {
     return () => {
-      cleanup();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
     };
-  }, []);
+  }, [audioUrl]);
 
-  const cleanup = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
-    if (audioUrlRef.current) {
-      URL.revokeObjectURL(audioUrlRef.current);
-      audioUrlRef.current = null;
-    }
-  };
-
-  const formatTime = (seconds: number): string => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const requestMicrophonePermission = async (): Promise<boolean> => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        } 
-      });
-      streamRef.current = stream;
-      setHasPermission(true);
-      setPermissionError(null);
-      return true;
-    } catch (error) {
-      setHasPermission(false);
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          setPermissionError('Permissão negada. Permita o acesso ao microfone nas configurações do navegador.');
-        } else if (error.name === 'NotFoundError') {
-          setPermissionError('Nenhum microfone foi encontrado. Verifique se há um microfone conectado.');
-        } else {
-          setPermissionError('Erro ao acessar o microfone. Verifique as configurações do navegador.');
-        }
-      }
-      return false;
-    }
-  };
-
   const startRecording = async () => {
-    const permissionGranted = await requestMicrophonePermission();
-    if (!permissionGranted || !streamRef.current) return;
-
     try {
-      // Limpar chunks anteriores
-      audioChunksRef.current = [];
+      setState('requesting-permission');
       
-      const mediaRecorder = new MediaRecorder(streamRef.current, {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setPermission('granted');
+      
+      chunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
       });
       
       mediaRecorderRef.current = mediaRecorder;
-
+      
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
+          chunksRef.current.push(event.data);
         }
       };
-
+      
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { 
-          type: 'audio/webm;codecs=opus' 
-        });
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
+        setAudioBlob(blob);
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        setState('preview');
         
-        // Criar URL para preview
-        if (audioUrlRef.current) {
-          URL.revokeObjectURL(audioUrlRef.current);
-        }
-        audioUrlRef.current = URL.createObjectURL(audioBlob);
-        
-        // Parar o stream do microfone
+        // Limpar o stream
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
-        
-        setRecordingState('preview');
       };
-
-      mediaRecorder.start(100); // Collect data every 100ms
-      setRecordingState('recording');
+      
+      mediaRecorder.start();
+      setState('recording');
       setDuration(0);
       
       // Iniciar timer
       timerRef.current = setInterval(() => {
         setDuration(prev => {
           const newDuration = prev + 1;
-          // Parar automaticamente ao atingir o limite
-          if (newDuration >= MAX_RECORDING_TIME) {
+          if (newDuration >= MAX_DURATION) {
             stopRecording();
+            return MAX_DURATION;
           }
           return newDuration;
         });
       }, 1000);
-
+      
     } catch (error) {
       console.error('Erro ao iniciar gravação:', error);
-      setPermissionError('Erro ao iniciar a gravação. Tente novamente.');
+      setPermission('denied');
+      setState('idle');
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
     
@@ -160,201 +118,194 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   };
 
   const cancelRecording = () => {
-    if (recordingState === 'recording') {
+    if (state === 'recording') {
       stopRecording();
     }
     
-    cleanup();
-    setRecordingState('inactive');
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+    }
+    
+    setState('idle');
     setDuration(0);
+    setAudioBlob(null);
     setCurrentTime(0);
     setIsPlaying(false);
     onCancel();
   };
 
-  const playPreview = () => {
-    if (!audioUrlRef.current) return;
-
-    if (!audioRef.current) {
-      audioRef.current = new Audio(audioUrlRef.current);
-      
-      audioRef.current.ontimeupdate = () => {
-        if (audioRef.current) {
-          setCurrentTime(Math.floor(audioRef.current.currentTime));
-        }
-      };
-
-      audioRef.current.onended = () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      };
-
-      audioRef.current.onloadedmetadata = () => {
-        if (audioRef.current) {
-          setDuration(Math.floor(audioRef.current.duration));
-        }
-      };
-    }
-
+  const togglePlayback = () => {
+    if (!audioRef.current || !audioUrl) return;
+    
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
     } else {
       audioRef.current.play();
-      setIsPlaying(true);
     }
+    setIsPlaying(!isPlaying);
   };
 
-  const sendAudio = () => {
-    if (audioChunksRef.current.length > 0) {
-      const audioBlob = new Blob(audioChunksRef.current, { 
-        type: 'audio/webm;codecs=opus' 
-      });
-      onSendAudio(audioBlob, duration);
-      cleanup();
-      setRecordingState('inactive');
-      setDuration(0);
-      setCurrentTime(0);
-      setIsPlaying(false);
+  const handleSendAudio = async () => {
+    if (!audioBlob) return;
+    
+    setState('sending');
+    await onSendAudio(audioBlob, duration);
+    
+    // Reset após envio
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
     }
-  };
-
-  const retryRecording = () => {
-    cleanup();
-    setRecordingState('inactive');
+    setState('idle');
     setDuration(0);
+    setAudioBlob(null);
     setCurrentTime(0);
     setIsPlaying(false);
   };
 
-  // Estado Inativo - mostrar apenas o ícone do microfone
-  if (recordingState === 'inactive') {
+  // Estado Padrão/Inativo
+  if (state === 'idle') {
     return (
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={startRecording}
-        className={cn("p-2 h-10 w-10 hover:bg-primary/10", className)}
+        className={cn(
+          "p-2 h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800",
+          className
+        )}
         title="Gravar áudio"
       >
-        <Mic className="w-5 h-5 text-gray-600" />
+        <Mic className="w-5 h-5 text-gray-600 dark:text-gray-400" />
       </Button>
     );
   }
 
-  // Estado de Gravação
-  if (recordingState === 'recording') {
+  // Estado Solicitando Permissão
+  if (state === 'requesting-permission') {
     return (
-      <div className={cn("flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg", className)}>
-        <div className="flex items-center gap-2">
+      <div className={cn("flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg", className)}>
+        <Mic className="w-5 h-5 text-blue-600 animate-pulse" />
+        <span className="text-sm text-blue-700 dark:text-blue-300">
+          Solicitando permissão do microfone...
+        </span>
+      </div>
+    );
+  }
+
+  // Estado Gravando
+  if (state === 'recording') {
+    return (
+      <div className={cn("flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800", className)}>
+        <div className="flex items-center space-x-2">
           <div className="relative">
-            <Mic className="w-5 h-5 text-red-600" />
-            <div className="absolute inset-0 bg-red-600 rounded-full animate-ping opacity-20" />
+            <Mic className="w-6 h-6 text-red-600" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
           </div>
-          <span className="text-sm font-medium text-red-700">
+          <span className="text-sm font-mono text-red-700 dark:text-red-300">
             {formatTime(duration)}
-            {duration >= MAX_RECORDING_TIME - 10 && (
-              <span className="text-xs ml-1">
-                (máx: {formatTime(MAX_RECORDING_TIME)})
-              </span>
-            )}
           </span>
         </div>
-
-        <div className="flex items-center gap-2 ml-auto">
+        
+        <div className="flex items-center space-x-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={cancelRecording}
-            className="p-1 h-8 w-8 hover:bg-red-100"
-            title="Cancelar gravação"
+            onClick={stopRecording}
+            className="h-8 px-3 bg-white dark:bg-gray-800 border-red-300 dark:border-red-700"
           >
-            <Trash2 className="w-4 h-4 text-red-600" />
+            <Square className="w-4 h-4 mr-1" />
+            Parar
           </Button>
           
           <Button
             type="button"
-            variant="default"
+            variant="outline"
             size="sm"
-            onClick={stopRecording}
-            className="px-3 h-8 bg-red-600 hover:bg-red-700"
-            title="Parar gravação"
+            onClick={cancelRecording}
+            className="h-8 px-3 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
           >
-            <Square className="w-4 h-4 mr-1" />
-            Parar
+            <Trash2 className="w-4 h-4 mr-1" />
+            Cancelar
           </Button>
         </div>
       </div>
     );
   }
 
-  // Estado de Preview
-  if (recordingState === 'preview') {
+  // Estado Preview
+  if (state === 'preview') {
     return (
-      <div className={cn("flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg", className)}>
-        <div className="flex items-center gap-2">
+      <div className={cn("flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border", className)}>
+        {audioUrl && (
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+            onEnded={() => setIsPlaying(false)}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+        )}
+        
+        <div className="flex items-center space-x-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={playPreview}
-            className="p-1 h-8 w-8 hover:bg-blue-100"
-            title={isPlaying ? "Pausar" : "Reproduzir"}
+            onClick={togglePlayback}
+            className="h-8 w-8 p-0"
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 text-blue-600" />
+              <Pause className="w-4 h-4" />
             ) : (
-              <Play className="w-4 h-4 text-blue-600" />
+              <Play className="w-4 h-4" />
             )}
           </Button>
           
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-blue-700">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               Áudio ({formatTime(duration)})
             </span>
-            {isPlaying && (
-              <div className="w-24 h-1 bg-blue-200 rounded-full mt-1">
-                <div 
-                  className="h-full bg-blue-600 rounded-full transition-all duration-100"
-                  style={{ width: `${(currentTime / duration) * 100}%` }}
-                />
-              </div>
-            )}
+            <div className="w-20 h-1 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
+              <div 
+                className="h-full bg-blue-500 transition-all duration-100"
+                style={{ width: `${(currentTime / duration) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 ml-auto">
+        
+        <div className="flex items-center space-x-2 ml-auto">
           <Button
             type="button"
-            variant="ghost"
-            size="sm"
-            onClick={retryRecording}
-            className="p-1 h-8 w-8 hover:bg-blue-100"
-            title="Gravar novamente"
-          >
-            <RotateCcw className="w-4 h-4 text-blue-600" />
-          </Button>
-          
-          <Button
-            type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={cancelRecording}
-            className="p-1 h-8 w-8 hover:bg-red-100"
-            title="Descartar"
+            className="h-8 px-3"
           >
-            <Trash2 className="w-4 h-4 text-red-600" />
+            <Trash2 className="w-4 h-4 mr-1" />
+            Descartar
           </Button>
           
           <Button
             type="button"
-            variant="default"
             size="sm"
-            onClick={sendAudio}
-            className="px-3 h-8 bg-green-600 hover:bg-green-700"
-            title="Enviar áudio"
+            onClick={handleSendAudio}
+            className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Send className="w-4 h-4 mr-1" />
             Enviar
@@ -364,23 +315,14 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
     );
   }
 
-  // Exibir erro de permissão se houver
-  if (permissionError) {
+  // Estado Enviando
+  if (state === 'sending') {
     return (
-      <div className={cn("p-3 bg-yellow-50 border border-yellow-200 rounded-lg", className)}>
-        <p className="text-sm text-yellow-800">{permissionError}</p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setPermissionError(null);
-            setHasPermission(null);
-          }}
-          className="mt-2"
-        >
-          Tentar novamente
-        </Button>
+      <div className={cn("flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg", className)}>
+        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-blue-700 dark:text-blue-300">
+          Enviando áudio...
+        </span>
       </div>
     );
   }
