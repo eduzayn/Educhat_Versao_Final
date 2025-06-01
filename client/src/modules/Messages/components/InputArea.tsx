@@ -164,12 +164,13 @@ export function InputArea() {
   // Mutation para enviar imagem
   const sendImageMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone) {
-        throw new Error("Número do contato não disponível");
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
       }
 
       const formData = new FormData();
       formData.append('phone', activeConversation.contact.phone);
+      formData.append('conversationId', activeConversation.id.toString());
       formData.append('image', file);
 
       const response = await fetch('/api/zapi/send-image', {
@@ -183,12 +184,19 @@ export function InputArea() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Imagem enviada",
         description: "Sua imagem foi enviada com sucesso!",
       });
       setIsAttachmentOpen(false);
+      
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+        });
+      }
     },
     onError: (error) => {
       console.error("Erro ao enviar imagem:", error);
@@ -203,12 +211,13 @@ export function InputArea() {
   // Mutation para enviar vídeo
   const sendVideoMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone) {
-        throw new Error("Número do contato não disponível");
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
       }
 
       const formData = new FormData();
       formData.append('phone', activeConversation.contact.phone);
+      formData.append('conversationId', activeConversation.id.toString());
       formData.append('video', file);
 
       const response = await fetch('/api/zapi/send-video', {
@@ -222,12 +231,19 @@ export function InputArea() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Vídeo enviado",
         description: "Seu vídeo foi enviado com sucesso!",
       });
       setIsAttachmentOpen(false);
+      
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+        });
+      }
     },
     onError: (error) => {
       console.error("Erro ao enviar vídeo:", error);
@@ -242,12 +258,13 @@ export function InputArea() {
   // Mutation para enviar documento
   const sendDocumentMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone) {
-        throw new Error("Número do contato não disponível");
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
       }
 
       const formData = new FormData();
       formData.append('phone', activeConversation.contact.phone);
+      formData.append('conversationId', activeConversation.id.toString());
       formData.append('document', file);
 
       const response = await fetch('/api/zapi/send-document', {
@@ -261,12 +278,19 @@ export function InputArea() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Documento enviado",
         description: "Seu documento foi enviado com sucesso!",
       });
       setIsAttachmentOpen(false);
+      
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+        });
+      }
     },
     onError: (error) => {
       console.error("Erro ao enviar documento:", error);
@@ -281,19 +305,20 @@ export function InputArea() {
   // Mutation para enviar link
   const sendLinkMutation = useMutation({
     mutationFn: async ({ url, text }: { url: string; text: string }) => {
-      if (!activeConversation?.contact.phone) {
-        throw new Error("Número do contato não disponível");
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
       }
 
       const response = await apiRequest("POST", "/api/zapi/send-link", {
         phone: activeConversation.contact.phone,
+        conversationId: activeConversation.id,
         url: url,
         text: text
       });
 
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Link enviado",
         description: "Seu link foi enviado com sucesso!",
@@ -301,6 +326,13 @@ export function InputArea() {
       setIsAttachmentOpen(false);
       setLinkUrl('');
       setLinkText('');
+      
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+        });
+      }
     },
     onError: (error) => {
       console.error("Erro ao enviar link:", error);

@@ -1511,7 +1511,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar imagem via Z-API
   app.post('/api/zapi/send-image', upload.single('image'), async (req, res) => {
     try {
-      const { phone } = req.body;
+      console.log('🖼️ Recebendo solicitação de envio de imagem:', {
+        body: req.body,
+        file: req.file ? { 
+          originalname: req.file.originalname, 
+          mimetype: req.file.mimetype, 
+          size: req.file.size 
+        } : null
+      });
+
+      const { phone, conversationId } = req.body;
       const imageFile = req.file;
 
       if (!phone || !imageFile) {
@@ -1531,29 +1540,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Criar FormData para envio de arquivo
+      // Usar form-data corretamente para Node.js
+      const FormData = require('form-data');
       const formData = new FormData();
       formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('image', new Blob([imageFile.buffer]), imageFile.originalname);
+      formData.append('image', imageFile.buffer, {
+        filename: imageFile.originalname,
+        contentType: imageFile.mimetype
+      });
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-image`;
+      console.log('📤 Enviando imagem para Z-API:', { url });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken
+          'Client-Token': clientToken,
+          ...formData.getHeaders()
         },
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      console.log('📥 Resposta Z-API imagem:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
       }
 
-      const data = await response.json();
-      res.json(data);
+      if (response.ok && conversationId) {
+        // Salvar mensagem local
+        const imageMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: `[Imagem: ${imageFile.originalname}]`,
+          isFromContact: false,
+          messageType: 'image'
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: imageMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: imageMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
     } catch (error) {
-      console.error('Erro ao enviar imagem via Z-API:', error);
+      console.error('💥 Erro ao enviar imagem via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
@@ -1563,7 +1614,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar vídeo via Z-API
   app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
     try {
-      const { phone } = req.body;
+      console.log('🎥 Recebendo solicitação de envio de vídeo:', {
+        body: req.body,
+        file: req.file ? { 
+          originalname: req.file.originalname, 
+          mimetype: req.file.mimetype, 
+          size: req.file.size 
+        } : null
+      });
+
+      const { phone, conversationId } = req.body;
       const videoFile = req.file;
 
       if (!phone || !videoFile) {
@@ -1583,28 +1643,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Usar form-data corretamente para Node.js
+      const FormData = require('form-data');
       const formData = new FormData();
       formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('video', new Blob([videoFile.buffer]), videoFile.originalname);
+      formData.append('video', videoFile.buffer, {
+        filename: videoFile.originalname,
+        contentType: videoFile.mimetype
+      });
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-video`;
+      console.log('📤 Enviando vídeo para Z-API:', { url });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken
+          'Client-Token': clientToken,
+          ...formData.getHeaders()
         },
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      console.log('📥 Resposta Z-API vídeo:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
       }
 
-      const data = await response.json();
-      res.json(data);
+      if (response.ok && conversationId) {
+        // Salvar mensagem local
+        const videoMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: `[Vídeo: ${videoFile.originalname}]`,
+          isFromContact: false,
+          messageType: 'video'
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: videoMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: videoMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
     } catch (error) {
-      console.error('Erro ao enviar vídeo via Z-API:', error);
+      console.error('💥 Erro ao enviar vídeo via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
@@ -1614,7 +1717,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar documento via Z-API
   app.post('/api/zapi/send-document', upload.single('document'), async (req, res) => {
     try {
-      const { phone } = req.body;
+      console.log('📄 Recebendo solicitação de envio de documento:', {
+        body: req.body,
+        file: req.file ? { 
+          originalname: req.file.originalname, 
+          mimetype: req.file.mimetype, 
+          size: req.file.size 
+        } : null
+      });
+
+      const { phone, conversationId } = req.body;
       const documentFile = req.file;
 
       if (!phone || !documentFile) {
@@ -1634,28 +1746,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Usar form-data corretamente para Node.js
+      const FormData = require('form-data');
       const formData = new FormData();
       formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('document', new Blob([documentFile.buffer]), documentFile.originalname);
+      formData.append('document', documentFile.buffer, {
+        filename: documentFile.originalname,
+        contentType: documentFile.mimetype
+      });
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-document`;
+      console.log('📤 Enviando documento para Z-API:', { url });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken
+          'Client-Token': clientToken,
+          ...formData.getHeaders()
         },
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      console.log('📥 Resposta Z-API documento:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
       }
 
-      const data = await response.json();
-      res.json(data);
+      if (response.ok && conversationId) {
+        // Salvar mensagem local
+        const documentMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: `[Documento: ${documentFile.originalname}]`,
+          isFromContact: false,
+          messageType: 'document'
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: documentMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: documentMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
     } catch (error) {
-      console.error('Erro ao enviar documento via Z-API:', error);
+      console.error('💥 Erro ao enviar documento via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
@@ -1665,7 +1820,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar link via Z-API
   app.post('/api/zapi/send-link', async (req, res) => {
     try {
-      const { phone, url: linkUrl, text } = req.body;
+      console.log('🔗 Recebendo solicitação de envio de link:', req.body);
+
+      const { phone, url: linkUrl, text, conversationId } = req.body;
 
       if (!phone || !linkUrl || !text) {
         return res.status(400).json({ 
@@ -1690,7 +1847,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delayMessage: 1
       };
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-link`;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      console.log('📤 Enviando link para Z-API:', { url, payload });
       
       const response = await fetch(url, {
         method: 'POST',
@@ -1701,14 +1859,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      console.log('📥 Resposta Z-API link:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
       }
 
-      const data = await response.json();
-      res.json(data);
+      if (response.ok && conversationId) {
+        // Salvar mensagem local
+        const linkMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: `${text}\n${linkUrl}`,
+          isFromContact: false,
+          messageType: 'text'
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: linkMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: linkMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
     } catch (error) {
-      console.error('Erro ao enviar link via Z-API:', error);
+      console.error('💥 Erro ao enviar link via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
