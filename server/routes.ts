@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
+import multer from 'multer';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
 
@@ -9,6 +10,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
   const { setupAuth } = await import("./auth");
   setupAuth(app);
+
+  // Configurar multer para upload de arquivos
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+  });
 
   const httpServer = createServer(app);
 
@@ -1163,6 +1170,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       console.error('Erro ao enviar mensagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint para enviar áudio via Z-API
+  app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
+    try {
+      const { phone } = req.body;
+      const audioFile = req.file;
+
+      if (!phone || !audioFile) {
+        return res.status(400).json({ 
+          error: 'Telefone e arquivo de áudio são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // Criar FormData para envio de arquivo
+      const formData = new FormData();
+      formData.append('phone', phone);
+      formData.append('audio', new Blob([audioFile.buffer], { type: 'audio/webm' }), 'audio.webm');
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });

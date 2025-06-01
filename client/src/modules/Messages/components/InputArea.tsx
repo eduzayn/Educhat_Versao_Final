@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
