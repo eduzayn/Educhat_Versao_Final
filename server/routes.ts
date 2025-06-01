@@ -1252,7 +1252,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
       console.log('Sucesso no envio de áudio:', data);
-      res.json(data);
+
+      // Salvar mensagem de áudio no banco de dados local
+      const audioMessage = await storage.createMessage({
+        conversationId: parseInt(conversationId),
+        content: `Áudio enviado (${audioFile.size} bytes)`,
+        isFromContact: false,
+        messageType: 'audio',
+        metadata: {
+          zaapId: data.zaapId,
+          messageId: data.messageId,
+          audioSize: audioFile.size,
+          mimeType: audioFile.mimetype
+        }
+      });
+
+      // Broadcast para outros clientes conectados
+      broadcast(parseInt(conversationId), {
+        type: 'new_message',
+        message: audioMessage
+      });
+
+      res.json({
+        ...data,
+        localMessage: audioMessage
+      });
     } catch (error) {
       console.error('Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
