@@ -111,12 +111,22 @@ export function InputArea() {
     setShowAudioRecorder(false);
 
     try {
+      // Verificar se o contato tem telefone válido
+      const phone = activeConversation.contact.phone;
+      if (!phone) {
+        toast({
+          title: 'Erro ao enviar áudio',
+          description: 'Contato não possui número de telefone válido.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       await sendAudioMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        audioBlob,
-        duration,
-        contact: activeConversation.contact,
+        phone: phone,
+        audioBlob: audioBlob,
       });
+      
       toast({
         title: 'Áudio enviado',
         description: 'Sua mensagem de áudio foi enviada com sucesso.',

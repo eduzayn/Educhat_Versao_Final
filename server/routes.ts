@@ -1177,7 +1177,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para envio de áudio removido - aguardando novas orientações
+  // Endpoint para enviar áudio via Z-API
+  app.post('/api/zapi/send-audio', async (req, res) => {
+    try {
+      const { phone, audio } = req.body;
+      
+      if (!phone || !audio) {
+        return res.status(400).json({ 
+          error: 'Telefone e áudio são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: phone,
+          audio: audio
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar áudio via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
 
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
