@@ -11,34 +11,116 @@ interface MessageBubbleProps {
   channelColor?: string;
 }
 
-// Componente simplificado para mostrar mensagem de áudio
+// Componente para reproduzir mensagem de áudio
 function AudioMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
-  // Extrair tamanho do áudio dos metadados se disponível
-  const audioSize = message.metadata && typeof message.metadata === 'object' && 'audioSize' in message.metadata 
-    ? message.metadata.audioSize as number 
-    : null;
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Extrair informações do áudio dos metadados
+  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+  const audioSize = 'audioSize' in metadata ? metadata.audioSize as number : null;
+  const audioDuration = 'duration' in metadata ? metadata.duration as number : null;
 
   const sizeText = audioSize ? ` (${Math.round(audioSize / 1024)}KB)` : '';
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const togglePlayback = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  // Criar URL do áudio se estiver disponível no conteúdo
+  const audioUrl = message.content?.startsWith('data:audio/') ? message.content : null;
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
       isFromContact ? 'bg-gray-100' : 'bg-blue-600'
     }`}>
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-        isFromContact 
-          ? 'bg-blue-600 text-white' 
-          : 'bg-white text-blue-600'
-      }`}>
-        <Volume2 className="w-5 h-5" />
-      </div>
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+      )}
+      
+      <button
+        onClick={togglePlayback}
+        disabled={!audioUrl}
+        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+          isFromContact 
+            ? 'bg-blue-600 text-white hover:bg-blue-700' 
+            : 'bg-white text-blue-600 hover:bg-gray-100'
+        } ${!audioUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        {isPlaying ? (
+          <Pause className="w-5 h-5" />
+        ) : (
+          <Play className="w-5 h-5" />
+        )}
+      </button>
       
       <div className="flex-1">
         <div className={`flex items-center gap-2 ${isFromContact ? 'text-gray-700' : 'text-white'}`}>
-          <span className="text-sm font-medium">Mensagem de áudio{sizeText}</span>
+          <span className="text-sm font-medium">
+            {audioUrl ? 'Mensagem de áudio' : 'Mensagem de áudio (não disponível)'}
+            {sizeText}
+          </span>
+          {duration > 0 && (
+            <span className="text-xs opacity-75">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          )}
         </div>
         <div className={`text-xs ${isFromContact ? 'text-gray-500' : 'text-blue-100'}`}>
           Enviado via WhatsApp
         </div>
+        {duration > 0 && (
+          <div className={`w-full h-1 mt-2 rounded overflow-hidden ${
+            isFromContact ? 'bg-gray-300' : 'bg-blue-400'
+          }`}>
+            <div 
+              className={`h-full transition-all duration-100 ${
+                isFromContact ? 'bg-blue-600' : 'bg-white'
+              }`}
+              style={{ width: `${(currentTime / duration) * 100}%` }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -72,7 +154,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor }: M
             : 'bg-blue-600 text-white'
         }`}>
           {message.messageType === 'audio' ? (
-            <AudioPlayer message={message} isFromContact={isFromContact} />
+            <AudioMessage message={message} isFromContact={isFromContact} />
           ) : (
             <p className="text-sm">{message.content}</p>
           )}
