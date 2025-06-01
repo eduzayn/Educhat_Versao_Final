@@ -64,6 +64,12 @@ export function Dashboard() {
     },
 
     {
+      id: 'chat-interno',
+      label: 'Chat Interno',
+      icon: MessageCircle,
+      description: 'Comunicação entre agentes'
+    },
+    {
       id: 'crm',
       label: 'CRM',
       icon: UserCheck,
@@ -74,6 +80,18 @@ export function Dashboard() {
       label: 'Integrações',
       icon: Zap,
       description: 'Canais e APIs'
+    },
+    {
+      id: 'payments',
+      label: 'Pagamentos',
+      icon: CreditCard,
+      description: 'Cobranças e Asaas'
+    },
+    {
+      id: 'reports',
+      label: 'Relatórios',
+      icon: BarChart3,
+      description: 'Analytics e métricas'
     },
 
     {
@@ -207,12 +225,12 @@ export function Dashboard() {
                     <span>Integrações</span>
                   </Button>
                   <Button 
-                    onClick={() => setActiveSection('crm')}
+                    onClick={() => setActiveSection('payments')}
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
                   >
-                    <UserCheck className="w-6 h-6" />
-                    <span>CRM</span>
+                    <CreditCard className="w-6 h-6" />
+                    <span>Pagamentos</span>
                   </Button>
                 </div>
               </CardContent>
