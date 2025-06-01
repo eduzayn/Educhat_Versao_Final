@@ -1508,6 +1508,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para enviar imagem via Z-API
+  app.post('/api/zapi/send-image', upload.single('image'), async (req, res) => {
+    try {
+      const { phone } = req.body;
+      const imageFile = req.file;
+
+      if (!phone || !imageFile) {
+        return res.status(400).json({ 
+          error: 'Telefone e arquivo de imagem são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // Criar FormData para envio de arquivo
+      const formData = new FormData();
+      formData.append('phone', phone.replace(/\D/g, ''));
+      formData.append('image', new Blob([imageFile.buffer]), imageFile.originalname);
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-image`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar imagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint para enviar vídeo via Z-API
+  app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
+    try {
+      const { phone } = req.body;
+      const videoFile = req.file;
+
+      if (!phone || !videoFile) {
+        return res.status(400).json({ 
+          error: 'Telefone e arquivo de vídeo são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const formData = new FormData();
+      formData.append('phone', phone.replace(/\D/g, ''));
+      formData.append('video', new Blob([videoFile.buffer]), videoFile.originalname);
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-video`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar vídeo via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint para enviar documento via Z-API
+  app.post('/api/zapi/send-document', upload.single('document'), async (req, res) => {
+    try {
+      const { phone } = req.body;
+      const documentFile = req.file;
+
+      if (!phone || !documentFile) {
+        return res.status(400).json({ 
+          error: 'Telefone e arquivo de documento são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const formData = new FormData();
+      formData.append('phone', phone.replace(/\D/g, ''));
+      formData.append('document', new Blob([documentFile.buffer]), documentFile.originalname);
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-document`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar documento via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint para enviar link via Z-API
+  app.post('/api/zapi/send-link', async (req, res) => {
+    try {
+      const { phone, url: linkUrl, text } = req.body;
+
+      if (!phone || !linkUrl || !text) {
+        return res.status(400).json({ 
+          error: 'Telefone, URL e texto são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const payload = {
+        phone: phone.replace(/\D/g, ''),
+        message: `${text}\n${linkUrl}`,
+        delayMessage: 1
+      };
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-link`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao enviar link via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
     try {

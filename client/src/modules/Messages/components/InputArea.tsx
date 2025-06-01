@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send, Mic } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Input } from '@/shared/ui/ui/input';
+import { Label } from '@/shared/ui/ui/label';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
 import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
@@ -29,7 +32,11 @@ export function InputArea() {
   const [isTyping, setIsTyping] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { activeConversation } = useChatStore();
@@ -154,6 +161,197 @@ export function InputArea() {
     textareaRef.current?.focus();
   };
 
+  // Mutation para enviar imagem
+  const sendImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!activeConversation?.contact.phone) {
+        throw new Error("Número do contato não disponível");
+      }
+
+      const formData = new FormData();
+      formData.append('phone', activeConversation.contact.phone);
+      formData.append('image', file);
+
+      const response = await fetch('/api/zapi/send-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar imagem');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Imagem enviada",
+        description: "Sua imagem foi enviada com sucesso!",
+      });
+      setIsAttachmentOpen(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar imagem:", error);
+      toast({
+        title: "Erro ao enviar imagem",
+        description: "Não foi possível enviar a imagem. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation para enviar vídeo
+  const sendVideoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!activeConversation?.contact.phone) {
+        throw new Error("Número do contato não disponível");
+      }
+
+      const formData = new FormData();
+      formData.append('phone', activeConversation.contact.phone);
+      formData.append('video', file);
+
+      const response = await fetch('/api/zapi/send-video', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar vídeo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Vídeo enviado",
+        description: "Seu vídeo foi enviado com sucesso!",
+      });
+      setIsAttachmentOpen(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar vídeo:", error);
+      toast({
+        title: "Erro ao enviar vídeo",
+        description: "Não foi possível enviar o vídeo. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation para enviar documento
+  const sendDocumentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!activeConversation?.contact.phone) {
+        throw new Error("Número do contato não disponível");
+      }
+
+      const formData = new FormData();
+      formData.append('phone', activeConversation.contact.phone);
+      formData.append('document', file);
+
+      const response = await fetch('/api/zapi/send-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar documento');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Documento enviado",
+        description: "Seu documento foi enviado com sucesso!",
+      });
+      setIsAttachmentOpen(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar documento:", error);
+      toast({
+        title: "Erro ao enviar documento",
+        description: "Não foi possível enviar o documento. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation para enviar link
+  const sendLinkMutation = useMutation({
+    mutationFn: async ({ url, text }: { url: string; text: string }) => {
+      if (!activeConversation?.contact.phone) {
+        throw new Error("Número do contato não disponível");
+      }
+
+      const response = await apiRequest("POST", "/api/zapi/send-link", {
+        phone: activeConversation.contact.phone,
+        url: url,
+        text: text
+      });
+
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Link enviado",
+        description: "Seu link foi enviado com sucesso!",
+      });
+      setIsAttachmentOpen(false);
+      setLinkUrl('');
+      setLinkText('');
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar link:", error);
+      toast({
+        title: "Erro ao enviar link",
+        description: "Não foi possível enviar o link. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleFileSelect = (type: 'image' | 'video' | 'document') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    
+    if (type === 'image') {
+      input.accept = 'image/*';
+    } else if (type === 'video') {
+      input.accept = 'video/*';
+    } else if (type === 'document') {
+      input.accept = '.pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx';
+    }
+
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (type === 'image') {
+          sendImageMutation.mutate(file);
+        } else if (type === 'video') {
+          sendVideoMutation.mutate(file);
+        } else if (type === 'document') {
+          sendDocumentMutation.mutate(file);
+        }
+      }
+    };
+
+    input.click();
+  };
+
+  const handleSendLink = () => {
+    if (linkUrl.trim() && linkText.trim()) {
+      sendLinkMutation.mutate({ url: linkUrl.trim(), text: linkText.trim() });
+    } else {
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha a URL e o texto do link.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
     if (!activeConversation) return;
 
@@ -202,9 +400,126 @@ export function InputArea() {
       
       {/* Interface de digitação sempre visível */}
       <div className="flex items-end space-x-3">
-        <Button variant="ghost" size="sm" className="p-2 text-educhat-medium hover:text-educhat-blue">
-          <Paperclip className="w-5 h-5" />
-        </Button>
+        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-2 text-educhat-medium hover:text-educhat-blue"
+              disabled={!activeConversation?.contact.phone}
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+          </DialogTrigger>
+          
+          <DialogContent className="w-96">
+            <DialogHeader>
+              <DialogTitle>Enviar Anexo</DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {/* Botão para Imagem */}
+              <Button
+                onClick={() => handleFileSelect('image')}
+                disabled={sendImageMutation.isPending}
+                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                {sendImageMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Image className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Imagem</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Vídeo */}
+              <Button
+                onClick={() => handleFileSelect('video')}
+                disabled={sendVideoMutation.isPending}
+                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
+              >
+                {sendVideoMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Video className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Vídeo</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Documento */}
+              <Button
+                onClick={() => handleFileSelect('document')}
+                disabled={sendDocumentMutation.isPending}
+                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
+              >
+                {sendDocumentMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <FileText className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Documento</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Link */}
+              <Button
+                onClick={() => {/* Abrirá seção de link */}}
+                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                <Link className="w-8 h-8 mb-2" />
+                <span className="text-sm">Link</span>
+              </Button>
+            </div>
+
+            {/* Seção para envio de link */}
+            <div className="mt-6 space-y-3">
+              <div>
+                <Label htmlFor="linkUrl">URL do Link</Label>
+                <Input
+                  id="linkUrl"
+                  type="url"
+                  placeholder="https://exemplo.com"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="linkText">Texto do Link</Label>
+                <Input
+                  id="linkText"
+                  placeholder="Descrição do link"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                />
+              </div>
+              
+              <Button
+                onClick={handleSendLink}
+                disabled={!linkUrl.trim() || !linkText.trim() || sendLinkMutation.isPending}
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                {sendLinkMutation.isPending ? (
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                ) : (
+                  <Link className="w-4 h-4 mr-2" />
+                )}
+                Enviar Link
+              </Button>
+            </div>
+
+            {!activeConversation?.contact.phone && (
+              <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
+                Anexos disponíveis apenas para contatos do WhatsApp
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
         
         <Button 
           variant="ghost" 
