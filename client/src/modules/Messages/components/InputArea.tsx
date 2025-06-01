@@ -107,6 +107,9 @@ export function InputArea() {
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
     if (!activeConversation) return;
 
+    // Esconder o componente de gravação imediatamente
+    setShowAudioRecorder(false);
+
     try {
       await sendAudioMutation.mutateAsync({
         conversationId: activeConversation.id,
@@ -114,7 +117,6 @@ export function InputArea() {
         duration,
         contact: activeConversation.contact,
       });
-      setShowAudioRecorder(false);
       toast({
         title: 'Áudio enviado',
         description: 'Sua mensagem de áudio foi enviada com sucesso.',

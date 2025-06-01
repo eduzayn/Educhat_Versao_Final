@@ -1215,13 +1215,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Tentar diferentes formatos de áudio compatíveis com WhatsApp
+      let audioBlob;
+      let filename;
+      
+      // Converter para OGG se necessário (formato mais compatível com WhatsApp)
+      if (audioFile.mimetype === 'audio/webm') {
+        audioBlob = new Blob([audioFile.buffer], { type: 'audio/ogg' });
+        filename = 'audio.ogg';
+      } else {
+        audioBlob = new Blob([audioFile.buffer], { type: audioFile.mimetype });
+        filename = audioFile.originalname || 'audio.ogg';
+      }
+
       // Criar FormData para envio de arquivo
       const formData = new FormData();
       formData.append('phone', phone);
-      formData.append('audio', new Blob([audioFile.buffer], { type: audioFile.mimetype }), audioFile.originalname || 'audio.webm');
+      formData.append('audio', audioBlob, filename);
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
-      console.log('Enviando para Z-API:', url);
+      console.log('Enviando para Z-API:', url, { filename, type: audioBlob.type });
 
       const response = await fetch(url, {
         method: 'POST',
