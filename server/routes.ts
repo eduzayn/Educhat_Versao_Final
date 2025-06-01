@@ -1215,33 +1215,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Tentar diferentes formatos de áudio compatíveis com WhatsApp
-      let audioBlob;
-      let filename;
-      
-      // Converter para OGG se necessário (formato mais compatível com WhatsApp)
-      if (audioFile.mimetype === 'audio/webm') {
-        audioBlob = new Blob([audioFile.buffer], { type: 'audio/ogg' });
-        filename = 'audio.ogg';
-      } else {
-        audioBlob = new Blob([audioFile.buffer], { type: audioFile.mimetype });
-        filename = audioFile.originalname || 'audio.ogg';
-      }
+      // Converter áudio para Base64 conforme documentação Z-API
+      const base64Data = audioFile.buffer.toString('base64');
+      const audioBase64 = `data:audio/mpeg;base64,${base64Data}`;
 
-      // Criar FormData para envio de arquivo
-      const formData = new FormData();
-      formData.append('phone', phone);
-      formData.append('audio', audioBlob, filename);
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone,
+        audio: audioBase64,
+        waveform: true,
+        viewOnce: false
+      };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
-      console.log('Enviando para Z-API:', url, { filename, type: audioBlob.type });
+      console.log('Enviando para Z-API:', url, { mimeType: audioFile.mimetype, size: audioFile.size });
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Client-Token': clientToken,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       console.log('Resposta Z-API:', {
@@ -1258,7 +1253,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
       console.log('Sucesso no envio de áudio:', data);
-      res.json(data);
+
+      // Salvar mensagem de áudio no banco de dados local
+      const audioMessage = await storage.createMessage({
+        conversationId: parseInt(req.body.conversationId),
+        content: `Áudio enviado (${audioFile.size} bytes)`,
+        isFromContact: false,
+        messageType: 'audio',
+        metadata: {
+          zaapId: data.zaapId,
+          messageId: data.messageId,
+          audioSize: audioFile.size,
+          mimeType: audioFile.mimetype
+        }
+      });
+
+      // Broadcast para outros clientes conectados
+      broadcast(parseInt(req.body.conversationId), {
+        type: 'new_message',
+        message: audioMessage
+      });
+
+      res.json({
+        ...data,
+        localMessage: audioMessage
+      });
     } catch (error) {
       console.error('Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
