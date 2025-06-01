@@ -138,45 +138,63 @@ export function InputArea() {
 
   return (
     <div className="bg-white border-t border-gray-200 p-4">
-      <div className="flex items-end space-x-3">
-        <Button variant="ghost" size="sm" className="p-2 text-educhat-medium hover:text-educhat-blue">
-          <Paperclip className="w-5 h-5" />
-        </Button>
-        
-        <div className="flex-1 relative">
-          <Textarea
-            ref={textareaRef}
-            placeholder="Digite sua mensagem..."
-            value={message}
-            onChange={(e) => handleTyping(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
-            rows={1}
+      {showAudioRecorder ? (
+        <div className="mb-4">
+          <AudioRecorder
+            onSendAudio={handleSendAudio}
+            onCancel={handleCancelAudio}
           />
+        </div>
+      ) : (
+        <div className="flex items-end space-x-3">
+          <Button variant="ghost" size="sm" className="p-2 text-educhat-medium hover:text-educhat-blue">
+            <Paperclip className="w-5 h-5" />
+          </Button>
+          
           <Button 
             variant="ghost" 
             size="sm" 
-            className="absolute right-3 bottom-3 p-1 text-educhat-medium hover:text-educhat-blue"
+            onClick={() => setShowAudioRecorder(true)}
+            className="p-2 text-educhat-medium hover:text-educhat-blue"
           >
-            <Smile className="w-5 h-5" />
+            <Mic className="w-5 h-5" />
+          </Button>
+          
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              placeholder="Digite sua mensagem..."
+              value={message}
+              onChange={(e) => handleTyping(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
+              rows={1}
+            />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute right-3 bottom-3 p-1 text-educhat-medium hover:text-educhat-blue"
+            >
+              <Smile className="w-5 h-5" />
+            </Button>
+          </div>
+          
+          <Button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || sendMessageMutation.isPending}
+            className={cn(
+              "bg-educhat-primary hover:bg-educhat-secondary text-white p-3 rounded-xl transition-colors",
+              sendMessageMutation.isPending && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {sendMessageMutation.isPending ? (
+              <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </Button>
         </div>
-        
-        <Button
-          onClick={handleSendMessage}
-          disabled={!message.trim() || sendMessageMutation.isPending}
-          className={cn(
-            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3 rounded-xl transition-colors",
-            sendMessageMutation.isPending && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {sendMessageMutation.isPending ? (
-            <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          ) : (
-            <Send className="w-5 h-5" />
-          )}
-        </Button>
-      </div>
+      )}
       
       {/* Quick Replies */}
       <div className="flex flex-wrap gap-2 mt-3">
