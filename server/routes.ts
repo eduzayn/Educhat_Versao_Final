@@ -1179,7 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar áudio via Z-API
   app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
     try {
-      console.log('Recebendo solicitação de envio de áudio:', {
+      console.log('🎵 Recebendo solicitação de envio de áudio:', {
         body: req.body,
         file: req.file ? { 
           originalname: req.file.originalname, 
@@ -1188,13 +1188,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       });
 
-      const { phone } = req.body;
+      const { phone, conversationId, duration } = req.body;
       const audioFile = req.file;
 
-      if (!phone || !audioFile) {
-        console.log('Dados ausentes:', { phone: !!phone, audioFile: !!audioFile });
+      if (!phone || !audioFile || !conversationId) {
+        console.log('❌ Dados ausentes:', { phone: !!phone, audioFile: !!audioFile, conversationId: !!conversationId });
         return res.status(400).json({ 
-          error: 'Telefone e arquivo de áudio são obrigatórios' 
+          error: 'Telefone, conversationId e arquivo de áudio são obrigatórios' 
         });
       }
 
@@ -1203,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
-      console.log('Credenciais Z-API:', {
+      console.log('🔑 Credenciais Z-API:', {
         instanceId: instanceId ? 'OK' : 'MISSING',
         token: token ? 'OK' : 'MISSING',
         clientToken: clientToken ? 'OK' : 'MISSING'
@@ -1217,72 +1217,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Converter áudio para Base64 conforme documentação Z-API
       const base64Data = audioFile.buffer.toString('base64');
-      // Usar o mimetype correto do arquivo enviado
-      const mimeType = audioFile.mimetype || 'audio/webm';
-      const audioBase64 = `data:${mimeType};base64,${base64Data}`;
+      
+      // Mapear tipos MIME para formatos compatíveis com WhatsApp
+      let finalMimeType = audioFile.mimetype;
+      if (audioFile.mimetype === 'audio/webm' || audioFile.mimetype === 'audio/webm;codecs=opus') {
+        finalMimeType = 'audio/ogg'; // WhatsApp aceita melhor OGG
+      }
+      
+      const audioBase64 = `data:${finalMimeType};base64,${base64Data}`;
 
       // Criar payload JSON conforme documentação Z-API
       const payload = {
-        phone: phone,
+        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
         audio: audioBase64,
         waveform: true,
-        viewOnce: false
+        viewOnce: false,
+        delayMessage: 1
       };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
-      console.log('Enviando para Z-API:', url, { mimeType: audioFile.mimetype, size: audioFile.size });
+      console.log('📤 Enviando para Z-API:', { 
+        url, 
+        phone: payload.phone,
+        mimeType: finalMimeType, 
+        size: audioFile.size,
+        base64Length: base64Data.length 
+      });
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken!,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
 
-      console.log('Resposta Z-API:', {
+      console.log('📥 Resposta Z-API:', {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries())
       });
 
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta Z-API:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erro detalhado da Z-API:', errorText);
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
+        console.error('❌ Erro detalhado da Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${responseText}`);
       }
 
-      const data = await response.json();
-      console.log('Sucesso no envio de áudio:', data);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
 
-      // Salvar mensagem de áudio no banco de dados local com conteúdo para reprodução
+      console.log('✅ Sucesso no envio de áudio:', data);
+
+      // Salvar mensagem de áudio no banco de dados local
       const audioMessage = await storage.createMessage({
-        conversationId: parseInt(req.body.conversationId),
+        conversationId: parseInt(conversationId),
         content: audioBase64, // Salvar o áudio base64 para reprodução local
         isFromContact: false,
         messageType: 'audio',
         metadata: {
-          zaapId: data.zaapId,
-          messageId: data.messageId,
+          zaapId: data.zaapId || data.id,
+          messageId: data.messageId || data.id,
           audioSize: audioFile.size,
-          mimeType: audioFile.mimetype,
-          duration: parseInt(req.body.duration || '0')
+          mimeType: finalMimeType,
+          duration: parseInt(duration || '0')
         }
       });
 
       // Broadcast para outros clientes conectados
-      broadcast(parseInt(req.body.conversationId), {
+      broadcast(parseInt(conversationId), {
         type: 'new_message',
         message: audioMessage
       });
 
       res.json({
+        success: true,
         ...data,
         localMessage: audioMessage
       });
     } catch (error) {
-      console.error('Erro ao enviar áudio via Z-API:', error);
+      console.error('💥 Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });

@@ -16,32 +16,65 @@ export function useSendAudioMessage() {
       duration: number;
       contact?: any;
     }) => {
+      console.log('🎵 Iniciando envio de áudio:', {
+        conversationId,
+        audioSize: audioBlob.size,
+        audioType: audioBlob.type,
+        duration,
+        contactPhone: contact?.phone
+      });
+
       // Se tiver telefone, enviar via Z-API
       if (contact?.phone) {
         const formData = new FormData();
         formData.append('phone', contact.phone);
-        formData.append('audio', audioBlob, 'audio.webm');
+        formData.append('audio', audioBlob, `audio.${audioBlob.type.split('/')[1] || 'webm'}`);
         formData.append('duration', duration.toString());
         formData.append('conversationId', conversationId.toString());
+
+        console.log('📤 Enviando FormData para Z-API:', {
+          phone: contact.phone,
+          audioType: audioBlob.type,
+          audioSize: audioBlob.size,
+          conversationId,
+          duration
+        });
 
         const response = await fetch('/api/zapi/send-audio', {
           method: 'POST',
           body: formData
         });
 
+        const responseText = await response.text();
+        console.log('📥 Resposta do servidor:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+
         if (!response.ok) {
-          throw new Error(`Erro na API Z-API: ${response.status}`);
+          console.error('❌ Erro ao enviar áudio via Z-API:', responseText);
+          throw new Error(`Erro na API Z-API: ${response.status} - ${responseText}`);
         }
 
-        return await response.json();
+        try {
+          return JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ Erro ao parsear resposta:', parseError);
+          throw new Error(`Resposta inválida do servidor: ${responseText}`);
+        }
       }
 
       // Sistema só funciona com WhatsApp, não há outros canais
       throw new Error('Contato deve ter um número de telefone para envio de áudio');
     },
-    onSuccess: (_, { conversationId }) => {
+    onSuccess: (data, { conversationId }) => {
+      console.log('✅ Áudio enviado com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    },
+    onError: (error) => {
+      console.error('💥 Erro ao enviar áudio:', error);
     },
   });
 }

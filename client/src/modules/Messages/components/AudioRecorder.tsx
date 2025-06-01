@@ -57,8 +57,20 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
       setPermission('granted');
       
       chunksRef.current = [];
+      // Verificar formatos suportados e escolher o melhor para WhatsApp
+      let mimeType = 'audio/webm;codecs=opus';
+      if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
+        mimeType = 'audio/mpeg';
+      } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+        mimeType = 'audio/wav';
+      }
+      
+      console.log('🎤 Formato de áudio selecionado:', mimeType);
+      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: mimeType
       });
       
       mediaRecorderRef.current = mediaRecorder;
@@ -70,7 +82,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm;codecs=opus' });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         setAudioBlob(blob);
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
