@@ -36,22 +36,8 @@ export function useSendAudioMessage() {
         return await response.json();
       }
 
-      // Para outros canais (não WhatsApp), usar endpoint de mensagens gerais
-      return await apiRequest(`/api/conversations/${conversationId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          content: 'Mensagem de áudio (canal interno)',
-          messageType: 'audio',
-          isFromContact: false,
-          metadata: {
-            duration: duration,
-            audioSize: audioBlob.size
-          }
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Sistema só funciona com WhatsApp, não há outros canais
+      throw new Error('Contato deve ter um número de telefone para envio de áudio');
     },
     onSuccess: (_, { conversationId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
