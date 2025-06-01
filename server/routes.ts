@@ -1218,9 +1218,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Converter áudio para Base64 conforme documentação Z-API
       const base64Data = audioFile.buffer.toString('base64');
-      // Usar o mimetype correto do arquivo enviado
-      const mimeType = audioFile.mimetype || 'audio/webm';
-      const audioBase64 = `data:${mimeType};base64,${base64Data}`;
+      // Z-API requer formato MPEG para áudios funcionarem corretamente
+      const audioBase64 = `data:audio/mpeg;base64,${base64Data}`;
 
       // Criar payload JSON conforme documentação Z-API
       const payload = {
