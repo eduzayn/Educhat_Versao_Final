@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Smile, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/lib/hooks/use-toast";
 import type { Message } from "@shared/schema";
 
 interface MessageReactionsProps {
@@ -59,14 +59,10 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
         reaction 
       });
 
-      const response = await apiRequest("/api/zapi/send-reaction", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: contactPhone,
-          messageId: message.id.toString(),
-          reaction
-        })
+      const response = await apiRequest("POST", "/api/zapi/send-reaction", {
+        phone: contactPhone,
+        messageId: message.id.toString(),
+        reaction
       });
 
       return response;
@@ -99,13 +95,9 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
         messageId: message.id 
       });
 
-      const response = await apiRequest("/api/zapi/remove-reaction", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: contactPhone,
-          messageId: message.id.toString()
-        })
+      const response = await apiRequest("POST", "/api/zapi/remove-reaction", {
+        phone: contactPhone,
+        messageId: message.id.toString()
       });
 
       return response;

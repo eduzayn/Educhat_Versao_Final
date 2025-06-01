@@ -2,6 +2,7 @@ import { Check, CheckCheck, Play, Pause, Volume2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
+import { MessageReactions } from './MessageReactions';
 import type { Message, Contact } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -9,6 +10,7 @@ interface MessageBubbleProps {
   contact: Contact;
   channelIcon?: string;
   channelColor?: string;
+  conversationId?: number;
 }
 
 // Componente para reproduzir mensagem de áudio
@@ -129,7 +131,7 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
   );
 }
 
-export function MessageBubble({ message, contact, channelIcon, channelColor }: MessageBubbleProps) {
+export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
 
