@@ -1128,9 +1128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar mensagens via Z-API
   app.post('/api/zapi/send-message', async (req, res) => {
     try {
-      const { phone, message } = req.body;
+      console.log('📤 Recebendo solicitação de envio de mensagem:', req.body);
+      
+      const { phone, message, conversationId } = req.body;
       
       if (!phone || !message) {
+        console.log('❌ Dados ausentes:', { phone: !!phone, message: !!message });
         return res.status(400).json({ 
           error: 'Telefone e mensagem são obrigatórios' 
         });
@@ -1141,35 +1144,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
+      console.log('🔑 Credenciais Z-API:', {
+        instanceId: instanceId ? 'OK' : 'MISSING',
+        token: token ? 'OK' : 'MISSING',
+        clientToken: clientToken ? 'OK' : 'MISSING'
+      });
+
       if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
           error: 'Credenciais da Z-API não configuradas' 
         });
       }
 
+      // Criar payload conforme documentação Z-API
+      const payload = {
+        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        message: message,
+        delayMessage: 1
+      };
+
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      console.log('📤 Enviando para Z-API:', { url, payload });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken!,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          phone: phone,
-          message: message
-        })
+        body: JSON.stringify(payload)
       });
 
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta Z-API:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
+        console.error('❌ Erro detalhado da Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${responseText}`);
       }
 
-      const data = await response.json();
-      res.json(data);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Sucesso no envio de mensagem:', data);
+
+      // Se tiver conversationId, salvar no banco de dados local
+      if (conversationId) {
+        const textMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: message,
+          isFromContact: false,
+          messageType: 'text',
+          metadata: {
+            zaapId: data.zaapId || data.id,
+            messageId: data.messageId || data.id
+          }
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: textMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: textMessage
+        });
+      } else {
+        res.json({
+          success: true,
+          ...data
+        });
+      }
     } catch (error) {
-      console.error('Erro ao enviar mensagem via Z-API:', error);
+      console.error('💥 Erro ao enviar mensagem via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
