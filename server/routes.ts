@@ -1179,10 +1179,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar áudio via Z-API
   app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
     try {
+      console.log('Recebendo solicitação de envio de áudio:', {
+        body: req.body,
+        file: req.file ? { 
+          originalname: req.file.originalname, 
+          mimetype: req.file.mimetype, 
+          size: req.file.size 
+        } : null
+      });
+
       const { phone } = req.body;
       const audioFile = req.file;
 
       if (!phone || !audioFile) {
+        console.log('Dados ausentes:', { phone: !!phone, audioFile: !!audioFile });
         return res.status(400).json({ 
           error: 'Telefone e arquivo de áudio são obrigatórios' 
         });
@@ -1193,6 +1203,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
 
+      console.log('Credenciais Z-API:', {
+        instanceId: instanceId ? 'OK' : 'MISSING',
+        token: token ? 'OK' : 'MISSING',
+        clientToken: clientToken ? 'OK' : 'MISSING'
+      });
+
       if (!instanceId || !token || !clientToken) {
         return res.status(400).json({ 
           error: 'Credenciais da Z-API não configuradas' 
@@ -1202,9 +1218,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Criar FormData para envio de arquivo
       const formData = new FormData();
       formData.append('phone', phone);
-      formData.append('audio', new Blob([audioFile.buffer], { type: 'audio/webm' }), 'audio.webm');
+      formData.append('audio', new Blob([audioFile.buffer], { type: audioFile.mimetype }), audioFile.originalname || 'audio.webm');
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
+      console.log('Enviando para Z-API:', url);
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1213,12 +1231,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: formData
       });
 
+      console.log('Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Erro detalhado da Z-API:', errorText);
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Sucesso no envio de áudio:', data);
       res.json(data);
     } catch (error) {
       console.error('Erro ao enviar áudio via Z-API:', error);
