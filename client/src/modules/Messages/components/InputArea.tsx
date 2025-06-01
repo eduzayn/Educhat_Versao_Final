@@ -3,9 +3,11 @@ import { Paperclip, Smile, Send } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
+import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useChatStore } from '@/shared/store/store/chatStore';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { AudioRecorder } from './AudioRecorder';
 import { cn } from '@/lib/utils';
 
 const QUICK_REPLIES = [
@@ -17,12 +19,14 @@ const QUICK_REPLIES = [
 export function InputArea() {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { activeConversation } = useChatStore();
   const { sendTypingIndicator } = useWebSocket();
   const sendMessageMutation = useSendMessage();
+  const sendAudioMutation = useSendAudioMessage();
   const { toast } = useToast();
 
   // Auto-resize textarea
@@ -98,6 +102,34 @@ export function InputArea() {
   const insertQuickReply = (reply: string) => {
     setMessage(reply);
     textareaRef.current?.focus();
+  };
+
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    if (!activeConversation) return;
+
+    try {
+      await sendAudioMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        audioBlob,
+        duration,
+        contact: activeConversation.contact,
+      });
+      setShowAudioRecorder(false);
+      toast({
+        title: 'Áudio enviado',
+        description: 'Sua mensagem de áudio foi enviada com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar áudio',
+        description: 'Falha ao enviar mensagem de áudio. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCancelAudio = () => {
+    setShowAudioRecorder(false);
   };
 
   if (!activeConversation) {
