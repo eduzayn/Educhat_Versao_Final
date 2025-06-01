@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
-import multer from 'multer';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
 
@@ -10,12 +9,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
   const { setupAuth } = await import("./auth");
   setupAuth(app);
-
-  // Configurar multer para upload de arquivos
-  const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-  });
 
   const httpServer = createServer(app);
 
@@ -530,7 +523,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      console.log(`🔍 Buscando mensagens para conversa ${id}, limit: ${limit}`);
+      
       const messages = await storage.getMessages(id, limit);
+      console.log(`📨 Encontradas ${messages.length} mensagens para conversa ${id}`);
+      
       res.json(messages.reverse()); // Return in chronological order
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -699,8 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const webhookData = req.body;
       
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
-      // Ignorar mensagens enviadas por nós mesmos (fromMe: true) para evitar duplicação
-      if (webhookData.type === 'ReceivedCallback' && webhookData.phone && !webhookData.fromMe) {
+      if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
         const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
         let messageContent = '';
         let messageType = 'text';
@@ -1149,7 +1145,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1163,66 +1158,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Erro ao enviar mensagem via Z-API:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
-
-  // Endpoint para enviar áudio via Z-API
-  app.post('/api/zapi/send-audio', async (req, res) => {
-    try {
-      const { phone, audio } = req.body;
-      
-      if (!phone || !audio) {
-        return res.status(400).json({ 
-          error: 'Telefone e áudio são obrigatórios' 
-        });
-      }
-
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
-      }
-
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Client-Token': clientToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          phone: phone,
-          audio: audio
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
       res.json(data);
     } catch (error) {
-      console.error('Erro ao enviar áudio via Z-API:', error);
+      console.error('Erro ao enviar mensagem via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
