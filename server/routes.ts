@@ -1255,7 +1255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Salvar mensagem de áudio no banco de dados local
       const audioMessage = await storage.createMessage({
-        conversationId: parseInt(conversationId),
+        conversationId: parseInt(req.body.conversationId),
         content: `Áudio enviado (${audioFile.size} bytes)`,
         isFromContact: false,
         messageType: 'audio',
@@ -1268,7 +1268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Broadcast para outros clientes conectados
-      broadcast(parseInt(conversationId), {
+      broadcast(parseInt(req.body.conversationId), {
         type: 'new_message',
         message: audioMessage
       });
