@@ -22,6 +22,7 @@ export function useSendAudioMessage() {
         formData.append('phone', contact.phone);
         formData.append('audio', audioBlob, 'audio.webm');
         formData.append('duration', duration.toString());
+        formData.append('conversationId', conversationId.toString());
 
         try {
           const response = await fetch('/api/zapi/send-audio', {
