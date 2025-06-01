@@ -27,13 +27,15 @@ export function useSendMessage() {
             phone: contact.phone,
             message: message.content
           });
+          // Para WhatsApp, não salvamos localmente - a mensagem voltará via webhook
+          return { success: true, via: 'zapi' };
         } catch (error) {
           console.error('Erro ao enviar via Z-API:', error);
-          // Continue com o envio normal se falhar
+          // Se falhar, continuar com o envio normal
         }
       }
 
-      // Sempre salvar a mensagem no banco de dados local
+      // Salvar mensagem no banco de dados local (para canais que não são WhatsApp)
       const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
       return response.json();
     },
