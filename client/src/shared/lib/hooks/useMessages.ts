@@ -22,15 +22,22 @@ export function useSendMessage() {
     }) => {
       // Se tiver telefone, enviar via Z-API (assumindo WhatsApp como padrão)
       if (contact?.phone) {
+        console.log('📤 Enviando mensagem via Z-API:', {
+          phone: contact.phone,
+          message: message.content,
+          conversationId
+        });
+        
         try {
-          await apiRequest("POST", "/api/zapi/send-message", {
+          const response = await apiRequest("POST", "/api/zapi/send-message", {
             phone: contact.phone,
-            message: message.content
+            message: message.content,
+            conversationId: conversationId
           });
-          // Para WhatsApp, não salvamos localmente - a mensagem voltará via webhook
-          return { success: true, via: 'zapi' };
+          console.log('✅ Mensagem enviada via Z-API:', response);
+          return response;
         } catch (error) {
-          console.error('Erro ao enviar via Z-API:', error);
+          console.error('❌ Erro ao enviar via Z-API:', error);
           // Se falhar, continuar com o envio normal
         }
       }
