@@ -1215,8 +1215,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Converter áudio para Base64 (formato aceito pela Z-API)
-      const audioBase64 = `data:${audioFile.mimetype};base64,${audioFile.buffer.toString('base64')}`;
+      // Converter áudio para Base64 conforme documentação Z-API
+      const base64Data = audioFile.buffer.toString('base64');
+      // Usar o mimetype correto do arquivo enviado
+      const mimeType = audioFile.mimetype || 'audio/webm';
+      const audioBase64 = `data:${mimeType};base64,${base64Data}`;
 
       // Criar payload JSON conforme documentação Z-API
       const payload = {
@@ -1252,7 +1255,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
       console.log('Sucesso no envio de áudio:', data);
-      res.json(data);
+
+      // Salvar mensagem de áudio no banco de dados local com conteúdo para reprodução
+      const audioMessage = await storage.createMessage({
+        conversationId: parseInt(req.body.conversationId),
+        content: audioBase64, // Salvar o áudio base64 para reprodução local
+        isFromContact: false,
+        messageType: 'audio',
+        metadata: {
+          zaapId: data.zaapId,
+          messageId: data.messageId,
+          audioSize: audioFile.size,
+          mimeType: audioFile.mimetype,
+          duration: parseInt(req.body.duration || '0')
+        }
+      });
+
+      // Broadcast para outros clientes conectados
+      broadcast(parseInt(req.body.conversationId), {
+        type: 'new_message',
+        message: audioMessage
+      });
+
+      res.json({
+        ...data,
+        localMessage: audioMessage
+      });
     } catch (error) {
       console.error('Erro ao enviar áudio via Z-API:', error);
       res.status(500).json({ 
