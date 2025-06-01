@@ -1215,33 +1215,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Tentar diferentes formatos de áudio compatíveis com WhatsApp
-      let audioBlob;
-      let filename;
-      
-      // Converter para OGG se necessário (formato mais compatível com WhatsApp)
-      if (audioFile.mimetype === 'audio/webm') {
-        audioBlob = new Blob([audioFile.buffer], { type: 'audio/ogg' });
-        filename = 'audio.ogg';
-      } else {
-        audioBlob = new Blob([audioFile.buffer], { type: audioFile.mimetype });
-        filename = audioFile.originalname || 'audio.ogg';
-      }
+      // Converter áudio para Base64 (formato aceito pela Z-API)
+      const audioBase64 = `data:${audioFile.mimetype};base64,${audioFile.buffer.toString('base64')}`;
 
-      // Criar FormData para envio de arquivo
-      const formData = new FormData();
-      formData.append('phone', phone);
-      formData.append('audio', audioBlob, filename);
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone,
+        audio: audioBase64,
+        waveform: true,
+        viewOnce: false
+      };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-audio`;
-      console.log('Enviando para Z-API:', url, { filename, type: audioBlob.type });
+      console.log('Enviando para Z-API:', url, { mimeType: audioFile.mimetype, size: audioFile.size });
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Client-Token': clientToken,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       console.log('Resposta Z-API:', {
