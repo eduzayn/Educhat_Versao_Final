@@ -627,6 +627,7 @@ export function InboxPage() {
                     contact={activeConversation.contact}
                     channelIcon={getChannelInfo(activeConversation.channel).icon}
                     channelColor={getChannelInfo(activeConversation.channel).color}
+                    conversationId={activeConversation.id}
                   />
                 ))
               )}

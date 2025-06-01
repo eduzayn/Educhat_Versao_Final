@@ -165,19 +165,30 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           )}
         </div>
         
-        <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isFromContact ? '' : 'justify-end'}`}>
-          {!isFromContact && (
-            <div className="flex items-center">
-              {message.readAt ? (
-                <CheckCheck className="w-3 h-3 text-blue-500" />
-              ) : message.deliveredAt ? (
-                <CheckCheck className="w-3 h-3 text-gray-400" />
-              ) : (
-                <Check className="w-3 h-3 text-gray-400" />
-              )}
-            </div>
+        <div className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${isFromContact ? '' : 'justify-end'}`}>
+          {/* Reações disponíveis apenas para mensagens do contato (WhatsApp) */}
+          {isFromContact && contact.phone && conversationId && (
+            <MessageReactions 
+              message={message}
+              conversationId={conversationId}
+              contactPhone={contact.phone}
+            />
           )}
-          <span>{messageTime}</span>
+          
+          <div className="flex items-center gap-1">
+            {!isFromContact && (
+              <div className="flex items-center">
+                {message.readAt ? (
+                  <CheckCheck className="w-3 h-3 text-blue-500" />
+                ) : message.deliveredAt ? (
+                  <CheckCheck className="w-3 h-3 text-gray-400" />
+                ) : (
+                  <Check className="w-3 h-3 text-gray-400" />
+                )}
+              </div>
+            )}
+            <span>{messageTime}</span>
+          </div>
         </div>
       </div>
     </div>
