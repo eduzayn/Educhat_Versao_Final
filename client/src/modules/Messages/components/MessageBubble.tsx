@@ -11,84 +11,35 @@ interface MessageBubbleProps {
   channelColor?: string;
 }
 
-// Componente para player de áudio
-function AudioPlayer({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
+// Componente simplificado para mostrar mensagem de áudio
+function AudioMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
   // Extrair tamanho do áudio dos metadados se disponível
   const audioSize = message.metadata && typeof message.metadata === 'object' && 'audioSize' in message.metadata 
     ? message.metadata.audioSize as number 
     : null;
 
-  const sizeText = audioSize ? `(${Math.round(audioSize / 1024)}KB)` : '';
+  const sizeText = audioSize ? ` (${Math.round(audioSize / 1024)}KB)` : '';
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg ${
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
       isFromContact ? 'bg-gray-100' : 'bg-blue-600'
     }`}>
-      <button
-        onClick={togglePlay}
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-          isFromContact 
-            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-            : 'bg-white text-blue-600 hover:bg-gray-100'
-        }`}
-      >
-        {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-      </button>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+        isFromContact 
+          ? 'bg-blue-600 text-white' 
+          : 'bg-white text-blue-600'
+      }`}>
+        <Volume2 className="w-5 h-5" />
+      </div>
       
       <div className="flex-1">
         <div className={`flex items-center gap-2 ${isFromContact ? 'text-gray-700' : 'text-white'}`}>
-          <Volume2 className="w-4 h-4" />
-          <span className="text-sm font-medium">Áudio {sizeText}</span>
+          <span className="text-sm font-medium">Mensagem de áudio{sizeText}</span>
         </div>
         <div className={`text-xs ${isFromContact ? 'text-gray-500' : 'text-blue-100'}`}>
-          {currentTime > 0 ? formatTime(currentTime) : '0:00'} 
-          {duration > 0 && ` / ${formatTime(duration)}`}
+          Enviado via WhatsApp
         </div>
       </div>
-      
-      {/* Audio element oculto - como não temos o arquivo de áudio real, apenas simulamos */}
-      <audio
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => setIsPlaying(false)}
-      >
-        {/* Aqui normalmente teria a URL do arquivo de áudio */}
-      </audio>
     </div>
   );
 }
