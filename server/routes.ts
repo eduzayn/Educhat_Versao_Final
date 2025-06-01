@@ -1010,6 +1010,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send reaction via Z-API
+  app.post('/api/zapi/send-reaction', async (req, res) => {
+    try {
+      console.log('📤 Recebendo solicitação de envio de reação:', req.body);
+      
+      const { phone, messageId, reaction } = req.body;
+      
+      if (!phone || !messageId || !reaction) {
+        return res.status(400).json({ 
+          error: 'Phone, messageId e reaction são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        messageId: messageId.toString(),
+        reaction
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-message-reaction`;
+      console.log('📤 Enviando reação para Z-API:', { url, payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Reação enviada com sucesso:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar reação:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Remove reaction via Z-API
+  app.post('/api/zapi/remove-reaction', async (req, res) => {
+    try {
+      console.log('📤 Recebendo solicitação de remoção de reação:', req.body);
+      
+      const { phone, messageId } = req.body;
+      
+      if (!phone || !messageId) {
+        return res.status(400).json({ 
+          error: 'Phone e messageId são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        messageId: messageId.toString()
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-remove-reaction`;
+      console.log('📤 Removendo reação via Z-API:', { url, payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Reação removida com sucesso:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao remover reação:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Z-API integration routes
   app.get('/api/zapi/qrcode', async (req, res) => {
     try {
