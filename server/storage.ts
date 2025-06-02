@@ -43,7 +43,7 @@ export interface IStorage {
   getConversationByContactAndChannel(contactId: number, channel: string): Promise<Conversation | undefined>;
 
   // Message operations
-  getMessages(conversationId: number, limit?: number): Promise<Message[]>;
+  getMessages(conversationId: number, limit?: number, offset?: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<void>;
   markMessageAsDelivered(id: number): Promise<void>;
@@ -253,13 +253,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message operations
-  async getMessages(conversationId: number, limit = 50): Promise<Message[]> {
+  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
     return await db
       .select()
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.sentAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {

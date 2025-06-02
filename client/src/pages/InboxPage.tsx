@@ -68,7 +68,7 @@ export function InboxPage() {
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage 
-  } = useConversations(10); // Carregar 10 contatos por vez para demonstrar paginação
+  } = useConversations(30); // Carregar 30 contatos por vez
   
   // Flatten das páginas de conversas
   const conversations = conversationsData?.pages.flat() || [];
@@ -79,11 +79,16 @@ export function InboxPage() {
     markConversationAsRead(conversation.id);
   };
   
-  const { data: queryMessages = [] } = useMessages(activeConversation?.id || null);
+  const { 
+    data: messagesData, 
+    isLoading: isLoadingMessages, 
+    fetchNextPage: fetchNextPageMessages, 
+    hasNextPage: hasNextPageMessages, 
+    isFetchingNextPage: isFetchingNextPageMessages 
+  } = useMessages(activeConversation?.id || null, 30); // Carregar 30 mensagens por vez
   
-  // Combinar mensagens do React Query com mensagens do store para tempo real
-  // Usar sempre os dados mais recentes do React Query para garantir sincronização
-  const messages = queryMessages;
+  // Flatten das páginas de mensagens
+  const messages = messagesData?.pages.flat() || [];
   
 
   const createContact = useCreateContact();

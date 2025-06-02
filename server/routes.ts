@@ -416,8 +416,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const messages = await storage.getMessages(id, limit);
-      res.json(messages.reverse()); // Return in chronological order
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const messages = await storage.getMessages(id, limit, offset);
+      res.json(messages); // Return in descending order (newest first for pagination)
     } catch (error) {
       console.error('Error fetching messages:', error);
       res.status(500).json({ message: 'Failed to fetch messages' });
