@@ -72,8 +72,11 @@ export function InboxPage() {
     refetch 
   } = useConversations(30); // Carregar 30 contatos por vez
   
-  // Flatten das páginas de conversas
+  // Flatten das páginas de conversas e remover duplicatas
   const conversations = conversationsData?.pages.flat() || [];
+  const uniqueConversations = conversations.filter((conversation, index, self) => 
+    index === self.findIndex((c) => c.id === conversation.id)
+  );
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
 
   const handleSelectConversation = (conversation: any) => {
@@ -200,14 +203,21 @@ export function InboxPage() {
   };
 
   // Filtrar conversas baseado na aba ativa e filtros
-  const filteredConversations = conversations.filter(conversation => {
+  const filteredConversations = uniqueConversations.filter(conversation => {
     // Filtro por aba
     if (activeTab === 'inbox' && conversation.status === 'resolved') return false;
     if (activeTab === 'resolved' && conversation.status !== 'resolved') return false;
     
-    // Filtro por busca
-    if (searchTerm && !conversation.contact.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
+    // Filtro por busca - pesquisar em nome e telefone do contato
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const nameMatch = conversation.contact.name.toLowerCase().includes(searchLower);
+      const phoneMatch = conversation.contact.phone?.toLowerCase().includes(searchLower) || false;
+      const emailMatch = conversation.contact.email?.toLowerCase().includes(searchLower) || false;
+      
+      if (!nameMatch && !phoneMatch && !emailMatch) {
+        return false;
+      }
     }
     
     // Filtro por status
@@ -563,7 +573,7 @@ export function InboxPage() {
 
         {/* Lista de Conversas */}
         <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation) => {
+          {filteredConversations.map((conversation, index) => {
             const channelInfo = getChannelInfo(conversation.channel);
             const lastMessage = conversation.messages[0];
             const isActive = activeConversation?.id === conversation.id;
@@ -574,7 +584,7 @@ export function InboxPage() {
             
             return (
               <div
-                key={conversation.id}
+                key={`conversation-${conversation.id}-${index}`}
                 className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${
                   isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
@@ -594,9 +604,9 @@ export function InboxPage() {
                         {conversation.contact.name}
                       </h3>
                       <div className="flex items-center space-x-1">
-                        {lastMessage && (
+                        {lastMessage && lastMessage.sentAt && (
                           <span className="text-xs text-gray-400">
-                            {formatTime(lastMessage.sentAt || new Date())}
+                            {formatTime(lastMessage.sentAt)}
                           </span>
                         )}
                         {unreadCount > 0 && (
