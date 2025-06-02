@@ -1,8 +1,11 @@
-import { memo, useMemo } from "react";
-import { Check, CheckCheck } from "lucide-react";
+import { memo, useMemo, useState, useRef } from "react";
+import { Check, CheckCheck, Play, Pause, Volume2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
+import { Button } from "@/shared/ui/ui/button";
 import { format } from "date-fns";
 import type { Message, Contact } from "@shared/schema";
+import { AudioMessage } from "./AudioMessage";
+import { LazyMediaContent } from "./LazyMediaContent";
 
 interface MessageBubbleProps {
   message: Message;
@@ -88,6 +91,40 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     );
   }
 
+  // Função para renderizar o conteúdo da mensagem baseado no tipo
+  const renderMessageContent = () => {
+    if (message.messageType === 'audio') {
+      // Extrair duração do metadata se disponível
+      const duration = message.metadata?.duration || 0;
+      return (
+        <AudioMessage
+          audioUrl={message.content}
+          duration={duration}
+          isFromContact={isFromContact}
+        />
+      );
+    }
+
+    // Para outros tipos de mídia, usar LazyMediaContent
+    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType)) {
+      return (
+        <LazyMediaContent
+          messageId={message.id}
+          messageType={message.messageType}
+          conversationId={conversationId}
+          isFromContact={isFromContact}
+        />
+      );
+    }
+
+    // Mensagem de texto padrão
+    return (
+      <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
+        <p className="text-sm">{message.content}</p>
+      </div>
+    );
+  };
+
   // Mensagem normal
   return (
     <div className={containerClasses}>
@@ -102,9 +139,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
       </Avatar>
 
       <div className={bubbleWrapperClasses}>
-        <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
-          <p className="text-sm">{message.content}</p>
-        </div>
+        {renderMessageContent()}
 
         <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
           {messageStatus}
