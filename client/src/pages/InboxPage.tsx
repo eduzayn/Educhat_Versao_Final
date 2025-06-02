@@ -67,7 +67,8 @@ export function InboxPage() {
     isLoading, 
     fetchNextPage, 
     hasNextPage, 
-    isFetchingNextPage 
+    isFetchingNextPage,
+    refetch 
   } = useConversations(30); // Carregar 30 contatos por vez
   
   // Flatten das páginas de conversas

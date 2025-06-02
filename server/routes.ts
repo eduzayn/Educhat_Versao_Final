@@ -411,6 +411,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update conversation status endpoint
+  app.patch('/api/conversations/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: 'Status is required' });
+      }
+
+      const validStatuses = ['open', 'pending', 'resolved', 'closed', 'new', 'in_progress'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status value' });
+      }
+
+      const conversation = await storage.updateConversation(id, { status });
+      
+      if (!conversation) {
+        return res.status(404).json({ message: 'Conversation not found' });
+      }
+
+      // Broadcast status update to WebSocket clients
+      broadcast(id, {
+        type: 'status_update',
+        conversationId: id,
+        status
+      });
+
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error updating conversation status:', error);
+      res.status(500).json({ message: 'Failed to update conversation status' });
+    }
+  });
+
   // Messages endpoints
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
