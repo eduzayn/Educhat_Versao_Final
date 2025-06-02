@@ -116,6 +116,10 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
       else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
         audioUrl = message.content;
       }
+      // 4. Verificar se há audioUrl nos metadados (para mensagens recebidas)
+      else if ((message.metadata as any)?.audio?.audioUrl) {
+        audioUrl = (message.metadata as any).audio.audioUrl;
+      }
 
       console.log('🎧 URL do áudio processada:', audioUrl);
 
