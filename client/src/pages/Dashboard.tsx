@@ -209,14 +209,14 @@ export function Dashboard() {
               <CardContent>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button 
-                    onClick={() => setActiveSection('inbox')}
+                    onClick={() => setLocation('/inbox')}
                     className="h-auto p-4 flex flex-col items-center space-y-2 bg-educhat-primary hover:bg-educhat-secondary"
                   >
                     <Inbox className="w-6 h-6" />
                     <span>Ir para Inbox</span>
                   </Button>
                   <Button 
-                    onClick={() => setActiveSection('contacts')}
+                    onClick={() => setLocation('/contacts')}
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
                   >
@@ -224,7 +224,7 @@ export function Dashboard() {
                     <span>Novo Contato</span>
                   </Button>
                   <Button 
-                    onClick={() => setActiveSection('integrations')}
+                    onClick={() => setLocation('/integrations')}
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
                   >
@@ -232,7 +232,7 @@ export function Dashboard() {
                     <span>Integrações</span>
                   </Button>
                   <Button 
-                    onClick={() => setActiveSection('payments')}
+                    onClick={() => setLocation('/payments')}
                     variant="outline" 
                     className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
                   >
