@@ -86,7 +86,7 @@ export function InboxPage() {
     fetchNextPage: fetchNextPageMessages, 
     hasNextPage: hasNextPageMessages, 
     isFetchingNextPage: isFetchingNextPageMessages 
-  } = useMessages(activeConversation?.id || null, 5); // Carregar 5 mensagens por vez para demonstrar paginação
+  } = useMessages(activeConversation?.id || null, 30); // Carregar 30 mensagens por vez para produção
   
   // Flatten das páginas de mensagens
   const messages = messagesData?.pages.flat() || [];

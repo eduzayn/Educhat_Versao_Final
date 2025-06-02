@@ -161,43 +161,69 @@ export class DatabaseStorage implements IStorage {
 
   // Conversation operations
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
+    // Primeira consulta: buscar conversações com contatos reais
     const conversationsWithContacts = await db
       .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(
+        and(
+          isNotNull(contacts.phone),
+          not(like(contacts.phone, '%000000%')),
+          not(like(contacts.phone, '%111111%')),
+          not(like(contacts.phone, '%123456%')),
+          not(ilike(contacts.name, '%test%')),
+          not(ilike(contacts.name, '%demo%')),
+          not(ilike(contacts.name, '%exemplo%'))
+        )
+      )
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
 
+    if (conversationsWithContacts.length === 0) {
+      return [];
+    }
+
+    // Segunda consulta: buscar últimas mensagens de todas as conversações de uma vez
+    const conversationIds = conversationsWithContacts
+      .map(row => row.conversations?.id)
+      .filter((id): id is number => id !== undefined);
+
+    const lastMessages = await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          messages.conversationId,
+          or(...conversationIds.map(id => eq(messages.conversationId, id)))
+        )
+      )
+      .orderBy(desc(messages.sentAt));
+
+    // Agrupar mensagens por conversação
+    const messagesByConversation = new Map<number, Message[]>();
+    for (const message of lastMessages) {
+      const conversationId = message.conversationId;
+      if (!messagesByConversation.has(conversationId)) {
+        messagesByConversation.set(conversationId, []);
+      }
+      const conversationMessages = messagesByConversation.get(conversationId)!;
+      if (conversationMessages.length === 0) {
+        conversationMessages.push(message);
+      }
+    }
+
+    // Montar resultado final
     const result: ConversationWithContact[] = [];
-    
     for (const row of conversationsWithContacts) {
       if (row.conversations && row.contacts) {
-        // Filtrar contatos reais vs simulados
-        const contact = row.contacts;
-        const isRealContact = contact.phone && 
-          contact.phone.length > 8 && // Telefones reais têm mais de 8 dígitos
-          !contact.phone.includes('000000') &&
-          !contact.phone.includes('111111') &&
-          !contact.phone.includes('123456') &&
-          !contact.name.toLowerCase().includes('test') &&
-          !contact.name.toLowerCase().includes('demo') &&
-          !contact.name.toLowerCase().includes('exemplo');
-
-        if (isRealContact) {
-          const lastMessages = await db
-            .select()
-            .from(messages)
-            .where(eq(messages.conversationId, row.conversations.id))
-            .orderBy(desc(messages.sentAt))
-            .limit(1);
-
-          result.push({
-            ...row.conversations,
-            contact: row.contacts,
-            messages: lastMessages,
-          });
-        }
+        const conversationMessages = messagesByConversation.get(row.conversations.id) || [];
+        result.push({
+          ...row.conversations,
+          contact: row.contacts,
+          messages: conversationMessages,
+        });
       }
     }
 
