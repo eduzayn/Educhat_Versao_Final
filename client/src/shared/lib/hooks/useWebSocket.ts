@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatStore } from '../../store/store/chatStore';
 import type { WebSocketMessage } from '../../../types/chat';
+import type { Message } from '../../../types/chat';
 
 export function useWebSocket() {
   const socketRef = useRef<WebSocket | null>(null);
@@ -54,19 +55,12 @@ export function useWebSocket() {
               addMessage(data.conversationId, data.message);
               updateConversationLastMessage(data.conversationId, data.message);
               
-              // Atualizar cache do React Query com os novos dados
-              queryClient.setQueryData(
-                [`/api/conversations/${data.conversationId}/messages`],
-                (oldData: Message[] | undefined) => {
-                  if (!oldData) return [data.message];
-                  // Verificar se a mensagem já existe para evitar duplicatas
-                  const exists = oldData.some(msg => msg.id === data.message.id);
-                  if (exists) return oldData;
-                  return [...oldData, data.message];
-                }
-              );
+              // Invalidar cache das mensagens para forçar recarregamento imediato
+              queryClient.invalidateQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+              });
               
-              // Invalidar cache das conversas para atualizar contadores
+              // Invalidar cache das conversas para atualizar contadores e última mensagem
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             }
             break;
