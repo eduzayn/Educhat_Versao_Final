@@ -1613,10 +1613,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar vídeo via Z-API
+  // Endpoint para enviar vídeo via Z-API (usando send-document/mp4)
   app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
     try {
-      console.log('Recebendo solicitação de envio de vídeo:', {
+      console.log('🎥 Recebendo solicitação de envio de vídeo:', {
         body: req.body,
         file: req.file ? { 
           originalname: req.file.originalname, 
@@ -1653,16 +1653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64Data = videoFile.buffer.toString('base64');
       const videoBase64 = `data:${videoFile.mimetype};base64,${base64Data}`;
 
-      // Payload conforme documentação Z-API
+      // Payload conforme documentação Z-API para send-document
       const payload = {
         phone: phone.replace(/\D/g, ''),
-        video: videoBase64
+        document: videoBase64,
+        fileName: videoFile.originalname
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-video`;
-      console.log('Enviando vídeo para Z-API:', { 
+      // Usar endpoint send-document/mp4 conforme documentação
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document/mp4`;
+      console.log('📤 Enviando vídeo para Z-API:', { 
         url, 
         phone: payload.phone,
+        fileName: payload.fileName,
         mimeType: videoFile.mimetype, 
         size: videoFile.size 
       });
