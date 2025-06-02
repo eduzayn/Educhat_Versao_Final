@@ -650,6 +650,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (webhookData.image) {
           messageContent = webhookData.image.caption || 'Imagem enviada';
           messageType = 'image';
+          
+          // Se há URL de imagem externa, baixar e salvar como base64
+          if (webhookData.image.imageUrl) {
+            try {
+              console.log('🖼️ Baixando imagem externa:', webhookData.image.imageUrl);
+              const imageResponse = await fetch(webhookData.image.imageUrl);
+              
+              if (imageResponse.ok) {
+                const imageBuffer = await imageResponse.arrayBuffer();
+                const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+                const mimeType = webhookData.image.mimeType || 'image/jpeg';
+                messageContent = `data:${mimeType};base64,${imageBase64}`;
+                console.log('✅ Imagem externa baixada e convertida para base64');
+              } else {
+                console.error('❌ Erro ao baixar imagem externa:', imageResponse.status);
+              }
+            } catch (error) {
+              console.error('💥 Erro ao processar imagem externa:', error);
+            }
+          }
         } else if (webhookData.audio) {
           messageContent = 'Áudio enviado';
           messageType = 'audio';
