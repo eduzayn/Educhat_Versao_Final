@@ -394,6 +394,14 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
               else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
                 audioUrl = message.content;
               }
+              // 4. Verificar se há audioUrl nos metadados (mensagens do WhatsApp)
+              else if (message.metadata && typeof message.metadata === 'object' && 'audio' in message.metadata) {
+                const audioMeta = (message.metadata as any).audio;
+                if (audioMeta && audioMeta.audioUrl && (audioMeta.audioUrl.startsWith('http://') || audioMeta.audioUrl.startsWith('https://'))) {
+                  audioUrl = audioMeta.audioUrl;
+                  console.log('🎧 URL externa de áudio encontrada nos metadados:', audioUrl);
+                }
+              }
 
               console.log('🎧 URL do áudio processada:', audioUrl);
 

@@ -263,8 +263,8 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
           <Volume2 className="w-3 h-3 opacity-70" />
           <span className="text-xs opacity-70">
             {isLoadingAudio ? 'Carregando áudio...' : 
-             audioError ? 'Erro ao carregar' :
-             isLoaded ? 'Áudio' : 'Clique para carregar áudio'}
+             audioError ? audioError :
+             isLoaded ? 'Áudio' : 'Clique para reproduzir'}
           </span>
         </div>
         
