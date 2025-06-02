@@ -13,7 +13,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(!!audioUrl);
   const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(audioUrl);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     setAudioError(null);
     
     try {
-      console.log('🔍 Buscando conteúdo do áudio via API para messageId:', messageIdForFetch);
+      console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdForFetch);
       
       const response = await fetch(`/api/messages/${messageIdForFetch}/audio`);
       
@@ -46,6 +46,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
           if (data.audioUrl.startsWith('data:audio/') || data.audioUrl.startsWith('https://') || data.audioUrl.startsWith('http://')) {
             setFetchedAudioUrl(data.audioUrl);
             console.log('✅ Áudio válido carregado via API');
+            setIsLoaded(true);
           } else {
             console.error('❌ URL de áudio inválida:', data.audioUrl);
             setAudioError('Formato de áudio inválido');

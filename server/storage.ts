@@ -47,6 +47,7 @@ export interface IStorage {
   getConversationByContactAndChannel(contactId: number, channel: string): Promise<Conversation | undefined>;
 
   // Message operations
+  getAllMessages(): Promise<Message[]>;
   getMessages(conversationId: number, limit?: number, offset?: number): Promise<Message[]>;
   getMessageMedia(messageId: number): Promise<string | null>;
   createMessage(message: InsertMessage): Promise<Message>;
@@ -303,6 +304,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message operations
+  async getAllMessages(): Promise<Message[]> {
+    return await db
+      .select()
+      .from(messages)
+      .orderBy(desc(messages.sentAt));
+  }
+
   async getMessages(conversationId: number, limit = 30, offset = 0): Promise<Message[]> {
     // Consulta otimizada: não carrega content binário de mídias grandes
     return await db

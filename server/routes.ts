@@ -1263,13 +1263,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📁 Buscando áudio no banco para messageId: ${messageId}`);
       
       // Buscar a mensagem no banco de dados pelo messageId da Z-API
-      const message = await storage.getMessages().then(messages => 
-        messages.find(msg => 
-          msg.metadata && 
-          typeof msg.metadata === 'object' && 
-          'messageId' in msg.metadata && 
-          msg.metadata.messageId === messageId
-        )
+      const allMessages = await storage.getAllMessages();
+      const message = allMessages.find(msg => 
+        msg.metadata && 
+        typeof msg.metadata === 'object' && 
+        'messageId' in msg.metadata && 
+        msg.metadata.messageId === messageId
       );
 
       if (!message) {
