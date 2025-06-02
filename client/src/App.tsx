@@ -8,6 +8,7 @@ import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPage } from "@/pages/InboxPage";
+import { InboxPageRefactored } from "@/pages/Inbox/InboxPageRefactored";
 import ChatInternoPage from "@/pages/ChatInternoPage";
 import CrmPage from "@/pages/CrmPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -46,6 +47,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
+          <Route path="/inbox-refactored" component={InboxPageRefactored} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/chat-interno" component={ChatInternoPage} />
           <Route path="/crm" component={CrmPage} />

@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ConversationList } from './components/ConversationList';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
-import { useMessages } from '@/shared/lib/hooks/useMessages';
-import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
-import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
-import { MessageInput } from '@/modules/Messages/components/MessageInput';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
