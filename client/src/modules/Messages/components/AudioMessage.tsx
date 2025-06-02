@@ -13,10 +13,9 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
-  const [isLoaded, setIsLoaded] = useState(!!audioUrl);
-  const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(audioUrl);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
+  const [actualAudioUrl, setActualAudioUrl] = useState<string | null>(audioUrl);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const formatTime = (time: number) => {
@@ -25,163 +24,45 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Função para buscar áudio via API
-  const fetchAudioContent = async () => {
-    if (!messageIdForFetch || isLoadingAudio) return;
-    
-    setIsLoadingAudio(true);
-    setAudioError(null);
-    
-    try {
-      console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdForFetch);
-      
-      const response = await fetch(`/api/messages/${messageIdForFetch}/audio`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Resposta da API de áudio:', data);
-        
-        // Validar se a URL do áudio é válida
-        if (data.audioUrl) {
-          if (data.audioUrl.startsWith('data:audio/') || data.audioUrl.startsWith('https://') || data.audioUrl.startsWith('http://')) {
-            setFetchedAudioUrl(data.audioUrl);
-            console.log('✅ Áudio válido carregado via API');
-            setIsLoaded(true);
+  // Buscar áudio via API se necessário (apenas uma vez)
+  useEffect(() => {
+    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading) {
+      setIsLoading(true);
+      fetch(`/api/messages/${messageIdForFetch}/audio`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.audioUrl) {
+            setActualAudioUrl(data.audioUrl);
           } else {
-            console.error('❌ URL de áudio inválida:', data.audioUrl);
-            setAudioError('Formato de áudio inválido');
+            setError('Áudio não encontrado');
           }
-        } else {
-          console.error('❌ Nenhuma URL de áudio na resposta:', data);
-          setAudioError('Áudio não encontrado');
-        }
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Erro ao buscar áudio:', errorData);
-        setAudioError(errorData.error || 'Erro ao carregar áudio');
-      }
-    } catch (error) {
-      console.error('💥 Erro na requisição de áudio:', error);
-      setAudioError('Erro de conexão ao carregar áudio');
-    } finally {
-      setIsLoadingAudio(false);
+        })
+        .catch(() => setError('Erro ao carregar áudio'))
+        .finally(() => setIsLoading(false));
     }
-  };
+  }, [audioUrl, messageIdForFetch, actualAudioUrl, isLoading]);
 
   const togglePlayPause = async () => {
-    // Primeiro, tentar buscar áudio se não temos URL mas temos messageId
-    if (!fetchedAudioUrl && messageIdForFetch && !isLoadingAudio) {
-      console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdForFetch);
-      await fetchAudioContent();
+    if (!actualAudioUrl || !audioRef.current) {
+      setError('Áudio não disponível');
       return;
     }
-    
-    // Verificar se temos áudio disponível para reproduzir
-    if (!fetchedAudioUrl || !audioRef.current) {
-      console.log('❌ Áudio não disponível:', {
-        hasAudioUrl: !!fetchedAudioUrl,
-        hasAudioRef: !!audioRef.current,
-        messageId: messageIdForFetch
-      });
-      setAudioError('Áudio não disponível para reprodução');
-      return;
-    }
-    
+
     try {
       if (isPlaying) {
-        console.log('Pausando áudio');
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        console.log('Iniciando reprodução:', {
-          url: fetchedAudioUrl,
-          currentSrc: audioRef.current.src,
-          readyState: audioRef.current.readyState
-        });
-        
-        // Garantir que o src está definido e recarregar se necessário
-        if (audioRef.current.src !== fetchedAudioUrl) {
-          // Limpar qualquer estado anterior
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-          
-          // Definir novo src
-          audioRef.current.src = fetchedAudioUrl;
-          
-          // Configurações para melhor compatibilidade
-          audioRef.current.preload = 'auto';
-          audioRef.current.crossOrigin = 'anonymous';
-          
-          audioRef.current.load();
-          
-          // Aguardar o áudio estar pronto para reprodução
-          await new Promise((resolve, reject) => {
-            if (!audioRef.current) {
-              reject(new Error('Elemento de áudio não disponível'));
-              return;
-            }
-            
-            const onCanPlay = () => {
-              console.log('Áudio pronto para reprodução');
-              cleanup();
-              resolve(void 0);
-            };
-            
-            const onLoadedData = () => {
-              console.log('Dados do áudio carregados');
-              cleanup();
-              resolve(void 0);
-            };
-            
-            const onError = (e: any) => {
-              console.error('Erro ao carregar áudio:', e);
-              cleanup();
-              reject(new Error('Formato de áudio não suportado'));
-            };
-            
-            const cleanup = () => {
-              audioRef.current?.removeEventListener('canplay', onCanPlay);
-              audioRef.current?.removeEventListener('loadeddata', onLoadedData);
-              audioRef.current?.removeEventListener('error', onError);
-            };
-            
-            audioRef.current.addEventListener('canplay', onCanPlay);
-            audioRef.current.addEventListener('loadeddata', onLoadedData);
-            audioRef.current.addEventListener('error', onError);
-            
-            // Se o áudio já está pronto, resolver imediatamente
-            if (audioRef.current.readyState >= 3) {
-              cleanup();
-              resolve(void 0);
-            }
-            
-            // Timeout de segurança
-            setTimeout(() => {
-              cleanup();
-              resolve(void 0);
-            }, 5000);
-          });
-        }
-        
         await audioRef.current.play();
         setIsPlaying(true);
-        console.log('Áudio reproduzindo com sucesso');
+        setError(null);
       }
-    } catch (error) {
-      console.error('Erro ao reproduzir áudio:', error);
-      setAudioError('Erro ao reproduzir áudio - formato não suportado');
+    } catch (err) {
+      console.error('Erro na reprodução:', err);
+      setError('Erro ao reproduzir áudio');
       setIsPlaying(false);
     }
   };
-
-  // Effect para definir a URL quando o áudio for carregado via fetch
-  useEffect(() => {
-    if (fetchedAudioUrl && !audioUrl) {
-      setIsLoaded(true);
-    }
-  }, [fetchedAudioUrl, audioUrl]);
-
-  // Remover autoplay para evitar conflitos com reprodução manual
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -200,26 +81,6 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     setCurrentTime(0);
   };
 
-  const handleCanPlay = () => {
-    // Áudio está pronto para reprodução
-    console.log('Áudio carregado e pronto para reprodução');
-  };
-
-  const handleError = (error: any) => {
-    console.error('Erro ao carregar áudio:', error);
-    console.error('Detalhes do erro:', {
-      audioUrl: fetchedAudioUrl,
-      errorType: error.type,
-      errorTarget: error.target,
-      networkState: error.target?.networkState,
-      readyState: error.target?.readyState,
-      errorCode: error.target?.error?.code,
-      errorMessage: error.target?.error?.message
-    });
-    setIsLoaded(false);
-    setAudioError('Erro ao reproduzir áudio');
-  };
-
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
@@ -228,15 +89,13 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         ? 'bg-gray-100 text-gray-900' 
         : 'bg-blue-600 text-white'
     }`}>
-      {isLoaded && fetchedAudioUrl && (
+      {actualAudioUrl && (
         <audio
           ref={audioRef}
-          src={fetchedAudioUrl || undefined}
+          src={actualAudioUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
-          onCanPlay={handleCanPlay}
-          onError={handleError}
           preload="metadata"
         />
       )}
@@ -245,13 +104,16 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         variant="ghost"
         size="sm"
         onClick={togglePlayPause}
+        disabled={isLoading}
         className={`w-8 h-8 p-0 rounded-full ${
           isFromContact
             ? 'hover:bg-gray-200 text-gray-700'
             : 'hover:bg-blue-500 text-white'
         }`}
       >
-        {isLoaded && isPlaying ? (
+        {isLoading ? (
+          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : isPlaying ? (
           <Pause className="w-4 h-4" />
         ) : (
           <Play className="w-4 h-4" />
@@ -262,9 +124,9 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         <div className="flex items-center gap-2 mb-1">
           <Volume2 className="w-3 h-3 opacity-70" />
           <span className="text-xs opacity-70">
-            {isLoadingAudio ? 'Carregando áudio...' : 
-             audioError ? audioError :
-             isLoaded ? 'Áudio' : 'Clique para reproduzir'}
+            {isLoading ? 'Carregando...' : 
+             error ? error :
+             actualAudioUrl ? 'Áudio' : 'Processando...'}
           </span>
         </div>
         
