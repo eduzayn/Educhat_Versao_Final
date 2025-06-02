@@ -194,7 +194,7 @@ export function InputArea() {
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
       }
     },
@@ -241,7 +241,7 @@ export function InputArea() {
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
       }
     },
@@ -288,7 +288,7 @@ export function InputArea() {
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
       }
     },
@@ -330,7 +330,7 @@ export function InputArea() {
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
       }
     },
