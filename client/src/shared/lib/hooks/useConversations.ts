@@ -13,7 +13,7 @@ export function useConversations(limit = 1000) {
       return response.json();
     },
     staleTime: 30000, // Cache por 30 segundos
-    cacheTime: 300000, // Manter em cache por 5 minutos
+    gcTime: 300000, // Manter em cache por 5 minutos (cacheTime foi renomeado para gcTime na v5)
     refetchOnWindowFocus: false, // Não recarregar ao focar na janela
   });
 }
