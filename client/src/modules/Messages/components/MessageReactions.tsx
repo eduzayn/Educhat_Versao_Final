@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/shared/ui/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/ui/ui/popover";
 import { cn } from "@/lib/utils";
 import { Smile, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,132 +18,137 @@ interface MessageReactionsProps {
   contactPhone: string;
 }
 
-// Conjunto robusto de reações organizadas por categorias
 const REACTION_CATEGORIES = {
   emotions: {
     label: "Emoções",
-    reactions: ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🥸", "🤩", "🥳"]
+    reactions: ["😀", "😂", "😊", "😇", "😍", "😎", "🥳", "🤓"],
   },
   feelings: {
-    label: "Sentimentos", 
-    reactions: ["😥", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱"]
+    label: "Sentimentos",
+    reactions: ["😢", "😭", "😡", "😳", "🥶", "😱", "🤯", "🤔"],
   },
   gestures: {
     label: "Gestos",
-    reactions: ["👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👋", "🤚", "🖐️", "✋", "🖖", "👏", "🙌", "🤲", "🤝", "🙏", "✍️", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻"]
+    reactions: ["👍", "👎", "👌", "✌️", "👏", "🙏", "💪"],
   },
   hearts: {
     label: "Corações",
-    reactions: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "♥️", "💋", "💌", "💐", "🌹", "🌺", "🌻", "🌷", "🌸", "💒", "💍", "💎", "🔥"]
+    reactions: ["❤️", "🧡", "💛", "💚", "💙", "💜", "💔", "💕"],
   },
-  objects: {
-    label: "Objetos",
-    reactions: ["🎉", "🎊", "🎈", "🎁", "🎀", "🎂", "🍰", "🧁", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "☕", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🍾", "🎵", "🎶", "🎤", "🎧", "📱", "💻", "⌚", "📷", "📺"]
-  },
-  nature: {
-    label: "Natureza",
-    reactions: ["🌟", "⭐", "✨", "⚡", "☀️", "🌞", "🌝", "🌛", "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒", "🌓", "🌔", "🌙", "☁️", "⛅", "⛈️", "🌤️", "🌦️", "🌧️", "⛆", "❄️", "☃️", "⛄", "🌊", "💧", "☔"]
-  }
 };
 
-const ALL_REACTIONS = Object.values(REACTION_CATEGORIES).flatMap(category => category.reactions);
+const COMMON_REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "😡"];
 
-export function MessageReactions({ message, conversationId, contactPhone }: MessageReactionsProps) {
+export function MessageReactions({
+  message,
+  conversationId,
+  contactPhone,
+}: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("emotions");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mutation para enviar reação
+  const hasReaction = false; // Substituir por lógica real (ex: message.reactions.includes(...))
+
   const sendReactionMutation = useMutation({
     mutationFn: async ({ reaction }: { reaction: string }) => {
-      console.log("📤 Enviando reação via Z-API:", { 
-        phone: contactPhone, 
-        messageId: message.id, 
-        reaction 
-      });
-
       const response = await apiRequest("POST", "/api/zapi/send-reaction", {
         phone: contactPhone,
         messageId: message.id.toString(),
-        reaction
+        reaction,
       });
-
       return response;
     },
-    onSuccess: (data) => {
-      console.log("✅ Reação enviada via Z-API:", data);
+    onSuccess: () => {
       toast({
         title: "Reação enviada",
         description: "Sua reação foi enviada com sucesso!",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", conversationId, "messages"],
+      });
       setIsOpen(false);
-      // Invalidar cache para atualizar a conversa
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
     },
-    onError: (error) => {
-      console.error("❌ Erro ao enviar reação:", error);
+    onError: () => {
       toast({
-        title: "Erro ao enviar reação",
-        description: "Não foi possível enviar a reação. Tente novamente.",
+        title: "Erro",
+        description: "Falha ao enviar reação.",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Mutation para remover reação
   const removeReactionMutation = useMutation({
     mutationFn: async () => {
-      console.log("📤 Removendo reação via Z-API:", { 
-        phone: contactPhone, 
-        messageId: message.id 
-      });
-
       const response = await apiRequest("POST", "/api/zapi/remove-reaction", {
         phone: contactPhone,
-        messageId: message.id.toString()
+        messageId: message.id.toString(),
       });
-
       return response;
     },
-    onSuccess: (data) => {
-      console.log("✅ Reação removida via Z-API:", data);
+    onSuccess: () => {
       toast({
         title: "Reação removida",
-        description: "Sua reação foi removida com sucesso!",
+        description: "A reação foi removida com sucesso!",
       });
-      // Invalidar cache para atualizar a conversa
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", conversationId, "messages"],
+      });
     },
-    onError: (error) => {
-      console.error("❌ Erro ao remover reação:", error);
+    onError: () => {
       toast({
-        title: "Erro ao remover reação",
-        description: "Não foi possível remover a reação. Tente novamente.",
+        title: "Erro",
+        description: "Falha ao remover reação.",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleReactionClick = (reaction: string) => {
-    sendReactionMutation.mutate({ reaction });
+  const handleReaction = (emoji: string) => {
+    sendReactionMutation.mutate({ reaction: emoji });
   };
 
-  const handleRemoveReaction = () => {
-    removeReactionMutation.mutate();
-  };
+  const ReactionButton = ({ emoji }: { emoji: string }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => handleReaction(emoji)}
+      disabled={sendReactionMutation.isPending}
+      className="h-8 w-8 p-0 text-lg hover:bg-gray-100 transition"
+    >
+      {emoji}
+    </Button>
+  );
 
-  // Verificar se a mensagem já tem reação
-  const hasReaction = false;
+  const ReactionCategoryButton = ({
+    keyName,
+    label,
+  }: {
+    keyName: string;
+    label: string;
+  }) => (
+    <Button
+      key={keyName}
+      variant={activeCategory === keyName ? "default" : "ghost"}
+      size="sm"
+      onClick={() => setActiveCategory(keyName)}
+      className={cn(
+        "text-xs px-2 py-1 h-7",
+        activeCategory === keyName && "bg-educhat-primary text-white",
+      )}
+    >
+      {label}
+    </Button>
+  );
 
   return (
     <div className="flex items-center gap-1">
-      {/* Botão para remover reação se existir */}
       {hasReaction && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleRemoveReaction}
+          onClick={() => removeReactionMutation.mutate()}
           disabled={removeReactionMutation.isPending}
           className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
         >
@@ -147,7 +156,6 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
         </Button>
       )}
 
-      {/* Popover de reações */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -163,40 +171,26 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
             )}
           </Button>
         </PopoverTrigger>
-        
+
         <PopoverContent className="w-96 p-0" align="start">
           <div className="p-3">
             {/* Categorias */}
             <div className="flex flex-wrap gap-1 mb-3 border-b pb-2">
-              {Object.entries(REACTION_CATEGORIES).map(([key, category]) => (
-                <Button
+              {Object.entries(REACTION_CATEGORIES).map(([key, value]) => (
+                <ReactionCategoryButton
+                  keyName={key}
+                  label={value.label}
                   key={key}
-                  variant={activeCategory === key ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveCategory(key)}
-                  className={cn(
-                    "text-xs px-2 py-1 h-7 flex-shrink-0",
-                    activeCategory === key && "bg-educhat-primary text-white"
-                  )}
-                >
-                  {category.label}
-                </Button>
+                />
               ))}
             </div>
 
-            {/* Grid de reações */}
+            {/* Reações principais */}
             <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
-              {REACTION_CATEGORIES[activeCategory as keyof typeof REACTION_CATEGORIES].reactions.map((reaction, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleReactionClick(reaction)}
-                  disabled={sendReactionMutation.isPending}
-                  className="h-8 w-8 p-0 text-lg hover:bg-gray-100 transition-colors"
-                >
-                  {reaction}
-                </Button>
+              {REACTION_CATEGORIES[
+                activeCategory as keyof typeof REACTION_CATEGORIES
+              ].reactions.map((emoji) => (
+                <ReactionButton emoji={emoji} key={emoji} />
               ))}
             </div>
 
@@ -204,17 +198,8 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
             <div className="mt-3 pt-2 border-t">
               <p className="text-xs text-gray-500 mb-2">Reações frequentes:</p>
               <div className="flex gap-1">
-                {["❤️", "👍", "😂", "😮", "😢", "😡"].map((reaction, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleReactionClick(reaction)}
-                    disabled={sendReactionMutation.isPending}
-                    className="h-8 w-8 p-0 text-lg hover:bg-gray-100 transition-colors"
-                  >
-                    {reaction}
-                  </Button>
+                {COMMON_REACTIONS.map((emoji) => (
+                  <ReactionButton emoji={emoji} key={emoji} />
                 ))}
               </div>
             </div>

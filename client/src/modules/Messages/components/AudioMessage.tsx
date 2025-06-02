@@ -23,34 +23,47 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
 
   const togglePlayPause = async () => {
     if (!isLoaded) {
+      console.log('Carregando áudio pela primeira vez...');
       setIsLoaded(true);
-      // Aguardar o próximo ciclo de renderização para o áudio ser criado
-      setTimeout(() => {
-        if (audioRef.current) {
-          audioRef.current.play().then(() => {
-            setIsPlaying(true);
-          }).catch(error => {
-            console.error('Erro ao reproduzir áudio:', error);
-          });
-        }
-      }, 100);
       return;
     }
     
-    if (audioRef.current) {
-      try {
-        if (isPlaying) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-        } else {
-          await audioRef.current.play();
-          setIsPlaying(true);
-        }
-      } catch (error) {
-        console.error('Erro ao reproduzir áudio:', error);
+    if (!audioRef.current) {
+      console.error('Elemento de áudio não encontrado');
+      return;
+    }
+    
+    try {
+      if (isPlaying) {
+        console.log('Pausando áudio');
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        console.log('Reproduzindo áudio:', audioUrl);
+        await audioRef.current.play();
+        setIsPlaying(true);
       }
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio:', error);
+      console.error('URL do áudio:', audioUrl);
     }
   };
+
+  // Tentar reproduzir automaticamente quando o áudio for carregado pela primeira vez
+  useEffect(() => {
+    if (isLoaded && audioRef.current && !isPlaying) {
+      const tryAutoPlay = async () => {
+        try {
+          await audioRef.current?.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.log('Autoplay bloqueado pelo navegador, aguardando interação do usuário');
+        }
+      };
+      
+      setTimeout(tryAutoPlay, 100);
+    }
+  }, [isLoaded]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
