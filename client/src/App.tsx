@@ -47,7 +47,6 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
-          <Route path="/inbox-refactored" component={InboxPageRefactored} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/chat-interno" component={ChatInternoPage} />
           <Route path="/crm" component={CrmPage} />
