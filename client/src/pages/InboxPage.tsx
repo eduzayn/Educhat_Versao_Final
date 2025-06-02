@@ -8,7 +8,7 @@ export default function InboxPage() {
     data: conversations, 
     isLoading,
     refetch 
-  } = useConversations(100);
+  } = useConversations(500);
   
   const [activeConversation, setActiveConversation] = useState<ConversationWithContact | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
