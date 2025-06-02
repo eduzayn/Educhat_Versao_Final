@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
 import { BackButton } from '@/shared/components/BackButton';
-import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye, Upload, X, FileAudio, FileImage, FileVideo } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
@@ -64,6 +64,10 @@ export default function QuickRepliesSettingsPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [editingQuickReply, setEditingQuickReply] = useState<QuickReply | null>(null);
   const [previewQuickReply, setPreviewQuickReply] = useState<QuickReply | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -139,7 +143,62 @@ export default function QuickRepliesSettingsPage() {
     },
   });
 
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formType = form.watch('type');
+    
+    // Validate file type based on selected type
+    if (formType === 'audio' && !file.type.startsWith('audio/')) {
+      toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de áudio.', variant: 'destructive' });
+      return;
+    }
+    if (formType === 'image' && !file.type.startsWith('image/')) {
+      toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive' });
+      return;
+    }
+    if (formType === 'video' && !file.type.startsWith('video/')) {
+      toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de vídeo.', variant: 'destructive' });
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+    
+    // Set content as file name for non-text types
+    form.setValue('content', file.name);
+  };
+
+  // Reset file selection
+  const resetFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const onSubmit = (data: FormData) => {
+    // For multimedia types, ensure we have a file or existing content
+    if (data.type !== 'text' && !selectedFile && !editingQuickReply?.content) {
+      toast({ 
+        title: 'Erro', 
+        description: 'Por favor, selecione um arquivo para este tipo de conteúdo.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     mutation.mutate({
       ...data,
       ...(editingQuickReply && { id: editingQuickReply.id }),
@@ -155,7 +214,22 @@ export default function QuickRepliesSettingsPage() {
       category: quickReply.category || '',
       isActive: quickReply.isActive ?? true,
     });
+    // Reset file states when editing
+    resetFile();
     setIsFormOpen(true);
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setEditingQuickReply(null);
+    resetFile();
+    form.reset({
+      title: '',
+      content: '',
+      type: 'text',
+      category: '',
+      isActive: true,
+    });
   };
 
   const handlePreview = (quickReply: QuickReply) => {
@@ -298,19 +372,119 @@ export default function QuickRepliesSettingsPage() {
                 <FormField
                   control={form.control}
                   name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Conteúdo</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Digite o conteúdo da resposta"
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const selectedType = form.watch('type');
+                    
+                    return (
+                      <FormItem>
+                        <FormLabel>Conteúdo</FormLabel>
+                        <FormControl>
+                          {selectedType === 'text' ? (
+                            <Textarea
+                              placeholder="Digite o conteúdo da resposta"
+                              className="min-h-[100px]"
+                              {...field}
+                            />
+                          ) : (
+                            <div className="space-y-4">
+                              {/* File Upload Area */}
+                              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept={
+                                    selectedType === 'audio' ? 'audio/*' :
+                                    selectedType === 'image' ? 'image/*' :
+                                    selectedType === 'video' ? 'video/*' : ''
+                                  }
+                                  onChange={handleFileSelect}
+                                  className="hidden"
+                                />
+                                
+                                {!selectedFile ? (
+                                  <div className="space-y-3">
+                                    <div className="mx-auto w-12 h-12 text-gray-400">
+                                      {selectedType === 'audio' && <FileAudio className="w-full h-full" />}
+                                      {selectedType === 'image' && <FileImage className="w-full h-full" />}
+                                      {selectedType === 'video' && <FileVideo className="w-full h-full" />}
+                                    </div>
+                                    <div>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="mb-2"
+                                      >
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Selecionar {selectedType === 'audio' ? 'Áudio' : selectedType === 'image' ? 'Imagem' : 'Vídeo'}
+                                      </Button>
+                                      <p className="text-sm text-gray-500">
+                                        Formatos suportados: {
+                                          selectedType === 'audio' ? 'MP3, WAV, OGG' :
+                                          selectedType === 'image' ? 'JPG, PNG, GIF, WEBP' :
+                                          'MP4, AVI, MOV, WEBM'
+                                        }
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {/* File Preview */}
+                                    {filePreview && selectedType === 'image' && (
+                                      <div className="mx-auto w-32 h-32 rounded-lg overflow-hidden border">
+                                        <img 
+                                          src={filePreview} 
+                                          alt="Preview" 
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                    
+                                    {/* File Info */}
+                                    <div className="flex items-center justify-center space-x-2 text-sm">
+                                      {selectedType === 'audio' && <Mic className="w-4 h-4" />}
+                                      {selectedType === 'image' && <Image className="w-4 h-4" />}
+                                      {selectedType === 'video' && <Video className="w-4 h-4" />}
+                                      <span className="font-medium">{selectedFile.name}</span>
+                                      <span className="text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                    </div>
+                                    
+                                    {/* Actions */}
+                                    <div className="flex justify-center space-x-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => fileInputRef.current?.click()}
+                                      >
+                                        Trocar arquivo
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={resetFile}
+                                      >
+                                        <X className="w-4 h-4 mr-1" />
+                                        Remover
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Hidden textarea for form validation */}
+                              <Textarea
+                                {...field}
+                                className="hidden"
+                              />
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
@@ -328,7 +502,7 @@ export default function QuickRepliesSettingsPage() {
                 />
 
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+                  <Button type="button" variant="outline" onClick={handleFormClose}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={mutation.isPending}>
