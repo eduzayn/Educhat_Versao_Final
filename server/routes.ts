@@ -1821,12 +1821,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (response.ok && conversationId) {
-        // Salvar mensagem local
+        // Salvar mensagem local com metadados do documento
         const documentMessage = await storage.createMessage({
           conversationId: parseInt(conversationId),
-          content: `[Documento: ${documentFile.originalname}]`,
+          content: documentBase64, // Salvar o documento base64 para exibição local
           isFromContact: false,
-          messageType: 'document'
+          messageType: 'document',
+          metadata: {
+            zaapId: (data && data.zaapId) || (data && data.id) || null,
+            messageId: (data && data.messageId) || (data && data.id) || null,
+            fileName: documentFile.originalname,
+            mimeType: documentFile.mimetype,
+            fileSize: documentFile.size
+          }
         });
 
         // Broadcast para outros clientes conectados

@@ -297,21 +297,44 @@ export function InputArea() {
         throw new Error("Dados da conversa não disponíveis");
       }
 
+      console.log('📄 Iniciando envio de documento:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        phone: activeConversation.contact.phone,
+        conversationId: activeConversation.id
+      });
+
       const formData = new FormData();
       formData.append('phone', activeConversation.contact.phone);
       formData.append('conversationId', activeConversation.id.toString());
       formData.append('document', file);
 
-      const response = await fetch('/api/zapi/send-document', {
-        method: 'POST',
-        body: formData,
-      });
+      try {
+        const response = await fetch('/api/zapi/send-document', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error('Erro ao enviar documento');
+        console.log('📥 Resposta do servidor:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+
+        const responseData = await response.json();
+        console.log('📊 Dados da resposta:', responseData);
+
+        if (!response.ok) {
+          console.error('❌ Erro na resposta:', responseData);
+          throw new Error(responseData.error || 'Erro ao enviar documento');
+        }
+
+        return responseData;
+      } catch (error) {
+        console.error('💥 Erro no processo de envio:', error);
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -323,6 +346,10 @@ export function InputArea() {
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
         queryClient.invalidateQueries({ 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
+        });
+        // Força um refetch imediato
+        queryClient.refetchQueries({ 
           queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
       }
