@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { seedDatabase } from "./seedData";
+
 
 const app = express();
 app.use(express.json());
@@ -40,10 +40,7 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Seed database disabled - only use real contacts from Z-API
-  // setTimeout(() => {
-  //   seedDatabase();
-  // }, 2000);
+
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
