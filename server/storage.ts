@@ -169,12 +169,11 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           isNotNull(contacts.phone),
-          not(like(contacts.phone, '%000000%')),
-          not(like(contacts.phone, '%111111%')),
-          not(like(contacts.phone, '%123456%')),
-          not(ilike(contacts.name, '%test%')),
-          not(ilike(contacts.name, '%demo%')),
-          not(ilike(contacts.name, '%exemplo%'))
+          // Filtros mais flexíveis - apenas casos óbvios de teste
+          not(like(contacts.phone, '%0000000000%')), // Apenas telefones com muitos zeros
+          not(like(contacts.phone, '%1111111111%')), // Apenas telefones com muitos uns
+          not(ilike(contacts.name, '%test123%')),     // Apenas nomes explicitamente de teste
+          not(ilike(contacts.name, '%demo123%'))      // Apenas nomes explicitamente de demo
         )
       )
       .orderBy(desc(conversations.lastMessageAt))
