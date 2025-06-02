@@ -11,10 +11,20 @@ export function useWebSocket() {
   const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
+    // Garantir que a URL seja sempre válida
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const host = window.location.host || 'localhost:5000';
+    const wsUrl = `${protocol}//${host}/ws`;
     
-    socketRef.current = new WebSocket(wsUrl);
+    console.log('🔌 Conectando ao WebSocket:', wsUrl);
+    
+    try {
+      socketRef.current = new WebSocket(wsUrl);
+    } catch (error) {
+      console.error('❌ Erro ao criar WebSocket:', error);
+      setConnectionStatus(false);
+      return;
+    }
 
     socketRef.current.onopen = () => {
       setConnectionStatus(true);
