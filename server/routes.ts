@@ -1224,8 +1224,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data = { success: true, rawResponse: responseText };
       }
 
-      // Se a exclusão foi bem-sucedida, broadcast a atualização para outros clientes
+      // Se a exclusão foi bem-sucedida, marcar mensagem como deletada no banco
       if (conversationId) {
+        // Encontrar a mensagem pelo messageId na Z-API
+        const messages = await storage.getMessages(parseInt(conversationId));
+        const messageToDelete = messages.find(msg => {
+          const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
+          const msgId = 'messageId' in metadata ? metadata.messageId : 
+                       'zaapId' in metadata ? metadata.zaapId : 
+                       'id' in metadata ? metadata.id : null;
+          return msgId === messageId.toString();
+        });
+
+        if (messageToDelete) {
+          await storage.markMessageAsDeleted(messageToDelete.id);
+        }
+
         broadcast(parseInt(conversationId), {
           type: 'message_deleted',
           messageId: messageId.toString(),

@@ -47,6 +47,7 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<void>;
   markMessageAsDelivered(id: number): Promise<void>;
+  markMessageAsDeleted(id: number): Promise<void>;
 
   // Contact tag operations
   getContactTags(contactId: number): Promise<ContactTag[]>;
@@ -278,6 +279,13 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(messages)
       .set({ deliveredAt: new Date() })
+      .where(eq(messages.id, id));
+  }
+
+  async markMessageAsDeleted(id: number): Promise<void> {
+    await db
+      .update(messages)
+      .set({ isDeleted: true })
       .where(eq(messages.id, id));
   }
 

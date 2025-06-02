@@ -61,6 +61,7 @@ export const messages = pgTable("messages", {
   isFromContact: boolean("is_from_contact").notNull(),
   messageType: varchar("message_type", { length: 20 }).default("text"), // text, image, file
   metadata: jsonb("metadata"), // for attachments, etc.
+  isDeleted: boolean("is_deleted").default(false),
   sentAt: timestamp("sent_at").defaultNow(),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),

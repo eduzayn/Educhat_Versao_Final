@@ -384,17 +384,13 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
       console.log('✅ Resposta da exclusão:', response);
 
-      // Remover mensagem diretamente do cache
-      queryClient.setQueryData(
-        [`/api/conversations/${conversationId}/messages`],
-        (oldData: any[] | undefined) => {
-          if (!oldData) return [];
-          return oldData.filter(msg => msg.id !== message.id);
-        }
-      );
-
-      // Também marcar como deletada localmente como fallback
+      // Marcar mensagem como deletada localmente e invalidar cache
       setIsDeleted(true);
+      
+      // Invalidar cache para recarregar mensagens com status atualizado
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/conversations/${conversationId}/messages`] 
+      });
 
       toast({
         title: "Sucesso",
