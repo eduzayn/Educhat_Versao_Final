@@ -221,6 +221,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
   
   // Formatação da data e hora completa
   const messageTime = format(new Date(messageTimestamp), 'dd/MM/yyyy HH:mm:ss');
+  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
