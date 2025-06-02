@@ -66,11 +66,8 @@ export function InboxPage() {
   const { 
     data: conversationsData, 
     isLoading, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage,
     refetch 
-  } = useConversations(30); // Carregar 30 contatos por vez
+  } = useConversations(1000); // Carregar 1000 contatos
   
   // Flatten das páginas de conversas e remover duplicatas
   const conversations = conversationsData?.pages.flat() || [];
@@ -631,20 +628,6 @@ export function InboxPage() {
             <div className="p-6 text-center text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div>
-          )}
-          
-          {/* Botão Carregar Mais */}
-          {hasNextPage && (
-            <div className="p-4 border-t border-gray-100">
-              <Button 
-                onClick={() => fetchNextPage()} 
-                disabled={isFetchingNextPage}
-                variant="outline" 
-                className="w-full"
-              >
-                {isFetchingNextPage ? 'Carregando...' : 'Carregar mais contatos'}
-              </Button>
             </div>
           )}
           
