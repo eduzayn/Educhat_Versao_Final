@@ -40,10 +40,10 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Seed database with sample data for demonstration
-  setTimeout(() => {
-    seedDatabase();
-  }, 2000);
+  // Seed database disabled - only use real contacts from Z-API
+  // setTimeout(() => {
+  //   seedDatabase();
+  // }, 2000);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
