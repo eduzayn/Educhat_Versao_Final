@@ -2,13 +2,6 @@ import { storage } from './storage';
 
 export async function seedDatabase() {
   try {
-    // Create admin user
-    await storage.upsertUser({
-      email: 'admin@educhat.com',
-      password: 'admin123',
-      name: 'Admin EduChat'
-    });
-
     // Create sample contacts
     const contact1 = await storage.createContact({
       name: 'João Silva',
