@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 2000) {
+export function useMessages(conversationId: number | null, limit = 50) {
   return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`, { limit }],
     queryFn: async () => {

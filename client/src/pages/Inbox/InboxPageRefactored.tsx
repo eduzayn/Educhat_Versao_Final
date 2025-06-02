@@ -45,7 +45,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
-import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
+import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
@@ -79,7 +79,7 @@ export function InboxPageRefactored() {
   const { 
     data: messages, 
     isLoading: isLoadingMessages
-  } = useMessages(activeConversation?.id || null, 2000); // Carregar até 2000 mensagens
+  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
   
 
   const createContact = useCreateContact();
