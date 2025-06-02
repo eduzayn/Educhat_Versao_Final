@@ -54,6 +54,7 @@ export function InboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -78,6 +79,7 @@ export function InboxPage() {
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
     markConversationAsRead(conversation.id);
+    setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
   const { 
@@ -293,9 +295,9 @@ export function InboxPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-80 md:w-80 sm:w-full mobile-full-width bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <BackButton to="/" label="Dashboard" className="mb-3" />
@@ -647,11 +649,11 @@ export function InboxPage() {
       </div>
 
       {/* Área de Mensagens */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col mobile-hide md:flex">
         {activeConversation ? (
           <>
             {/* Header da Conversa */}
-            <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className="bg-white border-b border-gray-200 px-4 py-3 mobile-sticky mobile-p-reduced">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-9 h-9">
