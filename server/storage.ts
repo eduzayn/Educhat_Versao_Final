@@ -303,12 +303,16 @@ export class DatabaseStorage implements IStorage {
 
   // Message operations
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    // Consulta otimizada com campos específicos para melhor performance
+    // Consulta ultra-otimizada: não carrega content de mídias, apenas metadados
     return await db
       .select({
         id: messages.id,
         conversationId: messages.conversationId,
-        content: messages.content,
+        content: sql<string>`CASE 
+          WHEN ${messages.messageType} IN ('video', 'image', 'audio', 'document') 
+          THEN '[MÍDIA]'
+          ELSE ${messages.content}
+        END`.as('content'),
         isFromContact: messages.isFromContact,
         messageType: messages.messageType,
         metadata: messages.metadata,
