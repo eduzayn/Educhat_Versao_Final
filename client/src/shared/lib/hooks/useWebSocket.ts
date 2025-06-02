@@ -87,16 +87,6 @@ export function useWebSocket() {
               });
             }
             break;
-          case 'conversation_read':
-            if ((data as any).conversationId) {
-              console.log('✅ Conversa marcada como lida via WebSocket:', {
-                conversationId: (data as any).conversationId
-              });
-              
-              // Invalidar cache das conversas para atualizar contador de não lidas
-              queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-            }
-            break;
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);

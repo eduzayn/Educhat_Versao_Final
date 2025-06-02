@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
-export function useConversations(limit = 1000) {
+export function useConversations(limit = 1000, options = {}) {
   return useQuery<ConversationWithContact[]>({
     queryKey: ['/api/conversations', { limit }],
     queryFn: async () => {
@@ -15,6 +15,7 @@ export function useConversations(limit = 1000) {
     staleTime: 30000, // Cache por 30 segundos
     gcTime: 300000, // Manter em cache por 5 minutos (cacheTime foi renomeado para gcTime na v5)
     refetchOnWindowFocus: false, // Não recarregar ao focar na janela
+    ...options, // Permitir sobrescrever opções
   });
 }
 

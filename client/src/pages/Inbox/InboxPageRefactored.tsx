@@ -43,7 +43,6 @@ import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
-import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
@@ -68,15 +67,15 @@ export function InboxPageRefactored() {
     data: conversations, 
     isLoading, 
     refetch 
-  } = useConversations(1000); // Carregar 1000 contatos
+  } = useConversations(1000, { 
+    refetchInterval: 5000, // Recarregar a cada 5 segundos para capturar mudanças
+    staleTime: 0 // Considerar dados imediatamente obsoletos
+  }); // Carregar 1000 contatos
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
-  const markConversationRead = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
     markConversationAsRead(conversation.id);
-    // Marcar conversa como lida no servidor para resetar contador
-    markConversationRead.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
@@ -567,11 +566,10 @@ export function InboxPageRefactored() {
             const lastMessage = conversation.messages[0];
             const isActive = activeConversation?.id === conversation.id;
             
-            // Usar contador de mensagens não lidas do banco de dados
-            const unreadCount = !isActive ? (conversation.unreadCount || 0) : 0;
-            
-            // Log temporário para debug detalhado
-            console.log(`${conversation.contact.name}: unreadCount=${unreadCount}, isActive=${isActive}, raw=${conversation.unreadCount}, shouldShow=${unreadCount > 0}`);
+            // Calcular mensagens não lidas: contar mensagens do contato desde a última vista
+            const unreadCount = !isActive 
+              ? conversation.messages.filter(msg => msg.isFromContact).length
+              : 0;
             
             return (
               <div
@@ -601,9 +599,9 @@ export function InboxPageRefactored() {
                           </span>
                         )}
                         {unreadCount > 0 && (
-                          <div className="bg-red-500 text-white text-xs h-6 w-6 rounded-full flex items-center justify-center font-bold ml-2" style={{backgroundColor: '#ef4444', color: 'white', minWidth: '24px', height: '24px'}}>
+                          <Badge className="bg-purple-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
                             {unreadCount > 99 ? '99+' : unreadCount}
-                          </div>
+                          </Badge>
                         )}
                         {getStatusBadge(conversation.status || 'open')}
                       </div>
