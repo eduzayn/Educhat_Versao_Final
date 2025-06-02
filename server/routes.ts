@@ -14,7 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configurar multer para upload de arquivos
   const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+    limits: { fileSize: 32 * 1024 * 1024 } // 32MB
   });
 
   const httpServer = createServer(app);
@@ -1642,11 +1642,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { instanceId, token, clientToken } = credentials;
 
-      // Verificar tamanho do arquivo (limite de 16MB para vídeos)
-      const maxSize = 16 * 1024 * 1024; // 16MB
+      // Verificar tamanho do arquivo (limite de 32MB para vídeos)
+      const maxSize = 32 * 1024 * 1024; // 32MB
       if (videoFile.size > maxSize) {
         return res.status(400).json({ 
-          error: 'Arquivo muito grande. O limite é de 16MB para vídeos.' 
+          error: 'Arquivo muito grande. O limite é de 32MB para vídeos.' 
         });
       }
 
