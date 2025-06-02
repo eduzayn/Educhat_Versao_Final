@@ -847,8 +847,8 @@ export function ContactsPage() {
                         -
                       </div>
                       
-                      <div className="col-span-1">
-                        <div className="flex items-center justify-end space-x-1">
+                      <div className="col-span-1 flex justify-end">
+                        <div className="flex items-center space-x-1">
                           <Button 
                             size="sm" 
                             variant="ghost" 

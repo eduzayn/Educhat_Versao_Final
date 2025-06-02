@@ -127,33 +127,35 @@ export function ContactTableRow({
       </td>
       
       <td className="px-6 py-4">
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onView(contact)}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(contact)}
-            className="text-gray-600 hover:text-gray-700"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(contact)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+        <div className="flex justify-end">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onView(contact)}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(contact)}
+              className="text-gray-600 hover:text-gray-700"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(contact)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </td>
     </tr>
