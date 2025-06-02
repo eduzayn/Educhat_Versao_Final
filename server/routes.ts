@@ -1592,8 +1592,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isFromContact: false,
           messageType: 'image',
           metadata: {
-            zaapId: data.zaapId || data.id,
-            messageId: data.messageId || data.id,
+            zaapId: (data && data.zaapId) || (data && data.id) || null,
+            messageId: (data && data.messageId) || (data && data.id) || null,
             fileName: imageFile.originalname,
             mimeType: imageFile.mimetype,
             fileSize: imageFile.size
