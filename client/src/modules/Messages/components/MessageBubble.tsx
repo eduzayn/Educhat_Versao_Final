@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
 import { LazyMediaContent } from './LazyMediaContent';
-import { AudioMessage } from './AudioMessage';
+import { AudioMessageSimple } from './AudioMessageSimple';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Message, Contact } from '@shared/schema';
@@ -426,7 +426,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
                   
                   const duration = (message.metadata as any)?.duration || 0;
                   return (
-                    <AudioMessage
+                    <AudioMessageSimple
                       audioUrl={null}
                       duration={duration}
                       isFromContact={isFromContact}
@@ -445,7 +445,7 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
               const duration = (message.metadata as any)?.duration || 0;
               return (
-                <AudioMessage
+                <AudioMessageSimple
                   audioUrl={audioUrl}
                   duration={duration}
                   isFromContact={isFromContact}
