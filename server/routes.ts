@@ -1615,6 +1615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Endpoint para enviar vídeo via Z-API (usando send-document/mp4)
   app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
+    console.log('🎥 === INÍCIO ENVIO DE VÍDEO ===');
     try {
       console.log('🎥 Recebendo solicitação de envio de vídeo:', {
         body: req.body,
