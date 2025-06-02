@@ -1255,78 +1255,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para buscar conteúdo de áudio por messageId
+  // Endpoint para buscar conteúdo de áudio por messageId do banco de dados
   app.get('/api/messages/:messageId/audio', async (req, res) => {
     try {
       const { messageId } = req.params;
       
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
+      console.log(`📁 Buscando áudio no banco para messageId: ${messageId}`);
+      
+      // Buscar a mensagem no banco de dados pelo messageId da Z-API
+      const message = await storage.getMessages().then(messages => 
+        messages.find(msg => 
+          msg.metadata && 
+          typeof msg.metadata === 'object' && 
+          'messageId' in msg.metadata && 
+          msg.metadata.messageId === messageId
+        )
+      );
+
+      if (!message) {
+        console.error(`❌ Mensagem não encontrada para messageId: ${messageId}`);
+        return res.status(404).json({ 
+          error: 'Mensagem não encontrada',
+          details: `MessageId: ${messageId}`
+        });
       }
 
-      const { instanceId, token } = credentials;
-      
-      // Buscar o áudio na Z-API usando o messageId
-      const audioUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/get-media/${messageId}`;
-      
-      console.log(`📁 Buscando áudio para messageId: ${messageId}`);
-      console.log(`🔗 URL da API: ${audioUrl}`);
-      
-      const response = await fetch(audioUrl, {
-        method: 'GET',
-        headers: {
-          'Client-Token': process.env.ZAPI_CLIENT_TOKEN || '',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log(`📡 Resposta da Z-API - Status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
-
-      if (response.ok) {
-        const contentType = response.headers.get('content-type');
+      // Verificar se a mensagem tem conteúdo de áudio salvo
+      if (message.fileUrl && message.fileUrl.startsWith('data:audio/')) {
+        console.log(`✅ Áudio encontrado no banco - Tipo: ${message.metadata?.mimeType || 'audio/mp4'}`);
         
-        // Verificar se a resposta é realmente um áudio e não JSON
-        if (contentType && contentType.startsWith('audio/')) {
-          const audioBuffer = await response.arrayBuffer();
-          const base64Audio = Buffer.from(audioBuffer).toString('base64');
-          const dataUrl = `data:${contentType};base64,${base64Audio}`;
-          
-          console.log(`✅ Áudio válido encontrado - Tipo: ${contentType}, Tamanho: ${audioBuffer.byteLength} bytes`);
-          
-          res.json({ 
-            success: true, 
-            audioUrl: dataUrl,
-            mimeType: contentType 
-          });
-        } else {
-          // Se retornou JSON ou outro tipo, tentar interpretar como erro
-          const responseText = await response.text();
-          console.error(`❌ Resposta não é áudio - Content-Type: ${contentType}, Body: ${responseText.substring(0, 200)}...`);
-          
-          try {
-            const errorData = JSON.parse(responseText);
-            res.status(404).json({ 
-              error: errorData.error || 'Áudio não disponível',
-              details: errorData
-            });
-          } catch {
-            res.status(404).json({ 
-              error: 'Formato de resposta inválido',
-              details: responseText.substring(0, 100)
-            });
-          }
-        }
+        res.json({ 
+          success: true, 
+          audioUrl: message.fileUrl,
+          mimeType: message.metadata?.mimeType || 'audio/mp4'
+        });
       } else {
-        const errorText = await response.text();
-        console.error(`❌ Erro ao baixar áudio: ${response.status} ${response.statusText} - ${errorText}`);
+        console.error(`❌ Áudio não disponível para messageId: ${messageId} - fileUrl: ${message.fileUrl?.substring(0, 50)}...`);
         res.status(404).json({ 
-          error: 'Áudio não encontrado',
-          details: `Status: ${response.status} - ${errorText}`
+          error: 'Conteúdo de áudio não disponível',
+          details: 'O áudio não foi salvo corretamente no banco de dados'
         });
       }
     } catch (error) {
-      console.error('💥 Erro ao buscar áudio:', error);
+      console.error('💥 Erro ao buscar áudio no banco:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
