@@ -371,12 +371,66 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           )
         }`}>
           {message.messageType === 'audio' ? (
-            <AudioMessage 
-              audioUrl={null}
-              duration={metadata?.duration as number}
-              isFromContact={isFromContact}
-              messageIdForFetch={metadata?.messageId as string}
-            />
+            (() => {
+              console.log('🎧 Processando mensagem de áudio:', {
+                messageId: message.id,
+                content: message.content,
+                metadata: message.metadata
+              });
+
+              // Verificar se temos uma URL válida para o áudio
+              let audioUrl: string | null = null;
+              
+              // 1. Verificar se content é uma data URL válida
+              if (message.content && message.content.startsWith('data:audio/')) {
+                audioUrl = message.content;
+              }
+              // 2. Verificar se é apenas base64 e construir data URL
+              else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
+                const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
+                audioUrl = `data:${mimeType};base64,${message.content}`;
+              }
+              // 3. Verificar se é uma URL HTTP/HTTPS válida
+              else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
+                audioUrl = message.content;
+              }
+
+              console.log('🎧 URL do áudio processada:', audioUrl);
+
+              // Se não temos URL válida, tentar buscar usando messageId dos metadados
+              if (!audioUrl) {
+                const messageIdFromMetadata = (message.metadata as any)?.messageId;
+                if (messageIdFromMetadata) {
+                  console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdFromMetadata);
+                  
+                  const duration = (message.metadata as any)?.duration || 0;
+                  return (
+                    <AudioMessage
+                      audioUrl={null}
+                      duration={duration}
+                      isFromContact={isFromContact}
+                      messageIdForFetch={messageIdFromMetadata}
+                    />
+                  );
+                }
+                
+                // Se não tem messageId, mostrar fallback
+                return (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                    <span className="text-sm text-red-600">Áudio indisponível</span>
+                  </div>
+                );
+              }
+
+              const duration = (message.metadata as any)?.duration || 0;
+              return (
+                <AudioMessage
+                  audioUrl={audioUrl}
+                  duration={duration}
+                  isFromContact={isFromContact}
+                />
+              );
+            })()
           ) : message.messageType === 'image' ? (
             <ImageMessage message={message} isFromContact={isFromContact} />
           ) : message.messageType === 'video' ? (
