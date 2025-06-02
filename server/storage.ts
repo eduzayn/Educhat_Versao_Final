@@ -248,6 +248,7 @@ export class DatabaseStorage implements IStorage {
           ...row.conversations,
           contact: row.contacts,
           messages: lastMessage ? [lastMessage] : [],
+          unreadCount: row.conversations.unreadCount || 0,
         });
       }
     }

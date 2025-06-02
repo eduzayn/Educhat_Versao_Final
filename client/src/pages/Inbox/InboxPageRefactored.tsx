@@ -571,8 +571,8 @@ export function InboxPageRefactored() {
             const unreadCount = !isActive ? (conversation.unreadCount || 0) : 0;
             
             // Log temporário para debug
-            if (conversation.unreadCount > 0) {
-              console.log(`Conversa ${conversation.contact.name}: ${conversation.unreadCount} mensagens não lidas`);
+            if (unreadCount > 0) {
+              console.log(`Conversa ${conversation.contact.name}: ${unreadCount} mensagens não lidas`);
             }
             
             return (
