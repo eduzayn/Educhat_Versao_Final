@@ -57,6 +57,20 @@ export function useUpdateContact() {
   });
 }
 
+export function useDeleteContact() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/contacts/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+    }
+  });
+}
+
 // Z-API specific hooks (mantidas para configurações avançadas)
 export function useZApiContacts(page = 1, pageSize = 20) {
   return useQuery({

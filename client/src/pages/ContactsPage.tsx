@@ -10,7 +10,7 @@ import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
-import { useContacts, useUpdateContact, useCreateContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture } from '@/shared/lib/hooks/useContacts';
+import { useContacts, useUpdateContact, useCreateContact, useDeleteContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
@@ -55,6 +55,7 @@ export function ContactsPage() {
   const { data: allContacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
+  const deleteContact = useDeleteContact();
   const importZApiContacts = useImportZApiContacts();
   
   // Hook para buscar metadados detalhados do contato via Z-API
@@ -281,7 +282,7 @@ export function ContactsPage() {
 
   const handleConfirmDelete = async (contactId: number) => {
     try {
-      // Implementar delete no hook se necessário
+      await deleteContact.mutateAsync(contactId);
       toast({
         title: "Contato excluído",
         description: "O contato foi removido com sucesso."
