@@ -370,7 +370,12 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           )
         }`}>
           {message.messageType === 'audio' ? (
-            <AudioMessage message={message} isFromContact={isFromContact} />
+            <AudioMessage 
+              audioUrl={null}
+              duration={metadata?.duration as number}
+              isFromContact={isFromContact}
+              messageIdForFetch={metadata?.messageId as string}
+            />
           ) : message.messageType === 'image' ? (
             <ImageMessage message={message} isFromContact={isFromContact} />
           ) : message.messageType === 'video' ? (

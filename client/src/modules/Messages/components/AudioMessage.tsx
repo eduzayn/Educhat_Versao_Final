@@ -57,25 +57,20 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const togglePlayPause = async () => {
     // Se não temos URL de áudio e temos messageId para buscar, fazer o fetch primeiro
     if (!fetchedAudioUrl && messageIdForFetch && !isLoadingAudio) {
+      console.log('Buscando áudio via API...');
       await fetchAudioContent();
+      // Aguardar um pouco para o estado ser atualizado
+      setTimeout(() => {
+        if (fetchedAudioUrl && audioRef.current) {
+          audioRef.current.play().catch(console.error);
+        }
+      }, 100);
       return;
     }
     
-    // Se não há URL de áudio disponível, não fazer nada
-    if (!fetchedAudioUrl) {
-      console.error('Nenhuma URL de áudio disponível');
-      return;
-    }
-    
-    // Se o elemento de áudio não está carregado, carregar primeiro
-    if (!isLoaded) {
-      console.log('Carregando elemento de áudio...');
-      setIsLoaded(true);
-      return;
-    }
-    
-    if (!audioRef.current) {
-      console.error('Elemento de áudio não encontrado');
+    // Se não há áudio disponível, não fazer nada
+    if (!fetchedAudioUrl || !audioRef.current) {
+      console.log('Áudio ou elemento não disponível');
       return;
     }
     
@@ -85,26 +80,21 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        console.log('Reproduzindo áudio:', {
-          url: fetchedAudioUrl,
-          currentSrc: audioRef.current.src,
-          readyState: audioRef.current.readyState,
-          networkState: audioRef.current.networkState,
-          duration: audioRef.current.duration
-        });
-        
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-          console.log('Áudio iniciado com sucesso');
-        } catch (playError) {
-          console.error('Erro específico do play:', playError);
-          setAudioError('Erro ao iniciar reprodução');
+        console.log('Iniciando reprodução:', fetchedAudioUrl);
+        // Garantir que o src está definido
+        if (audioRef.current.src !== fetchedAudioUrl) {
+          audioRef.current.src = fetchedAudioUrl;
+          audioRef.current.load();
         }
+        
+        await audioRef.current.play();
+        setIsPlaying(true);
+        console.log('Áudio reproduzindo');
       }
     } catch (error) {
       console.error('Erro ao reproduzir áudio:', error);
       setAudioError('Erro ao reproduzir áudio');
+      setIsPlaying(false);
     }
   };
 
@@ -115,24 +105,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     }
   }, [fetchedAudioUrl, audioUrl]);
 
-  // Effect para reproduzir automaticamente após carregamento
-  useEffect(() => {
-    if (isLoaded && fetchedAudioUrl && audioRef.current && !isPlaying) {
-      const attemptPlay = async () => {
-        try {
-          console.log('Tentando reproduzir áudio automaticamente...');
-          await audioRef.current.play();
-          setIsPlaying(true);
-          console.log('Áudio reproduzindo automaticamente');
-        } catch (error) {
-          console.log('Autoplay bloqueado, aguardando clique do usuário');
-        }
-      };
-      
-      // Pequeno delay para garantir que o elemento está pronto
-      setTimeout(attemptPlay, 50);
-    }
-  }, [isLoaded, fetchedAudioUrl, isPlaying]);
+  // Remover autoplay para evitar conflitos com reprodução manual
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
