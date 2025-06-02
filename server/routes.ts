@@ -1540,25 +1540,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Usar form-data corretamente para Node.js
-      const FormData = require('form-data');
-      const formData = new FormData();
-      formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('image', imageFile.buffer, {
-        filename: imageFile.originalname,
-        contentType: imageFile.mimetype
-      });
+      // Converter imagem para Base64 conforme documentação Z-API
+      const base64Data = imageFile.buffer.toString('base64');
+      const imageBase64 = `data:${imageFile.mimetype};base64,${base64Data}`;
+
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        image: imageBase64
+      };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-image`;
-      console.log('📤 Enviando imagem para Z-API:', { url });
+      console.log('📤 Enviando imagem para Z-API:', { 
+        url, 
+        phone: payload.phone,
+        mimeType: imageFile.mimetype, 
+        size: imageFile.size,
+        base64Length: base64Data.length 
+      });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
-          ...formData.getHeaders()
+          'Client-Token': clientToken!,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       console.log('📥 Resposta Z-API imagem:', {
@@ -1578,12 +1585,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (response.ok && conversationId) {
-        // Salvar mensagem local
+        // Salvar mensagem local com a imagem em base64
         const imageMessage = await storage.createMessage({
           conversationId: parseInt(conversationId),
-          content: `[Imagem: ${imageFile.originalname}]`,
+          content: imageBase64, // Salvar a imagem base64 para exibição local
           isFromContact: false,
-          messageType: 'image'
+          messageType: 'image',
+          metadata: {
+            zaapId: data.zaapId || data.id,
+            messageId: data.messageId || data.id,
+            fileName: imageFile.originalname,
+            mimeType: imageFile.mimetype,
+            fileSize: imageFile.size
+          }
         });
 
         // Broadcast para outros clientes conectados

@@ -73,7 +73,7 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
     try {
       // Verificar se parece com base64
       if (message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
-        const mimeType = metadata.mimeType || 'audio/mp4';
+        const mimeType = (metadata as any).mimeType || 'audio/mp4';
         audioUrl = `data:${mimeType};base64,${message.content}`;
       }
     } catch (e) {
@@ -145,6 +145,47 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
   );
 }
 
+// Componente para exibir mensagem de imagem
+function ImageMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
+  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+  const fileName = (metadata as any).fileName || 'Imagem';
+  const fileSize = (metadata as any).fileSize;
+  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : '';
+
+  // Verificar se é uma imagem válida
+  const imageUrl = message.content?.startsWith('data:image/') ? message.content : null;
+
+  return (
+    <div className={`max-w-md ${
+      isFromContact ? 'bg-gray-100' : 'bg-blue-600'
+    } rounded-lg overflow-hidden`}>
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={fileName}
+          className="w-full h-auto max-h-96 object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className={`p-4 text-center ${
+          isFromContact ? 'text-gray-600' : 'text-white'
+        }`}>
+          <div className="text-sm">📷 Imagem não disponível</div>
+          <div className="text-xs opacity-75">{fileName}{sizeText}</div>
+        </div>
+      )}
+      
+      {imageUrl && (
+        <div className={`px-3 py-2 text-xs ${
+          isFromContact ? 'text-gray-600 bg-gray-50' : 'text-blue-100 bg-blue-700'
+        }`}>
+          {fileName}{sizeText}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
@@ -166,14 +207,18 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
       
       <div className={`flex-1 max-w-md ${isFromContact ? '' : 'flex flex-col items-end'}`}>
         <div className={`${
-          message.messageType === 'audio' ? '' : 'px-4 py-2'
+          message.messageType === 'audio' || message.messageType === 'image' ? '' : 'px-4 py-2'
         } rounded-lg ${
-          isFromContact 
-            ? 'bg-gray-100 text-gray-900' 
-            : 'bg-blue-600 text-white'
+          message.messageType === 'image' ? '' : (
+            isFromContact 
+              ? 'bg-gray-100 text-gray-900' 
+              : 'bg-blue-600 text-white'
+          )
         }`}>
           {message.messageType === 'audio' ? (
             <AudioMessage message={message} isFromContact={isFromContact} />
+          ) : message.messageType === 'image' ? (
+            <ImageMessage message={message} isFromContact={isFromContact} />
           ) : (
             <p className="text-sm">{message.content}</p>
           )}
