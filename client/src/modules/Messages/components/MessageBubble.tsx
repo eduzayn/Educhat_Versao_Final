@@ -186,6 +186,49 @@ function ImageMessage({ message, isFromContact }: { message: Message; isFromCont
   );
 }
 
+// Componente para exibir mensagem de vídeo
+function VideoMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
+  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+  const fileName = (metadata as any).fileName || 'Vídeo';
+  const fileSize = (metadata as any).fileSize;
+  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : '';
+
+  // Verificar se é um vídeo válido
+  const videoUrl = message.content?.startsWith('data:video/') ? message.content : null;
+
+  return (
+    <div className={`max-w-md ${
+      isFromContact ? 'bg-gray-100' : 'bg-blue-600'
+    } rounded-lg overflow-hidden`}>
+      {videoUrl ? (
+        <video 
+          src={videoUrl} 
+          controls
+          className="w-full h-auto max-h-96"
+          preload="metadata"
+        >
+          Seu navegador não suporta a reprodução de vídeo.
+        </video>
+      ) : (
+        <div className={`p-4 text-center ${
+          isFromContact ? 'text-gray-600' : 'text-white'
+        }`}>
+          <div className="text-sm">🎥 Vídeo não disponível</div>
+          <div className="text-xs opacity-75">{fileName}{sizeText}</div>
+        </div>
+      )}
+      
+      {videoUrl && (
+        <div className={`px-3 py-2 text-xs ${
+          isFromContact ? 'text-gray-600 bg-gray-50' : 'text-blue-100 bg-blue-700'
+        }`}>
+          {fileName}{sizeText}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
@@ -207,9 +250,9 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
       
       <div className={`flex-1 max-w-md ${isFromContact ? '' : 'flex flex-col items-end'}`}>
         <div className={`${
-          message.messageType === 'audio' || message.messageType === 'image' ? '' : 'px-4 py-2'
+          message.messageType === 'audio' || message.messageType === 'image' || message.messageType === 'video' ? '' : 'px-4 py-2'
         } rounded-lg ${
-          message.messageType === 'image' ? '' : (
+          message.messageType === 'image' || message.messageType === 'video' ? '' : (
             isFromContact 
               ? 'bg-gray-100 text-gray-900' 
               : 'bg-blue-600 text-white'
@@ -219,6 +262,8 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
             <AudioMessage message={message} isFromContact={isFromContact} />
           ) : message.messageType === 'image' ? (
             <ImageMessage message={message} isFromContact={isFromContact} />
+          ) : message.messageType === 'video' ? (
+            <VideoMessage message={message} isFromContact={isFromContact} />
           ) : (
             <p className="text-sm">{message.content}</p>
           )}

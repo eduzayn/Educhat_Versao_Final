@@ -1657,25 +1657,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Usar form-data corretamente para Node.js
-      const FormData = require('form-data');
-      const formData = new FormData();
-      formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('video', videoFile.buffer, {
-        filename: videoFile.originalname,
-        contentType: videoFile.mimetype
-      });
+      // Converter vídeo para Base64 conforme documentação Z-API
+      const base64Data = videoFile.buffer.toString('base64');
+      const videoBase64 = `data:${videoFile.mimetype};base64,${base64Data}`;
+
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        video: videoBase64
+      };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-video`;
-      console.log('📤 Enviando vídeo para Z-API:', { url });
+      console.log('📤 Enviando vídeo para Z-API:', { 
+        url, 
+        phone: payload.phone,
+        mimeType: videoFile.mimetype, 
+        size: videoFile.size,
+        base64Length: base64Data.length 
+      });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
-          ...formData.getHeaders()
+          'Client-Token': clientToken!,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       console.log('📥 Resposta Z-API vídeo:', {
@@ -1695,12 +1702,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (response.ok && conversationId) {
-        // Salvar mensagem local
+        // Salvar mensagem local com o vídeo em base64
         const videoMessage = await storage.createMessage({
           conversationId: parseInt(conversationId),
-          content: `[Vídeo: ${videoFile.originalname}]`,
+          content: videoBase64, // Salvar o vídeo base64 para exibição local
           isFromContact: false,
-          messageType: 'video'
+          messageType: 'video',
+          metadata: {
+            zaapId: (data && data.zaapId) || (data && data.id) || null,
+            messageId: (data && data.messageId) || (data && data.id) || null,
+            fileName: videoFile.originalname,
+            mimeType: videoFile.mimetype,
+            fileSize: videoFile.size
+          }
         });
 
         // Broadcast para outros clientes conectados
@@ -1760,14 +1774,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Usar form-data corretamente para Node.js
-      const FormData = require('form-data');
-      const formData = new FormData();
-      formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('document', documentFile.buffer, {
-        filename: documentFile.originalname,
-        contentType: documentFile.mimetype
-      });
+      // Converter documento para Base64 conforme documentação Z-API
+      const base64Data = documentFile.buffer.toString('base64');
+      const documentBase64 = `data:${documentFile.mimetype};base64,${base64Data}`;
+
+      // Criar payload JSON conforme documentação Z-API
+      const payload = {
+        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        document: documentBase64,
+        fileName: documentFile.originalname
+      };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-document`;
       console.log('📤 Enviando documento para Z-API:', { url });
