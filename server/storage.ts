@@ -302,29 +302,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message operations
-  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    // Consulta ultra-otimizada: não carrega content de mídias, apenas metadados
+  async getMessages(conversationId: number, limit = 30, offset = 0): Promise<Message[]> {
+    // Consulta otimizada: limite menor para performance inicial
     return await db
-      .select({
-        id: messages.id,
-        conversationId: messages.conversationId,
-        content: sql<string>`CASE 
-          WHEN ${messages.messageType} IN ('video', 'image', 'audio', 'document') 
-          THEN '[MÍDIA]'
-          ELSE ${messages.content}
-        END`.as('content'),
-        isFromContact: messages.isFromContact,
-        messageType: messages.messageType,
-        metadata: messages.metadata,
-        isDeleted: messages.isDeleted,
-        sentAt: messages.sentAt,
-        deliveredAt: messages.deliveredAt,
-        readAt: messages.readAt,
-        whatsappMessageId: messages.whatsappMessageId,
-        zapiStatus: messages.zapiStatus,
-        isGroup: messages.isGroup,
-        referenceMessageId: messages.referenceMessageId
-      })
+      .select()
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.sentAt))
