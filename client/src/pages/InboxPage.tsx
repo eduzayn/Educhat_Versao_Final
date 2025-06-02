@@ -85,7 +85,7 @@ export function InboxPage() {
     fetchNextPage: fetchNextPageMessages, 
     hasNextPage: hasNextPageMessages, 
     isFetchingNextPage: isFetchingNextPageMessages 
-  } = useMessages(activeConversation?.id || null, 30); // Carregar 30 mensagens por vez
+  } = useMessages(activeConversation?.id || null, 5); // Carregar 5 mensagens por vez para demonstrar paginação
   
   // Flatten das páginas de mensagens
   const messages = messagesData?.pages.flat() || [];
@@ -647,7 +647,7 @@ export function InboxPage() {
 
             {/* Mensagens */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 ? (
+              {messages.length === 0 && !isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
                     <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -656,16 +656,41 @@ export function InboxPage() {
                   </div>
                 </div>
               ) : (
-                messages.map((message) => (
-                  <MessageBubble 
-                    key={message.id} 
-                    message={message} 
-                    contact={activeConversation.contact}
-                    channelIcon={getChannelInfo(activeConversation.channel).icon}
-                    channelColor={getChannelInfo(activeConversation.channel).color}
-                    conversationId={activeConversation.id}
-                  />
-                ))
+                <>
+                  {/* Botão Carregar Mais - no topo */}
+                  {hasNextPageMessages && (
+                    <div className="p-4 text-center border-b border-gray-100">
+                      <Button 
+                        onClick={() => fetchNextPageMessages()} 
+                        disabled={isFetchingNextPageMessages}
+                        variant="outline" 
+                        size="sm"
+                      >
+                        {isFetchingNextPageMessages ? 'Carregando...' : 'Carregar mensagens anteriores'}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Loading inicial */}
+                  {isLoadingMessages && (
+                    <div className="p-6 text-center text-gray-500">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+                      <p className="text-sm">Carregando mensagens...</p>
+                    </div>
+                  )}
+                  
+                  {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
+                  {[...messages].reverse().map((message) => (
+                    <MessageBubble 
+                      key={message.id} 
+                      message={message} 
+                      contact={activeConversation.contact}
+                      channelIcon={getChannelInfo(activeConversation.channel).icon}
+                      channelColor={getChannelInfo(activeConversation.channel).color}
+                      conversationId={activeConversation.id}
+                    />
+                  ))}
+                </>
               )}
             </div>
 
