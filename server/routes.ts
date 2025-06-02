@@ -1161,21 +1161,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      const payload = {
+      // Usar query params conforme documentação Z-API
+      const queryParams = new URLSearchParams({
         phone: cleanPhone,
-        messageId: messageId.toString()
-      };
+        messageId: messageId.toString(),
+        owner: 'true'
+      });
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
-      console.log('🗑️ Deletando mensagem via Z-API:', { url, payload });
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?${queryParams}`;
+      console.log('🗑️ Deletando mensagem via Z-API:', { url, phone: cleanPhone, messageId });
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Client-Token': clientToken,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        }
       });
 
       const responseText = await response.text();
