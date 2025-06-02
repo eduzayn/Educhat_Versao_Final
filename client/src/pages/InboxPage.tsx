@@ -763,7 +763,7 @@ export function InboxPage() {
                   )}
                   
                   {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
-                  {[...messages].reverse().map((message) => (
+                  {messages.map((message) => (
                     <MessageBubble 
                       key={message.id} 
                       message={message} 
