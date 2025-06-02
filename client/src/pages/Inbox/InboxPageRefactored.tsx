@@ -43,6 +43,7 @@ import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
+import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
@@ -69,10 +70,13 @@ export function InboxPageRefactored() {
     refetch 
   } = useConversations(1000); // Carregar 1000 contatos
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+  const markConversationRead = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
     markConversationAsRead(conversation.id);
+    // Marcar conversa como lida no servidor para resetar contador
+    markConversationRead.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   

@@ -388,6 +388,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para marcar conversa como lida (resetar contador)
+  app.post('/api/conversations/:id/mark-read', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.resetUnreadCount(id);
+      
+      // Broadcast para todos os clientes sobre a atualização do contador
+      broadcastToAll({
+        type: 'conversation_read',
+        conversationId: id
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+      res.status(500).json({ message: 'Failed to mark conversation as read' });
+    }
+  });
+
   app.post('/api/conversations', async (req, res) => {
     try {
       const validatedData = insertConversationSchema.parse(req.body);
@@ -761,6 +780,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isGroup: webhookData.isGroup || false,
           referenceMessageId: webhookData.referenceMessageId || null
         });
+
+        // Incrementar contador de mensagens não lidas se a mensagem é do contato
+        if (!webhookData.fromMe) {
+          await storage.incrementUnreadCount(conversation.id);
+        }
         
         // Broadcast para clientes conectados
         console.log('📡 Enviando broadcast para WebSocket:', {
