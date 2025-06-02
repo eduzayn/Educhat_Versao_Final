@@ -1268,7 +1268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token } = credentials;
       
       // Buscar o áudio na Z-API usando o messageId
-      const audioUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/download-media/${messageId}`;
+      const audioUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/get-media/${messageId}`;
       
       console.log(`📁 Buscando áudio para messageId: ${messageId}`);
       
