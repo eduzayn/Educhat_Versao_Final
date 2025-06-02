@@ -2213,6 +2213,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enviar mensagem com botões interativos via Z-API
+  app.post('/api/zapi/send-button-list', async (req, res) => {
+    try {
+      console.log('🎯 Enviando mensagem com botões interativos:', req.body);
+      
+      const { phone, message, buttonList, conversationId } = req.body;
+      
+      if (!phone || !message || !buttonList || !Array.isArray(buttonList)) {
+        console.log('❌ Dados ausentes ou inválidos:', { 
+          phone: !!phone, 
+          message: !!message, 
+          buttonList: Array.isArray(buttonList) ? buttonList.length : 'invalid'
+        });
+        return res.status(400).json({ 
+          error: 'Telefone, mensagem e lista de botões são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // Criar payload conforme documentação Z-API
+      const payload = {
+        phone: phone,
+        message: message,
+        buttonList: buttonList
+      };
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-button-list`;
+      console.log('📤 Enviando botões para Z-API:', { url, payload });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('📥 Resposta Z-API button-list:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
+      }
+
+      if (response.ok && conversationId) {
+        // Salvar mensagem local com botões
+        const buttonMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: message,
+          isFromContact: false,
+          messageType: 'interactive',
+          metadata: JSON.stringify({ buttonList })
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: buttonMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: buttonMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
+    } catch (error) {
+      console.error('💥 Erro ao enviar botões via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Obter status de presença de um contato via Z-API
+  app.get('/api/zapi/chat-presence/:phone', async (req, res) => {
+    try {
+      const { phone } = req.params;
+      
+      console.log('👁️ Verificando status de presença:', phone);
+      
+      if (!phone) {
+        return res.status(400).json({ 
+          error: 'Número de telefone é obrigatório' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      console.log('🔍 Consultando Z-API para status de presença:', phone);
+
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/chat-presence/${phone}`, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API chat-presence:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Status de presença obtido:', data);
+
+      res.json({
+        phone,
+        presence: data.presence || 'unavailable',
+        lastSeen: data.lastSeen || null,
+        ...data
+      });
+    } catch (error) {
+      console.error('💥 Erro ao verificar presença via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
     try {
