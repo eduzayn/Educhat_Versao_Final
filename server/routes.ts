@@ -816,21 +816,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configurar webhook da Z-API
   app.post('/api/zapi/configure-webhook', async (req, res) => {
     try {
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
+
+      const { instanceId, token, clientToken } = credentials;
 
       // URL do webhook será a URL pública do Replit + /api/zapi/webhook  
       const webhookUrl = 'https://omni-communicate-magonder.replit.app/api/zapi/webhook';
       
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/update-webhook-received`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
@@ -975,18 +971,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/zapi/contacts/:phone/block', async (req, res) => {
     try {
       const { phone } = req.params;
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/block`;
+      const { instanceId, token, clientToken } = credentials;
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/block`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1150,19 +1143,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-API integration routes
   app.get('/api/zapi/qrcode', async (req, res) => {
     try {
-
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code`;
+      const { instanceId, token, clientToken } = credentials;
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code`;
       const response = await fetch(url, {
         headers: {
           'Client-Token': clientToken,
