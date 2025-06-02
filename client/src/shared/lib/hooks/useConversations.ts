@@ -6,19 +6,26 @@ export function useConversations(limit = 30) {
   return useInfiniteQuery<ConversationWithContact[]>({
     queryKey: ['/api/conversations', { limit }],
     queryFn: async ({ pageParam = 0 }) => {
+      console.log(`🔄 Buscando conversas: limit=${limit}, offset=${pageParam}`);
       const response = await fetch(`/api/conversations?limit=${limit}&offset=${pageParam}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
       }
-      return response.json();
+      const data = await response.json();
+      console.log(`📄 Conversas recebidas: ${data.length} itens`);
+      return data;
     },
     getNextPageParam: (lastPage, allPages) => {
+      console.log(`🔍 Verificando próxima página: lastPage.length=${lastPage.length}, limit=${limit}, allPages.length=${allPages.length}`);
       // Se a última página tem menos itens que o limite, não há mais páginas
       if (lastPage.length < limit) {
+        console.log(`⛔ Não há mais páginas (lastPage.length < limit)`);
         return undefined;
       }
       // Próxima página começa no offset atual + itens carregados
-      return allPages.length * limit;
+      const nextOffset = allPages.length * limit;
+      console.log(`➡️ Próxima página: offset=${nextOffset}`);
+      return nextOffset;
     },
     initialPageParam: 0,
   });
