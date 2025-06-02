@@ -78,9 +78,22 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        console.log('Reproduzindo áudio:', audioUrl);
-        await audioRef.current.play();
-        setIsPlaying(true);
+        console.log('Reproduzindo áudio:', {
+          url: fetchedAudioUrl,
+          currentSrc: audioRef.current.src,
+          readyState: audioRef.current.readyState,
+          networkState: audioRef.current.networkState,
+          duration: audioRef.current.duration
+        });
+        
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+          console.log('Áudio iniciado com sucesso');
+        } catch (playError) {
+          console.error('Erro específico do play:', playError);
+          setAudioError('Erro ao iniciar reprodução');
+        }
       }
     } catch (error) {
       console.error('Erro ao reproduzir áudio:', error);
@@ -128,7 +141,17 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
 
   const handleError = (error: any) => {
     console.error('Erro ao carregar áudio:', error);
+    console.error('Detalhes do erro:', {
+      audioUrl: fetchedAudioUrl,
+      errorType: error.type,
+      errorTarget: error.target,
+      networkState: error.target?.networkState,
+      readyState: error.target?.readyState,
+      errorCode: error.target?.error?.code,
+      errorMessage: error.target?.error?.message
+    });
     setIsLoaded(false);
+    setAudioError('Erro ao reproduzir áudio');
   };
 
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
