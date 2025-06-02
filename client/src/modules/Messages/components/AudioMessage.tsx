@@ -39,8 +39,21 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Áudio carregado com sucesso via API');
-        setFetchedAudioUrl(data.audioUrl);
+        console.log('✅ Resposta da API de áudio:', data);
+        
+        // Validar se a URL do áudio é válida
+        if (data.audioUrl) {
+          if (data.audioUrl.startsWith('data:audio/') || data.audioUrl.startsWith('https://') || data.audioUrl.startsWith('http://')) {
+            setFetchedAudioUrl(data.audioUrl);
+            console.log('✅ Áudio válido carregado via API');
+          } else {
+            console.error('❌ URL de áudio inválida:', data.audioUrl);
+            setAudioError('Formato de áudio inválido');
+          }
+        } else {
+          console.error('❌ Nenhuma URL de áudio na resposta:', data);
+          setAudioError('Áudio não encontrado');
+        }
       } else {
         const errorData = await response.json();
         console.error('❌ Erro ao buscar áudio:', errorData);

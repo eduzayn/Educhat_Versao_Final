@@ -1,0 +1,100 @@
+Pelo seu print mais recente, o problema ficou muito claro:
+
+❌ Erro ao carregar áudio
+plaintext
+Copiar
+Editar
+Erro ao carregar áudio:
+audioUrl: data:application/json;charset=UTF-8;base64,...
+⚠️ Diagnóstico técnico
+Você está tentando reproduzir um áudio, mas o campo audioUrl contém:
+
+bash
+Copiar
+Editar
+data:application/json;...
+Ou seja, o que era pra ser um audio/mp3 ou audio/webm, está sendo interpretado como um arquivo JSON.
+
+➡️ Isso indica que o backend está respondendo um JSON de erro ou metadados, e não o arquivo de áudio real.
+
+✅ Como corrigir
+1. Verifique o campo fileUrl no message
+No momento em que você renderiza <AudioMessage audioUrl={...} />, o audioUrl está incorreto.
+
+Você precisa garantir que:
+
+ts
+Copiar
+Editar
+message.fileUrl.startsWith("https://") || message.fileUrl.startsWith("data:audio/")
+Se vier data:application/json..., não é áudio. É um erro do backend.
+
+2. Evite salvar base64 JSON como fileUrl
+Seu backend (ou WebSocket) parece estar atribuindo fileUrl = data:application/json;base64,....
+
+Isso não pode ser usado em <audio src="...">.
+
+Você precisa salvar o caminho real do áudio (ou pelo menos um data:audio/mp4;base64,... válido).
+
+3. Exemplo de valor válido para fileUrl
+✅ Correto:
+ts
+Copiar
+Editar
+message.fileUrl = "https://meudominio.com/uploads/abc123.mp3"
+OU
+
+ts
+Copiar
+Editar
+message.fileUrl = "data:audio/mp4;base64,AAAAIGZ0eXBtc..."
+❌ Incorreto (como está no seu caso):
+ts
+Copiar
+Editar
+message.fileUrl = "data:application/json;base64,eyJ1cmwiOi..."
+4. Teste simples para validar
+No console do navegador, tente executar:
+
+js
+Copiar
+Editar
+const audio = new Audio("data:application/json;base64,eyJ1cmwiOi...");
+audio.play();
+O erro será o mesmo: Failed to decode audio.
+
+5. ✅ Como consertar no backend
+Na hora de retornar a mensagem com áudio, certifique-se de retornar um objeto assim:
+
+json
+Copiar
+Editar
+{
+  "id": "msg123",
+  "type": "audio",
+  "fileUrl": "https://meudominio.com/audios/audio123.mp3"
+}
+Ou se estiver usando base64 inline:
+
+json
+Copiar
+Editar
+{
+  "type": "audio",
+  "fileUrl": "data:audio/mp4;base64,AAAAGGZ0eX..."
+}
+✅ Solução de código no front-end
+Adicione uma checagem de segurança no seu componente de renderização de áudio:
+
+tsx
+Copiar
+Editar
+if (!audioUrl.startsWith("data:audio/") && !audioUrl.startsWith("https://")) {
+  console.warn("⚠️ Ignorando áudio com URL inválida:", audioUrl);
+  return <span className="text-xs text-red-500">Áudio inválido</span>;
+}
+✅ Resumo
+Problema real	Solução prática
+fileUrl está com JSON em base64	Corrigir backend para retornar áudio válido
+audioUrl não pode ser reproduzido	Validar que o tipo é audio/*, não application/json
+Tentativa de tocar JSON como áudio	Nunca usar data:application/json;base64,... em <audio src>
