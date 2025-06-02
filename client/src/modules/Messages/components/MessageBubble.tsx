@@ -15,6 +15,7 @@ import {
 import { format } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
+import { LazyMediaContent } from './LazyMediaContent';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Message, Contact } from '@shared/schema';

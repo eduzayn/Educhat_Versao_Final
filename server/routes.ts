@@ -483,6 +483,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para carregar conteúdo de mídia sob demanda
+  app.get('/api/messages/:id/media', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const mediaContent = await storage.getMessageMedia(messageId);
+      
+      if (!mediaContent) {
+        return res.status(404).json({ message: 'Media content not found' });
+      }
+      
+      res.json({ content: mediaContent });
+    } catch (error) {
+      console.error('Error fetching media content:', error);
+      res.status(500).json({ message: 'Failed to fetch media content' });
+    }
+  });
+
   // Contacts endpoints
   app.get('/api/contacts', async (req, res) => {
     try {
