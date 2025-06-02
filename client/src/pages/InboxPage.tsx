@@ -62,7 +62,16 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real
   useWebSocket();
   
-  const { data: conversations = [], isLoading } = useConversations();
+  const { 
+    data: conversationsData, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useConversations(30); // Carregar 30 contatos por vez
+  
+  // Flatten das páginas de conversas
+  const conversations = conversationsData?.pages.flat() || [];
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
 
   const handleSelectConversation = (conversation: any) => {
@@ -559,10 +568,32 @@ export function InboxPage() {
             );
           })}
           
-          {filteredConversations.length === 0 && (
+          {filteredConversations.length === 0 && !isLoading && (
             <div className="p-6 text-center text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">Nenhuma conversa encontrada</p>
+            </div>
+          )}
+          
+          {/* Botão Carregar Mais */}
+          {hasNextPage && (
+            <div className="p-4 border-t border-gray-100">
+              <Button 
+                onClick={() => fetchNextPage()} 
+                disabled={isFetchingNextPage}
+                variant="outline" 
+                className="w-full"
+              >
+                {isFetchingNextPage ? 'Carregando...' : 'Carregar mais contatos'}
+              </Button>
+            </div>
+          )}
+          
+          {/* Loading inicial */}
+          {isLoading && (
+            <div className="p-6 text-center text-gray-500">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+              <p className="text-sm">Carregando contatos...</p>
             </div>
           )}
         </div>
