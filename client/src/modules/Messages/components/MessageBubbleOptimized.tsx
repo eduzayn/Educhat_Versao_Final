@@ -95,7 +95,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   const renderMessageContent = () => {
     if (message.messageType === 'audio') {
       // Extrair duração do metadata se disponível
-      const duration = message.metadata?.duration || 0;
+      const duration = (message.metadata as any)?.duration || 0;
       return (
         <AudioMessage
           audioUrl={message.content}
@@ -106,11 +106,11 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     }
 
     // Para outros tipos de mídia, usar LazyMediaContent
-    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType)) {
+    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
       return (
         <LazyMediaContent
           messageId={message.id}
-          messageType={message.messageType}
+          messageType={message.messageType as "audio" | "video" | "image" | "document"}
           conversationId={conversationId}
           isFromContact={isFromContact}
         />

@@ -5,11 +5,13 @@ import { Download, Play, FileText, Image } from 'lucide-react';
 interface LazyMediaContentProps {
   messageId: number;
   messageType: 'audio' | 'video' | 'image' | 'document';
+  conversationId?: number;
+  isFromContact: boolean;
   metadata?: any;
   initialContent?: string | null;
 }
 
-export function LazyMediaContent({ messageId, messageType, metadata, initialContent }: LazyMediaContentProps) {
+export function LazyMediaContent({ messageId, messageType, conversationId, isFromContact, metadata, initialContent }: LazyMediaContentProps) {
   const [content, setContent] = useState<string | null>(initialContent);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!initialContent);

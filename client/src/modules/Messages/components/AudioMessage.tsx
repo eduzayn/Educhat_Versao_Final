@@ -12,6 +12,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
+  const [isLoaded, setIsLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const formatTime = (time: number) => {
@@ -21,6 +22,11 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
   };
 
   const togglePlayPause = () => {
+    if (!isLoaded) {
+      setIsLoaded(true);
+      return;
+    }
+    
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
@@ -56,14 +62,16 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
         ? 'bg-gray-100 text-gray-900' 
         : 'bg-blue-600 text-white'
     }`}>
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={handleEnded}
-        preload="metadata"
-      />
+      {isLoaded && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          preload="metadata"
+        />
+      )}
       
       <Button
         variant="ghost"
@@ -75,7 +83,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
             : 'hover:bg-blue-500 text-white'
         }`}
       >
-        {isPlaying ? (
+        {isLoaded && isPlaying ? (
           <Pause className="w-4 h-4" />
         ) : (
           <Play className="w-4 h-4" />
@@ -85,7 +93,9 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <Volume2 className="w-3 h-3 opacity-70" />
-          <span className="text-xs opacity-70">Áudio</span>
+          <span className="text-xs opacity-70">
+            {isLoaded ? 'Áudio' : 'Clique para carregar áudio'}
+          </span>
         </div>
         
         <div className="relative">
