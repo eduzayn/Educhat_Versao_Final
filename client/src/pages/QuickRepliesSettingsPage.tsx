@@ -14,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
 import type { QuickReply } from '@shared/schema';
 
 const getTypeIcon = (type: string) => {
@@ -66,6 +67,8 @@ export default function QuickRepliesSettingsPage() {
   const [previewQuickReply, setPreviewQuickReply] = useState<QuickReply | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [recordedAudio, setRecordedAudio] = useState<{ blob: Blob; duration: number } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -183,9 +186,29 @@ export default function QuickRepliesSettingsPage() {
   const resetFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
+    setRecordedAudio(null);
+    setShowAudioRecorder(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  // Handle audio recording
+  const handleAudioRecorded = async (audioBlob: Blob, duration: number) => {
+    setRecordedAudio({ blob: audioBlob, duration });
+    setShowAudioRecorder(false);
+    
+    // Create a file from the blob for consistency with file handling
+    const audioFile = new File([audioBlob], `audio_${Date.now()}.mp4`, { type: 'audio/mp4' });
+    setSelectedFile(audioFile);
+    
+    // Set content as audio description
+    form.setValue('content', `Áudio gravado (${Math.round(duration)}s)`);
+  };
+
+  const handleCancelAudioRecording = () => {
+    setShowAudioRecorder(false);
+    setRecordedAudio(null);
   };
 
   const onSubmit = (data: FormData) => {
@@ -409,18 +432,51 @@ export default function QuickRepliesSettingsPage() {
                                       {selectedType === 'video' && <FileVideo className="w-full h-full" />}
                                     </div>
                                     <div>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="mb-2"
-                                      >
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Selecionar {selectedType === 'audio' ? 'Áudio' : selectedType === 'image' ? 'Imagem' : 'Vídeo'}
-                                      </Button>
-                                      <p className="text-sm text-gray-500">
+                                      {selectedType === 'audio' && !showAudioRecorder ? (
+                                        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => fileInputRef.current?.click()}
+                                          >
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Selecionar Arquivo
+                                          </Button>
+                                          <span className="text-sm text-gray-500">ou</span>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setShowAudioRecorder(true)}
+                                          >
+                                            <Mic className="w-4 h-4 mr-2" />
+                                            Gravar Áudio
+                                          </Button>
+                                        </div>
+                                      ) : selectedType !== 'audio' ? (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={() => fileInputRef.current?.click()}
+                                          className="mb-2"
+                                        >
+                                          <Upload className="w-4 h-4 mr-2" />
+                                          Selecionar {selectedType === 'image' ? 'Imagem' : 'Vídeo'}
+                                        </Button>
+                                      ) : null}
+                                      
+                                      {selectedType === 'audio' && showAudioRecorder && (
+                                        <div className="mt-4">
+                                          <AudioRecorder
+                                            onSendAudio={handleAudioRecorded}
+                                            onCancel={handleCancelAudioRecording}
+                                            className="w-full"
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      <p className="text-sm text-gray-500 mt-2">
                                         Formatos suportados: {
-                                          selectedType === 'audio' ? 'MP3, WAV, OGG' :
+                                          selectedType === 'audio' ? 'MP3, WAV, OGG ou grave diretamente' :
                                           selectedType === 'image' ? 'JPG, PNG, GIF, WEBP' :
                                           'MP4, AVI, MOV, WEBM'
                                         }
