@@ -1281,16 +1281,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se a mensagem tem conteúdo de áudio salvo
-      if (message.fileUrl && message.fileUrl.startsWith('data:audio/')) {
-        console.log(`✅ Áudio encontrado no banco - Tipo: ${message.metadata?.mimeType || 'audio/mp4'}`);
+      if (message.content && message.content.startsWith('data:audio/')) {
+        console.log(`✅ Áudio encontrado no banco - Tipo: ${(message.metadata as any)?.mimeType || 'audio/mp4'}`);
         
         res.json({ 
           success: true, 
-          audioUrl: message.fileUrl,
-          mimeType: message.metadata?.mimeType || 'audio/mp4'
+          audioUrl: message.content,
+          mimeType: (message.metadata as any)?.mimeType || 'audio/mp4'
         });
       } else {
-        console.error(`❌ Áudio não disponível para messageId: ${messageId} - fileUrl: ${message.fileUrl?.substring(0, 50)}...`);
+        console.error(`❌ Áudio não disponível para messageId: ${messageId} - content: ${message.content?.substring(0, 50)}...`);
         res.status(404).json({ 
           error: 'Conteúdo de áudio não disponível',
           details: 'O áudio não foi salvo corretamente no banco de dados'
@@ -1587,7 +1587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Salvar mensagem de áudio no banco de dados local
       const audioMessage = await storage.createMessage({
         conversationId: parseInt(conversationId),
-        content: audioBase64, // Salvar o áudio base64 para reprodução local
+        content: audioBase64, // Salvar o áudio base64 no campo content
         isFromContact: false,
         messageType: 'audio',
         metadata: {
