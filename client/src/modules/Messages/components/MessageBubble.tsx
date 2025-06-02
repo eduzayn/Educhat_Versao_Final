@@ -403,6 +403,19 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
                 }
               }
 
+              // Se temos URL válida, usar diretamente sem buscar no banco
+              if (audioUrl) {
+                console.log('🎧 URL do áudio processada:', audioUrl);
+                const duration = (message.metadata as any)?.duration || (message.metadata as any)?.audio?.seconds || 0;
+                return (
+                  <AudioMessage
+                    audioUrl={audioUrl}
+                    duration={duration}
+                    isFromContact={isFromContact}
+                  />
+                );
+              }
+
               console.log('🎧 URL do áudio processada:', audioUrl);
 
               // Se não temos URL válida, tentar buscar usando messageId dos metadados
