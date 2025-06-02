@@ -12,7 +12,7 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/shared/ui/ui/alert-dialog';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
 import { useToast } from '@/shared/lib/hooks/use-toast';
@@ -323,7 +323,11 @@ function DocumentMessage({ message, isFromContact }: { message: Message; isFromC
 
 export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
-  const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
+  // Determinar qual timestamp usar (prioridade: deliveredAt, sentAt, createdAt)
+  const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
+  
+  // Formatação da data e hora completa
+  const messageTime = format(new Date(messageTimestamp), 'dd/MM/yyyy HH:mm:ss');
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
