@@ -173,17 +173,16 @@ export class DatabaseStorage implements IStorage {
 
   // Conversation operations
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    const conversationsWithContacts = await db
+    // Primeiro, buscar todas as conversas com contatos reais (sem limit/offset)
+    const allConversationsWithContacts = await db
       .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt))
-      .limit(limit)
-      .offset(offset);
+      .orderBy(desc(conversations.lastMessageAt));
 
-    const result: ConversationWithContact[] = [];
+    const filteredConversations: ConversationWithContact[] = [];
     
-    for (const row of conversationsWithContacts) {
+    for (const row of allConversationsWithContacts) {
       if (row.conversations && row.contacts) {
         // Filtrar contatos reais vs simulados
         const contact = row.contacts;
@@ -204,7 +203,7 @@ export class DatabaseStorage implements IStorage {
             .orderBy(desc(messages.sentAt))
             .limit(1);
 
-          result.push({
+          filteredConversations.push({
             ...row.conversations,
             contact: row.contacts,
             messages: lastMessages,
@@ -213,7 +212,10 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return result;
+    // Aplicar paginação APÓS filtrar contatos reais
+    const paginatedResult = filteredConversations.slice(offset, offset + limit);
+    
+    return paginatedResult;
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
