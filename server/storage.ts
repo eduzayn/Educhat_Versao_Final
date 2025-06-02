@@ -22,7 +22,7 @@ import {
   type QuickReplyWithCreator,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql, gt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations for auth
@@ -173,58 +173,54 @@ export class DatabaseStorage implements IStorage {
 
   // Conversation operations
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    console.log(`📋 getConversations chamado com limit=${limit}, offset=${offset}`);
+    console.log(`📋 getConversations OTIMIZADO chamado com limit=${limit}, offset=${offset}`);
     
-    // Primeiro, buscar todas as conversas com contatos reais (sem limit/offset)
-    const allConversationsWithContacts = await db
+    // Buscar apenas as conversas que precisamos com paginação eficiente
+    const conversationsData = await db
       .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt));
+      .where(
+        and(
+          isNotNull(contacts.phone),
+          sql`length(${contacts.phone}) > 8`,
+          not(like(contacts.phone, '%000000%')),
+          not(like(contacts.phone, '%111111%')),
+          not(like(contacts.phone, '%123456%')),
+          not(ilike(contacts.name, '%test%')),
+          not(ilike(contacts.name, '%demo%')),
+          not(ilike(contacts.name, '%exemplo%'))
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(limit)
+      .offset(offset);
 
-    console.log(`📊 Total de conversas encontradas no DB: ${allConversationsWithContacts.length}`);
+    console.log(`📊 Conversas encontradas com filtro: ${conversationsData.length}`);
 
-    const filteredConversations: ConversationWithContact[] = [];
+    const result: ConversationWithContact[] = [];
     
-    for (const row of allConversationsWithContacts) {
+    for (const row of conversationsData) {
       if (row.conversations && row.contacts) {
-        // Filtrar contatos reais vs simulados
-        const contact = row.contacts;
-        const isRealContact = contact.phone && 
-          contact.phone.length > 8 && // Telefones reais têm mais de 8 dígitos
-          !contact.phone.includes('000000') &&
-          !contact.phone.includes('111111') &&
-          !contact.phone.includes('123456') &&
-          !contact.name.toLowerCase().includes('test') &&
-          !contact.name.toLowerCase().includes('demo') &&
-          !contact.name.toLowerCase().includes('exemplo');
+        // Buscar última mensagem
+        const lastMessages = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.conversationId, row.conversations.id))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
 
-        if (isRealContact) {
-          const lastMessages = await db
-            .select()
-            .from(messages)
-            .where(eq(messages.conversationId, row.conversations.id))
-            .orderBy(desc(messages.sentAt))
-            .limit(1);
-
-          filteredConversations.push({
-            ...row.conversations,
-            contact: row.contacts,
-            messages: lastMessages,
-          });
-        }
+        result.push({
+          ...row.conversations,
+          contact: row.contacts,
+          messages: lastMessages,
+        });
       }
     }
-
-    console.log(`✅ Conversas com contatos reais filtradas: ${filteredConversations.length}`);
-    console.log(`🔢 Aplicando paginação: offset=${offset}, limit=${limit}`);
     
-    // Aplicar paginação APÓS filtrar contatos reais
-    const paginatedResult = filteredConversations.slice(offset, offset + limit);
+    console.log(`📄 Resultado final otimizado: ${result.length} conversas retornadas`);
     
-    console.log(`📄 Resultado paginado: ${paginatedResult.length} conversas retornadas`);
-    
-    return paginatedResult;
+    return result;
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
