@@ -451,7 +451,7 @@ export default function QuickRepliesSettingsPage() {
                 <p className="text-sm whitespace-pre-wrap">{previewQuickReply.content}</p>
               </div>
               <div className="text-xs text-muted-foreground">
-                Usado {previewQuickReply.usageCount} vez(es)
+                Usado {previewQuickReply.usageCount || 0} vez(es)
               </div>
             </div>
           )}
