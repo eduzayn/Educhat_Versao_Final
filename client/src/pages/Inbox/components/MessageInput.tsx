@@ -72,6 +72,20 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
           variant="ghost"
           size="sm"
           className="mb-2"
+          onClick={() => {
+            // Integrar com sistema de anexos existente
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*,video/*';
+            input.onchange = (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0];
+              if (file) {
+                // Aqui integraria com o sistema de upload existente
+                console.log('Arquivo selecionado:', file.name);
+              }
+            };
+            input.click();
+          }}
           aria-label="Anexar arquivo"
         >
           <Paperclip className="w-4 h-4" />
