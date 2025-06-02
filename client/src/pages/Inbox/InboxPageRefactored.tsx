@@ -610,6 +610,8 @@ export function InboxPageRefactored() {
                           lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
                         ) : lastMessage.messageType === 'audio' ? (
                           lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
+                        ) : lastMessage.messageType === 'video' ? (
+                          lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado'
                         ) : (
                           lastMessage.content || 'Mensagem sem texto'
                         )
