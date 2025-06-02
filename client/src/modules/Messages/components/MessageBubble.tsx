@@ -1,4 +1,4 @@
-import { Check, CheckCheck, Play, Pause, Volume2 } from 'lucide-react';
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
@@ -229,6 +229,84 @@ function VideoMessage({ message, isFromContact }: { message: Message; isFromCont
   );
 }
 
+// Componente para exibir mensagens de documento
+function DocumentMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
+  // Extrair informações do documento dos metadados
+  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+  const fileName = 'fileName' in metadata ? metadata.fileName as string : 'Documento';
+  const fileSize = 'fileSize' in metadata ? metadata.fileSize as number : null;
+  const mimeType = 'mimeType' in metadata ? metadata.mimeType as string : '';
+
+  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : '';
+  
+  // Função para determinar o ícone baseado no tipo de arquivo
+  const getFileIcon = (mimeType: string, fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    
+    if (mimeType.includes('pdf') || extension === 'pdf') {
+      return '📄';
+    } else if (mimeType.includes('word') || ['doc', 'docx'].includes(extension)) {
+      return '📝';
+    } else if (mimeType.includes('excel') || ['xls', 'xlsx'].includes(extension)) {
+      return '📊';
+    } else if (mimeType.includes('powerpoint') || ['ppt', 'pptx'].includes(extension)) {
+      return '📑';
+    } else if (mimeType.includes('zip') || ['zip', 'rar', '7z'].includes(extension)) {
+      return '🗂️';
+    } else {
+      return '📄';
+    }
+  };
+
+  const handleDownload = () => {
+    if (message.content && message.content.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = message.content;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  return (
+    <div className={`max-w-md ${
+      isFromContact ? 'bg-gray-100' : 'bg-blue-600'
+    } rounded-lg overflow-hidden`}>
+      <div className={`p-4 ${
+        isFromContact ? 'text-gray-900' : 'text-white'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className="text-2xl">
+            {getFileIcon(mimeType, fileName)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-sm truncate">
+              {fileName}
+            </div>
+            <div className={`text-xs ${
+              isFromContact ? 'text-gray-500' : 'text-blue-100'
+            }`}>
+              Documento{sizeText}
+            </div>
+          </div>
+          {message.content && message.content.startsWith('data:') && (
+            <button
+              onClick={handleDownload}
+              className={`p-2 rounded-full hover:bg-opacity-20 hover:bg-white transition-colors ${
+                isFromContact ? 'text-gray-600 hover:bg-gray-200' : 'text-white'
+              }`}
+              title="Baixar documento"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
@@ -250,9 +328,9 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
       
       <div className={`flex-1 max-w-md ${isFromContact ? '' : 'flex flex-col items-end'}`}>
         <div className={`${
-          message.messageType === 'audio' || message.messageType === 'image' || message.messageType === 'video' ? '' : 'px-4 py-2'
+          message.messageType === 'audio' || message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'document' ? '' : 'px-4 py-2'
         } rounded-lg ${
-          message.messageType === 'image' || message.messageType === 'video' ? '' : (
+          message.messageType === 'image' || message.messageType === 'video' || message.messageType === 'document' ? '' : (
             isFromContact 
               ? 'bg-gray-100 text-gray-900' 
               : 'bg-blue-600 text-white'
@@ -264,6 +342,8 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
             <ImageMessage message={message} isFromContact={isFromContact} />
           ) : message.messageType === 'video' ? (
             <VideoMessage message={message} isFromContact={isFromContact} />
+          ) : message.messageType === 'document' ? (
+            <DocumentMessage message={message} isFromContact={isFromContact} />
           ) : (
             <p className="text-sm">{message.content}</p>
           )}
