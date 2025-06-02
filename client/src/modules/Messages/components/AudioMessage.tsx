@@ -24,23 +24,39 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Buscar áudio via API se necessário (apenas uma vez)
+  // Buscar áudio via API se necessário (apenas uma vez, com cache de falhas)
   useEffect(() => {
-    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading) {
+    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
+      // Verificar se já tentamos buscar este áudio e falhou
+      const failedKey = `audio_failed_${messageIdForFetch}`;
+      if (sessionStorage.getItem(failedKey)) {
+        setError('Áudio não disponível');
+        return;
+      }
+
       setIsLoading(true);
       fetch(`/api/messages/${messageIdForFetch}/audio`)
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Áudio não encontrado');
+          }
+          return response.json();
+        })
         .then(data => {
           if (data.audioUrl) {
             setActualAudioUrl(data.audioUrl);
           } else {
-            setError('Áudio não encontrado');
+            throw new Error('Áudio não encontrado');
           }
         })
-        .catch(() => setError('Erro ao carregar áudio'))
+        .catch(() => {
+          // Marcar como falha para não tentar novamente
+          sessionStorage.setItem(failedKey, 'true');
+          setError('Áudio não disponível');
+        })
         .finally(() => setIsLoading(false));
     }
-  }, [audioUrl, messageIdForFetch, actualAudioUrl, isLoading]);
+  }, [audioUrl, messageIdForFetch, actualAudioUrl, isLoading, error]);
 
   const togglePlayPause = async () => {
     if (!actualAudioUrl || !audioRef.current) {
