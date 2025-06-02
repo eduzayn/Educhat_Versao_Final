@@ -4,6 +4,7 @@ import {
   conversations,
   messages,
   contactTags,
+  quickReplies,
   type User,
   type UpsertUser,
   type Contact,
@@ -14,8 +15,11 @@ import {
   type InsertMessage,
   type ContactTag,
   type InsertContactTag,
+  type QuickReply,
+  type InsertQuickReply,
   type ConversationWithContact,
   type ContactWithTags,
+  type QuickReplyWithCreator,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like } from "drizzle-orm";
@@ -53,6 +57,14 @@ export interface IStorage {
   getContactTags(contactId: number): Promise<ContactTag[]>;
   addContactTag(tag: InsertContactTag): Promise<ContactTag>;
   removeContactTag(contactId: number, tag: string): Promise<void>;
+
+  // Quick reply operations
+  getQuickReplies(): Promise<QuickReply[]>;
+  getQuickReply(id: number): Promise<QuickReply | undefined>;
+  createQuickReply(quickReply: InsertQuickReply): Promise<QuickReply>;
+  updateQuickReply(id: number, quickReply: Partial<InsertQuickReply>): Promise<QuickReply>;
+  deleteQuickReply(id: number): Promise<void>;
+  incrementQuickReplyUsage(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -338,6 +350,64 @@ export class DatabaseStorage implements IStorage {
           eq(contactTags.tag, tag)
         )
       );
+  }
+
+  // Quick reply operations
+  async getQuickReplies(): Promise<QuickReply[]> {
+    return await db
+      .select()
+      .from(quickReplies)
+      .orderBy(desc(quickReplies.createdAt));
+  }
+
+  async getQuickReply(id: number): Promise<QuickReply | undefined> {
+    const [quickReply] = await db
+      .select()
+      .from(quickReplies)
+      .where(eq(quickReplies.id, id));
+    return quickReply;
+  }
+
+  async createQuickReply(quickReplyData: InsertQuickReply): Promise<QuickReply> {
+    const [quickReply] = await db
+      .insert(quickReplies)
+      .values(quickReplyData)
+      .returning();
+    return quickReply;
+  }
+
+  async updateQuickReply(id: number, quickReplyData: Partial<InsertQuickReply>): Promise<QuickReply> {
+    const [quickReply] = await db
+      .update(quickReplies)
+      .set({
+        ...quickReplyData,
+        updatedAt: new Date(),
+      })
+      .where(eq(quickReplies.id, id))
+      .returning();
+    return quickReply;
+  }
+
+  async deleteQuickReply(id: number): Promise<void> {
+    await db
+      .delete(quickReplies)
+      .where(eq(quickReplies.id, id));
+  }
+
+  async incrementQuickReplyUsage(id: number): Promise<void> {
+    const [current] = await db
+      .select({ usageCount: quickReplies.usageCount })
+      .from(quickReplies)
+      .where(eq(quickReplies.id, id));
+    
+    if (current) {
+      await db
+        .update(quickReplies)
+        .set({
+          usageCount: (current.usageCount || 0) + 1,
+        })
+        .where(eq(quickReplies.id, id));
+    }
   }
 }
 
