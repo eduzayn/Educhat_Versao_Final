@@ -77,15 +77,9 @@ export function InboxPage() {
   };
   
   const { 
-    data: messagesData, 
-    isLoading: isLoadingMessages, 
-    fetchNextPage: fetchNextPageMessages, 
-    hasNextPage: hasNextPageMessages, 
-    isFetchingNextPage: isFetchingNextPageMessages 
-  } = useMessages(activeConversation?.id || null, 5); // Carregar 5 mensagens por vez para demonstrar paginação
-  
-  // Flatten das páginas de mensagens
-  const messages = messagesData?.pages.flat() || [];
+    data: messages, 
+    isLoading: isLoadingMessages
+  } = useMessages(activeConversation?.id || null, 2000); // Carregar até 2000 mensagens
   
 
   const createContact = useCreateContact();
@@ -672,7 +666,7 @@ export function InboxPage() {
                     </div>
                     <div className="flex items-center space-x-2 mt-0.5">
                       <Select 
-                        value={activeConversation.status} 
+                        value={activeConversation.status || 'open'} 
                         onValueChange={(newStatus) => handleStatusChange(activeConversation.id, newStatus)}
                       >
                         <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
@@ -730,7 +724,7 @@ export function InboxPage() {
 
             {/* Mensagens */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 && !isLoadingMessages ? (
+              {(messages || []).length === 0 && !isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
                     <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -740,20 +734,6 @@ export function InboxPage() {
                 </div>
               ) : (
                 <>
-                  {/* Botão Carregar Mais - no topo */}
-                  {hasNextPageMessages && (
-                    <div className="p-4 text-center border-b border-gray-100">
-                      <Button 
-                        onClick={() => fetchNextPageMessages()} 
-                        disabled={isFetchingNextPageMessages}
-                        variant="outline" 
-                        size="sm"
-                      >
-                        {isFetchingNextPageMessages ? 'Carregando...' : 'Carregar mensagens anteriores'}
-                      </Button>
-                    </div>
-                  )}
-                  
                   {/* Loading inicial */}
                   {isLoadingMessages && (
                     <div className="p-6 text-center text-gray-500">
@@ -763,7 +743,7 @@ export function InboxPage() {
                   )}
                   
                   {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
-                  {messages.map((message) => (
+                  {(messages || []).map((message) => (
                     <MessageBubble 
                       key={message.id} 
                       message={message} 
@@ -880,7 +860,7 @@ export function InboxPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
-                  {getStatusBadge(activeConversation.status)}
+                  {getStatusBadge(activeConversation.status || 'open')}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Cliente desde:</span>
