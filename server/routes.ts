@@ -14,7 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configurar multer para upload de arquivos
   const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 32 * 1024 * 1024 } // 32MB
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
   });
 
   const httpServer = createServer(app);
@@ -1642,11 +1642,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { instanceId, token, clientToken } = credentials;
 
-      // Verificar tamanho do arquivo (limite de 32MB para vídeos)
-      const maxSize = 32 * 1024 * 1024; // 32MB
+      // Verificar tamanho do arquivo (limite de 50MB para vídeos)
+      const maxSize = 50 * 1024 * 1024; // 50MB
       if (videoFile.size > maxSize) {
         return res.status(400).json({ 
-          error: 'Arquivo muito grande. O limite é de 32MB para vídeos.' 
+          error: 'Arquivo muito grande. O limite é de 50MB para vídeos.' 
         });
       }
 
@@ -1654,19 +1654,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64Data = videoFile.buffer.toString('base64');
       const videoBase64 = `data:${videoFile.mimetype};base64,${base64Data}`;
 
-      // Payload conforme documentação Z-API para send-document
+      // Payload conforme documentação Z-API para send-video
       const payload = {
         phone: phone.replace(/\D/g, ''),
-        document: videoBase64,
-        fileName: videoFile.originalname
+        video: videoBase64
       };
 
-      // Usar endpoint send-document/mp4 conforme documentação
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document/mp4`;
+      // Usar endpoint send-video conforme documentação
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-video`;
       console.log('📤 Enviando vídeo para Z-API:', { 
         url, 
         phone: payload.phone,
-        fileName: payload.fileName,
+        fileName: videoFile.originalname,
         mimeType: videoFile.mimetype, 
         size: videoFile.size 
       });
