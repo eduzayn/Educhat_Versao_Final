@@ -64,16 +64,10 @@ export function InboxPage() {
   useWebSocket();
   
   const { 
-    data: conversationsData, 
+    data: conversations, 
     isLoading, 
     refetch 
   } = useConversations(1000); // Carregar 1000 contatos
-  
-  // Flatten das páginas de conversas e remover duplicatas
-  const conversations = conversationsData?.pages.flat() || [];
-  const uniqueConversations = conversations.filter((conversation, index, self) => 
-    index === self.findIndex((c) => c.id === conversation.id)
-  );
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
 
   const handleSelectConversation = (conversation: any) => {
@@ -200,7 +194,7 @@ export function InboxPage() {
   };
 
   // Filtrar conversas baseado na aba ativa e filtros
-  const filteredConversations = uniqueConversations.filter(conversation => {
+  const filteredConversations = (conversations || []).filter(conversation => {
     // Filtro por aba
     if (activeTab === 'inbox' && conversation.status === 'resolved') return false;
     if (activeTab === 'resolved' && conversation.status !== 'resolved') return false;
