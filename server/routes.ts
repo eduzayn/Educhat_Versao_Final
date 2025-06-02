@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
-import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema } from "@shared/schema";
+import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
@@ -2427,6 +2427,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
       webhookUrl,
       instructions: "Configure esta URL no painel da Z-API na seção 'Ao receber'"
     });
+  });
+
+  // Quick Replies endpoints
+  app.get('/api/quick-replies', async (req, res) => {
+    try {
+      const quickReplies = await storage.getQuickReplies();
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Error fetching quick replies:', error);
+      res.status(500).json({ message: 'Failed to fetch quick replies' });
+    }
+  });
+
+  app.get('/api/quick-replies/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const quickReply = await storage.getQuickReply(id);
+      
+      if (!quickReply) {
+        return res.status(404).json({ message: 'Quick reply not found' });
+      }
+      
+      res.json(quickReply);
+    } catch (error) {
+      console.error('Error fetching quick reply:', error);
+      res.status(500).json({ message: 'Failed to fetch quick reply' });
+    }
+  });
+
+  app.post('/api/quick-replies', upload.single('file'), async (req, res) => {
+    try {
+      const validatedData = insertQuickReplySchema.parse(req.body);
+      
+      // Handle file upload for media types
+      if (req.file && validatedData.type !== 'text') {
+        const fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
+        
+        // In a real application, you would save the file to storage
+        // For now, we'll store the file information
+        validatedData.fileUrl = fileUrl;
+        validatedData.fileName = req.file.originalname;
+        validatedData.fileSize = req.file.size;
+        validatedData.mimeType = req.file.mimetype;
+      }
+      
+      const quickReply = await storage.createQuickReply(validatedData);
+      res.status(201).json(quickReply);
+    } catch (error) {
+      console.error('Error creating quick reply:', error);
+      res.status(400).json({ message: 'Invalid quick reply data' });
+    }
+  });
+
+  app.put('/api/quick-replies/:id', upload.single('file'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertQuickReplySchema.partial().parse(req.body);
+      
+      // Handle file upload for media types
+      if (req.file && validatedData.type !== 'text') {
+        const fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
+        
+        validatedData.fileUrl = fileUrl;
+        validatedData.fileName = req.file.originalname;
+        validatedData.fileSize = req.file.size;
+        validatedData.mimeType = req.file.mimetype;
+      }
+      
+      const quickReply = await storage.updateQuickReply(id, validatedData);
+      res.json(quickReply);
+    } catch (error) {
+      console.error('Error updating quick reply:', error);
+      res.status(400).json({ message: 'Invalid quick reply data' });
+    }
+  });
+
+  app.delete('/api/quick-replies/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteQuickReply(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting quick reply:', error);
+      res.status(500).json({ message: 'Failed to delete quick reply' });
+    }
+  });
+
+  app.patch('/api/quick-replies/:id/usage', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.incrementQuickReplyUsage(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error incrementing quick reply usage:', error);
+      res.status(500).json({ message: 'Failed to increment usage count' });
+    }
   });
 
   return httpServer;

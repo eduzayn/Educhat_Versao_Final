@@ -22,7 +22,7 @@ import {
   type QuickReplyWithCreator,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like } from "drizzle-orm";
+import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations for auth
@@ -395,19 +395,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementQuickReplyUsage(id: number): Promise<void> {
-    const [current] = await db
-      .select({ usageCount: quickReplies.usageCount })
-      .from(quickReplies)
+    await db
+      .update(quickReplies)
+      .set({
+        usageCount: sql`COALESCE(${quickReplies.usageCount}, 0) + 1`,
+      })
       .where(eq(quickReplies.id, id));
-    
-    if (current) {
-      await db
-        .update(quickReplies)
-        .set({
-          usageCount: (current.usageCount || 0) + 1,
-        })
-        .where(eq(quickReplies.id, id));
-    }
   }
 }
 

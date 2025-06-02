@@ -8,7 +8,7 @@ import { BackButton } from '@/shared/components/BackButton';
 import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye } from 'lucide-react';
 import { QuickReplyFormDialog } from './components/QuickReplyFormDialog';
 import { QuickReplyPreviewDialog } from './components/QuickReplyPreviewDialog';
-import { apiRequest } from '@/shared/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { QuickReply } from '@shared/schema';
 
