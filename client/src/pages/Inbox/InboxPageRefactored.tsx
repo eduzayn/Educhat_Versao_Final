@@ -570,6 +570,11 @@ export function InboxPageRefactored() {
             // Usar contador de mensagens não lidas do banco de dados
             const unreadCount = !isActive ? (conversation.unreadCount || 0) : 0;
             
+            // Log temporário para debug
+            if (conversation.unreadCount > 0) {
+              console.log(`Conversa ${conversation.contact.name}: ${conversation.unreadCount} mensagens não lidas`);
+            }
+            
             return (
               <div
                 key={`conversation-${conversation.id}-${index}`}
@@ -598,7 +603,7 @@ export function InboxPageRefactored() {
                           </span>
                         )}
                         {unreadCount > 0 && (
-                          <Badge className="bg-purple-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                          <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px] ml-1">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}
