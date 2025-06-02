@@ -638,7 +638,10 @@ export function InboxPage() {
           {hasNextPage && (
             <div className="p-4 border-t border-gray-100">
               <Button 
-                onClick={() => fetchNextPage()} 
+                onClick={() => {
+                  console.log(`🟢 Botão clicado! hasNextPage=${hasNextPage}, isFetchingNextPage=${isFetchingNextPage}`);
+                  fetchNextPage();
+                }} 
                 disabled={isFetchingNextPage}
                 variant="outline" 
                 className="w-full"
@@ -647,6 +650,11 @@ export function InboxPage() {
               </Button>
             </div>
           )}
+          
+          {/* Debug Info */}
+          <div className="p-2 text-xs text-gray-500 border-t">
+            Debug: hasNextPage={String(hasNextPage)}, pages={conversationsData?.pages?.length || 0}, total={uniqueConversations.length}
+          </div>
           
           {/* Loading inicial */}
           {isLoading && (
