@@ -276,28 +276,120 @@ export default function InboxPage() {
 
             {/* Área de envio de mensagem */}
             <div className="p-4 border-t border-gray-200 bg-white">
-              <div className="flex items-end space-x-2">
+              {/* Componente de gravação de áudio */}
+              {showAudioRecorder && (
+                <div className="mb-4 border rounded-lg p-3 bg-gray-50">
+                  <AudioRecorder
+                    onSendAudio={handleSendAudio}
+                    onCancel={handleCancelAudio}
+                  />
+                </div>
+              )}
+              
+              {/* Interface de digitação sempre visível */}
+              <div className="flex items-end space-x-3">
+                {/* Botão de anexo */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsAttachmentOpen(!isAttachmentOpen)}
+                    className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-full transition-colors"
+                    disabled={!activeConversation?.contact.phone}
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Menu de anexos */}
+                  {isAttachmentOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-lg shadow-lg p-2 space-y-1 z-10">
+                      <button
+                        onClick={() => {
+                          handleFileUpload('image');
+                          setIsAttachmentOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 p-2 hover:bg-gray-100 rounded text-sm"
+                      >
+                        <Image className="w-4 h-4" />
+                        <span>Imagem</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleFileUpload('document');
+                          setIsAttachmentOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 p-2 hover:bg-gray-100 rounded text-sm"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>Documento</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Campo de texto */}
                 <textarea
                   placeholder="Digite sua mensagem..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
-                  className="flex-1 min-h-[40px] max-h-32 resize-none p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 resize-none border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  rows={1}
+                  disabled={!activeConversation || sendMessageMutation.isPending}
                 />
+
+                {/* Botão de áudio */}
+                {!showAudioRecorder && (
+                  <button
+                    onClick={() => setShowAudioRecorder(true)}
+                    className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-full transition-colors"
+                    disabled={!activeConversation?.contact.phone}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </button>
+                )}
+
+                {/* Botão de emoji */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsEmojiOpen(!isEmojiOpen)}
+                    className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-full transition-colors"
+                    disabled={!activeConversation?.contact.phone}
+                  >
+                    <Smile className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Picker de emojis simples */}
+                  {isEmojiOpen && (
+                    <div className="absolute bottom-full right-0 mb-2 bg-white border rounded-lg shadow-lg p-2 z-10">
+                      <div className="grid grid-cols-4 gap-1">
+                        {emojis.map((emoji, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setNewMessage(prev => prev + emoji);
+                              setIsEmojiOpen(false);
+                            }}
+                            className="p-2 hover:bg-gray-100 rounded text-lg"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Botão de envio */}
                 <button
-                  onClick={() => {
-                    console.log('Enviando mensagem:', newMessage);
-                    setNewMessage('');
-                  }}
-                  disabled={!newMessage.trim()}
-                  className="h-10 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim() || !activeConversation || sendMessageMutation.isPending}
+                  className="p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5" />
                 </button>
               </div>
             </div>
