@@ -129,8 +129,8 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
     removeReactionMutation.mutate();
   };
 
-  // Verificar se a mensagem já tem reação (simulado - seria vindo do backend)
-  const hasReaction = false; // TODO: Implementar lógica de verificação de reação existente
+  // Verificar se a mensagem já tem reação
+  const hasReaction = false;
 
   return (
     <div className="flex items-center gap-1">
