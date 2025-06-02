@@ -665,17 +665,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Buscar ou criar contato pelo telefone
         const contacts = await storage.searchContacts(phone);
-        let contact = contacts.find(c => c.phone.replace(/\D/g, '') === phone);
+        let contact = contacts.find(c => c.phone?.replace(/\D/g, '') === phone);
         
         if (!contact) {
           contact = await storage.createContact({
             name: webhookData.senderName || webhookData.chatName || phone,
             phone: phone,
             email: null,
-            notes: null,
-            tags: [],
             isOnline: true,
-            profilePictureUrl: webhookData.photo || webhookData.senderPhoto || null
+            profileImageUrl: webhookData.photo || webhookData.senderPhoto || null
           });
         } else {
           await storage.updateContactOnlineStatus(contact.id, true);
@@ -688,8 +686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             contactId: contact.id,
             channel: 'whatsapp',
             status: 'open',
-            lastMessageAt: new Date(),
-            metadata: {}
+            lastMessageAt: new Date()
           });
         }
         
