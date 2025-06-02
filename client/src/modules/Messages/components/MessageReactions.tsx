@@ -167,7 +167,7 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
         <PopoverContent className="w-96 p-0" align="start">
           <div className="p-3">
             {/* Categorias */}
-            <div className="flex gap-1 mb-3 border-b pb-2">
+            <div className="flex flex-wrap gap-1 mb-3 border-b pb-2">
               {Object.entries(REACTION_CATEGORIES).map(([key, category]) => (
                 <Button
                   key={key}
@@ -175,7 +175,7 @@ export function MessageReactions({ message, conversationId, contactPhone }: Mess
                   size="sm"
                   onClick={() => setActiveCategory(key)}
                   className={cn(
-                    "text-xs px-2 py-1 h-7",
+                    "text-xs px-2 py-1 h-7 flex-shrink-0",
                     activeCategory === key && "bg-educhat-primary text-white"
                   )}
                 >
