@@ -240,6 +240,8 @@ export function InputArea() {
         const response = await fetch('/api/zapi/send-video', {
           method: 'POST',
           body: formData,
+          // Aumentar timeout para arquivos grandes
+          signal: AbortSignal.timeout(180000), // 3 minutos
         });
 
         console.log('📥 Resposta do servidor:', {
@@ -282,9 +284,12 @@ export function InputArea() {
     },
     onError: (error) => {
       console.error("Erro ao enviar vídeo:", error);
+      const isTimeout = error instanceof Error && (error.name === 'TimeoutError' || error.message.includes('timeout'));
       toast({
         title: "Erro ao enviar vídeo",
-        description: "Não foi possível enviar o vídeo. Tente novamente.",
+        description: isTimeout 
+          ? "O vídeo é muito grande. Arquivos maiores que 50MB podem demorar mais para enviar."
+          : "Não foi possível enviar o vídeo. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     }
