@@ -1,0 +1,80 @@
+A estrutura do seu arquivo ContactsPage está bem construída e rica em funcionalidades, mas, como se trata de um componente muito longo (com centenas de linhas), refatorar em componentes menores vai melhorar muito a legibilidade, manutenção e reuso do código.
+
+✅ O que está bom:
+Uso adequado de useState para controle local.
+
+Boas práticas de UX (modais, estados de carregamento, notificações).
+
+Integração bem feita com hooks de dados (useContacts, useZApiStore, etc).
+
+Interface robusta, com formulário completo, paginação, filtros e ações.
+
+⚠️ Oportunidades de refatoração:
+Você pode dividir o código em pastas e componentes reutilizáveis da seguinte forma:
+
+🧩 Sugestão de organização em pastas:
+bash
+Copiar
+Editar
+/components/Contacts
+├── ContactList.tsx
+├── ContactTableRow.tsx
+├── ContactPagination.tsx
+├── CreateContactDialog.tsx
+├── EditContactDialog.tsx
+├── ViewContactDialog.tsx
+├── DeleteContactDialog.tsx
+└── ContactFilters.tsx
+🔍 Componentes recomendados para extração:
+1. CreateContactDialog.tsx
+Extrair toda a lógica e formulário do modal de criação de contato (estado isCreating, createForm, newTags).
+
+2. EditContactDialog.tsx
+Responsável apenas pelo modal de edição do contato.
+
+3. ViewContactDialog.tsx
+Toda a visualização detalhada de um contato (avatar, metadata do WhatsApp etc).
+
+4. DeleteContactDialog.tsx
+Modal de confirmação de exclusão.
+
+5. ContactList.tsx
+Engloba a tabela com header + rows.
+
+6. ContactTableRow.tsx
+Componente para uma única linha de contato.
+
+7. ContactPagination.tsx
+Responsável pela navegação entre páginas e botões numerados.
+
+8. ContactFilters.tsx
+Onde ficam os filtros, busca, botão de sincronização com WhatsApp e atualização de fotos.
+
+🎯 Como iniciar a refatoração
+Você pode começar por onde há maior volume repetitivo e lógica isolada:
+
+tsx
+Copiar
+Editar
+// Exemplo de como extrair:
+<CreateContactDialog
+  isOpen={isCreating}
+  onClose={() => setIsCreating(false)}
+  onSubmit={handleCreateContact}
+  form={createForm}
+  setForm={setCreateForm}
+  newTags={newTags}
+  setNewTags={setNewTags}
+  currentTag={currentTag}
+  setCurrentTag={setCurrentTag}
+  isWhatsAppAvailable={isWhatsAppAvailable}
+/>
+🧠 Benefícios da refatoração:
+Código mais limpo, modular e reutilizável.
+
+Mais fácil de testar unitariamente.
+
+Menor chance de bugs ao fazer alterações localizadas.
+
+Facilita manutenção por outras pessoas da equipe.
+
