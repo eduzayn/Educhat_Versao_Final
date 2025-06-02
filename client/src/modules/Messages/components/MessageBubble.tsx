@@ -166,8 +166,29 @@ function ImageMessage({ message, isFromContact }: { message: Message; isFromCont
   const fileSize = (metadata as any).fileSize;
   const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : '';
 
-  // Verificar se é uma imagem válida
-  const imageUrl = message.content?.startsWith('data:image/') ? message.content : null;
+  // Verificar múltiplas fontes de URL da imagem
+  let imageUrl = null;
+  
+  // 1. Verificar se é uma imagem em base64 (enviadas pelo sistema)
+  if (message.content?.startsWith('data:image/')) {
+    imageUrl = message.content;
+  }
+  // 2. Verificar se há URL da imagem nos metadados (recebidas via WhatsApp)
+  else if (metadata && typeof metadata === 'object') {
+    const meta = metadata as any;
+    // Verificar imageUrl no objeto image dos metadados
+    if (meta.image && meta.image.imageUrl) {
+      imageUrl = meta.image.imageUrl;
+    }
+    // Verificar thumbnailUrl como fallback
+    else if (meta.image && meta.image.thumbnailUrl) {
+      imageUrl = meta.image.thumbnailUrl;
+    }
+    // Verificar se há imageUrl diretamente nos metadados
+    else if (meta.imageUrl) {
+      imageUrl = meta.imageUrl;
+    }
+  }
 
   return (
     <div className={`max-w-md ${
