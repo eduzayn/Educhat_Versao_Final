@@ -303,8 +303,24 @@ export class DatabaseStorage implements IStorage {
 
   // Message operations
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
+    // Consulta otimizada com campos específicos para melhor performance
     return await db
-      .select()
+      .select({
+        id: messages.id,
+        conversationId: messages.conversationId,
+        content: messages.content,
+        isFromContact: messages.isFromContact,
+        messageType: messages.messageType,
+        metadata: messages.metadata,
+        isDeleted: messages.isDeleted,
+        sentAt: messages.sentAt,
+        deliveredAt: messages.deliveredAt,
+        readAt: messages.readAt,
+        whatsappMessageId: messages.whatsappMessageId,
+        zapiStatus: messages.zapiStatus,
+        isGroup: messages.isGroup,
+        referenceMessageId: messages.referenceMessageId
+      })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.sentAt))
