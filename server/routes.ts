@@ -655,27 +655,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messageContent = 'Mensagem sem conteúdo de texto';
         }
         
+        const timestamp = webhookData.momment ? new Date(parseInt(webhookData.momment)) : new Date();
+        
         console.log('📱 Nova mensagem via WhatsApp:', {
           de: phone,
           nome: webhookData.senderName || webhookData.chatName,
           mensagem: messageContent,
           tipo: messageType,
-          timestamp: new Date(webhookData.momment || Date.now())
+          timestamp: timestamp
         });
         
         // Buscar ou criar contato pelo telefone
         const contacts = await storage.searchContacts(phone);
-        let contact = contacts.find(c => c.phone.replace(/\D/g, '') === phone);
+        let contact = contacts.find(c => c.phone && c.phone.replace(/\D/g, '') === phone);
         
         if (!contact) {
           contact = await storage.createContact({
             name: webhookData.senderName || webhookData.chatName || phone,
             phone: phone,
             email: null,
-            notes: null,
-            tags: [],
             isOnline: true,
-            profilePictureUrl: webhookData.photo || webhookData.senderPhoto || null
+            profileImageUrl: webhookData.photo || webhookData.senderPhoto || null
           });
         } else {
           await storage.updateContactOnlineStatus(contact.id, true);
@@ -688,8 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             contactId: contact.id,
             channel: 'whatsapp',
             status: 'open',
-            lastMessageAt: new Date(),
-            metadata: {}
+            lastMessageAt: new Date()
           });
         }
         
@@ -699,7 +698,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: messageContent,
           isFromContact: !webhookData.fromMe, // fromMe indica se foi enviada pela própria instância
           messageType: messageType,
-          sentAt: new Date(webhookData.momment || Date.now()),
           metadata: webhookData
         });
         
