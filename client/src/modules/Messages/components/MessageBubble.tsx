@@ -64,8 +64,22 @@ function AudioMessage({ message, isFromContact }: { message: Message; isFromCont
     setCurrentTime(0);
   };
 
-  // Criar URL do áudio se estiver disponível no conteúdo
-  const audioUrl = message.content?.startsWith('data:audio/') ? message.content : null;
+  // Verificar se é um áudio válido - pode vir direto como data URL ou como string base64
+  let audioUrl = null;
+  if (message.content?.startsWith('data:audio/')) {
+    audioUrl = message.content;
+  } else if (message.messageType === 'audio' && message.content) {
+    // Caso o conteúdo seja apenas base64 sem o prefixo, tentar construir a URL
+    try {
+      // Verificar se parece com base64
+      if (message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
+        const mimeType = metadata.mimeType || 'audio/mp4';
+        audioUrl = `data:${mimeType};base64,${message.content}`;
+      }
+    } catch (e) {
+      console.log('Não foi possível processar áudio:', e);
+    }
+  }
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
