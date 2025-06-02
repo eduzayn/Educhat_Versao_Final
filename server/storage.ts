@@ -198,22 +198,52 @@ export class DatabaseStorage implements IStorage {
 
     console.log(`📊 Conversas encontradas com filtro: ${conversationsData.length}`);
 
+    // Buscar todas as últimas mensagens de uma vez usando uma subconsulta otimizada
+    const conversationIds = conversationsData
+      .filter(row => row.conversations)
+      .map(row => row.conversations!.id);
+    
+    const lastMessagesMap = new Map<number, any>();
+    
+    if (conversationIds.length > 0) {
+      // Subconsulta para encontrar o ID da última mensagem de cada conversa
+      const lastMessageIds = await db
+        .select({
+          conversationId: messages.conversationId,
+          lastMessageId: sql<number>`MAX(${messages.id})`.as('lastMessageId')
+        })
+        .from(messages)
+        .where(sql`${messages.conversationId} IN (${sql.join(conversationIds, sql`, `)})`)
+        .groupBy(messages.conversationId);
+
+      // Buscar as mensagens completas dos IDs encontrados
+      if (lastMessageIds.length > 0) {
+        const messageIds = lastMessageIds.map(row => row.lastMessageId);
+        const lastMessages = await db
+          .select()
+          .from(messages)
+          .where(sql`${messages.id} IN (${sql.join(messageIds, sql`, `)})`);
+
+        // Mapear mensagens por conversationId
+        for (const msgIdRow of lastMessageIds) {
+          const message = lastMessages.find(m => m.id === msgIdRow.lastMessageId);
+          if (message) {
+            lastMessagesMap.set(msgIdRow.conversationId, message);
+          }
+        }
+      }
+    }
+
     const result: ConversationWithContact[] = [];
     
     for (const row of conversationsData) {
       if (row.conversations && row.contacts) {
-        // Buscar última mensagem
-        const lastMessages = await db
-          .select()
-          .from(messages)
-          .where(eq(messages.conversationId, row.conversations.id))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
-
+        const lastMessage = lastMessagesMap.get(row.conversations.id);
+        
         result.push({
           ...row.conversations,
           contact: row.contacts,
-          messages: lastMessages,
+          messages: lastMessage ? [lastMessage] : [],
         });
       }
     }
