@@ -127,7 +127,7 @@ export function ContactTableRow({
       </td>
       
       <td className="px-6 py-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end space-x-2">
           <Button
             variant="ghost"
             size="sm"
