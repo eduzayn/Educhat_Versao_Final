@@ -2009,6 +2009,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para marcar mensagens como lidas via Z-API
+  app.post('/api/zapi/read-message', async (req, res) => {
+    try {
+      console.log('📖 Recebendo solicitação para marcar mensagem como lida:', req.body);
+      
+      const { phone, messageId } = req.body;
+      
+      if (!phone || !messageId) {
+        console.log('❌ Dados ausentes:', { phone: !!phone, messageId: !!messageId });
+        return res.status(400).json({ 
+          error: 'Telefone e messageId são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      console.log('🔑 Credenciais Z-API:', {
+        instanceId: instanceId ? 'OK' : 'MISSING',
+        token: token ? 'OK' : 'MISSING',
+        clientToken: clientToken ? 'OK' : 'MISSING'
+      });
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      // Criar payload conforme documentação Z-API
+      const payload = {
+        phone: phone,
+        messageId: messageId
+      };
+
+      console.log('📤 Enviando solicitação de leitura para Z-API:', payload);
+
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/read-message`, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API read-message:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Sucesso ao marcar mensagem como lida:', data);
+
+      // Atualizar status no banco de dados local
+      if (messageId) {
+        await storage.updateMessageStatus(messageId, 'READ');
+      }
+
+      res.json({
+        success: true,
+        ...data
+      });
+    } catch (error) {
+      console.error('💥 Erro ao marcar mensagem como lida via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
     try {

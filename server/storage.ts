@@ -303,6 +303,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, id));
   }
 
+  async updateMessageStatus(whatsappMessageId: string, status: string): Promise<void> {
+    await db
+      .update(messages)
+      .set({ 
+        zapiStatus: status,
+        readAt: status === 'READ' ? new Date() : undefined
+      })
+      .where(eq(messages.whatsappMessageId, whatsappMessageId));
+  }
+
   // Contact tag operations
   async getContactTags(contactId: number): Promise<ContactTag[]> {
     return await db
