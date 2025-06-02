@@ -165,7 +165,7 @@ export class DatabaseStorage implements IStorage {
     const conversationsWithContacts = await db
       .select()
       .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(contacts, eq(conversations.contact_id, contacts.id))
       .where(
         and(
           isNotNull(contacts.phone),
