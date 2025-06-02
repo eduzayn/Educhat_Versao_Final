@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { MessageSquare, Search, Send } from 'lucide-react';
+import { MessageSquare, Search, Send, Paperclip, Mic, Smile, Image, FileText, Link, X } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact } from '@shared/schema';
+import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
 
 export default function InboxPage() {
   const { 
@@ -17,6 +18,9 @@ export default function InboxPage() {
   const [activeConversation, setActiveConversation] = useState<ConversationWithContact | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [newMessage, setNewMessage] = useState('');
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { phone: string; text: string }) => {
@@ -45,7 +49,7 @@ export default function InboxPage() {
   });
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !activeConversation) return;
+    if (!newMessage.trim() || !activeConversation || !activeConversation.contact.phone) return;
     
     try {
       await sendMessageMutation.mutateAsync({
@@ -61,6 +65,34 @@ export default function InboxPage() {
   const handleSelectConversation = (conversation: ConversationWithContact) => {
     setActiveConversation(conversation);
   };
+
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    if (!activeConversation || !activeConversation.contact.phone) return;
+    
+    setShowAudioRecorder(false);
+    console.log('Enviando áudio:', { duration, phone: activeConversation.contact.phone });
+    // TODO: Implementar envio de áudio via API
+  };
+
+  const handleCancelAudio = () => {
+    setShowAudioRecorder(false);
+  };
+
+  const handleFileUpload = (type: 'image' | 'document') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'image' ? 'image/*' : '.pdf,.doc,.docx,.txt';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file && activeConversation?.contact.phone) {
+        console.log('Enviando arquivo:', { type, fileName: file.name, phone: activeConversation.contact.phone });
+        // TODO: Implementar envio de arquivo via API
+      }
+    };
+    input.click();
+  };
+
+  const emojis = ['👍', '❤️', '😊', '😂', '😢', '😮', '😡', '🎉'];
 
   // Filtrar conversas baseado na busca
   const filteredConversations = conversations?.filter(conversation => {
