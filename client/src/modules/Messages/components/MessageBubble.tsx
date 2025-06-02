@@ -384,13 +384,17 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
       console.log('✅ Resposta da exclusão:', response);
 
-      // Marcar mensagem como deletada na interface
-      setIsDeleted(true);
+      // Remover mensagem diretamente do cache
+      queryClient.setQueryData(
+        [`/api/conversations/${conversationId}/messages`],
+        (oldData: any[] | undefined) => {
+          if (!oldData) return [];
+          return oldData.filter(msg => msg.id !== message.id);
+        }
+      );
 
-      // Invalidar cache das mensagens para atualizar a lista
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/conversations', conversationId, 'messages'] 
-      });
+      // Também marcar como deletada localmente como fallback
+      setIsDeleted(true);
 
       toast({
         title: "Sucesso",

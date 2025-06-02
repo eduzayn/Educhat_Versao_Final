@@ -70,26 +70,48 @@ export function useWebSocket() {
             }
             break;
           case 'message_deleted':
-            if (data.messageId && data.conversationId) {
+            if ((data as any).messageId && (data as any).conversationId) {
+              const deleteData = data as any;
               console.log('🗑️ Mensagem deletada via WebSocket:', {
-                conversationId: data.conversationId,
-                messageId: data.messageId
+                conversationId: deleteData.conversationId,
+                messageId: deleteData.messageId
               });
               
               // Atualizar cache removendo a mensagem deletada
               queryClient.setQueryData(
-                [`/api/conversations/${data.conversationId}/messages`],
-                (oldData: Message[] | undefined) => {
+                [`/api/conversations/${deleteData.conversationId}/messages`],
+                (oldData: any[] | undefined) => {
                   if (!oldData) return [];
-                  return oldData.filter(msg => {
+                  const filteredData = oldData.filter(msg => {
                     const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
                     const msgId = 'messageId' in metadata ? metadata.messageId : 
                                  'zaapId' in metadata ? metadata.zaapId : 
                                  'id' in metadata ? metadata.id : null;
-                    return msgId !== data.messageId;
+                    
+                    console.log('🔍 Comparando mensagem:', {
+                      localMsgId: msg.id,
+                      metadataId: msgId,
+                      deleteId: deleteData.messageId,
+                      shouldKeep: msgId !== deleteData.messageId
+                    });
+                    
+                    return msgId !== deleteData.messageId;
                   });
+                  
+                  console.log('📊 Resultado da filtragem:', {
+                    antes: oldData.length,
+                    depois: filteredData.length,
+                    removidas: oldData.length - filteredData.length
+                  });
+                  
+                  return filteredData;
                 }
               );
+              
+              // Invalidar cache para forçar atualização
+              queryClient.invalidateQueries({ 
+                queryKey: [`/api/conversations/${deleteData.conversationId}/messages`] 
+              });
             }
             break;
         }
