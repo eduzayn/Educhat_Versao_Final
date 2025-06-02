@@ -274,6 +274,10 @@ export function InputArea() {
         queryClient.invalidateQueries({ 
           queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
         });
+        // Força um refetch imediato
+        queryClient.refetchQueries({ 
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
+        });
       }
     },
     onError: (error) => {
