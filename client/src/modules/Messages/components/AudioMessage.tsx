@@ -3,16 +3,20 @@ import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
 
 interface AudioMessageProps {
-  audioUrl: string;
+  audioUrl: string | null;
   duration?: number;
   isFromContact: boolean;
+  messageIdForFetch?: string;
 }
 
-export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessageProps) {
+export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFetch }: AudioMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(audioUrl);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const formatTime = (time: number) => {
@@ -21,7 +25,42 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Função para buscar áudio via API
+  const fetchAudioContent = async () => {
+    if (!messageIdForFetch || isLoadingAudio) return;
+    
+    setIsLoadingAudio(true);
+    setAudioError(null);
+    
+    try {
+      console.log('🔍 Buscando conteúdo do áudio via API para messageId:', messageIdForFetch);
+      
+      const response = await fetch(`/api/messages/${messageIdForFetch}/audio`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Áudio carregado com sucesso via API');
+        setFetchedAudioUrl(data.audioUrl);
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Erro ao buscar áudio:', errorData);
+        setAudioError(errorData.error || 'Erro ao carregar áudio');
+      }
+    } catch (error) {
+      console.error('💥 Erro na requisição de áudio:', error);
+      setAudioError('Erro de conexão ao carregar áudio');
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
   const togglePlayPause = async () => {
+    // Se não temos URL de áudio e temos messageId para buscar, fazer o fetch primeiro
+    if (!fetchedAudioUrl && messageIdForFetch && !isLoadingAudio) {
+      await fetchAudioContent();
+      return;
+    }
+    
     if (!isLoaded) {
       console.log('Carregando áudio pela primeira vez...');
       setIsLoaded(true);
@@ -100,10 +139,10 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
         ? 'bg-gray-100 text-gray-900' 
         : 'bg-blue-600 text-white'
     }`}>
-      {isLoaded && (
+      {isLoaded && fetchedAudioUrl && (
         <audio
           ref={audioRef}
-          src={audioUrl}
+          src={fetchedAudioUrl || undefined}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
@@ -134,7 +173,9 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
         <div className="flex items-center gap-2 mb-1">
           <Volume2 className="w-3 h-3 opacity-70" />
           <span className="text-xs opacity-70">
-            {isLoaded ? 'Áudio' : 'Clique para carregar áudio'}
+            {isLoadingAudio ? 'Carregando áudio...' : 
+             audioError ? 'Erro ao carregar' :
+             isLoaded ? 'Áudio' : 'Clique para carregar áudio'}
           </span>
         </div>
         

@@ -1255,6 +1255,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar conteúdo de áudio por messageId
+  app.get('/api/messages/:messageId/audio', async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token } = credentials;
+      
+      // Buscar o áudio na Z-API usando o messageId
+      const audioUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/download-media/${messageId}`;
+      
+      console.log(`📁 Buscando áudio para messageId: ${messageId}`);
+      
+      const response = await fetch(audioUrl, {
+        method: 'GET',
+        headers: {
+          'Client-Token': process.env.ZAPI_CLIENT_TOKEN || ''
+        }
+      });
+
+      if (response.ok) {
+        const audioBuffer = await response.arrayBuffer();
+        const base64Audio = Buffer.from(audioBuffer).toString('base64');
+        const mimeType = response.headers.get('content-type') || 'audio/mp4';
+        const dataUrl = `data:${mimeType};base64,${base64Audio}`;
+        
+        res.json({ 
+          success: true, 
+          audioUrl: dataUrl,
+          mimeType 
+        });
+      } else {
+        console.error(`❌ Erro ao baixar áudio: ${response.status} ${response.statusText}`);
+        res.status(404).json({ 
+          error: 'Áudio não encontrado',
+          details: `Status: ${response.status}`
+        });
+      }
+    } catch (error) {
+      console.error('💥 Erro ao buscar áudio:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   app.get('/api/zapi/status', async (req, res) => {
     try {
       const baseUrl = 'https://api.z-api.io'; // URL fixa da Z-API

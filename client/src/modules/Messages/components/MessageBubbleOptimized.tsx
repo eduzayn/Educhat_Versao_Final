@@ -119,8 +119,24 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
 
       console.log('🎧 URL do áudio processada:', audioUrl);
 
-      // Se não temos URL válida, mostrar fallback
+      // Se não temos URL válida, tentar buscar usando messageId dos metadados
       if (!audioUrl) {
+        const messageIdFromMetadata = (message.metadata as any)?.messageId;
+        if (messageIdFromMetadata) {
+          console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdFromMetadata);
+          
+          const duration = (message.metadata as any)?.duration || 0;
+          return (
+            <AudioMessage
+              audioUrl={null}
+              duration={duration}
+              isFromContact={isFromContact}
+              messageIdForFetch={messageIdFromMetadata}
+            />
+          );
+        }
+        
+        // Se não tem messageId, mostrar fallback
         return (
           <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
             <Volume2 className="w-4 h-4 text-red-500" />
