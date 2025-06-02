@@ -776,7 +776,7 @@ export function ContactsPage() {
                   <div className="col-span-1">Empresa</div>
                   <div className="col-span-1">Tipo</div>
                   <div className="col-span-1">Proprietário</div>
-                  <div className="col-span-1">Ações</div>
+                  <div className="col-span-1 text-right">Ações</div>
                 </div>
               </div>
 
