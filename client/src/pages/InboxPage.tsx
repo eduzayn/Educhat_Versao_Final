@@ -86,7 +86,7 @@ export function InboxPage() {
     fetchNextPage: fetchNextPageMessages, 
     hasNextPage: hasNextPageMessages, 
     isFetchingNextPage: isFetchingNextPageMessages 
-  } = useMessages(activeConversation?.id || null, 30); // Carregar 30 mensagens por vez para produção
+  } = useMessages(activeConversation?.id || null, 5); // Carregar 5 mensagens por vez para demonstrar paginação
   
   // Flatten das páginas de mensagens
   const messages = messagesData?.pages.flat() || [];
@@ -763,7 +763,7 @@ export function InboxPage() {
                   )}
                   
                   {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
-                  {messages.map((message) => (
+                  {[...messages].reverse().map((message) => (
                     <MessageBubble 
                       key={message.id} 
                       message={message} 

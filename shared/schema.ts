@@ -65,6 +65,11 @@ export const messages = pgTable("messages", {
   sentAt: timestamp("sent_at").defaultNow(),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),
+  // Campos adicionais da Z-API
+  whatsappMessageId: varchar("whatsapp_message_id", { length: 50 }), // messageId do WhatsApp
+  zapiStatus: varchar("zapi_status", { length: 20 }), // PENDING, SENT, RECEIVED, READ, PLAYED
+  isGroup: boolean("is_group").default(false), // se a mensagem veio de grupo
+  referenceMessageId: varchar("reference_message_id", { length: 50 }), // para respostas
 });
 
 // Contact tags table
@@ -119,7 +124,6 @@ export const insertConversationSchema = createInsertSchema(conversations).omit({
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
-  sentAt: true,
   deliveredAt: true,
   readAt: true,
 });

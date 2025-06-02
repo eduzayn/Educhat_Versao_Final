@@ -12,7 +12,7 @@ export function useMessages(conversationId: number | null, limit = 50) {
       }
       const messages = await response.json();
       // Retornar em ordem cronológica (mais antigas primeiro)
-      return messages;
+      return messages.reverse();
     },
     getNextPageParam: (lastPage, allPages) => {
       // Se a última página tem menos itens que o limite, não há mais páginas

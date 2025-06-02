@@ -655,27 +655,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messageContent = 'Mensagem sem conteúdo de texto';
         }
         
-        const timestamp = webhookData.momment ? new Date(parseInt(webhookData.momment)) : new Date();
-        
         console.log('📱 Nova mensagem via WhatsApp:', {
           de: phone,
           nome: webhookData.senderName || webhookData.chatName,
           mensagem: messageContent,
           tipo: messageType,
-          timestamp: timestamp
+          timestamp: new Date(webhookData.momment || Date.now())
         });
         
         // Buscar ou criar contato pelo telefone
         const contacts = await storage.searchContacts(phone);
-        let contact = contacts.find(c => c.phone && c.phone.replace(/\D/g, '') === phone);
+        let contact = contacts.find(c => c.phone.replace(/\D/g, '') === phone);
         
         if (!contact) {
           contact = await storage.createContact({
             name: webhookData.senderName || webhookData.chatName || phone,
             phone: phone,
             email: null,
+            notes: null,
+            tags: [],
             isOnline: true,
-            profileImageUrl: webhookData.photo || webhookData.senderPhoto || null
+            profilePictureUrl: webhookData.photo || webhookData.senderPhoto || null
           });
         } else {
           await storage.updateContactOnlineStatus(contact.id, true);
@@ -688,17 +688,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             contactId: contact.id,
             channel: 'whatsapp',
             status: 'open',
-            lastMessageAt: new Date()
+            lastMessageAt: new Date(),
+            metadata: {}
           });
         }
         
-        // Criar mensagem
+        // Criar mensagem com campos adicionais da Z-API
         const message = await storage.createMessage({
           conversationId: conversation.id,
           content: messageContent,
           isFromContact: !webhookData.fromMe, // fromMe indica se foi enviada pela própria instância
           messageType: messageType,
-          metadata: webhookData
+          sentAt: new Date(webhookData.momment || Date.now()),
+          metadata: webhookData,
+          // Campos adicionais da documentação Z-API
+          whatsappMessageId: webhookData.messageId || null,
+          zapiStatus: webhookData.status || 'RECEIVED',
+          isGroup: webhookData.isGroup || false,
+          referenceMessageId: webhookData.referenceMessageId || null
         });
         
         // Broadcast para clientes conectados
@@ -1379,7 +1386,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           metadata: {
             zaapId: data.zaapId || data.id,
             messageId: data.messageId || data.id
-          }
+          },
+          // Campos adicionais da Z-API
+          whatsappMessageId: data.messageId || data.id,
+          zapiStatus: 'SENT',
+          isGroup: false,
+          referenceMessageId: null
         });
 
         // Broadcast para outros clientes conectados
