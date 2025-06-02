@@ -1785,6 +1785,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64Data = documentFile.buffer.toString('base64');
       const documentBase64 = `data:${documentFile.mimetype};base64,${base64Data}`;
 
+      // Extrair extensão do arquivo
+      const fileExtension = documentFile.originalname.split('.').pop()?.toLowerCase() || 'pdf';
+
       // Payload conforme documentação Z-API
       const payload = {
         phone: phone.replace(/\D/g, ''),
@@ -1792,7 +1795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileName: documentFile.originalname
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document/${fileExtension}`;
       console.log('Enviando documento para Z-API:', { 
         url, 
         phone: payload.phone,
