@@ -9,12 +9,13 @@ export interface TypingIndicator {
 }
 
 export interface WebSocketMessage {
-  type: 'new_message' | 'typing' | 'join_conversation' | 'send_message' | 'online_status';
+  type: 'new_message' | 'typing' | 'join_conversation' | 'send_message' | 'online_status' | 'status_update';
   conversationId?: number;
   message?: Message;
   isTyping?: boolean;
   contactId?: number;
   isOnline?: boolean;
+  status?: ConversationStatus;
 }
 
 export interface ChatState {
@@ -62,22 +63,37 @@ export const CHANNELS: Record<string, ChannelInfo> = {
   }
 };
 
-export type ConversationStatus = 'open' | 'pending' | 'resolved';
+export type ConversationStatus = 'open' | 'pending' | 'resolved' | 'closed' | 'new' | 'in_progress';
 
 export const STATUS_CONFIG: Record<ConversationStatus, { color: string; bgColor: string; label: string }> = {
   open: {
-    color: 'text-green-600',
+    color: 'text-green-700',
     bgColor: 'bg-green-100',
-    label: 'Open'
+    label: 'Ativa'
   },
   pending: {
-    color: 'text-yellow-600',
+    color: 'text-yellow-700',
     bgColor: 'bg-yellow-100',
-    label: 'Pending'
+    label: 'Aguardando'
   },
   resolved: {
-    color: 'text-gray-600',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100',
+    label: 'Resolvida'
+  },
+  closed: {
+    color: 'text-gray-700',
     bgColor: 'bg-gray-100',
-    label: 'Resolved'
+    label: 'Encerrada'
+  },
+  new: {
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-100',
+    label: 'Nova'
+  },
+  in_progress: {
+    color: 'text-orange-700',
+    bgColor: 'bg-orange-100',
+    label: 'Em Andamento'
   }
 };

@@ -242,6 +242,47 @@ export function InboxPage() {
     }).format(new Date(date));
   };
 
+  // Função para alterar status da conversa
+  const handleStatusChange = async (conversationId: number, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar status');
+      }
+
+      // Atualizar o estado local imediatamente para melhor UX
+      if (activeConversation && activeConversation.id === conversationId) {
+        setActiveConversation({
+          ...activeConversation,
+          status: newStatus
+        });
+      }
+
+      // Recarregar conversas para manter sincronização
+      refetch();
+      
+      toast({
+        title: "Status atualizado",
+        description: `Status da conversa alterado para: ${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label || newStatus}`,
+      });
+
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da conversa",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -629,7 +670,48 @@ export function InboxPage() {
                       </span>
                     </div>
                     <div className="flex items-center space-x-2 mt-0.5">
-                      {getStatusBadge(activeConversation.status)}
+                      <Select 
+                        value={activeConversation.status} 
+                        onValueChange={(newStatus) => handleStatusChange(activeConversation.id, newStatus)}
+                      >
+                        <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
+                          <SelectValue>
+                            <Badge 
+                              variant="secondary" 
+                              className={`${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.color} text-xs`}
+                            >
+                              {STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.label || activeConversation.status}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                              Ativa
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="pending">
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                              Aguardando
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="in_progress">
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                              Em Andamento
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="resolved">
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                              Resolvida
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="closed">
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-xs">
+                              Encerrada
+                            </Badge>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
