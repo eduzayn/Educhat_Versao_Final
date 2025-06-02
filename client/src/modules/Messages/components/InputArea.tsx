@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload, Zap } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Input } from '@/shared/ui/ui/input';
 import { Label } from '@/shared/ui/ui/label';
+import { Badge } from '@/shared/ui/ui/badge';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
 import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
@@ -13,8 +14,9 @@ import { useChatStore } from '@/shared/store/store/chatStore';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { AudioRecorder } from './AudioRecorder';
 import { cn } from '@/lib/utils';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import type { QuickReply } from '@shared/schema';
 
 const QUICK_REPLIES = [
   'Obrigado pelo contato!',
@@ -35,6 +37,9 @@ export function InputArea() {
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [quickReplyFilter, setQuickReplyFilter] = useState('');
+  const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,6 +51,18 @@ export function InputArea() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Buscar respostas rápidas do servidor
+  const { data: quickReplies = [] } = useQuery<QuickReply[]>({
+    queryKey: ['/api/quick-replies'],
+    enabled: true,
+  });
+
+  // Filtrar respostas rápidas baseado no texto após "/"
+  const filteredQuickReplies = quickReplies.filter(reply => 
+    reply.title.toLowerCase().includes(quickReplyFilter.toLowerCase()) ||
+    (reply.description?.toLowerCase().includes(quickReplyFilter.toLowerCase()) ?? false)
+  );
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -56,6 +73,24 @@ export function InputArea() {
 
   const handleTyping = (value: string) => {
     setMessage(value);
+    
+    // Detectar "/" para ativar respostas rápidas
+    const lastSlashIndex = value.lastIndexOf('/');
+    if (lastSlashIndex !== -1 && lastSlashIndex === value.length - 1) {
+      // "/" no final da mensagem
+      setShowQuickReplies(true);
+      setQuickReplyFilter('');
+      setSelectedQuickReplyIndex(0);
+    } else if (lastSlashIndex !== -1 && value.substring(lastSlashIndex + 1).indexOf(' ') === -1) {
+      // "/" seguido de texto sem espaço
+      setShowQuickReplies(true);
+      setQuickReplyFilter(value.substring(lastSlashIndex + 1));
+      setSelectedQuickReplyIndex(0);
+    } else {
+      // Não há "/" ativo ou há espaço após o texto
+      setShowQuickReplies(false);
+      setQuickReplyFilter('');
+    }
     
     if (!activeConversation) return;
 
@@ -110,9 +145,135 @@ export function InputArea() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    // Navegação nas respostas rápidas
+    if (showQuickReplies && filteredQuickReplies.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedQuickReplyIndex(prev => 
+          prev < filteredQuickReplies.length - 1 ? prev + 1 : 0
+        );
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedQuickReplyIndex(prev => 
+          prev > 0 ? prev - 1 : filteredQuickReplies.length - 1
+        );
+        return;
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowQuickReplies(false);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (showQuickReplies && filteredQuickReplies.length > 0) {
+        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
+      } else {
+        handleSendMessage();
+      }
+    }
+  };
+
+  const selectQuickReply = (quickReply: QuickReply) => {
+    const lastSlashIndex = message.lastIndexOf('/');
+    const beforeSlash = message.substring(0, lastSlashIndex);
+    
+    let content = '';
+    if (quickReply.type === 'text') {
+      content = quickReply.content || '';
+    } else if (quickReply.type === 'audio' && quickReply.fileUrl) {
+      // Para áudio, enviar diretamente
+      handleSendQuickReplyAudio(quickReply);
+      return;
+    } else if (quickReply.type === 'image' && quickReply.fileUrl) {
+      // Para imagem, enviar diretamente
+      handleSendImage(quickReply);
+      return;
+    } else if (quickReply.type === 'video' && quickReply.fileUrl) {
+      // Para vídeo, enviar diretamente
+      handleSendVideo(quickReply);
+      return;
+    }
+    
+    setMessage(beforeSlash + content);
+    setShowQuickReplies(false);
+    textareaRef.current?.focus();
+  };
+
+  const handleSendQuickReplyAudio = async (quickReply: QuickReply) => {
+    if (!activeConversation || !quickReply.audioUrl) return;
+    
+    try {
+      await sendAudioMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        audioUrl: quickReply.audioUrl,
+        contact: activeConversation.contact,
+      });
+      setMessage('');
+      setShowQuickReplies(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar áudio. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendImage = async (quickReply: QuickReply) => {
+    if (!activeConversation || !quickReply.imageUrl) return;
+    
+    try {
+      await sendMessageMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        message: {
+          content: quickReply.imageUrl,
+          isFromContact: false,
+          messageType: 'image',
+        },
+        contact: activeConversation.contact,
+      });
+      setMessage('');
+      setShowQuickReplies(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar imagem. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendVideo = async (quickReply: QuickReply) => {
+    if (!activeConversation || !quickReply.videoUrl) return;
+    
+    try {
+      await sendMessageMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        message: {
+          content: quickReply.videoUrl,
+          isFromContact: false,
+          messageType: 'video',
+        },
+        contact: activeConversation.contact,
+      });
+      setMessage('');
+      setShowQuickReplies(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar vídeo. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -642,6 +803,70 @@ export function InputArea() {
             className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             rows={1}
           />
+          
+          {/* Dropdown de Respostas Rápidas */}
+          {showQuickReplies && filteredQuickReplies.length > 0 && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+              <div className="p-2 border-b border-gray-100 bg-gray-50">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Respostas Rápidas ({filteredQuickReplies.length})
+                </div>
+              </div>
+              {filteredQuickReplies.map((reply, index) => (
+                <div
+                  key={reply.id}
+                  className={cn(
+                    "p-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50",
+                    index === selectedQuickReplyIndex && "bg-blue-50 border-blue-200"
+                  )}
+                  onClick={() => selectQuickReply(reply)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-gray-900">{reply.title}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {reply.contentType === 'text' ? 'Texto' : 
+                           reply.contentType === 'audio' ? 'Áudio' :
+                           reply.contentType === 'image' ? 'Imagem' : 'Vídeo'}
+                        </Badge>
+                      </div>
+                      {reply.description && (
+                        <p className="text-sm text-gray-600 mb-1">{reply.description}</p>
+                      )}
+                      {reply.contentType === 'text' && reply.content && (
+                        <p className="text-sm text-gray-800 bg-gray-100 p-2 rounded truncate max-w-xs">
+                          {reply.content}
+                        </p>
+                      )}
+                      {reply.contentType === 'audio' && (
+                        <div className="flex items-center text-sm text-blue-600">
+                          <Mic className="w-4 h-4 mr-1" />
+                          Arquivo de áudio
+                        </div>
+                      )}
+                      {reply.contentType === 'image' && (
+                        <div className="flex items-center text-sm text-green-600">
+                          <Image className="w-4 h-4 mr-1" />
+                          Arquivo de imagem
+                        </div>
+                      )}
+                      {reply.contentType === 'video' && (
+                        <div className="flex items-center text-sm text-purple-600">
+                          <Video className="w-4 h-4 mr-1" />
+                          Arquivo de vídeo
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="p-2 bg-gray-50 text-xs text-gray-500 border-t border-gray-100">
+                Use ↑↓ para navegar, Enter/Tab para selecionar, Esc para fechar
+              </div>
+            </div>
+          )}
           <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
             <PopoverTrigger asChild>
               <Button 
