@@ -1,5 +1,17 @@
 import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
+import { Button } from '@/shared/ui/ui/button';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/shared/ui/ui/alert-dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
@@ -459,14 +471,31 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           <div className="flex items-center gap-1">
             {/* Botão de deletar mensagem (apenas para mensagens recentes enviadas pelo agente) */}
             {canDelete() && contact.phone && conversationId && (
-              <button
-                onClick={handleDeleteMessage}
-                disabled={isDeleting}
-                className="p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                title="Deletar mensagem (disponível por 7 minutos)"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    disabled={isDeleting}
+                    className="p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                    title="Deletar mensagem (disponível por 7 minutos)"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Por favor, confirme</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir essa mensagem? Esta operação não poderá ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteMessage} disabled={isDeleting}>
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             
             {!isFromContact && (
