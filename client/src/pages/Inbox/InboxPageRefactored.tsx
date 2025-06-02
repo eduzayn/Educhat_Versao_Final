@@ -604,7 +604,15 @@ export function InboxPageRefactored() {
                     </div>
                     
                     <p className="text-sm text-gray-600 truncate mt-1">
-                      {lastMessage?.content || 'Sem mensagens'}
+                      {lastMessage ? (
+                        lastMessage.messageType === 'image' ? (
+                          lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
+                        ) : lastMessage.messageType === 'audio' ? (
+                          lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
+                        ) : (
+                          lastMessage.content || 'Mensagem sem texto'
+                        )
+                      ) : 'Sem mensagens'}
                     </p>
                   </div>
                 </div>
