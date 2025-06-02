@@ -48,6 +48,7 @@ export interface IStorage {
 
   // Message operations
   getMessages(conversationId: number, limit?: number, offset?: number): Promise<Message[]>;
+  getMessageMedia(messageId: number): Promise<string | null>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<void>;
   markMessageAsDelivered(id: number): Promise<void>;
@@ -303,14 +304,44 @@ export class DatabaseStorage implements IStorage {
 
   // Message operations
   async getMessages(conversationId: number, limit = 30, offset = 0): Promise<Message[]> {
-    // Consulta otimizada: limite menor para performance inicial
+    // Consulta otimizada: não carrega content binário de mídias grandes
     return await db
-      .select()
+      .select({
+        id: messages.id,
+        conversationId: messages.conversationId,
+        content: sql<string>`CASE 
+          WHEN ${messages.messageType} IN ('video', 'image', 'audio', 'document') AND LENGTH(${messages.content}) > 50000
+          THEN NULL
+          ELSE ${messages.content}
+        END`.as('content'),
+        isFromContact: messages.isFromContact,
+        messageType: messages.messageType,
+        metadata: messages.metadata,
+        isDeleted: messages.isDeleted,
+        sentAt: messages.sentAt,
+        deliveredAt: messages.deliveredAt,
+        readAt: messages.readAt,
+        whatsappMessageId: messages.whatsappMessageId,
+        zapiStatus: messages.zapiStatus,
+        isGroup: messages.isGroup,
+        referenceMessageId: messages.referenceMessageId
+      })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.sentAt))
       .limit(limit)
       .offset(offset);
+  }
+
+  // Novo método para carregar conteúdo de mídia sob demanda
+  async getMessageMedia(messageId: number): Promise<string | null> {
+    const result = await db
+      .select({ content: messages.content })
+      .from(messages)
+      .where(eq(messages.id, messageId))
+      .limit(1);
+    
+    return result[0]?.content || null;
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
