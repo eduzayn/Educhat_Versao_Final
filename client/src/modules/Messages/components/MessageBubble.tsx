@@ -1,8 +1,10 @@
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download } from 'lucide-react';
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
+import { useToast } from '@/shared/lib/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Message, Contact } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -310,6 +312,56 @@ function DocumentMessage({ message, isFromContact }: { message: Message; isFromC
 export function MessageBubble({ message, contact, channelIcon, channelColor, conversationId }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteMessage = async () => {
+    if (!contact.phone || !conversationId) return;
+
+    // Extrair messageId dos metadados
+    const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+    const messageId = 'zaapId' in metadata ? metadata.zaapId : ('messageId' in metadata ? metadata.messageId : null);
+
+    if (!messageId) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível encontrar o ID da mensagem para deletar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await apiRequest('/api/zapi/delete-message', {
+        method: 'POST',
+        body: JSON.stringify({
+          phone: contact.phone,
+          messageId: messageId,
+          conversationId: conversationId
+        })
+      });
+
+      // Invalidar cache das mensagens para atualizar a lista
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Mensagem deletada com sucesso"
+      });
+    } catch (error) {
+      console.error('Erro ao deletar mensagem:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível deletar a mensagem",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className={`flex items-start gap-3 mb-4 ${isFromContact ? '' : 'flex-row-reverse'}`}>

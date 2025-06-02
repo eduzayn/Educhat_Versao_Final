@@ -1140,6 +1140,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete message via Z-API
+  app.post('/api/zapi/delete-message', async (req, res) => {
+    try {
+      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', req.body);
+      
+      const { phone, messageId, conversationId } = req.body;
+      
+      if (!phone || !messageId) {
+        return res.status(400).json({ 
+          error: 'Phone e messageId são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        messageId: messageId.toString()
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
+      console.log('🗑️ Deletando mensagem via Z-API:', { url, payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API exclusão de mensagem:', responseText);
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      // Se a exclusão foi bem-sucedida e temos o conversationId, broadcast a atualização
+      if (data && conversationId) {
+        broadcast(parseInt(conversationId), {
+          type: 'message_deleted',
+          messageId: messageId.toString(),
+          deletedAt: new Date().toISOString()
+        });
+      }
+
+      console.log('✅ Mensagem deletada com sucesso:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao deletar mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Z-API integration routes
   app.get('/api/zapi/qrcode', async (req, res) => {
     try {
