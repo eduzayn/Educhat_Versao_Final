@@ -69,16 +69,21 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   };
 
   const togglePlayPause = async () => {
-    // Se não temos URL de áudio e temos messageId para buscar, fazer o fetch primeiro
+    // Primeiro, tentar buscar áudio se não temos URL mas temos messageId
     if (!fetchedAudioUrl && messageIdForFetch && !isLoadingAudio) {
-      console.log('Buscando áudio via API...');
+      console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdForFetch);
       await fetchAudioContent();
       return;
     }
     
-    // Se não há áudio disponível, não fazer nada
+    // Verificar se temos áudio disponível para reproduzir
     if (!fetchedAudioUrl || !audioRef.current) {
-      console.log('Áudio ou elemento não disponível');
+      console.log('❌ Áudio não disponível:', {
+        hasAudioUrl: !!fetchedAudioUrl,
+        hasAudioRef: !!audioRef.current,
+        messageId: messageIdForFetch
+      });
+      setAudioError('Áudio não disponível para reprodução');
       return;
     }
     
