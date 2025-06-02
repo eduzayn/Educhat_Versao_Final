@@ -165,7 +165,7 @@ export class DatabaseStorage implements IStorage {
     const conversationsWithContacts = await db
       .select()
       .from(conversations)
-      .leftJoin(contacts, eq(conversations.contact_id, contacts.id))
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(
         and(
           isNotNull(contacts.phone),
@@ -193,10 +193,9 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(messages)
       .where(
-        and(
-          messages.conversationId,
-          or(...conversationIds.map(id => eq(messages.conversationId, id)))
-        )
+        conversationIds.length > 0 
+          ? or(...conversationIds.map(id => eq(messages.conversationId, id)))
+          : eq(messages.conversationId, -1) // Never matches, returns empty
       )
       .orderBy(desc(messages.sentAt));
 
