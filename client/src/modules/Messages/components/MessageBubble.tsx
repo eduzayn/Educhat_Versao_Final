@@ -333,13 +333,10 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
     setIsDeleting(true);
     try {
-      await apiRequest('/api/zapi/delete-message', {
-        method: 'POST',
-        body: JSON.stringify({
-          phone: contact.phone,
-          messageId: messageId,
-          conversationId: conversationId
-        })
+      await apiRequest('POST', '/api/zapi/delete-message', {
+        phone: contact.phone,
+        messageId: messageId,
+        conversationId: conversationId
       });
 
       // Invalidar cache das mensagens para atualizar a lista
@@ -412,6 +409,18 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           )}
           
           <div className="flex items-center gap-1">
+            {/* Botão de deletar mensagem (apenas para mensagens enviadas pelo agente) */}
+            {!isFromContact && contact.phone && conversationId && (
+              <button
+                onClick={handleDeleteMessage}
+                disabled={isDeleting}
+                className="p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                title="Deletar mensagem"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+            
             {!isFromContact && (
               <div className="flex items-center">
                 {message.readAt ? (
