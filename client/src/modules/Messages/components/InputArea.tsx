@@ -211,25 +211,56 @@ export function InputArea() {
   // Mutation para enviar vídeo
   const sendVideoMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('🎥 Iniciando envio de vídeo:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        conversationId: activeConversation?.id,
+        contactPhone: activeConversation?.contact.phone
+      });
+
       if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        console.error('❌ Dados da conversa não disponíveis');
         throw new Error("Dados da conversa não disponíveis");
       }
 
-      const formData = new FormData();
-      formData.append('phone', activeConversation.contact.phone);
-      formData.append('conversationId', activeConversation.id.toString());
-      formData.append('video', file);
+      try {
+        const formData = new FormData();
+        formData.append('phone', activeConversation.contact.phone);
+        formData.append('conversationId', activeConversation.id.toString());
+        formData.append('video', file);
 
-      const response = await fetch('/api/zapi/send-video', {
-        method: 'POST',
-        body: formData,
-      });
+        console.log('📤 Enviando FormData para servidor:', {
+          phone: activeConversation.contact.phone,
+          conversationId: activeConversation.id,
+          fileName: file.name,
+          fileSize: file.size
+        });
 
-      if (!response.ok) {
-        throw new Error('Erro ao enviar vídeo');
+        const response = await fetch('/api/zapi/send-video', {
+          method: 'POST',
+          body: formData,
+        });
+
+        console.log('📥 Resposta do servidor:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erro na resposta do servidor:', errorText);
+          throw new Error(`Erro ao enviar vídeo: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Vídeo enviado com sucesso:', result);
+        return result;
+      } catch (error) {
+        console.error('💥 Erro no processo de envio:', error);
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
