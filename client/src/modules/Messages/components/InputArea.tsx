@@ -210,12 +210,17 @@ export function InputArea() {
   };
 
   const handleSendQuickReplyAudio = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.audioUrl) return;
+    if (!activeConversation || !quickReply.fileUrl) return;
     
     try {
-      await sendAudioMutation.mutateAsync({
+      // Para áudio de resposta rápida, enviaremos via sendMessage
+      await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
-        audioUrl: quickReply.audioUrl,
+        message: {
+          content: quickReply.fileUrl,
+          isFromContact: false,
+          messageType: 'audio',
+        },
         contact: activeConversation.contact,
       });
       setMessage('');
@@ -230,13 +235,13 @@ export function InputArea() {
   };
 
   const handleSendImage = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.imageUrl) return;
+    if (!activeConversation || !quickReply.fileUrl) return;
     
     try {
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
-          content: quickReply.imageUrl,
+          content: quickReply.fileUrl,
           isFromContact: false,
           messageType: 'image',
         },
@@ -254,13 +259,13 @@ export function InputArea() {
   };
 
   const handleSendVideo = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.videoUrl) return;
+    if (!activeConversation || !quickReply.fileUrl) return;
     
     try {
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
-          content: quickReply.videoUrl,
+          content: quickReply.fileUrl,
           isFromContact: false,
           messageType: 'video',
         },
@@ -827,32 +832,32 @@ export function InputArea() {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-gray-900">{reply.title}</span>
                         <Badge variant="secondary" className="text-xs">
-                          {reply.contentType === 'text' ? 'Texto' : 
-                           reply.contentType === 'audio' ? 'Áudio' :
-                           reply.contentType === 'image' ? 'Imagem' : 'Vídeo'}
+                          {reply.type === 'text' ? 'Texto' : 
+                           reply.type === 'audio' ? 'Áudio' :
+                           reply.type === 'image' ? 'Imagem' : 'Vídeo'}
                         </Badge>
                       </div>
                       {reply.description && (
                         <p className="text-sm text-gray-600 mb-1">{reply.description}</p>
                       )}
-                      {reply.contentType === 'text' && reply.content && (
+                      {reply.type === 'text' && reply.content && (
                         <p className="text-sm text-gray-800 bg-gray-100 p-2 rounded truncate max-w-xs">
                           {reply.content}
                         </p>
                       )}
-                      {reply.contentType === 'audio' && (
+                      {reply.type === 'audio' && (
                         <div className="flex items-center text-sm text-blue-600">
                           <Mic className="w-4 h-4 mr-1" />
                           Arquivo de áudio
                         </div>
                       )}
-                      {reply.contentType === 'image' && (
+                      {reply.type === 'image' && (
                         <div className="flex items-center text-sm text-green-600">
                           <Image className="w-4 h-4 mr-1" />
                           Arquivo de imagem
                         </div>
                       )}
-                      {reply.contentType === 'video' && (
+                      {reply.type === 'video' && (
                         <div className="flex items-center text-sm text-purple-600">
                           <Video className="w-4 h-4 mr-1" />
                           Arquivo de vídeo
