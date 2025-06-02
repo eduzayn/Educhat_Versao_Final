@@ -314,6 +314,19 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
   const messageTime = formatDistanceToNow(new Date(message.sentAt || new Date()), { addSuffix: false });
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  // Verificar se a mensagem pode ser deletada (dentro de 7 minutos para WhatsApp)
+  const canDelete = () => {
+    if (isFromContact) return false; // Só permite deletar mensagens enviadas pelo agente
+    
+    const messageDate = new Date(message.sentAt || new Date());
+    const now = new Date();
+    const timeDifference = now.getTime() - messageDate.getTime();
+    const sevenMinutesInMs = 7 * 60 * 1000; // 7 minutos em milissegundos
+    
+    return timeDifference <= sevenMinutesInMs;
+  };
 
   const handleDeleteMessage = async () => {
     if (!contact.phone || !conversationId) return;
@@ -339,6 +352,9 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
         conversationId: conversationId
       });
 
+      // Marcar mensagem como deletada na interface
+      setIsDeleted(true);
+
       // Invalidar cache das mensagens para atualizar a lista
       queryClient.invalidateQueries({ 
         queryKey: ['/api/conversations', conversationId, 'messages'] 
@@ -359,6 +375,38 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
       setIsDeleting(false);
     }
   };
+
+  // Se a mensagem foi deletada, mostrar interface simplificada
+  if (isDeleted) {
+    return (
+      <div className={`flex items-start gap-3 mb-4 ${isFromContact ? '' : 'flex-row-reverse'}`}>
+        <Avatar className="w-8 h-8 flex-shrink-0 opacity-50">
+          <AvatarImage 
+            src={isFromContact ? contact.profileImageUrl || '' : ''} 
+            alt={isFromContact ? contact.name : 'Agente'} 
+          />
+          <AvatarFallback className="text-xs">
+            {isFromContact 
+              ? contact.name?.charAt(0)?.toUpperCase() || 'C'
+              : 'A'
+            }
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className={`flex-1 max-w-md ${isFromContact ? '' : 'flex flex-col items-end'}`}>
+          <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500 opacity-75">
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-4 h-4" />
+              <span className="text-sm italic">Esta mensagem foi deletada</span>
+            </div>
+          </div>
+          <div className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${isFromContact ? '' : 'justify-end'}`}>
+            <span>{messageTime}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-start gap-3 mb-4 ${isFromContact ? '' : 'flex-row-reverse'}`}>
@@ -409,13 +457,13 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
           )}
           
           <div className="flex items-center gap-1">
-            {/* Botão de deletar mensagem (apenas para mensagens enviadas pelo agente) */}
-            {!isFromContact && contact.phone && conversationId && (
+            {/* Botão de deletar mensagem (apenas para mensagens recentes enviadas pelo agente) */}
+            {canDelete() && contact.phone && conversationId && (
               <button
                 onClick={handleDeleteMessage}
                 disabled={isDeleting}
                 className="p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                title="Deletar mensagem"
+                title="Deletar mensagem (disponível por 7 minutos)"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
