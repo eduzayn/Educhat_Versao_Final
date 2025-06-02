@@ -1,35 +1,36 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
-import type { Message } from '@shared/schema';
+import { VirtualizedMessageList } from '@/modules/Messages/components/VirtualizedMessageList';
+import type { Message, Contact } from '@shared/schema';
 
 interface MessagesListProps {
   conversationId: number;
+  contact?: Contact;
 }
 
-export function MessagesList({ conversationId }: MessagesListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+export function MessagesList({ conversationId, contact }: MessagesListProps) {
+  const [containerHeight, setContainerHeight] = useState(400);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const { data: messages = [], isLoading, error } = useQuery({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId
   });
 
-  // Scroll automático para a última mensagem
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ 
-      behavior: 'smooth',
-      block: 'end'
-    });
-  };
-
-  // Fazer scroll quando novas mensagens chegarem
+  // Calcular altura do container dinamicamente
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom();
-    }
-  }, [messages.length]);
+    const updateHeight = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.clientHeight;
+        setContainerHeight(height);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
 
   if (isLoading) {
     return (
@@ -53,7 +54,7 @@ export function MessagesList({ conversationId }: MessagesListProps) {
     );
   }
 
-  if (messages.length === 0) {
+  if ((messages as Message[]).length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-gray-500">
@@ -64,26 +65,29 @@ export function MessagesList({ conversationId }: MessagesListProps) {
     );
   }
 
-  return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.map((message: Message, index: number) => {
-        const showAvatar = index === 0 || 
-          messages[index - 1]?.isFromContact !== message.isFromContact;
-        
-        const contactName = message.isFromContact ? 'Contato' : 'Você';
+  // Criar contato padrão se não fornecido
+  const defaultContact: Contact = contact || {
+    id: 0,
+    name: 'Contato',
+    phone: null,
+    email: null,
+    profileImageUrl: null,
+    location: null,
+    age: null,
+    isOnline: null,
+    lastSeenAt: null,
+    createdAt: null,
+    updatedAt: null
+  };
 
-        return (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            contactName={contactName}
-            showAvatar={showAvatar}
-          />
-        );
-      })}
-      
-      {/* Elemento invisible para scroll automático */}
-      <div ref={messagesEndRef} className="h-1" />
+  return (
+    <div ref={containerRef} className="flex-1 flex flex-col">
+      <VirtualizedMessageList
+        messages={messages as Message[]}
+        contact={defaultContact}
+        conversationId={conversationId}
+        height={containerHeight}
+      />
     </div>
   );
 }

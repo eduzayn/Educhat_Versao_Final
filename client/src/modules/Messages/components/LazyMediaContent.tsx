@@ -12,7 +12,7 @@ interface LazyMediaContentProps {
 }
 
 export function LazyMediaContent({ messageId, messageType, conversationId, isFromContact, metadata, initialContent }: LazyMediaContentProps) {
-  const [content, setContent] = useState<string | null>(initialContent);
+  const [content, setContent] = useState<string | null>(initialContent || null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!initialContent);
 
