@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
 import { LazyMediaContent } from './LazyMediaContent';
+import { AudioMessage } from './AudioMessage';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Message, Contact } from '@shared/schema';
@@ -28,137 +29,7 @@ interface MessageBubbleProps {
   conversationId?: number;
 }
 
-// Componente para reproduzir mensagem de áudio
-function AudioMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Extrair informações do áudio dos metadados
-  const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
-  const audioSize = 'audioSize' in metadata ? metadata.audioSize as number : null;
-  const audioDuration = 'duration' in metadata ? metadata.duration as number : null;
-
-  const sizeText = audioSize ? ` (${Math.round(audioSize / 1024)}KB)` : '';
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const togglePlayback = () => {
-    if (!audioRef.current) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  // Usar duração dos metadados se disponível
-  const effectiveDuration = audioDuration || duration;
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-    setCurrentTime(0);
-  };
-
-  // Verificar se é um áudio válido - pode vir direto como data URL ou como string base64
-  let audioUrl = null;
-  if (message.content?.startsWith('data:audio/')) {
-    audioUrl = message.content;
-  } else if (message.messageType === 'audio' && message.content) {
-    // Caso o conteúdo seja apenas base64 sem o prefixo, tentar construir a URL
-    try {
-      // Verificar se parece com base64
-      if (message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
-        const mimeType = (metadata as any).mimeType || 'audio/mp4';
-        audioUrl = `data:${mimeType};base64,${message.content}`;
-      }
-    } catch (e) {
-      console.log('Não foi possível processar áudio:', e);
-    }
-  }
-
-  return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-      isFromContact ? 'bg-gray-100' : 'bg-blue-600'
-    }`}>
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={handleEnded}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-      )}
-      
-      <button
-        onClick={togglePlayback}
-        disabled={!audioUrl}
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-          isFromContact 
-            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-            : 'bg-white text-blue-600 hover:bg-gray-100'
-        } ${!audioUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        {isPlaying ? (
-          <Pause className="w-5 h-5" />
-        ) : (
-          <Play className="w-5 h-5" />
-        )}
-      </button>
-      
-      <div className="flex-1">
-        <div className={`flex items-center gap-2 ${isFromContact ? 'text-gray-700' : 'text-white'}`}>
-          <span className="text-sm font-medium">
-            {audioUrl ? 'Mensagem de áudio' : 'Mensagem de áudio (não disponível)'}
-            {sizeText}
-          </span>
-          {effectiveDuration > 0 && (
-            <span className="text-xs opacity-75">
-              {formatTime(currentTime)} / {formatTime(effectiveDuration)}
-            </span>
-          )}
-        </div>
-        <div className={`text-xs ${isFromContact ? 'text-gray-500' : 'text-blue-100'}`}>
-          Enviado via WhatsApp
-        </div>
-        {effectiveDuration > 0 && (
-          <div className={`w-full h-1 mt-2 rounded overflow-hidden ${
-            isFromContact ? 'bg-gray-300' : 'bg-blue-400'
-          }`}>
-            <div 
-              className={`h-full transition-all duration-100 ${
-                isFromContact ? 'bg-blue-600' : 'bg-white'
-              }`}
-              style={{ width: `${(currentTime / effectiveDuration) * 100}%` }}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // Componente para exibir mensagem de imagem
 function ImageMessage({ message, isFromContact }: { message: Message; isFromContact: boolean }) {
