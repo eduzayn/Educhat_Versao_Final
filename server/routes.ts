@@ -2155,6 +2155,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Listar todas as conversas existentes via Z-API
+  app.get('/api/zapi/chats', async (req, res) => {
+    try {
+      console.log('💬 Buscando lista de conversas via Z-API');
+      
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      console.log('🔍 Consultando Z-API para listar conversas');
+
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/chats`, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API chats:', {
+        status: response.status,
+        statusText: response.statusText,
+        bodyLength: responseText.length
+      });
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Lista de conversas obtida:', {
+        totalChats: Array.isArray(data) ? data.length : 'Formato inesperado'
+      });
+
+      res.json({
+        success: true,
+        chats: data,
+        total: Array.isArray(data) ? data.length : 0
+      });
+    } catch (error) {
+      console.error('💥 Erro ao buscar conversas via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
     try {
