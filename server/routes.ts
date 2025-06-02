@@ -1161,15 +1161,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      // Usar query params conforme documentação Z-API
+      // Construir URL corretamente conforme documentação Z-API
+      // Evitar barras duplas e usar query params corretos
       const queryParams = new URLSearchParams({
         phone: cleanPhone,
         messageId: messageId.toString(),
         owner: 'true'
       });
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?${queryParams}`;
-      console.log('🗑️ Deletando mensagem via Z-API:', { url, phone: cleanPhone, messageId });
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?${queryParams.toString()}`;
+      console.log('🗑️ Deletando mensagem via Z-API:', { 
+        url, 
+        phone: cleanPhone, 
+        messageId: messageId.toString(),
+        conversationId 
+      });
 
       const response = await fetch(url, {
         method: 'DELETE',
@@ -1180,36 +1186,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const responseText = await response.text();
-      console.log('📥 Resposta Z-API exclusão de mensagem:', responseText);
+      console.log('📥 Resposta Z-API exclusão de mensagem:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        body: responseText 
+      });
 
+      // Verificar se a resposta foi bem-sucedida
       if (!response.ok) {
-        console.error('❌ Erro na Z-API:', responseText);
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        console.error('❌ Erro na Z-API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        
+        // Retornar erro mais específico baseado no status
+        let errorMessage = 'Erro ao deletar mensagem via Z-API';
+        if (response.status === 404) {
+          errorMessage = 'Mensagem não encontrada ou já foi deletada';
+        } else if (response.status === 400) {
+          errorMessage = 'Dados inválidos para deletar mensagem';
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = 'Credenciais Z-API inválidas ou sem permissão';
+        }
+        
+        return res.status(response.status).json({ 
+          error: errorMessage,
+          details: responseText
+        });
       }
 
       let data;
       try {
-        data = JSON.parse(responseText);
+        data = responseText ? JSON.parse(responseText) : { success: true };
       } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
-        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+        console.log('⚠️ Resposta não é JSON válido, tratando como sucesso:', responseText);
+        data = { success: true, rawResponse: responseText };
       }
 
-      // Se a exclusão foi bem-sucedida e temos o conversationId, broadcast a atualização
-      if (data && conversationId) {
+      // Se a exclusão foi bem-sucedida, broadcast a atualização para outros clientes
+      if (conversationId) {
         broadcast(parseInt(conversationId), {
           type: 'message_deleted',
           messageId: messageId.toString(),
-          deletedAt: new Date().toISOString()
+          deletedAt: new Date().toISOString(),
+          conversationId: parseInt(conversationId)
         });
       }
 
-      console.log('✅ Mensagem deletada com sucesso:', data);
-      res.json(data);
+      console.log('✅ Mensagem deletada com sucesso via Z-API:', data);
+      
+      res.json({
+        success: true,
+        messageId: messageId.toString(),
+        deletedAt: new Date().toISOString(),
+        ...data
+      });
+      
     } catch (error) {
       console.error('❌ Erro ao deletar mensagem:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor',
+        details: error instanceof Error ? error.stack : 'Erro desconhecido'
       });
     }
   });

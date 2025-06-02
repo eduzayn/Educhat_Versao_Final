@@ -343,14 +343,32 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
   const handleDeleteMessage = async () => {
     if (!contact.phone || !conversationId) return;
 
-    // Extrair messageId dos metadados
+    // Extrair messageId dos metadados - tentar múltiplas possibilidades
     const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
-    const messageId = 'zaapId' in metadata ? metadata.zaapId : ('messageId' in metadata ? metadata.messageId : null);
+    let messageId = null;
+    
+    // Buscar o ID da mensagem nos metadados em diferentes campos possíveis
+    if ('messageId' in metadata && metadata.messageId) {
+      messageId = metadata.messageId;
+    } else if ('zaapId' in metadata && metadata.zaapId) {
+      messageId = metadata.zaapId;
+    } else if ('id' in metadata && metadata.id) {
+      messageId = metadata.id;
+    }
+
+    // Log para debug
+    console.log('🗑️ Tentando deletar mensagem:', {
+      messageLocalId: message.id,
+      messageId,
+      metadata,
+      phone: contact.phone,
+      conversationId
+    });
 
     if (!messageId) {
       toast({
         title: "Erro",
-        description: "Não foi possível encontrar o ID da mensagem para deletar",
+        description: "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
         variant: "destructive"
       });
       return;
@@ -358,11 +376,13 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
     setIsDeleting(true);
     try {
-      await apiRequest('POST', '/api/zapi/delete-message', {
+      const response = await apiRequest('POST', '/api/zapi/delete-message', {
         phone: contact.phone,
-        messageId: messageId,
+        messageId: messageId.toString(),
         conversationId: conversationId
       });
+
+      console.log('✅ Resposta da exclusão:', response);
 
       // Marcar mensagem como deletada na interface
       setIsDeleted(true);
@@ -377,10 +397,17 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
         description: "Mensagem deletada com sucesso"
       });
     } catch (error) {
-      console.error('Erro ao deletar mensagem:', error);
+      console.error('❌ Erro ao deletar mensagem:', error);
+      
+      // Mostrar erro mais específico baseado na resposta
+      let errorMessage = "Não foi possível deletar a mensagem";
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as Error).message;
+      }
+      
       toast({
         title: "Erro",
-        description: "Não foi possível deletar a mensagem",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
