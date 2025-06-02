@@ -70,7 +70,8 @@ export function useSendAudioMessage() {
     },
     onSuccess: (data, { conversationId }) => {
       console.log('✅ Áudio enviado com sucesso:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
+      // Invalidar com a chave correta para atualizar mensagens imediatamente
+      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
     },
     onError: (error) => {
