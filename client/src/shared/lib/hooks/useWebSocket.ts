@@ -34,11 +34,29 @@ export function useWebSocket() {
         switch (data.type) {
           case 'new_message':
             if (data.message && data.conversationId) {
+              console.log('📨 Nova mensagem via WebSocket:', {
+                conversationId: data.conversationId,
+                messageId: data.message.id,
+                content: data.message.content
+              });
+              
+              // Primeiro, adicionar ao store local para exibição imediata
               addMessage(data.conversationId, data.message);
               updateConversationLastMessage(data.conversationId, data.message);
               
-              // Invalidar cache do React Query para atualizar a interface
-              queryClient.invalidateQueries({ queryKey: ['/api/conversations', data.conversationId, 'messages'] });
+              // Atualizar cache do React Query com os novos dados
+              queryClient.setQueryData(
+                [`/api/conversations/${data.conversationId}/messages`],
+                (oldData: Message[] | undefined) => {
+                  if (!oldData) return [data.message];
+                  // Verificar se a mensagem já existe para evitar duplicatas
+                  const exists = oldData.some(msg => msg.id === data.message.id);
+                  if (exists) return oldData;
+                  return [...oldData, data.message];
+                }
+              );
+              
+              // Invalidar cache das conversas para atualizar contadores
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             }
             break;
@@ -49,6 +67,29 @@ export function useWebSocket() {
                 isTyping: data.isTyping,
                 timestamp: new Date(),
               } : null);
+            }
+            break;
+          case 'message_deleted':
+            if (data.messageId && data.conversationId) {
+              console.log('🗑️ Mensagem deletada via WebSocket:', {
+                conversationId: data.conversationId,
+                messageId: data.messageId
+              });
+              
+              // Atualizar cache removendo a mensagem deletada
+              queryClient.setQueryData(
+                [`/api/conversations/${data.conversationId}/messages`],
+                (oldData: Message[] | undefined) => {
+                  if (!oldData) return [];
+                  return oldData.filter(msg => {
+                    const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
+                    const msgId = 'messageId' in metadata ? metadata.messageId : 
+                                 'zaapId' in metadata ? metadata.zaapId : 
+                                 'id' in metadata ? metadata.id : null;
+                    return msgId !== data.messageId;
+                  });
+                }
+              );
             }
             break;
         }

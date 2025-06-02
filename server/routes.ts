@@ -1451,6 +1451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Broadcast para outros clientes conectados
         broadcast(parseInt(conversationId), {
           type: 'new_message',
+          conversationId: parseInt(conversationId),
           message: textMessage
         });
 

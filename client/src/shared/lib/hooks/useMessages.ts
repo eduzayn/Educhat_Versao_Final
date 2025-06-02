@@ -6,8 +6,11 @@ export function useMessages(conversationId: number | null) {
   return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: !!conversationId,
-    refetchInterval: 3000,
-    refetchIntervalInBackground: true,
+    // Remover polling automático - usar apenas WebSocket para tempo real
+    refetchInterval: false,
+    refetchIntervalInBackground: false,
+    // Manter dados em cache por mais tempo para melhor performance
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 
