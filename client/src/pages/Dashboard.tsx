@@ -47,58 +47,65 @@ export function Dashboard() {
       id: 'dashboard',
       label: 'Dashboard',
       icon: BarChart3,
-      description: 'Visão geral do sistema'
+      description: 'Visão geral do sistema',
+      route: '/'
     },
     {
       id: 'inbox',
       label: 'Caixa de Entrada',
       icon: Inbox,
       description: 'Conversas unificadas',
-      badge: '12'
+      badge: '12',
+      route: '/inbox'
     },
     {
       id: 'contacts',
       label: 'Contatos',
       icon: UserCheck,
-      description: 'Gerenciar contatos e WhatsApp'
+      description: 'Gerenciar contatos e WhatsApp',
+      route: '/contacts'
     },
-
     {
       id: 'chat-interno',
       label: 'Chat Interno',
       icon: MessageCircle,
-      description: 'Comunicação entre agentes'
+      description: 'Comunicação entre agentes',
+      route: '/chat-interno'
     },
     {
       id: 'crm',
       label: 'CRM',
-      icon: UserCheck,
-      description: 'Gestão de leads e contatos'
+      icon: Users,
+      description: 'Gestão de leads e contatos',
+      route: '/crm'
     },
     {
       id: 'integrations',
       label: 'Integrações',
       icon: Zap,
-      description: 'Canais e APIs'
+      description: 'Canais e APIs',
+      route: '/integrations'
     },
     {
       id: 'payments',
       label: 'Pagamentos',
       icon: CreditCard,
-      description: 'Cobranças e Asaas'
+      description: 'Cobranças e Asaas',
+      route: '/payments'
     },
     {
       id: 'reports',
       label: 'Relatórios',
       icon: BarChart3,
-      description: 'Analytics e métricas'
+      description: 'Analytics e métricas',
+      route: '/reports'
     },
-
     {
       id: 'settings',
       label: 'Configurações',
       icon: Settings,
-      description: 'Configurar sistema'
+      description: 'Configurar sistema',
+      route: '/settings'
     }
   ];
 
@@ -307,12 +314,8 @@ export function Dashboard() {
                     : 'text-educhat-medium hover:text-educhat-dark hover:bg-educhat-purple-50'
                 }`}
                 onClick={() => {
-                  if (item.id === 'settings') {
-                    setLocation('/settings');
-                  } else if (item.id === 'contacts') {
-                    setLocation('/contacts');
-                  } else if (item.id === 'inbox') {
-                    setLocation('/inbox');
+                  if (item.route && item.route !== '/') {
+                    setLocation(item.route);
                   } else {
                     setActiveSection(item.id);
                   }

@@ -33,27 +33,11 @@ const iconMapping = {
 
 const menuSections: MenuSection[] = [
   {
-    title: "Configurações Gerais",
+    title: "Configurações Implementadas",
     items: [
-      { href: "/settings/company", icon: iconMapping.company, label: "Perfil da Empresa" },
-      { href: "/settings/branding", icon: iconMapping.branding, label: "Aparência e Branding" },
-      { href: "/settings/localization", icon: iconMapping.localization, label: "Localização e Idioma" },
-      { href: "/settings/users", icon: iconMapping.users, label: "Usuários e Equipes" },
+      { href: "/settings", icon: iconMapping.company, label: "Configurações Gerais" },
       { href: "/settings/channels", icon: iconMapping.channels, label: "Canais de Comunicação" },
-      { href: "/settings/notifications", icon: iconMapping.notifications, label: "Notificações" }
-    ]
-  },
-  {
-    title: "Módulos & Ferramentas",
-    items: [
-      { href: "/settings/users", icon: iconMapping.users, label: "Usuários e Equipes" },
-      { href: "/settings/crm", icon: iconMapping.crm, label: "CRM" },
-      { href: "/settings/marketing", icon: iconMapping.marketing, label: "Marketing" },
-      { href: "/settings/goals", icon: iconMapping.goals, label: "Metas e Gamificação" },
-      { href: "/settings/ai", icon: iconMapping.ai, label: "IA - Prof. Ana", variant: "default" },
-      { href: "/settings/integrations", icon: iconMapping.integrations, label: "Integrações" },
-      { href: "/settings/security", icon: iconMapping.security, label: "Segurança" },
-      { href: "/settings/subscription", icon: iconMapping.subscription, label: "Assinatura" }
+      { href: "/settings/webhook", icon: iconMapping.integrations, label: "Configuração de Webhook" }
     ]
   }
 ];
