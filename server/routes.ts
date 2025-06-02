@@ -1786,15 +1786,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-document`;
-      console.log('📤 Enviando documento para Z-API:', { url });
+      console.log('📤 Enviando documento para Z-API:', { 
+        url, 
+        phone: payload.phone,
+        fileName: payload.fileName,
+        mimeType: documentFile.mimetype, 
+        size: documentFile.size,
+        base64Length: base64Data.length 
+      });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
-          ...formData.getHeaders()
+          'Client-Token': clientToken!,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       console.log('📥 Resposta Z-API documento:', {
