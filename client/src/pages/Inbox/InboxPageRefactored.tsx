@@ -563,9 +563,10 @@ export function InboxPageRefactored() {
             const lastMessage = conversation.messages[0];
             const isActive = activeConversation?.id === conversation.id;
             
-            // Calcular mensagens não lidas: se não é a conversa ativa e a última mensagem é do contato
-            const hasUnreadMessages = !isActive && lastMessage && lastMessage.isFromContact;
-            const unreadCount = hasUnreadMessages ? 1 : 0;
+            // Calcular mensagens não lidas: contar mensagens do contato desde a última vista
+            const unreadCount = !isActive 
+              ? conversation.messages.filter(msg => msg.isFromContact).length
+              : 0;
             
             return (
               <div
