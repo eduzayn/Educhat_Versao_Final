@@ -94,11 +94,45 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   // Função para renderizar o conteúdo da mensagem baseado no tipo
   const renderMessageContent = () => {
     if (message.messageType === 'audio') {
-      // Extrair duração do metadata se disponível
+      console.log('🎧 Processando mensagem de áudio:', {
+        messageId: message.id,
+        content: message.content,
+        metadata: message.metadata
+      });
+
+      // Verificar se temos uma URL válida para o áudio
+      let audioUrl: string | null = null;
+      
+      // 1. Verificar se content é uma data URL válida
+      if (message.content && message.content.startsWith('data:audio/')) {
+        audioUrl = message.content;
+      }
+      // 2. Verificar se é apenas base64 e construir data URL
+      else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
+        const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
+        audioUrl = `data:${mimeType};base64,${message.content}`;
+      }
+      // 3. Verificar se é uma URL HTTP/HTTPS válida
+      else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
+        audioUrl = message.content;
+      }
+
+      console.log('🎧 URL do áudio processada:', audioUrl);
+
+      // Se não temos URL válida, mostrar fallback
+      if (!audioUrl) {
+        return (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+            <Volume2 className="w-4 h-4 text-red-500" />
+            <span className="text-sm text-red-600">Áudio indisponível</span>
+          </div>
+        );
+      }
+
       const duration = (message.metadata as any)?.duration || 0;
       return (
         <AudioMessage
-          audioUrl={message.content}
+          audioUrl={audioUrl}
           duration={duration}
           isFromContact={isFromContact}
         />
