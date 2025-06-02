@@ -653,6 +653,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (webhookData.audio) {
           messageContent = 'Áudio enviado';
           messageType = 'audio';
+          
+          // Se há URL de áudio externa, baixar e salvar como base64
+          if (webhookData.audio.audioUrl) {
+            try {
+              console.log('🎵 Baixando áudio externo:', webhookData.audio.audioUrl);
+              const audioResponse = await fetch(webhookData.audio.audioUrl);
+              
+              if (audioResponse.ok) {
+                const audioBuffer = await audioResponse.arrayBuffer();
+                const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+                const mimeType = webhookData.audio.mimeType || 'audio/ogg';
+                messageContent = `data:${mimeType};base64,${audioBase64}`;
+                console.log('✅ Áudio externo baixado e convertido para base64');
+              } else {
+                console.error('❌ Erro ao baixar áudio externo:', audioResponse.status);
+              }
+            } catch (error) {
+              console.error('💥 Erro ao processar áudio externo:', error);
+            }
+          }
         } else if (webhookData.video) {
           messageContent = webhookData.video.caption || 'Vídeo enviado';
           messageType = 'video';
