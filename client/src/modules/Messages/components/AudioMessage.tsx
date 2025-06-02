@@ -82,32 +82,65 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         
         // Garantir que o src está definido e recarregar se necessário
         if (audioRef.current.src !== fetchedAudioUrl) {
+          // Limpar qualquer estado anterior
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          
+          // Definir novo src
           audioRef.current.src = fetchedAudioUrl;
+          
+          // Configurações para melhor compatibilidade
+          audioRef.current.preload = 'auto';
+          audioRef.current.crossOrigin = 'anonymous';
+          
           audioRef.current.load();
           
-          // Aguardar o áudio carregar antes de tentar reproduzir
+          // Aguardar o áudio estar pronto para reprodução
           await new Promise((resolve, reject) => {
+            if (!audioRef.current) {
+              reject(new Error('Elemento de áudio não disponível'));
+              return;
+            }
+            
             const onCanPlay = () => {
-              audioRef.current?.removeEventListener('canplay', onCanPlay);
-              audioRef.current?.removeEventListener('error', onError);
+              console.log('Áudio pronto para reprodução');
+              cleanup();
+              resolve(void 0);
+            };
+            
+            const onLoadedData = () => {
+              console.log('Dados do áudio carregados');
+              cleanup();
               resolve(void 0);
             };
             
             const onError = (e: any) => {
-              audioRef.current?.removeEventListener('canplay', onCanPlay);
-              audioRef.current?.removeEventListener('error', onError);
-              reject(e);
+              console.error('Erro ao carregar áudio:', e);
+              cleanup();
+              reject(new Error('Formato de áudio não suportado'));
             };
             
-            audioRef.current?.addEventListener('canplay', onCanPlay);
-            audioRef.current?.addEventListener('error', onError);
+            const cleanup = () => {
+              audioRef.current?.removeEventListener('canplay', onCanPlay);
+              audioRef.current?.removeEventListener('loadeddata', onLoadedData);
+              audioRef.current?.removeEventListener('error', onError);
+            };
+            
+            audioRef.current.addEventListener('canplay', onCanPlay);
+            audioRef.current.addEventListener('loadeddata', onLoadedData);
+            audioRef.current.addEventListener('error', onError);
+            
+            // Se o áudio já está pronto, resolver imediatamente
+            if (audioRef.current.readyState >= 3) {
+              cleanup();
+              resolve(void 0);
+            }
             
             // Timeout de segurança
             setTimeout(() => {
-              audioRef.current?.removeEventListener('canplay', onCanPlay);
-              audioRef.current?.removeEventListener('error', onError);
+              cleanup();
               resolve(void 0);
-            }, 3000);
+            }, 5000);
           });
         }
         
