@@ -21,19 +21,34 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     if (!isLoaded) {
       setIsLoaded(true);
+      // Aguardar o próximo ciclo de renderização para o áudio ser criado
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play().then(() => {
+            setIsPlaying(true);
+          }).catch(error => {
+            console.error('Erro ao reproduzir áudio:', error);
+          });
+        }
+      }, 100);
       return;
     }
     
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
+      try {
+        if (isPlaying) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          await audioRef.current.play();
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error('Erro ao reproduzir áudio:', error);
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -54,6 +69,16 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
     setCurrentTime(0);
   };
 
+  const handleCanPlay = () => {
+    // Áudio está pronto para reprodução
+    console.log('Áudio carregado e pronto para reprodução');
+  };
+
+  const handleError = (error: any) => {
+    console.error('Erro ao carregar áudio:', error);
+    setIsLoaded(false);
+  };
+
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
@@ -69,6 +94,8 @@ export function AudioMessage({ audioUrl, duration, isFromContact }: AudioMessage
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
+          onCanPlay={handleCanPlay}
+          onError={handleError}
           preload="metadata"
         />
       )}
