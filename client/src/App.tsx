@@ -7,8 +7,8 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
-import { InboxPage } from "@/pages/InboxPage";
-
+import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
+import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/ContactsPageRefactored";
 import ChatInternoPage from "@/pages/ChatInternoPage";
 import CrmPage from "@/pages/CrmPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -18,7 +18,6 @@ import SettingsPage from "@/pages/SettingsPage";
 import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
-import { ContactsPage } from "@/pages/ContactsPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
