@@ -1628,7 +1628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar vídeo via Z-API
   app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
     try {
-      console.log('🎥 Recebendo solicitação de envio de vídeo:', {
+      console.log('Recebendo solicitação de envio de vídeo:', {
         body: req.body,
         file: req.file ? { 
           originalname: req.file.originalname, 
@@ -1646,40 +1646,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
 
-      if (!instanceId || !token || !clientToken) {
+      const { instanceId, token, clientToken } = credentials;
+
+      // Verificar tamanho do arquivo (limite de 16MB para vídeos)
+      const maxSize = 16 * 1024 * 1024; // 16MB
+      if (videoFile.size > maxSize) {
         return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
+          error: 'Arquivo muito grande. O limite é de 16MB para vídeos.' 
         });
       }
 
-      // Converter vídeo para Base64 conforme documentação Z-API
+      // Converter vídeo para Base64
       const base64Data = videoFile.buffer.toString('base64');
       const videoBase64 = `data:${videoFile.mimetype};base64,${base64Data}`;
 
-      // Criar payload JSON conforme documentação Z-API
+      // Payload conforme documentação Z-API
       const payload = {
-        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        phone: phone.replace(/\D/g, ''),
         video: videoBase64
       };
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-video`;
-      console.log('📤 Enviando vídeo para Z-API:', { 
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-video`;
+      console.log('Enviando vídeo para Z-API:', { 
         url, 
         phone: payload.phone,
         mimeType: videoFile.mimetype, 
-        size: videoFile.size,
-        base64Length: base64Data.length 
+        size: videoFile.size 
       });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken!,
+          'Client-Token': clientToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -1745,7 +1748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para enviar documento via Z-API
   app.post('/api/zapi/send-document', upload.single('document'), async (req, res) => {
     try {
-      console.log('📄 Recebendo solicitação de envio de documento:', {
+      console.log('Recebendo solicitação de envio de documento:', {
         body: req.body,
         file: req.file ? { 
           originalname: req.file.originalname, 
@@ -1763,36 +1766,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
 
-      if (!instanceId || !token || !clientToken) {
+      const { instanceId, token, clientToken } = credentials;
+
+      // Verificar tamanho do arquivo (limite de 100MB para documentos)
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (documentFile.size > maxSize) {
         return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
+          error: 'Arquivo muito grande. O limite é de 100MB para documentos.' 
         });
       }
 
-      // Converter documento para Base64 conforme documentação Z-API
+      // Converter documento para Base64
       const base64Data = documentFile.buffer.toString('base64');
       const documentBase64 = `data:${documentFile.mimetype};base64,${base64Data}`;
 
-      // Criar payload JSON conforme documentação Z-API
+      // Payload conforme documentação Z-API
       const payload = {
-        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
+        phone: phone.replace(/\D/g, ''),
         document: documentBase64,
         fileName: documentFile.originalname
       };
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-document`;
-      console.log('📤 Enviando documento para Z-API:', { 
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document`;
+      console.log('Enviando documento para Z-API:', { 
         url, 
         phone: payload.phone,
         fileName: payload.fileName,
         mimeType: documentFile.mimetype, 
-        size: documentFile.size,
-        base64Length: base64Data.length 
+        size: documentFile.size 
       });
       
       const response = await fetch(url, {
