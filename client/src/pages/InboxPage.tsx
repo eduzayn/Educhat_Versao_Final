@@ -614,7 +614,7 @@ export function InboxPage() {
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}
-                        {getStatusBadge(conversation.status)}
+                        {getStatusBadge(conversation.status || 'open')}
                       </div>
                     </div>
                     
