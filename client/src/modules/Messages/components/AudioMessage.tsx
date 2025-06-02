@@ -61,9 +61,22 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
       return;
     }
     
+    // Se não há URL de áudio disponível, não fazer nada
+    if (!fetchedAudioUrl) {
+      console.error('Nenhuma URL de áudio disponível');
+      return;
+    }
+    
+    // Se o elemento de áudio não está carregado, carregar primeiro
     if (!isLoaded) {
-      console.log('Carregando áudio pela primeira vez...');
+      console.log('Carregando elemento de áudio...');
       setIsLoaded(true);
+      // Aguardar um pouco para o elemento ser criado
+      setTimeout(() => {
+        if (audioRef.current) {
+          togglePlayPause();
+        }
+      }, 100);
       return;
     }
     
@@ -97,25 +110,16 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
       }
     } catch (error) {
       console.error('Erro ao reproduzir áudio:', error);
-      console.error('URL do áudio:', audioUrl);
+      setAudioError('Erro ao reproduzir áudio');
     }
   };
 
-  // Tentar reproduzir automaticamente quando o áudio for carregado pela primeira vez
+  // Effect para definir a URL quando o áudio for carregado via fetch
   useEffect(() => {
-    if (isLoaded && audioRef.current && !isPlaying) {
-      const tryAutoPlay = async () => {
-        try {
-          await audioRef.current?.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.log('Autoplay bloqueado pelo navegador, aguardando interação do usuário');
-        }
-      };
-      
-      setTimeout(tryAutoPlay, 100);
+    if (fetchedAudioUrl && !audioUrl) {
+      setIsLoaded(true);
     }
-  }, [isLoaded]);
+  }, [fetchedAudioUrl, audioUrl]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
