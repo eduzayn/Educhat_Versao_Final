@@ -415,8 +415,8 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
     }
   };
 
-  // Se a mensagem foi deletada, mostrar interface simplificada
-  if (isDeleted) {
+  // Se a mensagem foi deletada (localmente ou no banco), mostrar interface simplificada
+  if (isDeleted || message.isDeleted) {
     return (
       <div className={`flex items-start gap-3 mb-4 ${isFromContact ? '' : 'flex-row-reverse'}`}>
         <Avatar className="w-8 h-8 flex-shrink-0 opacity-50">
