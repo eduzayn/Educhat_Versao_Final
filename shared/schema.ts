@@ -81,6 +81,26 @@ export const contactTags = pgTable("contact_tags", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Quick Replies table
+export const quickReplies = pgTable("quick_replies", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 20 }).notNull(), // 'text', 'audio', 'image', 'video'
+  content: text("content"), // text content or file URL
+  fileUrl: text("file_url"), // for media files
+  fileName: text("file_name"), // original filename
+  fileSize: integer("file_size"), // file size in bytes
+  mimeType: text("mime_type"), // MIME type for media files
+  shortcut: text("shortcut"), // keyboard shortcut (e.g., "/hello")
+  category: text("category").default("general"), // category for organization
+  isActive: boolean("is_active").default(true),
+  usageCount: integer("usage_count").default(0), // track usage for analytics
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
@@ -106,6 +126,13 @@ export const contactTagsRelations = relations(contactTags, ({ one }) => ({
   contact: one(contacts, {
     fields: [contactTags.contactId],
     references: [contacts.id],
+  }),
+}));
+
+export const quickRepliesRelations = relations(quickReplies, ({ one }) => ({
+  creator: one(users, {
+    fields: [quickReplies.createdBy],
+    references: [users.id],
   }),
 }));
 
@@ -138,6 +165,13 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -161,4 +195,11 @@ export type ConversationWithContact = Conversation & {
 
 export type ContactWithTags = Contact & {
   tags: ContactTag[];
+};
+
+export type QuickReply = typeof quickReplies.$inferSelect;
+export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
+
+export type QuickReplyWithCreator = QuickReply & {
+  creator?: User;
 };

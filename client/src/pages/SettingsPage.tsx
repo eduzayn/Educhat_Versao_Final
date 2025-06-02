@@ -28,6 +28,12 @@ const settingsCards = [
     icon: "📱"
   },
   {
+    title: "Respostas Rápidas",
+    description: "Templates de mensagens, áudio, imagem e vídeo",
+    href: "/settings/quick-replies",
+    icon: "⚡"
+  },
+  {
     title: "IA - Prof. Ana",
     description: "Configurações da assistente de IA",
     href: "/settings/ai",
@@ -38,6 +44,18 @@ const settingsCards = [
     description: "Serviços externos como Asaas, OpenAI",
     href: "/settings/integrations",
     icon: "🔌"
+  },
+  {
+    title: "Notificações",
+    description: "Configurações de alertas e notificações",
+    href: "/settings/notifications",
+    icon: "🔔"
+  },
+  {
+    title: "Segurança",
+    description: "Permissões, autenticação e logs",
+    href: "/settings/security",
+    icon: "🔒"
   }
 ];
 
