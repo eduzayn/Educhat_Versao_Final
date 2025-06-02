@@ -18,7 +18,7 @@ import {
   type ContactWithTags,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, count } from "drizzle-orm";
+import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like } from "drizzle-orm";
 
 export interface IStorage {
   // User operations for auth
@@ -173,18 +173,31 @@ export class DatabaseStorage implements IStorage {
     
     for (const row of conversationsWithContacts) {
       if (row.conversations && row.contacts) {
-        const lastMessages = await db
-          .select()
-          .from(messages)
-          .where(eq(messages.conversationId, row.conversations.id))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
+        // Filtrar contatos reais vs simulados
+        const contact = row.contacts;
+        const isRealContact = contact.phone && 
+          contact.phone.length > 8 && // Telefones reais têm mais de 8 dígitos
+          !contact.phone.includes('000000') &&
+          !contact.phone.includes('111111') &&
+          !contact.phone.includes('123456') &&
+          !contact.name.toLowerCase().includes('test') &&
+          !contact.name.toLowerCase().includes('demo') &&
+          !contact.name.toLowerCase().includes('exemplo');
 
-        result.push({
-          ...row.conversations,
-          contact: row.contacts,
-          messages: lastMessages,
-        });
+        if (isRealContact) {
+          const lastMessages = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.conversationId, row.conversations.id))
+            .orderBy(desc(messages.sentAt))
+            .limit(1);
+
+          result.push({
+            ...row.conversations,
+            contact: row.contacts,
+            messages: lastMessages,
+          });
+        }
       }
     }
 
