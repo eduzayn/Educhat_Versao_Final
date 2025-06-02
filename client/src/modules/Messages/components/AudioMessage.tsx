@@ -59,12 +59,6 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     if (!fetchedAudioUrl && messageIdForFetch && !isLoadingAudio) {
       console.log('Buscando áudio via API...');
       await fetchAudioContent();
-      // Aguardar um pouco para o estado ser atualizado
-      setTimeout(() => {
-        if (fetchedAudioUrl && audioRef.current) {
-          audioRef.current.play().catch(console.error);
-        }
-      }, 100);
       return;
     }
     
@@ -80,20 +74,50 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        console.log('Iniciando reprodução:', fetchedAudioUrl);
-        // Garantir que o src está definido
+        console.log('Iniciando reprodução:', {
+          url: fetchedAudioUrl,
+          currentSrc: audioRef.current.src,
+          readyState: audioRef.current.readyState
+        });
+        
+        // Garantir que o src está definido e recarregar se necessário
         if (audioRef.current.src !== fetchedAudioUrl) {
           audioRef.current.src = fetchedAudioUrl;
           audioRef.current.load();
+          
+          // Aguardar o áudio carregar antes de tentar reproduzir
+          await new Promise((resolve, reject) => {
+            const onCanPlay = () => {
+              audioRef.current?.removeEventListener('canplay', onCanPlay);
+              audioRef.current?.removeEventListener('error', onError);
+              resolve(void 0);
+            };
+            
+            const onError = (e: any) => {
+              audioRef.current?.removeEventListener('canplay', onCanPlay);
+              audioRef.current?.removeEventListener('error', onError);
+              reject(e);
+            };
+            
+            audioRef.current?.addEventListener('canplay', onCanPlay);
+            audioRef.current?.addEventListener('error', onError);
+            
+            // Timeout de segurança
+            setTimeout(() => {
+              audioRef.current?.removeEventListener('canplay', onCanPlay);
+              audioRef.current?.removeEventListener('error', onError);
+              resolve(void 0);
+            }, 3000);
+          });
         }
         
         await audioRef.current.play();
         setIsPlaying(true);
-        console.log('Áudio reproduzindo');
+        console.log('Áudio reproduzindo com sucesso');
       }
     } catch (error) {
       console.error('Erro ao reproduzir áudio:', error);
-      setAudioError('Erro ao reproduzir áudio');
+      setAudioError('Erro ao reproduzir áudio - formato não suportado');
       setIsPlaying(false);
     }
   };
