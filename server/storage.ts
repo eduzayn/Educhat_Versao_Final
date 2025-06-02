@@ -45,6 +45,8 @@ export interface IStorage {
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: number, conversation: Partial<InsertConversation>): Promise<Conversation>;
   getConversationByContactAndChannel(contactId: number, channel: string): Promise<Conversation | undefined>;
+  incrementUnreadCount(conversationId: number): Promise<void>;
+  resetUnreadCount(conversationId: number): Promise<void>;
 
   // Message operations
   getAllMessages(): Promise<Message[]>;
@@ -301,6 +303,26 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return conversation;
+  }
+
+  async incrementUnreadCount(conversationId: number): Promise<void> {
+    await db
+      .update(conversations)
+      .set({
+        unreadCount: sql`${conversations.unreadCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
+  async resetUnreadCount(conversationId: number): Promise<void> {
+    await db
+      .update(conversations)
+      .set({
+        unreadCount: 0,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
   }
 
   // Message operations
