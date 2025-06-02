@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MessageSquare, Search, Send } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact } from '@shared/schema';
 
 export default function InboxPage() {
@@ -10,9 +12,51 @@ export default function InboxPage() {
     refetch 
   } = useConversations(500);
   
+  const queryClient = useQueryClient();
+  
   const [activeConversation, setActiveConversation] = useState<ConversationWithContact | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [newMessage, setNewMessage] = useState('');
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { phone: string; text: string }) => {
+      const response = await fetch('/api/zapi/send-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao enviar mensagem');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      if (activeConversation) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/messages', activeConversation.contact.phone] 
+        });
+      }
+    }
+  });
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !activeConversation) return;
+    
+    try {
+      await sendMessageMutation.mutateAsync({
+        phone: activeConversation.contact.phone,
+        text: newMessage.trim()
+      });
+      setNewMessage('');
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+    }
+  };
 
   const handleSelectConversation = (conversation: ConversationWithContact) => {
     setActiveConversation(conversation);
@@ -208,8 +252,7 @@ export default function InboxPage() {
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      console.log('Enviando mensagem:', newMessage);
-                      setNewMessage('');
+                      handleSendMessage();
                     }
                   }}
                   className="flex-1 min-h-[40px] max-h-32 resize-none p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
