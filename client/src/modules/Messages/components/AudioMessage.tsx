@@ -71,12 +71,6 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     if (!isLoaded) {
       console.log('Carregando elemento de áudio...');
       setIsLoaded(true);
-      // Aguardar um pouco para o elemento ser criado
-      setTimeout(() => {
-        if (audioRef.current) {
-          togglePlayPause();
-        }
-      }, 100);
       return;
     }
     
@@ -120,6 +114,25 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
       setIsLoaded(true);
     }
   }, [fetchedAudioUrl, audioUrl]);
+
+  // Effect para reproduzir automaticamente após carregamento
+  useEffect(() => {
+    if (isLoaded && fetchedAudioUrl && audioRef.current && !isPlaying) {
+      const attemptPlay = async () => {
+        try {
+          console.log('Tentando reproduzir áudio automaticamente...');
+          await audioRef.current.play();
+          setIsPlaying(true);
+          console.log('Áudio reproduzindo automaticamente');
+        } catch (error) {
+          console.log('Autoplay bloqueado, aguardando clique do usuário');
+        }
+      };
+      
+      // Pequeno delay para garantir que o elemento está pronto
+      setTimeout(attemptPlay, 50);
+    }
+  }, [isLoaded, fetchedAudioUrl, isPlaying]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
