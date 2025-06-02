@@ -7,7 +7,7 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
-import { InboxPage } from "@/pages/InboxPage";
+import InboxPage from "@/pages/InboxPage";
 import ChatInternoPage from "@/pages/ChatInternoPage";
 import CrmPage from "@/pages/CrmPage";
 import ReportsPage from "@/pages/ReportsPage";
