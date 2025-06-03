@@ -1,0 +1,664 @@
+Página de Configurações de Usuários - Estrutura Detalhada
+Baseando-me na análise do sistema existente, aqui está a especificação completa para a página de configurações de usuários:
+
+1. Arquitetura Geral da Página
+Layout Principal:
+// pages/settings-users.tsx
+export default function SettingsUsersPage() {
+  return (
+    <SettingsModule>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Usuários e Equipes</h2>
+            <p className="text-muted-foreground">
+              Gerencie usuários, permissões e organize equipes de trabalho
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Dados
+            </Button>
+            <Button>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Novo Usuário
+            </Button>
+          </div>
+        </div>
+        
+        <UsersSettings />
+      </div>
+    </SettingsModule>
+  );
+}
+2. Componente Principal UsersSettings
+Estrutura com Tabs:
+// modules/Settings/UsersSettings/index.tsx
+export const UsersSettings = () => {
+  const [activeTab, setActiveTab] = useState("users");
+  
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          <CardTitle>Gerenciamento de Usuários</CardTitle>
+        </div>
+        <CardDescription>
+          Configure usuários, funções e organize equipes para otimizar o trabalho colaborativo
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Funções
+            </TabsTrigger>
+            <TabsTrigger value="teams" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Equipes
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="flex items-center gap-2">
+              <Key className="h-4 w-4" />
+              Permissões
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users">
+            <UsersTab />
+          </TabsContent>
+          
+          <TabsContent value="roles">
+            <RolesTab />
+          </TabsContent>
+          
+          <TabsContent value="teams">
+            <TeamsTab />
+          </TabsContent>
+          
+          <TabsContent value="permissions">
+            <PermissionsTab />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
+3. Tab de Usuários
+Componente UsersTab:
+// components/UsersTab.tsx
+export const UsersTab = () => {
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  
+  return (
+    <div className="space-y-6">
+      {/* Filtros e Busca */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar usuários por nome, email ou função..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <Select value={selectedRole} onValueChange={setSelectedRole}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrar por função" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as funções</SelectItem>
+            <SelectItem value="admin">Administrador</SelectItem>
+            <SelectItem value="manager">Gerente</SelectItem>
+            <SelectItem value="agent">Atendente</SelectItem>
+            <SelectItem value="supervisor">Supervisor</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrar por status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="active">Ativo</SelectItem>
+            <SelectItem value="inactive">Inativo</SelectItem>
+            <SelectItem value="pending">Pendente</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total de Usuários</p>
+                <p className="text-2xl font-bold">{userStats.total}</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Usuários Ativos</p>
+                <p className="text-2xl font-bold text-green-600">{userStats.active}</p>
+              </div>
+              <UserCheck className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Online Agora</p>
+                <p className="text-2xl font-bold text-blue-600">{userStats.online}</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+                <p className="text-2xl font-bold text-orange-600">{userStats.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Lista de Usuários */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Lista de Usuários</CardTitle>
+            <Button onClick={() => setShowUserDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar Usuário
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox />
+                  </TableHead>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Função</TableHead>
+                  <TableHead>Equipe</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Último Acesso</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map(user => (
+                  <UserTableRow key={user.id} user={user} onEdit={setEditingUser} />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Dialog de Criação/Edição de Usuário */}
+      <UserDialog
+        open={showUserDialog}
+        onOpenChange={setShowUserDialog}
+        user={editingUser}
+        onSave={handleSaveUser}
+      />
+    </div>
+  );
+};
+4. Linha da Tabela de Usuários
+Componente UserTableRow:
+const UserTableRow = ({ user, onEdit }: UserTableRowProps) => {
+  return (
+    <TableRow>
+      <TableCell>
+        <Checkbox />
+      </TableCell>
+      
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback>{user.initials}</AvatarFallback>
+            </Avatar>
+            {user.isOnline && (
+              <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 border-2 border-white rounded-full" />
+            )}
+          </div>
+          <div>
+            <p className="font-medium">{user.displayName}</p>
+            <p className="text-sm text-muted-foreground">@{user.username}</p>
+          </div>
+        </div>
+      </TableCell>
+      
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          {user.email}
+        </div>
+      </TableCell>
+      
+      <TableCell>
+        <Badge variant="outline" className={getRoleBadgeStyle(user.role)}>
+          {getRoleDisplayName(user.role)}
+        </Badge>
+      </TableCell>
+      
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          {user.team || "Não atribuído"}
+        </div>
+      </TableCell>
+      
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${getStatusColor(user.status)}`} />
+          <span className="capitalize">{user.status}</span>
+        </div>
+      </TableCell>
+      
+      <TableCell>
+        <time className="text-sm text-muted-foreground">
+          {formatDistanceToNow(user.lastLoginAt, { addSuffix: true, locale: ptBR })}
+        </time>
+      </TableCell>
+      
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(user)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar usuário
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Key className="h-4 w-4 mr-2" />
+              Resetar senha
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <UserX className="h-4 w-4 mr-2" />
+              {user.isActive ? 'Desativar' : 'Ativar'}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive">
+              <Trash className="h-4 w-4 mr-2" />
+              Excluir usuário
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+};
+5. Dialog de Criação/Edição de Usuário
+Componente UserDialog:
+const UserDialog = ({ open, onOpenChange, user, onSave }: UserDialogProps) => {
+  const [formData, setFormData] = useState({
+    username: user?.username || "",
+    displayName: user?.displayName || "",
+    email: user?.email || "",
+    role: user?.role || "agent",
+    team: user?.team || "",
+    password: "",
+    confirmPassword: "",
+    isActive: user?.isActive ?? true,
+    avatar: user?.avatar || "",
+    phone: user?.phone || "",
+    department: user?.department || "",
+    permissions: user?.permissions || []
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>
+            {user ? 'Editar Usuário' : 'Novo Usuário'}
+          </DialogTitle>
+          <DialogDescription>
+            {user 
+              ? 'Modifique as informações do usuário conforme necessário'
+              : 'Preencha as informações para criar um novo usuário'
+            }
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Informações Básicas */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium">Informações Básicas</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Nome de usuário</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="usuario123"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Nome completo</Label>
+                <Input
+                  id="displayName"
+                  value={formData.displayName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                  placeholder="João da Silva"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="joao@empresa.com"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+55 11 99999-9999"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Função e Permissões */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium">Função e Permissões</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role">Função</Label>
+                <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="agent">Atendente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="team">Equipe</Label>
+                <Select value={formData.team} onValueChange={(value) => setFormData(prev => ({ ...prev, team: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma equipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="suporte">Suporte</SelectItem>
+                    <SelectItem value="vendas">Vendas</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="department">Departamento</Label>
+              <Input
+                id="department"
+                value={formData.department}
+                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                placeholder="Atendimento ao Cliente"
+              />
+            </div>
+          </div>
+          
+          {/* Senha (apenas para novos usuários) */}
+          {!user && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Credenciais de Acesso</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Senha segura"
+                    required={!user}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Confirme a senha"
+                    required={!user}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Status */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: !!checked }))}
+              />
+              <Label htmlFor="isActive">Usuário ativo</Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">
+              {user ? 'Atualizar Usuário' : 'Criar Usuário'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+6. Tab de Funções (Roles)
+Componente RolesTab:
+export const RolesTab = () => {
+  const [roles, setRoles] = useState([]);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Funções do Sistema</h3>
+          <p className="text-sm text-muted-foreground">
+            Defina e gerencie as funções disponíveis no sistema
+          </p>
+        </div>
+        <Button onClick={() => setShowRoleDialog(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Função
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {systemRoles.map(role => (
+          <RoleCard key={role.id} role={role} />
+        ))}
+      </div>
+    </div>
+  );
+};
+7. Tab de Equipes
+Componente TeamsTab:
+export const TeamsTab = () => {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Equipes de Trabalho</h3>
+          <p className="text-sm text-muted-foreground">
+            Organize usuários em equipes para melhor colaboração
+          </p>
+        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Equipe
+        </Button>
+      </div>
+      
+      <div className="space-y-4">
+        {teams.map(team => (
+          <TeamCard key={team.id} team={team} />
+        ))}
+      </div>
+    </div>
+  );
+};
+8. Tab de Permissões
+Componente PermissionsTab:
+export const PermissionsTab = () => {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Matriz de Permissões</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure as permissões por função para cada módulo do sistema
+        </p>
+      </div>
+      
+      <Card>
+        <CardContent className="p-6">
+          <PermissionsMatrix />
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+9. Interfaces de Dados
+Estruturas TypeScript:
+interface User {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string;
+  role: 'admin' | 'manager' | 'supervisor' | 'agent';
+  team?: string;
+  department?: string;
+  avatar?: string;
+  phone?: string;
+  isActive: boolean;
+  isOnline: boolean;
+  lastLoginAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  permissions: Permission[];
+}
+interface Role {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  permissions: Permission[];
+  userCount: number;
+  isSystemRole: boolean;
+}
+interface Team {
+  id: string;
+  name: string;
+  description: string;
+  leaderId: string;
+  members: User[];
+  department: string;
+  createdAt: Date;
+}
+interface Permission {
+  id: string;
+  module: string;
+  action: 'create' | 'read' | 'update' | 'delete';
+  resource: string;
+}
+10. Funcionalidades Especiais
+Ações em Massa:
+Seleção múltipla de usuários
+Ativação/desativação em lote
+Alteração de função em massa
+Atribuição de equipe em lote
+Exportação de dados selecionados
+Filtros Avançados:
+Por função (admin, manager, agent, etc.)
+Por status (ativo, inativo, pendente)
+Por equipe
+Por departamento
+Por último acesso
+Auditoria e Logs:
+Histórico de alterações
+Log de acessos
+Trilha de ações administrativas
+Relatórios de atividade
+Esta estrutura fornece um sistema completo de gerenciamento de usuários com todas as funcionalidades necessárias para administração de equipes em um ambiente empresarial.
