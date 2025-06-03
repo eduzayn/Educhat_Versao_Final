@@ -358,15 +358,27 @@ export class DatabaseStorage implements IStorage {
       .values(message)
       .returning();
 
-    // Update conversation's last message timestamp
-    await db
-      .update(conversations)
-      .set({ 
-        lastMessageAt: new Date(),
-        // Note: unreadCount will be calculated separately to avoid SQL issues
-        updatedAt: new Date() 
-      })
-      .where(eq(conversations.id, message.conversationId));
+    // Update conversation's last message timestamp and unread count
+    if (message.isFromContact) {
+      // Se a mensagem é do contato, incrementar contador de não lidas
+      await db
+        .update(conversations)
+        .set({ 
+          lastMessageAt: new Date(),
+          unreadCount: sql`${conversations.unreadCount} + 1`,
+          updatedAt: new Date() 
+        })
+        .where(eq(conversations.id, message.conversationId));
+    } else {
+      // Se a mensagem é nossa, apenas atualizar timestamp
+      await db
+        .update(conversations)
+        .set({ 
+          lastMessageAt: new Date(),
+          updatedAt: new Date() 
+        })
+        .where(eq(conversations.id, message.conversationId));
+    }
 
     return newMessage;
   }
@@ -390,6 +402,13 @@ export class DatabaseStorage implements IStorage {
       .update(messages)
       .set({ isDeleted: true })
       .where(eq(messages.id, id));
+  }
+
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    await db
+      .update(conversations)
+      .set({ unreadCount: 0 })
+      .where(eq(conversations.id, conversationId));
   }
 
   async updateMessageStatus(whatsappMessageId: string, status: string): Promise<void> {

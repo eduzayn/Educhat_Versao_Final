@@ -446,6 +446,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mark conversation as read
+  app.patch('/api/conversations/:id/read', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.markConversationAsRead(id);
+      res.json({ message: 'Conversation marked as read' });
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+      res.status(500).json({ message: 'Failed to mark conversation as read' });
+    }
+  });
+
   // Messages endpoints
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
