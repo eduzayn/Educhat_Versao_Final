@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Search, Filter, Download, RefreshCw, Camera } from 'lucide-react';
-import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { ZApiStatusIndicator } from '@/shared/components/ZApiStatusIndicator';
 
 interface ContactFiltersProps {
   searchQuery: string;

@@ -1,4 +1,4 @@
-import { SettingsModule } from '@/modules/Settings';
+import { SettingsLayout } from '@/shared/components/Settings/SettingsLayout';
 import { Card } from '@/shared/ui/ui/card';
 import { BackButton } from '@/shared/components/BackButton';
 

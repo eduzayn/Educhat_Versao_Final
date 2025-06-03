@@ -48,7 +48,7 @@ import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
 import { InputArea } from '@/modules/Messages/components/InputArea';
-import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { ZApiStatusIndicator } from '@/shared/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 
 export function InboxPageRefactored() {
