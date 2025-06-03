@@ -1,42 +1,26 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
+import { Input } from '@/shared/ui/ui/input';
+import { Textarea } from '@/shared/ui/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Shield, Plus, Users, Settings, Eye } from 'lucide-react';
 
-const roles = [
-  {
-    id: 1,
-    name: 'Administrador',
-    description: 'Acesso total ao sistema, pode gerenciar todos os usuários e configurações',
-    permissions: ['user_management', 'system_config', 'reports', 'channels'],
-    userCount: 2,
-    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-  },
-  {
-    id: 2,
-    name: 'Gerente',
-    description: 'Pode gerenciar equipes e acessar relatórios avançados',
-    permissions: ['team_management', 'reports', 'user_view'],
-    userCount: 5,
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-  },
-  {
-    id: 3,
-    name: 'Supervisor',
-    description: 'Supervisiona atendentes e pode acessar relatórios básicos',
-    permissions: ['agent_supervision', 'basic_reports'],
-    userCount: 3,
-    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-  },
-  {
-    id: 4,
-    name: 'Atendente',
-    description: 'Realiza atendimento aos clientes através dos canais configurados',
-    permissions: ['chat_access', 'customer_view'],
-    userCount: 14,
-    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-  }
-];
+const roleFormSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  displayName: z.string().min(2, 'Nome de exibição deve ter pelo menos 2 caracteres'),
+  isActive: z.boolean().default(true)
+});
+
+
 
 const getPermissionName = (permission: string) => {
   const names = {
@@ -55,6 +39,57 @@ const getPermissionName = (permission: string) => {
 };
 
 export const RolesTab = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch roles from database
+  const { data: roles = [], isLoading } = useQuery({
+    queryKey: ['/api/roles'],
+    queryFn: async () => {
+      const response = await fetch('/api/roles');
+      if (!response.ok) throw new Error('Failed to fetch roles');
+      return response.json();
+    }
+  });
+
+  // Create role mutation
+  const createRoleMutation = useMutation({
+    mutationFn: async (roleData: z.infer<typeof roleFormSchema>) => {
+      const response = await apiRequest('POST', '/api/roles', roleData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Nova função criada com sucesso!"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar função",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const form = useForm<z.infer<typeof roleFormSchema>>({
+    resolver: zodResolver(roleFormSchema),
+    defaultValues: {
+      name: '',
+      displayName: '',
+      isActive: true
+    }
+  });
+
+  const onSubmit = (values: z.infer<typeof roleFormSchema>) => {
+    createRoleMutation.mutate(values);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,55 +99,151 @@ export const RolesTab = () => {
             Configure as funções e permissões para diferentes tipos de usuários
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Função
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Função
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Nova Função</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Função</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: moderador" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome de Exibição</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Moderador" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={createRoleMutation.isPending}
+                  >
+                    {createRoleMutation.isPending ? 'Criando...' : 'Criar Função'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {roles.map(role => (
-          <Card key={role.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  <CardTitle className="text-lg">{role.name}</CardTitle>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 bg-gray-300 rounded"></div>
+                    <div className="h-6 w-24 bg-gray-300 rounded"></div>
+                  </div>
+                  <div className="h-6 w-16 bg-gray-300 rounded"></div>
                 </div>
-                <Badge variant="outline" className={role.color}>
-                  {role.userCount} usuários
-                </Badge>
-              </div>
-              <CardDescription>{role.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Permissões:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {role.permissions.map(permission => (
-                      <Badge key={permission} variant="secondary" className="text-xs">
-                        {getPermissionName(permission)}
-                      </Badge>
-                    ))}
+                <div className="h-4 w-full bg-gray-300 rounded mt-2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="h-4 w-20 bg-gray-300 rounded mb-2"></div>
+                    <div className="flex flex-wrap gap-1">
+                      <div className="h-6 w-16 bg-gray-300 rounded"></div>
+                      <div className="h-6 w-20 bg-gray-300 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-8 w-full bg-gray-300 rounded"></div>
+                    <div className="h-8 w-full bg-gray-300 rounded"></div>
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Visualizar
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : roles.length === 0 ? (
+        <div className="text-center py-8">
+          <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Nenhuma função encontrada
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            Comece criando uma nova função para organizar as permissões do sistema.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {roles.map((role: any) => (
+            <Card key={role.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    <CardTitle className="text-lg">{role.displayName || role.name}</CardTitle>
+                  </div>
+                  <Badge variant="outline">
+                    Ativa
+                  </Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <CardDescription>
+                  Função criada no sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Status:</h4>
+                    <Badge variant={role.isActive ? "default" : "secondary"}>
+                      {role.isActive ? "Ativa" : "Inativa"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Visualizar
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

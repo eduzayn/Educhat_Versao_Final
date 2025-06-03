@@ -194,7 +194,7 @@ export const PermissionsTab = () => {
             </SelectTrigger>
             <SelectContent>
               {rolesLoading ? (
-                <SelectItem value="">Carregando...</SelectItem>
+                <SelectItem value="loading">Carregando...</SelectItem>
               ) : (
                 roles.map((role: any) => (
                   <SelectItem key={role.id} value={role.id.toString()}>
