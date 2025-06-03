@@ -144,6 +144,7 @@ export const UsersTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [showUserDialog, setShowUserDialog] = useState(false);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
