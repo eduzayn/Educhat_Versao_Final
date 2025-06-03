@@ -372,6 +372,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get total unread count - deve vir ANTES da rota genérica :id
+  app.get('/api/conversations/unread-count', async (req, res) => {
+    try {
+      const totalUnread = await storage.getTotalUnreadCount();
+      res.json({ count: totalUnread });
+    } catch (error) {
+      console.error('Erro ao buscar total de mensagens não lidas:', error);
+      res.status(500).json({ message: 'Falha ao buscar contadores' });
+    }
+  });
+
   app.get('/api/conversations/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -466,17 +477,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erro ao recalcular contadores:', error);
       res.status(500).json({ message: 'Falha ao recalcular contadores' });
-    }
-  });
-
-  // Get total unread count
-  app.get('/api/conversations/unread-count', async (req, res) => {
-    try {
-      const totalUnread = await storage.getTotalUnreadCount();
-      res.json({ count: totalUnread });
-    } catch (error) {
-      console.error('Erro ao buscar total de mensagens não lidas:', error);
-      res.status(500).json({ message: 'Falha ao buscar contadores' });
     }
   });
 
