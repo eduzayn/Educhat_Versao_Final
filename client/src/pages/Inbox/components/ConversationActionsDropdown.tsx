@@ -91,6 +91,11 @@ export function ConversationActionsDropdown({
       // Forçar atualização imediata da lista de conversas
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+      
+      // Invalidar e atualizar imediatamente o contador de mensagens não lidas
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+      queryClient.refetchQueries({ queryKey: ['/api/conversations/unread-count'] });
+      
       toast({
         title: "Marcado como não lida",
         description: "A conversa foi marcada como não lida."
