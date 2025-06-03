@@ -14,7 +14,7 @@ export function SidebarConversations({
   onConversationSelect 
 }: SidebarConversationsProps) {
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
       {/* Header da sidebar */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Conversas</h2>
