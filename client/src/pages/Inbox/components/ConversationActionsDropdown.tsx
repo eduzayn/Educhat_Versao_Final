@@ -34,7 +34,7 @@ const useToast = () => ({
 interface ConversationActionsDropdownProps {
   conversationId: number;
   contactId: number;
-  currentStatus?: string;
+  currentStatus?: string | null;
 }
 
 export function ConversationActionsDropdown({ 

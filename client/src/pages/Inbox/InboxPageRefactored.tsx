@@ -610,7 +610,7 @@ export function InboxPageRefactored() {
                         <ConversationActionsDropdown 
                           conversationId={conversation.id}
                           contactId={conversation.contactId}
-                          currentStatus={conversation.status}
+                          currentStatus={conversation.status || 'open'}
                         />
                       </div>
                     </div>
@@ -737,9 +737,11 @@ export function InboxPageRefactored() {
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Phone className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
+                  <ConversationActionsDropdown 
+                    conversationId={activeConversation.id}
+                    contactId={activeConversation.contactId}
+                    currentStatus={activeConversation.status || 'open'}
+                  />
                 </div>
               </div>
             </div>
