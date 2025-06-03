@@ -154,6 +154,8 @@ export const UsersTab = () => {
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -200,6 +202,41 @@ export const UsersTab = () => {
     }
   });
 
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, userData }: { id: number; userData: any }) => 
+      fetch(`/api/system-users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          displayName: userData.name,
+          email: userData.email,
+          role: userData.role,
+          team: userData.team,
+          isActive: userData.isActive
+        })
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      setShowEditDialog(false);
+      setEditingUser(null);
+    }
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => 
+      fetch(`/api/system-users/${userId}`, {
+        method: 'DELETE'
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+    }
+  });
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -211,6 +248,54 @@ export const UsersTab = () => {
     }
 
     createUserMutation.mutate(formData);
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.displayName,
+      email: user.email,
+      username: user.username,
+      password: '',
+      role: user.role,
+      team: user.team || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser || !formData.name || !formData.email || !formData.username || !formData.role) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    updateUserMutation.mutate({
+      id: editingUser.id,
+      userData: {
+        ...formData,
+        isActive: editingUser.isActive
+      }
+    });
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleToggleUserStatus = (user: any) => {
+    updateUserMutation.mutate({
+      id: user.id,
+      userData: {
+        name: user.displayName,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        team: user.team || '',
+        isActive: !user.isActive
+      }
+    });
   };
 
   const filteredUsers = users.filter((user: any) => {
@@ -411,7 +496,7 @@ export const UsersTab = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
                             <Edit className="h-4 w-4 mr-2" />
                             Editar usuário
                           </DropdownMenuItem>
@@ -419,12 +504,12 @@ export const UsersTab = () => {
                             <Key className="h-4 w-4 mr-2" />
                             Resetar senha
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleToggleUserStatus(user)}>
                             <UserX className="h-4 w-4 mr-2" />
                             {user.isActive ? 'Desativar' : 'Ativar'}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(user.id)}>
                             <Trash className="h-4 w-4 mr-2" />
                             Excluir usuário
                           </DropdownMenuItem>
@@ -545,6 +630,114 @@ export const UsersTab = () => {
             </Button>
             <Button onClick={handleCreateUser}>
               Criar Usuário
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Edite as informações do usuário. A senha é opcional.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">
+                Nome
+              </Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-username" className="text-right">
+                Usuário
+              </Label>
+              <Input
+                id="edit-username"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-password" className="text-right">
+                Nova Senha
+              </Label>
+              <Input
+                id="edit-password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className="col-span-3"
+                placeholder="Deixe em branco para manter atual"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-role" className="text-right">
+                Função
+              </Label>
+              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione uma função" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="manager">Gerente</SelectItem>
+                  <SelectItem value="agent">Agente</SelectItem>
+                  <SelectItem value="viewer">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-team" className="text-right">
+                Equipe
+              </Label>
+              <Select value={formData.team} onValueChange={(value) => handleInputChange('team', value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione uma equipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="suporte">Suporte Técnico</SelectItem>
+                  <SelectItem value="vendas">Vendas</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateUser}>
+              Salvar Alterações
             </Button>
           </DialogFooter>
         </DialogContent>
