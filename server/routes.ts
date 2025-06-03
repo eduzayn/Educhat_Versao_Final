@@ -235,12 +235,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts?page=${page}&pageSize=${pageSize}`;
         console.log(`Buscando página ${page} de contatos...`);
         
-        const response = await fetch(url, {
-          headers: {
-            'Client-Token': clientToken,
-            'Content-Type': 'application/json'
-          }
-        });
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/json');
+        if (clientToken) {
+          headers.set('Client-Token', clientToken);
+        }
+        
+        const response = await fetch(url, { headers });
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -2986,38 +2987,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/channels/:id/qr', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`🔍 Buscando QR Code para canal ID: ${id}`);
+      
       const channel = await storage.getChannel(id);
       
       if (!channel) {
+        console.log(`❌ Canal não encontrado: ${id}`);
         return res.status(404).json({ message: 'Channel not found' });
       }
 
       const { instanceId, token, clientToken } = channel;
+      console.log(`📋 Credenciais do canal:`, { 
+        instanceId: instanceId?.substring(0, 8) + '...', 
+        token: token?.substring(0, 8) + '...', 
+        clientToken: clientToken?.substring(0, 8) + '...' 
+      });
+
       const baseUrl = 'https://api.z-api.io';
 
       if (!clientToken) {
+        console.log(`❌ Client token não fornecido para canal ${id}`);
         return res.status(400).json({ message: 'Client token is required' });
       }
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      
-      if (clientToken) {
-        headers['Client-Token'] = clientToken;
-      }
+      const headers = new Headers();
+      headers.set('Content-Type', 'application/json');
+      headers.set('Client-Token', clientToken);
 
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
-        headers
+      const qrUrl = `${baseUrl}/instances/${instanceId}/token/${token}/qr-code`;
+      console.log(`🌐 Fazendo requisição para Z-API: ${qrUrl}`);
+
+      const response = await fetch(qrUrl, { headers });
+
+      console.log(`📥 Resposta Z-API QR Code:`, {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       });
 
+      const responseText = await response.text();
+      console.log(`📄 Conteúdo da resposta Z-API:`, responseText);
+
       if (!response.ok) {
-        throw new Error(`Z-API Error: ${response.status} - ${response.statusText}`);
+        throw new Error(`Z-API Error: ${response.status} - ${response.statusText} - ${responseText}`);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error('Invalid JSON response from Z-API');
+      }
+      
+      console.log(`🔍 Dados recebidos da Z-API:`, data);
       
       if (data.value) {
+        console.log(`✅ Gerando QR Code visual a partir do token...`);
         // Generate visual QR Code from token
         const qrCodeDataURL = await QRCode.toDataURL(data.value, {
           width: 256,
@@ -3028,12 +3054,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
+        console.log(`✅ QR Code gerado com sucesso`);
         res.json({ qrCode: qrCodeDataURL });
+      } else if (data.connected) {
+        console.log(`ℹ️ WhatsApp já conectado, não é necessário QR Code`);
+        res.json({ 
+          message: 'WhatsApp já está conectado',
+          connected: true,
+          data 
+        });
       } else {
+        console.log(`📄 Retornando dados da Z-API sem QR Code:`, data);
         res.json(data);
       }
     } catch (error) {
-      console.error('Error getting QR code for channel:', error);
+      console.error('❌ Erro ao obter QR code para canal:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Internal server error' 
       });
