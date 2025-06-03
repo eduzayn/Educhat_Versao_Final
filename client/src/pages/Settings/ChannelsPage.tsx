@@ -130,7 +130,10 @@ export default function ChannelsPage() {
 
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
-    mutationFn: () => apiRequest('GET', '/api/zapi/qrcode'),
+    mutationFn: async () => {
+      const response = await apiRequest('GET', '/api/zapi/qrcode');
+      return await response.json();
+    },
     onSuccess: (data: any) => {
       console.log('QR Code response:', data);
       if (data?.qrCode) {
