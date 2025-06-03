@@ -57,8 +57,7 @@ function Router() {
           <Route path="/payments" component={PaymentsPage} />
           <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
-          <Route path="/settings/channels" component={ChannelsSettingsPage} />
-          <Route path="/channels" component={ChannelsPage} />
+          <Route path="/settings/channels" component={ChannelsPage} />
           <Route path="/settings/users" component={UsersSettingsPage} />
           <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
           <Route path="/settings/webhook" component={WebhookConfigPage} />
