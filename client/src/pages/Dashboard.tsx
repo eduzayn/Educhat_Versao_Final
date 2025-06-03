@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useUnreadCount } from '@/shared/lib/hooks/useUnreadCount';
 import { 
   MessageSquare, 
   Users, 
@@ -32,6 +33,7 @@ export function Dashboard() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
+  const { data: unreadData } = useUnreadCount();
 
   const handleLogout = async () => {
     try {
@@ -55,7 +57,7 @@ export function Dashboard() {
       label: 'Caixa de Entrada',
       icon: Inbox,
       description: 'Conversas unificadas',
-      badge: '12',
+      badge: unreadData?.count ? unreadData.count.toString() : undefined,
       route: '/inbox'
     },
     {
