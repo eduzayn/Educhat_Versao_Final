@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const profileResponse = await fetch(profileUrl, {
             method: 'GET',
             headers: {
-              'Client-Token': clientToken,
+              'Client-Token': clientToken || '',
               'Content-Type': 'application/json'
             }
           });
@@ -2547,70 +2547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Endpoint para reprocessar mensagens de áudio antigas que não foram baixadas
-  app.post('/api/reprocess-audio-messages', async (req, res) => {
-    try {
-      console.log('🔄 Iniciando reprocessamento de mensagens de áudio...');
-      
-      // Buscar todas as mensagens de áudio que só têm "Áudio enviado" no conteúdo
-      const audioMessages = await storage.searchMessages('Áudio enviado');
-      const messagesToUpdate = audioMessages.filter(msg => 
-        msg.messageType === 'audio' && 
-        msg.content === 'Áudio enviado' &&
-        msg.metadata &&
-        typeof msg.metadata === 'object' &&
-        'audio' in msg.metadata &&
-        (msg.metadata as any).audio?.audioUrl
-      );
 
-      console.log(`📊 Encontradas ${messagesToUpdate.length} mensagens de áudio para reprocessar`);
-
-      let processedCount = 0;
-      let errorCount = 0;
-
-      for (const message of messagesToUpdate) {
-        try {
-          const audioData = (message.metadata as any).audio;
-          if (audioData?.audioUrl) {
-            console.log(`🎵 Baixando áudio para mensagem ${message.id}: ${audioData.audioUrl}`);
-            
-            const audioResponse = await fetch(audioData.audioUrl);
-            if (audioResponse.ok) {
-              const audioBuffer = await audioResponse.arrayBuffer();
-              const audioBase64 = Buffer.from(audioBuffer).toString('base64');
-              const mimeType = audioData.mimeType || 'audio/ogg';
-              const dataUrl = `data:${mimeType};base64,${audioBase64}`;
-              
-              // Atualizar a mensagem com o conteúdo do áudio
-              await storage.updateMessage(message.id, { content: dataUrl });
-              processedCount++;
-              console.log(`✅ Áudio processado para mensagem ${message.id}`);
-            } else {
-              console.error(`❌ Erro ao baixar áudio para mensagem ${message.id}: ${audioResponse.status}`);
-              errorCount++;
-            }
-          }
-        } catch (error) {
-          console.error(`💥 Erro ao processar mensagem ${message.id}:`, error);
-          errorCount++;
-        }
-      }
-
-      console.log(`🎯 Reprocessamento concluído: ${processedCount} sucessos, ${errorCount} erros`);
-      
-      res.json({
-        success: true,
-        totalFound: messagesToUpdate.length,
-        processed: processedCount,
-        errors: errorCount
-      });
-    } catch (error) {
-      console.error('💥 Erro no reprocessamento:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
 
   // Endpoint para obter URL do webhook
   app.get('/api/webhook-url', (req, res) => {

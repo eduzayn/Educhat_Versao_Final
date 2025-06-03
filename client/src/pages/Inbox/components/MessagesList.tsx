@@ -15,14 +15,14 @@ export function MessagesList({ conversationId, contact }: MessagesListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const markAsReadMutation = useMarkConversationRead();
   
-  const { data: messages = [], isLoading, error } = useQuery({
+  const { data: messages = [], isLoading, error } = useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId
   });
 
   // Marcar conversa como lida automaticamente quando abrir
   useEffect(() => {
-    if (conversationId && messages.length > 0) {
+    if (conversationId && Array.isArray(messages) && messages.length > 0) {
       // Aguardar um pouco para garantir que as mensagens foram carregadas
       const timer = setTimeout(() => {
         markAsReadMutation.mutate(conversationId);
