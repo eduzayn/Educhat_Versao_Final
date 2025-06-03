@@ -104,17 +104,25 @@ export default function ChannelsPage() {
     mutationFn: (channelId: number) => apiRequest('POST', `/api/channels/${channelId}/test`),
     onSuccess: (data: any) => {
       const isConnected = data?.connected || false;
-      toast({
-        title: isConnected ? "Conexão bem-sucedida" : "Falha na conexão",
-        description: isConnected ? "Canal conectado com sucesso" : "Erro ao conectar com o canal",
-        variant: isConnected ? "default" : "destructive",
-      });
+      if (isConnected) {
+        toast({
+          title: "Conexão bem-sucedida",
+          description: "Canal WhatsApp conectado com sucesso",
+        });
+      } else {
+        // Em vez de mostrar erro, oferece opção de conectar via QR Code
+        toast({
+          title: "WhatsApp não conectado",
+          description: "Use o botão 'Gerar QR Code' para conectar o WhatsApp",
+          variant: "default",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao testar conexão",
+        title: "Erro de conexão",
+        description: "Verifique as configurações da Z-API",
         variant: "destructive",
       });
     },
@@ -122,19 +130,20 @@ export default function ChannelsPage() {
 
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
-    mutationFn: (channelId: number) => apiRequest('POST', `/api/channels/${channelId}/qr`),
+    mutationFn: () => apiRequest('GET', '/api/zapi/qrcode'),
     onSuccess: (data: any) => {
       if (data?.qrCode) {
         setQrCodeData(data.qrCode);
         setIsQrDialogOpen(true);
         toast({
           title: "QR Code gerado",
-          description: "QR Code gerado com sucesso",
+          description: "Escaneie o QR Code com seu WhatsApp para conectar",
         });
-      } else if (data?.connected) {
+      } else {
         toast({
-          title: "WhatsApp conectado",
-          description: "WhatsApp já está conectado, não é necessário QR Code",
+          title: "Erro ao gerar QR Code",
+          description: "Não foi possível obter o QR Code da Z-API",
+          variant: "destructive",
         });
       }
     },
@@ -342,7 +351,7 @@ export default function ChannelsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => generateQrMutation.mutate(channel.id)}
+                    onClick={() => generateQrMutation.mutate()}
                     disabled={generateQrMutation.isPending}
                   >
                     {generateQrMutation.isPending ? 'Gerando...' : 'Gerar QR Code'}
