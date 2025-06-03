@@ -360,15 +360,19 @@ export class DatabaseStorage implements IStorage {
 
     // Update conversation's last message timestamp and unread count
     if (message.isFromContact) {
+      console.log(`📬 Incrementando contador para conversa ${message.conversationId}`);
       // Se a mensagem é do contato, incrementar contador de não lidas
-      await db
+      const result = await db
         .update(conversations)
         .set({ 
           lastMessageAt: new Date(),
-          unreadCount: sql`${conversations.unreadCount} + 1`,
+          unreadCount: sql`COALESCE(${conversations.unreadCount}, 0) + 1`,
           updatedAt: new Date() 
         })
-        .where(eq(conversations.id, message.conversationId));
+        .where(eq(conversations.id, message.conversationId))
+        .returning({ newCount: conversations.unreadCount });
+      
+      console.log(`📊 Novo contador para conversa ${message.conversationId}:`, result[0]?.newCount);
     } else {
       // Se a mensagem é nossa, apenas atualizar timestamp
       await db
