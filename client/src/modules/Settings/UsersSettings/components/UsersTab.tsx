@@ -142,11 +142,56 @@ const formatDistanceToNow = (date: Date) => {
 };
 
 export const UsersTab = () => {
-  const [users] = useState(mockUsers);
+  const [users, setUsers] = useState(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    username: '',
+    password: '',
+    role: '',
+    team: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateUser = () => {
+    if (!formData.name || !formData.email || !formData.username || !formData.password || !formData.role) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    const roleMap: { [key: string]: string } = {
+      'admin': 'Administrador',
+      'manager': 'Gerente', 
+      'agent': 'Atendente',
+      'viewer': 'Visualizador'
+    };
+
+    const newUser = {
+      id: Date.now(),
+      displayName: formData.name,
+      email: formData.email,
+      username: formData.username,
+      role: roleMap[formData.role] || formData.role,
+      team: formData.team || 'Sem equipe',
+      isActive: true,
+      status: 'active',
+      isOnline: true,
+      lastLoginAt: new Date(),
+      avatar: '',
+      initials: formData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    };
+
+    setUsers(prev => [...prev, newUser]);
+    setFormData({ name: '', email: '', username: '', password: '', role: '', team: '' });
+    setShowUserDialog(false);
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -392,6 +437,8 @@ export const UsersTab = () => {
                 id="name"
                 placeholder="Nome completo"
                 className="col-span-3"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
               />
             </div>
             
@@ -404,6 +451,8 @@ export const UsersTab = () => {
                 placeholder="email@exemplo.com"
                 type="email"
                 className="col-span-3"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
               />
             </div>
             
@@ -414,6 +463,18 @@ export const UsersTab = () => {
               <Input
                 id="username"
                 placeholder="nome_usuario"
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Senha
+              </Label>
+              <Input
+                id="password"
+                placeholder="Digite uma senha segura"
+                type="password"
                 className="col-span-3"
               />
             </div>
