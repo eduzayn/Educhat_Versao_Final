@@ -133,9 +133,14 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const formatDistanceToNow = (date: Date) => {
+const formatDistanceToNow = (date: Date | null | string) => {
+  if (!date) return 'Nunca';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return 'Nunca';
+  
   const now = new Date();
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  const diffInHours = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
   
   if (diffInHours < 1) return 'Agora mesmo';
   if (diffInHours < 24) return `há ${diffInHours}h`;
@@ -166,17 +171,21 @@ export const UsersTab = () => {
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: (userData: any) => apiRequest('/api/system-users', {
-      method: 'POST',
-      body: JSON.stringify({
-        username: userData.username,
-        displayName: userData.name,
-        email: userData.email,
-        password: userData.password,
-        role: userData.role,
-        team: userData.team
-      })
-    }),
+    mutationFn: (userData: any) => 
+      fetch('/api/system-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          displayName: userData.name,
+          email: userData.email,
+          password: userData.password,
+          role: userData.role,
+          team: userData.team
+        })
+      }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
       setShowUserDialog(false);
@@ -204,12 +213,13 @@ export const UsersTab = () => {
     createUserMutation.mutate(formData);
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.username.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredUsers = users.filter((user: any) => {
+    const matchesSearch = user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.username?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === "all" || user.role === selectedRole;
-    const matchesStatus = selectedStatus === "all" || user.status === selectedStatus;
+    const userStatus = user.isActive ? 'active' : 'inactive';
+    const matchesStatus = selectedStatus === "all" || userStatus === selectedStatus;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
