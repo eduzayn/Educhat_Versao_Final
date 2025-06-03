@@ -15,7 +15,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/SettingsPage";
-import ChannelsSettingsPage from "@/pages/ChannelsSettingsPage";
+import ChannelsSettingsPage from "@/pages/Settings/Channels/ChannelsSettingsPage";
 import SettingsUsersPage from "@/pages/SettingsUsersPage";
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
