@@ -16,7 +16,7 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ChannelsSettingsPage from "@/pages/Settings/Channels/ChannelsSettingsPage";
-import SettingsUsersPage from "@/pages/SettingsUsersPage";
+
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import NotFound from "@/pages/not-found";
@@ -55,7 +55,7 @@ function Router() {
           <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/settings/channels" component={ChannelsSettingsPage} />
-          <Route path="/settings/users" component={SettingsUsersPage} />
+
           <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
           <Route path="/settings/webhook" component={WebhookConfigPage} />
           <Route component={NotFound} />
