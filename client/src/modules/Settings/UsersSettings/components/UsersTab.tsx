@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
@@ -142,7 +144,7 @@ const formatDistanceToNow = (date: Date) => {
 };
 
 export const UsersTab = () => {
-  const [users, setUsers] = useState(mockUsers);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -156,6 +158,39 @@ export const UsersTab = () => {
     team: ''
   });
 
+  // Fetch users from API
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: () => fetch('/api/system-users').then(res => res.json())
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: (userData: any) => apiRequest('/api/system-users', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: userData.username,
+        displayName: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role,
+        team: userData.team
+      })
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      setShowUserDialog(false);
+      setFormData({
+        name: '',
+        email: '',
+        username: '',
+        password: '',
+        role: '',
+        team: ''
+      });
+    }
+  });
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -166,31 +201,7 @@ export const UsersTab = () => {
       return;
     }
 
-    const roleMap: { [key: string]: string } = {
-      'admin': 'Administrador',
-      'manager': 'Gerente', 
-      'agent': 'Atendente',
-      'viewer': 'Visualizador'
-    };
-
-    const newUser = {
-      id: Date.now(),
-      displayName: formData.name,
-      email: formData.email,
-      username: formData.username,
-      role: roleMap[formData.role] || formData.role,
-      team: formData.team || 'Sem equipe',
-      isActive: true,
-      status: 'active',
-      isOnline: true,
-      lastLoginAt: new Date(),
-      avatar: '',
-      initials: formData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    };
-
-    setUsers(prev => [...prev, newUser]);
-    setFormData({ name: '', email: '', username: '', password: '', role: '', team: '' });
-    setShowUserDialog(false);
+    createUserMutation.mutate(formData);
   };
 
   const filteredUsers = users.filter(user => {
