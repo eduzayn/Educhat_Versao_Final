@@ -2547,6 +2547,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Atualizar status da conversa
+  app.patch('/api/conversations/:id/status', async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (!conversationId || !status) {
+        return res.status(400).json({ error: 'ID da conversa e status são obrigatórios' });
+      }
+
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      const updatedConversation = await storage.updateConversation(conversationId, { status });
+      res.json(updatedConversation);
+    } catch (error) {
+      console.error('Erro ao atualizar status da conversa:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Marcar conversa como não lida
+  app.post('/api/conversations/:id/mark-unread', async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'ID da conversa é obrigatório' });
+      }
+
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      // Marcar mensagens como não lidas
+      const messages = await storage.getConversationMessages(conversationId);
+      for (const message of messages) {
+        if (!message.fromMe) {
+          await storage.updateMessage(message.id, { isRead: false });
+        }
+      }
+
+      res.json({ success: true, message: 'Conversa marcada como não lida' });
+    } catch (error) {
+      console.error('Erro ao marcar conversa como não lida:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
 
 
   // Endpoint para obter URL do webhook
