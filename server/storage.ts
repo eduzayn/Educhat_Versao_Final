@@ -409,6 +409,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markConversationAsRead(conversationId: number): Promise<void> {
+    // Primeiro marcar todas as mensagens não lidas da conversa como lidas
+    await db
+      .update(messages)
+      .set({ readAt: new Date() })
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isFromContact, true),
+          isNull(messages.readAt)
+        )
+      );
+
+    // Depois zerar o contador da conversa
     await db
       .update(conversations)
       .set({ unreadCount: 0 })
