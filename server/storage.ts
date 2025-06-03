@@ -499,13 +499,7 @@ export class DatabaseStorage implements IStorage {
     console.log('✅ Recálculo de contadores concluído');
   }
 
-  async getTotalUnreadCount(): Promise<number> {
-    const result = await db
-      .select({ total: sql<number>`SUM(${conversations.unreadCount})` })
-      .from(conversations);
-    
-    return result[0]?.total || 0;
-  }
+
 
   // System User operations for user management settings
   async getSystemUsers(): Promise<SystemUser[]> {

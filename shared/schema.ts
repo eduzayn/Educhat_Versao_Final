@@ -129,7 +129,12 @@ export const channels = pgTable("channels", {
   name: varchar("name", { length: 100 }).notNull(), // Ex: "WhatsApp Principal", "WhatsApp Vendas"
   type: varchar("type", { length: 50 }).notNull(), // whatsapp, instagram, facebook, email, sms
   identifier: varchar("identifier", { length: 100 }), // Phone number, account ID, etc.
-  configuration: jsonb("configuration").notNull(), // Store all channel-specific config
+  description: text("description"), // Channel description
+  // WhatsApp Z-API specific fields
+  instanceId: varchar("instance_id", { length: 100 }), // Z-API instance ID
+  token: varchar("token", { length: 255 }), // Z-API token
+  clientToken: varchar("client_token", { length: 255 }), // Z-API client token
+  configuration: jsonb("configuration"), // Store additional channel-specific config
   isActive: boolean("is_active").default(true),
   isConnected: boolean("is_connected").default(false),
   lastConnectionCheck: timestamp("last_connection_check"),

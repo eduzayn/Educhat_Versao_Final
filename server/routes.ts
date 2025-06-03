@@ -2871,5 +2871,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Channels API endpoints for multiple WhatsApp support
+  app.get('/api/channels', async (req, res) => {
+    try {
+      const channels = await storage.getChannels();
+      res.json(channels);
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+      res.status(500).json({ message: 'Failed to fetch channels' });
+    }
+  });
+
+  app.get('/api/channels/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const channel = await storage.getChannel(id);
+      
+      if (!channel) {
+        return res.status(404).json({ message: 'Channel not found' });
+      }
+      
+      res.json(channel);
+    } catch (error) {
+      console.error('Error fetching channel:', error);
+      res.status(500).json({ message: 'Failed to fetch channel' });
+    }
+  });
+
+  app.post('/api/channels', async (req, res) => {
+    try {
+      const validatedData = insertChannelSchema.parse(req.body);
+      const channel = await storage.createChannel(validatedData);
+      res.status(201).json(channel);
+    } catch (error) {
+      console.error('Error creating channel:', error);
+      res.status(400).json({ message: 'Failed to create channel' });
+    }
+  });
+
+  app.patch('/api/channels/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertChannelSchema.partial().parse(req.body);
+      const channel = await storage.updateChannel(id, validatedData);
+      res.json(channel);
+    } catch (error) {
+      console.error('Error updating channel:', error);
+      res.status(400).json({ message: 'Failed to update channel' });
+    }
+  });
+
+  app.delete('/api/channels/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteChannel(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting channel:', error);
+      res.status(500).json({ message: 'Failed to delete channel' });
+    }
+  });
+
+  // Test channel connection with Z-API
+  app.post('/api/channels/:id/test-connection', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const channel = await storage.getChannel(id);
+      
+      if (!channel) {
+        return res.status(404).json({ message: 'Channel not found' });
+      }
+
+      const { instanceId, token, clientToken } = channel;
+      const baseUrl = 'https://api.z-api.io';
+      
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      const isConnected = response.ok && data.connected;
+      
+      // Update channel connection status
+      await storage.updateChannelConnectionStatus(
+        id, 
+        data.connected ? 'connected' : 'disconnected',
+        isConnected
+      );
+
+      res.json({
+        success: true,
+        connected: isConnected,
+        status: data
+      });
+    } catch (error) {
+      console.error('Error testing channel connection:', error);
+      res.status(500).json({ message: 'Failed to test channel connection' });
+    }
+  });
+
+  // Get QR Code for specific channel
+  app.get('/api/channels/:id/qr-code', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const channel = await storage.getChannel(id);
+      
+      if (!channel) {
+        return res.status(404).json({ message: 'Channel not found' });
+      }
+
+      const { instanceId, token, clientToken } = channel;
+      const baseUrl = 'https://api.z-api.io';
+
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Z-API Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.value) {
+        // Generate visual QR Code from token
+        const qrCodeDataURL = await QRCode.toDataURL(data.value, {
+          width: 256,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        
+        res.json({ qrCode: qrCodeDataURL });
+      } else {
+        res.json(data);
+      }
+    } catch (error) {
+      console.error('Error getting QR code for channel:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Internal server error' 
+      });
+    }
+  });
+
   return httpServer;
 }
