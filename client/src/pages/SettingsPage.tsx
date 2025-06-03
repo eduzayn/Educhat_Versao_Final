@@ -61,7 +61,7 @@ const settingsCards = [
 
 export default function SettingsPage() {
   return (
-    <SettingsModule>
+    <SettingsLayout>
       <div className="space-y-6">
         <BackButton to="/" label="Voltar ao Dashboard" />
         <div>
@@ -91,6 +91,6 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
-    </SettingsModule>
+    </SettingsLayout>
   );
 }
