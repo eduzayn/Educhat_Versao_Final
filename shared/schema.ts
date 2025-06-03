@@ -101,6 +101,28 @@ export const quickReplies = pgTable("quick_replies", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Teams table
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).unique().notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 20 }).default("blue"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Roles table
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).unique().notNull(),
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  permissions: jsonb("permissions").default('[]'), // array of permission strings
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // System Users table (for user management settings)
 export const systemUsers = pgTable("system_users", {
   id: serial("id").primaryKey(),
@@ -108,7 +130,9 @@ export const systemUsers = pgTable("system_users", {
   displayName: text("display_name").notNull(),
   email: varchar("email", { length: 255 }).unique().notNull(),
   password: varchar("password", { length: 255 }).notNull(),
-  role: varchar("role", { length: 50 }).notNull(), // 'Administrador', 'Gerente', 'Atendente', 'Visualizador'
+  roleId: integer("role_id").references(() => roles.id),
+  role: varchar("role", { length: 50 }).notNull(), // 'admin', 'manager', 'agent', 'viewer'
+  teamId: integer("team_id").references(() => teams.id),
   team: varchar("team", { length: 100 }),
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
@@ -152,6 +176,25 @@ export const quickRepliesRelations = relations(quickReplies, ({ one }) => ({
     fields: [quickReplies.createdBy],
     references: [users.id],
   }),
+}));
+
+export const systemUsersRelations = relations(systemUsers, ({ one }) => ({
+  roleRef: one(roles, {
+    fields: [systemUsers.roleId],
+    references: [roles.id],
+  }),
+  teamRef: one(teams, {
+    fields: [systemUsers.teamId],
+    references: [teams.id],
+  }),
+}));
+
+export const teamsRelations = relations(teams, ({ many }) => ({
+  members: many(systemUsers),
+}));
+
+export const rolesRelations = relations(roles, ({ many }) => ({
+  users: many(systemUsers),
 }));
 
 // Insert schemas
@@ -198,6 +241,18 @@ export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({
   updatedAt: true,
 });
 
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -211,6 +266,10 @@ export type ContactTag = typeof contactTags.$inferSelect;
 export type InsertContactTag = z.infer<typeof insertContactTagSchema>;
 export type SystemUser = typeof systemUsers.$inferSelect;
 export type InsertSystemUser = z.infer<typeof insertSystemUserSchema>;
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
