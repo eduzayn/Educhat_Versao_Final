@@ -4,44 +4,38 @@ import { BackButton } from '@/shared/components/BackButton';
 
 const settingsCards = [
   {
+    title: "Canais de Comunicação",
+    description: "WhatsApp, Telegram, SMS e outras integrações",
+    href: "/settings/channels",
+    icon: "📱"
+  },
+  {
+    title: "Usuários e Equipes",
+    description: "Gerenciamento de usuários, funções e equipes",
+    href: "/settings/users",
+    icon: "👥"
+  },
+  {
+    title: "Respostas Rápidas",
+    description: "Configurar mensagens pré-definidas e templates",
+    href: "/settings/quick-replies",
+    icon: "⚡"
+  },
+  {
+    title: "Webhook",
+    description: "Configurações de webhook para Z-API",
+    href: "/settings/webhook",
+    icon: "🔗"
+  },
+  {
     title: "Perfil da Empresa",
     description: "Informações básicas, logo, contato",
     href: "/settings/company",
     icon: "👤"
   },
   {
-    title: "Aparência e Branding",
-    description: "Cores, temas, elementos visuais",
-    href: "/settings/branding",
-    icon: "🎨"
-  },
-  {
-    title: "Usuários e Equipes",
-    description: "Gerenciamento de usuários e permissões",
-    href: "/settings/users",
-    icon: "👥"
-  },
-  {
-    title: "Canais de Comunicação",
-    description: "WhatsApp, Instagram, Email, etc.",
-    href: "/settings/channels",
-    icon: "📱"
-  },
-  {
-    title: "Respostas Rápidas",
-    description: "Templates de mensagens, áudio, imagem e vídeo",
-    href: "/settings/quick-replies",
-    icon: "⚡"
-  },
-  {
-    title: "IA - Prof. Ana",
-    description: "Configurações da assistente de IA",
-    href: "/settings/ai",
-    icon: "🤖"
-  },
-  {
     title: "Integrações",
-    description: "Serviços externos como Asaas, OpenAI",
+    description: "APIs externas, CRM, automações",
     href: "/settings/integrations",
     icon: "🔌"
   },
@@ -59,7 +53,7 @@ const settingsCards = [
   }
 ];
 
-export default function SettingsPage() {
+function SettingsPage() {
   return (
     <SettingsModule>
       <div className="space-y-6">
@@ -94,3 +88,5 @@ export default function SettingsPage() {
     </SettingsModule>
   );
 }
+
+export default SettingsPage;
