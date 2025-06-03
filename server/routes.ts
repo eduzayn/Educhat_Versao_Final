@@ -1380,19 +1380,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/zapi/status', async (req, res) => {
     try {
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
       }
 
-      // Usar apenas o endpoint válido de status
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+      const { instanceId, token, clientToken } = credentials;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
       
       const response = await fetch(url, {
         headers: {
@@ -1402,14 +1396,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        throw new Error(`Z-API Status Error: ${response.status} - ${response.statusText}`);
+        throw new Error(`Z-API Error: ${response.status} - ${response.statusText}`);
       }
 
-      
+      const data = await response.json();
       console.log(`Status da Z-API:`, data);
       res.json(data);
+      
     } catch (error) {
-      console.error('Erro ao verificar status:', error);
+      console.error('Erro ao verificar status Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
