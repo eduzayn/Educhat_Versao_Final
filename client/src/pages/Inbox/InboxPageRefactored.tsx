@@ -43,6 +43,7 @@ import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
+import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
@@ -72,10 +73,13 @@ export function InboxPageRefactored() {
     staleTime: 0 // Considerar dados imediatamente obsoletos
   }); // Carregar 1000 contatos
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+  const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
+    // Marcar como lida tanto no store local quanto na API
     markConversationAsRead(conversation.id);
+    markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
