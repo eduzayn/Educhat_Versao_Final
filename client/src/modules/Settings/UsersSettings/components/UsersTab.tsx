@@ -464,6 +464,8 @@ export const UsersTab = () => {
                 id="username"
                 placeholder="nome_usuario"
                 className="col-span-3"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
               />
             </div>
             
@@ -476,6 +478,8 @@ export const UsersTab = () => {
                 placeholder="Digite uma senha segura"
                 type="password"
                 className="col-span-3"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
               />
             </div>
             
@@ -483,7 +487,7 @@ export const UsersTab = () => {
               <Label htmlFor="role" className="text-right">
                 Função
               </Label>
-              <Select>
+              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
@@ -500,7 +504,7 @@ export const UsersTab = () => {
               <Label htmlFor="team" className="text-right">
                 Equipe
               </Label>
-              <Select>
+              <Select value={formData.team} onValueChange={(value) => handleInputChange('team', value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione uma equipe" />
                 </SelectTrigger>
@@ -518,11 +522,7 @@ export const UsersTab = () => {
             <Button variant="outline" onClick={() => setShowUserDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              // Aqui seria implementada a lógica de criação do usuário
-              console.log('Criar usuário');
-              setShowUserDialog(false);
-            }}>
+            <Button onClick={handleCreateUser}>
               Criar Usuário
             </Button>
           </DialogFooter>
