@@ -8,6 +8,7 @@ import {
   systemUsers,
   teams,
   roles,
+  channels,
   type User,
   type UpsertUser,
   type Contact,
@@ -26,6 +27,8 @@ import {
   type InsertTeam,
   type Role,
   type InsertRole,
+  type Channel,
+  type InsertChannel,
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
@@ -98,6 +101,15 @@ export interface IStorage {
   createRole(role: InsertRole): Promise<Role>;
   updateRole(id: number, role: Partial<InsertRole>): Promise<Role>;
   deleteRole(id: number): Promise<void>;
+
+  // Channel operations
+  getChannels(): Promise<Channel[]>;
+  getChannel(id: number): Promise<Channel | undefined>;
+  getChannelsByType(type: string): Promise<Channel[]>;
+  createChannel(channel: InsertChannel): Promise<Channel>;
+  updateChannel(id: number, channel: Partial<InsertChannel>): Promise<Channel>;
+  deleteChannel(id: number): Promise<void>;
+  updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void>;
 
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
@@ -677,6 +689,62 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRole(id: number): Promise<void> {
     await db.delete(roles).where(eq(roles.id, id));
+  }
+
+  // Channel operations
+  async getChannels(): Promise<Channel[]> {
+    return db.select().from(channels).orderBy(desc(channels.createdAt));
+  }
+
+  async getChannel(id: number): Promise<Channel | undefined> {
+    const [channel] = await db.select().from(channels).where(eq(channels.id, id));
+    return channel;
+  }
+
+  async getChannelsByType(type: string): Promise<Channel[]> {
+    return db.select().from(channels).where(eq(channels.type, type)).orderBy(desc(channels.createdAt));
+  }
+
+  async createChannel(channel: InsertChannel): Promise<Channel> {
+    const [newChannel] = await db.insert(channels).values(channel).returning();
+    return newChannel;
+  }
+
+  async updateChannel(id: number, channelData: Partial<InsertChannel>): Promise<Channel> {
+    const [channel] = await db
+      .update(channels)
+      .set({
+        ...channelData,
+        updatedAt: new Date(),
+      })
+      .where(eq(channels.id, id))
+      .returning();
+    return channel;
+  }
+
+  async deleteChannel(id: number): Promise<void> {
+    await db.delete(channels).where(eq(channels.id, id));
+  }
+
+  async updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void> {
+    await db
+      .update(channels)
+      .set({
+        connectionStatus: status,
+        isConnected,
+        lastConnectionCheck: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(channels.id, id));
+  }
+
+  // Statistics operations
+  async getTotalUnreadCount(): Promise<number> {
+    const result = await db
+      .select({ total: sql<number>`sum(${conversations.unreadCount})` })
+      .from(conversations);
+    
+    return result[0]?.total || 0;
   }
 }
 

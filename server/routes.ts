@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
-import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema } from "@shared/schema";
+import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
