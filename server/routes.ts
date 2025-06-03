@@ -2584,14 +2584,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Conversa não encontrada' });
       }
 
-      // Marcar mensagens como não lidas
-      const messages = await storage.getConversationMessages(conversationId);
-      for (const message of messages) {
-        if (!message.fromMe) {
-          await storage.updateMessage(message.id, { isRead: false });
-        }
-      }
+      // Resetar o contador de mensagens não lidas da conversa
+      await storage.updateConversation(conversationId, { unreadCount: 1 });
 
+      console.log(`📧 Conversa ${conversationId} marcada como não lida`);
+      
       res.json({ success: true, message: 'Conversa marcada como não lida' });
     } catch (error) {
       console.error('Erro ao marcar conversa como não lida:', error);

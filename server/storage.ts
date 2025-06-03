@@ -52,6 +52,7 @@ export interface IStorage {
   getMessageMedia(messageId: number): Promise<string | null>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<void>;
+  markMessageAsUnread(id: number): Promise<void>;
   markMessageAsDelivered(id: number): Promise<void>;
   markMessageAsDeleted(id: number): Promise<void>;
 
@@ -391,6 +392,13 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(messages)
       .set({ readAt: new Date() })
+      .where(eq(messages.id, id));
+  }
+
+  async markMessageAsUnread(id: number): Promise<void> {
+    await db
+      .update(messages)
+      .set({ readAt: null })
       .where(eq(messages.id, id));
   }
 
