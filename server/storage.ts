@@ -22,7 +22,7 @@ import {
   type QuickReplyWithCreator,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql, gt } from "drizzle-orm";
+import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql, gt, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations for auth
@@ -413,6 +413,24 @@ export class DatabaseStorage implements IStorage {
       .update(conversations)
       .set({ unreadCount: 0 })
       .where(eq(conversations.id, conversationId));
+  }
+
+  async recalculateUnreadCounts(): Promise<void> {
+    console.log('🔄 Recalculando todos os contadores de mensagens não lidas...');
+    
+    // Uma abordagem mais simples: contar mensagens do contato sem readAt
+    await db.execute(sql`
+      UPDATE conversations 
+      SET unread_count = (
+        SELECT COUNT(*) 
+        FROM messages 
+        WHERE messages.conversation_id = conversations.id 
+        AND messages.is_from_contact = true 
+        AND messages.read_at IS NULL
+      )
+    `);
+    
+    console.log('✅ Recálculo de contadores concluído');
   }
 
   async updateMessageStatus(whatsappMessageId: string, status: string): Promise<void> {

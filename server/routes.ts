@@ -458,6 +458,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recalculate unread counts
+  app.post('/api/conversations/recalculate-unread', async (req, res) => {
+    try {
+      await storage.recalculateUnreadCounts();
+      res.json({ message: 'Contadores recalculados com sucesso' });
+    } catch (error) {
+      console.error('Erro ao recalcular contadores:', error);
+      res.status(500).json({ message: 'Falha ao recalcular contadores' });
+    }
+  });
+
   // Messages endpoints
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
