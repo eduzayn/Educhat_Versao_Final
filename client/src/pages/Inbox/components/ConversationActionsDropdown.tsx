@@ -88,7 +88,9 @@ export function ConversationActionsDropdown({
       return response.json();
     },
     onSuccess: () => {
+      // Forçar atualização imediata da lista de conversas
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
       toast({
         title: "Marcado como não lida",
         description: "A conversa foi marcada como não lida."
