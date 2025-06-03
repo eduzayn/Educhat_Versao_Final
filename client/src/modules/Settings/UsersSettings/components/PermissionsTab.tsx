@@ -5,10 +5,11 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { Switch } from '@/shared/ui/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/shared/ui/ui/dialog';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database } from 'lucide-react';
+import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database, Download } from 'lucide-react';
 
 const permissionGroups = [
   {
@@ -73,11 +74,61 @@ const permissionGroups = [
   }
 ];
 
+// Permission templates
+const permissionTemplates = [
+  {
+    id: 'admin',
+    name: 'Administrador Completo',
+    description: 'Acesso total ao sistema - todas as permissões',
+    permissions: [
+      'user_create', 'user_edit', 'user_delete', 'user_view', 'teams_manage',
+      'system_settings', 'integrations_manage', 'api_access', 'security_manage',
+      'chat_access', 'chat_assign', 'chat_supervise', 'templates_manage',
+      'reports_view', 'reports_export', 'analytics_access', 'performance_metrics',
+      'contacts_manage', 'conversations_manage', 'backup_access', 'import_export'
+    ]
+  },
+  {
+    id: 'manager',
+    name: 'Gerente',
+    description: 'Permissões para gerenciamento de equipes e relatórios',
+    permissions: [
+      'user_view', 'teams_manage', 'chat_access', 'chat_assign', 'chat_supervise',
+      'reports_view', 'reports_export', 'analytics_access', 'contacts_manage'
+    ]
+  },
+  {
+    id: 'supervisor',
+    name: 'Supervisor',
+    description: 'Supervisão de atendentes e relatórios básicos',
+    permissions: [
+      'user_view', 'chat_access', 'chat_supervise', 'reports_view', 'contacts_manage'
+    ]
+  },
+  {
+    id: 'agent',
+    name: 'Atendente',
+    description: 'Acesso básico para atendimento ao cliente',
+    permissions: [
+      'chat_access', 'contacts_manage', 'templates_manage'
+    ]
+  },
+  {
+    id: 'viewer',
+    name: 'Visualizador',
+    description: 'Acesso apenas para visualização',
+    permissions: [
+      'user_view', 'reports_view', 'contacts_manage'
+    ]
+  }
+];
+
 export const PermissionsTab = () => {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([
     'user_view', 'chat_access', 'reports_view', 'contacts_manage'
   ]);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -154,6 +205,18 @@ export const PermissionsTab = () => {
     });
   };
 
+  const handleApplyTemplate = (templateId: string) => {
+    const template = permissionTemplates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedPermissions(template.permissions);
+      setIsTemplateDialogOpen(false);
+      toast({
+        title: "Template aplicado",
+        description: `Template "${template.name}" aplicado com sucesso. Lembre-se de salvar as configurações.`
+      });
+    }
+  };
+
   const getGroupPermissionCount = (groupPermissions: { id: string }[]) => {
     return groupPermissions.filter(p => selectedPermissions.includes(p.id)).length;
   };
@@ -168,9 +231,71 @@ export const PermissionsTab = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            Importar Template
-          </Button>
+          <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Importar Template
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Importar Template de Permissões</DialogTitle>
+                <DialogDescription>
+                  Escolha um template predefinido para aplicar rapidamente um conjunto de permissões.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {permissionTemplates.map(template => (
+                  <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center justify-between">
+                        {template.name}
+                        <Badge variant="outline">
+                          {template.permissions.length} permissões
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription className="text-sm">
+                        {template.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Permissões incluídas:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {template.permissions.slice(0, 4).map(permissionId => {
+                              const permission = permissionGroups
+                                .flatMap(g => g.permissions)
+                                .find(p => p.id === permissionId);
+                              
+                              return permission ? (
+                                <Badge key={permissionId} variant="secondary" className="text-xs">
+                                  {permission.name}
+                                </Badge>
+                              ) : null;
+                            })}
+                            {template.permissions.length > 4 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{template.permissions.length - 4} mais
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => handleApplyTemplate(template.id)}
+                          className="w-full"
+                          size="sm"
+                        >
+                          Aplicar Template
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button 
             onClick={handleSavePermissions}
             disabled={savePermissionsMutation.isPending || !selectedRoleId}
