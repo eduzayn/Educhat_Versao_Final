@@ -39,10 +39,7 @@ export default function ChannelsPage() {
 
   // Create channel mutation
   const createMutation = useMutation({
-    mutationFn: (data: ChannelFormData) => apiRequest('/api/channels', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: (data: ChannelFormData) => apiRequest('POST', '/api/channels', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
       setIsCreateDialogOpen(false);
@@ -62,11 +59,7 @@ export default function ChannelsPage() {
 
   // Update channel mutation
   const updateMutation = useMutation({
-    mutationFn: (data: ChannelFormData) => apiRequest(`/api/channels/${editingChannel?.id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: (data: ChannelFormData) => apiRequest('PUT', `/api/channels/${editingChannel?.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
       setIsEditDialogOpen(false);
@@ -87,9 +80,7 @@ export default function ChannelsPage() {
 
   // Delete channel mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/channels/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/channels/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
       toast({
@@ -108,9 +99,7 @@ export default function ChannelsPage() {
 
   // Test connection mutation
   const testConnectionMutation = useMutation({
-    mutationFn: (channelId: number) => apiRequest(`/api/channels/${channelId}/test`, {
-      method: 'POST'
-    }),
+    mutationFn: (channelId: number) => apiRequest('POST', `/api/channels/${channelId}/test`),
     onSuccess: (data: any) => {
       const isConnected = data?.connected || false;
       toast({
@@ -131,9 +120,7 @@ export default function ChannelsPage() {
 
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
-    mutationFn: (channelId: number) => apiRequest(`/api/channels/${channelId}/qr`, {
-      method: 'POST'
-    }),
+    mutationFn: (channelId: number) => apiRequest('POST', `/api/channels/${channelId}/qr`),
     onSuccess: (data: any) => {
       if (data?.qrCode) {
         toast({

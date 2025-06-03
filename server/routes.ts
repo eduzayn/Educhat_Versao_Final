@@ -2909,7 +2909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/channels/:id', async (req, res) => {
+  app.put('/api/channels/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertChannelSchema.partial().parse(req.body);
