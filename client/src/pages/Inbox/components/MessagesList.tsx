@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { VirtualizedMessageList } from '@/modules/Messages/components/VirtualizedMessageList';
+import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import type { Message, Contact } from '@shared/schema';
 
 interface MessagesListProps {
@@ -12,11 +13,24 @@ interface MessagesListProps {
 export function MessagesList({ conversationId, contact }: MessagesListProps) {
   const [containerHeight, setContainerHeight] = useState(400);
   const containerRef = useRef<HTMLDivElement>(null);
+  const markAsReadMutation = useMarkConversationRead();
   
   const { data: messages = [], isLoading, error } = useQuery({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId
   });
+
+  // Marcar conversa como lida automaticamente quando abrir
+  useEffect(() => {
+    if (conversationId && messages.length > 0) {
+      // Aguardar um pouco para garantir que as mensagens foram carregadas
+      const timer = setTimeout(() => {
+        markAsReadMutation.mutate(conversationId);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [conversationId, messages.length]);
 
   // Calcular altura do container dinamicamente
   useEffect(() => {
