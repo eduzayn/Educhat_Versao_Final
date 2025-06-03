@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema } from "@shared/schema";
+import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
@@ -1282,7 +1283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Z-API integration routes
+  // Z-API QR Code endpoint
   app.get('/api/zapi/qrcode', async (req, res) => {
     try {
       const credentials = validateZApiCredentials();
@@ -1290,37 +1291,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: credentials.error });
       }
 
-      const { instanceId, token, clientToken } = credentials;
-
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code`;
-      const response = await fetch(url, {
-        headers: {
-          'Client-Token': clientToken,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      console.log('Solicitando QR Code da Z-API...');
       
-      if (data.value) {
-        // Gerar QR Code visual a partir do token
-        const qrCodeDataURL = await QRCode.toDataURL(data.value, {
-          width: 256,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
-        
-        // Retornar o QR Code completo como data URL
+      const qrData = await getZApiQRCode(credentials);
+      console.log('QR Code recebido da Z-API');
+
+      if (qrData.value) {
+        const qrCodeDataURL = await generateQRCode(qrData.value);
         res.json({ qrCode: qrCodeDataURL });
       } else {
-        res.json(data);
+        res.json(qrData);
       }
     } catch (error) {
       console.error('Erro ao obter QR Code:', error);
