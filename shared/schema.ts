@@ -123,6 +123,22 @@ export const roles = pgTable("roles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Channels table (for multiple channel support)
+export const channels = pgTable("channels", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(), // Ex: "WhatsApp Principal", "WhatsApp Vendas"
+  type: varchar("type", { length: 50 }).notNull(), // whatsapp, instagram, facebook, email, sms
+  identifier: varchar("identifier", { length: 100 }), // Phone number, account ID, etc.
+  configuration: jsonb("configuration").notNull(), // Store all channel-specific config
+  isActive: boolean("is_active").default(true),
+  isConnected: boolean("is_connected").default(false),
+  lastConnectionCheck: timestamp("last_connection_check"),
+  connectionStatus: varchar("connection_status", { length: 50 }).default("disconnected"), // connected, disconnected, error
+  webhookUrl: text("webhook_url"), // specific webhook for this channel
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // System Users table (for user management settings)
 export const systemUsers = pgTable("system_users", {
   id: serial("id").primaryKey(),
@@ -197,6 +213,10 @@ export const rolesRelations = relations(roles, ({ many }) => ({
   users: many(systemUsers),
 }));
 
+export const channelsRelations = relations(channels, ({ many }) => ({
+  conversations: many(conversations),
+}));
+
 // Insert schemas
 export const insertContactSchema = createInsertSchema(contacts).omit({
   id: true,
@@ -253,6 +273,13 @@ export const insertRoleSchema = createInsertSchema(roles).omit({
   updatedAt: true,
 });
 
+export const insertChannelSchema = createInsertSchema(channels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastConnectionCheck: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -270,6 +297,8 @@ export type Team = typeof teams.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Channel = typeof channels.$inferSelect;
+export type InsertChannel = z.infer<typeof insertChannelSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {

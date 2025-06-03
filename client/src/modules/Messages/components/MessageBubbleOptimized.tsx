@@ -174,7 +174,21 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     // Mensagem de texto padrão
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
-        <p className="text-sm">{message.content}</p>
+        {message.content ? (
+          <p className="text-sm">{message.content}</p>
+        ) : (
+          <div className="text-sm text-gray-500 italic">
+            <p>Mensagem sem conteúdo de texto</p>
+            {message.messageType && (
+              <p className="text-xs mt-1">Tipo: {message.messageType}</p>
+            )}
+            {message.metadata && (
+              <p className="text-xs mt-1">
+                Dados: {JSON.stringify(message.metadata, null, 2).substring(0, 100)}...
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   };
