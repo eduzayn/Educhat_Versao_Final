@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/zapi/status', async (req, res) => {
     try {
-      const baseUrl = 'https://api.z-api.io'; // URL fixa da Z-API
+      const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
       const token = process.env.ZAPI_TOKEN;
       const clientToken = process.env.ZAPI_CLIENT_TOKEN;
@@ -1391,47 +1391,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Tentar múltiplos endpoints para verificar status
-      const endpoints = [
-        `/instances/${instanceId}/token/${token}/status`,
-        `/instances/${instanceId}/token/${token}/connection-status`,
-        `/instances/${instanceId}/token/${token}`
-      ];
-
-      let finalData = null;
-      let finalError = null;
-
-      for (const endpoint of endpoints) {
-        try {
-          const url = `${baseUrl}${endpoint}`;
-          const response = await fetch(url, {
-            headers: {
-              'Client-Token': clientToken,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            
-            // Se este endpoint retornou dados úteis, use ele
-            if (finalData === null || (data.session !== undefined)) {
-              finalData = data;
-            }
-            
-            // Log para debug
-            console.log(`Status de ${endpoint}:`, JSON.stringify(data, null, 2));
-          }
-        } catch (err) {
-          console.log(`Erro em ${endpoint}:`, err);
+      // Usar apenas o endpoint válido de status
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
         }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Z-API Status Error: ${response.status} - ${response.statusText}`);
       }
 
-      if (finalData) {
-        res.json(finalData);
-      } else {
-        throw new Error('Nenhum endpoint de status funcionou');
-      }
+      
+      console.log(`Status da Z-API:`, data);
+      res.json(data);
     } catch (error) {
       console.error('Erro ao verificar status:', error);
       res.status(500).json({ 
