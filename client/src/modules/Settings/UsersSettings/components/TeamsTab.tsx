@@ -78,10 +78,7 @@ export const TeamsTab = () => {
           </p>
         </div>
         <Button 
-          onClick={() => {
-            console.log('Clicou no botão Nova Equipe');
-            setShowTeamDialog(true);
-          }}
+          onClick={() => setShowTeamDialog(true)}
           className="z-10 relative"
         >
           <Plus className="h-4 w-4 mr-2" />
