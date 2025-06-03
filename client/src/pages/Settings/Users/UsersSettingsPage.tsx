@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
+import { BackButton } from '@/shared/components/BackButton';
 import { UsersTab } from './components/UsersTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
@@ -11,6 +12,8 @@ export const UsersSettingsPage = () => {
 
   return (
     <div className="space-y-6">
+      <BackButton to="/settings" label="Voltar às Configurações" />
+      
       <div>
         <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
         <p className="text-muted-foreground">

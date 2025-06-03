@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Copy, CheckCircle, Globe } from 'lucide-react';
+import { BackButton } from '@/shared/components/BackButton';
 
 export function WebhookConfigPage() {
   const [webhookUrl, setWebhookUrl] = useState<string>('');
@@ -22,6 +23,8 @@ export function WebhookConfigPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <BackButton to="/settings" label="Voltar às Configurações" />
+      
       <div>
         <h1 className="text-3xl font-bold mb-2">Configuração do Webhook Z-API</h1>
         <p className="text-gray-600">
