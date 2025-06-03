@@ -49,6 +49,7 @@ import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -606,6 +607,11 @@ export function InboxPageRefactored() {
                           </Badge>
                         )}
                         {getStatusBadge(conversation.status || 'open')}
+                        <ConversationActionsDropdown 
+                          conversationId={conversation.id}
+                          contactId={conversation.contactId}
+                          currentStatus={conversation.status}
+                        />
                       </div>
                     </div>
                     
