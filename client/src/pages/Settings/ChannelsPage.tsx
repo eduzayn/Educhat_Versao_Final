@@ -132,6 +132,7 @@ export default function ChannelsPage() {
   const generateQrMutation = useMutation({
     mutationFn: () => apiRequest('GET', '/api/zapi/qrcode'),
     onSuccess: (data: any) => {
+      console.log('QR Code response:', data);
       if (data?.qrCode) {
         setQrCodeData(data.qrCode);
         setIsQrDialogOpen(true);
@@ -140,6 +141,7 @@ export default function ChannelsPage() {
           description: "Escaneie o QR Code com seu WhatsApp para conectar",
         });
       } else {
+        console.error('QR Code not found in response:', data);
         toast({
           title: "Erro ao gerar QR Code",
           description: "Não foi possível obter o QR Code da Z-API",
@@ -147,7 +149,8 @@ export default function ChannelsPage() {
         });
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('QR Code generation error:', error);
       toast({
         title: "Erro",
         description: "Erro ao gerar QR Code",
