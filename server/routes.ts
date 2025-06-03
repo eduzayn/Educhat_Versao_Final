@@ -2760,5 +2760,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teams API endpoints
+  app.get('/api/teams', async (req, res) => {
+    try {
+      const teams = await storage.getTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      res.status(500).json({ message: 'Failed to fetch teams' });
+    }
+  });
+
+  app.post('/api/teams', async (req, res) => {
+    try {
+      const team = await storage.createTeam(req.body);
+      res.status(201).json(team);
+    } catch (error) {
+      console.error('Error creating team:', error);
+      res.status(500).json({ message: 'Failed to create team' });
+    }
+  });
+
+  app.put('/api/teams/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const team = await storage.updateTeam(id, req.body);
+      res.json(team);
+    } catch (error) {
+      console.error('Error updating team:', error);
+      res.status(500).json({ message: 'Failed to update team' });
+    }
+  });
+
+  app.delete('/api/teams/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTeam(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      res.status(500).json({ message: 'Failed to delete team' });
+    }
+  });
+
+  // Roles API endpoints
+  app.get('/api/roles', async (req, res) => {
+    try {
+      const roles = await storage.getRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      res.status(500).json({ message: 'Failed to fetch roles' });
+    }
+  });
+
+  app.post('/api/roles', async (req, res) => {
+    try {
+      const role = await storage.createRole(req.body);
+      res.status(201).json(role);
+    } catch (error) {
+      console.error('Error creating role:', error);
+      res.status(500).json({ message: 'Failed to create role' });
+    }
+  });
+
+  app.put('/api/roles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const role = await storage.updateRole(id, req.body);
+      res.json(role);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      res.status(500).json({ message: 'Failed to update role' });
+    }
+  });
+
+  app.delete('/api/roles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteRole(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      res.status(500).json({ message: 'Failed to delete role' });
+    }
+  });
+
+  // Permissions configuration endpoint
+  app.post('/api/permissions/save', async (req, res) => {
+    try {
+      const { roleId, permissions } = req.body;
+      
+      if (!roleId || !Array.isArray(permissions)) {
+        return res.status(400).json({ message: 'Role ID and permissions array are required' });
+      }
+
+      // Update role with new permissions
+      const updatedRole = await storage.updateRole(roleId, { 
+        permissions: JSON.stringify(permissions)
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Permissions saved successfully',
+        role: updatedRole 
+      });
+    } catch (error) {
+      console.error('Error saving permissions:', error);
+      res.status(500).json({ message: 'Failed to save permissions' });
+    }
+  });
+
   return httpServer;
 }
