@@ -2933,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test channel connection with Z-API
-  app.post('/api/channels/:id/test-connection', async (req, res) => {
+  app.post('/api/channels/:id/test', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const channel = await storage.getChannel(id);
@@ -2945,11 +2945,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = channel;
       const baseUrl = 'https://api.z-api.io';
       
+      if (!clientToken) {
+        return res.status(400).json({ message: 'Client token is required' });
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (clientToken) {
+        headers['Client-Token'] = clientToken;
+      }
+      
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
-        headers: {
-          'Client-Token': clientToken,
-          'Content-Type': 'application/json'
-        }
+        headers
       });
 
       const data = await response.json();
@@ -2974,7 +2983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get QR Code for specific channel
-  app.get('/api/channels/:id/qr-code', async (req, res) => {
+  app.post('/api/channels/:id/qr', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const channel = await storage.getChannel(id);
@@ -2986,11 +2995,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = channel;
       const baseUrl = 'https://api.z-api.io';
 
+      if (!clientToken) {
+        return res.status(400).json({ message: 'Client token is required' });
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (clientToken) {
+        headers['Client-Token'] = clientToken;
+      }
+
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
-        headers: {
-          'Client-Token': clientToken,
-          'Content-Type': 'application/json'
-        }
+        headers
       });
 
       if (!response.ok) {
