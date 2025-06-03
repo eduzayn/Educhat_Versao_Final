@@ -68,6 +68,9 @@ export interface IStorage {
   updateQuickReply(id: number, quickReply: Partial<InsertQuickReply>): Promise<QuickReply>;
   deleteQuickReply(id: number): Promise<void>;
   incrementQuickReplyUsage(id: number): Promise<void>;
+
+  // Statistics operations
+  getTotalUnreadCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -452,6 +455,14 @@ export class DatabaseStorage implements IStorage {
     `);
     
     console.log('✅ Recálculo de contadores concluído');
+  }
+
+  async getTotalUnreadCount(): Promise<number> {
+    const result = await db
+      .select({ total: sql<number>`SUM(${conversations.unreadCount})` })
+      .from(conversations);
+    
+    return result[0]?.total || 0;
   }
 
   async updateMessageStatus(whatsappMessageId: string, status: string): Promise<void> {
