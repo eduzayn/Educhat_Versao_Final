@@ -2950,17 +2950,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Client token is required' });
       }
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      
-      if (clientToken) {
-        headers['Client-Token'] = clientToken;
-      }
-      
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
-        headers
+      console.log(`🔍 Testando conexão para canal ID: ${id}`);
+      console.log(`📋 Credenciais do canal:`, { 
+        instanceId: instanceId?.substring(0, 8) + '...', 
+        token: token?.substring(0, 8) + '...', 
+        clientToken: clientToken?.substring(0, 8) + '...' 
       });
+
+      const headers = new Headers();
+      headers.set('Content-Type', 'application/json');
+      headers.set('Client-Token', clientToken);
+      
+      const testUrl = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+      console.log(`🌐 Fazendo requisição para Z-API: ${testUrl}`);
+      
+      const response = await fetch(testUrl, { headers });
 
       const data = await response.json();
       const isConnected = response.ok && data.connected;
