@@ -77,7 +77,13 @@ export const TeamsTab = () => {
             Organize usuários em equipes para melhor colaboração e gestão
           </p>
         </div>
-        <Button onClick={() => setShowTeamDialog(true)}>
+        <Button 
+          onClick={() => {
+            console.log('Clicou no botão Nova Equipe');
+            setShowTeamDialog(true);
+          }}
+          className="z-10 relative"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Equipe
         </Button>
