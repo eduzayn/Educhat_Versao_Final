@@ -31,6 +31,8 @@ export default function ChannelsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+  const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({
@@ -123,9 +125,16 @@ export default function ChannelsPage() {
     mutationFn: (channelId: number) => apiRequest('POST', `/api/channels/${channelId}/qr`),
     onSuccess: (data: any) => {
       if (data?.qrCode) {
+        setQrCodeData(data.qrCode);
+        setIsQrDialogOpen(true);
         toast({
           title: "QR Code gerado",
           description: "QR Code gerado com sucesso",
+        });
+      } else if (data?.connected) {
+        toast({
+          title: "WhatsApp conectado",
+          description: "WhatsApp já está conectado, não é necessário QR Code",
         });
       }
     },
@@ -472,6 +481,42 @@ export default function ChannelsPage() {
                 </div>
               </form>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* QR Code Dialog */}
+        <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>QR Code WhatsApp</DialogTitle>
+              <DialogDescription>
+                Escaneie este QR Code com seu WhatsApp para conectar o canal
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center space-y-4">
+              {qrCodeData && (
+                <div className="p-4 bg-white rounded-lg border">
+                  <img 
+                    src={qrCodeData} 
+                    alt="QR Code WhatsApp" 
+                    className="w-64 h-64 object-contain"
+                  />
+                </div>
+              )}
+              <div className="text-center text-sm text-educhat-medium">
+                <p>1. Abra o WhatsApp no seu celular</p>
+                <p>2. Toque em Menu → Dispositivos conectados</p>
+                <p>3. Toque em "Conectar um dispositivo"</p>
+                <p>4. Aponte a câmera para este QR Code</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsQrDialogOpen(false)}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
