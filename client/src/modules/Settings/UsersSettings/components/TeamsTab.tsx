@@ -66,6 +66,8 @@ const teams = [
 ];
 
 export const TeamsTab = () => {
+  const [showTeamDialog, setShowTeamDialog] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -75,7 +77,7 @@ export const TeamsTab = () => {
             Organize usuários em equipes para melhor colaboração e gestão
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowTeamDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nova Equipe
         </Button>
@@ -136,6 +138,101 @@ export const TeamsTab = () => {
           </Card>
         ))}
       </div>
+
+      {/* Modal de Criação de Equipe */}
+      <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Criar Nova Equipe</DialogTitle>
+            <DialogDescription>
+              Preencha os dados abaixo para criar uma nova equipe de trabalho.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="team-name" className="text-right">
+                Nome
+              </Label>
+              <Input
+                id="team-name"
+                placeholder="Nome da equipe"
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="team-description" className="text-right">
+                Descrição
+              </Label>
+              <Textarea
+                id="team-description"
+                placeholder="Descrição da equipe"
+                className="col-span-3"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="team-manager" className="text-right">
+                Gerente
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o gerente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="joao">João Silva</SelectItem>
+                  <SelectItem value="maria">Maria Santos</SelectItem>
+                  <SelectItem value="ana">Ana Costa</SelectItem>
+                  <SelectItem value="carlos">Carlos Oliveira</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="team-departments" className="text-right">
+                Departamentos
+              </Label>
+              <Input
+                id="team-departments"
+                placeholder="Ex: Vendas Online, Vendas Presencial"
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="team-color" className="text-right">
+                Cor
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione uma cor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blue">Azul</SelectItem>
+                  <SelectItem value="green">Verde</SelectItem>
+                  <SelectItem value="purple">Roxo</SelectItem>
+                  <SelectItem value="orange">Laranja</SelectItem>
+                  <SelectItem value="red">Vermelho</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTeamDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              console.log('Criar equipe');
+              setShowTeamDialog(false);
+            }}>
+              Criar Equipe
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
