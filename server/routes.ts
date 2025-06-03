@@ -2966,7 +2966,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const response = await fetch(testUrl, { headers });
 
+      console.log(`📥 Resposta Z-API Teste:`, {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        contentType: response.headers.get('content-type')
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`❌ Erro na resposta Z-API:`, errorText);
+        throw new Error(`Z-API Error: ${response.status} - ${response.statusText} - ${errorText}`);
+      }
+
       const data = await response.json();
+      console.log(`🔍 Dados recebidos da Z-API:`, data);
+      
       const isConnected = response.ok && data.connected;
       
       // Update channel connection status
@@ -2976,14 +2991,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isConnected
       );
 
+      console.log(`✅ Teste de conexão concluído: ${isConnected ? 'conectado' : 'desconectado'}`);
+
       res.json({
         success: true,
         connected: isConnected,
         status: data
       });
     } catch (error) {
-      console.error('Error testing channel connection:', error);
-      res.status(500).json({ message: 'Failed to test channel connection' });
+      console.error('❌ Erro ao testar conexão do canal:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to test channel connection',
+        error: error instanceof Error ? error.message : 'Internal server error'
+      });
     }
   });
 
