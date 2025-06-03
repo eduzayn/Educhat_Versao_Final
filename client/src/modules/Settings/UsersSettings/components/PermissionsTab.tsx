@@ -77,6 +77,58 @@ export const PermissionsTab = () => {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([
     'user_view', 'chat_access', 'reports_view', 'contacts_manage'
   ]);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch roles from database
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
+    queryKey: ['/api/roles'],
+    queryFn: async () => {
+      const response = await fetch('/api/roles');
+      if (!response.ok) throw new Error('Failed to fetch roles');
+      return response.json();
+    }
+  });
+
+  // Save permissions mutation
+  const savePermissionsMutation = useMutation({
+    mutationFn: async ({ roleId, permissions }: { roleId: string; permissions: string[] }) => {
+      const response = await apiRequest('POST', '/api/permissions/save', { roleId, permissions });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Configurações de permissões salvas com sucesso!"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar configurações",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Load permissions when role is selected
+  useEffect(() => {
+    if (selectedRoleId && roles.length > 0) {
+      const selectedRole = roles.find((role: any) => role.id.toString() === selectedRoleId);
+      if (selectedRole && selectedRole.permissions) {
+        try {
+          const permissions = JSON.parse(selectedRole.permissions);
+          setSelectedPermissions(Array.isArray(permissions) ? permissions : []);
+        } catch {
+          setSelectedPermissions([]);
+        }
+      } else {
+        setSelectedPermissions([]);
+      }
+    }
+  }, [selectedRoleId, roles]);
 
   const handlePermissionToggle = (permissionId: string) => {
     setSelectedPermissions(prev => 
@@ -84,6 +136,22 @@ export const PermissionsTab = () => {
         ? prev.filter(id => id !== permissionId)
         : [...prev, permissionId]
     );
+  };
+
+  const handleSavePermissions = () => {
+    if (!selectedRoleId) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma função para configurar as permissões",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    savePermissionsMutation.mutate({
+      roleId: selectedRoleId,
+      permissions: selectedPermissions
+    });
   };
 
   const getGroupPermissionCount = (groupPermissions: { id: string }[]) => {
@@ -103,11 +171,41 @@ export const PermissionsTab = () => {
           <Button variant="outline">
             Importar Template
           </Button>
-          <Button>
-            Salvar Configurações
+          <Button 
+            onClick={handleSavePermissions}
+            disabled={savePermissionsMutation.isPending || !selectedRoleId}
+          >
+            {savePermissionsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Selecionar Função</CardTitle>
+          <CardDescription>
+            Escolha a função para configurar suas permissões
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione uma função" />
+            </SelectTrigger>
+            <SelectContent>
+              {rolesLoading ? (
+                <SelectItem value="">Carregando...</SelectItem>
+              ) : (
+                roles.map((role: any) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>
+                    {role.displayName}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {permissionGroups.map(group => (
