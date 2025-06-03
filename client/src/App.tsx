@@ -14,7 +14,7 @@ import CrmPage from "@/pages/CrmPage";
 import ReportsPage from "@/pages/ReportsPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
-import SettingsPage from "@/pages/SettingsPage";
+import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsSettingsPage from "@/pages/Settings/Channels/ChannelsSettingsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 
