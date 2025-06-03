@@ -3022,50 +3022,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📥 Resposta Z-API QR Code:`, {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        contentType: response.headers.get('content-type')
       });
 
-      const responseText = await response.text();
-      console.log(`📄 Conteúdo da resposta Z-API:`, responseText);
-
       if (!response.ok) {
-        throw new Error(`Z-API Error: ${response.status} - ${response.statusText} - ${responseText}`);
+        const errorText = await response.text();
+        console.log(`❌ Erro na resposta Z-API:`, errorText);
+        throw new Error(`Z-API Error: ${response.status} - ${response.statusText} - ${errorText}`);
       }
 
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
-        throw new Error('Invalid JSON response from Z-API');
-      }
+      const contentType = response.headers.get('content-type');
       
-      console.log(`🔍 Dados recebidos da Z-API:`, data);
-      
-      if (data.value) {
-        console.log(`✅ Gerando QR Code visual a partir do token...`);
-        // Generate visual QR Code from token
-        const qrCodeDataURL = await QRCode.toDataURL(data.value, {
-          width: 256,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
+      if (contentType && contentType.includes('image')) {
+        console.log(`📸 Recebendo QR Code como imagem da Z-API`);
+        // Se a resposta é uma imagem, converter para base64
+        const buffer = await response.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString('base64');
+        const qrCodeDataURL = `data:${contentType};base64,${base64}`;
         
-        console.log(`✅ QR Code gerado com sucesso`);
+        console.log(`✅ QR Code convertido para base64 com sucesso`);
         res.json({ qrCode: qrCodeDataURL });
-      } else if (data.connected) {
-        console.log(`ℹ️ WhatsApp já conectado, não é necessário QR Code`);
-        res.json({ 
-          message: 'WhatsApp já está conectado',
-          connected: true,
-          data 
-        });
       } else {
-        console.log(`📄 Retornando dados da Z-API sem QR Code:`, data);
-        res.json(data);
+        console.log(`📄 Resposta Z-API em formato JSON`);
+        // Se a resposta é JSON, tentar parsear
+        const responseText = await response.text();
+        console.log(`📄 Conteúdo da resposta Z-API:`, responseText);
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ Erro ao parsear resposta JSON:', parseError);
+          throw new Error('Invalid response format from Z-API');
+        }
+        
+        console.log(`🔍 Dados JSON recebidos da Z-API:`, data);
+        
+        if (data.value) {
+          console.log(`✅ Gerando QR Code visual a partir do valor de texto...`);
+          // Generate visual QR Code from text value
+          const qrCodeDataURL = await QRCode.toDataURL(data.value, {
+            width: 256,
+            margin: 1,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          
+          console.log(`✅ QR Code gerado com sucesso a partir do texto`);
+          res.json({ qrCode: qrCodeDataURL });
+        } else if (data.connected) {
+          console.log(`ℹ️ WhatsApp já conectado, não é necessário QR Code`);
+          res.json({ 
+            message: 'WhatsApp já está conectado',
+            connected: true,
+            data 
+          });
+        } else {
+          console.log(`📄 Retornando dados da Z-API sem QR Code:`, data);
+          res.json(data);
+        }
       }
     } catch (error) {
       console.error('❌ Erro ao obter QR code para canal:', error);
