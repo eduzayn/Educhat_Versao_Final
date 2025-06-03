@@ -6,6 +6,8 @@ import {
   contactTags,
   quickReplies,
   systemUsers,
+  teams,
+  roles,
   type User,
   type UpsertUser,
   type Contact,
@@ -20,6 +22,10 @@ import {
   type InsertQuickReply,
   type SystemUser,
   type InsertSystemUser,
+  type Team,
+  type InsertTeam,
+  type Role,
+  type InsertRole,
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
@@ -78,6 +84,20 @@ export interface IStorage {
   createSystemUser(user: InsertSystemUser): Promise<SystemUser>;
   updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser>;
   deleteSystemUser(id: number): Promise<void>;
+
+  // Team operations
+  getTeams(): Promise<Team[]>;
+  getTeam(id: number): Promise<Team | undefined>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team>;
+  deleteTeam(id: number): Promise<void>;
+
+  // Role operations
+  getRoles(): Promise<Role[]>;
+  getRole(id: number): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: number, role: Partial<InsertRole>): Promise<Role>;
+  deleteRole(id: number): Promise<void>;
 
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
@@ -589,6 +609,74 @@ export class DatabaseStorage implements IStorage {
         usageCount: sql`COALESCE(${quickReplies.usageCount}, 0) + 1`,
       })
       .where(eq(quickReplies.id, id));
+  }
+
+  // Team operations
+  async getTeams(): Promise<Team[]> {
+    return await db.select().from(teams).orderBy(teams.name);
+  }
+
+  async getTeam(id: number): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team;
+  }
+
+  async createTeam(teamData: InsertTeam): Promise<Team> {
+    const [team] = await db
+      .insert(teams)
+      .values(teamData)
+      .returning();
+    return team;
+  }
+
+  async updateTeam(id: number, teamData: Partial<InsertTeam>): Promise<Team> {
+    const [team] = await db
+      .update(teams)
+      .set({
+        ...teamData,
+        updatedAt: new Date(),
+      })
+      .where(eq(teams.id, id))
+      .returning();
+    return team;
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    await db.delete(teams).where(eq(teams.id, id));
+  }
+
+  // Role operations
+  async getRoles(): Promise<Role[]> {
+    return await db.select().from(roles).orderBy(roles.name);
+  }
+
+  async getRole(id: number): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    return role;
+  }
+
+  async createRole(roleData: InsertRole): Promise<Role> {
+    const [role] = await db
+      .insert(roles)
+      .values(roleData)
+      .returning();
+    return role;
+  }
+
+  async updateRole(id: number, roleData: Partial<InsertRole>): Promise<Role> {
+    const [role] = await db
+      .update(roles)
+      .set({
+        ...roleData,
+        updatedAt: new Date(),
+      })
+      .where(eq(roles.id, id))
+      .returning();
+    return role;
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    await db.delete(roles).where(eq(roles.id, id));
   }
 }
 
