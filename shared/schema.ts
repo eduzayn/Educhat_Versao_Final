@@ -101,6 +101,24 @@ export const quickReplies = pgTable("quick_replies", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// System Users table (for user management settings)
+export const systemUsers = pgTable("system_users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).unique().notNull(),
+  displayName: text("display_name").notNull(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  role: varchar("role", { length: 50 }).notNull(), // 'Administrador', 'Gerente', 'Atendente', 'Visualizador'
+  team: varchar("team", { length: 100 }),
+  isActive: boolean("is_active").default(true),
+  isOnline: boolean("is_online").default(false),
+  lastLoginAt: timestamp("last_login_at"),
+  avatar: text("avatar"),
+  initials: varchar("initials", { length: 5 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
@@ -172,6 +190,14 @@ export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
   updatedAt: true,
 });
 
+export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({
+  id: true,
+  isOnline: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -183,6 +209,8 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ContactTag = typeof contactTags.$inferSelect;
 export type InsertContactTag = z.infer<typeof insertContactTagSchema>;
+export type SystemUser = typeof systemUsers.$inferSelect;
+export type InsertSystemUser = z.infer<typeof insertSystemUserSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {

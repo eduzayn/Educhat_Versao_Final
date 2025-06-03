@@ -2715,5 +2715,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System Users endpoints for user management settings
+  app.get('/api/system-users', async (req, res) => {
+    try {
+      const users = await storage.getSystemUsers();
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching system users:', error);
+      res.status(500).json({ message: 'Failed to fetch system users' });
+    }
+  });
+
+  app.post('/api/system-users', async (req, res) => {
+    try {
+      const userData = req.body;
+      const user = await storage.createSystemUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error('Error creating system user:', error);
+      res.status(400).json({ message: 'Failed to create system user' });
+    }
+  });
+
+  app.patch('/api/system-users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userData = req.body;
+      const user = await storage.updateSystemUser(id, userData);
+      res.json(user);
+    } catch (error) {
+      console.error('Error updating system user:', error);
+      res.status(400).json({ message: 'Failed to update system user' });
+    }
+  });
+
+  app.delete('/api/system-users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSystemUser(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting system user:', error);
+      res.status(500).json({ message: 'Failed to delete system user' });
+    }
+  });
+
   return httpServer;
 }
