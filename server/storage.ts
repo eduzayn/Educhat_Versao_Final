@@ -72,6 +72,13 @@ export interface IStorage {
   deleteQuickReply(id: number): Promise<void>;
   incrementQuickReplyUsage(id: number): Promise<void>;
 
+  // System User operations for user management settings
+  getSystemUsers(): Promise<SystemUser[]>;
+  getSystemUser(id: number): Promise<SystemUser | undefined>;
+  createSystemUser(user: InsertSystemUser): Promise<SystemUser>;
+  updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser>;
+  deleteSystemUser(id: number): Promise<void>;
+
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
 }
@@ -466,6 +473,34 @@ export class DatabaseStorage implements IStorage {
       .from(conversations);
     
     return result[0]?.total || 0;
+  }
+
+  // System User operations for user management settings
+  async getSystemUsers(): Promise<SystemUser[]> {
+    return await db.select().from(systemUsers).orderBy(desc(systemUsers.createdAt));
+  }
+
+  async getSystemUser(id: number): Promise<SystemUser | undefined> {
+    const [user] = await db.select().from(systemUsers).where(eq(systemUsers.id, id));
+    return user;
+  }
+
+  async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
+    const [newUser] = await db.insert(systemUsers).values(user).returning();
+    return newUser;
+  }
+
+  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
+    const [updatedUser] = await db
+      .update(systemUsers)
+      .set({ ...user, updatedAt: new Date() })
+      .where(eq(systemUsers.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async deleteSystemUser(id: number): Promise<void> {
+    await db.delete(systemUsers).where(eq(systemUsers.id, id));
   }
 
   async updateMessageStatus(whatsappMessageId: string, status: string): Promise<void> {
