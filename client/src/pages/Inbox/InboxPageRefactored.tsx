@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
@@ -161,7 +162,8 @@ export function InboxPageRefactored() {
   // Buscar mensagens unificadas do contato quando necessário
   const { 
     data: unifiedMessages, 
-    isLoading: isLoadingUnifiedMessages 
+    isLoading: isLoadingUnifiedMessages,
+    refetch: refetchUnifiedMessages 
   } = useQuery<Message[]>({
     queryKey: [`/api/contacts/${activeConversation?.contactId}/messages`, messageChannelFilter],
     queryFn: async () => {
@@ -842,7 +844,15 @@ export function InboxPageRefactored() {
                       <span className="text-xs text-gray-500">Filtro:</span>
                       <Select 
                         value={messageChannelFilter} 
-                        onValueChange={setMessageChannelFilter}
+                        onValueChange={(newFilter) => {
+                          setMessageChannelFilter(newFilter);
+                          // Invalidar cache das mensagens unificadas para forçar novo fetch
+                          if (activeConversation?.contactId) {
+                            queryClient.invalidateQueries({
+                              queryKey: [`/api/contacts/${activeConversation.contactId}/messages`]
+                            });
+                          }
+                        }}
                       >
                         <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
                           <SelectValue>
