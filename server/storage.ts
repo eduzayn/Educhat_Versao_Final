@@ -1060,11 +1060,19 @@ export class DatabaseStorage implements IStorage {
     // Palavras-chave para TUTORIA (prioridade alta - detecção específica)
     const tutoriaKeywords = [
       'tutor', 'tutoria', 'orientação pedagógica', 'orientador', 'dúvida acadêmica',
-      'como estudar', 'metodologia de pesquisa', 'cronograma de estudos', 'planejamento de estudos',
-      'disciplina', 'matéria', 'conteúdo', 'atividade acadêmica', 'tarefa', 'trabalho acadêmico',
-      'tcc', 'monografia', 'projeto de pesquisa', 'pesquisa acadêmica', 'bibliografia', 'artigo científico',
-      'avaliação', 'prova', 'nota', 'média', 'aprovação', 'reprovação',
-      'calendário acadêmico', 'plano de estudos', 'acompanhamento acadêmico', 'mentoria'
+      'tcc', 'estágio', 'atividade', 'atividades', 'trabalho', 'trabalhos', 'tarefa',
+      'avaliação', 'avaliações', 'matéria', 'disciplina', 'disciplinas', 'conteúdo',
+      'prática', 'práticas pedagógicas', 'portfólio', 'resumo', 'prova', 'professor',
+      'aula', 'nota da atividade', 'prazo de entrega', 'entrega', 'caderno de atividades',
+      'relatório', 'ensino', 'dúvida sobre aula', 'não entendi', 'reposição',
+      'acompanhamento', 'monografia', 'projeto de pesquisa', 'metodologia de pesquisa',
+      'cronograma de estudos', 'planejamento de estudos', 'pesquisa acadêmica',
+      'bibliografia', 'artigo científico', 'nota', 'média', 'aprovação', 'reprovação',
+      'calendário acadêmico', 'plano de estudos', 'acompanhamento acadêmico', 'mentoria',
+      'tenho dúvida no tcc', 'qual é o prazo do estágio', 'não entendi a matéria',
+      'a atividade não abriu', 'como entrego o portfólio', 'onde envio o trabalho',
+      'fiquei sem nota', 'o professor não corrigiu', 'meu orientador não respondeu',
+      'tenho aula ao vivo', 'dúvida sobre matéria', 'pergunta sobre matéria'
     ];
     
     // Palavras-chave para SECRETARIA  
@@ -1083,6 +1091,19 @@ export class DatabaseStorage implements IStorage {
       'apresentar documento', 'histórico', 'emissão de boletos'
     ];
     
+    // Palavras-chave para FINANCEIRO ALUNO (prioridade alta - questões administrativas financeiras)
+    const financeiroKeywords = [
+      'nota fiscal', 'nf', 'segunda via de boleto', 'boleto', 'pagamento', 'comprovante',
+      'quitei', 'quitar', 'quero quitar', 'recibo', 'imposto de renda', 'mensalidade paga',
+      'declaração de pagamento', 'baixa no sistema', 'dados para nota fiscal', 'erro no valor',
+      'pagamento duplicado', 'paguei', 'pagamento em atraso', 'forma de pagamento',
+      'data de vencimento', 'parcelamento', 'adiantar parcelas', 'comprovante de quitação',
+      'cadastro do cpf na nota', 'dúvida sobre boleto', 'boleto errado', 'paguei mas não foi reconhecido',
+      'enviei o comprovante', 'quero a nota fiscal', 'como pegar a segunda via',
+      'já quitei o curso', 'consigo declarar', 'meu boleto veio com valor errado',
+      'como faço pra adiantar', 'o pagamento foi feito', 'confirmação de pagamento'
+    ];
+    
     // Palavras-chave para COMERCIAL (contexto educacional)
     const comercialKeywords = [
       'curso', 'cursos', 'valores', 'mensalidade', 'preço', 'preços', 'promoção',
@@ -1097,6 +1118,11 @@ export class DatabaseStorage implements IStorage {
     // Verificar palavras-chave de tutoria PRIMEIRO (maior especificidade)
     if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
       return 'tutoria';
+    }
+    
+    // Verificar palavras-chave de financeiro aluno (questões administrativas financeiras)
+    if (financeiroKeywords.some(keyword => content.includes(keyword))) {
+      return 'financeiro';
     }
     
     // Verificar palavras-chave de secretaria

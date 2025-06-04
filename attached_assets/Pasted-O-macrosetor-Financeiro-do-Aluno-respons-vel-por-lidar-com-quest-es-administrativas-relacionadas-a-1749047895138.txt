@@ -1,0 +1,112 @@
+O macrosetor Financeiro do Aluno é responsável por lidar com questões administrativas relacionadas a pagamentos, boletos, comprovantes, e documentos fiscais — mas diferente do setor de cobrança, que lida com inadimplência.
+
+Aqui está a sugestão completa para o reconhecimento automático de mensagens destinadas ao financeiro do aluno:
+
+💰 Palavras-chave para identificar FINANCEIRO DO ALUNO
+🔹 Palavras e expressões comuns
+nota fiscal
+
+segunda via de boleto
+
+boleto
+
+pagamento
+
+comprovante
+
+quitei
+
+quitar
+
+quero quitar
+
+recibo
+
+NF
+
+imposto de renda
+
+declaração de pagamento
+
+comprovante de quitação
+
+mensalidade paga
+
+paguei
+
+baixa no sistema
+
+confirmação de pagamento
+
+cadastro do CPF na nota
+
+dados para nota fiscal
+
+dúvida sobre boleto
+
+forma de pagamento
+
+data de vencimento
+
+quero adiantar parcelas
+
+parcelamento
+
+boleto errado
+
+erro no valor
+
+pagamento duplicado
+
+pagamento em atraso
+
+paguei mas não foi reconhecido
+
+🔹 Exemplos de mensagens reais
+“Enviei o comprovante do boleto”
+
+“Quero a nota fiscal das mensalidades”
+
+“Como pegar a segunda via do boleto?”
+
+“Já quitei o curso, mas não consta no sistema”
+
+“Consigo declarar isso no imposto de renda?”
+
+“Meu boleto veio com valor errado”
+
+“Como faço pra adiantar as parcelas?”
+
+“O pagamento foi feito ontem”
+
+🔍 Dica de distinção
+Esse macrosetor não trata inadimplência ativa ou negociações de dívida — que devem continuar com o setor de Cobrança.
+
+Ele lida com situações de regularização, documentação e dúvidas financeiras de alunos adimplentes ou em processo de pagamento.
+
+🧠 Atualizando a função identificarMacrosetor
+ts
+Copiar
+Editar
+function identificarMacrosetor(texto: string): 
+  'comercial' | 'suporte' | 'cobranca' | 'secretaria' | 'tutoria' | 'financeiro' {
+  
+  const t = texto.toLowerCase();
+
+  const palavrasFinanceiro = [
+    'nota fiscal', 'nf', 'segunda via de boleto', 'boleto', 'pagamento',
+    'comprovante', 'quitei', 'quitar', 'quero quitar', 'recibo', 
+    'imposto de renda', 'mensalidade paga', 'declaração de pagamento',
+    'baixa no sistema', 'dados para nota fiscal', 'erro no valor', 
+    'pagamento duplicado', 'paguei', 'pagamento em atraso',
+    'forma de pagamento', 'data de vencimento', 'parcelamento', 
+    'adiantar parcelas'
+  ];
+
+  if (palavrasFinanceiro.some(p => t.includes(p))) {
+    return 'financeiro';
+  }
+
+  // ... outras regras
+  return 'comercial'; // fallback
+}

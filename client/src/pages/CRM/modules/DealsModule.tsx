@@ -75,6 +75,16 @@ const macrosetores = {
       { id: 'acompanhamento', name: 'Acompanhamento', color: 'bg-orange-500' },
       { id: 'resolvido', name: 'Resolvido', color: 'bg-green-500' }
     ]
+  },
+  financeiro: {
+    name: 'Financeiro Aluno',
+    stages: [
+      { id: 'solicitacao_recebida', name: 'Solicitação Recebida', color: 'bg-emerald-500' },
+      { id: 'documentos_em_analise', name: 'Documentos em Análise', color: 'bg-blue-500' },
+      { id: 'processamento', name: 'Processamento', color: 'bg-yellow-500' },
+      { id: 'aguardando_confirmacao', name: 'Aguardando Confirmação', color: 'bg-orange-500' },
+      { id: 'concluido', name: 'Concluído', color: 'bg-green-500' }
+    ]
   }
 };
 
@@ -229,6 +239,7 @@ export function DealsModule() {
                 <SelectItem value="cobranca">💰 Cobrança</SelectItem>
                 <SelectItem value="secretaria">📋 Secretaria</SelectItem>
                 <SelectItem value="tutoria">🎓 Tutoria</SelectItem>
+                <SelectItem value="financeiro">💳 Financeiro Aluno</SelectItem>
               </SelectContent>
             </Select>
 
