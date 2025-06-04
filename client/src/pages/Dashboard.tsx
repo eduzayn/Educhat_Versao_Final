@@ -88,13 +88,7 @@ export function Dashboard() {
       description: 'Canais e APIs',
       route: '/integrations'
     },
-    {
-      id: 'payments',
-      label: 'Pagamentos',
-      icon: CreditCard,
-      description: 'Cobranças e Asaas',
-      route: '/payments'
-    },
+
     {
       id: 'reports',
       label: 'Relatórios',
@@ -233,14 +227,7 @@ export function Dashboard() {
                     <Zap className="w-6 h-6" />
                     <span>Integrações</span>
                   </Button>
-                  <Button 
-                    onClick={() => setLocation('/payments')}
-                    variant="outline" 
-                    className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
-                  >
-                    <CreditCard className="w-6 h-6" />
-                    <span>Pagamentos</span>
-                  </Button>
+
                 </div>
               </CardContent>
             </Card>
