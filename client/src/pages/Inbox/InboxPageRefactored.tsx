@@ -51,6 +51,7 @@ import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/comp
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
+import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
