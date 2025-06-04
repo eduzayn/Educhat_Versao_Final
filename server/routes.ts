@@ -5362,5 +5362,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint de teste para detectar cursos em mensagens
+  app.post('/api/test/detect-course', async (req, res) => {
+    try {
+      const { message } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Mensagem é obrigatória' });
+      }
+
+      console.log(`🧪 Testando detecção de curso na mensagem: "${message}"`);
+      
+      const detectedCourse = storage.detectMentionedCourse(message);
+      
+      res.json({
+        message,
+        detected: !!detectedCourse,
+        course: detectedCourse || null,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Erro ao testar detecção de curso:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   return httpServer;
 }
