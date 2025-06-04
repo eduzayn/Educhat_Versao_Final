@@ -105,6 +105,22 @@ export function useWebSocket() {
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             }
             break;
+          case 'conversation_unread_status':
+            if ((data as any).conversationId) {
+              const unreadData = data as any;
+              console.log('🔴 Status não lida atualizado via WebSocket:', {
+                conversationId: unreadData.conversationId,
+                unreadCount: unreadData.unreadCount,
+                action: unreadData.action
+              });
+              
+              // Invalidar IMEDIATAMENTE cache de conversas para atualizar bolinhas vermelhas
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+              
+              // Invalidar contador global de não lidas
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+            }
+            break;
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);

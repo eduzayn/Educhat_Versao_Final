@@ -3201,6 +3201,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Resetar o contador de mensagens não lidas da conversa
       await storage.updateConversation(conversationId, { unreadCount: 1 });
 
+      // Broadcast IMEDIATO para atualizar bolinhas vermelhas em tempo real
+      broadcastToAll({
+        type: 'conversation_unread_status',
+        conversationId,
+        unreadCount: 1,
+        action: 'mark_unread'
+      });
+
       console.log(`📧 Conversa ${conversationId} marcada como não lida`);
       
       res.json({ success: true, message: 'Conversa marcada como não lida' });
