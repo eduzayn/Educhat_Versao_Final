@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   CRMDashboard,
   DealsModule,
-  ContactsModule,
   CompaniesModule,
   ActivitiesModule,
   ReportsModule
@@ -35,9 +34,6 @@ export function CRMPage() {
             <TabsTrigger value="deals" className="flex items-center gap-2">
               <Target className="h-4 w-4" /> Negócios
             </TabsTrigger>
-            <TabsTrigger value="contacts" className="flex items-center gap-2">
-              <Users className="h-4 w-4" /> Contatos
-            </TabsTrigger>
             <TabsTrigger value="companies" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" /> Empresas
             </TabsTrigger>
@@ -53,9 +49,6 @@ export function CRMPage() {
           </TabsContent>
           <TabsContent value="deals" className="flex-1 p-0">
             <DealsModule />
-          </TabsContent>
-          <TabsContent value="contacts" className="flex-1 p-6">
-            <ContactsModule />
           </TabsContent>
           <TabsContent value="companies" className="flex-1 p-6">
             <CompaniesModule />
