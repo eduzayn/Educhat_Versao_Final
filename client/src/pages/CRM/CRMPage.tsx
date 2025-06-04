@@ -46,20 +46,30 @@ export function CRMPage() {
               <FileText className="h-4 w-4" /> Relatórios
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="dashboard" className="flex-1 p-6">
-            <CRMDashboard />
+          <TabsContent value="dashboard" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <CRMDashboard />
+            </div>
           </TabsContent>
-          <TabsContent value="deals" className="flex-1 p-0">
-            <DealsModule />
+          <TabsContent value="deals" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <DealsModule />
+            </div>
           </TabsContent>
-          <TabsContent value="companies" className="flex-1 p-6">
-            <CompaniesModule />
+          <TabsContent value="companies" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <CompaniesModule />
+            </div>
           </TabsContent>
-          <TabsContent value="activities" className="flex-1 p-6">
-            <ActivitiesModule />
+          <TabsContent value="activities" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <ActivitiesModule />
+            </div>
           </TabsContent>
-          <TabsContent value="reports" className="flex-1 p-6">
-            <ReportsModule />
+          <TabsContent value="reports" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <ReportsModule />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -69,40 +79,42 @@ export function CRMPage() {
 
 function CRMHeader() {
   return (
-    <div className="border-b bg-background p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold">CRM</h1>
-            <p className="text-muted-foreground">
-              Gerencie relacionamentos com clientes e oportunidades de negócio
-            </p>
+    <div className="border-b bg-background">
+      <div className="container mx-auto max-w-7xl px-4 py-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold">CRM</h1>
+              <p className="text-muted-foreground">
+                Gerencie relacionamentos com clientes e oportunidades de negócio
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select defaultValue="month">
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Esta semana</SelectItem>
-              <SelectItem value="month">Este mês</SelectItem>
-              <SelectItem value="quarter">Este trimestre</SelectItem>
-              <SelectItem value="year">Este ano</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline">
-            <Settings className="h-4 w-4 mr-2" /> Configurações
-          </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" /> Ação Rápida
-          </Button>
+          <div className="flex items-center gap-3">
+            <Select defaultValue="month">
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Esta semana</SelectItem>
+                <SelectItem value="month">Este mês</SelectItem>
+                <SelectItem value="quarter">Este trimestre</SelectItem>
+                <SelectItem value="year">Este ano</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline">
+              <Settings className="h-4 w-4 mr-2" /> Configurações
+            </Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" /> Ação Rápida
+            </Button>
+          </div>
         </div>
       </div>
     </div>
