@@ -221,7 +221,7 @@ export class DatabaseStorage implements IStorage {
 
   // Conversation operations
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    console.log(`📋 getConversations OTIMIZADO chamado com limit=${limit}, offset=${offset}`);
+
     
     // Buscar apenas as conversas que precisamos com paginação eficiente
     const conversationsData = await db
@@ -244,7 +244,7 @@ export class DatabaseStorage implements IStorage {
       .limit(limit)
       .offset(offset);
 
-    console.log(`📊 Conversas encontradas com filtro: ${conversationsData.length}`);
+
 
     // Buscar todas as últimas mensagens de uma vez usando uma subconsulta otimizada
     const conversationIds = conversationsData
@@ -296,7 +296,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    console.log(`📄 Resultado final otimizado: ${result.length} conversas retornadas`);
+
     
     return result;
   }
@@ -418,7 +418,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(conversations.id, message.conversationId))
         .returning({ newCount: conversations.unreadCount });
       
-      console.log(`📊 Novo contador para conversa ${message.conversationId}:`, result[0]?.newCount);
+
     } else {
       // Se a mensagem é nossa, apenas atualizar timestamp
       await db
