@@ -25,7 +25,7 @@ import {
   MessageCircle,
   UserCheck
 } from 'lucide-react';
-import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
+
 import { useLocation } from 'wouter';
 
 export function Dashboard() {
@@ -288,7 +288,9 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <div className="flex items-center space-x-3">
-                <img src={logoPath} alt="EduChat" className="w-8 h-8" />
+                <div className="w-8 h-8 bg-gradient-to-r from-educhat-primary to-educhat-secondary rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">EC</span>
+                </div>
                 <span className="font-bold text-educhat-dark">EduChat</span>
               </div>
             )}
