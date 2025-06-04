@@ -2318,60 +2318,140 @@ export class DatabaseStorage implements IStorage {
     return courses.length > 0 ? courses[0] : null;
   }
 
-  // Função para analisar contexto de cursos com IA
+  // Função para analisar contexto de cursos com análise inteligente baseada em palavras-chave
   async analyzeCourseContext(messageContent: string, detectedCourses: { courseName: string; courseType: string; courseKey: string }[]): Promise<Array<{ courseName: string; courseType: string; courseKey: string; status: 'possui' | 'deseja' | 'incerto' }>> {
     try {
-      if (!process.env.ANTHROPIC_API_KEY) {
-        console.log('⚠️ ANTHROPIC_API_KEY não configurada, usando análise básica de cursos');
-        return detectedCourses.map(course => ({ ...course, status: 'deseja' as const }));
-      }
+      const normalizedMessage = messageContent.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
+      console.log('🧠 Analisando contexto dos cursos detectados...');
 
-      const coursesText = detectedCourses.map(c => c.courseName).join(', ');
-      
-      const prompt = `Analise esta mensagem e determine para cada curso mencionado se a pessoa:
-- JÁ POSSUI o curso (formado, graduado, pós-graduado, tem diploma, concluiu)
-- DESEJA FAZER o curso (quer fazer, precisa de informações, tem interesse, busca curso)
-- INCERTO (não está claro)
-
-Mensagem: "${messageContent}"
-Cursos detectados: ${coursesText}
-
-Responda APENAS em formato JSON:
-{
-  "courses": [
-    {
-      "courseName": "Nome do Curso",
-      "status": "possui" | "deseja" | "incerto"
-    }
-  ]
-}`;
-
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514', // the newest Anthropic model is "claude-sonnet-4-20250514" which was released May 14, 2025. Use this by default unless user has already selected claude-3-7-sonnet-20250219
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }],
-      });
-
-      const content = response.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Resposta inesperada da API Anthropic');
-      }
-      const result = JSON.parse(content.text);
-      
       return detectedCourses.map(course => {
-        const analysis = result.courses.find((c: any) => c.courseName === course.courseName);
+        const courseNameLower = course.courseName.toLowerCase();
+        
+        // Padrões para indicar que JÁ POSSUI o curso
+        const possessPatterns = [
+          'sou formad[oa]',
+          'me formei',
+          'graduad[oa]',
+          'concluí',
+          'tenho formação',
+          'formação em',
+          'já fiz',
+          'já tenho',
+          'completei',
+          'terminei',
+          'diploma',
+          'bacharel',
+          'licenciad[oa]',
+          'especialista',
+          'mestre',
+          'doutor'
+        ];
+
+        // Padrões para indicar que DESEJA FAZER o curso
+        const desirePatterns = [
+          'quero fazer',
+          'gostaria de fazer',
+          'tenho interesse',
+          'busco',
+          'procuro',
+          'preciso de informações',
+          'quero me inscrever',
+          'quero estudar',
+          'pretendo fazer',
+          'vou fazer',
+          'planejo fazer',
+          'interessad[oa]'
+        ];
+
+        // Verificar contexto específico do curso na mensagem
+        let status: 'possui' | 'deseja' | 'incerto' = 'incerto';
+        
+        // Buscar menções específicas do curso na mensagem
+        const courseVariations = [
+          courseNameLower,
+          courseNameLower.replace(/ção$/, 'cao'),
+          courseNameLower.replace(/gia$/, 'gia'),
+          courseNameLower.replace(/[aeiou]s?$/, '')
+        ];
+
+        for (const variation of courseVariations) {
+          if (normalizedMessage.includes(variation)) {
+            // Analisar contexto em torno da menção do curso
+            const courseIndex = normalizedMessage.indexOf(variation);
+            const contextStart = Math.max(0, courseIndex - 50);
+            const contextEnd = Math.min(normalizedMessage.length, courseIndex + variation.length + 50);
+            const context = normalizedMessage.substring(contextStart, contextEnd);
+
+            // Verificar padrões de posse
+            for (const pattern of possessPatterns) {
+              const regex = new RegExp(pattern, 'i');
+              if (context.match(regex)) {
+                status = 'possui';
+                console.log(`   📚 ${course.courseName}: JÁ POSSUI (padrão: "${pattern}")`);
+                break;
+              }
+            }
+
+            // Se não foi identificado como "possui", verificar padrões de desejo
+            if (status === 'incerto') {
+              for (const pattern of desirePatterns) {
+                const regex = new RegExp(pattern, 'i');
+                if (context.match(regex)) {
+                  status = 'deseja';
+                  console.log(`   🎯 ${course.courseName}: DESEJA FAZER (padrão: "${pattern}")`);
+                  break;
+                }
+              }
+            }
+
+            break;
+          }
+        }
+
+        // Análise geral da mensagem se não foi identificado contexto específico
+        if (status === 'incerto') {
+          // Verificar padrões gerais de posse
+          for (const pattern of possessPatterns) {
+            const regex = new RegExp(pattern, 'i');
+            if (normalizedMessage.match(regex)) {
+              status = 'possui';
+              console.log(`   📚 ${course.courseName}: JÁ POSSUI (contexto geral: "${pattern}")`);
+              break;
+            }
+          }
+
+          // Se ainda incerto, verificar padrões de desejo
+          if (status === 'incerto') {
+            for (const pattern of desirePatterns) {
+              const regex = new RegExp(pattern, 'i');
+              if (normalizedMessage.match(regex)) {
+                status = 'deseja';
+                console.log(`   🎯 ${course.courseName}: DESEJA FAZER (contexto geral: "${pattern}")`);
+                break;
+              }
+            }
+          }
+
+          // Se ainda incerto, assumir interesse por padrão
+          if (status === 'incerto') {
+            status = 'deseja';
+            console.log(`   ❓ ${course.courseName}: ASSUMINDO INTERESSE (contexto incerto)`);
+          }
+        }
+
         return {
           ...course,
-          status: analysis?.status || 'incerto'
+          status
         };
       });
 
     } catch (error) {
-      console.error('❌ Erro na análise IA de cursos:', error);
+      console.error('❌ Erro na análise de contexto de cursos:', error);
       return detectedCourses.map(course => ({ ...course, status: 'deseja' as const }));
     }
   }
