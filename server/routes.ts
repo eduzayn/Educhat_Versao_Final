@@ -3522,7 +3522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userTeam = await storage.addUserToTeam({
         userId: parseInt(userId),
         teamId: teamId,
-        roleInTeam: roleInTeam || 'member',
+        role: roleInTeam || 'member',
         isActive: true
       });
 

@@ -167,6 +167,16 @@ export interface IStorage {
   addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam>;
   removeUserFromTeam(userId: number, teamId: number): Promise<void>;
 
+  // Team CRUD operations
+  getAllTeams(): Promise<Team[]>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team>;
+  deleteTeam(id: number): Promise<void>;
+
+  // Conversation assignment queries
+  getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]>;
+  getConversationsByUser(userId: number): Promise<ConversationWithContact[]>;
+
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
 }
@@ -715,38 +725,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quickReplies.id, id));
   }
 
-  // Team operations
+  // Legacy team operations (keeping for compatibility)
   async getTeams(): Promise<Team[]> {
-    return await db.select().from(teams).orderBy(teams.name);
+    return await this.getAllTeams();
   }
 
   async getTeam(id: number): Promise<Team | undefined> {
     const [team] = await db.select().from(teams).where(eq(teams.id, id));
     return team;
-  }
-
-  async createTeam(teamData: InsertTeam): Promise<Team> {
-    const [team] = await db
-      .insert(teams)
-      .values(teamData)
-      .returning();
-    return team;
-  }
-
-  async updateTeam(id: number, teamData: Partial<InsertTeam>): Promise<Team> {
-    const [team] = await db
-      .update(teams)
-      .set({
-        ...teamData,
-        updatedAt: new Date(),
-      })
-      .where(eq(teams.id, id))
-      .returning();
-    return team;
-  }
-
-  async deleteTeam(id: number): Promise<void> {
-    await db.delete(teams).where(eq(teams.id, id));
   }
 
   // Role operations
@@ -1388,32 +1374,7 @@ export class DatabaseStorage implements IStorage {
 
   // Conversation assignment queries
   async getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]> {
-    const result = await db.select({
-      id: conversations.id,
-      contactId: conversations.contactId,
-      channel: conversations.channel,
-      status: conversations.status,
-      lastMessageAt: conversations.lastMessageAt,
-      assignedTeamId: conversations.assignedTeamId,
-      assignedUserId: conversations.assignedUserId,
-      assignmentMethod: conversations.assignmentMethod,
-      assignedAt: conversations.assignedAt,
-      createdAt: conversations.createdAt,
-      updatedAt: conversations.updatedAt,
-      contact: {
-        id: contacts.id,
-        name: contacts.name,
-        phone: contacts.phone,
-        email: contacts.email,
-        isOnline: contacts.isOnline,
-        profileImageUrl: contacts.profileImageUrl,
-        canalOrigem: contacts.canalOrigem,
-        nomeCanal: contacts.nomeCanal,
-        idCanal: contacts.idCanal,
-        createdAt: contacts.createdAt,
-        updatedAt: contacts.updatedAt
-      }
-    })
+    const result = await db.select()
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(eq(conversations.assignedTeamId, teamId))
@@ -1421,7 +1382,8 @@ export class DatabaseStorage implements IStorage {
     
     // Transform to match ConversationWithContact type
     return result.map(row => ({
-      ...row,
+      ...row.conversations,
+      contact: row.contacts,
       messages: [] // Will be populated separately if needed
     }));
   }
