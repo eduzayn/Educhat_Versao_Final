@@ -749,11 +749,11 @@ export class DatabaseStorage implements IStorage {
   async unifyDuplicateContacts(): Promise<{ unified: number; kept: number; removed: number }> {
     console.log('🔍 Iniciando unificação de contatos duplicados...');
     
-    // Buscar contatos agrupados por telefone
+    // Buscar contatos duplicados por telefone
     const duplicatePhones = await db
       .select({
         phone: contacts.phone,
-        contacts: sql<string>`json_agg(json_build_object('id', ${contacts.id}, 'name', ${contacts.name}, 'email', ${contacts.email}, 'createdAt', ${contacts.createdAt}))`
+        count: sql<number>`count(*)`
       })
       .from(contacts)
       .where(isNotNull(contacts.phone))
@@ -764,15 +764,18 @@ export class DatabaseStorage implements IStorage {
     let removedCount = 0;
 
     for (const group of duplicatePhones) {
-      const contactsList = JSON.parse(group.contacts);
+      // Buscar todos os contatos com esse telefone
+      const contactsList = await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.phone, group.phone!))
+        .orderBy(contacts.createdAt);
+
       if (contactsList.length <= 1) continue;
 
-      // Manter o contato mais antigo
-      const mainContact = contactsList.sort((a: any, b: any) => 
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      )[0];
-
-      const duplicateContacts = contactsList.filter((c: any) => c.id !== mainContact.id);
+      // Manter o contato mais antigo (já ordenado por createdAt)
+      const mainContact = contactsList[0];
+      const duplicateContacts = contactsList.slice(1);
 
       console.log(`📞 Unificando contatos para telefone ${group.phone}:`, {
         principal: mainContact.name,
@@ -815,8 +818,8 @@ export class DatabaseStorage implements IStorage {
         lastMessage: {
           id: messages.id,
           content: messages.content,
-          timestamp: messages.timestamp,
-          isFromMe: messages.isFromMe,
+          sentAt: messages.sentAt,
+          isFromContact: messages.isFromContact,
           messageType: messages.messageType
         }
       })
@@ -828,7 +831,7 @@ export class DatabaseStorage implements IStorage {
           SELECT ${messages.id} 
           FROM ${messages} 
           WHERE ${messages.conversationId} = ${conversations.id} 
-          ORDER BY ${messages.timestamp} DESC 
+          ORDER BY ${messages.sentAt} DESC 
           LIMIT 1
         )`
       )
