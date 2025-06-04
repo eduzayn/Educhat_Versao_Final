@@ -9,7 +9,8 @@ import { Label } from '@/shared/ui/ui/label';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team } from '@shared/schema';
 
 // Função para obter a cor baseada na cor hex da equipe
@@ -31,6 +32,27 @@ export const TeamsTab = () => {
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  
+  // Estados do formulário de nova equipe
+  const [newTeamForm, setNewTeamForm] = useState({
+    name: '',
+    description: '',
+    macrosetor: '',
+    color: '',
+    isActive: true
+  });
+
+  // Estados dos formulários dos modais
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [editTeamForm, setEditTeamForm] = useState({
+    name: '',
+    description: '',
+    macrosetor: '',
+    isActive: true
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
@@ -55,6 +77,166 @@ export const TeamsTab = () => {
       return response.json();
     }
   });
+
+  // Mutação para criar nova equipe
+  const createTeamMutation = useMutation({
+    mutationFn: async (teamData: any) => {
+      const response = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamData)
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao criar equipe');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Equipe criada!",
+        description: "A nova equipe foi criada com sucesso.",
+      });
+      setShowTeamDialog(false);
+      setNewTeamForm({ name: '', description: '', macrosetor: '', color: '', isActive: true });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a equipe.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutação para adicionar membro à equipe
+  const addMemberMutation = useMutation({
+    mutationFn: async ({ userId, teamId }: { userId: number; teamId: number }) => {
+      const response = await fetch('/api/user-teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, teamId })
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao adicionar membro');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Membro adicionado!",
+        description: "O usuário foi adicionado à equipe com sucesso.",
+      });
+      setShowAddMemberDialog(false);
+      setSelectedUserId('');
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o membro à equipe.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutação para atualizar configurações da equipe
+  const updateTeamMutation = useMutation({
+    mutationFn: async ({ teamId, teamData }: { teamId: number; teamData: any }) => {
+      const response = await fetch(`/api/teams/${teamId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamData)
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar equipe');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Equipe atualizada!",
+        description: "As configurações da equipe foram salvas com sucesso.",
+      });
+      setShowConfigDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a equipe.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleCreateTeam = () => {
+    if (!newTeamForm.name || !newTeamForm.macrosetor) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e macrosetor são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createTeamMutation.mutate({
+      name: newTeamForm.name,
+      description: newTeamForm.description || null,
+      macrosetor: newTeamForm.macrosetor,
+      color: newTeamForm.color || '#4F46E5',
+      isActive: newTeamForm.isActive
+    });
+  };
+
+  const handleAddMember = () => {
+    if (!selectedUserId || !selectedTeam) {
+      toast({
+        title: "Seleção obrigatória",
+        description: "Selecione um usuário para adicionar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addMemberMutation.mutate({
+      userId: parseInt(selectedUserId),
+      teamId: selectedTeam.id
+    });
+  };
+
+  const handleUpdateTeam = () => {
+    if (!selectedTeam || !editTeamForm.name || !editTeamForm.macrosetor) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e macrosetor são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateTeamMutation.mutate({
+      teamId: selectedTeam.id,
+      teamData: {
+        name: editTeamForm.name,
+        description: editTeamForm.description || null,
+        macrosetor: editTeamForm.macrosetor,
+        isActive: editTeamForm.isActive
+      }
+    });
+  };
+
+  // Atualizar formulário quando uma equipe for selecionada para configuração
+  const handleOpenConfigDialog = (team: Team) => {
+    setSelectedTeam(team);
+    setEditTeamForm({
+      name: team.name,
+      description: team.description || '',
+      macrosetor: team.macrosetor || '',
+      isActive: team.isActive || true
+    });
+    setShowConfigDialog(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -135,10 +317,7 @@ export const TeamsTab = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => {
-                        setSelectedTeam(team);
-                        setShowConfigDialog(true);
-                      }}
+                      onClick={() => handleOpenConfigDialog(team)}
                     >
                       <Settings className="h-4 w-4 mr-2" />
                       Configurar
@@ -157,19 +336,21 @@ export const TeamsTab = () => {
           <DialogHeader>
             <DialogTitle>Criar Nova Equipe</DialogTitle>
             <DialogDescription>
-              Preencha os dados abaixo para criar uma nova equipe de trabalho.
+              Preencha os dados abaixo para criar uma nova equipe educacional.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-name" className="text-right">
-                Nome
+                Nome *
               </Label>
               <Input
                 id="team-name"
                 placeholder="Nome da equipe"
                 className="col-span-3"
+                value={newTeamForm.name}
+                onChange={(e) => setNewTeamForm(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             
@@ -182,51 +363,46 @@ export const TeamsTab = () => {
                 placeholder="Descrição da equipe"
                 className="col-span-3"
                 rows={3}
+                value={newTeamForm.description}
+                onChange={(e) => setNewTeamForm(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="team-manager" className="text-right">
-                Gerente
+              <Label htmlFor="team-macrosetor" className="text-right">
+                Macrosetor *
               </Label>
-              <Select>
+              <Select value={newTeamForm.macrosetor} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, macrosetor: value }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o gerente" />
+                  <SelectValue placeholder="Selecione o macrosetor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="joao">João Silva</SelectItem>
-                  <SelectItem value="maria">Maria Santos</SelectItem>
-                  <SelectItem value="ana">Ana Costa</SelectItem>
-                  <SelectItem value="carlos">Carlos Oliveira</SelectItem>
+                  <SelectItem value="comercial">Comercial</SelectItem>
+                  <SelectItem value="suporte">Suporte</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="secretaria">Secretaria</SelectItem>
+                  <SelectItem value="secretaria_pos">Secretaria Pós</SelectItem>
+                  <SelectItem value="tutoria">Tutoria</SelectItem>
+                  <SelectItem value="cobranca">Cobrança</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="team-departments" className="text-right">
-                Departamentos
-              </Label>
-              <Input
-                id="team-departments"
-                placeholder="Ex: Vendas Online, Vendas Presencial"
-                className="col-span-3"
-              />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-color" className="text-right">
                 Cor
               </Label>
-              <Select>
+              <Select value={newTeamForm.color} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, color: value }))}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione uma cor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="blue">Azul</SelectItem>
-                  <SelectItem value="green">Verde</SelectItem>
-                  <SelectItem value="purple">Roxo</SelectItem>
-                  <SelectItem value="orange">Laranja</SelectItem>
-                  <SelectItem value="red">Vermelho</SelectItem>
+                  <SelectItem value="#3B82F6">Azul</SelectItem>
+                  <SelectItem value="#10B981">Verde</SelectItem>
+                  <SelectItem value="#8B5CF6">Roxo</SelectItem>
+                  <SelectItem value="#F59E0B">Laranja</SelectItem>
+                  <SelectItem value="#EF4444">Vermelho</SelectItem>
+                  <SelectItem value="#6B7280">Cinza</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,10 +412,11 @@ export const TeamsTab = () => {
             <Button variant="outline" onClick={() => setShowTeamDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              console.log('Criar equipe');
-              setShowTeamDialog(false);
-            }}>
+            <Button 
+              onClick={handleCreateTeam}
+              disabled={createTeamMutation.isPending}
+            >
+              {createTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Criar Equipe
             </Button>
           </DialogFooter>
@@ -261,7 +438,7 @@ export const TeamsTab = () => {
               <Label htmlFor="user-select" className="text-right">
                 Usuário
               </Label>
-              <Select>
+              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione um usuário" />
                 </SelectTrigger>
@@ -280,10 +457,11 @@ export const TeamsTab = () => {
             <Button variant="outline" onClick={() => setShowAddMemberDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              console.log('Adicionar membro à equipe');
-              setShowAddMemberDialog(false);
-            }}>
+            <Button 
+              onClick={handleAddMember}
+              disabled={addMemberMutation.isPending}
+            >
+              {addMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Adicionar Membro
             </Button>
           </DialogFooter>
