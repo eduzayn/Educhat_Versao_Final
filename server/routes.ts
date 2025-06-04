@@ -1283,7 +1283,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Z-API QR Code endpoint
+  // Z-API QR Code endpoint for specific channel
+  app.get('/api/channels/:id/qrcode', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log(`🔍 Gerando QR Code para canal ID: ${id}`);
+      
+      const channel = await storage.getChannel(id);
+      
+      if (!channel) {
+        console.log(`❌ Canal não encontrado: ${id}`);
+        return res.status(404).json({ error: 'Canal não encontrado' });
+      }
+
+      const { instanceId, token, clientToken } = channel;
+      console.log(`📋 Credenciais do canal:`, { 
+        instanceId: instanceId?.substring(0, 8) + '...', 
+        token: token?.substring(0, 8) + '...', 
+        clientToken: clientToken?.substring(0, 8) + '...' 
+      });
+
+      if (!instanceId || !token || !clientToken) {
+        console.log(`❌ Credenciais incompletas para canal ${id}`);
+        return res.status(400).json({ 
+          error: 'Credenciais do canal incompletas. Verifique instanceId, token e clientToken.' 
+        });
+      }
+
+      const credentials = { instanceId, token, clientToken };
+      console.log('🔄 Solicitando QR Code da Z-API para canal específico...');
+      
+      const qrData = await getZApiQRCode(credentials);
+      console.log('📱 QR Code recebido da Z-API');
+
+      if (qrData.value) {
+        const qrCodeDataURL = await generateQRCode(qrData.value);
+        res.json({ qrCode: qrCodeDataURL });
+      } else {
+        res.json(qrData);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao obter QR Code:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Legacy Z-API QR Code endpoint (mantido para compatibilidade)
   app.get('/api/zapi/qrcode', async (req, res) => {
     try {
       const credentials = validateZApiCredentials();
@@ -1291,7 +1338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: credentials.error });
       }
 
-      console.log('Solicitando QR Code da Z-API...');
+      console.log('Solicitando QR Code da Z-API (endpoint legacy)...');
       
       const qrData = await getZApiQRCode(credentials);
       console.log('QR Code recebido da Z-API');

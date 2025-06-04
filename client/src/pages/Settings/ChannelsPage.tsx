@@ -143,8 +143,8 @@ export default function ChannelsPage() {
 
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('GET', '/api/zapi/qrcode');
+    mutationFn: async (channelId: number) => {
+      const response = await apiRequest('GET', `/api/channels/${channelId}/qrcode`);
       return await response.json();
     },
     onSuccess: (data: any) => {
@@ -414,7 +414,7 @@ export default function ChannelsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => generateQrMutation.mutate()}
+                    onClick={() => generateQrMutation.mutate(channel.id)}
                     disabled={generateQrMutation.isPending}
                   >
                     {generateQrMutation.isPending ? 'Gerando...' : 'Gerar QR Code'}
