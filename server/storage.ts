@@ -1143,6 +1143,12 @@ export class DatabaseStorage implements IStorage {
         initialValue = 50000; // R$ 500,00 valor médio de cobrança
         probability = 60; // Probabilidade média de quitação
         break;
+      case 'secretaria':
+        stage = 'solicitacao';
+        dealName = `${contact.name || 'Contato'} - Secretaria`;
+        initialValue = 0; // Secretaria não tem valor monetário
+        probability = 90; // Alta probabilidade de conclusão
+        break;
     }
 
     const dealData: InsertDeal = {
