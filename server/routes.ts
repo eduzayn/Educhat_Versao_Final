@@ -676,6 +676,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
       if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
         const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
+        const instanceId = webhookData.instanceId; // Identificar o canal de origem
+        
+        console.log(`📱 Mensagem recebida do canal: ${instanceId} - Telefone: ${phone}`);
+        
+        // Buscar o canal correspondente no banco de dados
+        const channels = await storage.getChannels();
+        const sourceChannel = channels.find(channel => channel.instanceId === instanceId);
+        
+        if (!sourceChannel) {
+          console.warn(`⚠️ Canal não encontrado para instanceId: ${instanceId}`);
+          return res.status(200).json({ success: true, message: 'Canal não cadastrado no sistema' });
+        }
+        
+        console.log(`✅ Canal identificado: ${sourceChannel.name} (ID: ${sourceChannel.id})`);
+        
         let messageContent = '';
         let messageType = 'text';
         
@@ -772,12 +787,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateContactOnlineStatus(contact.id, true);
         }
         
-        // Buscar ou criar conversa
-        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+        // Buscar ou criar conversa usando o canal específico
+        const channelIdentifier = `whatsapp-${sourceChannel.id}`; // Identificador único por canal
+        let conversation = await storage.getConversationByContactAndChannel(contact.id, channelIdentifier);
         if (!conversation) {
           conversation = await storage.createConversation({
             contactId: contact.id,
-            channel: 'whatsapp',
+            channel: channelIdentifier,
             status: 'open',
             lastMessageAt: new Date()
           });
