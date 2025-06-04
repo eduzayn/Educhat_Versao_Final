@@ -5,6 +5,8 @@ import {
   messages,
   contactTags,
   quickReplies,
+  quickReplyTeamShares,
+  quickReplyShares,
   systemUsers,
   teams,
   roles,
@@ -22,6 +24,10 @@ import {
   type InsertContactTag,
   type QuickReply,
   type InsertQuickReply,
+  type QuickReplyTeamShare,
+  type InsertQuickReplyTeamShare,
+  type QuickReplyShare,
+  type InsertQuickReplyShare,
   type SystemUser,
   type InsertSystemUser,
   type Team,
@@ -83,6 +89,12 @@ export interface IStorage {
   updateQuickReply(id: number, quickReply: Partial<InsertQuickReply>): Promise<QuickReply>;
   deleteQuickReply(id: number): Promise<void>;
   incrementQuickReplyUsage(id: number): Promise<void>;
+
+  // Quick reply sharing operations
+  createQuickReplyTeamShare(share: InsertQuickReplyTeamShare): Promise<QuickReplyTeamShare>;
+  createQuickReplyUserShare(share: InsertQuickReplyShare): Promise<QuickReplyShare>;
+  deleteQuickReplyTeamShares(quickReplyId: number): Promise<void>;
+  deleteQuickReplyUserShares(quickReplyId: number): Promise<void>;
 
   // System User operations for user management settings
   getSystemUsers(): Promise<SystemUser[]>;
@@ -850,6 +862,31 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return newContact;
+  }
+
+  // Quick reply sharing operations
+  async createQuickReplyTeamShare(share: InsertQuickReplyTeamShare): Promise<QuickReplyTeamShare> {
+    const [newShare] = await db
+      .insert(quickReplyTeamShares)
+      .values(share)
+      .returning();
+    return newShare;
+  }
+
+  async createQuickReplyUserShare(share: InsertQuickReplyShare): Promise<QuickReplyShare> {
+    const [newShare] = await db
+      .insert(quickReplyShares)
+      .values(share)
+      .returning();
+    return newShare;
+  }
+
+  async deleteQuickReplyTeamShares(quickReplyId: number): Promise<void> {
+    await db.delete(quickReplyTeamShares).where(eq(quickReplyTeamShares.quickReplyId, quickReplyId));
+  }
+
+  async deleteQuickReplyUserShares(quickReplyId: number): Promise<void> {
+    await db.delete(quickReplyShares).where(eq(quickReplyShares.quickReplyId, quickReplyId));
   }
 
   // Statistics operations

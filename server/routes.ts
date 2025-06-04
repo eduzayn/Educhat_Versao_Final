@@ -2712,12 +2712,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/quick-replies', upload.single('file'), async (req, res) => {
     try {
-      const validatedData = insertQuickReplySchema.parse(req.body);
+      const { selectedTeams, selectedUsers, shareScope, ...restData } = req.body;
+      const validatedData = insertQuickReplySchema.parse(restData);
       
       // Set the creator if user is authenticated
       if (req.user) {
         validatedData.createdBy = (req.user as any).id;
       }
+      
+      // Set sharing scope
+      validatedData.shareScope = shareScope || 'private';
       
       // Handle file upload for media types
       if (req.file && validatedData.type !== 'text') {
@@ -2732,6 +2736,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const quickReply = await storage.createQuickReply(validatedData);
+      
+      // Create granular sharing records if applicable
+      if (shareScope === 'team' && selectedTeams && Array.isArray(selectedTeams)) {
+        for (const teamId of selectedTeams) {
+          await storage.createQuickReplyTeamShare({
+            quickReplyId: quickReply.id,
+            teamId: parseInt(teamId),
+            sharedBy: (req.user as any).id,
+          });
+        }
+      }
+      
+      if (shareScope === 'users' && selectedUsers && Array.isArray(selectedUsers)) {
+        for (const userId of selectedUsers) {
+          await storage.createQuickReplyUserShare({
+            quickReplyId: quickReply.id,
+            userId: userId,
+            sharedBy: (req.user as any).id,
+          });
+        }
+      }
+      
       res.status(201).json(quickReply);
     } catch (error) {
       console.error('Error creating quick reply:', error);
