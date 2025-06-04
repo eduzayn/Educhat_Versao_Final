@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
-import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema } from "@shared/schema";
+import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema } from "@shared/schema";
 import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -356,6 +356,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating contact:', error);
       res.status(400).json({ message: 'Failed to update contact' });
+    }
+  });
+
+  // Contact notes routes
+  app.get('/api/contacts/:id/notes', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const notes = await storage.getContactNotes(contactId);
+      res.json(notes);
+    } catch (error) {
+      console.error('Error fetching contact notes:', error);
+      res.status(500).json({ message: 'Failed to fetch contact notes' });
+    }
+  });
+
+  app.post('/api/contacts/:id/notes', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const validatedData = insertContactNoteSchema.parse({
+        ...req.body,
+        contactId
+      });
+      const note = await storage.createContactNote(validatedData);
+      res.status(201).json(note);
+    } catch (error) {
+      console.error('Error creating contact note:', error);
+      res.status(400).json({ message: 'Invalid note data' });
+    }
+  });
+
+  app.patch('/api/contact-notes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertContactNoteSchema.partial().parse(req.body);
+      const note = await storage.updateContactNote(id, validatedData);
+      res.json(note);
+    } catch (error) {
+      console.error('Error updating contact note:', error);
+      res.status(400).json({ message: 'Failed to update contact note' });
+    }
+  });
+
+  app.delete('/api/contact-notes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteContactNote(id);
+      res.json({ message: 'Note deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting contact note:', error);
+      res.status(500).json({ message: 'Failed to delete contact note' });
     }
   });
 

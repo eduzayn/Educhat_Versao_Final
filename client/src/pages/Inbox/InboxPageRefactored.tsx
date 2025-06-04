@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
@@ -112,6 +112,7 @@ export function InboxPageRefactored() {
   const [currentTag, setCurrentTag] = useState('');
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [contactNotes, setContactNotes] = useState<any[]>([]);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
@@ -155,8 +156,8 @@ export function InboxPageRefactored() {
       setNewNote('');
       setShowNoteDialog(false);
       
-      // Recarregar dados para mostrar a nova nota
-      refetch();
+      // Recarregar as notas do contato
+      loadContactNotes();
 
     } catch (error) {
       console.error('Erro ao adicionar nota:', error);
@@ -167,6 +168,26 @@ export function InboxPageRefactored() {
       });
     }
   };
+
+  // Função para carregar notas do contato
+  const loadContactNotes = async () => {
+    if (!activeConversation?.contactId) return;
+
+    try {
+      const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`);
+      if (response.ok) {
+        const notes = await response.json();
+        setContactNotes(notes);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    }
+  };
+
+  // Carregar notas quando a conversa ativa mudar
+  useEffect(() => {
+    loadContactNotes();
+  }, [activeConversation?.contactId]);
 
   const handleCreateContact = async () => {
     try {
@@ -1093,14 +1114,26 @@ export function InboxPageRefactored() {
                 💬 Notas internas
               </h4>
               
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-700 mb-2">
-                  "Solicitou boleto dia 25/05 – retorno agendado para 28/05"
-                </p>
-                <p className="text-xs text-gray-500">
-                  Última atualização por João Santos
-                </p>
-              </div>
+              {contactNotes.length > 0 ? (
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {contactNotes.map((note) => (
+                    <div key={note.id} className="bg-gray-50 p-3 rounded-lg">
+                      <p className="text-xs text-gray-700 mb-2">
+                        "{note.content}"
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Por {note.authorName} • {new Date(note.createdAt).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhuma nota interna ainda
+                  </p>
+                </div>
+              )}
               
               <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
                 <DialogTrigger asChild>

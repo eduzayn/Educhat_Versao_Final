@@ -9,6 +9,7 @@ import {
   teams,
   roles,
   channels,
+  contactNotes,
   type User,
   type UpsertUser,
   type Contact,
@@ -29,6 +30,8 @@ import {
   type InsertRole,
   type Channel,
   type InsertChannel,
+  type ContactNote,
+  type InsertContactNote,
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
@@ -110,6 +113,12 @@ export interface IStorage {
   updateChannel(id: number, channel: Partial<InsertChannel>): Promise<Channel>;
   deleteChannel(id: number): Promise<void>;
   updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void>;
+
+  // Contact notes operations
+  getContactNotes(contactId: number): Promise<ContactNote[]>;
+  createContactNote(note: InsertContactNote): Promise<ContactNote>;
+  updateContactNote(id: number, note: Partial<InsertContactNote>): Promise<ContactNote>;
+  deleteContactNote(id: number): Promise<void>;
 
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
@@ -744,6 +753,41 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(channels.id, id));
+  }
+
+  // Contact notes operations
+  async getContactNotes(contactId: number): Promise<ContactNote[]> {
+    return await db
+      .select()
+      .from(contactNotes)
+      .where(eq(contactNotes.contactId, contactId))
+      .orderBy(desc(contactNotes.createdAt));
+  }
+
+  async createContactNote(noteData: InsertContactNote): Promise<ContactNote> {
+    const [note] = await db
+      .insert(contactNotes)
+      .values(noteData)
+      .returning();
+    return note;
+  }
+
+  async updateContactNote(id: number, noteData: Partial<InsertContactNote>): Promise<ContactNote> {
+    const [note] = await db
+      .update(contactNotes)
+      .set({
+        ...noteData,
+        updatedAt: new Date(),
+      })
+      .where(eq(contactNotes.id, id))
+      .returning();
+    return note;
+  }
+
+  async deleteContactNote(id: number): Promise<void> {
+    await db
+      .delete(contactNotes)
+      .where(eq(contactNotes.id, id));
   }
 
   // Statistics operations
