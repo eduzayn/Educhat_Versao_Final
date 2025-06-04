@@ -31,61 +31,61 @@ const stages = [
   { id: 'won', name: 'Fechado', color: 'bg-green-500' }
 ];
 
-const mockDeals = [
-  {
-    id: "1",
-    name: "João Silva - Pós em Psicanálise",
-    company: "Particular",
-    value: 1799,
-    probability: 75,
-    closeDate: "2025-06-20",
-    stage: "qualified",
-    owner: "Ana",
-    ownerAvatar: "",
-    tags: ["ead", "psicanálise"]
-  },
-  {
-    id: "2",
-    name: "Maria Oliveira - Segunda Licenciatura",
-    company: "Professora Pública",
-    value: 2071,
-    probability: 40,
-    closeDate: "2025-07-01",
-    stage: "proposal",
-    owner: "Eduardo",
-    ownerAvatar: "",
-    tags: ["ead", "licenciatura"]
-  },
-  {
-    id: "3",
-    name: "Pedro Santos - MBA Gestão",
-    company: "Empresa Tech",
-    value: 3200,
-    probability: 90,
-    closeDate: "2025-06-15",
-    stage: "negotiation",
-    owner: "Carlos",
-    ownerAvatar: "",
-    tags: ["presencial", "mba"]
-  },
-  {
-    id: "4",
-    name: "Ana Costa - Curso Técnico",
-    company: "Estudante",
-    value: 899,
-    probability: 30,
-    closeDate: "2025-08-01",
-    stage: "prospecting",
-    owner: "Lucia",
-    ownerAvatar: "",
-    tags: ["técnico", "ead"]
-  }
-];
+// Stage mapping for database values
+const stageMapping = {
+  'Prospecção': 'prospecting',
+  'Qualificado': 'qualified', 
+  'Proposta': 'proposal',
+  'Negociação': 'negotiation',
+  'Fechado': 'won'
+};
+
+const reverseStageMapping = {
+  'prospecting': 'Prospecção',
+  'qualified': 'Qualificado',
+  'proposal': 'Proposta', 
+  'negotiation': 'Negociação',
+  'won': 'Fechado'
+};
 
 export function DealsModule() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("kanban");
-  const [deals, setDeals] = useState(mockDeals);
+  const queryClient = useQueryClient();
+
+  // Fetch deals from database
+  const { data: rawDeals = [], isLoading } = useQuery<Deal[]>({
+    queryKey: ['/api/deals']
+  });
+
+  // Transform database deals to UI format
+  const deals = rawDeals.map(deal => ({
+    ...deal,
+    id: deal.id.toString(),
+    stage: (stageMapping as any)[deal.stage] || 'prospecting',
+    tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : [deal.tags]) : [],
+    closeDate: deal.closeDate ? new Date(deal.closeDate).toISOString().split('T')[0] : '',
+    company: deal.company || 'Não informado',
+    owner: deal.owner || 'Não atribuído',
+    ownerAvatar: '',
+    value: deal.value || 0,
+    probability: deal.probability || 0
+  }));
+
+  // Update deal stage mutation
+  const updateDealMutation = useMutation({
+    mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
+      const dbStage = (reverseStageMapping as any)[stage] || 'Prospecção';
+      return await apiRequest(`/api/deals/${dealId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ stage: dbStage }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+    }
+  });
 
   const filtered = deals.filter((deal) =>
     deal.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -94,7 +94,7 @@ export function DealsModule() {
 
   const getDealsForStage = (stageId: string) => filtered.filter(d => d.stage === stageId);
 
-  const calculateStageValue = (deals: any[]) => deals.reduce((acc, deal) => acc + deal.value, 0);
+  const calculateStageValue = (deals: any[]) => deals.reduce((acc, deal) => acc + (deal.value || 0), 0);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -113,14 +113,23 @@ export function DealsModule() {
     const deal = deals.find(d => d.id === draggableId);
     if (!deal) return;
 
-    const newDeals = deals.map(d => 
-      d.id === draggableId 
-        ? { ...d, stage: destination.droppableId }
-        : d
-    );
-
-    setDeals(newDeals);
+    // Update deal stage in database
+    updateDealMutation.mutate({
+      dealId: parseInt(draggableId),
+      stage: destination.droppableId
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando negócios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
