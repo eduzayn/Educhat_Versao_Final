@@ -1770,7 +1770,43 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    // TERCEIRO: Buscar por palavras-chave gerais com contexto educacional (fallback)
+    // TERCEIRO: Buscar por disciplinas básicas (sem modalidade específica)
+    const basicSubjects = {
+      'historia': 'História',
+      'matematica': 'Matemática', 
+      'portugues': 'Português',
+      'geografia': 'Geografia',
+      'biologia': 'Biologia',
+      'fisica': 'Física',
+      'quimica': 'Química',
+      'filosofia': 'Filosofia',
+      'sociologia': 'Sociologia',
+      'educacao fisica': 'Educação Física',
+      'artes': 'Artes',
+      'ingles': 'Inglês',
+      'espanhol': 'Espanhol'
+    };
+
+    // Verificar se menciona apenas uma disciplina básica
+    for (const [subject, subjectName] of Object.entries(basicSubjects)) {
+      if (normalizedMessage.includes(subject)) {
+        const hasEducationalContext = [
+          'curso', 'licenciatura', 'graduacao', 'formacao',
+          'interesse', 'quero', 'gostaria', 'preciso'
+        ].some(context => normalizedMessage.includes(context));
+
+        if (hasEducationalContext) {
+          console.log(`✅ Disciplina detectada sem modalidade específica: ${subjectName} - Para completar manualmente`);
+          return {
+            courseName: subjectName,
+            courseType: 'A definir',
+            courseKey: `disciplina_${subject}`
+          };
+        }
+      }
+    }
+
+    // QUARTO: Buscar por palavras-chave gerais com contexto educacional (fallback)
     for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
       for (const variation of courseData.variations) {
         const normalizedVariation = variation.toLowerCase()
@@ -1782,7 +1818,7 @@ export class DatabaseStorage implements IStorage {
         const keywords = normalizedVariation.split(' ');
         
         for (const keyword of keywords) {
-          if (keyword.length > 5 && normalizedMessage.includes(keyword)) {
+          if (keyword.length > 6 && normalizedMessage.includes(keyword)) {
             // Verificar se tem contexto educacional geral
             const generalEducationalContext = [
               'curso', 'licenciatura', 'graduacao',
