@@ -800,21 +800,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Process new WhatsApp message
         
-        // Buscar ou criar contato pelo telefone
-        const contacts = await storage.searchContacts(phone);
-        let contact = contacts.find(c => c.phone?.replace(/\D/g, '') === phone);
+        // Determinar informações do canal
+        const canalOrigem = 'whatsapp';
+        const nomeCanal = 'WhatsApp Principal'; // Por padrão, pode ser customizado
+        const idCanal = 'whatsapp-1';
+        const userIdentity = phone;
+
+        // Buscar ou criar contato automaticamente com identificação de canal
+        const contact = await storage.findOrCreateContact(userIdentity, {
+          name: webhookData.senderName || webhookData.chatName || phone,
+          phone: phone,
+          email: null,
+          isOnline: true,
+          profileImageUrl: webhookData.photo || webhookData.senderPhoto || null,
+          canalOrigem: canalOrigem,
+          nomeCanal: nomeCanal,
+          idCanal: idCanal
+        });
         
-        if (!contact) {
-          contact = await storage.createContact({
-            name: webhookData.senderName || webhookData.chatName || phone,
-            phone: phone,
-            email: null,
-            isOnline: true,
-            profileImageUrl: webhookData.photo || webhookData.senderPhoto || null
-          });
-        } else {
-          await storage.updateContactOnlineStatus(contact.id, true);
-        }
+        // Atualizar status online do contato
+        await storage.updateContactOnlineStatus(contact.id, true);
         
         // Buscar ou criar conversa
         let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');

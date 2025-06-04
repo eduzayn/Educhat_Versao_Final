@@ -37,6 +37,11 @@ export const contacts = pgTable("contacts", {
   age: integer("age"),
   isOnline: boolean("is_online").default(false),
   lastSeenAt: timestamp("last_seen_at"),
+  // Novos campos para identificação de canal
+  canalOrigem: varchar("canal_origem", { length: 50 }), // whatsapp, instagram, facebook, etc
+  nomeCanal: varchar("nome_canal", { length: 100 }), // WhatsApp Comercial, WhatsApp Suporte, etc
+  idCanal: varchar("id_canal", { length: 50 }), // ID único do canal específico
+  userIdentity: varchar("user_identity", { length: 100 }), // número de telefone ou email único
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -120,6 +120,9 @@ export interface IStorage {
   updateContactNote(id: number, note: Partial<InsertContactNote>): Promise<ContactNote>;
   deleteContactNote(id: number): Promise<void>;
 
+  // Automatic contact creation
+  findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact>;
+
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
 }
@@ -788,6 +791,41 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(contactNotes)
       .where(eq(contactNotes.id, id));
+  }
+
+  // Automatic contact creation
+  async findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact> {
+    // First, try to find existing contact by userIdentity
+    const [existingContact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.userIdentity, userIdentity))
+      .limit(1);
+
+    if (existingContact) {
+      return existingContact;
+    }
+
+    // If not found, create new contact
+    const [newContact] = await db
+      .insert(contacts)
+      .values({
+        name: contactData.name || userIdentity,
+        phone: contactData.phone || null,
+        email: contactData.email || null,
+        profileImageUrl: contactData.profileImageUrl || null,
+        location: contactData.location || null,
+        age: contactData.age || null,
+        isOnline: contactData.isOnline || false,
+        lastSeenAt: contactData.lastSeenAt || null,
+        canalOrigem: contactData.canalOrigem || null,
+        nomeCanal: contactData.nomeCanal || null,
+        idCanal: contactData.idCanal || null,
+        userIdentity,
+      })
+      .returning();
+
+    return newContact;
   }
 
   // Statistics operations
