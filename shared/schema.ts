@@ -43,6 +43,7 @@ export const contacts = pgTable("contacts", {
   nomeCanal: varchar("nome_canal", { length: 100 }), // WhatsApp Comercial, WhatsApp Suporte, etc
   idCanal: varchar("id_canal", { length: 50 }), // ID único do canal específico
   userIdentity: varchar("user_identity", { length: 100 }), // número de telefone ou email único
+  tags: text("tags").array(), // Array de tags incluindo cursos detectados
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
