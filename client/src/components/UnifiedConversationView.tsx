@@ -79,10 +79,10 @@ export function UnifiedConversationView({ contactId, onConversationSelect }: Uni
     enabled: !!contactId,
   });
 
-  const channels = Array.from(new Set(conversations.map((conv: ConversationWithContact) => conv.channel)));
+  const channels = Array.from(new Set(conversations.map(conv => conv.channel)));
   const filteredConversations = selectedChannel === 'all' 
     ? conversations 
-    : conversations.filter((conv: ConversationWithContact) => conv.channel === selectedChannel);
+    : conversations.filter(conv => conv.channel === selectedChannel);
 
   const formatLastMessage = (message?: ConversationWithContact['lastMessage']) => {
     if (!message) return 'Sem mensagens';
