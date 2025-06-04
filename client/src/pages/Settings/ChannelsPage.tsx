@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/shared/ui/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/shared/ui/ui/input";
 import { Label } from "@/shared/ui/ui/label";
 import { Textarea } from "@/shared/ui/ui/textarea";
 import { useToast } from "@/shared/lib/hooks/use-toast";
-import { ArrowLeft, Plus, Settings, Trash2, Edit, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Settings, Trash2, Edit, CheckCircle, XCircle, AlertCircle, Copy, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Channel } from "@shared/schema";
 
@@ -33,6 +33,19 @@ export default function ChannelsPage() {
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
+  const [autoWebhookUrl, setAutoWebhookUrl] = useState<string>('');
+  const [urlCopied, setUrlCopied] = useState<boolean>(false);
+
+  // Gerar URL do webhook automaticamente
+  useEffect(() => {
+    const generateWebhookUrl = () => {
+      const currentUrl = window.location.origin;
+      const webhookUrl = `${currentUrl}/api/webhook/zapi`;
+      setAutoWebhookUrl(webhookUrl);
+    };
+
+    generateWebhookUrl();
+  }, []);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({
@@ -195,6 +208,24 @@ export default function ChannelsPage() {
     setIsEditDialogOpen(true);
   };
 
+  const copyWebhookUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(autoWebhookUrl);
+      setUrlCopied(true);
+      toast({
+        title: "URL copiada",
+        description: "URL do webhook copiada para a área de transferência",
+      });
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar a URL",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (channel: Channel) => {
     if (channel.isConnected) {
       return <Badge className="bg-green-100 text-green-800">Conectado</Badge>;
@@ -278,8 +309,34 @@ export default function ChannelsPage() {
                   <Input id="clientToken" name="clientToken" placeholder="Ex: F3A2B1C4D5E6F7G8H9I0J1K2L3M4" required />
                 </div>
                 <div>
-                  <Label htmlFor="webhookUrl">Webhook URL (Opcional)</Label>
-                  <Input id="webhookUrl" name="webhookUrl" placeholder="https://seu-webhook.com/api" />
+                  <Label htmlFor="webhookUrl">Webhook URL</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      id="webhookUrl" 
+                      name="webhookUrl" 
+                      value={autoWebhookUrl}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800 font-mono text-sm flex-1"
+                      placeholder="Gerando URL automaticamente..."
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={copyWebhookUrl}
+                      className="px-3"
+                      disabled={!autoWebhookUrl}
+                    >
+                      {urlCopied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    URL gerada automaticamente. Use esta URL nas configurações da Z-API.
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="description">Descrição</Label>
