@@ -2,11 +2,13 @@ import { memo, useMemo, useState, useRef } from "react";
 import { Check, CheckCheck, Play, Pause, Volume2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
+import { Badge } from "@/shared/ui/ui/badge";
 import { format } from "date-fns";
 import type { Message, Contact } from "@shared/schema";
 import { AudioMessage } from "./AudioMessage";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { secureLog } from "@/lib/secureLogger";
+import { CHANNELS } from "@/types/chat";
 
 interface MessageBubbleProps {
   message: Message;
@@ -14,6 +16,7 @@ interface MessageBubbleProps {
   channelIcon?: string;
   channelColor?: string;
   conversationId?: number;
+  channelIdentifier?: string;
 }
 
 // Função auxiliar para formatar o horário
@@ -26,8 +29,18 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   channelIcon,
   channelColor,
   conversationId,
+  channelIdentifier,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
+
+  // Função para obter informações do canal
+  const getChannelInfo = (channel: string) => {
+    return CHANNELS[channel] || {
+      icon: '💬',
+      color: 'text-gray-500',
+      name: 'Canal Desconhecido'
+    };
+  };
 
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
@@ -211,6 +224,15 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
           <span title={new Date(messageTimestamp).toLocaleString()}>
             {messageTime}
           </span>
+          {channelIdentifier && (
+            <Badge 
+              variant="outline" 
+              className={`text-xs px-1 py-0.5 h-4 ${getChannelInfo(channelIdentifier).color} border-current`}
+              title={`Mensagem via ${getChannelInfo(channelIdentifier).name}`}
+            >
+              <span className="text-xs">{getChannelInfo(channelIdentifier).icon}</span>
+            </Badge>
+          )}
         </div>
       </div>
     </div>
