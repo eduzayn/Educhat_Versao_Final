@@ -969,14 +969,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deals.id, id));
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
+  // Função para detectar macrosetor baseado no conteúdo da mensagem
+  private detectMacrosetor(messageContent?: string): string {
+    if (!messageContent) return 'comercial';
+    
+    const content = messageContent.toLowerCase();
+    
+    // Palavras-chave para SUPORTE
+    const suporteKeywords = [
+      'problema', 'ajuda', 'suporte', 'erro', 'bug', 'não funciona', 'dificuldade',
+      'como usar', 'tutorial', 'dúvida', 'não consigo', 'quebrou', 'defeito',
+      'não está funcionando', 'travou', 'lento', 'senha', 'login', 'acesso',
+      'recuperar', 'resetar', 'configurar', 'instalar', 'atualizar'
+    ];
+    
+    // Palavras-chave para COBRANÇA
+    const cobrancaKeywords = [
+      'pagamento', 'boleto', 'fatura', 'vencimento', 'débito', 'cobrança',
+      'pagar', 'quitação', 'parcela', 'atraso', 'juros', 'multa', 'cartão',
+      'pix', 'transferência', 'dinheiro', 'valor', 'preço', 'desconto',
+      'negociar', 'parcelar', 'renegociar', 'acordo'
+    ];
+    
+    // Verificar palavras-chave de suporte
+    if (suporteKeywords.some(keyword => content.includes(keyword))) {
+      return 'suporte';
+    }
+    
+    // Verificar palavras-chave de cobrança
+    if (cobrancaKeywords.some(keyword => content.includes(keyword))) {
+      return 'cobranca';
+    }
+    
+    // Padrão: comercial
+    return 'comercial';
+  }
+
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string, messageContent?: string): Promise<Deal> {
     const contact = await this.getContact(contactId);
     if (!contact) {
       throw new Error('Contato não encontrado');
     }
 
-    // Determinar macrosetor baseado no canal ou usar padrão
-    let determinedMacrosetor = macrosetor || 'comercial';
+    // Determinar macrosetor baseado na mensagem ou usar o fornecido
+    let determinedMacrosetor = macrosetor || this.detectMacrosetor(messageContent);
     let stage = 'prospecting';
     let dealName = `${contact.name || 'Contato'} - Novo Lead`;
     let initialValue = 100000; // R$ 1.000,00 padrão
