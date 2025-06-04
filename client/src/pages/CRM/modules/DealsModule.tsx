@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
@@ -6,6 +7,8 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/ui/select';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
+import { apiRequest } from '@/lib/queryClient';
+import type { Deal } from '@shared/schema';
 import {
   Search,
   Filter,

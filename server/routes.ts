@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
-import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema, type User } from "@shared/schema";
+import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema, insertDealSchema, type User } from "@shared/schema";
 import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -3235,6 +3235,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Internal server error' 
       });
+    }
+  });
+
+  // Deals API endpoints for CRM
+  app.get('/api/deals', async (req, res) => {
+    try {
+      const deals = await storage.getDeals();
+      res.json(deals);
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      res.status(500).json({ message: 'Failed to fetch deals' });
+    }
+  });
+
+  app.get('/api/deals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deal = await storage.getDeal(id);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error fetching deal:', error);
+      res.status(500).json({ message: 'Failed to fetch deal' });
+    }
+  });
+
+  app.get('/api/deals/contact/:contactId', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const deals = await storage.getDealsByContact(contactId);
+      res.json(deals);
+    } catch (error) {
+      console.error('Error fetching deals by contact:', error);
+      res.status(500).json({ message: 'Failed to fetch deals for contact' });
+    }
+  });
+
+  app.get('/api/deals/stage/:stage', async (req, res) => {
+    try {
+      const stage = req.params.stage;
+      const deals = await storage.getDealsByStage(stage);
+      res.json(deals);
+    } catch (error) {
+      console.error('Error fetching deals by stage:', error);
+      res.status(500).json({ message: 'Failed to fetch deals for stage' });
+    }
+  });
+
+  app.post('/api/deals', async (req, res) => {
+    try {
+      const validatedData = insertDealSchema.parse(req.body);
+      const deal = await storage.createDeal(validatedData);
+      res.status(201).json(deal);
+    } catch (error) {
+      console.error('Error creating deal:', error);
+      res.status(400).json({ message: 'Invalid deal data' });
+    }
+  });
+
+  app.patch('/api/deals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertDealSchema.partial().parse(req.body);
+      const deal = await storage.updateDeal(id, validatedData);
+      res.json(deal);
+    } catch (error) {
+      console.error('Error updating deal:', error);
+      res.status(400).json({ message: 'Failed to update deal' });
+    }
+  });
+
+  app.delete('/api/deals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDeal(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting deal:', error);
+      res.status(500).json({ message: 'Failed to delete deal' });
     }
   });
 
