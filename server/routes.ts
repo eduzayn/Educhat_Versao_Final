@@ -571,10 +571,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const message = await storage.createMessage(validatedData);
       
-      // Broadcast to WebSocket clients
+      // Broadcast to WebSocket clients IMEDIATAMENTE
       broadcast(conversationId, {
         type: 'new_message',
+        conversationId,
         message,
+      });
+      
+      // Broadcast global para atualizar todas as listas de conversas
+      broadcastToAll({
+        type: 'new_message',
+        conversationId,
+        message
       });
       
       // Se não for uma nota interna E for uma mensagem do agente, enviar via Z-API
