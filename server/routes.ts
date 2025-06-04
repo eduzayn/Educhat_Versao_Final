@@ -4315,7 +4315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         c.createdAt && new Date(c.createdAt) >= startDate
       );
       const periodMessages = messages.filter(m => 
-        m.createdAt && new Date(m.createdAt) >= startDate
+        m.sentAt && new Date(m.sentAt) >= startDate
       );
       const periodDeals = deals.filter(d => 
         d.createdAt && new Date(d.createdAt) >= startDate
@@ -4351,7 +4351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.createdAt && new Date(c.createdAt) >= dayStart && new Date(c.createdAt) <= dayEnd
         ).length;
         const dayMessages = periodMessages.filter(m => 
-          m.createdAt && new Date(m.createdAt) >= dayStart && new Date(m.createdAt) <= dayEnd
+          m.sentAt && new Date(m.sentAt) >= dayStart && new Date(m.sentAt) <= dayEnd
         ).length;
         
         dailyTrends.push({
@@ -4395,7 +4395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         c.createdAt && new Date(c.createdAt) >= startDate
       );
       const periodMessages = messages.filter(m => 
-        m.createdAt && new Date(m.createdAt) >= startDate && !m.isFromContact
+        m.sentAt && new Date(m.sentAt) >= startDate && !m.isFromContact
       );
 
       // Dados por usuário
@@ -4533,7 +4533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         c.createdAt && new Date(c.createdAt) >= startDate
       );
       const periodMessages = messages.filter(m => 
-        m.createdAt && new Date(m.createdAt) >= startDate
+        m.sentAt && new Date(m.sentAt) >= startDate
       );
       const periodDeals = deals.filter(d => 
         d.createdAt && new Date(d.createdAt) >= startDate
