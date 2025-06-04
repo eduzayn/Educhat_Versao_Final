@@ -1115,14 +1115,14 @@ export class DatabaseStorage implements IStorage {
       'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
     ];
     
-    // Verificar palavras-chave de tutoria PRIMEIRO (maior especificidade)
-    if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
-      return 'tutoria';
-    }
-    
-    // Verificar palavras-chave de financeiro aluno (questões administrativas financeiras)
+    // Verificar palavras-chave de financeiro aluno PRIMEIRO (questões administrativas financeiras específicas)
     if (financeiroKeywords.some(keyword => content.includes(keyword))) {
       return 'financeiro';
+    }
+    
+    // Verificar palavras-chave de tutoria (maior especificidade pedagógica)
+    if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
+      return 'tutoria';
     }
     
     // Verificar palavras-chave de secretaria
@@ -1200,6 +1200,12 @@ export class DatabaseStorage implements IStorage {
         dealName = `${contact.name || 'Contato'} - Tutoria`;
         initialValue = 0; // Tutoria não tem valor monetário
         probability = 85; // Alta probabilidade de resolução
+        break;
+      case 'financeiro':
+        stage = 'solicitacao_recebida';
+        dealName = `${contact.name || 'Contato'} - Financeiro`;
+        initialValue = 0; // Financeiro não tem valor monetário direto
+        probability = 95; // Muito alta probabilidade de conclusão
         break;
     }
 
