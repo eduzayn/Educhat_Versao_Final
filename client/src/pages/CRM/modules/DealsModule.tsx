@@ -368,32 +368,37 @@ export function DealsModule() {
           </div>
         )}
 
-        {/* Controles de Paginação */}
-        {dealsResponse && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <div className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages} ({dealsResponse.total} negócios)
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                Anterior
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Próxima
-              </Button>
-            </div>
+        {/* Controles de Paginação - Sempre Visível */}
+        <div className="flex items-center justify-between px-6 py-4 border-t bg-white dark:bg-gray-800 sticky bottom-0">
+          <div className="text-sm text-muted-foreground">
+            {dealsResponse ? (
+              `Página ${currentPage} de ${totalPages} (${dealsResponse.total} negócios)`
+            ) : (
+              'Carregando negócios...'
+            )}
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={!dealsResponse || currentPage === 1}
+            >
+              ← Anterior
+            </Button>
+            <span className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded">
+              {currentPage}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={!dealsResponse || currentPage === totalPages}
+            >
+              Próxima →
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
