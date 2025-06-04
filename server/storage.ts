@@ -1622,6 +1622,73 @@ export class DatabaseStorage implements IStorage {
       variations: ['letras português espanhol', 'letras espanhol', 'língua portuguesa espanhol', 'segunda licenciatura letras espanhol'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Letras Português/Espanhol'
+    },
+
+    // ========== FORMAÇÃO PEDAGÓGICA (13 cursos) ==========
+    'formacao_artes_visuais': {
+      variations: ['formação pedagógica artes visuais', 'formação artes visuais', 'pedagogica artes'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Artes Visuais'
+    },
+    'formacao_sociologia': {
+      variations: ['formação pedagógica sociologia', 'formação sociologia', 'pedagogica sociologia'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Sociologia'
+    },
+    'formacao_ciencias_religiao': {
+      variations: ['formação pedagógica ciências religião', 'formação ciências religião', 'pedagogica religião'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Ciências da Religião'
+    },
+    'formacao_educacao_especial': {
+      variations: ['formação pedagógica educação especial', 'formação educação especial', 'pedagogica especial'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Educação Especial'
+    },
+    'formacao_educacao_fisica': {
+      variations: ['formação pedagógica educação física', 'formação educação física', 'pedagogica física'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Educação Física'
+    },
+    'formacao_filosofia': {
+      variations: ['formação pedagógica filosofia', 'formação filosofia', 'pedagogica filosofia'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Filosofia'
+    },
+    'formacao_geografia': {
+      variations: ['formação pedagógica geografia', 'formação geografia', 'pedagogica geografia'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Geografia'
+    },
+    'formacao_historia': {
+      variations: ['formação pedagógica história', 'formação história', 'pedagogica história', 'formacao pedagogica em historia', 'formacao pedagogica historia'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em História'
+    },
+    'formacao_letras_portugues_espanhol': {
+      variations: ['formação pedagógica letras espanhol', 'formação letras espanhol', 'pedagogica espanhol'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Letras Português/Espanhol'
+    },
+    'formacao_letras_portugues_libras': {
+      variations: ['formação pedagógica letras libras', 'formação letras libras', 'pedagogica libras'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Letras - Língua Portuguesa e Libras'
+    },
+    'formacao_matematica': {
+      variations: ['formação pedagógica matemática', 'formação matemática', 'pedagogica matemática'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Matemática'
+    },
+    'formacao_letras_portugues_ingles': {
+      variations: ['formação pedagógica letras inglês', 'formação letras inglês', 'pedagogica inglês'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Letras Português/Inglês'
+    },
+    'formacao_musica': {
+      variations: ['formação pedagógica música', 'formação música', 'pedagogica música'],
+      courseType: 'Formação Pedagógica',
+      courseName: 'Formação Pedagógica em Música'
     }
   };
 
@@ -1635,7 +1702,7 @@ export class DatabaseStorage implements IStorage {
 
     console.log(`🔍 Analisando mensagem para detecção de curso: "${normalizedMessage}"`);
 
-    // Buscar por cada curso no dicionário
+    // PRIMEIRO: Buscar por frases exatas e combinações específicas
     for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
       for (const variation of courseData.variations) {
         const normalizedVariation = variation.toLowerCase()
@@ -1653,26 +1720,82 @@ export class DatabaseStorage implements IStorage {
             courseKey: courseKey
           };
         }
+      }
+    }
 
-        // Verificar também palavras-chave soltas com contexto educacional
+    // SEGUNDO: Buscar por combinações de palavras-chave com contexto educacional
+    for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
+      for (const variation of courseData.variations) {
+        const normalizedVariation = variation.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\w\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
         const keywords = normalizedVariation.split(' ');
         
-        // Para cursos com uma palavra específica (ex: "historia", "matematica")
+        // Para disciplinas específicas, verificar se há contexto adequado
         for (const keyword of keywords) {
-          if (keyword.length > 3 && normalizedMessage.includes(keyword)) {
-            // Verificar se tem contexto educacional
-            const educationalContext = [
-              'curso', 'pos', 'graduacao', 'licenciatura', 'especializacao',
-              'formacao', 'tcc', 'estagio', 'certificado', 'diploma',
-              'turma', 'matricula', 'interesse', 'segunda', 'grad'
+          if (keyword.length > 4 && normalizedMessage.includes(keyword)) {
+            // Verificar contextos específicos primeiro
+            const specificContexts = {
+              'formacao pedagogica': ['formacao', 'pedagogica'],
+              'segunda licenciatura': ['segunda', 'licenciatura'],
+              'pos graduacao': ['pos', 'graduacao', 'especializacao']
+            };
+
+            // Verificar se há contexto específico para o tipo de curso
+            let hasSpecificContext = false;
+            for (const [contextType, contextWords] of Object.entries(specificContexts)) {
+              if (contextWords.every(word => normalizedMessage.includes(word))) {
+                if ((contextType === 'formacao pedagogica' && courseData.courseType === 'Formação Pedagógica') ||
+                    (contextType === 'segunda licenciatura' && courseData.courseType === 'Segunda Licenciatura') ||
+                    (contextType === 'pos graduacao' && courseData.courseType === 'Pós-graduação')) {
+                  hasSpecificContext = true;
+                  break;
+                }
+              }
+            }
+
+            if (hasSpecificContext) {
+              console.log(`✅ Curso detectado por contexto específico: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
+              return {
+                courseName: courseData.courseName,
+                courseType: courseData.courseType,
+                courseKey: courseKey
+              };
+            }
+          }
+        }
+      }
+    }
+
+    // TERCEIRO: Buscar por palavras-chave gerais com contexto educacional (fallback)
+    for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
+      for (const variation of courseData.variations) {
+        const normalizedVariation = variation.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\w\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        const keywords = normalizedVariation.split(' ');
+        
+        for (const keyword of keywords) {
+          if (keyword.length > 5 && normalizedMessage.includes(keyword)) {
+            // Verificar se tem contexto educacional geral
+            const generalEducationalContext = [
+              'curso', 'licenciatura', 'graduacao',
+              'formacao', 'certificado', 'diploma',
+              'turma', 'matricula', 'interesse'
             ];
             
-            const hasContext = educationalContext.some(context => 
+            const hasGeneralContext = generalEducationalContext.some(context => 
               normalizedMessage.includes(context)
             );
 
-            if (hasContext) {
-              console.log(`✅ Curso detectado por contexto: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
+            if (hasGeneralContext) {
+              console.log(`✅ Curso detectado por contexto geral: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
               return {
                 courseName: courseData.courseName,
                 courseType: courseData.courseType,
