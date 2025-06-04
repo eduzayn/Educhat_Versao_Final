@@ -225,9 +225,14 @@ export class DatabaseStorage implements IStorage {
     
     // Buscar apenas as conversas que precisamos com paginação eficiente
     const conversationsData = await db
-      .select()
+      .select({
+        conversations: conversations,
+        contacts: contacts,
+        channels: channels
+      })
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(channels, eq(conversations.channelId, channels.id))
       .where(
         and(
           isNotNull(contacts.phone),

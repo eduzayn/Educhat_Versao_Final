@@ -46,6 +46,7 @@ export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
   channel: varchar("channel", { length: 50 }).notNull(), // whatsapp, instagram, facebook
+  channelId: integer("channel_id").references(() => channels.id), // specific channel instance
   status: varchar("status", { length: 20 }).default("open"), // open, pending, resolved
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
