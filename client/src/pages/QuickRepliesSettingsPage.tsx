@@ -111,6 +111,16 @@ export default function QuickRepliesSettingsPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Fetch current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+    queryFn: async () => {
+      const response = await fetch('/api/user');
+      if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    },
+  });
+
   // Fetch quick replies
   const { data: quickReplies = [], isLoading } = useQuery({
     queryKey: ['/api/quick-replies'],
@@ -120,6 +130,15 @@ export default function QuickRepliesSettingsPage() {
       return response.json() as Promise<QuickReply[]>;
     },
   });
+
+  // Check if user can edit a quick reply
+  const canEditQuickReply = (quickReply: QuickReply) => {
+    if (!currentUser) return false;
+    // User can edit if they are the creator, admin, or manager
+    return quickReply.createdBy === currentUser.id || 
+           currentUser.role === 'admin' || 
+           currentUser.role === 'manager';
+  };
 
   // Create/Update mutation
   const mutation = useMutation({
@@ -786,6 +805,7 @@ export default function QuickRepliesSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handlePreview(quickReply)}
+                      title="Visualizar resposta rápida"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -793,6 +813,12 @@ export default function QuickRepliesSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(quickReply)}
+                      disabled={!canEditQuickReply(quickReply)}
+                      title={
+                        canEditQuickReply(quickReply) 
+                          ? "Editar resposta rápida" 
+                          : "Apenas o criador, administradores e gerentes podem editar"
+                      }
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -800,6 +826,12 @@ export default function QuickRepliesSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(quickReply.id)}
+                      disabled={!canEditQuickReply(quickReply)}
+                      title={
+                        canEditQuickReply(quickReply) 
+                          ? "Excluir resposta rápida" 
+                          : "Apenas o criador, administradores e gerentes podem excluir"
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -819,6 +851,16 @@ export default function QuickRepliesSettingsPage() {
                   {(quickReply.usageCount || 0) > 0 && (
                     <Badge variant="secondary">
                       {quickReply.usageCount || 0} usos
+                    </Badge>
+                  )}
+                  {quickReply.createdBy === currentUser?.id && (
+                    <Badge variant="outline" className="text-xs">
+                      Criada por você
+                    </Badge>
+                  )}
+                  {quickReply.shareScope === 'global' && (
+                    <Badge variant="default" className="text-xs">
+                      Global
                     </Badge>
                   )}
                 </div>

@@ -2714,6 +2714,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertQuickReplySchema.parse(req.body);
       
+      // Set the creator if user is authenticated
+      if (req.user) {
+        validatedData.createdBy = (req.user as any).id;
+      }
+      
       // Handle file upload for media types
       if (req.file && validatedData.type !== 'text') {
         const fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
