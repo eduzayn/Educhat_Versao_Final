@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/shared/ui/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { MessageSquare, Phone, Mail, Instagram, Facebook } from 'lucide-react';
 
 interface ConversationWithContact {
@@ -74,7 +74,7 @@ const channelConfig = {
 export function UnifiedConversationView({ contactId, onConversationSelect }: UnifiedConversationViewProps) {
   const [selectedChannel, setSelectedChannel] = useState<string>('all');
 
-  const { data: conversations = [], isLoading } = useQuery({
+  const { data: conversations = [], isLoading } = useQuery<ConversationWithContact[]>({
     queryKey: ['/api/contacts', contactId, 'conversations'],
     enabled: !!contactId,
   });
