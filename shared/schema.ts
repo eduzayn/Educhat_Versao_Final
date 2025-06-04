@@ -92,7 +92,7 @@ export const quickReplies = pgTable("quick_replies", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  type: varchar("type", { length: 20 }).notNull(), // 'text', 'audio', 'image', 'video'
+  type: varchar("type", { length: 20 }).notNull(), // 'text', 'audio', 'image', 'video', 'document'
   content: text("content"), // text content or file URL
   fileUrl: text("file_url"), // for media files
   fileName: text("file_name"), // original filename

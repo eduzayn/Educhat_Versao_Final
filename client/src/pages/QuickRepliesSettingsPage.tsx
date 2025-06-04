@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
 import { BackButton } from '@/shared/components/BackButton';
-import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye, Upload, X, FileAudio, FileImage, FileVideo } from 'lucide-react';
+import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye, Upload, X, FileAudio, FileImage, FileVideo, FileText, Paperclip } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
@@ -17,6 +17,36 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
 import type { QuickReply } from '@shared/schema';
 
+// Helper function to validate document file types
+const isDocumentFile = (file: File): boolean => {
+  const documentTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'text/csv',
+    'application/zip',
+    'application/x-rar-compressed'
+  ];
+  
+  return documentTypes.includes(file.type) || 
+         file.name.toLowerCase().endsWith('.pdf') ||
+         file.name.toLowerCase().endsWith('.doc') ||
+         file.name.toLowerCase().endsWith('.docx') ||
+         file.name.toLowerCase().endsWith('.xls') ||
+         file.name.toLowerCase().endsWith('.xlsx') ||
+         file.name.toLowerCase().endsWith('.ppt') ||
+         file.name.toLowerCase().endsWith('.pptx') ||
+         file.name.toLowerCase().endsWith('.txt') ||
+         file.name.toLowerCase().endsWith('.csv') ||
+         file.name.toLowerCase().endsWith('.zip') ||
+         file.name.toLowerCase().endsWith('.rar');
+};
+
 const getTypeIcon = (type: string) => {
   switch (type) {
     case 'text':
@@ -27,6 +57,8 @@ const getTypeIcon = (type: string) => {
       return <Image className="h-4 w-4" />;
     case 'video':
       return <Video className="h-4 w-4" />;
+    case 'document':
+      return <FileText className="h-4 w-4" />;
     default:
       return <MessageSquare className="h-4 w-4" />;
   }
@@ -42,6 +74,8 @@ const getTypeBadgeColor = (type: string) => {
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
     case 'video':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    case 'document':
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
   }
@@ -50,7 +84,7 @@ const getTypeBadgeColor = (type: string) => {
 const formSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   content: z.string().min(1, 'Conteúdo é obrigatório'),
-  type: z.enum(['text', 'audio', 'image', 'video']),
+  type: z.enum(['text', 'audio', 'image', 'video', 'document']),
   category: z.string().optional(),
   isActive: z.boolean().default(true),
 });
@@ -164,6 +198,10 @@ export default function QuickRepliesSettingsPage() {
     }
     if (formType === 'video' && !file.type.startsWith('video/')) {
       toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de vídeo.', variant: 'destructive' });
+      return;
+    }
+    if (formType === 'document' && !isDocumentFile(file)) {
+      toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de documento válido (PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT).', variant: 'destructive' });
       return;
     }
 
@@ -385,6 +423,7 @@ export default function QuickRepliesSettingsPage() {
                           <SelectItem value="audio">Áudio</SelectItem>
                           <SelectItem value="image">Imagem</SelectItem>
                           <SelectItem value="video">Vídeo</SelectItem>
+                          <SelectItem value="document">Documento</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
