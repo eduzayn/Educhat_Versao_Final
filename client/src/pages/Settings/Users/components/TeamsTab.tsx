@@ -12,63 +12,34 @@ import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-reac
 import { useQuery } from '@tanstack/react-query';
 import type { Team } from '@shared/schema';
 
-const teams = [
-  {
-    id: 1,
-    name: 'Vendas',
-    description: 'Equipe responsável por prospecção e vendas',
-    memberCount: 8,
-    manager: {
-      name: 'João Silva',
-      avatar: '',
-      initials: 'JS'
-    },
-    departments: ['Vendas Online', 'Vendas Presencial'],
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-  },
-  {
-    id: 2,
-    name: 'Atendimento',
-    description: 'Equipe de atendimento ao cliente',
-    memberCount: 12,
-    manager: {
-      name: 'Maria Santos',
-      avatar: '',
-      initials: 'MS'
-    },
-    departments: ['Suporte Técnico', 'Atendimento Geral'],
-    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-  },
-  {
-    id: 3,
-    name: 'Marketing',
-    description: 'Equipe de marketing e comunicação',
-    memberCount: 5,
-    manager: {
-      name: 'Ana Costa',
-      avatar: '',
-      initials: 'AC'
-    },
-    departments: ['Marketing Digital', 'Comunicação'],
-    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-  },
-  {
-    id: 4,
-    name: 'Administração',
-    description: 'Equipe administrativa e financeira',
-    memberCount: 4,
-    manager: {
-      name: 'Carlos Lima',
-      avatar: '',
-      initials: 'CL'
-    },
-    departments: ['Financeiro', 'RH', 'TI'],
-    color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-  }
-];
+// Função para obter a cor baseada na cor hex da equipe
+const getTeamColorClass = (color: string) => {
+  const colorMap: Record<string, string> = {
+    '#4F46E5': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+    '#10B981': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    '#F59E0B': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    '#8B5CF6': 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
+    '#EC4899': 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+    '#06B6D4': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
+    '#EF4444': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+  };
+  return colorMap[color] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+};
 
 export const TeamsTab = () => {
   const [showTeamDialog, setShowTeamDialog] = useState(false);
+
+  // Buscar equipes do banco de dados
+  const { data: teams = [], isLoading, error } = useQuery({
+    queryKey: ['/api/teams'],
+    queryFn: async () => {
+      const response = await fetch('/api/teams');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar equipes');
+      }
+      return response.json() as Promise<Team[]>;
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -88,61 +59,66 @@ export const TeamsTab = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teams.map(team => (
-          <Card key={team.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  <CardTitle className="text-lg">{team.name}</CardTitle>
-                </div>
-                <Badge variant="outline" className={team.color}>
-                  <Users className="h-3 w-3 mr-1" />
-                  {team.memberCount}
-                </Badge>
-              </div>
-              <CardDescription>{team.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Carregando equipes...</span>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8 text-red-600">
+          Erro ao carregar equipes. Tente novamente.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {teams.map(team => (
+            <Card key={team.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Gerente:</span>
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={team.manager.avatar} />
-                      <AvatarFallback className="text-xs">{team.manager.initials}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">{team.manager.name}</span>
+                    <Building2 className="h-5 w-5" />
+                    <CardTitle className="text-lg">{team.name}</CardTitle>
                   </div>
+                  <Badge variant="outline" className={getTeamColorClass(team.color || '')}>
+                    <Users className="h-3 w-3 mr-1" />
+                    0
+                  </Badge>
                 </div>
-                
-                <div>
-                  <span className="text-sm font-medium">Departamentos:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {team.departments.map(dept => (
-                      <Badge key={dept} variant="secondary" className="text-xs">
-                        {dept}
+                <CardDescription>{team.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Macrosetor:</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {team.macrosetor || 'Não definido'}
                       </Badge>
-                    ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Status:</span>
+                    <Badge variant={team.isActive ? "default" : "destructive"} className="text-xs">
+                      {team.isActive ? 'Ativa' : 'Inativa'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Adicionar Membro
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Configurar
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Adicionar Membro
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configurar
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Modal de Criação de Equipe */}
       <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
