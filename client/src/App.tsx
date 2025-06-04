@@ -59,6 +59,7 @@ function Router() {
           <Route path="/settings/users" component={UsersSettingsPage} />
           <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
           <Route path="/settings/webhook" component={WebhookConfigPage} />
+          <Route path="/settings/ai-detection" component={AIDetectionSettingsPage} />
           <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />
           <Route component={NotFound} />
         </>

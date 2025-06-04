@@ -7,7 +7,7 @@ import { Separator } from '@/shared/ui/ui/separator';
 import { Label } from '@/shared/ui/ui/label';
 import { Input } from '@/shared/ui/ui/input';
 import { BackButton } from '@/shared/components/BackButton';
-import { useToast } from '@/shared/lib/hooks/useToast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Brain, 

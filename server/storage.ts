@@ -182,6 +182,13 @@ export interface IStorage {
 
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
+
+  // System Settings operations
+  getSystemSetting(key: string): Promise<SystemSetting | null>;
+  getSystemSettings(category?: string): Promise<SystemSetting[]>;
+  setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<SystemSetting>;
+  toggleSystemSetting(key: string): Promise<SystemSetting>;
+  deleteSystemSetting(key: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
