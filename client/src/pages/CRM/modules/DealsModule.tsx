@@ -115,7 +115,7 @@ export function DealsModule() {
   // Update deal stage mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
-      return await apiRequest(`/api/deals/${dealId}`, 'PATCH', { stage });
+      return await apiRequest('PATCH', `/api/deals/${dealId}`, { stage });
     },
     onSuccess: () => {
       // Invalidate the specific query with all parameters
