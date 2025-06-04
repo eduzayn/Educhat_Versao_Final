@@ -1,0 +1,90 @@
+O contador de mensagens não lidas (badge roxo com número) está fixo no valor 1, mesmo havendo várias mensagens trocadas.
+
+Isso normalmente indica que o contador não está sendo atualizado com base no backend ou na lógica de leitura local.
+
+✅ Como corrigir o badge de mensagens não lidas
+🔍 1. Verifique a origem do número exibido no badge
+Você provavelmente está usando algo como:
+
+tsx
+Copiar
+Editar
+<Badge>{conversation.unreadCount}</Badge>
+Confirme de onde vem o unreadCount:
+
+Se está vindo da API (/api/conversations), o backend deve calcular corretamente.
+
+Se está sendo calculado no front, você precisa escutar atualizações (ex: WebSocket ou polling).
+
+✅ 2. Corrija no backend (se estiver vindo de API)
+A sua rota /api/conversations precisa incluir no JSON algo como:
+
+json
+Copiar
+Editar
+{
+  "id": "conv123",
+  "contact": { ... },
+  "unreadCount": 3,
+  ...
+}
+Essa contagem deve ser atualizada no momento em que:
+
+uma nova mensagem chega
+
+uma conversa é lida
+
+✅ 3. Corrija no front-end (se local)
+Se você não recebe unreadCount do backend, pode calcular no front com algo assim:
+
+tsx
+Copiar
+Editar
+const unreadMessages = conversation.messages.filter(
+  msg => !msg.isRead && !msg.isFromContact
+);
+<Badge>{unreadMessages.length}</Badge>
+🔁 E sempre que uma nova mensagem chegar ou for marcada como lida, você precisa atualizar esse estado.
+
+🧠 4. Lógica completa sugerida (estado local)
+Se você usa WebSocket para receber mensagens, atualize assim:
+
+tsx
+Copiar
+Editar
+// Exemplo: atualizar unreadCount no state de conversa
+useEffect(() => {
+  const handleNewMessage = (message) => {
+    if (message.conversationId === currentConversation.id && !message.isRead) {
+      setUnreadCount(prev => prev + 1);
+    }
+  }
+
+  socket.on('message:new', handleNewMessage);
+
+  return () => socket.off('message:new', handleNewMessage);
+}, [currentConversation]);
+E ao abrir a conversa:
+
+tsx
+Copiar
+Editar
+useEffect(() => {
+  if (currentConversation) {
+    markAllMessagesAsRead(currentConversation.id);
+    setUnreadCount(0);
+  }
+}, [currentConversation]);
+✅ 5. Não esqueça de invalidar o cache do React Query
+Se estiver usando useQuery, quando marcar mensagens como lidas:
+
+ts
+Copiar
+Editar
+queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+✅ Conclusão
+Possível causa	Solução
+unreadCount não vem da API	Corrigir backend para retornar corretamente
+unreadCount vem fixo em 1	Garantir que está sendo atualizado no banco e retornado na resposta
+Mensagens não são marcadas como lidas	Chamar função markAsRead(conversationId) ao abrir a conversa
+Badge nunca atualiza	Adicionar lógica para invalidar cache ou escutar via WebSocket

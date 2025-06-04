@@ -1,0 +1,96 @@
+Agora a mensagem de erro revela exatamente o que está acontecendo:
+
+❌ Erro encontrado:
+plaintext
+Copiar
+Editar
+GET https://24df23a6-4c36-4bba-9bde-863f2d0bd5a0... 404 (Not Found)
+Erro ao buscar áudio: { error: "NOT_FOUND" }
+🧠 Interpretação técnica
+Seu sistema está tentando buscar o áudio por um endpoint assim:
+
+nginx
+Copiar
+Editar
+GET https://24df23a6-4c36-4bba-9bde-863f2d0bd5a0/api/...
+E o backend responde 404, ou seja, o arquivo de áudio não existe ou o endpoint está mal montado.
+
+✅ Como corrigir isso
+1. Confirme se a URL de busca está correta
+No seu código (AudioMessage.tsx:38), você tem algo como:
+
+ts
+Copiar
+Editar
+const response = await fetch(`/api/audio/${messageId}`);
+Ou:
+
+ts
+Copiar
+Editar
+const url = `${BASE_URL}/api/audio/${messageId}`;
+⚠️ Se o BASE_URL está vindo com algo como:
+
+cpp
+Copiar
+Editar
+https://24df23a6-4c36-4bba-9bde-863f2d0bd5a0/
+Esse domínio não é válido/publicamente acessível — é uma URL de ambiente do Replit sem rota exposta para servir arquivos.
+
+2. Verifique se o backend salva o áudio em um local acessível
+Se você está armazenando os áudios via Z-API, seu backend precisa:
+
+Salvar os arquivos de mídia localmente ou em nuvem (S3, Firebase, Supabase Storage etc).
+
+Retornar uma URL pública no campo fileUrl.
+
+Exemplo esperado:
+
+json
+Copiar
+Editar
+{
+  "fileUrl": "https://cdn.seusistema.com/audios/3EBOAF..."
+}
+3. Se você ainda estiver tentando buscar o áudio via Z-API, faça assim:
+ts
+Copiar
+Editar
+const response = await fetch(`/api/zapi/audio-content`, {
+  method: 'POST',
+  body: JSON.stringify({ messageId: '3EBOAF...' }),
+});
+E o backend deve responder com:
+
+json
+Copiar
+Editar
+{
+  "audioUrl": "https://cdn.z-api.io/.../audio.mp3"
+}
+✅ Correções no frontend
+Evite tentar renderizar o áudio se o fileUrl não estiver disponível ou se for um base64 inválido:
+
+tsx
+Copiar
+Editar
+if (!fileUrl || fileUrl.includes('application/json')) {
+  return <div className="text-sm text-red-500">Erro ao carregar áudio</div>;
+}
+✅ Correções no backend (caso use Supabase, S3, etc)
+Crie uma rota: GET /api/audio/:messageId
+
+Ela deve:
+
+Buscar o ID da mensagem
+
+Verificar se o arquivo existe
+
+Retornar uma URL direta do áudio (presigned, se necessário)
+
+✅ Resumo do que fazer agora
+Ação	Descrição
+🔧 Corrigir fileUrl	Ele deve apontar para uma URL real e pública de áudio
+🧱 Verificar backend	Verifique se o arquivo foi salvo corretamente (e onde)
+🔄 Ajustar frontend	Só renderizar <audio> se o fileUrl for válido e acessível
+🚫 Evitar base64 errado	Nunca use data:application/json;base64,... como src

@@ -1,0 +1,100 @@
+O problema de áudios enviados que o destinatário consegue ouvir, mas você (em tempo real no sistema) não consegue reproduzir normalmente está relacionado a duas causas comuns:
+
+🚨 Diagnóstico prováveis (com base no seu código e prints)
+✅ 1. O audioUrl não é um link válido ou acessível
+Você está tentando tocar um áudio com audioUrl, mas esse url pode não estar disponível ainda no seu lado (tempo de envio > tempo de gravação local).
+
+Se você está enviando via WebSocket ou REST, o blob pode estar ainda em processo de upload, ou o backend pode estar respondendo com um caminho interno/temporário que só o destinatário acessa.
+
+✅ 2. O áudio foi enviado com URL blob: no preview, mas o histórico carrega fileUrl que está mal resolvido
+Ou seja, quando a conversa é recarregada, o campo fileUrl da mensagem no seu message pode estar:
+
+vazio
+
+null
+
+ou não acessível publicamente (ex: /uploads/abc.mp3 sem domínio completo ou CORS negado).
+
+✅ Soluções práticas (que funcionam em produção)
+🔹 1. Confirme se o audioUrl de mensagens antigas está correto
+Adicione um log no seu componente AudioMessage:
+
+tsx
+Copiar
+Editar
+console.log("🎧 Tentando reproduzir áudio:", audioUrl);
+Se o valor for algo como:
+
+"blob:null/..." → você está tentando tocar um blob que só existia localmente.
+
+"/api/temp/audio/abc123.mp3" → você precisa resolver para uma URL completa: https://seuservidor.com/api/....
+
+🔹 2. Corrija o message.fileUrl ao salvar no backend
+Certifique-se que quando a mensagem com áudio for salva no banco, o campo fileUrl esteja correto e acessível.
+
+Exemplo válido:
+
+json
+Copiar
+Editar
+{
+  "type": "audio",
+  "fileUrl": "https://cdn.seusistema.com/uploads/audio123.mp3"
+}
+Exemplo inválido:
+
+json
+Copiar
+Editar
+{
+  "type": "audio",
+  "fileUrl": "blob:local/..."
+}
+🔹 3. Carregue os áudios apenas se fileUrl for válido
+No seu componente MessageBubble, ajuste:
+
+tsx
+Copiar
+Editar
+{message.type === 'audio' && message.fileUrl && (
+  <AudioMessage
+    audioUrl={message.fileUrl}
+    duration={message.duration}
+    isFromContact={message.isFromContact}
+  />
+)}
+Garanta que fileUrl seja uma URL acessível. Se não for, exiba fallback:
+
+tsx
+Copiar
+Editar
+{message.type === 'audio' ? (
+  message.fileUrl ? (
+    <AudioMessage
+      audioUrl={message.fileUrl}
+      duration={message.duration}
+      isFromContact={message.isFromContact}
+    />
+  ) : (
+    <div className="text-sm text-red-500">Áudio indisponível</div>
+  )
+) : null}
+🔹 4. Cuidado com o CORS
+Se seu backend envia o áudio com header errado, o navegador bloqueia a reprodução silenciosamente.
+
+No backend (Node, Laravel, etc), o endpoint de mídia precisa retornar:
+
+makefile
+Copiar
+Editar
+Access-Control-Allow-Origin: *
+Content-Type: audio/mpeg
+💡 Extras para diagnóstico
+Teste o fileUrl manualmente colando-o no navegador.
+
+Veja se a rede (Network no DevTools) retorna 200 OK ou 403/404.
+
+Veja se o erro está no console ao tentar audio.play() (ex: “media load failed”).
+
+✅ Conclusão
+Seu sistema está gravando, enviando e salvando áudios corretamente — mas o frontend não está pegando o caminho certo do áudio quando reabre a conversa. Provavelmente está tentando tocar um blob: antigo ou um fileUrl inválido.

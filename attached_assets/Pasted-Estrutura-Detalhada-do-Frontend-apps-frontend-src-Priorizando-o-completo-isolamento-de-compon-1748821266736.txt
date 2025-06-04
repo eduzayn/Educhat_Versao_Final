@@ -1,0 +1,130 @@
+Estrutura Detalhada do Frontend (apps/frontend/src/):
+
+Priorizando o completo isolamento de componentes e módulos funcionais:
+
+/omnichannel-app/apps/frontend/src/
+├── main.tsx                     # Ponto de entrada da aplicação React
+├── App.tsx                      # Composição geral de rotas e layout base
+├── routes/                      # Configuração de rotas da aplicação
+│   └── index.tsx                # Define as rotas principais (Inbox, Settings, etc.)
+├── modules/                     # Cada módulo funcional é completamente isolado
+│   │
+│   ├── Auth/                    # Módulo de Autenticação
+│   │   ├── components/          # (LoginForm.tsx, SignupForm.tsx)
+│   │   ├── hooks/               # (useAuth.ts)
+│   │   ├── services/            # (authAPI.ts)
+│   │   ├── pages/               # (LoginPage.tsx, SignupPage.tsx)
+│   │   ├── types/               # (auth.types.ts)
+│   │   └── index.tsx            # Ponto de exportação do módulo Auth
+│   │
+│   ├── Inbox/                   # Módulo Caixa de Entrada e Conversas
+│   │   ├── components/
+│   │   │   ├── InboxLayout.tsx       # Layout específico da Inbox
+│   │   │   ├── ChannelSidebar.tsx    # Barra lateral de canais e filtros
+│   │   │   ├── ConversationList.tsx  # Lista de conversas
+│   │   │   ├── ConversationItem.tsx  # Item individual da lista
+│   │   │   ├── ConversationPanel.tsx # Painel central da conversa ativa
+│   │   │   ├── MessageList.tsx       # Lista de mensagens na conversa
+│   │   │   ├── MessageBubble.tsx     # Balão de mensagem individual
+│   │   │   ├── InputArea.tsx         # Área de composição de mensagem
+│   │   │   ├── CommentThreadView.tsx # Visualização de thread de comentários sociais
+│   │   │   └── AgentStatusDisplay.tsx # Display de status e timer do agente (Req. Gestão Remota)
+│   │   ├── hooks/               # (useConversations.ts, useMessages.ts, useAgentActivity.ts)
+│   │   ├── services/            # (conversationsAPI.ts, messagesAPI.ts)
+│   │   ├── pages/               # (InboxPage.tsx)
+│   │   ├── types/               # (inbox.types.ts, message.types.ts)
+│   │   └── index.tsx
+│   │
+│   ├── Contacts/                # Módulo de Contatos (CRM)
+│   │   ├── components/
+│   │   │   ├── ContactList.tsx
+│   │   │   ├── ContactDetailsPanel.tsx # Painel de detalhes do contato
+│   │   │   ├── ContactForm.tsx
+│   │   │   └── AsaasIntegrationCard.tsx # Card para ações Asaas
+│   │   ├── hooks/               # (useContacts.ts)
+│   │   ├── services/            # (contactsAPI.ts, asaasAPI.ts)
+│   │   ├── pages/               # (ContactsPage.tsx, ContactDetailPage.tsx)
+│   │   ├── types/
+│   │   └── index.tsx
+│   │
+│   ├── Calls/                   # Módulo de Chamadas VoIP (Twilio)
+│   │   ├── components/
+│   │   │   ├── DialerModal.tsx
+│   │   │   ├── ActiveCallControls.tsx
+│   │   │   └── CallLogItem.tsx
+│   │   ├── hooks/               # (useTwilioVoice.ts)
+│   │   ├── services/            # (voiceAPI.ts)
+│   │   ├── types/
+│   │   └── index.tsx
+│   │
+│   ├── Campaigns/               # Módulo de Campanhas (SMS, WhatsApp)
+│   │   ├── components/
+│   │   │   ├── CampaignList.tsx
+│   │   │   ├── CampaignForm.tsx      # Formulário de criação (com lógica para SMS, WA Oficial, WA Zap)
+│   │   │   ├── TemplateSelector.tsx  # Para WhatsApp Oficial
+│   │   │   └── CampaignReport.tsx
+│   │   ├── hooks/
+│   │   ├── services/            # (campaignsAPI.ts, templatesAPI.ts)
+│   │   ├── pages/               # (CampaignsDashboardPage.tsx, CreateCampaignPage.tsx)
+│   │   ├── types/
+│   │   └── index.tsx
+│   │
+│   ├── Payments/                # Módulo de Pagamentos (Asaas) - Interligado com Contacts e Inbox
+│   │   ├── components/
+│   │   │   ├── PaymentInfo.tsx
+│   │   │   └── PaymentFormModal.tsx
+│   │   ├── services/            # (Integrado em contactsAPI.ts ou asaasAPI.ts no frontend)
+│   │   ├── hooks/
+│   │   └── index.tsx
+│   │
+│   ├── RemoteManagement/        # Módulo de Gestão Remota (Visão do Gestor)
+│   │   ├── components/
+│   │   │   ├── ManagerDashboardLayout.tsx
+│   │   │   ├── RealTimeAgentStatusGrid.tsx
+│   │   │   ├── WorkTimeReportTable.tsx
+│   │   │   ├── ProductivityReportCharts.tsx
+│   │   │   └── InteractionCategorizationReport.tsx
+│   │   ├── hooks/               # (useAgentPerformance.ts)
+│   │   ├── services/            # (remoteManagementAPI.ts)
+│   │   ├── pages/               # (ManagerDashboardPage.tsx)
+│   │   ├── types/
+│   │   └── index.tsx
+│   │
+│   ├── Settings/                # Módulo de Configurações
+│   │   ├── components/
+│   │   │   ├── ChannelSetupForm.tsx    # Para configurar cada canal (Twilio, ZapAPI, Meta, Asaas)
+│   │   │   ├── UserManagementTable.tsx
+│   │   │   ├── WhatsAppTemplateManagement.tsx
+│   │   │   └── RemoteManagementSettingsForm.tsx # Configs de inatividade, categorias
+│   │   ├── pages/               # (SettingsPage.tsx com sub-rotas/abas)
+│   │   └── index.tsx
+│   │
+│   └── (Outros módulos conforme necessário: AITraining, InternalComms, AdvancedCRMFunnel, etc.)
+│
+├── shared/                      # Código compartilhado entre módulos do frontend
+│   ├── ui/                      # Componentes de UI genéricos (Button, Modal, Input, Avatar - do packages/ui ou locais)
+│   ├── sockets/                 # Configuração e instância do cliente WebSocket (Socket.IO)
+│   ├── lib/                     # Funções utilitárias (formatação de data, validações genéricas)
+│   ├── config/                  # Constantes, configurações de API base URL, temas
+│   ├── contexts/                # Contextos React globais (AuthProvider, TenantProvider, WebSocketProvider)
+│   └── store/                   # Lógica de estado global com Zustand (se escolhido)
+│
+├── styles/                      # Estilos globais
+│   ├── tailwind.config.ts
+│   └── index.css                # Importações base do Tailwind e customizações globais mínimas
+└── vite.config.ts
+Explicação da Estrutura Frontend Detalhada (apps/frontend/src/modules/):
+
+Isolamento Real: Cada diretório dentro de modules/ (ex: Inbox/, Contacts/, Campaigns/) representa uma feature ou domínio principal da aplicação.
+components/: Contém componentes React específicos para aquele módulo.
+hooks/: Custom Hooks com lógica de estado e efeitos colaterais relacionados ao módulo.
+services/: Funções para interagir com a API backend, específicas para as necessidades do módulo.
+pages/: Componentes de página que são renderizados pelas rotas, geralmente compondo os componentes e hooks do módulo.
+types/: Definições de tipos TypeScript específicas do módulo.
+index.tsx: Ponto de entrada e exportação do módulo, facilitando importações limpas.
+shared/: Contém código verdadeiramente global, utilizado por múltiplos módulos.
+ui/: Componentes de UI puros e reutilizáveis (Botões, Modais, etc.), idealmente importados do packages/ui se um design system compartilhado for usado.
+sockets/: Configuração e gerenciamento do cliente Socket.IO.
+lib/: Funções utilitárias genéricas.
+config/: Constantes globais, temas, configuração base de API.
+contexts/ ou store/: Para gerenciamento de estado global (autenticação, informações do tenant, status da conexão WebSocket) usando Context API ou Zustand.
