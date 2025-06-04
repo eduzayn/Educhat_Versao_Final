@@ -1,0 +1,170 @@
+import { useState } from "react";
+import {
+  Button,
+  Input,
+  Badge,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent
+} from "@/components/ui";
+import {
+  Search,
+  Filter,
+  Columns,
+  List,
+  Plus,
+  Building2,
+  Calendar,
+  MoreHorizontal,
+  Edit,
+  Trash
+} from "lucide-react";
+
+const mockDeals = [
+  {
+    id: "1",
+    name: "João Silva - Pós em Psicanálise",
+    company: "Particular",
+    value: 1799,
+    probability: 75,
+    closeDate: "2025-06-20",
+    stage: "qualified",
+    owner: "Ana",
+    ownerAvatar: "",
+    tags: ["ead", "psicanálise"]
+  },
+  {
+    id: "2",
+    name: "Maria Oliveira - Segunda Licenciatura",
+    company: "Professora Pública",
+    value: 2071,
+    probability: 40,
+    closeDate: "2025-07-01",
+    stage: "proposal",
+    owner: "Eduardo",
+    ownerAvatar: "",
+    tags: ["ead", "licenciatura"]
+  }
+];
+
+export default function DealsModuleUpdated() {
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+
+  const filtered = mockDeals.filter((d) =>
+    d.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="border-b p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Negócios</h2>
+            <p className="text-muted-foreground">
+              Gerencie seu pipeline de vendas
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar negócios..."
+                className="pl-9 w-80"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <Button variant="outline" className="bg-accent">
+              <Filter className="h-4 w-4 mr-2" /> Filtros
+            </Button>
+
+            <div className="flex items-center border rounded-md">
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="rounded-r-none"
+              >
+                <Columns className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className="rounded-l-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button>
+              <Plus className="h-4 w-4 mr-2" /> Novo Negócio
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((deal) => (
+            <Card key={deal.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-medium text-sm leading-tight">{deal.name}</h4>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{deal.company}</span>
+                </div>
+
+                <div className="text-lg font-bold text-green-600">
+                  R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Probabilidade</span>
+                    <span>{deal.probability}%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div
+                      className="bg-primary h-1.5 rounded-full transition-all"
+                      style={{ width: `${deal.probability}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>Fechamento: {deal.closeDate}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {deal.tags.map((tag, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
