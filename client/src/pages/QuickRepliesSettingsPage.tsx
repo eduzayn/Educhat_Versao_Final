@@ -104,6 +104,7 @@ export default function QuickRepliesSettingsPage() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<{ blob: Blob; duration: number } | null>(null);
+  const [shareScope, setShareScope] = useState<string>('private');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -709,6 +710,29 @@ export default function QuickRepliesSettingsPage() {
                     </FormItem>
                   )}
                 />
+
+                {/* Compartilhamento */}
+                <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <h3 className="text-sm font-medium">Compartilhamento</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Visibilidade</label>
+                    <Select value={shareScope} onValueChange={setShareScope}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a visibilidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="private">🔒 Apenas eu</SelectItem>
+                        <SelectItem value="team">👥 Compartilhada com equipes</SelectItem>
+                        <SelectItem value="users">👤 Compartilhada com usuários</SelectItem>
+                        <SelectItem value="global">🌐 Global (todos)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Defina quem pode ver e usar esta resposta rápida
+                    </p>
+                  </div>
+                </div>
 
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={handleFormClose}>
