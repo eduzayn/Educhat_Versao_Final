@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -93,10 +93,13 @@ export function DealsModule() {
   // Get current macrosetor configuration
   const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];
   
-  // Filter and transform deals by selected macrosetor
-  const deals = rawDeals
-    .filter(deal => deal.macrosetor === selectedMacrosetor)
-    .map(deal => ({
+  // Reset page when macrosetor changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedMacrosetor]);
+
+  // Transform deals (already filtered by backend)
+  const deals = rawDeals.map(deal => ({
       ...deal,
       id: deal.id.toString(),
       stage: deal.stage,
@@ -361,6 +364,33 @@ export function DealsModule() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Controles de Paginação */}
+        {dealsResponse && totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages} ({dealsResponse.total} negócios)
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Próxima
+              </Button>
             </div>
           </div>
         )}
