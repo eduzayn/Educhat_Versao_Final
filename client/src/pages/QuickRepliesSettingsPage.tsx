@@ -271,7 +271,7 @@ export default function QuickRepliesSettingsPage() {
     form.reset({
       title: quickReply.title,
       content: quickReply.content || '',
-      type: quickReply.type as 'text' | 'audio' | 'image' | 'video',
+      type: quickReply.type as 'text' | 'audio' | 'image' | 'video' | 'document',
       category: quickReply.category || '',
       isActive: quickReply.isActive ?? true,
     });
@@ -365,6 +365,7 @@ export default function QuickRepliesSettingsPage() {
             <SelectItem value="audio">Áudio</SelectItem>
             <SelectItem value="image">Imagem</SelectItem>
             <SelectItem value="video">Vídeo</SelectItem>
+            <SelectItem value="document">Documento</SelectItem>
           </SelectContent>
         </Select>
 
@@ -457,7 +458,8 @@ export default function QuickRepliesSettingsPage() {
                                   accept={
                                     selectedType === 'audio' ? 'audio/*' :
                                     selectedType === 'image' ? 'image/*' :
-                                    selectedType === 'video' ? 'video/*' : ''
+                                    selectedType === 'video' ? 'video/*' :
+                                    selectedType === 'document' ? '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar' : ''
                                   }
                                   onChange={handleFileSelect}
                                   className="hidden"
@@ -469,6 +471,7 @@ export default function QuickRepliesSettingsPage() {
                                       {selectedType === 'audio' && <FileAudio className="w-full h-full" />}
                                       {selectedType === 'image' && <FileImage className="w-full h-full" />}
                                       {selectedType === 'video' && <FileVideo className="w-full h-full" />}
+                                      {selectedType === 'document' && <FileText className="w-full h-full" />}
                                     </div>
                                     <div>
                                       {selectedType === 'audio' && !showAudioRecorder ? (
@@ -499,7 +502,7 @@ export default function QuickRepliesSettingsPage() {
                                           className="mb-2"
                                         >
                                           <Upload className="w-4 h-4 mr-2" />
-                                          Selecionar {selectedType === 'image' ? 'Imagem' : 'Vídeo'}
+                                          Selecionar {selectedType === 'image' ? 'Imagem' : selectedType === 'video' ? 'Vídeo' : 'Documento'}
                                         </Button>
                                       ) : null}
                                       
@@ -517,7 +520,8 @@ export default function QuickRepliesSettingsPage() {
                                         Formatos suportados: {
                                           selectedType === 'audio' ? 'MP3, WAV, OGG ou grave diretamente' :
                                           selectedType === 'image' ? 'JPG, PNG, GIF, WEBP' :
-                                          'MP4, AVI, MOV, WEBM'
+                                          selectedType === 'video' ? 'MP4, AVI, MOV, WEBM' :
+                                          'PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR'
                                         }
                                       </p>
                                     </div>
@@ -540,6 +544,7 @@ export default function QuickRepliesSettingsPage() {
                                       {selectedType === 'audio' && <Mic className="w-4 h-4" />}
                                       {selectedType === 'image' && <Image className="w-4 h-4" />}
                                       {selectedType === 'video' && <Video className="w-4 h-4" />}
+                                      {selectedType === 'document' && <FileText className="w-4 h-4" />}
                                       <span className="font-medium">{selectedFile.name}</span>
                                       <span className="text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
                                     </div>
@@ -673,6 +678,7 @@ export default function QuickRepliesSettingsPage() {
                     {quickReply.type === 'audio' && 'Áudio'}
                     {quickReply.type === 'image' && 'Imagem'}
                     {quickReply.type === 'video' && 'Vídeo'}
+                    {quickReply.type === 'document' && 'Documento'}
                   </Badge>
                   {quickReply.category && (
                     <Badge variant="outline">{quickReply.category}</Badge>
@@ -710,6 +716,7 @@ export default function QuickRepliesSettingsPage() {
                     {previewQuickReply.type === 'audio' && 'Áudio'}
                     {previewQuickReply.type === 'image' && 'Imagem'}
                     {previewQuickReply.type === 'video' && 'Vídeo'}
+                    {previewQuickReply.type === 'document' && 'Documento'}
                   </Badge>
                   {previewQuickReply.category && (
                     <Badge variant="outline">{previewQuickReply.category}</Badge>
