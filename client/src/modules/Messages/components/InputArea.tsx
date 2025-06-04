@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/ui/tooltip';
 import { Input } from '@/shared/ui/ui/input';
 import { Label } from '@/shared/ui/ui/label';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -657,56 +658,13 @@ export function InputArea() {
       )}
 
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        {/* Toggle entre mensagem normal e nota interna */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-1 border border-gray-200 dark:border-gray-600">
-              <Button
-                variant={!isInternalNote ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "h-8 px-4 text-xs transition-all rounded-lg font-medium",
-                  !isInternalNote 
-                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-sm border-0" 
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-                )}
-                onClick={() => setIsInternalNote(false)}
-              >
-                <MessageSquare className="h-3 w-3 mr-1.5" />
-                Mensagem
-              </Button>
-              <Button
-                variant={isInternalNote ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "h-8 px-4 text-xs transition-all rounded-lg font-medium",
-                  isInternalNote 
-                    ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0" 
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-                )}
-                onClick={() => setIsInternalNote(true)}
-              >
-                <StickyNote className="h-3 w-3 mr-1.5" />
-                Nota Interna
-              </Button>
-            </div>
-            {isInternalNote && (
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                  Apenas para equipe
-                </span>
-              </div>
-            )}
+        {/* Indicador discreto do modo ativo */}
+        {isInternalNote && (
+          <div className="mb-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded text-xs text-amber-700 dark:text-amber-400">
+            <StickyNote className="h-3 w-3" />
+            <span>Modo: Nota Interna (apenas equipe)</span>
           </div>
-          {isInternalNote && (
-            <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                <strong>💡 Nota Interna:</strong> Esta mensagem será salva apenas no sistema e não será enviada ao cliente via WhatsApp. Ideal para anotações da equipe, observações e registros internos.
-              </p>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Quick Action Buttons */}
         <div className="flex items-center gap-2 mb-3">
@@ -853,7 +811,7 @@ export function InputArea() {
             </PopoverContent>
           </Popover>
 
-          {/* Message Input */}
+          {/* Message Input with integrated icons */}
           <div className="flex-1 relative">
             <Textarea
               ref={textareaRef}
@@ -861,9 +819,54 @@ export function InputArea() {
               value={message}
               onChange={handleMessageChange}
               onKeyDown={handleKeyPress}
-              className="min-h-[2.5rem] max-h-32 resize-none pr-12"
+              className="min-h-[2.5rem] max-h-32 resize-none pr-16 pl-12"
               rows={1}
             />
+            
+            {/* Message/Note toggle icons inside textarea */}
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                        !isInternalNote ? "text-blue-600" : "text-gray-400"
+                      )}
+                      onClick={() => setIsInternalNote(false)}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mensagem</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                        isInternalNote ? "text-amber-600" : "text-gray-400"
+                      )}
+                      onClick={() => setIsInternalNote(true)}
+                    >
+                      <StickyNote className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Nota Interna</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           {/* Send/Audio Button */}
