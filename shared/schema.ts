@@ -83,6 +83,10 @@ export const messages = pgTable("messages", {
   zapiStatus: varchar("zapi_status", { length: 20 }), // PENDING, SENT, RECEIVED, READ, PLAYED
   isGroup: boolean("is_group").default(false), // se a mensagem veio de grupo
   referenceMessageId: varchar("reference_message_id", { length: 50 }), // para respostas
+  // Campos para notas internas
+  isInternalNote: boolean("is_internal_note").default(false), // indica se é uma nota interna
+  authorId: integer("author_id").references(() => systemUsers.id), // ID do usuário que criou a nota
+  authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar exibição
 });
 
 // Contact tags table

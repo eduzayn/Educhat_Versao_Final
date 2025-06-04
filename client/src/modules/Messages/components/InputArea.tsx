@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload, Zap } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload, Zap, MessageSquare, StickyNote } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
@@ -40,6 +40,7 @@ export function InputArea() {
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [quickReplyFilter, setQuickReplyFilter] = useState('');
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
+  const [isInternalNote, setIsInternalNote] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,15 +147,31 @@ export function InputArea() {
     if (!message.trim() || !activeConversation) return;
 
     try {
-      await sendMessageMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        message: {
-          content: message.trim(),
-          isFromContact: false,
-          messageType: 'text',
-        },
-        contact: activeConversation.contact,
-      });
+      if (isInternalNote) {
+        // Enviar nota interna
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: message.trim(),
+            isFromContact: false,
+            messageType: 'text',
+            isInternalNote: true,
+          },
+          contact: activeConversation.contact,
+        });
+      } else {
+        // Enviar mensagem normal
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: message.trim(),
+            isFromContact: false,
+            messageType: 'text',
+          },
+          contact: activeConversation.contact,
+        });
+      }
+      
       setMessage('');
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
