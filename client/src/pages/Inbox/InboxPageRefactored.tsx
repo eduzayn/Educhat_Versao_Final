@@ -246,13 +246,62 @@ export function InboxPageRefactored() {
   };
 
   const getSpecificChannelName = (conversation: any) => {
+    // Prioriza busca por channelId específico (escalável para qualquer número de canais)
     if (conversation.channelId) {
       const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel && channel.type === 'whatsapp') {
-        return channel.name; // Retorna "Comercial" ou "Suporte"
+      if (channel) {
+        // Para WhatsApp, mostra apenas o nome do canal
+        // Para outros tipos, mostra "Tipo - Nome"
+        return channel.type === 'whatsapp' 
+          ? channel.name 
+          : `${channel.type.charAt(0).toUpperCase() + channel.type.slice(1)} - ${channel.name}`;
       }
     }
-    return conversation.channel || 'WhatsApp';
+    
+    // Fallback para conversas sem channelId específico
+    const channelType = conversation.channel || 'unknown';
+    if (channelType === 'whatsapp') {
+      // Se há múltiplos canais WhatsApp, tenta identificar por outros critérios
+      const whatsappChannels = channels.filter(c => c.type === 'whatsapp' && c.isActive);
+      if (whatsappChannels.length > 1) {
+        // Usa critérios como phone number pattern ou outros identificadores
+        const phoneNumber = conversation.contact?.phoneNumber || '';
+        
+        // Lógica extensível: identifica canal baseado em padrões configuráveis
+        for (const channel of whatsappChannels) {
+          const config = channel.configuration as any;
+          if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
+            return channel.name;
+          }
+        }
+        
+        // Fallback: usa primeiro canal ativo disponível
+        return whatsappChannels[0]?.name || 'WhatsApp';
+      }
+      return whatsappChannels[0]?.name || 'WhatsApp';
+    }
+    
+    return getChannelInfo(channelType).name;
+  };
+
+  const getChannelStyle = (conversation: any) => {
+    if (conversation.channelId) {
+      const channel = channels.find(c => c.id === conversation.channelId);
+      if (channel?.type === 'whatsapp') {
+        // Cores dinâmicas baseadas no hash do nome do canal para consistência
+        const hash = channel.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+        const colors = [
+          'bg-green-100 text-green-700',
+          'bg-blue-100 text-blue-700', 
+          'bg-purple-100 text-purple-700',
+          'bg-orange-100 text-orange-700',
+          'bg-pink-100 text-pink-700',
+          'bg-indigo-100 text-indigo-700'
+        ];
+        return colors[hash % colors.length];
+      }
+    }
+    return 'bg-gray-100 text-gray-600';
   };
 
   const formatTime = (date: string | Date) => {
@@ -643,7 +692,9 @@ export function InboxPageRefactored() {
                           )
                         ) : 'Sem mensagens'}
                       </p>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full ml-2 flex-shrink-0">
+                      <span className={`text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0 ${
+                        getChannelStyle(conversation)
+                      }`}>
                         {getSpecificChannelName(conversation)}
                       </span>
                     </div>
