@@ -9,6 +9,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
 import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/ContactsPageRefactored";
+import { ContactTimelinePage } from "@/pages/ContactTimeline/ContactTimelinePage";
 import ChatInternoPage from "@/pages/ChatInternoPage";
 import CrmPage from "@/pages/CrmPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
+          <Route path="/contacts/:contactId/timeline" component={ContactTimelinePage} />
           <Route path="/chat-interno" component={ChatInternoPage} />
           <Route path="/crm" component={CrmPage} />
           <Route path="/reports" component={ReportsPage} />
