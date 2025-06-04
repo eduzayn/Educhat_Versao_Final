@@ -1594,6 +1594,197 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Engenharia'
     },
 
+    // ========== CURSOS SUPERIORES TECNÓLOGOS - 18 MESES ==========
+    'design_animacao_tec': {
+      variations: ['design animação', 'design de animação', 'animação digital'],
+      courseType: 'Tecnólogo',
+      courseName: 'Design de Animação'
+    },
+    'design_interiores_tec': {
+      variations: ['design interiores', 'design de interiores', 'decoração'],
+      courseType: 'Tecnólogo',
+      courseName: 'Design de Interiores'
+    },
+    'design_produto_tec': {
+      variations: ['design produto', 'design de produto', 'produto design'],
+      courseType: 'Tecnólogo',
+      courseName: 'Design de Produto'
+    },
+    'design_grafico_tec': {
+      variations: ['design gráfico', 'design grafico', 'comunicação visual'],
+      courseType: 'Tecnólogo',
+      courseName: 'Design Gráfico'
+    },
+    'gerontologia_tec': {
+      variations: ['gerontologia', 'cuidado idoso', 'terceira idade'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gerontologia'
+    },
+    'comercio_exterior_tec': {
+      variations: ['comércio exterior', 'comercio exterior', 'exportação importação'],
+      courseType: 'Tecnólogo',
+      courseName: 'Comércio Exterior'
+    },
+    'gestao_ambiental_tec': {
+      variations: ['gestão ambiental', 'gestao ambiental', 'meio ambiente'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão Ambiental'
+    },
+    'gestao_comercial_tec': {
+      variations: ['gestão comercial', 'gestao comercial', 'vendas'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão Comercial'
+    },
+    'gestao_qualidade_tec': {
+      variations: ['gestão qualidade', 'gestao da qualidade', 'controle qualidade'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão da Qualidade'
+    },
+    'gestao_clinicas_tec': {
+      variations: ['gestão clínicas', 'gestao de clinicas', 'administração hospitalar'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão de Clínicas e Consultórios'
+    },
+    'gestao_marketing_digital_tec': {
+      variations: ['gestão marketing digital', 'marketing digital', 'gestao em marketing'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão em Marketing Digital'
+    },
+    'gestao_financeira_tec': {
+      variations: ['gestão financeira', 'gestao financeira', 'finanças'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão Financeira'
+    },
+    'logistica_tec': {
+      variations: ['logística', 'logistica', 'supply chain'],
+      courseType: 'Tecnólogo',
+      courseName: 'Logística'
+    },
+    'mediacao_arbitragem_tec': {
+      variations: ['mediação conciliação', 'mediacao arbitragem', 'resolução conflitos'],
+      courseType: 'Tecnólogo',
+      courseName: 'Mediação, Conciliação e Arbitragem'
+    },
+    'midias_sociais_tec': {
+      variations: ['mídias sociais', 'midias sociais', 'redes sociais'],
+      courseType: 'Tecnólogo',
+      courseName: 'Mídias Sociais'
+    },
+    'coaching_tec': {
+      variations: ['coaching desenvolvimento', 'coaching humano', 'desenvolvimento pessoal'],
+      courseType: 'Tecnólogo',
+      courseName: 'Coaching em Desenvolvimento Humano'
+    },
+    'despachante_tec': {
+      variations: ['despachante documentalista', 'despachante', 'documentalista'],
+      courseType: 'Tecnólogo',
+      courseName: 'Despachante Documentalista'
+    },
+    'educador_social_tec': {
+      variations: ['educador social', 'educação social', 'assistência social'],
+      courseType: 'Tecnólogo',
+      courseName: 'Educador Social'
+    },
+    'empreendedorismo_educacional_tec': {
+      variations: ['empreendedorismo educacional', 'gestão educacional', 'negócios educação'],
+      courseType: 'Tecnólogo',
+      courseName: 'Empreendedorismo Educacional'
+    },
+    'gestao_varejo_tec': {
+      variations: ['gestão varejo', 'gestao de varejo', 'administração varejo'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão de Varejo'
+    },
+    'gestao_esporte_tec': {
+      variations: ['gestão esporte', 'gestao do esporte', 'administração esportiva'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão do Esporte'
+    },
+    'secretariado_tec': {
+      variations: ['secretariado', 'secretaria executiva', 'assistente executivo'],
+      courseType: 'Tecnólogo',
+      courseName: 'Secretariado'
+    },
+    'seguranca_transito_tec': {
+      variations: ['segurança trânsito', 'seguranca no transito', 'educação trânsito'],
+      courseType: 'Tecnólogo',
+      courseName: 'Segurança no Trânsito'
+    },
+
+    // ========== CURSOS SUPERIORES TECNÓLOGOS - 24 MESES ==========
+    'analise_desenvolvimento_sistemas_tec': {
+      variations: ['análise desenvolvimento sistemas', 'analise e desenvolvimento de sistemas', 'ads', 'desenvolvimento software', 'analise desenvolvimento', 'sistemas desenvolvimento'],
+      courseType: 'Tecnólogo',
+      courseName: 'Análise e Desenvolvimento de Sistemas'
+    },
+    'estetica_cosmetica_tec': {
+      variations: ['estética cosmética', 'estetica e cosmetica', 'beleza'],
+      courseType: 'Tecnólogo',
+      courseName: 'Estética e Cosmética'
+    },
+    'gestao_publica_tec': {
+      variations: ['gestão pública', 'gestao publica', 'administração pública'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão Pública'
+    },
+    'seguranca_publica_tec': {
+      variations: ['segurança pública', 'seguranca publica', 'polícia'],
+      courseType: 'Tecnólogo',
+      courseName: 'Segurança Pública'
+    },
+    'big_data_tec': {
+      variations: ['big data', 'inteligência analítica', 'ciência dados'],
+      courseType: 'Tecnólogo',
+      courseName: 'Big Data e Inteligência Analítica'
+    },
+    'internet_coisas_tec': {
+      variations: ['internet coisas', 'iot', 'dispositivos conectados'],
+      courseType: 'Tecnólogo',
+      courseName: 'Internet das Coisas'
+    },
+    'jogos_digitais_tec': {
+      variations: ['jogos digitais', 'game design', 'desenvolvimento jogos'],
+      courseType: 'Tecnólogo',
+      courseName: 'Jogos Digitais'
+    },
+    'sistemas_internet_tec': {
+      variations: ['sistemas internet', 'desenvolvimento web', 'programação web'],
+      courseType: 'Tecnólogo',
+      courseName: 'Sistemas para Internet'
+    },
+    'cidades_inteligentes_tec': {
+      variations: ['cidades inteligentes', 'smart cities', 'sustentabilidade urbana'],
+      courseType: 'Tecnólogo',
+      courseName: 'Cidades Inteligentes e Sustentáveis'
+    },
+
+    // ========== CURSOS SUPERIORES TECNÓLOGOS - 30 MESES ==========
+    'investigacao_forense_tec': {
+      variations: ['investigação forense', 'perícia jurídica', 'criminalística'],
+      courseType: 'Tecnólogo',
+      courseName: 'Investigação Forense e Perícia Jurídica'
+    },
+    'seguranca_trabalho_tec': {
+      variations: ['segurança trabalho', 'seguranca do trabalho', 'prevenção acidentes'],
+      courseType: 'Tecnólogo',
+      courseName: 'Segurança do Trabalho'
+    },
+    'gestao_agronegocio_tec': {
+      variations: ['gestão agronegócio', 'gestao do agronegocio', 'agricultura'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão do Agronegócio'
+    },
+    'gestao_producao_industrial_tec': {
+      variations: ['gestão produção industrial', 'gestao da producao', 'engenharia produção'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão da Produção Industrial'
+    },
+    'gestao_hospitalar_tec': {
+      variations: ['gestão hospitalar', 'gestao hospitalar', 'administração hospitalar'],
+      courseType: 'Tecnólogo',
+      courseName: 'Gestão Hospitalar'
+    },
+
     // ========== SEGUNDA LICENCIATURA (13 cursos) ==========
     'segunda_pedagogia': {
       variations: ['segunda licenciatura pedagogia', 'segunda grad pedagogia', 'segunda licenciatura em pedagogia'],
