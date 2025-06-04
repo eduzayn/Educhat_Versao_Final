@@ -69,9 +69,19 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     ? "text-xs text-gray-400"
     : "text-xs text-gray-500 justify-end";
 
-  const containerClasses = `flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`;
+  const containerClasses = useMemo(() => {
+    if (message.isInternalNote) {
+      return "flex items-start gap-3 mb-4"; // Notas internas sempre alinhadas à esquerda
+    }
+    return `flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`;
+  }, [isFromContact, message.isInternalNote]);
 
-  const bubbleWrapperClasses = `flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`;
+  const bubbleWrapperClasses = useMemo(() => {
+    if (message.isInternalNote) {
+      return "flex-1 max-w-md"; // Notas internas sempre alinhadas à esquerda
+    }
+    return `flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`;
+  }, [isFromContact, message.isInternalNote]);
 
   // Mensagem deletada
   if (message.isDeleted) {
@@ -228,15 +238,21 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   // Mensagem normal
   return (
     <div className={containerClasses}>
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarImage
-          src={isFromContact ? contact.profileImageUrl || "" : ""}
-          alt={isFromContact ? contact.name : "Agente"}
-        />
-        <AvatarFallback className="text-xs">
-          {avatarFallbackChar}
-        </AvatarFallback>
-      </Avatar>
+      {message.isInternalNote ? (
+        <div className="w-8 h-8 flex-shrink-0 bg-gray-500 rounded-full flex items-center justify-center">
+          <StickyNote className="w-4 h-4 text-gray-200" />
+        </div>
+      ) : (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage
+            src={isFromContact ? contact.profileImageUrl || "" : ""}
+            alt={isFromContact ? contact.name : "Agente"}
+          />
+          <AvatarFallback className="text-xs">
+            {avatarFallbackChar}
+          </AvatarFallback>
+        </Avatar>
+      )}
 
       <div className={bubbleWrapperClasses}>
         {renderMessageContent()}
