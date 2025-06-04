@@ -201,7 +201,7 @@ export function DealsModule() {
           <div className="flex items-center gap-3">
             <Select value={selectedMacrosetor} onValueChange={setSelectedMacrosetor}>
               <SelectTrigger className="w-48">
-                <SelectValue />
+                <SelectValue placeholder="Selecione o funil" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="comercial">🏢 Comercial</SelectItem>
