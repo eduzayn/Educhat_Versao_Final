@@ -105,6 +105,28 @@ export function useWebSocket() {
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             }
             break;
+          case 'conversation_assigned':
+            if ((data as any).conversationId) {
+              const assignmentData = data as any;
+              console.log('👥 Conversa atribuída via WebSocket:', {
+                conversationId: assignmentData.conversationId,
+                teamId: assignmentData.teamId,
+                teamName: assignmentData.teamName,
+                userId: assignmentData.userId,
+                userName: assignmentData.userName,
+                macrosetor: assignmentData.macrosetor,
+                method: assignmentData.method
+              });
+              
+              // Invalidar cache das conversas para refletir atribuição
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+              
+              // Invalidar cache específico da conversa atribuída
+              queryClient.invalidateQueries({ 
+                queryKey: [`/api/conversations/${assignmentData.conversationId}`] 
+              });
+            }
+            break;
           case 'conversation_unread_status':
             if ((data as any).conversationId) {
               const unreadData = data as any;
