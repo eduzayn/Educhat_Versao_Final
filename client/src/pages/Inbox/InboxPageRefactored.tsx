@@ -669,7 +669,6 @@ export function InboxPageRefactored() {
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}
-                        {getStatusBadge(conversation.status || 'open')}
                         <ConversationActionsDropdown 
                           conversationId={conversation.id}
                           contactId={conversation.contactId}
