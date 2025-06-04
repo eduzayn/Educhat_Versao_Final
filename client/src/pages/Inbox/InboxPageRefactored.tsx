@@ -58,6 +58,7 @@ export function InboxPageRefactored() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [messageChannelFilter, setMessageChannelFilter] = useState('all'); // Filtro específico para mensagens
   const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Integração com Z-API para comunicação em tempo real
@@ -156,10 +157,31 @@ export function InboxPageRefactored() {
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
+  // Buscar mensagens unificadas do contato quando necessário
   const { 
-    data: messages, 
-    isLoading: isLoadingMessages
-  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
+    data: unifiedMessages, 
+    isLoading: isLoadingUnifiedMessages 
+  } = useQuery({
+    queryKey: [`/api/contacts/${activeConversation?.contactId}/messages`, messageChannelFilter],
+    queryFn: async () => {
+      const channelParam = messageChannelFilter !== 'all' ? `?channel=${messageChannelFilter}` : '';
+      const response = await fetch(`/api/contacts/${activeConversation.contactId}/messages${channelParam}`);
+      if (!response.ok) throw new Error('Failed to fetch unified messages');
+      return response.json();
+    },
+    enabled: !!activeConversation?.contactId,
+    refetchInterval: 3000,
+    staleTime: 0
+  });
+
+  const { 
+    data: conversationMessages, 
+    isLoading: isLoadingConversationMessages
+  } = useMessages(activeConversation?.id || null, 100);
+
+  // Determinar quais mensagens usar baseado no filtro
+  const messages = messageChannelFilter === 'all' ? unifiedMessages : conversationMessages;
+  const isLoadingMessages = messageChannelFilter === 'all' ? isLoadingUnifiedMessages : isLoadingConversationMessages;
   
 
   const createContact = useCreateContact();

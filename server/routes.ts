@@ -608,6 +608,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all messages from all channels for a specific contact (unified timeline)
+  app.get('/api/contacts/:id/messages', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const channelFilter = req.query.channel as string;
+      
+      console.log(`📋 Buscando mensagens unificadas para contato ${contactId}, filtro: ${channelFilter || 'todos'}`);
+      
+      // Get all conversations for this contact
+      const conversations = await storage.getConversationsByContactId(contactId);
+      console.log(`📊 Encontradas ${conversations.length} conversas para o contato ${contactId}`);
+      
+      // Get all messages from all conversations
+      let allMessages: any[] = [];
+      for (const conversation of conversations) {
+        // Apply channel filter if specified
+        if (channelFilter && channelFilter !== 'all' && conversation.channel !== channelFilter) {
+          continue;
+        }
+        
+        const messages = await storage.getMessages(conversation.id);
+        // Add conversation channel info to each message
+        const messagesWithChannel = messages.map(msg => ({
+          ...msg,
+          conversationChannel: conversation.channel,
+          conversationId: conversation.id
+        }));
+        allMessages = allMessages.concat(messagesWithChannel);
+      }
+      
+      // Sort messages by sentAt chronologically (oldest first)
+      allMessages.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+      
+      console.log(`📄 Retornando ${allMessages.length} mensagens unificadas`);
+      res.json(allMessages);
+    } catch (error) {
+      console.error('Error fetching contact unified messages:', error);
+      res.status(500).json({ message: 'Failed to fetch contact messages' });
+    }
+  });
+
   // Contact tags endpoints
   app.get('/api/contacts/:id/tags', async (req, res) => {
     try {
