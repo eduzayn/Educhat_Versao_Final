@@ -795,6 +795,322 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Process Instagram message function
+  async function processInstagramMessage(messagingEvent: any) {
+    try {
+      const senderId = messagingEvent.sender.id;
+      const messageText = messagingEvent.message.text || 'Mensagem do Instagram';
+      
+      // Determinar informações do canal
+      const canalOrigem = 'instagram';
+      const nomeCanal = 'Instagram Direct';
+      const idCanal = `instagram-${senderId}`;
+      const userIdentity = senderId;
+
+      // Buscar ou criar contato automaticamente
+      const contact = await storage.findOrCreateContact(userIdentity, {
+        name: `Instagram User ${senderId}`,
+        phone: null,
+        email: null,
+        isOnline: true,
+        profileImageUrl: null,
+        canalOrigem: canalOrigem,
+        nomeCanal: nomeCanal,
+        idCanal: idCanal
+      });
+
+      // Atualizar status online do contato
+      await storage.updateContactOnlineStatus(contact.id, true);
+
+      // Buscar ou criar conversa
+      let conversation = await storage.getConversationByContactAndChannel(contact.id, 'instagram');
+      if (!conversation) {
+        conversation = await storage.createConversation({
+          contactId: contact.id,
+          channel: 'instagram',
+          status: 'open',
+          lastMessageAt: new Date()
+        });
+      }
+
+      // Criar mensagem
+      const message = await storage.createMessage({
+        conversationId: conversation.id,
+        content: messageText,
+        isFromContact: true,
+        messageType: 'text',
+        sentAt: new Date(),
+        metadata: messagingEvent
+      });
+
+      // Broadcast para clientes conectados
+      broadcast(conversation.id, {
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      // Criar negócio automaticamente
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const existingDeals = await storage.getDealsByContact(contact.id);
+        const hasActiveDeal = existingDeals.some(deal => 
+          deal.macrosetor === detectedMacrosetor && deal.isActive
+        );
+        
+        if (!hasActiveDeal) {
+          console.log(`💼 Criando negócio automático para contato do Instagram (${detectedMacrosetor}):`, contact.name);
+          await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+          console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        } else {
+          console.log(`ℹ️ Contato já possui negócio ativo no funil ${detectedMacrosetor}:`, contact.name);
+        }
+      } catch (dealError) {
+        console.error('❌ Erro ao criar negócio automático para Instagram:', dealError);
+      }
+
+      // Atribuição automática de equipes
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+        
+        if (team) {
+          console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+          await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+          console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+          
+          const availableUser = await storage.getAvailableUserFromTeam(team.id);
+          if (availableUser) {
+            await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+            console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+          } else {
+            console.log(`⏳ Nenhum usuário disponível na equipe ${team.name} no momento - conversa ficará na fila da equipe`);
+          }
+        }
+      } catch (assignmentError) {
+        console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao processar mensagem do Instagram:', error);
+    }
+  }
+
+  // Process Email message function
+  async function processEmailMessage(emailData: any) {
+    try {
+      const senderEmail = emailData.from;
+      const subject = emailData.subject || 'Email sem assunto';
+      const messageText = emailData.text || emailData.html || 'Email vazio';
+      
+      // Determinar informações do canal
+      const canalOrigem = 'email';
+      const nomeCanal = 'Email';
+      const idCanal = `email-${senderEmail}`;
+      const userIdentity = senderEmail;
+
+      // Buscar ou criar contato automaticamente
+      const contact = await storage.findOrCreateContact(userIdentity, {
+        name: emailData.senderName || senderEmail,
+        phone: null,
+        email: senderEmail,
+        isOnline: false,
+        profileImageUrl: null,
+        canalOrigem: canalOrigem,
+        nomeCanal: nomeCanal,
+        idCanal: idCanal
+      });
+
+      // Buscar ou criar conversa
+      let conversation = await storage.getConversationByContactAndChannel(contact.id, 'email');
+      if (!conversation) {
+        conversation = await storage.createConversation({
+          contactId: contact.id,
+          channel: 'email',
+          status: 'open',
+          lastMessageAt: new Date()
+        });
+      }
+
+      // Criar mensagem
+      const message = await storage.createMessage({
+        conversationId: conversation.id,
+        content: `${subject}\n\n${messageText}`,
+        isFromContact: true,
+        messageType: 'email',
+        sentAt: new Date(),
+        metadata: emailData
+      });
+
+      // Broadcast para clientes conectados
+      broadcast(conversation.id, {
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      // Criar negócio automaticamente
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const existingDeals = await storage.getDealsByContact(contact.id);
+        const hasActiveDeal = existingDeals.some(deal => 
+          deal.macrosetor === detectedMacrosetor && deal.isActive
+        );
+        
+        if (!hasActiveDeal) {
+          console.log(`💼 Criando negócio automático para contato de Email (${detectedMacrosetor}):`, contact.name);
+          await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+          console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        } else {
+          console.log(`ℹ️ Contato já possui negócio ativo no funil ${detectedMacrosetor}:`, contact.name);
+        }
+      } catch (dealError) {
+        console.error('❌ Erro ao criar negócio automático para Email:', dealError);
+      }
+
+      // Atribuição automática de equipes
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+        
+        if (team) {
+          console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+          await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+          console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+          
+          const availableUser = await storage.getAvailableUserFromTeam(team.id);
+          if (availableUser) {
+            await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+            console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+          } else {
+            console.log(`⏳ Nenhum usuário disponível na equipe ${team.name} no momento - conversa ficará na fila da equipe`);
+          }
+        }
+      } catch (assignmentError) {
+        console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao processar email:', error);
+    }
+  }
+
+  // Process SMS message function
+  async function processSMSMessage(smsData: any) {
+    try {
+      const senderPhone = smsData.from.replace(/\D/g, '');
+      const messageText = smsData.body || 'SMS sem conteúdo';
+      
+      // Determinar informações do canal
+      const canalOrigem = 'sms';
+      const nomeCanal = 'SMS';
+      const idCanal = `sms-${senderPhone}`;
+      const userIdentity = senderPhone;
+
+      // Buscar ou criar contato automaticamente
+      const contact = await storage.findOrCreateContact(userIdentity, {
+        name: `SMS ${senderPhone}`,
+        phone: senderPhone,
+        email: null,
+        isOnline: false,
+        profileImageUrl: null,
+        canalOrigem: canalOrigem,
+        nomeCanal: nomeCanal,
+        idCanal: idCanal
+      });
+
+      // Buscar ou criar conversa
+      let conversation = await storage.getConversationByContactAndChannel(contact.id, 'sms');
+      if (!conversation) {
+        conversation = await storage.createConversation({
+          contactId: contact.id,
+          channel: 'sms',
+          status: 'open',
+          lastMessageAt: new Date()
+        });
+      }
+
+      // Criar mensagem
+      const message = await storage.createMessage({
+        conversationId: conversation.id,
+        content: messageText,
+        isFromContact: true,
+        messageType: 'sms',
+        sentAt: new Date(),
+        metadata: smsData
+      });
+
+      // Broadcast para clientes conectados
+      broadcast(conversation.id, {
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: message
+      });
+
+      // Criar negócio automaticamente
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const existingDeals = await storage.getDealsByContact(contact.id);
+        const hasActiveDeal = existingDeals.some(deal => 
+          deal.macrosetor === detectedMacrosetor && deal.isActive
+        );
+        
+        if (!hasActiveDeal) {
+          console.log(`💼 Criando negócio automático para contato de SMS (${detectedMacrosetor}):`, contact.name);
+          await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+          console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        } else {
+          console.log(`ℹ️ Contato já possui negócio ativo no funil ${detectedMacrosetor}:`, contact.name);
+        }
+      } catch (dealError) {
+        console.error('❌ Erro ao criar negócio automático para SMS:', dealError);
+      }
+
+      // Atribuição automática de equipes
+      try {
+        const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+        const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+        
+        if (team) {
+          console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+          await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+          console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+          
+          const availableUser = await storage.getAvailableUserFromTeam(team.id);
+          if (availableUser) {
+            await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+            console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+          } else {
+            console.log(`⏳ Nenhum usuário disponível na equipe ${team.name} no momento - conversa ficará na fila da equipe`);
+          }
+        }
+      } catch (assignmentError) {
+        console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao processar SMS:', error);
+    }
+  }
+
   // Z-API webhook endpoint baseado na documentação oficial
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
