@@ -266,7 +266,7 @@ export function TeamPerformanceModule() {
                         <div key={index} className="flex items-center space-x-2 bg-gray-50 rounded-lg p-2">
                           <Award className="h-4 w-4 text-yellow-500" />
                           <span className="text-sm font-medium">{performer.name}</span>
-                          <Badge variant="outline" size="sm">
+                          <Badge variant="outline">
                             {performer.score?.toFixed(1) || '0.0'}%
                           </Badge>
                         </div>

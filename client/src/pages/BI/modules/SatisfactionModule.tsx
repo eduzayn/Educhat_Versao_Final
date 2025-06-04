@@ -389,7 +389,7 @@ export function SatisfactionModule() {
                       <div className="text-sm text-muted-foreground">
                         {evaluation.evaluatedAt ? new Date(evaluation.evaluatedAt).toLocaleDateString('pt-BR') : 'N/A'}
                       </div>
-                      <Badge variant="outline" size="sm">
+                      <Badge variant="outline">
                         {evaluation.channel || 'N/A'}
                       </Badge>
                     </div>

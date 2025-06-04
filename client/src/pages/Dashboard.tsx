@@ -82,6 +82,13 @@ export function Dashboard() {
       route: '/crm'
     },
     {
+      id: 'bi',
+      label: 'Business Intelligence',
+      icon: BarChart3,
+      description: 'Análises e produtividade',
+      route: '/bi'
+    },
+    {
       id: 'integrations',
       label: 'Integrações',
       icon: Zap,
