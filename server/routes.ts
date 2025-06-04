@@ -4489,7 +4489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Top performers da equipe
         const topPerformers = teamUsers.slice(0, 3).map(user => ({
-          name: `Usuário ${user.userId}`,
+          name: `Usuário ${user.id}`,
           score: Math.random() * 40 + 60 // Simulado
         }));
 
@@ -4754,7 +4754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Vendas por vendedor (usar assignedTo dos deals)
       const salesByPerson = users.map(user => {
-        const userDeals = wonDeals.filter(deal => deal.assignedTo === user.id);
+        const userDeals = wonDeals.filter(deal => deal.contactId === user.id);
         const totalValue = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
         return {
           name: user.displayName || user.email,
@@ -4825,7 +4825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deals = await storage.getDeals();
       
       const targets = users.filter(user => user.role !== 'admin').map((user, index) => {
-        const userDeals = deals.filter(deal => deal.assignedTo === user.id && deal.stage === 'won');
+        const userDeals = deals.filter(deal => deal.contactId === user.id && deal.stage === 'won');
         const currentValue = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
         const targetValue = [50000, 40000, 35000, 30000, 25000][index % 5]; // Metas variadas
         
@@ -4892,13 +4892,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wonDeals = deals.filter(deal => deal.stage === 'won');
       
       const commissions = wonDeals.map((deal, index) => {
-        const assignedUser = users.find(u => u.id === deal.assignedTo);
+        const assignedUser = users.find(u => u.id === deal.contactId);
         const commissionRate = 5; // 5% padrão
         const commissionValue = (deal.value || 0) * (commissionRate / 100);
         
         return {
           id: deal.id,
-          salespersonId: deal.assignedTo || 1,
+          salespersonId: deal.contactId || 1,
           salespersonName: assignedUser?.displayName || assignedUser?.email || 'N/A',
           dealId: deal.id,
           dealValue: deal.value || 0,
@@ -4988,13 +4988,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ranking = users
         .filter(user => user.role !== 'admin')
         .map(user => {
-          const userDeals = wonDeals.filter(deal => deal.assignedTo === user.id);
+          const userDeals = wonDeals.filter(deal => deal.contactId === user.id);
           const totalSales = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
           const totalDeals = userDeals.length;
           const averageTicket = totalDeals > 0 ? totalSales / totalDeals : 0;
           
           // Calcular conversão baseado em todos os deals do usuário
-          const allUserDeals = deals.filter(deal => deal.assignedTo === user.id);
+          const allUserDeals = deals.filter(deal => deal.contactId === user.id);
           const conversionRate = allUserDeals.length > 0 ? (totalDeals / allUserDeals.length) * 100 : 0;
           
           return {
