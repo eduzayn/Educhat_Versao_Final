@@ -273,7 +273,7 @@ export function DealsModule() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`space-y-3 flex-1 overflow-y-auto min-h-96 max-h-96 pr-2 deals-column-scroll ${
+                            className={`space-y-3 flex-1 overflow-y-auto min-h-[800px] max-h-[800px] pr-2 deals-column-scroll ${
                               snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
                             }`}
                           >
