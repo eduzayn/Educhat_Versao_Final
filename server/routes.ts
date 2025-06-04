@@ -4112,8 +4112,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.conversationId);
       const { teamId } = req.body;
       
-      if (!teamId) {
+      // Permitir teamId null para remover atribuição
+      if (teamId === undefined) {
         return res.status(400).json({ message: 'teamId é obrigatório' });
+      }
+
+      if (teamId === null) {
+        // Remover atribuição de equipe
+        await storage.assignConversationToTeam(conversationId, null, 'manual');
+        await storage.assignConversationToUser(conversationId, null, 'manual');
+        
+        console.log(`📌 Conversa ${conversationId} removida de equipe manualmente`);
+        
+        // Broadcast da remoção de atribuição
+        broadcastToAll({
+          type: 'conversation_unassigned',
+          conversationId: conversationId,
+          method: 'manual'
+        });
+
+        res.json({ 
+          success: true, 
+          teamId: null,
+          userId: null,
+          method: 'manual'
+        });
+        return;
       }
 
       await storage.assignConversationToTeam(conversationId, parseInt(teamId), 'manual');
@@ -4153,8 +4177,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.conversationId);
       const { userId } = req.body;
       
-      if (!userId) {
+      // Permitir userId null para remover atribuição
+      if (userId === undefined) {
         return res.status(400).json({ message: 'userId é obrigatório' });
+      }
+
+      if (userId === null) {
+        // Remover atribuição de usuário
+        await storage.assignConversationToUser(conversationId, null, 'manual');
+        
+        console.log(`👤 Conversa ${conversationId} removida do usuário manualmente`);
+        
+        // Broadcast da remoção de atribuição
+        broadcastToAll({
+          type: 'conversation_unassigned',
+          conversationId: conversationId,
+          method: 'manual'
+        });
+
+        res.json({ 
+          success: true, 
+          userId: null,
+          method: 'manual'
+        });
+        return;
       }
 
       await storage.assignConversationToUser(conversationId, parseInt(userId), 'manual');

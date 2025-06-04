@@ -162,8 +162,8 @@ export interface IStorage {
   findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact>;
 
   // Team assignment operations
-  assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual'): Promise<void>;
-  assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual'): Promise<void>;
+  assignConversationToTeam(conversationId: number, teamId: number | null, method: 'automatic' | 'manual'): Promise<void>;
+  assignConversationToUser(conversationId: number, userId: number | null, method: 'automatic' | 'manual'): Promise<void>;
   getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined>;
   getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined>;
   getUserTeams(userId: number): Promise<Team[]>;
@@ -2679,22 +2679,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Team assignment operations
-  async assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual'): Promise<void> {
+  async assignConversationToTeam(conversationId: number, teamId: number | null, method: 'automatic' | 'manual'): Promise<void> {
     await db.update(conversations)
       .set({
         assignedTeamId: teamId,
         assignmentMethod: method,
-        assignedAt: new Date()
+        assignedAt: teamId ? new Date() : null
       })
       .where(eq(conversations.id, conversationId));
   }
 
-  async assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual'): Promise<void> {
+  async assignConversationToUser(conversationId: number, userId: number | null, method: 'automatic' | 'manual'): Promise<void> {
     await db.update(conversations)
       .set({
         assignedUserId: userId,
         assignmentMethod: method,
-        assignedAt: new Date()
+        assignedAt: userId ? new Date() : null
       })
       .where(eq(conversations.id, conversationId));
   }
