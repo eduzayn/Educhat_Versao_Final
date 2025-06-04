@@ -51,134 +51,141 @@ export function InputArea() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar respostas rápidas do servidor
-  const { data: quickReplies = [] } = useQuery<QuickReply[]>({
+  // Query para buscar respostas rápidas
+  const { data: quickReplies = [] } = useQuery({
     queryKey: ['/api/quick-replies'],
-    enabled: true,
+    enabled: showQuickReplies && message.includes('/')
   });
 
-  // Filtrar respostas rápidas baseado no texto após "/"
-  const filteredQuickReplies = quickReplies.filter(reply => 
-    reply.title.toLowerCase().includes(quickReplyFilter.toLowerCase()) ||
-    (reply.description?.toLowerCase().includes(quickReplyFilter.toLowerCase()) ?? false)
-  );
-
-  // Auto-resize textarea
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
-    }
-  }, [message]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showQuickReplies) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const filteredReplies = getFilteredQuickReplies();
+          setSelectedQuickReplyIndex(prev => 
+            prev < filteredReplies.length - 1 ? prev + 1 : 0
+          );
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const filteredReplies = getFilteredQuickReplies();
+          setSelectedQuickReplyIndex(prev => 
+            prev > 0 ? prev - 1 : filteredReplies.length - 1
+          );
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const filteredReplies = getFilteredQuickReplies();
+          if (filteredReplies[selectedQuickReplyIndex]) {
+            selectQuickReply(filteredReplies[selectedQuickReplyIndex]);
+          }
+        } else if (e.key === 'Escape') {
+          setShowQuickReplies(false);
+        }
+      }
+    };
 
-  const handleTyping = (value: string) => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showQuickReplies, selectedQuickReplyIndex, message]);
+
+  const getFilteredQuickReplies = () => {
+    const searchTerm = quickReplyFilter.toLowerCase();
+    const customReplies = quickReplies.filter((reply: QuickReply) => 
+      reply.title.toLowerCase().includes(searchTerm) ||
+      (reply.content && reply.content.toLowerCase().includes(searchTerm)) ||
+      (reply.category && reply.category.toLowerCase().includes(searchTerm))
+    );
+    
+    const defaultReplies = QUICK_REPLIES
+      .filter(reply => reply.toLowerCase().includes(searchTerm))
+      .map(content => ({ id: `default-${content}`, title: content, content, type: 'text' as const }));
+    
+    return [...customReplies, ...defaultReplies];
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
     setMessage(value);
     
-    // Detectar "/" para ativar respostas rápidas
+    // Verificar se está digitando comando de resposta rápida
     const lastSlashIndex = value.lastIndexOf('/');
     if (lastSlashIndex !== -1 && lastSlashIndex === value.length - 1) {
-      // "/" no final da mensagem
       setShowQuickReplies(true);
       setQuickReplyFilter('');
       setSelectedQuickReplyIndex(0);
-    } else if (lastSlashIndex !== -1 && value.substring(lastSlashIndex + 1).indexOf(' ') === -1) {
-      // "/" seguido de texto sem espaço
+    } else if (lastSlashIndex !== -1 && lastSlashIndex < value.length - 1) {
+      const filter = value.substring(lastSlashIndex + 1);
+      setQuickReplyFilter(filter);
       setShowQuickReplies(true);
-      setQuickReplyFilter(value.substring(lastSlashIndex + 1));
       setSelectedQuickReplyIndex(0);
     } else {
-      // Não há "/" ativo ou há espaço após o texto
       setShowQuickReplies(false);
-      setQuickReplyFilter('');
     }
-    
-    if (!activeConversation) return;
 
-    if (value.trim() && !isTyping) {
+    // Indicador de digitação
+    if (!isTyping && activeConversation) {
       setIsTyping(true);
       sendTypingIndicator(activeConversation.id, true);
     }
 
-    // Clear existing timeout
+    // Limpar timeout anterior
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set new timeout to stop typing indicator
+    // Parar indicador após 3 segundos de inatividade
     typingTimeoutRef.current = setTimeout(() => {
-      if (isTyping) {
-        setIsTyping(false);
+      setIsTyping(false);
+      if (activeConversation) {
         sendTypingIndicator(activeConversation.id, false);
       }
-    }, 1000);
+    }, 3000);
   };
 
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
 
-    const messageContent = message.trim();
-    setMessage('');
-    
-    // Stop typing indicator
-    if (isTyping) {
-      setIsTyping(false);
-      sendTypingIndicator(activeConversation.id, false);
-    }
-
     try {
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
-          content: messageContent,
+          content: message.trim(),
           isFromContact: false,
           messageType: 'text',
         },
         contact: activeConversation.contact,
       });
+      setMessage('');
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      setIsTyping(false);
+      if (activeConversation) {
+        sendTypingIndicator(activeConversation.id, false);
+      }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to send message. Please try again.',
+        title: 'Erro',
+        description: 'Falha ao enviar mensagem. Tente novamente.',
         variant: 'destructive',
       });
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // Navegação nas respostas rápidas
-    if (showQuickReplies && filteredQuickReplies.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedQuickReplyIndex(prev => 
-          prev < filteredQuickReplies.length - 1 ? prev + 1 : 0
-        );
-        return;
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedQuickReplyIndex(prev => 
-          prev > 0 ? prev - 1 : filteredQuickReplies.length - 1
-        );
-        return;
-      }
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
-        return;
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setShowQuickReplies(false);
-        return;
-      }
-    }
-
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (showQuickReplies && filteredQuickReplies.length > 0) {
-        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        return; // Allow new line
       } else {
-        handleSendMessage();
+        e.preventDefault();
+        if (showQuickReplies) {
+          const filteredReplies = getFilteredQuickReplies();
+          if (filteredReplies[selectedQuickReplyIndex]) {
+            selectQuickReply(filteredReplies[selectedQuickReplyIndex]);
+          }
+        } else {
+          handleSendMessage();
+        }
       }
     }
   };
@@ -403,325 +410,60 @@ export function InputArea() {
     },
     onSuccess: () => {
       toast({
-        title: "Reação enviada",
-        description: "Sua reação foi enviada com sucesso!",
+        title: 'Sucesso',
+        description: 'Reação enviada com sucesso!',
       });
-      setIsEmojiOpen(false);
     },
-    onError: (error) => {
-      console.error("Erro ao enviar reação:", error);
+    onError: (error: any) => {
       toast({
-        title: "Erro ao enviar reação",
-        description: "Não foi possível enviar a reação. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro',
+        description: error.message || 'Falha ao enviar reação. Tente novamente.',
+        variant: 'destructive',
       });
     }
   });
 
   const handleQuickReaction = (emoji: string) => {
     sendQuickReactionMutation.mutate(emoji);
+    setIsEmojiOpen(false);
   };
 
-  const insertEmoji = (emoji: string) => {
-    setMessage(prev => prev + emoji);
-    textareaRef.current?.focus();
-  };
+  const handleFileUpload = async (file: File) => {
+    if (!file || !activeConversation) return;
 
-  // Mutation para enviar imagem
-  const sendImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('conversationId', activeConversation.id.toString());
 
-      const formData = new FormData();
-      formData.append('phone', activeConversation.contact.phone);
-      formData.append('conversationId', activeConversation.id.toString());
-      formData.append('image', file);
-
-      const response = await fetch('/api/zapi/send-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao enviar imagem');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Imagem enviada",
-        description: "Sua imagem foi enviada com sucesso!",
-      });
-      setIsAttachmentOpen(false);
+    try {
+      const response = await apiRequest('POST', '/api/messages/upload', formData);
       
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar imagem:", error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Não foi possível enviar a imagem. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
+      let messageType: 'image' | 'video' | 'document' = 'document';
+      if (file.type.startsWith('image/')) messageType = 'image';
+      else if (file.type.startsWith('video/')) messageType = 'video';
 
-  // Mutation para enviar vídeo
-  const sendVideoMutation = useMutation({
-    mutationFn: async (file: File) => {
-      console.log('🎥 Iniciando envio de vídeo:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        conversationId: activeConversation?.id,
-        contactPhone: activeConversation?.contact.phone
-      });
-
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        console.error('❌ Dados da conversa não disponíveis');
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append('phone', activeConversation.contact.phone);
-        formData.append('conversationId', activeConversation.id.toString());
-        formData.append('video', file);
-
-        console.log('📤 Enviando FormData para servidor:', {
-          phone: activeConversation.contact.phone,
-          conversationId: activeConversation.id,
-          fileName: file.name,
-          fileSize: file.size
-        });
-
-        const response = await fetch('/api/zapi/send-video', {
-          method: 'POST',
-          body: formData,
-          // Aumentar timeout para arquivos grandes
-          signal: AbortSignal.timeout(180000), // 3 minutos
-        });
-
-        console.log('📥 Resposta do servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ Erro na resposta do servidor:', errorText);
-          throw new Error(`Erro ao enviar vídeo: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Vídeo enviado com sucesso:', result);
-        return result;
-      } catch (error) {
-        console.error('💥 Erro no processo de envio:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Vídeo enviado",
-        description: "Seu vídeo foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-      
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-        // Força um refetch imediato
-        queryClient.refetchQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar vídeo:", error);
-      const isTimeout = error instanceof Error && (error.name === 'TimeoutError' || error.message.includes('timeout'));
-      toast({
-        title: "Erro ao enviar vídeo",
-        description: isTimeout 
-          ? "O vídeo é muito grande. Arquivos maiores que 50MB podem demorar mais para enviar."
-          : "Não foi possível enviar o vídeo. Verifique sua conexão e tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Mutation para enviar documento
-  const sendDocumentMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      console.log('📄 Iniciando envio de documento:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        phone: activeConversation.contact.phone,
-        conversationId: activeConversation.id
-      });
-
-      const formData = new FormData();
-      formData.append('phone', activeConversation.contact.phone);
-      formData.append('conversationId', activeConversation.id.toString());
-      formData.append('document', file);
-
-      try {
-        const response = await fetch('/api/zapi/send-document', {
-          method: 'POST',
-          body: formData,
-        });
-
-        console.log('📥 Resposta do servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok
-        });
-
-        const responseData = await response.json();
-        console.log('📊 Dados da resposta:', responseData);
-
-        if (!response.ok) {
-          console.error('❌ Erro na resposta:', responseData);
-          throw new Error(responseData.error || 'Erro ao enviar documento');
-        }
-
-        return responseData;
-      } catch (error) {
-        console.error('💥 Erro no processo de envio:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Documento enviado",
-        description: "Seu documento foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-      
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-        // Força um refetch imediato
-        queryClient.refetchQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar documento:", error);
-      toast({
-        title: "Erro ao enviar documento",
-        description: "Não foi possível enviar o documento. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Mutation para enviar link
-  const sendLinkMutation = useMutation({
-    mutationFn: async ({ url, text }: { url: string; text: string }) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      const response = await apiRequest("POST", "/api/zapi/send-link", {
-        phone: activeConversation.contact.phone,
+      await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
-        url: url,
-        text: text
+        message: {
+          content: response.fileUrl,
+          isFromContact: false,
+          messageType,
+        },
+        contact: activeConversation.contact,
       });
 
-      return response;
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Link enviado",
-        description: "Seu link foi enviado com sucesso!",
-      });
       setIsAttachmentOpen(false);
-      setLinkUrl('');
-      setLinkText('');
-      
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar link:", error);
+    } catch (error) {
       toast({
-        title: "Erro ao enviar link",
-        description: "Não foi possível enviar o link. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleFileSelect = (type: 'image' | 'video' | 'document') => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    
-    if (type === 'image') {
-      input.accept = 'image/*';
-    } else if (type === 'video') {
-      input.accept = 'video/*';
-    } else if (type === 'document') {
-      input.accept = '.pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx';
-    }
-
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (type === 'image') {
-          sendImageMutation.mutate(file);
-        } else if (type === 'video') {
-          sendVideoMutation.mutate(file);
-        } else if (type === 'document') {
-          sendDocumentMutation.mutate(file);
-        }
-      }
-    };
-
-    input.click();
-  };
-
-  const handleSendLink = () => {
-    if (linkUrl.trim() && linkText.trim()) {
-      sendLinkMutation.mutate({ url: linkUrl.trim(), text: linkText.trim() });
-    } else {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha a URL e o texto do link.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Falha ao enviar arquivo. Tente novamente.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+  const handleAudioRecorded = async (audioBlob: Blob, duration: number) => {
     if (!activeConversation) return;
-
-    // Esconder o componente de gravação imediatamente
-    setShowAudioRecorder(false);
 
     try {
       await sendAudioMutation.mutateAsync({
@@ -730,343 +472,296 @@ export function InputArea() {
         duration,
         contact: activeConversation.contact,
       });
-      toast({
-        title: 'Áudio enviado',
-        description: 'Sua mensagem de áudio foi enviada com sucesso.',
-      });
+      setShowAudioRecorder(false);
     } catch (error) {
       toast({
-        title: 'Erro ao enviar áudio',
-        description: 'Falha ao enviar mensagem de áudio. Tente novamente.',
+        title: 'Erro',
+        description: 'Falha ao enviar áudio. Tente novamente.',
         variant: 'destructive',
       });
     }
   };
 
-  const handleCancelAudio = () => {
-    setShowAudioRecorder(false);
+  const handleSendLink = async () => {
+    if (!linkUrl.trim() || !activeConversation) return;
+
+    const linkMessage = linkText.trim() 
+      ? `${linkText}\n${linkUrl}` 
+      : linkUrl;
+
+    try {
+      await sendMessageMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        message: {
+          content: linkMessage,
+          isFromContact: false,
+          messageType: 'text',
+        },
+        contact: activeConversation.contact,
+      });
+      setLinkUrl('');
+      setLinkText('');
+      setIsAttachmentOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar link. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (!activeConversation) {
-    return null;
+    return (
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <p className="text-center text-gray-500 dark:text-gray-400">
+          Selecione uma conversa para começar a conversar
+        </p>
+      </div>
+    );
   }
 
+  const filteredQuickReplies = getFilteredQuickReplies();
+
   return (
-    <div className="bg-white border-t border-gray-200 p-4">
-      {/* Componente de gravação de áudio */}
-      {showAudioRecorder && (
-        <div className="mb-4 border rounded-lg p-3 bg-gray-50">
-          <AudioRecorder
-            onSendAudio={handleSendAudio}
-            onCancel={handleCancelAudio}
-          />
+    <div className="relative">
+      {/* Quick Replies Dropdown */}
+      {showQuickReplies && filteredQuickReplies.length > 0 && (
+        <div className="absolute bottom-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mb-2 max-h-64 overflow-y-auto z-50">
+          {filteredQuickReplies.map((reply, index) => (
+            <div
+              key={reply.id || `default-${index}`}
+              className={cn(
+                "p-3 cursor-pointer flex items-center justify-between border-b border-gray-100 dark:border-gray-700 last:border-b-0",
+                index === selectedQuickReplyIndex 
+                  ? "bg-blue-50 dark:bg-blue-900/20" 
+                  : "hover:bg-gray-50 dark:hover:bg-gray-700"
+              )}
+              onClick={() => selectQuickReply(reply)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm truncate">{reply.title}</span>
+                  {reply.type !== 'text' && (
+                    <Badge variant="secondary" className="text-xs">
+                      {reply.type === 'audio' ? '🎵' : 
+                       reply.type === 'image' ? '🖼️' : 
+                       reply.type === 'video' ? '🎥' : '📄'}
+                    </Badge>
+                  )}
+                  {reply.type === 'text' && reply.fileUrl && (
+                    <Badge variant="secondary" className="text-xs">📎</Badge>
+                  )}
+                </div>
+                {reply.content && reply.content !== reply.title && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                    {reply.content}
+                  </p>
+                )}
+                {reply.additionalText && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1">
+                    + {reply.additionalText}
+                  </p>
+                )}
+              </div>
+              {reply.category && (
+                <Badge variant="outline" className="text-xs ml-2">
+                  {reply.category}
+                </Badge>
+              )}
+            </div>
+          ))}
         </div>
       )}
-      
-      {/* Interface de digitação sempre visível */}
-      <div className="flex items-end space-x-3">
-        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-2 text-educhat-medium hover:text-educhat-blue"
-              disabled={!activeConversation?.contact.phone}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-          </DialogTrigger>
-          
-          <DialogContent className="w-96">
-            <DialogHeader>
-              <DialogTitle>Enviar Anexo</DialogTitle>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              {/* Botão para Imagem */}
-              <Button
-                onClick={() => handleFileSelect('image')}
-                disabled={sendImageMutation.isPending}
-                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                {sendImageMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Image className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Imagem</span>
-                  </>
-                )}
-              </Button>
 
-              {/* Botão para Vídeo */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        {/* Quick Action Buttons */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex gap-1">
+            {QUICK_REPLIES.slice(0, 3).map((reply, index) => (
               <Button
-                onClick={() => handleFileSelect('video')}
-                disabled={sendVideoMutation.isPending}
-                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
+                key={index}
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 px-2"
+                onClick={() => insertQuickReply(reply)}
               >
-                {sendVideoMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Video className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Vídeo</span>
-                  </>
-                )}
+                <Zap className="w-3 h-3 mr-1" />
+                {reply.length > 15 ? `${reply.substring(0, 15)}...` : reply}
               </Button>
+            ))}
+          </div>
+        </div>
 
-              {/* Botão para Documento */}
-              <Button
-                onClick={() => handleFileSelect('document')}
-                disabled={sendDocumentMutation.isPending}
-                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
-              >
-                {sendDocumentMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <FileText className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Documento</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Link */}
-              <Button
-                onClick={() => {/* Abrirá seção de link */}}
-                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                <Link className="w-8 h-8 mb-2" />
-                <span className="text-sm">Link</span>
-              </Button>
-            </div>
-
-            {/* Seção para envio de link */}
-            <div className="mt-6 space-y-3">
-              <div>
-                <Label htmlFor="linkUrl">URL do Link</Label>
-                <Input
-                  id="linkUrl"
-                  type="url"
-                  placeholder="https://exemplo.com"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="linkText">Texto do Link</Label>
-                <Input
-                  id="linkText"
-                  placeholder="Descrição do link"
-                  value={linkText}
-                  onChange={(e) => setLinkText(e.target.value)}
-                />
-              </div>
-              
-              <Button
-                onClick={handleSendLink}
-                disabled={!linkUrl.trim() || !linkText.trim() || sendLinkMutation.isPending}
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                {sendLinkMutation.isPending ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                ) : (
-                  <Link className="w-4 h-4 mr-2" />
-                )}
-                Enviar Link
-              </Button>
-            </div>
-
-            {!activeConversation?.contact.phone && (
-              <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
-                Anexos disponíveis apenas para contatos do WhatsApp
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowAudioRecorder(!showAudioRecorder)}
-          className={cn(
-            "p-2 text-educhat-medium hover:text-educhat-blue",
-            showAudioRecorder && "bg-educhat-primary text-white"
-          )}
-        >
-          <Mic className="w-5 h-5" />
-        </Button>
-        
-        <div className="flex-1 relative">
-          <Textarea
-            ref={textareaRef}
-            placeholder="Digite sua mensagem..."
-            value={message}
-            onChange={(e) => handleTyping(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
-            rows={1}
-          />
-          
-          {/* Dropdown de Respostas Rápidas */}
-          {showQuickReplies && filteredQuickReplies.length > 0 && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
-              <div className="p-2 border-b border-gray-100 bg-gray-50">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Respostas Rápidas ({filteredQuickReplies.length})
-                </div>
-              </div>
-              {filteredQuickReplies.map((reply, index) => (
-                <div
-                  key={reply.id}
-                  className={cn(
-                    "p-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50",
-                    index === selectedQuickReplyIndex && "bg-blue-50 border-blue-200"
-                  )}
-                  onClick={() => selectQuickReply(reply)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-900">{reply.title}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {reply.type === 'text' ? 'Texto' : 
-                           reply.type === 'audio' ? 'Áudio' :
-                           reply.type === 'image' ? 'Imagem' : 'Vídeo'}
-                        </Badge>
-                      </div>
-                      {reply.description && (
-                        <p className="text-sm text-gray-600 mb-1">{reply.description}</p>
-                      )}
-                      {reply.type === 'text' && reply.content && (
-                        <p className="text-sm text-gray-800 bg-gray-100 p-2 rounded truncate max-w-xs">
-                          {reply.content}
-                        </p>
-                      )}
-                      {reply.type === 'audio' && (
-                        <div className="flex items-center text-sm text-blue-600">
-                          <Mic className="w-4 h-4 mr-1" />
-                          Arquivo de áudio
-                        </div>
-                      )}
-                      {reply.type === 'image' && (
-                        <div className="flex items-center text-sm text-green-600">
-                          <Image className="w-4 h-4 mr-1" />
-                          Arquivo de imagem
-                        </div>
-                      )}
-                      {reply.type === 'video' && (
-                        <div className="flex items-center text-sm text-purple-600">
-                          <Video className="w-4 h-4 mr-1" />
-                          Arquivo de vídeo
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div className="p-2 bg-gray-50 text-xs text-gray-500 border-t border-gray-100">
-                Use ↑↓ para navegar, Enter/Tab para selecionar, Esc para fechar
-              </div>
-            </div>
-          )}
-          <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
+        <div className="flex items-end gap-3">
+          {/* Attachment Button */}
+          <Popover open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
             <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="absolute right-3 bottom-3 p-1 text-educhat-medium hover:text-educhat-blue"
-                disabled={sendQuickReactionMutation.isPending}
-              >
-                {sendQuickReactionMutation.isPending ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border border-gray-400 border-t-transparent" />
-                ) : (
-                  <Smile className="w-5 h-5" />
-                )}
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
+                <Paperclip className="h-5 w-5" />
               </Button>
             </PopoverTrigger>
-            
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium">Emojis</h4>
-                  {activeConversation?.contact.phone && (
-                    <span className="text-xs text-gray-500">
-                      Clique para inserir ou enviar reação
-                    </span>
-                  )}
-                </div>
+            <PopoverContent className="w-80 p-0" align="start">
+              <div className="p-4 space-y-4">
+                <h4 className="font-medium">Anexar arquivo</h4>
                 
-                {/* Emojis rápidos */}
-                <div className="grid grid-cols-8 gap-2">
-                  {QUICK_EMOJIS.map((emoji, index) => (
-                    <div key={index} className="flex flex-col items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => insertEmoji(emoji)}
-                        className="h-8 w-8 p-0 text-lg hover:bg-gray-100"
-                        title={`Inserir ${emoji} no texto`}
-                      >
-                        {emoji}
-                      </Button>
-                      {activeConversation?.contact.phone && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleQuickReaction(emoji)}
-                          className="h-6 w-8 p-0 text-xs text-blue-600 hover:bg-blue-50"
-                          title={`Enviar reação ${emoji}`}
-                          disabled={sendQuickReactionMutation.isPending}
-                        >
-                          →
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                {!activeConversation?.contact.phone && (
-                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600 text-center">
-                    Reações disponíveis apenas para contatos do WhatsApp
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full h-16 flex flex-col items-center justify-center gap-1"
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        fileInputRef.current?.setAttribute('accept', 'image/*');
+                      }}
+                    >
+                      <Image className="h-5 w-5" />
+                      <span className="text-xs">Imagem</span>
+                    </Button>
                   </div>
-                )}
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full h-16 flex flex-col items-center justify-center gap-1"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      fileInputRef.current?.setAttribute('accept', 'video/*');
+                    }}
+                  >
+                    <Video className="h-5 w-5" />
+                    <span className="text-xs">Vídeo</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full h-16 flex flex-col items-center justify-center gap-1"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      fileInputRef.current?.setAttribute('accept', '.pdf,.doc,.docx,.txt');
+                    }}
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span className="text-xs">Documento</span>
+                  </Button>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full h-16 flex flex-col items-center justify-center gap-1"
+                      >
+                        <Link className="h-5 w-5" />
+                        <span className="text-xs">Link</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Enviar Link</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="linkText">Texto (opcional)</Label>
+                          <Input
+                            id="linkText"
+                            placeholder="Digite um texto para acompanhar o link"
+                            value={linkText}
+                            onChange={(e) => setLinkText(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="linkUrl">URL</Label>
+                          <Input
+                            id="linkUrl"
+                            placeholder="https://exemplo.com"
+                            value={linkUrl}
+                            onChange={(e) => setLinkUrl(e.target.value)}
+                          />
+                        </div>
+                        <Button onClick={handleSendLink} className="w-full">
+                          Enviar Link
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </PopoverContent>
           </Popover>
-        </div>
-        
-        <Button
-          onClick={handleSendMessage}
-          disabled={!message.trim() || sendMessageMutation.isPending}
-          className={cn(
-            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3 rounded-xl transition-colors",
-            sendMessageMutation.isPending && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {sendMessageMutation.isPending ? (
-            <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+
+          {/* Emoji/Reaction Button */}
+          <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
+                <Smile className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="start">
+              <h4 className="font-medium mb-3">Reações rápidas</h4>
+              <div className="grid grid-cols-4 gap-2">
+                {QUICK_EMOJIS.map((emoji) => (
+                  <Button
+                    key={emoji}
+                    variant="ghost"
+                    className="h-10 w-10 p-0 text-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => handleQuickReaction(emoji)}
+                    disabled={sendQuickReactionMutation.isPending}
+                  >
+                    {emoji}
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Message Input */}
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              placeholder="Digite sua mensagem... (use / para respostas rápidas)"
+              value={message}
+              onChange={handleMessageChange}
+              onKeyDown={handleKeyPress}
+              className="min-h-[2.5rem] max-h-32 resize-none pr-12"
+              rows={1}
+            />
+          </div>
+
+          {/* Send/Audio Button */}
+          {message.trim() ? (
+            <Button 
+              onClick={handleSendMessage} 
+              size="sm" 
+              className="h-10 w-10 p-0"
+              disabled={sendMessageMutation.isPending}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           ) : (
-            <Send className="w-5 h-5" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onClick={() => setShowAudioRecorder(true)}
+            >
+              <Mic className="h-5 w-5" />
+            </Button>
           )}
-        </Button>
-      </div>
-      
-      {/* Quick Replies */}
-      <div className="flex flex-wrap gap-2 mt-3">
-        {QUICK_REPLIES.map((reply, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            size="sm"
-            onClick={() => insertQuickReply(reply)}
-            className="text-xs rounded-full bg-gray-100 text-educhat-medium hover:bg-gray-200 border-0"
-          >
-            {reply}
-          </Button>
-        ))}
+        </div>
+
+        {/* Audio Recorder Modal */}
+        {showAudioRecorder && (
+          <AudioRecorder
+            onAudioRecorded={handleAudioRecorded}
+            onCancel={() => setShowAudioRecorder(false)}
+          />
+        )}
       </div>
     </div>
   );
