@@ -67,29 +67,29 @@ export function DealsModule() {
     queryKey: ['/api/deals']
   });
 
-  // Transform database deals to UI format
-  const deals = rawDeals.map(deal => ({
-    ...deal,
-    id: deal.id.toString(),
-    stage: (stageMapping as any)[deal.stage] || 'prospecting',
-    tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : [deal.tags]) : [],
-    closeDate: deal.closeDate ? new Date(deal.closeDate).toISOString().split('T')[0] : '',
-    company: deal.company || 'Não informado',
-    owner: deal.owner || 'Não atribuído',
-    ownerAvatar: '',
-    value: deal.value || 0,
-    probability: deal.probability || 0
-  }));
+  // Get current macrosetor configuration
+  const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];
+  
+  // Filter and transform deals by selected macrosetor
+  const deals = rawDeals
+    .filter(deal => deal.macrosetor === selectedMacrosetor)
+    .map(deal => ({
+      ...deal,
+      id: deal.id.toString(),
+      stage: deal.stage,
+      tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : JSON.parse(deal.tags as string || '[]')) : [],
+      closeDate: deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toISOString().split('T')[0] : '',
+      company: 'Empresa não definida',
+      owner: deal.owner || 'Sistema',
+      ownerAvatar: '',
+      value: deal.value || 0,
+      probability: deal.probability || 0
+    }));
 
   // Update deal stage mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
-      const dbStage = (reverseStageMapping as any)[stage] || 'Prospecção';
-      return await apiRequest(`/api/deals/${dealId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ stage: dbStage }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return await apiRequest(`/api/deals/${dealId}`, 'PATCH', { stage });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
@@ -152,6 +152,17 @@ export function DealsModule() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Select value={selectedMacrosetor} onValueChange={setSelectedMacrosetor}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="comercial">🏢 Comercial</SelectItem>
+                <SelectItem value="suporte">🛠️ Suporte</SelectItem>
+                <SelectItem value="cobranca">💰 Cobrança</SelectItem>
+              </SelectContent>
+            </Select>
+
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -197,7 +208,7 @@ export function DealsModule() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="h-full p-6">
               <div className="flex gap-6 h-full overflow-x-auto">
-                {stages.map(stage => {
+                {currentMacrosetor.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
                     <div key={stage.id} className="min-w-80 bg-muted/30 rounded-lg p-4 flex flex-col">
@@ -300,7 +311,7 @@ export function DealsModule() {
                   </div>
                   <div>
                     <Badge variant="secondary" className="text-xs">
-                      {stages.find(s => s.id === deal.stage)?.name}
+                      {currentMacrosetor.stages.find((s: any) => s.id === deal.stage)?.name}
                     </Badge>
                   </div>
                   <div>
