@@ -220,8 +220,22 @@ export function InboxPageRefactored() {
     // Filtro por status
     if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
     
-    // Filtro por canal
-    if (channelFilter !== 'all' && conversation.channel !== channelFilter) return false;
+    // Filtro por canal - implementação escalável para canais específicos
+    if (channelFilter !== 'all') {
+      // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
+      if (channelFilter === conversation.channel) {
+        return true;
+      }
+      
+      // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
+      if (channelFilter.startsWith('whatsapp-')) {
+        const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
+        return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
+      }
+      
+      // Se não corresponde a nenhum filtro específico, excluir
+      return false;
+    }
     
     return true;
   });
@@ -617,8 +631,13 @@ export function InboxPageRefactored() {
                 <SelectValue placeholder="Canal" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="all">Todos os canais</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp (Todos)</SelectItem>
+                {channels.filter(c => c.type === 'whatsapp' && c.isActive).map(channel => (
+                  <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
+                    WhatsApp {channel.name}
+                  </SelectItem>
+                ))}
                 <SelectItem value="instagram">Instagram</SelectItem>
                 <SelectItem value="facebook">Facebook</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
