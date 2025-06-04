@@ -1,0 +1,193 @@
+Educação (42 cursos)
+ABA - Docência do Ensino Superior
+Administração Pública
+Alfabetização e Letramento
+Alfabetização, Letramento e Psicopedagogia
+Arbitragem e Mediação de Conflitos
+Atendimento Educacional Especializado
+Autismo
+Coordenação Educacional
+Coordenação e Orientação Escolar
+Educação 5.0
+Educação Ambiental e Sustentabilidade
+Educação de Jovens e Adultos
+Educação Direitos Humanos
+Educação à Distância
+Educação Especial - Deficiência Visual e Auditiva
+Educação Especial e Inclusiva
+Educação Especial TGD e Altas Habilidades
+Educação Financeira
+Educação Física Escolar e Treinamento Desportivo
+Educação Inclusiva e Diversidade
+Educação Infantil
+Educação Musical
+Educação Musical Inovadora
+Ensino de Língua Espanhola
+Ensino de Língua Inglesa
+Ensino de Língua Portuguesa
+Ensino Religioso
+Gestão e Orientação Escolar
+Gestão Educacional
+Gestão Pública Educacional
+Inspeção Escolar
+Metodologia do Ensino de Artes
+Metodologia do Ensino de Ciências
+Metodologia do Ensino de Filosofia
+Metodologia do Ensino de Geografia
+Metodologia do Ensino de Matemática
+Metodologia do Ensino de Matemática e Física
+Metodologia do Ensino de Sociologia
+Metodologia do Ensino Superior em Várias Modalidades
+Metodologias Ativas e Tecnologias Educacionais
+Tecnologias Educacionais
+Tutoria em EAD
+Gestão Escolar (9 cursos)
+Gestão Escolar
+Gestão Escolar Integradora
+Secretariado Escolar
+Supervisão Escolar
+Supervisão e Orientação em Educação Infantil
+Supervisão e Orientação Escolar
+Língua e Literatura (8 cursos)
+Ensino de Literatura e Produção de Textos - Espanhola
+Ensino de Literatura e Produção de Textos - Inglesa
+Ensino de Literatura e Produção de Textos - Portuguesa
+Letramento e Produção de Texto para o Ensino Médio
+Letras com Ênfase em Linguística
+LIBRAS
+Língua Portuguesa, Redação e Oratória
+Gestão (8 cursos)
+Gestão Empresarial
+Gestão Empresarial com Ênfase em Logística
+Gestão Jurídica
+Gestão Social Estratégica
+Gestão Estratégica de Marketing
+Gestão Estratégica de Pessoas
+Gestão de Startups
+Gestão de Processos
+MBA (20 cursos)
+MBA em Administração Pessoal
+MBA em Auditoria Contábil
+MBA em Contabilidade Gerencial
+MBA em Finanças Corporativas e Controladoria
+MBA em Gestão Ambiental
+MBA Gestão da Produção
+MBA em Gestão da Tecnologia da Informação
+MBA em Gestão de Cadeia de Suprimentos
+MBA em Gestão de Farmácias e Drogarias
+MBA em Gestão de Marketing Digital
+MBA em Gestão de Pessoas e Talentos
+MBA em Gestão Empresarial
+MBA em Gestão Estratégica e Inovação
+MBA em Gestão Hospitalar
+MBA em Gestão Pública
+MBA Gestão em Saúde
+MBA em Logística Empresarial
+MBA em Logística e Supply Chain Management
+MBA em Marketing Estratégico
+MBA em Modelagem e Gestão de Processos
+Psicologia (10 cursos)
+Avaliação Psicológica e Psicodiagnóstico
+Neuroeducação
+Neuropsicologia Clínica
+Neuropsicopedagogia
+Psicologia Clínica
+Psicologia Educacional
+Psicologia Hospitalar
+Psicologia do Trânsito
+Terapia de Casal
+Terapia Familiar
+Psicopedagogia (5 cursos)
+Psicopedagogia Clínica, Institucional e Hospitalar
+Psicopedagogia e Educação Especial
+Psicopedagogia Escolar
+Psicopedagogia Institucional
+Psicopedagogia Institucional e Clínica
+Saúde (15 cursos)
+Atendimento de Unidade Básica de Saúde - Enfermagem
+Enfermagem do Trabalho
+Enfermagem do Trabalho e Saúde Ocupacional
+Enfermagem em Oncologia
+Enfermagem de Urgência e Emergência
+Gestão em Saúde
+Gestão de Hospitais
+Gestão de Saúde Municipal
+Gestão de Saúde Pública
+Gestão de Saúde Pública e Privada
+Gestão Estratégica em Saúde
+Gestão de Unidades Oncológicas
+Microbiologia
+Nutrição Esportiva
+Sexologia
+Meio Ambiente e Sustentabilidade (7 cursos)
+Direito Ambiental
+Educação Ambiental e Sustentabilidade
+Engenharia Ambiental
+Engenharia Ambiental e Energias Renováveis
+Engenharia Ambiental e Saneamento Básico
+Gestão Ambiental Sustentável
+Gestão, Licenciamento e Auditoria Ambiental
+Direito (20 cursos)
+Direito Administrativo
+Direito Aduaneiro
+Direito Ambiental
+Direito Civil e Processual Civil
+Direito Constitucional
+Direito Contratual
+Direito Digital
+Direito Educacional
+Direito Eleitoral
+Direito Empresarial
+Direito da Família e Sucessões
+Direito Imobiliário
+Direito Internacional
+Direito LGBTQIAPN+
+Direito Notarial e Registral
+Direito Penal e Processual Penal
+Direito Previdenciário
+Direito Previdenciário e Docência
+Direito Público Constitucional, Administrativo e Tributário
+Direito Público e Licitatório
+Engenharia (17 cursos)
+Administração de Redes
+Administração de Servidores Linux
+Administração de Servidores Windows
+Engenharia Econômica e Financeira
+Engenharia Elétrica
+Engenharia de Logística
+Engenharia de Manutenção
+Engenharia de Negócios
+Engenharia de Produção
+Engenharia de Produção e Gerenciamento de Projetos
+Engenharia da Qualidade
+Engenharia de Redes e Segurança de Dados
+Engenharia de Segurança do Trabalho
+Engenharia de Software
+Engenharia de Suprimentos
+Indústria 4.0
+Informática Forense
+Artes e Música (8 cursos)
+História da Arte
+Metodologia do Ensino de Artes
+Música, Games, Cinema e Mídias Interativas
+Musicoterapia
+Musicoterapia e Neurociência Musical
+Performance Vocal Contemporânea
+Produção Musical e Tecnologia do Som
+Outros/Diversos (15 cursos)
+Biblioteconomia
+Compliance
+Controladoria Financeira
+Direitos Humanos e Diversidade
+Direitos e Novos Negócios
+Empreendedorismo e Marketing
+Gestão Contábil e Financeira
+Gestão Estratégica de Projetos e Metodologias Ágeis
+Gestão de Pessoas e Pagadoria
+História e Fundamentos da Filosofia
+Marketing Político
+Perícia e Auditoria Contábil
+Segurança Pública e Cidadania
+TDAH
+Transtornos e Problemas de Aprendizagem
+Total Real: 184 cursos com páginas criadas

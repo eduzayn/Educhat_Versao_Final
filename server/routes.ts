@@ -1292,6 +1292,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Não interromper o processamento da mensagem por erro no negócio
         }
 
+        // ========================================
+        // 🎓 DETECÇÃO INTELIGENTE DE CURSOS
+        // ========================================
+        try {
+          // Detectar curso mencionado na mensagem para enriquecer o cadastro
+          const detectedCourse = storage.detectMentionedCourse(messageContent);
+          
+          if (detectedCourse) {
+            console.log(`🎓 Curso detectado na mensagem: "${detectedCourse.courseName}" (${detectedCourse.courseType})`);
+            
+            // Salvar curso como interesse do contato
+            await storage.saveMentionedCourse(contact.id, detectedCourse);
+            
+            // Broadcast da detecção de curso para atualizar UI em tempo real
+            broadcastToAll({
+              type: 'course_detected',
+              conversationId: conversation.id,
+              contactId: contact.id,
+              courseInfo: detectedCourse,
+              messageId: message.id
+            });
+            
+            console.log(`📚 Curso "${detectedCourse.courseName}" registrado como interesse do contato ${contact.name}`);
+          }
+        } catch (courseDetectionError) {
+          console.error('❌ Erro na detecção inteligente de cursos:', courseDetectionError);
+          // Não interromper o processamento da mensagem por erro na detecção
+        }
+
         // Sistema de atribuição automática de equipes baseado no macrosetor
         try {
           const detectedMacrosetor = storage.detectMacrosetor(messageContent, canalOrigem);

@@ -87,6 +87,24 @@ export function useWebSocket() {
               });
             }
             break;
+          case 'course_detected':
+            if ((data as any).conversationId && (data as any).courseInfo) {
+              const courseData = data as any;
+              console.log('🎓 Curso detectado via WebSocket:', {
+                conversationId: courseData.conversationId,
+                contactId: courseData.contactId,
+                courseInfo: courseData.courseInfo
+              });
+              
+              // Invalidar cache do contato para mostrar curso detectado
+              queryClient.invalidateQueries({ 
+                queryKey: [`/api/contacts/${courseData.contactId}`] 
+              });
+              
+              // Invalidar cache das conversas para refletir interesse detectado
+              queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            }
+            break;
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
