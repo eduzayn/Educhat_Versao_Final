@@ -577,6 +577,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message,
       });
       
+      // Se não for uma nota interna E for uma mensagem do agente, enviar via Z-API
+      if (!validatedData.isInternalNote && !validatedData.isFromContact) {
+        const conversation = await storage.getConversation(conversationId);
+        if (conversation && conversation.contact.phone) {
+          try {
+            console.log('📤 Enviando mensagem via Z-API:', {
+              phone: conversation.contact.phone,
+              message: validatedData.content,
+              conversationId
+            });
+            
+            const response = await fetch('http://localhost:5000/api/zapi/send-message', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                phone: conversation.contact.phone,
+                message: validatedData.content,
+                conversationId: conversationId.toString()
+              })
+            });
+            
+            if (response.ok) {
+              console.log('✅ Mensagem enviada via Z-API');
+            } else {
+              console.log('❌ Erro ao enviar via Z-API:', response.statusText);
+            }
+          } catch (error) {
+            console.error('❌ Erro ao chamar Z-API:', error);
+          }
+        }
+      } else if (validatedData.isInternalNote) {
+        console.log('📝 Nota interna criada - não enviada via Z-API');
+      }
+      
       res.status(201).json(message);
     } catch (error) {
       console.error('Error creating message:', error);
