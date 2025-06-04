@@ -17,6 +17,7 @@ import { useState, useRef } from 'react';
 import { MessageReactions } from './MessageReactions';
 import { LazyMediaContent } from './LazyMediaContent';
 import { AudioMessageSimple } from './AudioMessageSimple';
+import { AudioMessageSimple as AudioMessage } from './AudioMessageSimple';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Message, Contact } from '@shared/schema';
@@ -372,12 +373,6 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
         }`}>
           {message.messageType === 'audio' ? (
             (() => {
-              console.log('🎧 Processando mensagem de áudio:', {
-                messageId: message.id,
-                content: message.content,
-                metadata: message.metadata
-              });
-
               // Verificar se temos uma URL válida para o áudio
               let audioUrl: string | null = null;
               
@@ -399,13 +394,11 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
                 const audioMeta = (message.metadata as any).audio;
                 if (audioMeta && audioMeta.audioUrl && (audioMeta.audioUrl.startsWith('http://') || audioMeta.audioUrl.startsWith('https://'))) {
                   audioUrl = audioMeta.audioUrl;
-                  console.log('🎧 URL externa de áudio encontrada nos metadados:', audioUrl);
                 }
               }
 
               // Se temos URL válida, usar diretamente sem buscar no banco
               if (audioUrl) {
-                console.log('🎧 URL do áudio processada:', audioUrl);
                 const duration = (message.metadata as any)?.duration || (message.metadata as any)?.audio?.seconds || 0;
                 return (
                   <AudioMessage
@@ -416,13 +409,10 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
                 );
               }
 
-              console.log('🎧 URL do áudio processada:', audioUrl);
-
               // Se não temos URL válida, tentar buscar usando messageId dos metadados
               if (!audioUrl) {
                 const messageIdFromMetadata = (message.metadata as any)?.messageId;
                 if (messageIdFromMetadata) {
-                  console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdFromMetadata);
                   
                   const duration = (message.metadata as any)?.duration || 0;
                   return (

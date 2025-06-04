@@ -121,7 +121,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
         audioUrl = (message.metadata as any).audio.audioUrl;
       }
 
-      console.log('🎧 URL do áudio processada:', audioUrl);
+
 
       // Se não temos URL válida, tentar buscar usando messageId dos metadados
       if (!audioUrl) {
