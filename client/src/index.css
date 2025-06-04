@@ -34,6 +34,31 @@
   --educhat-purple-100: 269 100% 95%; /* #F3E8FF */
 }
 
+/* Custom scrollbar styles for deals columns */
+.deals-column-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.deals-column-scroll::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+}
+
+.deals-column-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.deals-column-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Firefox scrollbar styles */
+.deals-column-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted));
+}
+
 .dark {
   --background: 224 71% 4%; /* #0F172A */
   --foreground: 213 31% 91%; /* #E2E8F0 */
