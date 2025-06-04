@@ -634,9 +634,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🔍 Avaliando conversa ${conversation.id} - Canal: "${conversation.channel}" vs Filtro: "${channelFilter}"`);
         
         // Apply channel filter if specified
-        if (channelFilter && channelFilter !== 'all' && conversation.channel !== channelFilter) {
-          console.log(`❌ Conversa ${conversation.id} filtrada (canal ${conversation.channel} não corresponde ao filtro ${channelFilter})`);
-          continue;
+        if (channelFilter && channelFilter !== 'all') {
+          // Lógica especial para conversas antigas (canal "whatsapp" genérico)
+          // Permite que sejam exibidas em qualquer filtro de canal específico
+          const isGenericWhatsapp = conversation.channel === 'whatsapp';
+          const isSpecificChannelFilter = channelFilter.startsWith('whatsapp-');
+          
+          if (isGenericWhatsapp && isSpecificChannelFilter) {
+            console.log(`🔧 Conversa ${conversation.id} (canal genérico) incluída no filtro ${channelFilter}`);
+          } else if (conversation.channel !== channelFilter) {
+            console.log(`❌ Conversa ${conversation.id} filtrada (canal ${conversation.channel} não corresponde ao filtro ${channelFilter})`);
+            continue;
+          }
         }
         console.log(`✅ Conversa ${conversation.id} incluída no resultado`);
         
