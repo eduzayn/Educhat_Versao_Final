@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
@@ -20,7 +21,8 @@ import {
   MoreHorizontal,
   Edit,
   Trash,
-  Kanban
+  Kanban,
+  ArrowLeft
 } from "lucide-react";
 
 // Configuração dos funis por macrosetor
@@ -60,6 +62,7 @@ export function DealsModule() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("kanban");
   const [selectedMacrosetor, setSelectedMacrosetor] = useState("comercial");
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   // Fetch deals from database
@@ -144,11 +147,21 @@ export function DealsModule() {
     <div className="h-full flex flex-col">
       <div className="border-b p-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Negócios</h2>
-            <p className="text-muted-foreground">
-              Gerencie seu pipeline de vendas
-            </p>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation('/')}
+              className="h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold">Negócios</h2>
+              <p className="text-muted-foreground">
+                Gerencie seu pipeline de vendas
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -266,7 +279,7 @@ export function DealsModule() {
                                         <span className="text-xs text-muted-foreground">{deal.owner}</span>
                                       </div>
                                       <div className="flex flex-wrap gap-1">
-                                        {deal.tags.map((tag, i) => (
+                                        {deal.tags.map((tag: string, i: number) => (
                                           <Badge key={i} variant="outline" className="text-xs">
                                             {tag}
                                           </Badge>
