@@ -250,6 +250,7 @@ export function DealsModule() {
                 <SelectItem value="secretaria">📋 Secretaria</SelectItem>
                 <SelectItem value="tutoria">🎓 Tutoria</SelectItem>
                 <SelectItem value="financeiro">💳 Financeiro Aluno</SelectItem>
+                <SelectItem value="secretaria_pos">🎓 Secretaria Pós</SelectItem>
               </SelectContent>
             </Select>
 
