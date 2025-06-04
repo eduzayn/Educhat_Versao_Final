@@ -3802,9 +3802,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       startDate.setDate(startDate.getDate() - days);
 
       const conversations = await storage.getConversations(10000, 0);
-      const filteredConversations = conversations.filter(conv => 
-        new Date(conv.createdAt || conv.lastMessageAt) >= startDate
-      );
+      const filteredConversations = conversations.filter(conv => {
+        const date = conv.createdAt || conv.lastMessageAt;
+        return date ? new Date(date) >= startDate : false;
+      });
 
       // Agrupar por canal
       const channelStats = filteredConversations.reduce((acc, conv) => {
@@ -3838,9 +3839,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       startDate.setDate(startDate.getDate() - days);
 
       const deals = await storage.getDeals();
-      const filteredDeals = deals.filter(deal => 
-        new Date(deal.createdAt) >= startDate
-      );
+      const filteredDeals = deals.filter(deal => {
+        return deal.createdAt ? new Date(deal.createdAt) >= startDate : false;
+      });
 
       // Agrupar por macrosetor
       const macrosetorStats = filteredDeals.reduce((acc, deal) => {
