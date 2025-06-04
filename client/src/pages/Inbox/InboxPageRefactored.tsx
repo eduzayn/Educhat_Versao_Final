@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
@@ -14,7 +15,7 @@ import { Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { insertContactSchema } from '@shared/schema';
-import type { InsertContact } from '@shared/schema';
+import type { InsertContact, Message } from '@shared/schema';
 import { 
   Search, 
   Filter,
@@ -161,9 +162,10 @@ export function InboxPageRefactored() {
   const { 
     data: unifiedMessages, 
     isLoading: isLoadingUnifiedMessages 
-  } = useQuery({
+  } = useQuery<Message[]>({
     queryKey: [`/api/contacts/${activeConversation?.contactId}/messages`, messageChannelFilter],
     queryFn: async () => {
+      if (!activeConversation?.contactId) throw new Error('No contact selected');
       const channelParam = messageChannelFilter !== 'all' ? `?channel=${messageChannelFilter}` : '';
       const response = await fetch(`/api/contacts/${activeConversation.contactId}/messages${channelParam}`);
       if (!response.ok) throw new Error('Failed to fetch unified messages');
@@ -831,6 +833,38 @@ export function InboxPageRefactored() {
                               Encerrada
                             </Badge>
                           </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Filtro de Canal - nova linha abaixo do status */}
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-xs text-gray-500">Filtro:</span>
+                      <Select 
+                        value={messageChannelFilter} 
+                        onValueChange={setMessageChannelFilter}
+                      >
+                        <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
+                          <SelectValue>
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
+                              {messageChannelFilter === 'all' ? 'Todos os canais' : 
+                               getContactChannels(activeConversation.contactId).find(ch => ch.id.includes(messageChannelFilter))?.name || 'Canal específico'}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">
+                            <Badge variant="outline" className="text-xs">
+                              Todos os canais
+                            </Badge>
+                          </SelectItem>
+                          {getContactChannels(activeConversation.contactId).map((channel) => (
+                            <SelectItem key={channel.id} value={channel.id}>
+                              <Badge variant="outline" className={`text-xs ${channel.color}`}>
+                                {channel.name}
+                              </Badge>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
