@@ -104,8 +104,28 @@ export const quickReplies = pgTable("quick_replies", {
   isActive: boolean("is_active").default(true),
   usageCount: integer("usage_count").default(0), // track usage for analytics
   createdBy: varchar("created_by").references(() => users.id),
+  isShared: boolean("is_shared").default(false), // se é compartilhada ou privada
+  shareScope: varchar("share_scope", { length: 20 }).default("private"), // private, team, global
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Quick Reply Shares table - para compartilhamento com usuários específicos
+export const quickReplyShares = pgTable("quick_reply_shares", {
+  id: serial("id").primaryKey(),
+  quickReplyId: integer("quick_reply_id").references(() => quickReplies.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sharedBy: varchar("shared_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Quick Reply Team Shares table - para compartilhamento com equipes
+export const quickReplyTeamShares = pgTable("quick_reply_team_shares", {
+  id: serial("id").primaryKey(),
+  quickReplyId: integer("quick_reply_id").references(() => quickReplies.id).notNull(),
+  teamId: integer("team_id").references(() => teams.id).notNull(),
+  sharedBy: varchar("shared_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Teams table
@@ -322,6 +342,16 @@ export const insertContactNoteSchema = createInsertSchema(contactNotes).omit({
   updatedAt: true,
 });
 
+export const insertQuickReplyShareSchema = createInsertSchema(quickReplyShares).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeamShares).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -361,6 +391,13 @@ export type ContactWithTags = Contact & {
 export type QuickReply = typeof quickReplies.$inferSelect;
 export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
 
+export type QuickReplyShare = typeof quickReplyShares.$inferSelect;
+export type InsertQuickReplyShare = z.infer<typeof insertQuickReplyShareSchema>;
+export type QuickReplyTeamShare = typeof quickReplyTeamShares.$inferSelect;
+export type InsertQuickReplyTeamShare = z.infer<typeof insertQuickReplyTeamShareSchema>;
+
 export type QuickReplyWithCreator = QuickReply & {
   creator?: User;
+  sharedUsers?: User[];
+  sharedTeams?: Team[];
 };

@@ -665,7 +665,7 @@ export default function QuickRepliesSettingsPage() {
                 />
 
                 {/* Additional Text Field for Media Types */}
-                {(form.watch('type') === 'audio' || form.watch('type') === 'image' || form.watch('type') === 'video') && (
+                {(form.watch('type') === 'audio' || form.watch('type') === 'image' || form.watch('type') === 'video' || form.watch('type') === 'document') && (
                   <FormField
                     control={form.control}
                     name="additionalText"
@@ -676,7 +676,8 @@ export default function QuickRepliesSettingsPage() {
                           <Textarea
                             placeholder={`Digite um texto que será enviado junto com ${
                               form.watch('type') === 'audio' ? 'o áudio' :
-                              form.watch('type') === 'image' ? 'a imagem' : 'o vídeo'
+                              form.watch('type') === 'image' ? 'a imagem' : 
+                              form.watch('type') === 'video' ? 'o vídeo' : 'o documento'
                             }...`}
                             className="min-h-[80px]"
                             {...field}
@@ -685,7 +686,8 @@ export default function QuickRepliesSettingsPage() {
                         <p className="text-sm text-muted-foreground">
                           Este texto será enviado junto com {
                             form.watch('type') === 'audio' ? 'o áudio' :
-                            form.watch('type') === 'image' ? 'a imagem' : 'o vídeo'
+                            form.watch('type') === 'image' ? 'a imagem' : 
+                            form.watch('type') === 'video' ? 'o vídeo' : 'o documento'
                           } para complementar a mensagem
                         </p>
                         <FormMessage />

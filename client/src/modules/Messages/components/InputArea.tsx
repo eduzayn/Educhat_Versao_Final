@@ -265,6 +265,10 @@ export function InputArea() {
       // Para vídeo, enviar diretamente
       handleSendVideo(quickReply);
       return;
+    } else if (quickReply.type === 'document' && quickReply.fileUrl) {
+      // Para documento, enviar diretamente
+      handleSendDocument(quickReply);
+      return;
     }
     
     setMessage(beforeSlash + content);
@@ -384,6 +388,45 @@ export function InputArea() {
       toast({
         title: 'Erro',
         description: 'Falha ao enviar vídeo. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSendDocument = async (quickReply: QuickReply) => {
+    if (!activeConversation || !quickReply.fileUrl) return;
+    
+    try {
+      // Enviar o documento primeiro
+      await sendMessageMutation.mutateAsync({
+        conversationId: activeConversation.id,
+        message: {
+          content: quickReply.fileUrl,
+          isFromContact: false,
+          messageType: 'document',
+        },
+        contact: activeConversation.contact,
+      });
+
+      // Se há texto adicional, enviar como segunda mensagem
+      if (quickReply.additionalText && quickReply.additionalText.trim()) {
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: quickReply.additionalText,
+            isFromContact: false,
+            messageType: 'text',
+          },
+          contact: activeConversation.contact,
+        });
+      }
+
+      setMessage('');
+      setShowQuickReplies(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar documento. Tente novamente.',
         variant: 'destructive',
       });
     }
