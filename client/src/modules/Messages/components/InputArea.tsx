@@ -252,6 +252,7 @@ export function InputArea() {
     if (!activeConversation || !quickReply.fileUrl) return;
     
     try {
+      // Enviar a imagem primeiro
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
@@ -261,6 +262,20 @@ export function InputArea() {
         },
         contact: activeConversation.contact,
       });
+
+      // Se há texto adicional, enviar como segunda mensagem
+      if (quickReply.additionalText && quickReply.additionalText.trim()) {
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: quickReply.additionalText,
+            isFromContact: false,
+            messageType: 'text',
+          },
+          contact: activeConversation.contact,
+        });
+      }
+
       setMessage('');
       setShowQuickReplies(false);
     } catch (error) {
@@ -276,6 +291,7 @@ export function InputArea() {
     if (!activeConversation || !quickReply.fileUrl) return;
     
     try {
+      // Enviar o vídeo primeiro
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
@@ -285,6 +301,20 @@ export function InputArea() {
         },
         contact: activeConversation.contact,
       });
+
+      // Se há texto adicional, enviar como segunda mensagem
+      if (quickReply.additionalText && quickReply.additionalText.trim()) {
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: quickReply.additionalText,
+            isFromContact: false,
+            messageType: 'text',
+          },
+          contact: activeConversation.contact,
+        });
+      }
+
       setMessage('');
       setShowQuickReplies(false);
     } catch (error) {

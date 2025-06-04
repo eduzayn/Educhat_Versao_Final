@@ -590,8 +590,8 @@ export default function QuickRepliesSettingsPage() {
                   }}
                 />
 
-                {/* Additional Text Field for Audio */}
-                {form.watch('type') === 'audio' && (
+                {/* Additional Text Field for Media Types */}
+                {(form.watch('type') === 'audio' || form.watch('type') === 'image' || form.watch('type') === 'video') && (
                   <FormField
                     control={form.control}
                     name="additionalText"
@@ -600,13 +600,19 @@ export default function QuickRepliesSettingsPage() {
                         <FormLabel>Texto Adicional (opcional)</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Digite um texto que será enviado junto com o áudio..."
+                            placeholder={`Digite um texto que será enviado junto com ${
+                              form.watch('type') === 'audio' ? 'o áudio' :
+                              form.watch('type') === 'image' ? 'a imagem' : 'o vídeo'
+                            }...`}
                             className="min-h-[80px]"
                             {...field}
                           />
                         </FormControl>
                         <p className="text-sm text-muted-foreground">
-                          Este texto será enviado junto com o áudio para complementar a mensagem
+                          Este texto será enviado junto com {
+                            form.watch('type') === 'audio' ? 'o áudio' :
+                            form.watch('type') === 'image' ? 'a imagem' : 'o vídeo'
+                          } para complementar a mensagem
                         </p>
                         <FormMessage />
                       </FormItem>
