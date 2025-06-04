@@ -117,15 +117,17 @@ export function InboxPageRefactored() {
   const [newNote, setNewNote] = useState('');
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
+  const [contactInterests, setContactInterests] = useState<any[]>([]);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
-  // Buscar negócios e tags do contato quando a conversa mudar
+  // Buscar negócios, tags e interesses do contato quando a conversa mudar
   useEffect(() => {
     if (activeConversation?.contactId) {
       fetchContactDeals(activeConversation.contactId);
       fetchContactNotes(activeConversation.contactId);
+      fetchContactInterests(activeConversation.contactId);
     }
   }, [activeConversation?.contactId]);
 
@@ -152,6 +154,19 @@ export function InboxPageRefactored() {
     } catch (error) {
       console.error('Erro ao buscar notas do contato:', error);
       setContactNotes([]);
+    }
+  };
+
+  const fetchContactInterests = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/interests`);
+      if (response.ok) {
+        const interests = await response.json();
+        setContactInterests(Array.isArray(interests) ? interests : []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar interesses do contato:', error);
+      setContactInterests([]);
     }
   };
 
@@ -1207,6 +1222,34 @@ export function InboxPageRefactored() {
                   <span className="text-xs text-gray-500 italic">Nenhuma tag encontrada</span>
                 )}
               </div>
+            </div>
+
+            {/* 🎓 Cursos Detectados */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                🎓 Cursos Detectados
+              </h4>
+              
+              {contactInterests.length > 0 ? (
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {contactInterests.map((interest) => (
+                    <div key={interest.id} className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                      <p className="text-sm font-medium text-green-800 mb-1">
+                        {interest.courseName}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Detectado em {new Date(interest.detectedAt).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhum curso detectado ainda
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 💬 Notas internas */}

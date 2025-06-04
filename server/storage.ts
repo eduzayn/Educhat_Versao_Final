@@ -189,6 +189,9 @@ export interface IStorage {
   setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<SystemSetting>;
   toggleSystemSetting(key: string): Promise<SystemSetting>;
   deleteSystemSetting(key: string): Promise<void>;
+
+  // Contact interests operations
+  getContactInterests(contactId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2883,6 +2886,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSystemSetting(key: string): Promise<void> {
     await db.delete(systemSettings).where(eq(systemSettings.key, key));
+  }
+
+  async getContactInterests(contactId: number): Promise<any[]> {
+    try {
+      // Buscar os interesses salvos através da tabela de notas ou tags
+      // Como não temos uma tabela específica de interesses, vamos buscar nas notas
+      // que começam com "Interesse:"
+      const notes = await db.select()
+        .from(contactNotes)
+        .where(and(
+          eq(contactNotes.contactId, contactId),
+          sql`${contactNotes.content} LIKE 'Interesse:%'`
+        ))
+        .orderBy(desc(contactNotes.createdAt));
+
+      // Transformar as notas em formato de interesse
+      const interests = notes.map(note => ({
+        id: note.id,
+        courseName: note.content.replace('Interesse: ', ''),
+        detectedAt: note.createdAt,
+        type: 'course_detection'
+      }));
+
+      return interests;
+    } catch (error) {
+      console.error('Erro ao buscar interesses do contato:', error);
+      return [];
+    }
   }
 }
 

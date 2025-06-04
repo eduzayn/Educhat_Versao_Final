@@ -701,6 +701,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact interests endpoints
+  app.get('/api/contacts/:id/interests', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const interests = await storage.getContactInterests(contactId);
+      res.json(interests);
+    } catch (error) {
+      console.error('Erro ao buscar interesses do contato:', error);
+      res.status(500).json({ message: 'Erro ao buscar interesses do contato' });
+    }
+  });
+
   // Endpoint para testar webhook manualmente
   app.post('/api/test-webhook', async (req, res) => {
     try {
