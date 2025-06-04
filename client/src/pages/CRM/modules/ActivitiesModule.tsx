@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from 'wouter';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -17,7 +18,8 @@ import {
   Video,
   CheckCircle,
   AlertCircle,
-  User
+  User,
+  ArrowLeft
 } from "lucide-react";
 
 const mockActivities = [
@@ -95,6 +97,7 @@ export function ActivitiesModule() {
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [activeTab, setActiveTab] = useState("list");
+  const [, setLocation] = useLocation();
 
   const filtered = mockActivities.filter((activity) => {
     const matchesSearch = activity.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -114,11 +117,21 @@ export function ActivitiesModule() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Atividades</h2>
-          <p className="text-muted-foreground">
-            Gerencie tarefas, reuniões e acompanhamentos
-          </p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setLocation('/')}
+            className="h-8 w-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold">Atividades</h2>
+            <p className="text-muted-foreground">
+              Gerencie tarefas, reuniões e acompanhamentos
+            </p>
+          </div>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" /> Nova Atividade
