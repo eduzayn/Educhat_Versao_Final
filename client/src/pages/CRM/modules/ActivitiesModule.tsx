@@ -99,8 +99,8 @@ export function ActivitiesModule() {
   const filtered = mockActivities.filter((activity) => {
     const matchesSearch = activity.title.toLowerCase().includes(search.toLowerCase()) ||
                          activity.contact.toLowerCase().includes(search.toLowerCase());
-    const matchesType = !typeFilter || activity.type === typeFilter;
-    const matchesStatus = !statusFilter || activity.status === statusFilter;
+    const matchesType = !typeFilter || typeFilter === "all" || activity.type === typeFilter;
+    const matchesStatus = !statusFilter || statusFilter === "all" || activity.status === statusFilter;
     
     return matchesSearch && matchesType && matchesStatus;
   });
