@@ -887,7 +887,7 @@ export function InboxPageRefactored() {
 
       {/* Painel de Detalhes do Contato */}
       {activeConversation && (
-        <div className="w-64 bg-white border-l border-gray-200">
+        <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
           <div className="p-4 border-b border-gray-100">
             {/* Header do contato */}
             <div className="text-center mb-4">
@@ -902,11 +902,15 @@ export function InboxPageRefactored() {
                 {activeConversation.contact.name}
               </h3>
               
-              <div className="flex items-center justify-center text-sm text-gray-600">
-                <span className={getChannelInfo(activeConversation.channel).color}>
-                  {getChannelInfo(activeConversation.channel).icon}
+              <div className="flex items-center justify-center text-sm mb-2">
+                <span className={`px-2 py-1 rounded-full text-xs ${getChannelStyle(activeConversation)}`}>
+                  {getSpecificChannelName(activeConversation)}
                 </span>
               </div>
+              
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                ✓ Ativa
+              </Badge>
             </div>
 
             {/* Ações rápidas */}
@@ -922,66 +926,158 @@ export function InboxPageRefactored() {
             </div>
           </div>
 
-          <div className="p-4 space-y-4">
-            {/* Informações essenciais */}
+          <div className="p-4 space-y-4 text-sm">
+            {/* 👤 Identificação */}
             <div className="space-y-3">
-              <h4 className="font-medium text-sm text-gray-900">Contato</h4>
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                <User className="w-4 h-4" />
+                Identificação
+              </h4>
               
               {activeConversation.contact.phone && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <Phone className="w-3 h-3 text-gray-400" />
-                  <span className="text-gray-600 truncate">
-                    {activeConversation.contact.phone}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-3 h-3 text-gray-400" />
+                    <span className="text-gray-600">
+                      {activeConversation.contact.phone}
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </Button>
                 </div>
               )}
               
               {activeConversation.contact.email && (
-                <div className="flex items-center space-x-2 text-sm">
+                <div className="flex items-center space-x-2">
                   <Mail className="w-3 h-3 text-gray-400" />
                   <span className="text-gray-600 truncate">
                     {activeConversation.contact.email}
                   </span>
                 </div>
               )}
+              
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-3 h-3 text-gray-400" />
+                <span className="text-gray-600">Belo Horizonte, MG</span>
+              </div>
             </div>
 
-            {/* Tags compactas */}
+            {/* 🎓 Informações Acadêmicas */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                🎓 Informações Acadêmicas
+              </h4>
+              
+              <div className="bg-blue-50 p-3 rounded-lg space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Curso:</span>
+                  <span className="font-medium text-blue-800">Pós em Psicanálise</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Turma:</span>
+                  <span className="font-medium">2025/01</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Turno:</span>
+                  <span className="font-medium">Online</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Polo:</span>
+                  <span className="font-medium">Virtual</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 📝 Histórico */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                Histórico
+              </h4>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Primeira conversa:</span>
+                  <span className="font-medium text-xs">
+                    {new Intl.DateTimeFormat('pt-BR').format(new Date(activeConversation.contact.createdAt || new Date()))}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Último atendimento:</span>
+                  <span className="font-medium text-xs">Hoje, 15:30</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total de mensagens:</span>
+                  <span className="font-medium">{activeConversation.messages?.length || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Atendimentos:</span>
+                  <span className="font-medium">3</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🔖 Tags */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm text-gray-900">Tags</h4>
+                <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </h4>
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                   <Plus className="w-3 h-3" />
                 </Button>
               </div>
               
               <div className="flex flex-wrap gap-1">
-                <Badge variant="secondary" className="text-xs px-2 py-0.5">Lead</Badge>
-                <Badge variant="secondary" className="text-xs px-2 py-0.5">Ativo</Badge>
+                <Badge className="text-xs px-2 py-0.5 bg-green-100 text-green-700 hover:bg-green-200">
+                  Lead quente
+                </Badge>
+                <Badge className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                  Aluna ativa
+                </Badge>
+                <Badge className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 hover:bg-orange-200">
+                  Suporte técnico
+                </Badge>
               </div>
             </div>
 
-            {/* Estatísticas simplificadas */}
+            {/* 💬 Notas internas */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                💬 Notas internas
+              </h4>
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-700 mb-2">
+                  "Solicitou boleto dia 25/05 – retorno agendado para 28/05"
+                </p>
+                <p className="text-xs text-gray-500">
+                  Última atualização por João Santos
+                </p>
+              </div>
+              
+              <Button variant="outline" size="sm" className="w-full text-xs">
+                <Plus className="w-3 h-3 mr-1" />
+                Adicionar nota
+              </Button>
+            </div>
+
+            {/* 📦 Resumo Estatístico */}
             <div className="space-y-2">
               <h4 className="font-medium text-sm text-gray-900">Resumo</h4>
               
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mensagens:</span>
-                  <span className="font-medium">{activeConversation.messages?.length || 0}</span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-purple-50 p-2 rounded text-center">
+                  <div className="font-semibold text-purple-700">87</div>
+                  <div className="text-purple-600">Mensagens</div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  {getStatusBadge(activeConversation.status || 'open')}
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Cliente desde:</span>
-                  <span className="font-medium text-xs">
-                    {new Intl.DateTimeFormat('pt-BR', {
-                      month: 'short',
-                      year: 'numeric'
-                    }).format(new Date(activeConversation.contact.createdAt || new Date()))}
-                  </span>
+                <div className="bg-green-50 p-2 rounded text-center">
+                  <div className="font-semibold text-green-700">3</div>
+                  <div className="text-green-600">Atendimentos</div>
                 </div>
               </div>
             </div>
