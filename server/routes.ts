@@ -4266,7 +4266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Período anterior para comparação
       const previousStartDate = new Date(startDate);
-      const previousEndDate = new Date(startDate);
+      let previousEndDate = new Date(startDate);
       
       if (period === 'today') {
         previousStartDate.setDate(previousStartDate.getDate() - 1);

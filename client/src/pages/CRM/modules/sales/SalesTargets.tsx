@@ -139,10 +139,12 @@ export function SalesTargets() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="today">Hoje</SelectItem>
               <SelectItem value="week">Semanal</SelectItem>
               <SelectItem value="month">Mensal</SelectItem>
               <SelectItem value="quarter">Trimestral</SelectItem>
               <SelectItem value="year">Anual</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
 

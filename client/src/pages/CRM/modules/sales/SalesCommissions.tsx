@@ -124,10 +124,12 @@ export function SalesCommissions() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="today">Hoje</SelectItem>
               <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mês</SelectItem>
               <SelectItem value="quarter">Este trimestre</SelectItem>
               <SelectItem value="year">Este ano</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
 
