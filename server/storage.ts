@@ -1057,15 +1057,26 @@ export class DatabaseStorage implements IStorage {
       'negociar', 'parcelar', 'renegociar', 'acordo'
     ];
     
-    // Verificar palavras-chave de suporte
-    if (suporteKeywords.some(keyword => content.includes(keyword))) {
-      return 'suporte';
-    }
+    // Palavras-chave para TUTORIA (prioridade alta - detecção específica)
+    const tutoriaKeywords = [
+      'tutor', 'tutoria', 'orientação pedagógica', 'orientador', 'dúvida acadêmica',
+      'como estudar', 'metodologia de pesquisa', 'cronograma de estudos', 'planejamento de estudos',
+      'disciplina', 'matéria', 'conteúdo', 'atividade acadêmica', 'tarefa', 'trabalho acadêmico',
+      'tcc', 'monografia', 'projeto de pesquisa', 'pesquisa acadêmica', 'bibliografia', 'artigo científico',
+      'avaliação', 'prova', 'nota', 'média', 'aprovação', 'reprovação',
+      'calendário acadêmico', 'plano de estudos', 'acompanhamento acadêmico', 'mentoria'
+    ];
     
-    // Verificar palavras-chave de cobrança
-    if (cobrancaKeywords.some(keyword => content.includes(keyword))) {
-      return 'cobranca';
-    }
+    // Palavras-chave para SECRETARIA  
+    const secretariaKeywords = [
+      'documento', 'documentos', 'certidão', 'certificado', 'diploma', 'histórico escolar',
+      'declaração de matrícula', 'atestado', 'comprovante', 'segunda via', 'requerimento',
+      'solicitação de documento', 'protocolo', 'processo', 'tramitação', 'secretaria',
+      'acadêmico', 'escolar', 'rematrícula', 'transferência',
+      'aproveitamento', 'validação', 'reconhecimento', 'equivalência',
+      'prazo', 'entrega', 'retirada', 'documentação', 'papelada',
+      'burocracia', 'procedimento', 'como solicitar', 'onde retirar'
+    ];
     
     // Palavras-chave para COMERCIAL (contexto educacional)
     const comercialKeywords = [
@@ -1078,20 +1089,24 @@ export class DatabaseStorage implements IStorage {
       'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
     ];
     
-    // Palavras-chave para SECRETARIA
-    const secretariaKeywords = [
-      'documento', 'documentos', 'certidão', 'certificado', 'diploma', 'histórico',
-      'declaração', 'atestado', 'comprovante', 'segunda via', 'requerimento',
-      'solicitação', 'protocolo', 'processo', 'tramitação', 'secretaria',
-      'acadêmico', 'escolar', 'matrícula', 'rematrícula', 'transferência',
-      'aproveitamento', 'validação', 'reconhecimento', 'equivalência',
-      'prazo', 'entrega', 'retirada', 'documentação', 'papelada',
-      'burocracia', 'procedimento', 'como solicitar', 'onde retirar'
-    ];
+    // Verificar palavras-chave de tutoria PRIMEIRO (maior especificidade)
+    if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
+      return 'tutoria';
+    }
     
     // Verificar palavras-chave de secretaria
     if (secretariaKeywords.some(keyword => content.includes(keyword))) {
       return 'secretaria';
+    }
+    
+    // Verificar palavras-chave de suporte
+    if (suporteKeywords.some(keyword => content.includes(keyword))) {
+      return 'suporte';
+    }
+    
+    // Verificar palavras-chave de cobrança
+    if (cobrancaKeywords.some(keyword => content.includes(keyword))) {
+      return 'cobranca';
     }
     
     // Verificar palavras-chave comerciais específicas
@@ -1148,6 +1163,12 @@ export class DatabaseStorage implements IStorage {
         dealName = `${contact.name || 'Contato'} - Secretaria`;
         initialValue = 0; // Secretaria não tem valor monetário
         probability = 90; // Alta probabilidade de conclusão
+        break;
+      case 'tutoria':
+        stage = 'duvida_recebida';
+        dealName = `${contact.name || 'Contato'} - Tutoria`;
+        initialValue = 0; // Tutoria não tem valor monetário
+        probability = 85; // Alta probabilidade de resolução
         break;
     }
 
