@@ -1967,8 +1967,63 @@ export class DatabaseStorage implements IStorage {
       variations: ['formação pedagógica música', 'formação música', 'pedagogica música'],
       courseType: 'Formação Pedagógica',
       courseName: 'Formação Pedagógica em Música'
+    },
+
+    // ========== CURSO DE PSICANÁLISE ==========
+    'psicanalise': {
+      variations: ['psicanálise', 'psicanalise', 'curso de psicanálise', 'curso de psicanalise', 'formação em psicanálise', 'formação em psicanalise', 'analise psicanalítica', 'teoria psicanalítica', 'psicanálise clínica', 'psicanalise clinica'],
+      courseType: 'Especialização',
+      courseName: 'Psicanálise'
+    },
+
+    // ========== OUTROS CURSOS DE SAÚDE MENTAL ==========
+    'psicologia_pos': {
+      variations: ['psicologia clínica', 'psicologia clinica', 'pós psicologia', 'especialização psicologia'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicologia Clínica'
+    },
+    'terapia_familiar': {
+      variations: ['terapia familiar', 'terapia de casal', 'aconselhamento familiar', 'psicoterapia familiar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Terapia Familiar e de Casal'
+    },
+    'neuropsicologia': {
+      variations: ['neuropsicologia', 'neuropsicologia clínica', 'avaliação neuropsicológica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Neuropsicologia'
     }
   };
+
+  // Função para calcular similaridade entre duas strings (algoritmo de Levenshtein simplificado)
+  private calculateSimilarity(str1: string, str2: string): number {
+    if (str1.length === 0) return str2.length === 0 ? 1 : 0;
+    if (str2.length === 0) return 0;
+
+    const matrix = [];
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          );
+        }
+      }
+    }
+
+    const maxLength = Math.max(str1.length, str2.length);
+    return 1 - matrix[str2.length][str1.length] / maxLength;
+  }
 
   // Função para detectar curso mencionado na mensagem
   detectMentionedCourse(messageContent: string): { courseName: string; courseType: string; courseKey: string } | null {
@@ -1991,12 +2046,28 @@ export class DatabaseStorage implements IStorage {
 
         // Verificar se a variação está contida na mensagem (exact match)
         if (normalizedMessage.includes(normalizedVariation)) {
-          console.log(`✅ Curso detectado: ${courseData.courseName} (${courseData.courseType})`);
+          console.log(`✅ Curso detectado por match exato: ${courseData.courseName} (${courseData.courseType}) - variação: "${normalizedVariation}"`);
           return {
             courseName: courseData.courseName,
             courseType: courseData.courseType,
             courseKey: courseKey
           };
+        }
+
+        // Para palavras únicas importantes como "psicanálise", verificar com tolerância maior
+        if (normalizedVariation.split(' ').length === 1 && normalizedVariation.length > 6) {
+          const words = normalizedMessage.split(' ');
+          for (const word of words) {
+            // Verificar similaridade com palavras-chave importantes
+            if (this.calculateSimilarity(word, normalizedVariation) > 0.8) {
+              console.log(`✅ Curso detectado por similaridade: ${courseData.courseName} (${courseData.courseType}) - palavra: "${word}" similar a "${normalizedVariation}"`);
+              return {
+                courseName: courseData.courseName,
+                courseType: courseData.courseType,
+                courseKey: courseKey
+              };
+            }
+          }
         }
       }
     }

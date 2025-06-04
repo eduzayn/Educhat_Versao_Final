@@ -1285,12 +1285,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Criar mensagem com campos adicionais da Z-API
+        let sentAtDate = new Date();
+        
+        // Validar e converter timestamp do webhook
+        if (webhookData.momment) {
+          try {
+            const timestamp = parseInt(webhookData.momment);
+            if (!isNaN(timestamp) && timestamp > 0) {
+              sentAtDate = new Date(timestamp);
+              // Verificar se a data é válida
+              if (isNaN(sentAtDate.getTime())) {
+                console.log('❌ Timestamp inválido, usando data atual');
+                sentAtDate = new Date();
+              }
+            }
+          } catch (error) {
+            console.log('❌ Erro ao processar timestamp, usando data atual');
+            sentAtDate = new Date();
+          }
+        }
+        
         const message = await storage.createMessage({
           conversationId: conversation.id,
           content: messageContent,
           isFromContact: !webhookData.fromMe, // fromMe indica se foi enviada pela própria instância
           messageType: messageType,
-          sentAt: new Date(webhookData.momment || Date.now()),
+          sentAt: sentAtDate,
           metadata: webhookData,
           // Campos adicionais da documentação Z-API
           whatsappMessageId: webhookData.messageId || null,
