@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
+import { useLocation } from 'wouter';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -15,7 +16,8 @@ import {
   UserCheck,
   MessageSquare,
   Phone,
-  Star
+  Star,
+  ArrowLeft
 } from 'lucide-react';
 import { BIDashboard } from './modules/BIDashboard';
 import { ProductivityModule } from './modules/ProductivityModule';
@@ -25,19 +27,32 @@ import { SatisfactionModule } from './modules/SatisfactionModule';
 
 export function BIPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [, setLocation] = useLocation();
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-educhat-dark">
-              Business Intelligence
-            </h1>
-            <p className="text-educhat-medium mt-1">
-              Análises estratégicas e controle de produtividade
-            </p>
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/')}
+              className="flex items-center space-x-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Dashboard</span>
+            </Button>
+            <div className="border-l border-gray-300 h-6"></div>
+            <div>
+              <h1 className="text-2xl font-bold text-educhat-dark">
+                Business Intelligence
+              </h1>
+              <p className="text-educhat-medium mt-1">
+                Análises estratégicas e controle de produtividade
+              </p>
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" size="sm">
