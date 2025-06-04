@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useRef } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2 } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, StickyNote } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
 import { format } from "date-fns";
@@ -52,9 +52,18 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     ? contact.name?.charAt(0)?.toUpperCase() || "C"
     : "A";
 
-  const bubbleClasses = isFromContact
-    ? "bg-gray-100 text-gray-900"
-    : "bg-blue-600 text-white";
+  const bubbleClasses = useMemo(() => {
+    // Verificar se é uma nota interna
+    const isInternalNote = message.isInternalNote;
+    
+    if (isInternalNote) {
+      return "bg-yellow-50 text-yellow-900 border border-yellow-200";
+    }
+    
+    return isFromContact
+      ? "bg-gray-100 text-gray-900"
+      : "bg-blue-600 text-white";
+  }, [isFromContact, message.isInternalNote]);
 
   const timeClasses = isFromContact
     ? "text-xs text-gray-400"
@@ -171,6 +180,13 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     // Mensagem de texto padrão
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
+        {message.isInternalNote && (
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-yellow-300">
+            <StickyNote className="w-3 h-3 text-yellow-600" />
+            <span className="text-xs font-medium text-yellow-700">Nota Interna</span>
+            <span className="text-xs text-yellow-600">Visível apenas para a equipe</span>
+          </div>
+        )}
         {message.content ? (
           <p className="text-sm">{message.content}</p>
         ) : (
