@@ -1067,6 +1067,38 @@ export class DatabaseStorage implements IStorage {
       return 'cobranca';
     }
     
+    // Palavras-chave para COMERCIAL (contexto educacional)
+    const comercialKeywords = [
+      'curso', 'cursos', 'valores', 'mensalidade', 'preço', 'preços', 'promoção',
+      'inscrição', 'matrícula', 'matricular', 'oferta', 'condição', 'desconto',
+      'quero estudar', 'quero começar', 'modalidade', 'formação', 'faculdade',
+      'pós-graduação', 'segunda licenciatura', 'formação pedagógica', 'graduação',
+      'quero saber mais', 'como funciona', 'interesse', 'sou novo', 'sou nova',
+      'quero fazer', 'gostaria de saber', 'quero me matricular', 'tem curso',
+      'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
+    ];
+    
+    // Palavras-chave para SECRETARIA
+    const secretariaKeywords = [
+      'documento', 'documentos', 'certidão', 'certificado', 'diploma', 'histórico',
+      'declaração', 'atestado', 'comprovante', 'segunda via', 'requerimento',
+      'solicitação', 'protocolo', 'processo', 'tramitação', 'secretaria',
+      'acadêmico', 'escolar', 'matrícula', 'rematrícula', 'transferência',
+      'aproveitamento', 'validação', 'reconhecimento', 'equivalência',
+      'prazo', 'entrega', 'retirada', 'documentação', 'papelada',
+      'burocracia', 'procedimento', 'como solicitar', 'onde retirar'
+    ];
+    
+    // Verificar palavras-chave de secretaria
+    if (secretariaKeywords.some(keyword => content.includes(keyword))) {
+      return 'secretaria';
+    }
+    
+    // Verificar palavras-chave comerciais específicas
+    if (comercialKeywords.some(keyword => content.includes(keyword))) {
+      return 'comercial';
+    }
+    
     // Padrão: comercial
     return 'comercial';
   }

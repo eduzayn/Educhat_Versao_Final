@@ -55,6 +55,16 @@ const macrosetores = {
       { id: 'quitado', name: 'Quitado', color: 'bg-green-500' },
       { id: 'encerrado', name: 'Encerrado', color: 'bg-gray-500' }
     ]
+  },
+  secretaria: {
+    name: 'Secretaria',
+    stages: [
+      { id: 'solicitacao', name: 'Solicitação', color: 'bg-purple-500' },
+      { id: 'documentos_pendentes', name: 'Documentos Pendentes', color: 'bg-yellow-500' },
+      { id: 'em_analise', name: 'Em Análise', color: 'bg-blue-500' },
+      { id: 'aprovado', name: 'Aprovado', color: 'bg-green-500' },
+      { id: 'finalizado', name: 'Finalizado', color: 'bg-gray-500' }
+    ]
   }
 };
 
@@ -207,6 +217,7 @@ export function DealsModule() {
                 <SelectItem value="comercial">🏢 Comercial</SelectItem>
                 <SelectItem value="suporte">🛠️ Suporte</SelectItem>
                 <SelectItem value="cobranca">💰 Cobrança</SelectItem>
+                <SelectItem value="secretaria">📋 Secretaria</SelectItem>
               </SelectContent>
             </Select>
 
