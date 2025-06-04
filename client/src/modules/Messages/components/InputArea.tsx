@@ -58,6 +58,13 @@ export function InputArea() {
     enabled: showQuickReplies && message.includes('/')
   });
 
+  // Query para buscar usuário atual (para notas internas)
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+    retry: false,
+    staleTime: 1000 * 60 * 10 // 10 minutos
+  });
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showQuickReplies) {
@@ -148,7 +155,8 @@ export function InputArea() {
 
     try {
       if (isInternalNote) {
-        // Enviar nota interna
+        // Enviar nota interna com nome do usuário atual
+        const authorName = currentUser?.displayName || currentUser?.username || 'Usuário';
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
           message: {
@@ -156,6 +164,7 @@ export function InputArea() {
             isFromContact: false,
             messageType: 'text',
             isInternalNote: true,
+            authorName: authorName,
           },
           contact: activeConversation.contact,
         });

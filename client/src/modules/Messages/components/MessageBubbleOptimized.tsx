@@ -181,10 +181,33 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
         {message.isInternalNote && (
-          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-400">
-            <StickyNote className="w-3 h-3 text-gray-300" />
-            <span className="text-xs font-medium text-gray-200">Nota Interna</span>
-            <span className="text-xs text-gray-300">Visível apenas para a equipe</span>
+          <div className="mb-2 pb-2 border-b border-gray-400">
+            <div className="flex items-center gap-2 mb-1">
+              <StickyNote className="w-3 h-3 text-gray-300" />
+              <span className="text-xs font-medium text-gray-200">Nota Interna</span>
+              <span className="text-xs text-gray-300">•</span>
+              <span className="text-xs text-gray-300">Visível apenas para a equipe</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span className="font-medium">
+                {message.authorName || 'Sistema'}
+              </span>
+              <span>•</span>
+              <span>
+                {message.sentAt ? new Date(message.sentAt).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                }) : '--/--/----'}
+              </span>
+              <span>•</span>
+              <span>
+                {message.sentAt ? new Date(message.sentAt).toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : '--:--'}
+              </span>
+            </div>
           </div>
         )}
         {message.content ? (
