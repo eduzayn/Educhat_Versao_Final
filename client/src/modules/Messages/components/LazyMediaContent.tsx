@@ -113,8 +113,13 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
                 controls 
                 className="rounded-lg max-w-full h-auto"
                 preload="metadata"
+                style={{ maxHeight: '300px' }}
+                onError={() => secureLog.error('Erro ao carregar vídeo', { messageId })}
+                onLoadedData={() => secureLog.debug('Vídeo carregado', { messageId })}
               >
                 <source src={content} type="video/mp4" />
+                <source src={content} type="video/webm" />
+                <source src={content} type="video/ogg" />
                 Seu navegador não suporta vídeo.
               </video>
             </div>

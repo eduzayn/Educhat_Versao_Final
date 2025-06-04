@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
+import { secureLog } from "@/lib/secureLogger";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -35,6 +36,8 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
       }
 
       setIsLoading(true);
+      secureLog.audio('Buscando via API', messageIdForFetch);
+      
       fetch(`/api/messages/${messageIdForFetch}/audio`)
         .then(response => {
           if (!response.ok) {
@@ -45,14 +48,15 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         .then(data => {
           if (data.audioUrl) {
             setActualAudioUrl(data.audioUrl);
+            secureLog.audio('Carregado com sucesso', messageIdForFetch);
           } else {
             throw new Error('Áudio não encontrado');
           }
         })
         .catch(() => {
-          // Marcar como falha para não tentar novamente
           sessionStorage.setItem(failedKey, 'true');
           setError('Áudio não disponível');
+          secureLog.error('Falha ao carregar áudio', { messageId: messageIdForFetch });
         })
         .finally(() => setIsLoading(false));
     }
