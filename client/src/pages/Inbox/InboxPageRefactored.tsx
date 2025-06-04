@@ -116,9 +116,42 @@ export function InboxPageRefactored() {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [contactNotes, setContactNotes] = useState<any[]>([]);
+  const [contactDeals, setContactDeals] = useState<any[]>([]);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
+
+  // Buscar negócios e tags do contato quando a conversa mudar
+  useEffect(() => {
+    if (activeConversation?.contactId) {
+      fetchContactDeals(activeConversation.contactId);
+      fetchContactNotes(activeConversation.contactId);
+    }
+  }, [activeConversation?.contactId]);
+
+  const fetchContactDeals = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/deals?contactId=${contactId}`);
+      if (response.ok) {
+        const deals = await response.json();
+        setContactDeals(deals);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar negócios do contato:', error);
+    }
+  };
+
+  const fetchContactNotes = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/notes`);
+      if (response.ok) {
+        const notes = await response.json();
+        setContactNotes(notes);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar notas do contato:', error);
+    }
+  };
 
   // Funções para manipular tags
   const handleAddTag = () => {
@@ -1035,10 +1068,22 @@ export function InboxPageRefactored() {
                 </div>
               )}
               
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-3 h-3 text-gray-400" />
-                <span className="text-gray-600">Belo Horizonte, MG</span>
-              </div>
+              {activeConversation.contact.location && (
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600">{activeConversation.contact.location}</span>
+                </div>
+              )}
+              
+              {/* Informações do Canal */}
+              {activeConversation.contact.canalOrigem && (
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600 text-xs">
+                    {activeConversation.contact.nomeCanal || activeConversation.contact.canalOrigem}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* 🎓 Informações Acadêmicas */}
@@ -1049,20 +1094,30 @@ export function InboxPageRefactored() {
               
               <div className="bg-blue-50 p-3 rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Curso:</span>
-                  <span className="font-medium text-blue-800">Pós em Psicanálise</span>
+                  <span className="text-gray-600">Canal:</span>
+                  <span className="font-medium text-blue-800">
+                    {activeConversation.contact.canalOrigem ? 
+                      activeConversation.contact.canalOrigem.charAt(0).toUpperCase() + 
+                      activeConversation.contact.canalOrigem.slice(1) : 
+                      'WhatsApp'
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Turma:</span>
-                  <span className="font-medium">2025/01</span>
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium">
+                    {activeConversation.contact.isOnline ? 'Online' : 'Offline'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Turno:</span>
-                  <span className="font-medium">Online</span>
+                  <span className="text-gray-600">Conversas:</span>
+                  <span className="font-medium">{activeConversation.channel}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Polo:</span>
-                  <span className="font-medium">Virtual</span>
+                  <span className="text-gray-600">Idade:</span>
+                  <span className="font-medium">
+                    {activeConversation.contact.age || 'Não informado'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1083,15 +1138,25 @@ export function InboxPageRefactored() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Último atendimento:</span>
-                  <span className="font-medium text-xs">Hoje, 15:30</span>
+                  <span className="font-medium text-xs">
+                    {activeConversation.lastMessageAt ? 
+                      new Intl.DateTimeFormat('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).format(new Date(activeConversation.lastMessageAt)) :
+                      'Nunca'
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total de mensagens:</span>
                   <span className="font-medium">{activeConversation.messages?.length || 0}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Atendimentos:</span>
-                  <span className="font-medium">3</span>
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium">{activeConversation.status || 'Ativo'}</span>
                 </div>
               </div>
             </div>
@@ -1109,15 +1174,36 @@ export function InboxPageRefactored() {
               </div>
               
               <div className="flex flex-wrap gap-1">
-                <Badge className="text-xs px-2 py-0.5 bg-green-100 text-green-700 hover:bg-green-200">
-                  Lead quente
-                </Badge>
-                <Badge className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200">
-                  Aluna ativa
-                </Badge>
-                <Badge className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 hover:bg-orange-200">
-                  Suporte técnico
-                </Badge>
+                {/* Tags do canal de origem */}
+                {activeConversation.contact.canalOrigem && (
+                  <Badge className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 hover:bg-purple-200">
+                    {activeConversation.contact.canalOrigem.charAt(0).toUpperCase() + activeConversation.contact.canalOrigem.slice(1)}
+                  </Badge>
+                )}
+                
+                {/* Tags dos negócios */}
+                {contactDeals.map((deal) => {
+                  if (deal.tags && Array.isArray(deal.tags)) {
+                    return deal.tags.map((tag: string, index: number) => (
+                      <Badge key={`${deal.id}-${index}`} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                        {tag}
+                      </Badge>
+                    ));
+                  }
+                  return null;
+                }).filter(Boolean)}
+                
+                {/* Tag de status online */}
+                {activeConversation.contact.isOnline && (
+                  <Badge className="text-xs px-2 py-0.5 bg-green-100 text-green-700 hover:bg-green-200">
+                    Online
+                  </Badge>
+                )}
+                
+                {/* Se não há tags, mostrar mensagem */}
+                {contactDeals.length === 0 && !activeConversation.contact.canalOrigem && (
+                  <span className="text-xs text-gray-500 italic">Nenhuma tag encontrada</span>
+                )}
               </div>
             </div>
 
