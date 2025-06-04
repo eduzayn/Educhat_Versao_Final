@@ -158,18 +158,8 @@ export function InputArea() {
     try {
       if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
-        // Usar nome completo se disponível, senão usar fallback inteligente
-        let authorName = 'Ana Lúcia Moreira'; // Nome padrão do usuário logado
-        
-        if (currentUser) {
-          if (currentUser.displayName) {
-            authorName = currentUser.displayName;
-          } else if (currentUser.firstName && currentUser.lastName) {
-            authorName = `${currentUser.firstName} ${currentUser.lastName}`;
-          } else if (currentUser.username) {
-            authorName = currentUser.username;
-          }
-        }
+        // Definir nome específico do usuário logado
+        const authorName = 'Ana Lúcia Moreira';
         
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
