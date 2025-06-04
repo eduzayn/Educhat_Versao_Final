@@ -23,34 +23,43 @@ import {
   Kanban
 } from "lucide-react";
 
-const stages = [
-  { id: 'prospecting', name: 'Prospecção', color: 'bg-gray-500' },
-  { id: 'qualified', name: 'Qualificado', color: 'bg-blue-500' },
-  { id: 'proposal', name: 'Proposta', color: 'bg-yellow-500' },
-  { id: 'negotiation', name: 'Negociação', color: 'bg-orange-500' },
-  { id: 'won', name: 'Fechado', color: 'bg-green-500' }
-];
-
-// Stage mapping for database values
-const stageMapping = {
-  'Prospecção': 'prospecting',
-  'Qualificado': 'qualified', 
-  'Proposta': 'proposal',
-  'Negociação': 'negotiation',
-  'Fechado': 'won'
-};
-
-const reverseStageMapping = {
-  'prospecting': 'Prospecção',
-  'qualified': 'Qualificado',
-  'proposal': 'Proposta', 
-  'negotiation': 'Negociação',
-  'won': 'Fechado'
+// Configuração dos funis por macrosetor
+const macrosetores = {
+  comercial: {
+    name: 'Comercial',
+    stages: [
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-gray-500' },
+      { id: 'qualified', name: 'Qualificado', color: 'bg-blue-500' },
+      { id: 'proposal', name: 'Proposta', color: 'bg-yellow-500' },
+      { id: 'negotiation', name: 'Negociação', color: 'bg-orange-500' },
+      { id: 'won', name: 'Fechado', color: 'bg-green-500' }
+    ]
+  },
+  suporte: {
+    name: 'Suporte',
+    stages: [
+      { id: 'novo', name: 'Novo', color: 'bg-red-500' },
+      { id: 'em_andamento', name: 'Em Andamento', color: 'bg-orange-500' },
+      { id: 'aguardando_cliente', name: 'Aguardando Cliente', color: 'bg-yellow-500' },
+      { id: 'resolvido', name: 'Resolvido', color: 'bg-green-500' }
+    ]
+  },
+  cobranca: {
+    name: 'Cobrança',
+    stages: [
+      { id: 'debito_detectado', name: 'Débito Detectado', color: 'bg-red-500' },
+      { id: 'tentativa_contato', name: 'Tentativa de Contato', color: 'bg-orange-500' },
+      { id: 'negociacao', name: 'Negociação', color: 'bg-yellow-500' },
+      { id: 'quitado', name: 'Quitado', color: 'bg-green-500' },
+      { id: 'encerrado', name: 'Encerrado', color: 'bg-gray-500' }
+    ]
+  }
 };
 
 export function DealsModule() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("kanban");
+  const [selectedMacrosetor, setSelectedMacrosetor] = useState("comercial");
   const queryClient = useQueryClient();
 
   // Fetch deals from database

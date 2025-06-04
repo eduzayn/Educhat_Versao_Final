@@ -209,7 +209,8 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
-  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // prospecting, qualified, proposal, negotiation, won, lost
+  macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // comercial, suporte, cobranca
+  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // varia por macrosetor
   value: integer("value").default(0), // valor em centavos
   probability: integer("probability").default(0), // 0-100
   expectedCloseDate: timestamp("expected_close_date"),

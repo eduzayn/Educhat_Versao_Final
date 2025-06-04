@@ -143,7 +143,7 @@ export interface IStorage {
   createDeal(deal: InsertDeal): Promise<Deal>;
   updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal>;
   deleteDeal(id: number): Promise<void>;
-  createAutomaticDeal(contactId: number, canalOrigem?: string): Promise<Deal>;
+  createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal>;
 
   // Automatic contact creation
   findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact>;
@@ -969,58 +969,66 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deals.id, id));
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string): Promise<Deal> {
-    // Buscar informações do contato para criar um nome apropriado para o negócio
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
     const contact = await this.getContact(contactId);
     if (!contact) {
       throw new Error('Contato não encontrado');
     }
 
-    // Determinar o valor inicial baseado no canal de origem
-    let initialValue = 0;
-    let dealName = `${contact.name || 'Contato'} - Oportunidade`;
-    
-    // Personalizar baseado no canal de origem
-    switch (canalOrigem?.toLowerCase()) {
-      case 'whatsapp':
-        initialValue = 150000; // R$ 1.500,00 em centavos
-        dealName = `${contact.name || 'Contato'} - WhatsApp Lead`;
+    // Determinar macrosetor baseado no canal ou usar padrão
+    let determinedMacrosetor = macrosetor || 'comercial';
+    let stage = 'prospecting';
+    let dealName = `${contact.name || 'Contato'} - Novo Lead`;
+    let initialValue = 100000; // R$ 1.000,00 padrão
+    let probability = 20;
+
+    // Definir configurações baseadas no macrosetor
+    switch (determinedMacrosetor) {
+      case 'comercial':
+        stage = 'prospecting';
+        dealName = `${contact.name || 'Contato'} - Lead Comercial`;
+        probability = 25;
+        // Valor baseado no canal
+        switch (canalOrigem?.toLowerCase()) {
+          case 'whatsapp': initialValue = 150000; break;
+          case 'instagram': initialValue = 120000; break;
+          case 'facebook': initialValue = 100000; break;
+          case 'email': initialValue = 200000; break;
+          default: initialValue = 100000;
+        }
         break;
-      case 'instagram':
-        initialValue = 120000; // R$ 1.200,00 em centavos
-        dealName = `${contact.name || 'Contato'} - Instagram Lead`;
+      case 'suporte':
+        stage = 'novo';
+        dealName = `${contact.name || 'Contato'} - Suporte`;
+        initialValue = 0; // Suporte não tem valor monetário
+        probability = 80; // Alta probabilidade de resolução
         break;
-      case 'facebook':
-        initialValue = 100000; // R$ 1.000,00 em centavos
-        dealName = `${contact.name || 'Contato'} - Facebook Lead`;
+      case 'cobranca':
+        stage = 'debito_detectado';
+        dealName = `${contact.name || 'Contato'} - Cobrança`;
+        initialValue = 50000; // R$ 500,00 valor médio de cobrança
+        probability = 60; // Probabilidade média de quitação
         break;
-      case 'email':
-        initialValue = 200000; // R$ 2.000,00 em centavos
-        dealName = `${contact.name || 'Contato'} - Email Lead`;
-        break;
-      default:
-        initialValue = 100000; // R$ 1.000,00 em centavos (valor padrão)
-        dealName = `${contact.name || 'Contato'} - Novo Lead`;
     }
 
-    // Criar o negócio automaticamente
     const dealData: InsertDeal = {
       name: dealName,
       contactId: contactId,
-      stage: 'prospecting', // Sempre inicia na etapa de prospecção
+      macrosetor: determinedMacrosetor,
+      stage: stage,
       value: initialValue,
-      probability: 20, // 20% de probabilidade inicial
-      expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias a partir de hoje
-      owner: 'Sistema', // Pode ser ajustado depois
+      probability: probability,
+      expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      owner: 'Sistema',
       canalOrigem: canalOrigem || 'unknown',
-      tags: JSON.stringify([canalOrigem || 'lead', 'automatico']),
-      notes: `Negócio criado automaticamente ao cadastrar contato via ${canalOrigem || 'sistema'} em ${new Date().toLocaleDateString('pt-BR')}`,
+      tags: JSON.stringify([canalOrigem || 'lead', 'automatico', determinedMacrosetor]),
+      notes: `Deal criado automaticamente para ${contact.name || 'Contato'} via ${canalOrigem || 'sistema'} - Setor: ${determinedMacrosetor} em ${new Date().toLocaleDateString('pt-BR')}`,
       isActive: true
     };
 
     const newDeal = await this.createDeal(dealData);
     
-    console.log(`🎯 Negócio criado automaticamente: ID ${newDeal.id} para contato ${contact.name} (${canalOrigem})`);
+    console.log(`🎯 Deal criado automaticamente: ID ${newDeal.id} para contato ${contact.name} - Setor: ${determinedMacrosetor} (${canalOrigem})`);
     
     return newDeal;
   }

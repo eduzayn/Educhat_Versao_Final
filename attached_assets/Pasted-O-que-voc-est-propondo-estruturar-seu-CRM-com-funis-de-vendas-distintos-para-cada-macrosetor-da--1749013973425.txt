@@ -1,0 +1,65 @@
+O que você está propondo é estruturar seu CRM com funis de vendas distintos para cada macrosetor da empresa, o que vai te permitir:
+
+Ter visibilidade clara das metas e desempenho por setor (comercial, suporte, cobrança);
+
+Filtrar e tratar os contatos e negócios com base no tipo de atendimento que eles precisam;
+
+Automatizar fluxos, métricas, alertas e relatórios personalizados para cada time;
+
+E garantir integração total com canais de entrada e com a caixa de entrada do sistema.
+
+✅ Reescrevendo a estrutura do CRM com base nisso:
+1. Divisão por Funis (Macrosetores):
+Você terá três funis paralelos, cada um com etapas específicas:
+
+Macrosetor	Etapas sugeridas
+Comercial	Prospecção → Qualificado → Proposta → Fechado (ganho/perdido)
+Suporte	Novo → Em andamento → Aguardando cliente → Resolvido
+Cobrança	Débito detectado → Tentativa de contato → Negociação → Quitado ou Encerrado
+
+2. Cada negócio (deal) deve conter:
+type ou macrosetor: "comercial", "suporte", ou "cobranca" (obrigatório)
+
+etapa (stage): vinculada ao funil correspondente
+
+canal de origem: WhatsApp, Instagram, etc.
+
+contato vinculado
+
+tags, responsável, valor, data, etc.
+
+3. Integração com canais e contatos:
+Ao receber um novo chat (WhatsApp, Insta, etc.), o sistema deve identificar o canal de origem e, se possível:
+
+Identificar o tipo de atendimento esperado (ex: se veio pelo número do suporte, classificar como funil de suporte);
+
+Criar automaticamente o contato e o negócio vinculado ao funil correto;
+
+Exibir esse negócio na etapa inicial do funil correspondente.
+
+4. Exibição no CRM (interface):
+No topo do módulo de negócios, incluir uma seletor de macrosetor/funil, como:
+
+css
+Copiar
+Editar
+[ Comercial ⬇️ ]  ← dropdown para escolher funil
+Quando o usuário muda o macrosetor, o Kanban e os filtros se atualizam com as etapas e negócios daquele setor.
+
+5. Benefícios estratégicos:
+Você conseguirá medir metas e KPIs diferentes para cada time:
+
+Time comercial: taxa de conversão de vendas;
+
+Time de suporte: tempo médio de resolução;
+
+Time de cobrança: taxa de quitação em aberto.
+
+Também será possível:
+
+Atribuir negócios a operadores diferentes por setor;
+
+Criar notificações específicas por etapa;
+
+Relacionar contatos a múltiplos negócios de setores distintos.
+
