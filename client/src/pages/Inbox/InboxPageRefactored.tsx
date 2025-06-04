@@ -775,6 +775,7 @@ export function InboxPageRefactored() {
                       channelIcon={getChannelInfo(activeConversation.channel).icon}
                       channelColor={getChannelInfo(activeConversation.channel).color}
                       conversationId={activeConversation.id}
+                      channelIdentifier={activeConversation.channel}
                     />
                   ))}
                 </>
