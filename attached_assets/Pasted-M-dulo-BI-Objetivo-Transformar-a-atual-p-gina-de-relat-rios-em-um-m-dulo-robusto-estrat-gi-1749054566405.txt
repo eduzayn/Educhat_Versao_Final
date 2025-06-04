@@ -1,0 +1,173 @@
+Módulo BI
+
+🎯 Objetivo
+Transformar a atual “página de relatórios” em um módulo robusto, estratégico e centralizador de dados, capaz de:
+
+Unificar informações de todos os módulos da plataforma;
+
+Medir desempenho operacional e produtividade individual e por equipe;
+
+Apoiar a tomada de decisão baseada em dados reais;
+
+Monitorar tempo de trabalho efetivo dos colaboradores em home office;
+
+Avaliar nível de satisfação dos usuários e desempenho por macrosetor.
+
+🧩 Escopo Geral
+1. Painel Geral (Dashboard Estratégico)
+Exibir KPIs principais com filtros por período, macrosetor, canal e equipe:
+
+🟢 Número total de atendimentos por dia, semana e mês
+
+🟠 Leads gerados (novos contatos)
+
+🔵 Conversões por macrosetor
+
+🔴 Taxa de desistência
+
+🟣 Satisfação média dos atendimentos (nota, emoji ou estrelas)
+
+🔶 Tempo médio de resposta e resolução
+
+2. Rastreamento de Produtividade Individual
+Para cada colaborador:
+
+Nome do operador
+
+Equipe/macrosetor
+
+Total de atendimentos realizados
+
+Total de mensagens enviadas
+
+Chamadas realizadas (se aplicável)
+
+Tempo total logado
+
+Tempo efetivo de trabalho (com base em mouse/teclado/eventos)
+
+Última atividade registrada
+
+Status: Ativo | Inativo | Deslogado
+
+3. Monitoramento com logout automático
+Monitorar se o usuário:
+
+Move o mouse
+
+Clica ou digita no teclado
+
+Se o usuário ficar mais de 10 minutos inativo, ele deve ser automaticamente deslogado
+
+O tempo de trabalho só deve contar enquanto o usuário estiver ativo
+
+Ao logar novamente, o tempo de atividade deve continuar a ser computado
+
+4. Painel por Equipe / Macrosetor
+Para cada equipe (Comercial, Suporte, Cobrança, Secretaria, Secretaria Pós, Tutoria, Financeiro):
+
+Volume de contatos e atendimentos
+
+Tempo médio de atendimento
+
+Taxa de resolução
+
+Negócios ganhos, perdidos, em andamento
+
+Satisfação média dos clientes atendidos por essa equipe
+
+Performance individual dos membros da equipe
+
+5. Relatórios Avançados
+Relatório por tipo de canal (WhatsApp, Instagram, Webchat, etc.)
+
+Relatório por funil de vendas:
+
+Quantos negócios foram criados, convertidos ou abandonados por etapa
+
+Tempo médio em cada etapa
+
+Relatório por macrosetor com metas e evolução:
+
+Leads gerados
+
+Contatos não respondidos
+
+Taxa de conversão
+
+Relatório de tempo de atendimento por colaborador
+
+Relatório de retenção de cliente (usuários que voltam ou desistem)
+
+6. Índice de Satisfação do Cliente
+Implantar CSAT (Customer Satisfaction Score) ao final de cada atendimento
+
+Mostrar índice médio por:
+
+Colaborador
+
+Canal
+
+Equipe
+
+Macrosetor
+
+Capturar nota (0 a 10, ou emojis) + comentário (opcional)
+
+7. Exportação e Integração
+Exportar relatórios em .csv, .xlsx, .pdf
+
+Criar um endpoint de API para que dados de relatórios possam ser usados em Power BI, Google Sheets ou painéis externos
+
+Possibilidade de salvar relatórios personalizados com filtros
+
+8. Design da Interface
+Visual moderno, com:
+
+Cards de KPIs
+
+Gráficos interativos (linhas, barras, funis)
+
+Tabelas com filtros e ordenação
+
+Componentes sugeridos:
+
+Recharts, ApexCharts, TanStack Table
+
+Dropdowns para filtro por equipe, canal, operador
+
+Cards com ícones e cores por tipo de dado
+
+🔐 Segurança e Privacidade
+Acesso ao módulo de relatórios deve ser restrito a perfis de gestor/administrador
+
+Permitir granularidade de permissões (ex: gestor vê apenas equipe comercial)
+
+🧠 Sugestões extras (opcionais mas recomendadas)
+Heatmap de horários de atividade dos usuários (turnos e picos de produtividade)
+
+Alertas automáticos:
+
+“Usuário logado há X horas sem movimentação”
+
+“Contato sem resposta há mais de Y minutos”
+
+Relatório de eficiência:
+
+Atendimentos encerrados por hora trabalhada
+
+Tempo médio de resposta no 1º atendimento
+
+Indicadores de carga de trabalho por usuário e por equipe
+
+📌 Resultado esperado
+Um Módulo de Relatórios com poder de análise real, apoiando decisões operacionais e estratégicas;
+
+Controle completo sobre produtividade home office com rastreamento e tempo efetivo;
+
+Ferramenta capaz de medir desempenho individual, coletivo e por canal;
+
+Integração com todos os módulos e centralização de dados em tempo real.
+
+
+Atualize as importações em todos os arquivos do sistema que forrem necessários.
