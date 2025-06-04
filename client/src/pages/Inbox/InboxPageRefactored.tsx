@@ -134,10 +134,11 @@ export function InboxPageRefactored() {
       const response = await fetch(`/api/deals?contactId=${contactId}`);
       if (response.ok) {
         const deals = await response.json();
-        setContactDeals(deals);
+        setContactDeals(Array.isArray(deals) ? deals : []);
       }
     } catch (error) {
       console.error('Erro ao buscar negócios do contato:', error);
+      setContactDeals([]);
     }
   };
 
@@ -146,10 +147,11 @@ export function InboxPageRefactored() {
       const response = await fetch(`/api/contacts/${contactId}/notes`);
       if (response.ok) {
         const notes = await response.json();
-        setContactNotes(notes);
+        setContactNotes(Array.isArray(notes) ? notes : []);
       }
     } catch (error) {
       console.error('Erro ao buscar notas do contato:', error);
+      setContactNotes([]);
     }
   };
 
@@ -1182,7 +1184,7 @@ export function InboxPageRefactored() {
                 )}
                 
                 {/* Tags dos negócios */}
-                {contactDeals.map((deal) => {
+                {Array.isArray(contactDeals) && contactDeals.map((deal) => {
                   if (deal.tags && Array.isArray(deal.tags)) {
                     return deal.tags.map((tag: string, index: number) => (
                       <Badge key={`${deal.id}-${index}`} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200">
