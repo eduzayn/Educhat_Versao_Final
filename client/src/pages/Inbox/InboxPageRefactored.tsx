@@ -82,10 +82,24 @@ export function InboxPageRefactored() {
     const contactConversations = conversations?.filter(conv => conv.contactId === contactId) || [];
     const uniqueChannels = Array.from(new Set(contactConversations.map(conv => conv.channel)));
     
+    console.log('🔍 Debug canais:', {
+      contactId,
+      uniqueChannels,
+      availableChannels: channels
+    });
+    
     return uniqueChannels.map(channelId => {
       if (channelId?.startsWith('whatsapp-')) {
         const id = parseInt(channelId.replace('whatsapp-', ''));
         const dbChannel = channels?.find(c => c.id === id);
+        
+        console.log('🔍 Debug canal WhatsApp:', {
+          channelId,
+          id,
+          dbChannel,
+          channelName: dbChannel?.name
+        });
+        
         return {
           id: channelId,
           name: dbChannel?.name || `Canal ${id}`,
