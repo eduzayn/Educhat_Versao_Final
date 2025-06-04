@@ -1224,26 +1224,82 @@ export function InboxPageRefactored() {
               </div>
             </div>
 
-            {/* 🎓 Cursos Detectados */}
-            <div className="space-y-2">
+            {/* 🎓 Formação Acadêmica */}
+            <div className="space-y-3">
               <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
-                🎓 Cursos Detectados
+                🎓 Formação Acadêmica
               </h4>
               
-              {contactInterests.length > 0 ? (
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {contactInterests.map((interest) => (
-                    <div key={interest.id} className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                      <p className="text-sm font-medium text-green-800 mb-1">
-                        {interest.courseName}
-                      </p>
-                      <p className="text-xs text-green-600">
-                        Detectado em {new Date(interest.detectedAt).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  ))}
+              {/* Cursos que já possui (Formado em) */}
+              {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && 
+               activeConversation.contact.tags.some((tag: string) => tag.startsWith('Formado:')) && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                    Já possui formação em:
+                  </h5>
+                  <div className="space-y-1">
+                    {activeConversation.contact.tags
+                      .filter((tag: string) => tag.startsWith('Formado:'))
+                      .map((tag: string, index: number) => (
+                        <div key={`formado-${index}`} className="bg-blue-50 border border-blue-200 p-2 rounded-md">
+                          <p className="text-sm font-medium text-blue-800">
+                            {tag.replace('Formado: ', '')}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
                 </div>
-              ) : (
+              )}
+
+              {/* Cursos que deseja fazer (Interesse em) */}
+              {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && 
+               activeConversation.contact.tags.some((tag: string) => tag.startsWith('Interesse:')) && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-green-700 uppercase tracking-wide">
+                    Tem interesse em:
+                  </h5>
+                  <div className="space-y-1">
+                    {activeConversation.contact.tags
+                      .filter((tag: string) => tag.startsWith('Interesse:'))
+                      .map((tag: string, index: number) => (
+                        <div key={`interesse-${index}`} className="bg-green-50 border border-green-200 p-2 rounded-md">
+                          <p className="text-sm font-medium text-green-800">
+                            {tag.replace('Interesse: ', '')}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cursos detectados via API (fallback) */}
+              {contactInterests.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                    Detectados automaticamente:
+                  </h5>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {contactInterests.map((interest) => (
+                      <div key={interest.id} className="bg-gray-50 border border-gray-200 p-2 rounded-md">
+                        <p className="text-sm font-medium text-gray-800">
+                          {interest.courseName}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {new Date(interest.detectedAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mensagem quando não há cursos detectados */}
+              {(!activeConversation.contact.tags || 
+                !Array.isArray(activeConversation.contact.tags) || 
+                !activeConversation.contact.tags.some((tag: string) => 
+                  tag.startsWith('Formado:') || tag.startsWith('Interesse:')
+                )) && 
+               contactInterests.length === 0 && (
                 <div className="bg-gray-50 p-3 rounded-lg text-center">
                   <p className="text-xs text-gray-500">
                     Nenhum curso detectado ainda
