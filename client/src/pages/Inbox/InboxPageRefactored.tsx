@@ -95,6 +95,8 @@ export function InboxPageRefactored() {
   const createContact = useCreateContact();
   const { toast } = useToast();
   
+
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
@@ -244,23 +246,13 @@ export function InboxPageRefactored() {
   };
 
   const getSpecificChannelName = (conversation: any) => {
-    if (conversation.channel === 'whatsapp' && channels.length > 0) {
-      // Identifica qual canal WhatsApp específico baseado no channelId ou por padrão
-      const channelId = conversation.channelId;
-      if (channelId) {
-        const specificChannel = channels.find(ch => ch.id === channelId);
-        if (specificChannel) {
-          return `WhatsApp ${specificChannel.name}`;
-        }
-      }
-      // Fallback para identificar por ID da conversa se não houver channelId
-      const whatsappChannels = channels.filter(ch => ch.type === 'whatsapp' && ch.isActive);
-      if (whatsappChannels.length >= 2) {
-        const channelIndex = conversation.id % 2;
-        return `WhatsApp ${whatsappChannels[channelIndex]?.name || 'Principal'}`;
+    if (conversation.channelId) {
+      const channel = channels.find(c => c.id === conversation.channelId);
+      if (channel && channel.type === 'whatsapp') {
+        return channel.name; // Retorna "Comercial" ou "Suporte"
       }
     }
-    return getChannelInfo(conversation.channel).name;
+    return conversation.channel || 'WhatsApp';
   };
 
   const formatTime = (date: string | Date) => {
@@ -655,6 +647,7 @@ export function InboxPageRefactored() {
                         {getSpecificChannelName(conversation)}
                       </span>
                     </div>
+                  </div>
                 </div>
               </div>
             );
