@@ -2823,7 +2823,7 @@ export class DatabaseStorage implements IStorage {
 
   // ============ SYSTEM SETTINGS METHODS ============
   async getSystemSetting(key: string): Promise<SystemSetting | null> {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(systemSettings)
       .where(eq(systemSettings.key, key))
       .limit(1);
@@ -2832,7 +2832,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSystemSettings(category?: string): Promise<SystemSetting[]> {
-    let query = this.db.select().from(systemSettings);
+    let query = db.select().from(systemSettings);
     
     if (category) {
       query = query.where(eq(systemSettings.category, category));
@@ -2845,7 +2845,7 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getSystemSetting(key);
     
     if (existing) {
-      const updated = await this.db.update(systemSettings)
+      const updated = await db.update(systemSettings)
         .set({ 
           value, 
           type, 
@@ -2857,7 +2857,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated[0];
     } else {
-      const created = await this.db.insert(systemSettings)
+      const created = await db.insert(systemSettings)
         .values({ key, value, type, description, category })
         .returning();
       return created[0];
@@ -2875,7 +2875,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSystemSetting(key: string): Promise<void> {
-    await this.db.delete(systemSettings).where(eq(systemSettings.key, key));
+    await db.delete(systemSettings).where(eq(systemSettings.key, key));
   }
 }
 

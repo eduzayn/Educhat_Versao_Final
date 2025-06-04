@@ -38,7 +38,8 @@ const menuSections: MenuSection[] = [
       { href: "/settings", icon: iconMapping.company, label: "Configurações Gerais" },
       { href: "/settings/channels", icon: iconMapping.channels, label: "Canais de Comunicação" },
       { href: "/settings/users", icon: iconMapping.users, label: "Usuários e Equipes" },
-      { href: "/settings/webhook", icon: iconMapping.integrations, label: "Configuração de Webhook" }
+      { href: "/settings/webhook", icon: iconMapping.integrations, label: "Configuração de Webhook" },
+      { href: "/settings/ai-detection", icon: "🎓", label: "Sistema de Detecção IA" }
     ]
   }
 ];
