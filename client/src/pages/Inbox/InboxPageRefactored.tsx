@@ -151,7 +151,7 @@ export function InboxPageRefactored() {
             description: "O contato foi adicionado à sua agenda do WhatsApp."
           });
         } catch (zapiError) {
-          console.warn('Failed to add contact to Z-API:', zapiError);
+
           toast({
             title: "Aviso",
             description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
