@@ -205,6 +205,11 @@ export default function QuickRepliesSettingsPage() {
       toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de documento válido (PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT).', variant: 'destructive' });
       return;
     }
+    // For text type, allow images, videos, and documents as attachments
+    if (formType === 'text' && !file.type.startsWith('image/') && !file.type.startsWith('video/') && !isDocumentFile(file)) {
+      toast({ title: 'Erro', description: 'Para anexos em texto, selecione uma imagem, vídeo ou documento.', variant: 'destructive' });
+      return;
+    }
 
     setSelectedFile(file);
     
@@ -446,11 +451,80 @@ export default function QuickRepliesSettingsPage() {
                         <FormLabel>Conteúdo</FormLabel>
                         <FormControl>
                           {selectedType === 'text' ? (
-                            <Textarea
-                              placeholder="Digite o conteúdo da resposta"
-                              className="min-h-[100px]"
-                              {...field}
-                            />
+                            <div className="space-y-4">
+                              <Textarea
+                                placeholder="Digite o conteúdo da resposta"
+                                className="min-h-[100px]"
+                                {...field}
+                              />
+                              
+                              {/* Media Attachment for Text */}
+                              <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-sm font-medium">Anexar Mídia (opcional)</h4>
+                                  {selectedFile && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={resetFile}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                                
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*,video/*,.pdf,.doc,.docx"
+                                  onChange={handleFileSelect}
+                                  className="hidden"
+                                />
+                                
+                                {!selectedFile ? (
+                                  <div className="text-center">
+                                    <div className="mx-auto w-8 h-8 text-gray-400 mb-2">
+                                      <Paperclip className="w-full h-full" />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => fileInputRef.current?.click()}
+                                    >
+                                      <Upload className="w-4 h-4 mr-2" />
+                                      Anexar Arquivo
+                                    </Button>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                      Imagens, vídeos ou documentos pequenos
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center space-x-3">
+                                    {filePreview ? (
+                                      <div className="w-12 h-12 rounded border overflow-hidden">
+                                        <img 
+                                          src={filePreview} 
+                                          alt="Preview" 
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="w-12 h-12 rounded border flex items-center justify-center bg-gray-50">
+                                        <FileText className="w-6 h-6 text-gray-400" />
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           ) : (
                             <div className="space-y-4">
                               {/* File Upload Area */}

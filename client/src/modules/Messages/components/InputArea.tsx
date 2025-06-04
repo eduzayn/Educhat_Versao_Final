@@ -183,13 +183,69 @@ export function InputArea() {
     }
   };
 
+  const handleSendTextWithAttachment = async (quickReply: QuickReply) => {
+    if (!activeConversation) return;
+    
+    try {
+      // Enviar o texto primeiro
+      if (quickReply.content && quickReply.content.trim()) {
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: quickReply.content,
+            isFromContact: false,
+            messageType: 'text',
+          },
+          contact: activeConversation.contact,
+        });
+      }
+
+      // Se há anexo de mídia, enviar como segunda mensagem
+      if (quickReply.fileUrl && quickReply.mimeType) {
+        let attachmentType: 'image' | 'video' | 'document' = 'document';
+        
+        if (quickReply.mimeType.startsWith('image/')) {
+          attachmentType = 'image';
+        } else if (quickReply.mimeType.startsWith('video/')) {
+          attachmentType = 'video';
+        }
+
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: quickReply.fileUrl,
+            isFromContact: false,
+            messageType: attachmentType,
+          },
+          contact: activeConversation.contact,
+        });
+      }
+
+      setMessage('');
+      setShowQuickReplies(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar mensagem com anexo. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const selectQuickReply = (quickReply: QuickReply) => {
     const lastSlashIndex = message.lastIndexOf('/');
     const beforeSlash = message.substring(0, lastSlashIndex);
     
     let content = '';
     if (quickReply.type === 'text') {
-      content = quickReply.content || '';
+      if (quickReply.fileUrl) {
+        // Texto com anexo - enviar diretamente
+        handleSendTextWithAttachment(quickReply);
+        return;
+      } else {
+        // Texto simples - inserir no campo
+        content = quickReply.content || '';
+      }
     } else if (quickReply.type === 'audio' && quickReply.fileUrl) {
       // Para áudio, enviar diretamente
       handleSendQuickReplyAudio(quickReply);
