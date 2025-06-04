@@ -902,6 +902,171 @@ export class DatabaseStorage implements IStorage {
     return newContact;
   }
 
+  // Dicionário de cursos e suas variações para detecção inteligente
+  private courseDictionary = {
+    'psicanalise': {
+      variations: [
+        'psicanálise', 'psicanalise', 'pós psicanálise', 'pós em psicanálise',
+        'psicanálise clínica', 'curso de psicanálise', 'formação em psicanálise',
+        'especialização em psicanálise', 'pós psicanálise clínica'
+      ],
+      courseType: 'Pós-graduação',
+      courseName: 'Pós em Psicanálise'
+    },
+    'pedagogia': {
+      variations: [
+        'pedagogia', 'segunda licenciatura pedagogia', 'segunda grad pedagogia',
+        'segunda licenciatura em pedagogia', 'licenciatura pedagogia',
+        'curso de pedagogia', 'graduação pedagogia'
+      ],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Pedagogia'
+    },
+    'neuropsicanalise': {
+      variations: [
+        'neuropsicanálise', 'neuropsicanalise', 'pós neuropsicanálise',
+        'pós em neuropsicanálise', 'especialização neuropsicanálise'
+      ],
+      courseType: 'Pós-graduação',
+      courseName: 'Pós em Neuropsicanálise'
+    },
+    'educacao_especial': {
+      variations: [
+        'educação especial', 'educacao especial', 'pós educação especial',
+        'especialização educação especial', 'pós em educação especial'
+      ],
+      courseType: 'Pós-graduação',
+      courseName: 'Pós em Educação Especial'
+    },
+    'psicopedagogia': {
+      variations: [
+        'psicopedagogia', 'pós psicopedagogia', 'especialização psicopedagogia',
+        'pós em psicopedagogia', 'curso psicopedagogia'
+      ],
+      courseType: 'Pós-graduação',
+      courseName: 'Pós em Psicopedagogia'
+    },
+    'artes_visuais': {
+      variations: [
+        'artes visuais', 'segunda licenciatura artes', 'licenciatura artes visuais',
+        'segunda grad artes', 'artes', 'segunda licenciatura em artes visuais'
+      ],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Artes Visuais'
+    },
+    'musica': {
+      variations: [
+        'música', 'musica', 'segunda licenciatura música', 'licenciatura música',
+        'segunda grad música', 'curso de música'
+      ],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Música'
+    }
+  };
+
+  // Função para detectar curso mencionado na mensagem
+  detectMentionedCourse(messageContent: string): { courseName: string; courseType: string; courseKey: string } | null {
+    const normalizedMessage = messageContent.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^\w\s]/g, ' ') // Remove pontuação
+      .replace(/\s+/g, ' ') // Normaliza espaços
+      .trim();
+
+    console.log(`🔍 Analisando mensagem para detecção de curso: "${normalizedMessage}"`);
+
+    // Buscar por cada curso no dicionário
+    for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
+      for (const variation of courseData.variations) {
+        const normalizedVariation = variation.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\w\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        // Verificar se a variação está contida na mensagem
+        if (normalizedMessage.includes(normalizedVariation)) {
+          console.log(`✅ Curso detectado: ${courseData.courseName} (${courseData.courseType})`);
+          return {
+            courseName: courseData.courseName,
+            courseType: courseData.courseType,
+            courseKey: courseKey
+          };
+        }
+
+        // Verificar também palavras-chave soltas com contexto
+        const keywords = normalizedVariation.split(' ');
+        if (keywords.length === 1 && keywords[0].length > 4) {
+          if (normalizedMessage.includes(keywords[0])) {
+            // Verificar se tem contexto educacional
+            const educationalContext = [
+              'curso', 'pos', 'graduacao', 'licenciatura', 'especialização',
+              'formacao', 'tcc', 'estagio', 'certificado', 'diploma',
+              'turma', 'matricula', 'interesse'
+            ];
+            
+            const hasContext = educationalContext.some(context => 
+              normalizedMessage.includes(context)
+            );
+
+            if (hasContext) {
+              console.log(`✅ Curso detectado por contexto: ${courseData.courseName} (${courseData.courseType})`);
+              return {
+                courseName: courseData.courseName,
+                courseType: courseData.courseType,
+                courseKey: courseKey
+              };
+            }
+          }
+        }
+      }
+    }
+
+    // Verificar códigos de turma (ex: 2025/01, 2024.2)
+    const turmaRegex = /\b(20\d{2})[\/\.](\d{1,2})\b/;
+    const turmaMatch = messageContent.match(turmaRegex);
+    if (turmaMatch) {
+      console.log(`📅 Código de turma detectado: ${turmaMatch[0]}`);
+      return {
+        courseName: `Turma ${turmaMatch[0]}`,
+        courseType: 'Código de Turma',
+        courseKey: 'turma_codigo'
+      };
+    }
+
+    console.log(`❌ Nenhum curso detectado na mensagem`);
+    return null;
+  }
+
+  // Função para salvar curso mencionado no contato
+  async saveMentionedCourse(contactId: number, courseInfo: { courseName: string; courseType: string; courseKey: string }) {
+    try {
+      // Verificar se já existe um registro de curso mencionado para este contato
+      const existingContact = await db.select().from(contacts).where(eq(contacts.id, contactId)).limit(1);
+      
+      if (existingContact.length > 0) {
+        // Buscar tags existentes ou criar array vazio
+        const currentTags = Array.isArray(existingContact[0].tags) ? existingContact[0].tags : [];
+        
+        // Adicionar tag do curso se não existir
+        const courseTag = `Interesse: ${courseInfo.courseName}`;
+        if (!currentTags.includes(courseTag)) {
+          const updatedTags = [...currentTags, courseTag];
+          
+          await db.update(contacts)
+            .set({ 
+              tags: updatedTags,
+              updatedAt: new Date()
+            })
+            .where(eq(contacts.id, contactId));
+            
+          console.log(`📚 Curso "${courseInfo.courseName}" salvo como interesse do contato ${contactId}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar curso mencionado:', error);
+    }
+  }
+
   // Lead classification based on channel and behavior
   private classifyLead(canalOrigem?: string): 'frio' | 'morno' | 'quente' {
     if (!canalOrigem) return 'frio';

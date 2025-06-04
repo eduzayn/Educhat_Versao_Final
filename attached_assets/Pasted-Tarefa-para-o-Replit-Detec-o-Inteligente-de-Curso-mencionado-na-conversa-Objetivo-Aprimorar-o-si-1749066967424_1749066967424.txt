@@ -1,0 +1,63 @@
+Tarefa para o Replit – Detecção Inteligente de Curso mencionado na conversa
+Objetivo:
+Aprimorar o sistema de análise automática de mensagens para que, além de identificar o macrosetor do atendimento, o sistema também consiga identificar e registrar automaticamente o curso ou os cursos mencionados na conversa pelo contato.
+
+🧠 Como deve funcionar:
+1. Análise de linguagem natural
+O sistema deve escanear as mensagens enviadas pelo usuário (texto livre) e detectar quando ele menciona:
+
+Um curso por nome (ex: "quero fazer pedagogia", "sobre a pós em neuropsicanálise", "sou da turma de psicanálise", etc.)
+
+Um código de turma (ex: 2025/01, 2024.2)
+
+Um conteúdo relacionado ao curso (ex: TCC, estágio, certificado)
+
+2. Resultado esperado:
+O nome do curso identificado deve aparecer no painel lateral do chat, em um campo como:
+
+Curso mencionado: Pós em Psicanálise
+
+Curso citado: Segunda Licenciatura em Pedagogia
+
+Se possível, também exibir o tipo de curso (Graduação, Pós, Formação Livre) com base no nome identificado.
+
+🔗 Integrações com outros módulos:
+Se o curso identificado for um curso da base (já existente no sistema), vincular diretamente ao registro da base de dados (courseId).
+
+Se for apenas um interesse comercial, armazenar isso como um campo temporário ou como tag (interesse: Pós em Neuropsicanálise).
+
+🗃️ Sugestão técnica:
+Criar um dicionário de palavras-chave e variações dos nomes dos cursos para facilitar o mapeamento.
+
+Exemplo de variações:
+
+“psicanálise”, “pós psicanálise”, “pós em psicanálise clínica”
+
+“segunda licenciatura”, “segunda grad”, “segunda licenciatura em pedagogia”
+
+O sistema pode usar includes, fuzzy matching (levenshtein distance) ou bibliotecas de NLP para buscar equivalência.
+
+📌 Como pedir ao Replit:
+Gostaria de aprimorar nosso sistema inteligente de classificação de mensagens para que ele também determine o curso citado ou relacionado pelo aluno na conversa.
+
+Isso deve funcionar para alunos ativos (com dúvidas sobre certificados, turmas, estágio etc.) e também para leads interessados em se matricular.
+
+O sistema deve:
+
+Escanear a mensagem do usuário em tempo real ou retroativamente;
+
+Detectar o nome ou variação do nome de um curso;
+
+Exibir essa informação no painel lateral do chat, no campo de curso mencionado;
+
+Se possível, vincular ao courseId se o curso já existir no banco;
+
+Se não, salvar como campo de interesse ou tag no contato;
+
+Essa detecção será útil para:
+
+Enriquecer automaticamente o cadastro de leads;
+
+Identificar cursos com maior volume de interesse por canal;
+
+Direcionar o atendimento para a equipe correta de cada curso, se aplicável.
