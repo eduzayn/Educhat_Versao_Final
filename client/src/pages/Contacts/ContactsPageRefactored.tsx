@@ -777,7 +777,7 @@ export function ContactsPageRefactored() {
                   <div className="col-span-1">Empresa</div>
                   <div className="col-span-1">Tipo</div>
                   <div className="col-span-1">Proprietário</div>
-                  <div className="col-span-1 text-right">Ações</div>
+                  <div className="col-span-1 flex justify-end">Ações</div>
                 </div>
               </div>
 
