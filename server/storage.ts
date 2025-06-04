@@ -53,6 +53,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql, gt, isNull } from "drizzle-orm";
+import Anthropic from '@anthropic-ai/sdk';
 
 export interface IStorage {
   // User operations for auth
@@ -1413,9 +1414,9 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Psicopedagogia e Educação Especial'
     },
     'psicopedagogia_escolar': {
-      variations: ['psicopedagogia escolar', 'psicopedagogia educacional', 'psicoped escolar', 'psicoped', 'psicopedagogia', 'psico pedagogia', 'psicopedagógica'],
+      variations: ['psicopedagogia escolar', 'psicopedagogia educacional', 'psicoped escolar', 'psicoped', 'psicopedagogia', 'psico pedagogia', 'psicopedagógica', 'pós em psicopedagogia', 'pos em psicopedagogia', 'pós psicopedagogia', 'pos psicopedagogia'],
       courseType: 'Pós-graduação',
-      courseName: 'Psicopedagogia Escolar'
+      courseName: 'Psicopedagogia'
     },
     'psicopedagogia_institucional': {
       variations: ['psicopedagogia institucional', 'psicopedagogia empresarial'],
@@ -2317,8 +2318,66 @@ export class DatabaseStorage implements IStorage {
     return courses.length > 0 ? courses[0] : null;
   }
 
+  // Função para analisar contexto de cursos com IA
+  async analyzeCourseContext(messageContent: string, detectedCourses: { courseName: string; courseType: string; courseKey: string }[]): Promise<Array<{ courseName: string; courseType: string; courseKey: string; status: 'possui' | 'deseja' | 'incerto' }>> {
+    try {
+      if (!process.env.ANTHROPIC_API_KEY) {
+        console.log('⚠️ ANTHROPIC_API_KEY não configurada, usando análise básica de cursos');
+        return detectedCourses.map(course => ({ ...course, status: 'deseja' as const }));
+      }
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+
+      const coursesText = detectedCourses.map(c => c.courseName).join(', ');
+      
+      const prompt = `Analise esta mensagem e determine para cada curso mencionado se a pessoa:
+- JÁ POSSUI o curso (formado, graduado, pós-graduado, tem diploma, concluiu)
+- DESEJA FAZER o curso (quer fazer, precisa de informações, tem interesse, busca curso)
+- INCERTO (não está claro)
+
+Mensagem: "${messageContent}"
+Cursos detectados: ${coursesText}
+
+Responda APENAS em formato JSON:
+{
+  "courses": [
+    {
+      "courseName": "Nome do Curso",
+      "status": "possui" | "deseja" | "incerto"
+    }
+  ]
+}`;
+
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514', // the newest Anthropic model is "claude-sonnet-4-20250514" which was released May 14, 2025. Use this by default unless user has already selected claude-3-7-sonnet-20250219
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const content = response.content[0];
+      if (content.type !== 'text') {
+        throw new Error('Resposta inesperada da API Anthropic');
+      }
+      const result = JSON.parse(content.text);
+      
+      return detectedCourses.map(course => {
+        const analysis = result.courses.find((c: any) => c.courseName === course.courseName);
+        return {
+          ...course,
+          status: analysis?.status || 'incerto'
+        };
+      });
+
+    } catch (error) {
+      console.error('❌ Erro na análise IA de cursos:', error);
+      return detectedCourses.map(course => ({ ...course, status: 'deseja' as const }));
+    }
+  }
+
   // Função para salvar curso mencionado no contato
-  async saveMentionedCourse(contactId: number, courseInfo: { courseName: string; courseType: string; courseKey: string }) {
+  async saveMentionedCourse(contactId: number, courseInfo: { courseName: string; courseType: string; courseKey: string; status?: string }) {
     try {
       // Verificar se já existe um registro de curso mencionado para este contato
       const existingContact = await db.select().from(contacts).where(eq(contacts.id, contactId)).limit(1);
@@ -2328,8 +2387,18 @@ export class DatabaseStorage implements IStorage {
         // Buscar tags existentes ou criar array vazio
         const currentTags = Array.isArray(contact.tags) ? contact.tags : [];
         
+        // Definir prefixo baseado no status
+        let prefix = 'Interesse';
+        if (courseInfo.status === 'possui') {
+          prefix = 'Formado';
+        } else if (courseInfo.status === 'deseja') {
+          prefix = 'Interesse';
+        } else {
+          prefix = 'Mencionou';
+        }
+        
         // Adicionar tag do curso se não existir
-        const courseTag = `Interesse: ${courseInfo.courseName}`;
+        const courseTag = `${prefix}: ${courseInfo.courseName}`;
         if (!currentTags.includes(courseTag)) {
           const updatedTags = [...currentTags, courseTag];
           
@@ -2340,9 +2409,9 @@ export class DatabaseStorage implements IStorage {
             })
             .where(eq(contacts.id, contactId));
             
-          console.log(`📚 Curso "${courseInfo.courseName}" salvo como interesse do contato ${contactId}`);
+          console.log(`📚 Curso "${courseInfo.courseName}" salvo como ${prefix.toLowerCase()} do contato ${contactId}`);
         } else {
-          console.log(`📚 Curso "${courseInfo.courseName}" já existe nos interesses do contato ${contactId}`);
+          console.log(`📚 Curso "${courseInfo.courseName}" já existe como ${prefix.toLowerCase()} do contato ${contactId}`);
         }
       } else {
         console.error(`❌ Contato ${contactId} não encontrado para salvar curso`);

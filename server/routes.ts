@@ -1369,7 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // ========================================
-        // 🎓 DETECÇÃO INTELIGENTE DE CURSOS
+        // 🎓 DETECÇÃO INTELIGENTE DE CURSOS COM IA
         // ========================================
         try {
           // Detectar curso mencionado na mensagem para enriquecer o cadastro
@@ -1378,8 +1378,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (detectedCourses.length > 0) {
             console.log(`🎓 ${detectedCourses.length} curso(s) detectado(s) na mensagem`);
             
-            // Salvar todos os cursos como interesse do contato
-            for (const course of detectedCourses) {
+            // Analisar contexto com IA para determinar se possui ou deseja os cursos
+            const analyzedCourses = await storage.analyzeCourseContext(messageContent, detectedCourses);
+            
+            // Salvar todos os cursos com seu status analisado
+            for (const course of analyzedCourses) {
               await storage.saveMentionedCourse(contact.id, course);
               
               // Broadcast individual da detecção de curso para atualizar UI em tempo real
@@ -1387,11 +1390,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 type: 'course_detected',
                 conversationId: conversation.id,
                 contactId: contact.id,
-                courseInfo: course,
+                courseInfo: {
+                  ...course,
+                  status: course.status // Incluir status da análise IA
+                },
                 messageId: message.id
               });
               
-              console.log(`📚 Curso "${course.courseName}" registrado como interesse do contato ${contact.name}`);
+              const statusText = course.status === 'possui' ? 'já possui' : course.status === 'deseja' ? 'tem interesse em' : 'mencionou';
+              console.log(`📚 Curso "${course.courseName}" registrado - contato ${statusText} o curso`);
             }
           }
         } catch (courseDetectionError) {
