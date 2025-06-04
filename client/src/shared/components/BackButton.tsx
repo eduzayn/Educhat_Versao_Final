@@ -24,7 +24,7 @@ export function BackButton({ to = "/", label = "Voltar", className = "" }: BackB
       variant="ghost"
       size="sm"
       onClick={handleBack}
-      className={`flex items-center gap-2 text-educhat-medium hover:text-educhat-primary mb-4 ${className}`}
+      className={`flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 ${className}`}
     >
       <ArrowLeft className="w-4 h-4" />
       {label}
