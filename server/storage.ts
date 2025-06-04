@@ -1104,6 +1104,19 @@ export class DatabaseStorage implements IStorage {
       'como faço pra adiantar', 'o pagamento foi feito', 'confirmação de pagamento'
     ];
     
+    // Palavras-chave para SECRETARIA PÓS (prioridade alta - específico para pós-graduação)
+    const secretariaPosKeywords = [
+      'certificado da pós', 'meu certificado ficou pronto', 'certificação da pós',
+      'pós-graduação', 'finalizei a pós', 'terminar a pós', 'curso de pós',
+      'conclusão da pós', 'documento da pós', 'tempo de certificação',
+      'prazo do certificado', 'emissão do certificado', 'como recebo o certificado',
+      'documentação da pós', 'preciso do certificado da pós', 'preciso apresentar o certificado',
+      'defesa do tcc da pós', 'histórico da pós', 'rematrícula da pós',
+      'segunda via do certificado de pós', 'certificado de pós-graduação',
+      'diploma da pós', 'como peço o certificado da minha pós', 'já finalizei a pós',
+      'estou na etapa final da pós', 'certificado para empresa', 'comprovação da pós'
+    ];
+    
     // Palavras-chave para COMERCIAL (contexto educacional)
     const comercialKeywords = [
       'curso', 'cursos', 'valores', 'mensalidade', 'preço', 'preços', 'promoção',
@@ -1115,7 +1128,12 @@ export class DatabaseStorage implements IStorage {
       'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
     ];
     
-    // Verificar palavras-chave de financeiro aluno PRIMEIRO (questões administrativas financeiras específicas)
+    // Verificar palavras-chave de secretaria pós PRIMEIRO (mais específico que secretaria geral)
+    if (secretariaPosKeywords.some(keyword => content.includes(keyword))) {
+      return 'secretaria_pos';
+    }
+    
+    // Verificar palavras-chave de financeiro aluno (questões administrativas financeiras específicas)
     if (financeiroKeywords.some(keyword => content.includes(keyword))) {
       return 'financeiro';
     }
@@ -1206,6 +1224,12 @@ export class DatabaseStorage implements IStorage {
         dealName = `${contact.name || 'Contato'} - Financeiro`;
         initialValue = 0; // Financeiro não tem valor monetário direto
         probability = 95; // Muito alta probabilidade de conclusão
+        break;
+      case 'secretaria_pos':
+        stage = 'solicitacao_certificado';
+        dealName = `${contact.name || 'Contato'} - Secretaria Pós`;
+        initialValue = 0; // Secretaria Pós não tem valor monetário
+        probability = 90; // Alta probabilidade de conclusão
         break;
     }
 

@@ -85,6 +85,16 @@ const macrosetores = {
       { id: 'aguardando_confirmacao', name: 'Aguardando Confirmação', color: 'bg-orange-500' },
       { id: 'concluido', name: 'Concluído', color: 'bg-green-500' }
     ]
+  },
+  secretaria_pos: {
+    name: 'Secretaria Pós',
+    stages: [
+      { id: 'solicitacao_certificado', name: 'Solicitação Certificado', color: 'bg-violet-500' },
+      { id: 'validacao_conclusao', name: 'Validação Conclusão', color: 'bg-blue-500' },
+      { id: 'emissao_certificado', name: 'Emissão Certificado', color: 'bg-yellow-500' },
+      { id: 'pronto_retirada', name: 'Pronto para Retirada', color: 'bg-orange-500' },
+      { id: 'entregue', name: 'Entregue', color: 'bg-green-500' }
+    ]
   }
 };
 
