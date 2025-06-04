@@ -600,19 +600,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(quickReplies.createdAt));
   }
 
-  // Check if user can edit a quick reply (creator, admin, or manager)
+  // Check if user can edit a quick reply (creator, admin, manager, or superadmin)
   async canUserEditQuickReply(userId: string, quickReplyId: number): Promise<boolean> {
     const quickReply = await this.getQuickReply(quickReplyId);
     if (!quickReply) return false;
 
-    // Creator can always edit their own quick replies
-    if (quickReply.createdBy === userId) return true;
-
-    // Check if user is admin or manager
+    // Check if user is admin, manager, or superadmin (they can edit any quick reply)
     const user = await this.getUser(userId);
     if (!user) return false;
+    
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'superadmin') {
+      return true;
+    }
 
-    return user.role === 'admin' || user.role === 'manager';
+    // Creator can edit their own quick replies
+    if (quickReply.createdBy === userId) return true;
+
+    return false;
   }
 
   // Check if user can delete a quick reply

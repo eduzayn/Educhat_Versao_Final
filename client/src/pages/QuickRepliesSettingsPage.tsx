@@ -134,10 +134,12 @@ export default function QuickRepliesSettingsPage() {
   // Check if user can edit a quick reply
   const canEditQuickReply = (quickReply: QuickReply) => {
     if (!currentUser) return false;
-    // User can edit if they are the creator, admin, or manager
-    return quickReply.createdBy === currentUser.id || 
-           currentUser.role === 'admin' || 
-           currentUser.role === 'manager';
+    // Admins, managers, and superadmins can edit any quick reply
+    if (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'superadmin') {
+      return true;
+    }
+    // Users can edit their own quick replies
+    return quickReply.createdBy === currentUser.id;
   };
 
   // Create/Update mutation
