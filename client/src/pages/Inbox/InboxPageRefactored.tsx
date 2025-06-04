@@ -82,23 +82,46 @@ export function InboxPageRefactored() {
     const contactConversations = conversations?.filter(conv => conv.contactId === contactId) || [];
     const uniqueChannels = Array.from(new Set(contactConversations.map(conv => conv.channel)));
     
-    console.log('🔍 Debug canais:', {
-      contactId,
-      uniqueChannels,
-      availableChannels: channels
-    });
-    
     return uniqueChannels.map(channelId => {
+      // Se for o canal whatsapp genérico (formato antigo), tentar identificar qual canal específico
+      if (channelId === 'whatsapp') {
+        // Para conversas antigas, vamos mostrar todos os canais WhatsApp disponíveis
+        // já que não sabemos qual canal específico foi usado
+        const whatsappChannels = channels?.filter(c => c.type === 'whatsapp') || [];
+        
+        // Se temos apenas um canal WhatsApp, usar esse
+        if (whatsappChannels.length === 1) {
+          return {
+            id: `whatsapp-${whatsappChannels[0].id}`,
+            name: whatsappChannels[0].name,
+            color: 'bg-green-100 text-green-700 border-green-300',
+            icon: '📱'
+          };
+        }
+        
+        // Se temos múltiplos canais, retornar o primeiro como fallback
+        // (idealmente isso deveria ser resolvido pelo instanceId das mensagens)
+        if (whatsappChannels.length > 0) {
+          return {
+            id: `whatsapp-${whatsappChannels[0].id}`,
+            name: whatsappChannels[0].name,
+            color: 'bg-green-100 text-green-700 border-green-300',
+            icon: '📱'
+          };
+        }
+        
+        // Fallback para WhatsApp genérico
+        return {
+          id: channelId,
+          name: 'WhatsApp',
+          color: 'bg-green-100 text-green-700 border-green-300',
+          icon: '📱'
+        };
+      }
+      
       if (channelId?.startsWith('whatsapp-')) {
         const id = parseInt(channelId.replace('whatsapp-', ''));
         const dbChannel = channels?.find(c => c.id === id);
-        
-        console.log('🔍 Debug canal WhatsApp:', {
-          channelId,
-          id,
-          dbChannel,
-          channelName: dbChannel?.name
-        });
         
         return {
           id: channelId,
