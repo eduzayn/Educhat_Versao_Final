@@ -885,23 +885,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Criar negócio automaticamente para contatos do WhatsApp
         try {
-          // Verificar se já existe um negócio ativo para este contato no funil comercial
+          // Detectar macrosetor baseado no conteúdo da mensagem
+          const detectedMacrosetor = storage.detectMacrosetor(messageContent, canalOrigem);
+          
+          // Verificar se já existe um negócio ativo para este contato no macrosetor detectado
           const existingDeals = await storage.getDealsByContact(contact.id);
           const hasActiveDeal = existingDeals.some(deal => 
-            deal.macrosetor === 'comercial' && deal.isActive
+            deal.macrosetor === detectedMacrosetor && deal.isActive
           );
           
           if (!hasActiveDeal) {
-            console.log('💼 Criando negócio automático para contato do WhatsApp:', contact.name);
+            console.log(`💼 Criando negócio automático para contato do WhatsApp (${detectedMacrosetor}):`, contact.name);
             await storage.createAutomaticDeal(
               contact.id, 
               canalOrigem, 
-              'comercial', // Força comercial para WhatsApp
+              undefined, // Deixa a detecção automática decidir
               messageContent
             );
-            console.log('✅ Negócio criado com sucesso para:', contact.name);
+            console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
           } else {
-            console.log('ℹ️ Contato já possui negócio ativo no funil comercial:', contact.name);
+            console.log(`ℹ️ Contato já possui negócio ativo no funil ${detectedMacrosetor}:`, contact.name);
           }
         } catch (dealError) {
           console.error('❌ Erro ao criar negócio automático:', dealError);

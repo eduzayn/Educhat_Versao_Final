@@ -1031,12 +1031,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Função para detectar macrosetor baseado no canal e conteúdo da mensagem
-  private detectMacrosetor(messageContent?: string, canalOrigem?: string): string {
-    // Se for WhatsApp, sempre direcionar para comercial
-    if (canalOrigem?.toLowerCase() === 'whatsapp') {
-      return 'comercial';
-    }
-    
+  public detectMacrosetor(messageContent?: string, canalOrigem?: string): string {
     if (!messageContent) return 'comercial';
     
     const content = messageContent.toLowerCase();
