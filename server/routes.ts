@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
-import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema } from "@shared/schema";
+import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema, type User } from "@shared/schema";
 import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2736,7 +2736,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/quick-replies/:id', upload.single('file'), async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
       const id = parseInt(req.params.id);
+      
+      // Check if user can edit this quick reply
+      const canEdit = await storage.canUserEditQuickReply((req.user as any).id, id);
+      if (!canEdit) {
+        return res.status(403).json({ 
+          message: 'Você não tem permissão para editar esta resposta rápida. Apenas o criador, administradores e gerentes podem editá-la.' 
+        });
+      }
+      
       const validatedData = insertQuickReplySchema.partial().parse(req.body);
       
       // Handle file upload for media types
@@ -2759,7 +2772,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/quick-replies/:id', async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
       const id = parseInt(req.params.id);
+      
+      // Check if user can delete this quick reply
+      const canDelete = await storage.canUserDeleteQuickReply((req.user as any).id, id);
+      if (!canDelete) {
+        return res.status(403).json({ 
+          message: 'Você não tem permissão para excluir esta resposta rápida. Apenas o criador, administradores e gerentes podem excluí-la.' 
+        });
+      }
+      
       await storage.deleteQuickReply(id);
       res.status(204).send();
     } catch (error) {
