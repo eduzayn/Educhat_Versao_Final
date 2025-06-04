@@ -4185,6 +4185,460 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
+      // Dados simulados baseados em dados reais
+      const satisfaction = {
+        overall: {
+          avgRating: 4.2,
+          totalResponses: 156,
+          distribution: {
+            5: 65,
+            4: 48,
+            3: 28,
+            2: 10,
+            1: 5
+          }
+        },
+        byTeam: [
+          { team: 'Comercial', avgRating: 4.3, responses: 78 },
+          { team: 'Suporte', avgRating: 4.1, responses: 45 },
+          { team: 'Financeiro', avgRating: 4.0, responses: 33 }
+        ],
+        trends: [
+          { period: 'Sem 1', rating: 4.0 },
+          { period: 'Sem 2', rating: 4.1 },
+          { period: 'Sem 3', rating: 4.2 },
+          { period: 'Sem 4', rating: 4.3 }
+        ]
+      };
+
+      res.json(satisfaction);
+    } catch (error) {
+      console.error('Erro ao buscar satisfação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // ==========================================
+  // ROTAS DO MÓDULO DE VENDAS
+  // ==========================================
+
+  // Dashboard de Vendas
+  app.get('/api/sales/dashboard', async (req, res) => {
+    try {
+      const { period = 'month', channel = 'all', salesperson = 'all' } = req.query;
+      const days = parseInt(period === 'week' ? '7' : period === 'month' ? '30' : period === 'quarter' ? '90' : '365');
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Buscar negócios fechados (won) no período
+      const deals = await storage.getDeals();
+      const wonDeals = deals.filter(deal => 
+        deal.stage === 'won' && 
+        deal.createdAt && 
+        new Date(deal.createdAt) >= startDate
+      );
+
+      const totalSalesThisMonth = wonDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+      const totalDealsThisMonth = wonDeals.length;
+
+      // Período anterior para comparação
+      const previousStartDate = new Date(startDate);
+      previousStartDate.setDate(previousStartDate.getDate() - days);
+      
+      const previousDeals = deals.filter(deal => 
+        deal.stage === 'won' && 
+        deal.createdAt && 
+        new Date(deal.createdAt) >= previousStartDate && 
+        new Date(deal.createdAt) < startDate
+      );
+
+      const totalSalesLastMonth = previousDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+      const totalDealsLastMonth = previousDeals.length;
+
+      // Buscar total de leads para calcular conversão
+      const totalLeads = deals.length;
+      const conversionRate = totalLeads > 0 ? (totalDealsThisMonth / totalLeads) * 100 : 0;
+
+      // Ticket médio
+      const averageTicket = totalDealsThisMonth > 0 ? totalSalesThisMonth / totalDealsThisMonth : 0;
+
+      const salesData = {
+        totalSalesThisMonth,
+        totalSalesLastMonth,
+        totalDealsThisMonth,
+        totalDealsLastMonth,
+        conversionRate,
+        averageTicket
+      };
+
+      res.json(salesData);
+    } catch (error) {
+      console.error('Erro ao buscar dashboard de vendas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Gráficos de Vendas
+  app.get('/api/sales/charts', async (req, res) => {
+    try {
+      const { period = 'month' } = req.query;
+      
+      // Buscar dados reais dos negócios e usuários
+      const deals = await storage.getDeals();
+      const users = await storage.getSystemUsers();
+      
+      const wonDeals = deals.filter(deal => deal.stage === 'won');
+
+      // Vendas por vendedor (usar assignedTo dos deals)
+      const salesByPerson = users.map(user => {
+        const userDeals = wonDeals.filter(deal => deal.assignedTo === user.id);
+        const totalValue = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+        return {
+          name: user.displayName || user.email,
+          value: totalValue,
+          deals: userDeals.length
+        };
+      }).filter(item => item.value > 0);
+
+      // Evolução das vendas (últimos 7 dias)
+      const salesEvolution = [];
+      let maxValue = 0;
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date.setHours(0, 0, 0, 0));
+        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+        
+        const dayDeals = wonDeals.filter(deal => {
+          const dealDate = deal.createdAt ? new Date(deal.createdAt) : null;
+          return dealDate && dealDate >= dayStart && dealDate <= dayEnd;
+        });
+        
+        const dayValue = dayDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+        maxValue = Math.max(maxValue, dayValue);
+        
+        salesEvolution.push({
+          period: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          value: dayValue
+        });
+      }
+
+      // Distribuição por macrosetor
+      const distributionByType = ['comercial', 'financeiro', 'tutoria', 'secretaria'].map(macro => {
+        const macroDeals = wonDeals.filter(deal => deal.macrosetor === macro);
+        const totalValue = macroDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+        const totalWonValue = wonDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+        
+        return {
+          type: macro.charAt(0).toUpperCase() + macro.slice(1),
+          value: totalValue,
+          deals: macroDeals.length,
+          percentage: totalWonValue > 0 ? Math.round((totalValue / totalWonValue) * 100) : 0
+        };
+      }).filter(item => item.value > 0);
+
+      const chartData = {
+        salesByPerson,
+        salesEvolution,
+        maxValue,
+        distributionByType
+      };
+
+      res.json(chartData);
+    } catch (error) {
+      console.error('Erro ao buscar gráficos de vendas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Metas de Vendas
+  app.get('/api/sales/targets', async (req, res) => {
+    try {
+      const { period = 'month', status = 'all' } = req.query;
+      
+      // Dados simulados baseados nos usuários reais
+      const users = await storage.getSystemUsers();
+      const deals = await storage.getDeals();
+      
+      const targets = users.filter(user => user.role !== 'admin').map((user, index) => {
+        const userDeals = deals.filter(deal => deal.assignedTo === user.id && deal.stage === 'won');
+        const currentValue = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+        const targetValue = [50000, 40000, 35000, 30000, 25000][index % 5]; // Metas variadas
+        
+        return {
+          id: user.id,
+          salespersonId: user.id,
+          salespersonName: user.displayName || user.email,
+          targetValue,
+          currentValue,
+          period,
+          startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+          endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
+          status: currentValue >= targetValue ? 'completed' : 'active'
+        };
+      });
+
+      const completedTargets = targets.filter(t => t.status === 'completed').length;
+      const averageAchievement = targets.length > 0 
+        ? targets.reduce((sum, t) => sum + (t.currentValue / t.targetValue * 100), 0) / targets.length 
+        : 0;
+
+      const result = {
+        targets,
+        totalTargets: targets.length,
+        completedTargets,
+        activeSalespeople: targets.length,
+        averageAchievement
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error('Erro ao buscar metas:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Vendedores disponíveis
+  app.get('/api/sales/salespeople', async (req, res) => {
+    try {
+      const users = await storage.getSystemUsers();
+      const salespeople = users
+        .filter(user => user.role !== 'admin')
+        .map(user => ({
+          id: user.id,
+          name: user.displayName || user.email,
+          email: user.email
+        }));
+
+      res.json(salespeople);
+    } catch (error) {
+      console.error('Erro ao buscar vendedores:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Comissões
+  app.get('/api/sales/commissions', async (req, res) => {
+    try {
+      const { period = 'month', status = 'all', salesperson = 'all' } = req.query;
+      
+      const deals = await storage.getDeals();
+      const users = await storage.getSystemUsers();
+      
+      const wonDeals = deals.filter(deal => deal.stage === 'won');
+      
+      const commissions = wonDeals.map((deal, index) => {
+        const assignedUser = users.find(u => u.id === deal.assignedTo);
+        const commissionRate = 5; // 5% padrão
+        const commissionValue = (deal.value || 0) * (commissionRate / 100);
+        
+        return {
+          id: deal.id,
+          salespersonId: deal.assignedTo || 1,
+          salespersonName: assignedUser?.displayName || assignedUser?.email || 'N/A',
+          dealId: deal.id,
+          dealValue: deal.value || 0,
+          commissionRate,
+          commissionValue,
+          status: ['pending', 'approved', 'paid'][index % 3],
+          dealClosedAt: deal.createdAt || new Date().toISOString(),
+          paidAt: index % 3 === 2 ? new Date().toISOString() : undefined
+        };
+      });
+
+      const totalCommissions = commissions.reduce((sum, c) => sum + c.commissionValue, 0);
+      const totalPending = commissions.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.commissionValue, 0);
+      const totalPaid = commissions.filter(c => c.status === 'paid').reduce((sum, c) => sum + c.commissionValue, 0);
+      const totalSales = wonDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+
+      const result = {
+        commissions,
+        totalCommissions,
+        totalPending,
+        totalPaid,
+        totalSales
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error('Erro ao buscar comissões:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Territórios de Vendas
+  app.get('/api/sales/territories', async (req, res) => {
+    try {
+      // Dados simulados de territórios
+      const territories = [
+        {
+          id: 1,
+          name: 'Região Sudeste',
+          description: 'Estados do Sudeste brasileiro',
+          states: ['SP', 'RJ', 'MG', 'ES'],
+          cities: ['São Paulo', 'Rio de Janeiro', 'Belo Horizonte'],
+          salespeople: ['Ana Lucia', 'Erick'],
+          leadsCount: 45,
+          salesCount: 12,
+          salesValue: 240000,
+          isActive: true
+        },
+        {
+          id: 2,
+          name: 'Região Sul',
+          description: 'Estados do Sul brasileiro',
+          states: ['RS', 'SC', 'PR'],
+          cities: ['Porto Alegre', 'Florianópolis', 'Curitiba'],
+          salespeople: ['Tamires'],
+          leadsCount: 28,
+          salesCount: 8,
+          salesValue: 160000,
+          isActive: true
+        }
+      ];
+
+      const stats = {
+        totalTerritories: territories.length,
+        allocatedSalespeople: territories.reduce((sum, t) => sum + t.salespeople.length, 0),
+        totalLeads: territories.reduce((sum, t) => sum + t.leadsCount, 0),
+        totalSales: territories.reduce((sum, t) => sum + t.salesValue, 0)
+      };
+
+      res.json({ territories, stats });
+    } catch (error) {
+      console.error('Erro ao buscar territórios:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Ranking de Vendedores
+  app.get('/api/sales/leaderboard', async (req, res) => {
+    try {
+      const { period = 'month', metric = 'sales' } = req.query;
+      
+      const deals = await storage.getDeals();
+      const users = await storage.getSystemUsers();
+      
+      const wonDeals = deals.filter(deal => deal.stage === 'won');
+      
+      const ranking = users
+        .filter(user => user.role !== 'admin')
+        .map(user => {
+          const userDeals = wonDeals.filter(deal => deal.assignedTo === user.id);
+          const totalSales = userDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+          const totalDeals = userDeals.length;
+          const averageTicket = totalDeals > 0 ? totalSales / totalDeals : 0;
+          
+          // Calcular conversão baseado em todos os deals do usuário
+          const allUserDeals = deals.filter(deal => deal.assignedTo === user.id);
+          const conversionRate = allUserDeals.length > 0 ? (totalDeals / allUserDeals.length) * 100 : 0;
+          
+          return {
+            id: user.id,
+            name: user.displayName || user.email,
+            totalSales,
+            totalDeals,
+            conversionRate,
+            averageTicket,
+            targetAchievement: Math.random() * 120 + 80, // Simulado
+            monthlyGrowth: (Math.random() - 0.5) * 40 // -20% a +20%
+          };
+        })
+        .filter(entry => entry.totalSales > 0)
+        .sort((a, b) => {
+          switch (metric) {
+            case 'deals': return b.totalDeals - a.totalDeals;
+            case 'conversion': return b.conversionRate - a.conversionRate;
+            case 'ticket': return b.averageTicket - a.averageTicket;
+            default: return b.totalSales - a.totalSales;
+          }
+        })
+        .map((entry, index) => ({ ...entry, position: index + 1 }));
+
+      const stats = {
+        leader: ranking[0]?.name || 'N/A',
+        averageSales: ranking.length > 0 ? ranking.reduce((sum, r) => sum + r.totalSales, 0) / ranking.length : 0,
+        averageDeals: ranking.length > 0 ? ranking.reduce((sum, r) => sum + r.totalDeals, 0) / ranking.length : 0,
+        averageConversion: ranking.length > 0 ? ranking.reduce((sum, r) => sum + r.conversionRate, 0) / ranking.length : 0,
+        averageTicket: ranking.length > 0 ? ranking.reduce((sum, r) => sum + r.averageTicket, 0) / ranking.length : 0,
+        bestGrowth: ranking.length > 0 ? Math.max(...ranking.map(r => r.monthlyGrowth)) : 0
+      };
+
+      res.json({ ranking, stats });
+    } catch (error) {
+      console.error('Erro ao buscar ranking:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Coaching de Vendas
+  app.get('/api/sales/coaching', async (req, res) => {
+    try {
+      const { salesperson = 'all' } = req.query;
+      
+      // Dados simulados de coaching
+      const records = [
+        {
+          id: 1,
+          salespersonId: 1,
+          salespersonName: 'Ana Lucia',
+          date: new Date().toISOString(),
+          type: 'feedback',
+          title: 'Melhoria no tempo de resposta',
+          content: 'Trabalhar para reduzir o tempo médio de resposta para menos de 5 minutos.',
+          status: 'in_progress',
+          createdBy: 'Rian'
+        }
+      ];
+
+      const stats = {
+        totalRecords: records.length,
+        inProgress: records.filter(r => r.status === 'in_progress').length,
+        completed: records.filter(r => r.status === 'completed').length,
+        successRate: 85.5
+      };
+
+      res.json({ records, stats });
+    } catch (error) {
+      console.error('Erro ao buscar coaching:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Perfis de vendedores
+  app.get('/api/sales/profiles', async (req, res) => {
+    try {
+      const users = await storage.getSystemUsers();
+      
+      const profiles = users
+        .filter(user => user.role !== 'admin')
+        .map(user => ({
+          id: user.id,
+          name: user.displayName || user.email,
+          responseTime: Math.floor(Math.random() * 30) + 5, // 5-35 min
+          conversionRate: Math.floor(Math.random() * 40) + 60, // 60-100%
+          salesVolume: Math.floor(Math.random() * 100000) + 50000,
+          strengths: ['Comunicação assertiva', 'Conhecimento técnico'],
+          improvements: ['Tempo de resposta', 'Follow-up'],
+          lastCoaching: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+        }));
+
+      res.json(profiles);
+    } catch (error) {
+      console.error('Erro ao buscar perfis:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Satisfação do Cliente (continuação)
+  app.get('/api/bi/satisfaction', async (req, res) => {
+    try {
+      const { period = '30', team, channel } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
       // Dados simulados de satisfação (em um sistema real, viriam de uma tabela de avaliações)
       const satisfactionData = {
         overall: {

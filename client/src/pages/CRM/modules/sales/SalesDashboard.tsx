@@ -3,41 +3,86 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
+import { Badge } from '@/shared/ui/ui/badge';
+import { Progress } from '@/shared/ui/ui/progress';
 import { 
+  DollarSign, 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
   Target, 
   Users, 
-  Award,
-  Download,
-  Filter
+  Calendar,
+  BarChart3,
+  PieChart,
+  Filter,
+  Download
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
 
 export function SalesDashboard() {
   const [period, setPeriod] = useState('month');
   const [channel, setChannel] = useState('all');
   const [salesperson, setSalesperson] = useState('all');
 
-  // Buscar dados de vendas do backend
-  const { data: salesData, isLoading } = useQuery({
+  // Buscar dados do dashboard
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['/api/sales/dashboard', { period, channel, salesperson }],
     queryFn: async () => {
       const response = await fetch(`/api/sales/dashboard?period=${period}&channel=${channel}&salesperson=${salesperson}`);
-      if (!response.ok) throw new Error('Erro ao carregar dados de vendas');
+      if (!response.ok) throw new Error('Erro ao carregar dashboard');
       return response.json();
     }
   });
 
-  // Buscar dados para gráficos
-  const { data: chartData, isLoading: chartLoading } = useQuery({
+  // Buscar dados dos gráficos
+  const { data: chartsData, isLoading: chartsLoading } = useQuery({
     queryKey: ['/api/sales/charts', { period }],
     queryFn: async () => {
       const response = await fetch(`/api/sales/charts?period=${period}`);
-      if (!response.ok) throw new Error('Erro ao carregar gráficos de vendas');
+      if (!response.ok) throw new Error('Erro ao carregar gráficos');
       return response.json();
     }
   });
+
+  // Buscar vendedores para filtros
+  const { data: salespeople } = useQuery({
+    queryKey: ['/api/sales/salespeople'],
+    queryFn: async () => {
+      const response = await fetch('/api/sales/salespeople');
+      if (!response.ok) throw new Error('Erro ao carregar vendedores');
+      return response.json();
+    }
+  });
+
+  const isLoading = dashboardLoading || chartsLoading;
+
+  // Calcular variação percentual
+  const calculateGrowth = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const defaultDashboard = dashboardData || {
+    totalSalesThisMonth: 0,
+    totalSalesLastMonth: 0,
+    totalDealsThisMonth: 0,
+    totalDealsLastMonth: 0,
+    conversionRate: 0,
+    averageTicket: 0
+  };
+
+  const defaultCharts = chartsData || {
+    salesByPerson: [],
+    salesEvolution: [],
+    maxValue: 0,
+    distributionByType: []
+  };
+
+  const salesGrowth = calculateGrowth(defaultDashboard.totalSalesThisMonth, defaultDashboard.totalSalesLastMonth);
+  const dealsGrowth = calculateGrowth(defaultDashboard.totalDealsThisMonth, defaultDashboard.totalDealsLastMonth);
+
+  // Cores para os gráficos
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
   if (isLoading) {
     return (
@@ -47,116 +92,105 @@ export function SalesDashboard() {
     );
   }
 
-  const defaultData = salesData || {
-    totalSales: 0,
-    totalDeals: 0,
-    conversionRate: 0,
-    averageTicket: 0,
-    totalSalesThisMonth: 0,
-    totalSalesLastMonth: 0,
-    totalDealsThisMonth: 0,
-    totalDealsLastMonth: 0
-  };
-
-  const salesGrowth = defaultData.totalSalesLastMonth > 0 
-    ? ((defaultData.totalSalesThisMonth - defaultData.totalSalesLastMonth) / defaultData.totalSalesLastMonth) * 100 
-    : 0;
-
-  const dealsGrowth = defaultData.totalDealsLastMonth > 0 
-    ? ((defaultData.totalDealsThisMonth - defaultData.totalDealsLastMonth) / defaultData.totalDealsLastMonth) * 100 
-    : 0;
-
   return (
     <div className="space-y-6">
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-lg">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          <span className="text-sm font-medium">Filtros:</span>
+      {/* Header e Filtros */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Dashboard de Vendas</h2>
+          <p className="text-muted-foreground">Visão geral do desempenho da equipe comercial</p>
         </div>
-        
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">Esta semana</SelectItem>
-            <SelectItem value="month">Este mês</SelectItem>
-            <SelectItem value="quarter">Este trimestre</SelectItem>
-            <SelectItem value="year">Este ano</SelectItem>
-          </SelectContent>
-        </Select>
 
-        <Select value={channel} onValueChange={setChannel}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Canal de entrada" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os canais</SelectItem>
-            <SelectItem value="whatsapp">WhatsApp</SelectItem>
-            <SelectItem value="instagram">Instagram</SelectItem>
-            <SelectItem value="facebook">Facebook</SelectItem>
-            <SelectItem value="email">E-mail</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Esta semana</SelectItem>
+              <SelectItem value="month">Este mês</SelectItem>
+              <SelectItem value="quarter">Este trimestre</SelectItem>
+              <SelectItem value="year">Este ano</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={salesperson} onValueChange={setSalesperson}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Vendedor" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os vendedores</SelectItem>
-            <SelectItem value="ana">Ana Lucia</SelectItem>
-            <SelectItem value="rian">Rian</SelectItem>
-            <SelectItem value="erick">Erick</SelectItem>
-            <SelectItem value="tamires">Tamires</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={channel} onValueChange={setChannel}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos canais</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="email">E-mail</SelectItem>
+              <SelectItem value="phone">Telefone</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Button variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar
-        </Button>
+          <Select value={salesperson} onValueChange={setSalesperson}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Todos vendedores" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos vendedores</SelectItem>
+              {salespeople?.map((person: any) => (
+                <SelectItem key={person.id} value={person.id.toString()}>
+                  {person.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
+        </div>
       </div>
 
-      {/* Cards de KPIs */}
+      {/* Cards de Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Vendas</CardTitle>
+            <CardTitle className="text-sm font-medium">Vendas do Período</CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              R$ {defaultData.totalSalesThisMonth?.toLocaleString('pt-BR') || '0'}
+              R$ {defaultDashboard.totalSalesThisMonth.toLocaleString('pt-BR')}
             </div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
+            <div className="flex items-center text-xs">
               {salesGrowth >= 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
               ) : (
-                <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+                <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
               )}
-              {Math.abs(salesGrowth).toFixed(1)}% em relação ao período anterior
+              <span className={salesGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                {Math.abs(salesGrowth).toFixed(1)}%
+              </span>
+              <span className="text-muted-foreground ml-1">vs período anterior</span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Negócios Ganhos</CardTitle>
+            <CardTitle className="text-sm font-medium">Negócios Fechados</CardTitle>
             <Target className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {defaultData.totalDealsThisMonth || '0'}
+              {defaultDashboard.totalDealsThisMonth}
             </div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
+            <div className="flex items-center text-xs">
               {dealsGrowth >= 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
               ) : (
-                <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+                <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
               )}
-              {Math.abs(dealsGrowth).toFixed(1)}% em relação ao período anterior
+              <span className={dealsGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                {Math.abs(dealsGrowth).toFixed(1)}%
+              </span>
+              <span className="text-muted-foreground ml-1">vs período anterior</span>
             </div>
           </CardContent>
         </Card>
@@ -164,29 +198,27 @@ export function SalesDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-            <Award className="h-4 w-4 text-purple-600" />
+            <TrendingUp className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {defaultData.conversionRate?.toFixed(1) || '0'}%
+              {defaultDashboard.conversionRate.toFixed(1)}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Negócios ganhos / Total de leads
-            </p>
+            <Progress value={defaultDashboard.conversionRate} className="mt-2 h-2" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
-            <Users className="h-4 w-4 text-orange-600" />
+            <BarChart3 className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              R$ {defaultData.averageTicket?.toLocaleString('pt-BR') || '0'}
+              R$ {defaultDashboard.averageTicket.toLocaleString('pt-BR')}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Valor médio por venda
+              Por negócio fechado
             </p>
           </CardContent>
         </Card>
@@ -194,104 +226,169 @@ export function SalesDashboard() {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Evolução das Vendas */}
         <Card>
           <CardHeader>
-            <CardTitle>Vendas por Vendedor</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Evolução das Vendas
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {chartLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
+            {defaultCharts.salesEvolution?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={defaultCharts.salesEvolution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis 
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip 
+                    formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Vendas']}
+                  />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="space-y-4">
-                {chartData?.salesByPerson?.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium">{item.name?.charAt(0)}</span>
-                      </div>
-                      <span className="text-sm font-medium">{item.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">R$ {item.value?.toLocaleString('pt-BR')}</div>
-                      <div className="text-xs text-muted-foreground">{item.deals} negócios</div>
-                    </div>
-                  </div>
-                )) || (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Dados não disponíveis para o período selecionado
-                  </div>
-                )}
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Nenhum dado de vendas encontrado para o período
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Vendas por Vendedor */}
         <Card>
           <CardHeader>
-            <CardTitle>Evolução das Vendas</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Vendas por Vendedor
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {chartLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
+            {defaultCharts.salesByPerson?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={defaultCharts.salesByPerson} layout="horizontal">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number"
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis type="category" dataKey="name" width={80} />
+                  <Tooltip 
+                    formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Vendas']}
+                  />
+                  <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="space-y-4">
-                {chartData?.salesEvolution?.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm">{item.period}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-muted rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${Math.min(100, (item.value / (chartData.maxValue || 1)) * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">R$ {item.value?.toLocaleString('pt-BR')}</span>
-                    </div>
-                  </div>
-                )) || (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Dados não disponíveis para o período selecionado
-                  </div>
-                )}
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Nenhum vendedor com vendas no período
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Distribuição por Tipo de Negócio */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Distribuição por Macrosetor</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {chartLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {chartData?.distributionByType?.map((item: any, index: number) => (
-                <div key={index} className="text-center">
-                  <div className="text-2xl font-bold text-primary">{item.percentage}%</div>
-                  <div className="text-sm text-muted-foreground">{item.type}</div>
-                  <div className="text-xs text-muted-foreground">
-                    R$ {item.value?.toLocaleString('pt-BR')} ({item.deals} negócios)
-                  </div>
+      {/* Distribuição por Tipo e Resumo */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Distribuição por Macrosetor */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              Distribuição por Macrosetor
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {defaultCharts.distributionByType?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ResponsiveContainer width="100%" height={250}>
+                  <RechartsPieChart>
+                    <Tooltip 
+                      formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Vendas']}
+                    />
+                    <RechartsPieChart dataKey="value">
+                      {defaultCharts.distributionByType.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </RechartsPieChart>
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+                
+                <div className="space-y-3">
+                  {defaultCharts.distributionByType.map((item: any, index: number) => (
+                    <div key={item.type} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="text-sm font-medium">{item.type}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          R$ {item.value.toLocaleString('pt-BR')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {item.percentage}% • {item.deals} negócios
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )) || (
-                <div className="col-span-3 text-center py-8 text-muted-foreground">
-                  Dados não disponíveis para o período selecionado
-                </div>
-              )}
+              </div>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                Nenhuma distribuição de vendas encontrada
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Resumo Rápido */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumo Rápido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Vendedores ativos</span>
+              <Badge variant="outline">{defaultCharts.salesByPerson?.length || 0}</Badge>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Maior venda</span>
+              <span className="text-sm font-medium">
+                R$ {defaultCharts.maxValue?.toLocaleString('pt-BR') || '0'}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Canais ativos</span>
+              <Badge variant="outline">{defaultCharts.distributionByType?.length || 0}</Badge>
+            </div>
+
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium mb-3">Ações Rápidas</h4>
+              <div className="space-y-2">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Target className="h-4 w-4 mr-2" />
+                  Definir Metas
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  Gerenciar Equipe
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Agendar Reunião
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
