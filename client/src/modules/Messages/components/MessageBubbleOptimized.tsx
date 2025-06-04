@@ -33,12 +33,28 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   channelIdentifier,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
+  const { data: channels } = useChannels();
 
-  // Função para obter informações do canal
+  // Função para obter informações do canal baseada nos dados reais do banco
   const getChannelInfo = (channel: string) => {
+    // Para canais específicos do tipo whatsapp-{id}, extrair o ID
+    if (channel?.startsWith('whatsapp-')) {
+      const channelId = parseInt(channel.replace('whatsapp-', ''));
+      const dbChannel = channels?.find(c => c.id === channelId);
+      
+      if (dbChannel) {
+        return {
+          icon: '📱',
+          color: 'bg-green-100 text-green-700 border-green-300',
+          name: dbChannel.name || `Canal ${channelId}`
+        };
+      }
+    }
+    
+    // Fallback para canais padrão
     return CHANNELS[channel] || {
       icon: '💬',
-      color: 'text-gray-500',
+      color: 'bg-gray-100 text-gray-700 border-gray-300',
       name: 'Canal Desconhecido'
     };
   };
@@ -228,10 +244,10 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
           {channelIdentifier && (
             <Badge 
               variant="outline" 
-              className={`text-xs px-1 py-0.5 h-4 ${getChannelInfo(channelIdentifier).color} border-current`}
+              className={`text-xs px-2 py-0.5 h-5 ${getChannelInfo(channelIdentifier).color} border-current`}
               title={`Mensagem via ${getChannelInfo(channelIdentifier).name}`}
             >
-              <span className="text-xs">{getChannelInfo(channelIdentifier).icon}</span>
+              <span className="text-xs font-medium">{getChannelInfo(channelIdentifier).name}</span>
             </Badge>
           )}
         </div>
