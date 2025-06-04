@@ -28,6 +28,9 @@ const getTeamColorClass = (color: string) => {
 
 export const TeamsTab = () => {
   const [showTeamDialog, setShowTeamDialog] = useState(false);
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
@@ -38,6 +41,18 @@ export const TeamsTab = () => {
         throw new Error('Erro ao carregar equipes');
       }
       return response.json() as Promise<Team[]>;
+    }
+  });
+
+  // Buscar usuários disponíveis
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-users');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar usuários');
+      }
+      return response.json();
     }
   });
 
@@ -104,11 +119,27 @@ export const TeamsTab = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedTeam(team);
+                        setShowAddMemberDialog(true);
+                      }}
+                    >
                       <UserPlus className="h-4 w-4 mr-2" />
                       Adicionar Membro
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedTeam(team);
+                        setShowConfigDialog(true);
+                      }}
+                    >
                       <Settings className="h-4 w-4 mr-2" />
                       Configurar
                     </Button>
@@ -210,6 +241,134 @@ export const TeamsTab = () => {
               setShowTeamDialog(false);
             }}>
               Criar Equipe
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Adicionar Membro */}
+      <Dialog open={showAddMemberDialog} onOpenChange={setShowAddMemberDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
+            <DialogDescription>
+              Adicione um usuário à equipe {selectedTeam?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="user-select" className="text-right">
+                Usuário
+              </Label>
+              <Select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione um usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {systemUsers.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.displayName} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddMemberDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              console.log('Adicionar membro à equipe');
+              setShowAddMemberDialog(false);
+            }}>
+              Adicionar Membro
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Configurações da Equipe */}
+      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Configurações da Equipe</DialogTitle>
+            <DialogDescription>
+              Configure as propriedades da equipe {selectedTeam?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="config-name" className="text-right">
+                Nome
+              </Label>
+              <Input
+                id="config-name"
+                defaultValue={selectedTeam?.name}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="config-description" className="text-right">
+                Descrição
+              </Label>
+              <Textarea
+                id="config-description"
+                defaultValue={selectedTeam?.description || ''}
+                className="col-span-3"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="config-macrosetor" className="text-right">
+                Macrosetor
+              </Label>
+              <Select defaultValue={selectedTeam?.macrosetor || ''}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o macrosetor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="comercial">Comercial</SelectItem>
+                  <SelectItem value="suporte">Suporte</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="secretaria">Secretaria</SelectItem>
+                  <SelectItem value="secretaria_pos">Secretaria Pós</SelectItem>
+                  <SelectItem value="tutoria">Tutoria</SelectItem>
+                  <SelectItem value="cobranca">Cobrança</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="config-status" className="text-right">
+                Status
+              </Label>
+              <Select defaultValue={selectedTeam?.isActive ? "true" : "false"}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Ativa</SelectItem>
+                  <SelectItem value="false">Inativa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => {
+              console.log('Salvar configurações da equipe');
+              setShowConfigDialog(false);
+            }}>
+              Salvar Configurações
             </Button>
           </DialogFooter>
         </DialogContent>
