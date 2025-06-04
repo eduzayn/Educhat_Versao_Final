@@ -2686,12 +2686,13 @@ export class DatabaseStorage implements IStorage {
       'já sou aluno', 'minha aula não abre', 'plataforma está com erro'
     ];
     
-    // Palavras-chave para COBRANÇA
+    // Palavras-chave para COBRANÇA (específicas para cobranças já existentes)
     const cobrancaKeywords = [
-      'pagamento', 'boleto', 'fatura', 'vencimento', 'débito', 'cobrança',
-      'pagar', 'quitação', 'parcela', 'atraso', 'juros', 'multa', 'cartão',
-      'pix', 'transferência', 'dinheiro', 'valor', 'preço', 'desconto',
-      'negociar', 'parcelar', 'renegociar', 'acordo'
+      'boleto vencido', 'pagamento em atraso', 'débito pendente', 'cobrança',
+      'pagar mensalidade', 'quitação', 'parcela atrasada', 'atraso', 'juros', 'multa',
+      'renegociar débito', 'parcelar divida', 'acordo de pagamento', 'negociar atraso',
+      'segunda via boleto', 'boleto não chegou', 'comprovante de pagamento',
+      'paguei mas não baixou', 'sistema não reconheceu', 'pagamento duplicado'
     ];
     
     // Palavras-chave para TUTORIA (prioridade alta - detecção específica)
@@ -2765,39 +2766,39 @@ export class DatabaseStorage implements IStorage {
       'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
     ];
     
-    // Verificar palavras-chave de secretaria pós PRIMEIRO (mais específico que secretaria geral)
+    // PRIORIDADE 1: Verificar palavras-chave comerciais PRIMEIRO (interesse em cursos tem prioridade)
+    if (comercialKeywords.some(keyword => content.includes(keyword))) {
+      return 'comercial';
+    }
+    
+    // PRIORIDADE 2: Verificar palavras-chave de secretaria pós (específico para pós-graduação)
     if (secretariaPosKeywords.some(keyword => content.includes(keyword))) {
       return 'secretaria_pos';
     }
     
-    // Verificar palavras-chave de financeiro aluno (questões administrativas financeiras específicas)
+    // PRIORIDADE 3: Verificar palavras-chave de financeiro aluno (questões administrativas financeiras)
     if (financeiroKeywords.some(keyword => content.includes(keyword))) {
       return 'financeiro';
     }
     
-    // Verificar palavras-chave de tutoria (maior especificidade pedagógica)
+    // PRIORIDADE 4: Verificar palavras-chave de tutoria (especificidade pedagógica)
     if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
       return 'tutoria';
     }
     
-    // Verificar palavras-chave de secretaria
+    // PRIORIDADE 5: Verificar palavras-chave de secretaria
     if (secretariaKeywords.some(keyword => content.includes(keyword))) {
       return 'secretaria';
     }
     
-    // Verificar palavras-chave de suporte
+    // PRIORIDADE 6: Verificar palavras-chave de suporte
     if (suporteKeywords.some(keyword => content.includes(keyword))) {
       return 'suporte';
     }
     
-    // Verificar palavras-chave de cobrança
+    // PRIORIDADE 7: Verificar palavras-chave de cobrança (última prioridade)
     if (cobrancaKeywords.some(keyword => content.includes(keyword))) {
       return 'cobranca';
-    }
-    
-    // Verificar palavras-chave comerciais específicas
-    if (comercialKeywords.some(keyword => content.includes(keyword))) {
-      return 'comercial';
     }
     
     // Padrão: comercial
