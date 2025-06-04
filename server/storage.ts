@@ -2324,8 +2324,9 @@ export class DatabaseStorage implements IStorage {
       const existingContact = await db.select().from(contacts).where(eq(contacts.id, contactId)).limit(1);
       
       if (existingContact.length > 0) {
+        const contact = existingContact[0];
         // Buscar tags existentes ou criar array vazio
-        const currentTags = Array.isArray(existingContact[0].tags) ? existingContact[0].tags : [];
+        const currentTags = Array.isArray(contact.tags) ? contact.tags : [];
         
         // Adicionar tag do curso se não existir
         const courseTag = `Interesse: ${courseInfo.courseName}`;
@@ -2340,10 +2341,15 @@ export class DatabaseStorage implements IStorage {
             .where(eq(contacts.id, contactId));
             
           console.log(`📚 Curso "${courseInfo.courseName}" salvo como interesse do contato ${contactId}`);
+        } else {
+          console.log(`📚 Curso "${courseInfo.courseName}" já existe nos interesses do contato ${contactId}`);
         }
+      } else {
+        console.error(`❌ Contato ${contactId} não encontrado para salvar curso`);
       }
     } catch (error) {
       console.error('❌ Erro ao salvar curso mencionado:', error);
+      console.error('Detalhes do erro:', JSON.stringify(error, null, 2));
     }
   }
 
