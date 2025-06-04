@@ -204,11 +204,38 @@ export const contactNotes = pgTable("contact_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Deals table for CRM
+export const deals = pgTable("deals", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contactId: integer("contact_id").references(() => contacts.id).notNull(),
+  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // prospecting, qualified, proposal, negotiation, won, lost
+  value: integer("value").default(0), // valor em centavos
+  probability: integer("probability").default(0), // 0-100
+  expectedCloseDate: timestamp("expected_close_date"),
+  actualCloseDate: timestamp("actual_close_date"),
+  owner: varchar("owner", { length: 100 }),
+  canalOrigem: varchar("canal_origem", { length: 50 }), // whatsapp, instagram, etc
+  tags: jsonb("tags").default([]), // array de strings
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
   tags: many(contactTags),
   notes: many(contactNotes),
+  deals: many(deals),
+}));
+
+export const dealsRelations = relations(deals, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [deals.contactId],
+    references: [contacts.id],
+  }),
 }));
 
 export const contactNotesRelations = relations(contactNotes, ({ one }) => ({
@@ -343,6 +370,12 @@ export const insertContactNoteSchema = createInsertSchema(contactNotes).omit({
   updatedAt: true,
 });
 
+export const insertDealSchema = createInsertSchema(deals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertQuickReplyShareSchema = createInsertSchema(quickReplyShares).omit({
   id: true,
   createdAt: true,
@@ -374,6 +407,8 @@ export type Channel = typeof channels.$inferSelect;
 export type InsertChannel = z.infer<typeof insertChannelSchema>;
 export type ContactNote = typeof contactNotes.$inferSelect;
 export type InsertContactNote = z.infer<typeof insertContactNoteSchema>;
+export type Deal = typeof deals.$inferSelect;
+export type InsertDeal = z.infer<typeof insertDealSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {

@@ -12,6 +12,7 @@ import {
   roles,
   channels,
   contactNotes,
+  deals,
   type User,
   type UpsertUser,
   type Contact,
@@ -38,6 +39,8 @@ import {
   type InsertChannel,
   type ContactNote,
   type InsertContactNote,
+  type Deal,
+  type InsertDeal,
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
@@ -132,6 +135,16 @@ export interface IStorage {
   updateContactNote(id: number, note: Partial<InsertContactNote>): Promise<ContactNote>;
   deleteContactNote(id: number): Promise<void>;
 
+  // Deal operations for CRM
+  getDeals(): Promise<Deal[]>;
+  getDeal(id: number): Promise<Deal | undefined>;
+  getDealsByContact(contactId: number): Promise<Deal[]>;
+  getDealsByStage(stage: string): Promise<Deal[]>;
+  createDeal(deal: InsertDeal): Promise<Deal>;
+  updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal>;
+  deleteDeal(id: number): Promise<void>;
+  createAutomaticDeal(contactId: number, canalOrigem?: string): Promise<Deal>;
+
   // Automatic contact creation
   findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact>;
 
@@ -197,6 +210,10 @@ export class DatabaseStorage implements IStorage {
       .insert(contacts)
       .values(contact)
       .returning();
+    
+    // Criar automaticamente um negócio para o novo contato
+    await this.createAutomaticDeal(newContact.id, contact.canalOrigem || undefined);
+    
     return newContact;
   }
 
@@ -896,6 +913,116 @@ export class DatabaseStorage implements IStorage {
       .from(conversations);
     
     return result[0]?.total || 0;
+  }
+
+  // Deal operations for CRM
+  async getDeals(): Promise<Deal[]> {
+    return await db
+      .select()
+      .from(deals)
+      .where(eq(deals.isActive, true))
+      .orderBy(desc(deals.createdAt));
+  }
+
+  async getDeal(id: number): Promise<Deal | undefined> {
+    const [deal] = await db.select().from(deals).where(eq(deals.id, id));
+    return deal;
+  }
+
+  async getDealsByContact(contactId: number): Promise<Deal[]> {
+    return await db
+      .select()
+      .from(deals)
+      .where(and(eq(deals.contactId, contactId), eq(deals.isActive, true)))
+      .orderBy(desc(deals.createdAt));
+  }
+
+  async getDealsByStage(stage: string): Promise<Deal[]> {
+    return await db
+      .select()
+      .from(deals)
+      .where(and(eq(deals.stage, stage), eq(deals.isActive, true)))
+      .orderBy(desc(deals.createdAt));
+  }
+
+  async createDeal(deal: InsertDeal): Promise<Deal> {
+    const [newDeal] = await db
+      .insert(deals)
+      .values(deal)
+      .returning();
+    return newDeal;
+  }
+
+  async updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal> {
+    const [updatedDeal] = await db
+      .update(deals)
+      .set({ ...deal, updatedAt: new Date() })
+      .where(eq(deals.id, id))
+      .returning();
+    return updatedDeal;
+  }
+
+  async deleteDeal(id: number): Promise<void> {
+    await db
+      .update(deals)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(deals.id, id));
+  }
+
+  async createAutomaticDeal(contactId: number, canalOrigem?: string): Promise<Deal> {
+    // Buscar informações do contato para criar um nome apropriado para o negócio
+    const contact = await this.getContact(contactId);
+    if (!contact) {
+      throw new Error('Contato não encontrado');
+    }
+
+    // Determinar o valor inicial baseado no canal de origem
+    let initialValue = 0;
+    let dealName = `${contact.name || 'Contato'} - Oportunidade`;
+    
+    // Personalizar baseado no canal de origem
+    switch (canalOrigem?.toLowerCase()) {
+      case 'whatsapp':
+        initialValue = 150000; // R$ 1.500,00 em centavos
+        dealName = `${contact.name || 'Contato'} - WhatsApp Lead`;
+        break;
+      case 'instagram':
+        initialValue = 120000; // R$ 1.200,00 em centavos
+        dealName = `${contact.name || 'Contato'} - Instagram Lead`;
+        break;
+      case 'facebook':
+        initialValue = 100000; // R$ 1.000,00 em centavos
+        dealName = `${contact.name || 'Contato'} - Facebook Lead`;
+        break;
+      case 'email':
+        initialValue = 200000; // R$ 2.000,00 em centavos
+        dealName = `${contact.name || 'Contato'} - Email Lead`;
+        break;
+      default:
+        initialValue = 100000; // R$ 1.000,00 em centavos (valor padrão)
+        dealName = `${contact.name || 'Contato'} - Novo Lead`;
+    }
+
+    // Criar o negócio automaticamente
+    const dealData: InsertDeal = {
+      name: dealName,
+      contactId: contactId,
+      stage: 'prospecting', // Sempre inicia na etapa de prospecção
+      value: initialValue,
+      probability: 20, // 20% de probabilidade inicial
+      expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias a partir de hoje
+      owner: 'Sistema', // Pode ser ajustado depois
+      canalOrigem: canalOrigem || 'unknown',
+      tags: JSON.stringify([canalOrigem || 'lead', 'automatico']),
+      notes: `Negócio criado automaticamente ao cadastrar contato via ${canalOrigem || 'sistema'} em ${new Date().toLocaleDateString('pt-BR')}`,
+      isActive: true
+    };
+
+    const newDeal = await this.createDeal(dealData);
+    
+    console.log(`🎯 Negócio criado automaticamente: ID ${newDeal.id} para contato ${contact.name} (${canalOrigem})`);
+    
+    return newDeal;
   }
 }
 
