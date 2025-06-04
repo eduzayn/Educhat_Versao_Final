@@ -969,8 +969,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deals.id, id));
   }
 
-  // Função para detectar macrosetor baseado no conteúdo da mensagem
-  private detectMacrosetor(messageContent?: string): string {
+  // Função para detectar macrosetor baseado no canal e conteúdo da mensagem
+  private detectMacrosetor(messageContent?: string, canalOrigem?: string): string {
+    // Se for WhatsApp, sempre direcionar para comercial
+    if (canalOrigem?.toLowerCase() === 'whatsapp') {
+      return 'comercial';
+    }
+    
     if (!messageContent) return 'comercial';
     
     const content = messageContent.toLowerCase();
@@ -1011,8 +1016,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Contato não encontrado');
     }
 
-    // Determinar macrosetor baseado na mensagem ou usar o fornecido
-    let determinedMacrosetor = macrosetor || this.detectMacrosetor(messageContent);
+    // Determinar macrosetor baseado na mensagem e canal ou usar o fornecido
+    let determinedMacrosetor = macrosetor || this.detectMacrosetor(messageContent, canalOrigem);
     let stage = 'prospecting';
     let dealName = `${contact.name || 'Contato'} - Novo Lead`;
     let initialValue = 100000; // R$ 1.000,00 padrão

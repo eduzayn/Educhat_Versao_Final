@@ -883,6 +883,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: message
         });
         
+        // Criar negócio automaticamente para contatos do WhatsApp
+        try {
+          // Verificar se já existe um negócio ativo para este contato no funil comercial
+          const existingDeals = await storage.getDealsByContact(contact.id);
+          const hasActiveDeal = existingDeals.some(deal => 
+            deal.macrosetor === 'comercial' && deal.isActive
+          );
+          
+          if (!hasActiveDeal) {
+            console.log('💼 Criando negócio automático para contato do WhatsApp:', contact.name);
+            await storage.createAutomaticDeal(
+              contact.id, 
+              canalOrigem, 
+              'comercial', // Força comercial para WhatsApp
+              messageContent
+            );
+            console.log('✅ Negócio criado com sucesso para:', contact.name);
+          } else {
+            console.log('ℹ️ Contato já possui negócio ativo no funil comercial:', contact.name);
+          }
+        } catch (dealError) {
+          console.error('❌ Erro ao criar negócio automático:', dealError);
+          // Não interromper o processamento da mensagem por erro no negócio
+        }
 
       }
       
