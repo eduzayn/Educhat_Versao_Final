@@ -4,6 +4,7 @@ import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/ui/select';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import {
   Search,
   Filter,
@@ -14,8 +15,17 @@ import {
   Calendar,
   MoreHorizontal,
   Edit,
-  Trash
+  Trash,
+  Kanban
 } from "lucide-react";
+
+const stages = [
+  { id: 'prospecting', name: 'Prospecção', color: 'bg-gray-500' },
+  { id: 'qualified', name: 'Qualificado', color: 'bg-blue-500' },
+  { id: 'proposal', name: 'Proposta', color: 'bg-yellow-500' },
+  { id: 'negotiation', name: 'Negociação', color: 'bg-orange-500' },
+  { id: 'won', name: 'Fechado', color: 'bg-green-500' }
+];
 
 const mockDeals = [
   {
@@ -56,25 +66,31 @@ const mockDeals = [
   },
   {
     id: "4",
-    name: "Ana Costa - Curso de Inglês",
-    company: "Freelancer",
+    name: "Ana Costa - Curso Técnico",
+    company: "Estudante",
     value: 899,
-    probability: 25,
-    closeDate: "2025-07-10",
-    stage: "initial",
+    probability: 30,
+    closeDate: "2025-08-01",
+    stage: "prospecting",
     owner: "Lucia",
     ownerAvatar: "",
-    tags: ["online", "idiomas"]
+    tags: ["técnico", "ead"]
   }
 ];
 
 export function DealsModule() {
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+  const [viewMode, setViewMode] = useState("kanban");
+  const [deals, setDeals] = useState(mockDeals);
 
-  const filtered = mockDeals.filter((d) =>
-    d.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = deals.filter((deal) =>
+    deal.name.toLowerCase().includes(search.toLowerCase()) ||
+    deal.company.toLowerCase().includes(search.toLowerCase())
   );
+
+  const getDealsForStage = (stageId: string) => filtered.filter(d => d.stage === stageId);
+
+  const calculateStageValue = (deals: any[]) => deals.reduce((acc, deal) => acc + deal.value, 0);
 
   return (
     <div className="h-full flex flex-col">
@@ -98,7 +114,7 @@ export function DealsModule() {
               />
             </div>
 
-            <Button variant="outline" className="bg-accent">
+            <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" /> Filtros
             </Button>
 
@@ -109,7 +125,7 @@ export function DealsModule() {
                 onClick={() => setViewMode('kanban')}
                 className="rounded-r-none"
               >
-                <Columns className="h-4 w-4" />
+                <Kanban className="h-4 w-4" />
               </Button>
               <Button
                 variant={viewMode === 'table' ? 'default' : 'ghost'}
@@ -128,126 +144,104 @@ export function DealsModule() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto">
         {viewMode === 'kanban' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map((deal) => (
-              <Card key={deal.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-medium text-sm leading-tight">{deal.name}</h4>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <MoreHorizontal className="h-3 w-3" />
+          <div className="h-full p-6">
+            <div className="flex gap-6 h-full overflow-x-auto">
+              {stages.map(stage => {
+                const stageDeals = getDealsForStage(stage.id);
+                return (
+                  <div key={stage.id} className="min-w-80 bg-muted/30 rounded-lg p-4 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${stage.color}`} />
+                        <h3 className="font-medium">{stage.name}</h3>
+                        <Badge variant="secondary">{stageDeals.length}</Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        R$ {calculateStageValue(stageDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="space-y-3 flex-1 overflow-y-auto">
+                      {stageDeals.map(deal => (
+                        <Card key={deal.id} className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-start justify-between">
+                              <p className="text-sm font-medium leading-tight">{deal.name}</p>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Building2 className="h-3 w-3" />
+                              <span>{deal.company}</span>
+                            </div>
+                            <p className="text-sm text-green-600 font-semibold">
+                              R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="outline" className="text-xs">
+                                {deal.probability}% prob.
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">{deal.owner}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {deal.tags.map((tag, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    <Button variant="ghost" className="w-full mt-3" size="sm">
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
                     </Button>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{deal.company}</span>
-                  </div>
-
-                  <div className="text-lg font-bold text-green-600">
-                    R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span>Probabilidade</span>
-                      <span>{deal.probability}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-1.5">
-                      <div
-                        className="bg-primary h-1.5 rounded-full transition-all"
-                        style={{ width: `${deal.probability}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span>Fechamento: {new Date(deal.closeDate).toLocaleDateString('pt-BR')}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {deal.tags.map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-2">
-                    <div className="text-xs text-muted-foreground">
-                      Responsável: {deal.owner}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                );
+              })}
+            </div>
           </div>
         ) : (
-          <div className="border rounded-lg">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    <th className="p-3 text-left text-sm font-medium">Nome</th>
-                    <th className="p-3 text-left text-sm font-medium">Empresa</th>
-                    <th className="p-3 text-left text-sm font-medium">Valor</th>
-                    <th className="p-3 text-left text-sm font-medium">Probabilidade</th>
-                    <th className="p-3 text-left text-sm font-medium">Fechamento</th>
-                    <th className="p-3 text-left text-sm font-medium">Responsável</th>
-                    <th className="p-3 text-left text-sm font-medium">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((deal) => (
-                    <tr key={deal.id} className="border-b hover:bg-muted/30">
-                      <td className="p-3">
-                        <div>
-                          <div className="font-medium text-sm">{deal.name}</div>
-                          <div className="flex gap-1 mt-1">
-                            {deal.tags.map((tag, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground">{deal.company}</td>
-                      <td className="p-3 text-sm font-medium text-green-600">
-                        R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{deal.probability}%</span>
-                          <div className="w-16 bg-muted rounded-full h-1.5">
-                            <div
-                              className="bg-primary h-1.5 rounded-full"
-                              style={{ width: `${deal.probability}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground">
-                        {new Date(deal.closeDate).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground">{deal.owner}</td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <Trash className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="p-6">
+            <div className="rounded-md border">
+              <div className="grid grid-cols-7 gap-4 p-4 bg-muted font-medium text-sm">
+                <div>Nome</div>
+                <div>Empresa</div>
+                <div>Valor</div>
+                <div>Estágio</div>
+                <div>Probabilidade</div>
+                <div>Responsável</div>
+                <div>Ações</div>
+              </div>
+              {filtered.map((deal) => (
+                <div key={deal.id} className="grid grid-cols-7 gap-4 p-4 border-t items-center">
+                  <div className="font-medium">{deal.name}</div>
+                  <div className="text-muted-foreground">{deal.company}</div>
+                  <div className="font-bold text-green-600">
+                    R$ {deal.value.toLocaleString('pt-BR')}
+                  </div>
+                  <div>
+                    <Badge variant="secondary" className="text-xs">
+                      {stages.find(s => s.id === deal.stage)?.name}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Badge variant="outline">{deal.probability}%</Badge>
+                  </div>
+                  <div className="text-muted-foreground">{deal.owner}</div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline">
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Trash className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
