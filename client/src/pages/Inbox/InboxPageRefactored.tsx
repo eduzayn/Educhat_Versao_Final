@@ -57,6 +57,8 @@ export function InboxPageRefactored() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
+  const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
   
