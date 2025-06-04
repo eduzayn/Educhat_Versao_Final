@@ -1552,21 +1552,76 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Engenharia'
     },
 
-    // ========== SEGUNDA LICENCIATURA ==========
+    // ========== SEGUNDA LICENCIATURA (13 cursos) ==========
     'segunda_pedagogia': {
       variations: ['segunda licenciatura pedagogia', 'segunda grad pedagogia', 'segunda licenciatura em pedagogia'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Pedagogia'
     },
     'segunda_artes_visuais': {
-      variations: ['artes visuais', 'segunda licenciatura artes', 'licenciatura artes visuais'],
+      variations: ['artes visuais', 'segunda licenciatura artes visuais', 'licenciatura artes visuais', 'segunda grad artes'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Artes Visuais'
     },
+    'segunda_sociologia': {
+      variations: ['sociologia', 'segunda licenciatura sociologia', 'licenciatura sociologia', 'segunda grad sociologia'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Sociologia'
+    },
+    'segunda_ciencias_religiao': {
+      variations: ['ciências da religião', 'ciencias religião', 'segunda licenciatura ciências religião', 'licenciatura ciências religião'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Ciências da Religião'
+    },
+    'segunda_educacao_especial': {
+      variations: ['educação especial', 'segunda licenciatura educação especial', 'licenciatura educação especial', 'segunda grad educação especial'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Educação Especial'
+    },
+    'segunda_educacao_fisica': {
+      variations: ['educação física', 'segunda licenciatura educação física', 'licenciatura educação física', 'segunda grad educação física'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Educação Física'
+    },
+    'segunda_filosofia': {
+      variations: ['filosofia', 'segunda licenciatura filosofia', 'licenciatura filosofia', 'segunda grad filosofia'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Filosofia'
+    },
+    'segunda_geografia': {
+      variations: ['geografia', 'segunda licenciatura geografia', 'licenciatura geografia', 'segunda grad geografia'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Geografia'
+    },
+    'segunda_historia': {
+      variations: ['história', 'historia', 'segunda licenciatura história', 'licenciatura história', 'segunda grad história'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em História'
+    },
+    'segunda_letras_portugues_libras': {
+      variations: ['letras português libras', 'letras libras', 'língua portuguesa libras', 'segunda licenciatura letras libras'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Letras - Língua Portuguesa e Libras'
+    },
+    'segunda_matematica': {
+      variations: ['matemática', 'matematica', 'segunda licenciatura matemática', 'licenciatura matemática', 'segunda grad matemática'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Matemática'
+    },
     'segunda_musica': {
-      variations: ['música', 'musica', 'segunda licenciatura música', 'licenciatura música'],
+      variations: ['música', 'musica', 'segunda licenciatura música', 'licenciatura música', 'segunda grad música'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Música'
+    },
+    'segunda_letras_portugues_ingles': {
+      variations: ['letras português inglês', 'letras inglês', 'língua portuguesa inglês', 'segunda licenciatura letras inglês'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Letras Português/Inglês'
+    },
+    'segunda_letras_portugues_espanhol': {
+      variations: ['letras português espanhol', 'letras espanhol', 'língua portuguesa espanhol', 'segunda licenciatura letras espanhol'],
+      courseType: 'Segunda Licenciatura',
+      courseName: 'Segunda Licenciatura em Letras Português/Espanhol'
     }
   };
 
@@ -1589,7 +1644,7 @@ export class DatabaseStorage implements IStorage {
           .replace(/\s+/g, ' ')
           .trim();
 
-        // Verificar se a variação está contida na mensagem
+        // Verificar se a variação está contida na mensagem (exact match)
         if (normalizedMessage.includes(normalizedVariation)) {
           console.log(`✅ Curso detectado: ${courseData.courseName} (${courseData.courseType})`);
           return {
@@ -1599,15 +1654,17 @@ export class DatabaseStorage implements IStorage {
           };
         }
 
-        // Verificar também palavras-chave soltas com contexto
+        // Verificar também palavras-chave soltas com contexto educacional
         const keywords = normalizedVariation.split(' ');
-        if (keywords.length === 1 && keywords[0].length > 4) {
-          if (normalizedMessage.includes(keywords[0])) {
+        
+        // Para cursos com uma palavra específica (ex: "historia", "matematica")
+        for (const keyword of keywords) {
+          if (keyword.length > 3 && normalizedMessage.includes(keyword)) {
             // Verificar se tem contexto educacional
             const educationalContext = [
-              'curso', 'pos', 'graduacao', 'licenciatura', 'especialização',
+              'curso', 'pos', 'graduacao', 'licenciatura', 'especializacao',
               'formacao', 'tcc', 'estagio', 'certificado', 'diploma',
-              'turma', 'matricula', 'interesse'
+              'turma', 'matricula', 'interesse', 'segunda', 'grad'
             ];
             
             const hasContext = educationalContext.some(context => 
@@ -1615,7 +1672,7 @@ export class DatabaseStorage implements IStorage {
             );
 
             if (hasContext) {
-              console.log(`✅ Curso detectado por contexto: ${courseData.courseName} (${courseData.courseType})`);
+              console.log(`✅ Curso detectado por contexto: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
               return {
                 courseName: courseData.courseName,
                 courseType: courseData.courseType,
