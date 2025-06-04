@@ -3102,26 +3102,30 @@ export class DatabaseStorage implements IStorage {
 
   async getContactInterests(contactId: number): Promise<any[]> {
     try {
-      // Buscar os interesses salvos através da tabela de notas ou tags
-      // Como não temos uma tabela específica de interesses, vamos buscar nas notas
-      // que começam com "Interesse:"
-      const notes = await db.select()
-        .from(contactNotes)
-        .where(and(
-          eq(contactNotes.contactId, contactId),
-          sql`${contactNotes.content} LIKE 'Interesse:%'`
-        ))
-        .orderBy(desc(contactNotes.createdAt));
+      // Buscar o contato com suas tags
+      const contact = await db.select()
+        .from(contacts)
+        .where(eq(contacts.id, contactId))
+        .limit(1);
 
-      // Transformar as notas em formato de interesse
-      const interests = notes.map(note => ({
-        id: note.id,
-        courseName: note.content.replace('Interesse: ', ''),
-        detectedAt: note.createdAt,
-        type: 'course_detection'
-      }));
+      if (contact.length === 0) {
+        return [];
+      }
 
-      return interests;
+      const contactData = contact[0];
+      const tags = Array.isArray(contactData.tags) ? contactData.tags : [];
+
+      // Filtrar apenas as tags que começam com "Interesse:"
+      const courseInterests = tags
+        .filter(tag => tag.startsWith('Interesse: '))
+        .map((tag, index) => ({
+          id: `${contactId}_${index}`,
+          courseName: tag.replace('Interesse: ', ''),
+          detectedAt: contactData.updatedAt || contactData.createdAt,
+          type: 'course_detection'
+        }));
+
+      return courseInterests;
     } catch (error) {
       console.error('Erro ao buscar interesses do contato:', error);
       return [];
