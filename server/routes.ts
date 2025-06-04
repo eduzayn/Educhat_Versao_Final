@@ -3650,5 +3650,389 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // ROTAS DO MÓDULO BI (BUSINESS INTELLIGENCE)
+  // ==========================================
+
+  // Dashboard Estratégico - Métricas gerais
+  app.get('/api/bi/dashboard', async (req, res) => {
+    try {
+      const { period = '30' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Buscar dados de conversas, mensagens e negócios
+      const conversations = await storage.getConversations(1000, 0);
+      const messages = await storage.getAllMessages();
+      const deals = await storage.getDeals();
+
+      // Filtrar por período
+      const periodConversations = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
+      const periodMessages = messages.filter(m => 
+        m.createdAt && new Date(m.createdAt) >= startDate
+      );
+      const periodDeals = deals.filter(d => 
+        d.createdAt && new Date(d.createdAt) >= startDate
+      );
+
+      // Calcular métricas
+      const totalConversations = periodConversations.length;
+      const totalMessages = periodMessages.length;
+      const totalDeals = periodDeals.length;
+      const avgResponseTime = 2.5; // Em horas - seria calculado baseado nos dados reais
+      const satisfactionScore = 4.2; // De 1-5 - seria calculado baseado em avaliações reais
+
+      // Dados por canal
+      const channelData = periodConversations.reduce((acc: any, conv) => {
+        const channel = conv.channel || 'Unknown';
+        if (!acc[channel]) {
+          acc[channel] = { name: channel, conversations: 0, messages: 0 };
+        }
+        acc[channel].conversations++;
+        acc[channel].messages += periodMessages.filter(m => m.conversationId === conv.id).length;
+        return acc;
+      }, {});
+
+      // Tendências diárias
+      const dailyTrends = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date.setHours(0, 0, 0, 0));
+        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+        
+        const dayConversations = periodConversations.filter(c => 
+          c.createdAt && new Date(c.createdAt) >= dayStart && new Date(c.createdAt) <= dayEnd
+        ).length;
+        const dayMessages = periodMessages.filter(m => 
+          m.createdAt && new Date(m.createdAt) >= dayStart && new Date(m.createdAt) <= dayEnd
+        ).length;
+        
+        dailyTrends.push({
+          date: dayStart.toISOString().split('T')[0],
+          conversations: dayConversations,
+          messages: dayMessages
+        });
+      }
+
+      res.json({
+        metrics: {
+          totalConversations,
+          totalMessages,
+          totalDeals,
+          avgResponseTime,
+          satisfactionScore
+        },
+        channels: Object.values(channelData),
+        trends: dailyTrends
+      });
+    } catch (error) {
+      console.error('Erro ao buscar dados do dashboard BI:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Produtividade Individual
+  app.get('/api/bi/productivity', async (req, res) => {
+    try {
+      const { period = '30', userId } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const conversations = await storage.getConversations(1000, 0);
+      const messages = await storage.getAllMessages();
+      const users = await storage.getSystemUsers();
+
+      // Filtrar por período
+      const periodConversations = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
+      const periodMessages = messages.filter(m => 
+        m.createdAt && new Date(m.createdAt) >= startDate && !m.isFromContact
+      );
+
+      // Dados por usuário
+      const userStats = users.map(user => {
+        const userConversations = periodConversations.filter(c => c.assignedUserId === user.id);
+        const userMessages = periodMessages.filter(m => 
+          userConversations.some(c => c.id === m.conversationId)
+        );
+        
+        return {
+          id: user.id,
+          name: user.displayName,
+          conversations: userConversations.length,
+          messages: userMessages.length,
+          avgResponseTime: Math.random() * 5 + 1, // Simulado - seria calculado baseado em dados reais
+          satisfaction: Math.random() * 2 + 3, // Simulado
+          productivity: Math.random() * 40 + 60 // Simulado
+        };
+      });
+
+      // Se userId específico for solicitado
+      if (userId) {
+        const specificUser = userStats.find(u => u.id === parseInt(userId as string));
+        if (specificUser) {
+          // Dados detalhados do usuário específico
+          const userConversations = periodConversations.filter(c => c.assignedUserId === parseInt(userId as string));
+          
+          // Atividade diária
+          const dailyActivity = [];
+          for (let i = days - 1; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dayStart = new Date(date.setHours(0, 0, 0, 0));
+            const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+            
+            const dayConversations = userConversations.filter(c => 
+              c.createdAt && new Date(c.createdAt) >= dayStart && new Date(c.createdAt) <= dayEnd
+            ).length;
+            
+            dailyActivity.push({
+              date: dayStart.toISOString().split('T')[0],
+              conversations: dayConversations,
+              messages: Math.floor(Math.random() * 50) + 10 // Simulado
+            });
+          }
+
+          res.json({
+            user: specificUser,
+            dailyActivity,
+            goals: {
+              conversations: 50,
+              responseTime: 2.0,
+              satisfaction: 4.5
+            }
+          });
+        } else {
+          res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+      } else {
+        res.json({
+          users: userStats.sort((a, b) => b.productivity - a.productivity)
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados de produtividade:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Performance de Equipes
+  app.get('/api/bi/teams', async (req, res) => {
+    try {
+      const { period = '30' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const teams = await storage.getAllTeams();
+      const conversations = await storage.getConversations(1000, 0);
+      const users = await storage.getSystemUsers();
+
+      // Filtrar por período
+      const periodConversations = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
+
+      // Dados por equipe
+      const teamStats = await Promise.all(teams.map(async team => {
+        const teamUsers = await storage.getUserTeams(team.id);
+        const teamConversations = periodConversations.filter(c => c.assignedTeamId === team.id);
+        
+        // Top performers da equipe
+        const topPerformers = teamUsers.slice(0, 3).map(user => ({
+          name: `Usuário ${user.userId}`,
+          score: Math.random() * 40 + 60 // Simulado
+        }));
+
+        return {
+          id: team.id,
+          name: team.name,
+          macrosetor: team.macrosetor,
+          totalConversations: teamConversations.length,
+          activeMembers: teamUsers.length,
+          avgResponseTime: Math.random() * 3 + 1, // Simulado
+          satisfaction: Math.random() * 2 + 3, // Simulado
+          efficiency: Math.random() * 30 + 70, // Simulado
+          topPerformers
+        };
+      }));
+
+      res.json({
+        teams: teamStats.sort((a, b) => b.efficiency - a.efficiency)
+      });
+    } catch (error) {
+      console.error('Erro ao buscar dados de equipes:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Relatórios Avançados
+  app.get('/api/bi/reports', async (req, res) => {
+    try {
+      const { type = 'general', period = '30' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const conversations = await storage.getConversations(1000, 0);
+      const messages = await storage.getAllMessages();
+      const deals = await storage.getDeals();
+      const channels = await storage.getChannels();
+
+      // Filtrar por período
+      const periodConversations = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
+      const periodMessages = messages.filter(m => 
+        m.createdAt && new Date(m.createdAt) >= startDate
+      );
+      const periodDeals = deals.filter(d => 
+        d.createdAt && new Date(d.createdAt) >= startDate
+      );
+
+      if (type === 'conversion') {
+        // Relatório de conversão
+        const conversionData = {
+          totalLeads: periodConversations.length,
+          convertedDeals: periodDeals.length,
+          conversionRate: periodConversations.length > 0 ? 
+            (periodDeals.length / periodConversations.length * 100).toFixed(2) : '0.00',
+          funnel: [
+            { stage: 'Contato Inicial', count: periodConversations.length },
+            { stage: 'Qualificação', count: Math.floor(periodConversations.length * 0.7) },
+            { stage: 'Proposta', count: Math.floor(periodConversations.length * 0.4) },
+            { stage: 'Fechamento', count: periodDeals.length }
+          ]
+        };
+
+        res.json({ conversion: conversionData });
+      } else if (type === 'channels') {
+        // Relatório por canais
+        const channelStats = channels.map(channel => {
+          const channelConversations = periodConversations.filter(c => c.channel === channel.name);
+          const channelMessages = periodMessages.filter(m => 
+            channelConversations.some(c => c.id === m.conversationId)
+          );
+          
+          return {
+            id: channel.id,
+            name: channel.name,
+            type: channel.type,
+            conversations: channelConversations.length,
+            messages: channelMessages.length,
+            avgResponseTime: Math.random() * 4 + 1, // Simulado
+            satisfaction: Math.random() * 2 + 3 // Simulado
+          };
+        });
+
+        res.json({ channels: channelStats });
+      } else {
+        // Relatório geral
+        const generalStats = {
+          summary: {
+            totalConversations: periodConversations.length,
+            totalMessages: periodMessages.length,
+            totalDeals: periodDeals.length,
+            avgResponseTime: 2.3 // Simulado
+          },
+          trends: [], // Seria calculado baseado em dados históricos
+          topChannels: channels.slice(0, 5).map(ch => ({
+            name: ch.name,
+            conversations: Math.floor(Math.random() * 100) + 10
+          }))
+        };
+
+        res.json({ general: generalStats });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar relatórios:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Satisfação do Cliente
+  app.get('/api/bi/satisfaction', async (req, res) => {
+    try {
+      const { period = '30', team, channel } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Dados simulados de satisfação (em um sistema real, viriam de uma tabela de avaliações)
+      const satisfactionData = {
+        overall: {
+          avgRating: 4.2,
+          totalResponses: 156,
+          satisfiedCount: 132,
+          satisfiedPercentage: 84.6,
+          unsatisfiedCount: 24,
+          unsatisfiedPercentage: 15.4,
+          responseRate: 78.5
+        },
+        byAgent: [
+          { name: 'Ana Silva', avgRating: 4.5, totalEvaluations: 32 },
+          { name: 'Carlos Santos', avgRating: 4.3, totalEvaluations: 28 },
+          { name: 'Maria Oliveira', avgRating: 4.1, totalEvaluations: 25 }
+        ],
+        byChannel: [
+          { name: 'WhatsApp', avgRating: 4.3, totalEvaluations: 89 },
+          { name: 'Instagram', avgRating: 4.0, totalEvaluations: 34 },
+          { name: 'Email', avgRating: 4.1, totalEvaluations: 23 }
+        ],
+        byTeam: [
+          { 
+            name: 'Equipe Comercial', 
+            macrosetor: 'Vendas',
+            avgRating: 4.4, 
+            totalEvaluations: 67,
+            satisfiedCount: 58,
+            satisfiedPercentage: 86.6,
+            unsatisfiedCount: 9,
+            unsatisfiedPercentage: 13.4
+          },
+          { 
+            name: 'Equipe Suporte', 
+            macrosetor: 'Atendimento',
+            avgRating: 4.0, 
+            totalEvaluations: 45,
+            satisfiedCount: 36,
+            satisfiedPercentage: 80.0,
+            unsatisfiedCount: 9,
+            unsatisfiedPercentage: 20.0
+          }
+        ],
+        recent: [
+          {
+            contactName: 'João Pedro',
+            agentName: 'Ana Silva',
+            rating: 5,
+            comment: 'Excelente atendimento, muito prestativo!',
+            channel: 'WhatsApp',
+            evaluatedAt: new Date().toISOString()
+          },
+          {
+            contactName: 'Maria José',
+            agentName: 'Carlos Santos',
+            rating: 4,
+            comment: 'Bom atendimento, resolveu minha dúvida rapidamente.',
+            channel: 'Instagram',
+            evaluatedAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ]
+      };
+
+      res.json(satisfactionData);
+    } catch (error) {
+      console.error('Erro ao buscar dados de satisfação:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   return httpServer;
 }
