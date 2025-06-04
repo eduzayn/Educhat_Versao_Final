@@ -66,8 +66,14 @@ export function useSendMessage() {
       return response.json();
     },
     onSuccess: (_, { conversationId }) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      // Invalidar cache específico das mensagens dessa conversa
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/conversations/${conversationId}/messages`] 
+      });
+      // Invalidar cache da lista de conversas
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'] 
+      });
     },
   });
 }

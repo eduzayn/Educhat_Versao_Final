@@ -75,8 +75,8 @@ export function InboxPageRefactored() {
     isLoading, 
     refetch 
   } = useConversations(1000, { 
-    refetchInterval: 5000, // Recarregar a cada 5 segundos para capturar mudanças
-    staleTime: 0 // Considerar dados imediatamente obsoletos
+    refetchInterval: false, // Desabilitar polling - usar WebSocket para tempo real
+    staleTime: 30000 // Cache por 30 segundos para melhor performance
   }); // Carregar 1000 contatos
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
