@@ -8,7 +8,7 @@ export function WebhookConfigPage() {
 
   useEffect(() => {
     // Definir a URL do webhook diretamente
-    setWebhookUrl('https://omni-communicate-magonder.replit.app/api/zapi/webhook');
+    setWebhookUrl('https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/api/zapi/webhook');
   }, []);
 
   const copyToClipboard = async () => {
