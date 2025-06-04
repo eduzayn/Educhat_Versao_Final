@@ -179,11 +179,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
             {message.messageType && (
               <p className="text-xs mt-1">Tipo: {message.messageType}</p>
             )}
-            {message.metadata && (
-              <p className="text-xs mt-1">
-                Metadados disponíveis
-              </p>
-            )}
+
           </div>
         )}
       </div>
