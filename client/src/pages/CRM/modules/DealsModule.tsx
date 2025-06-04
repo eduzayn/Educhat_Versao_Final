@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -92,6 +93,32 @@ export function DealsModule() {
 
   const calculateStageValue = (deals: any[]) => deals.reduce((acc, deal) => acc + deal.value, 0);
 
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const deal = deals.find(d => d.id === draggableId);
+    if (!deal) return;
+
+    const newDeals = deals.map(d => 
+      d.id === draggableId 
+        ? { ...d, stage: destination.droppableId }
+        : d
+    );
+
+    setDeals(newDeals);
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="border-b p-6">
@@ -146,64 +173,91 @@ export function DealsModule() {
 
       <div className="flex-1 overflow-auto">
         {viewMode === 'kanban' ? (
-          <div className="h-full p-6">
-            <div className="flex gap-6 h-full overflow-x-auto">
-              {stages.map(stage => {
-                const stageDeals = getDealsForStage(stage.id);
-                return (
-                  <div key={stage.id} className="min-w-80 bg-muted/30 rounded-lg p-4 flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${stage.color}`} />
-                        <h3 className="font-medium">{stage.name}</h3>
-                        <Badge variant="secondary">{stageDeals.length}</Badge>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="h-full p-6">
+              <div className="flex gap-6 h-full overflow-x-auto">
+                {stages.map(stage => {
+                  const stageDeals = getDealsForStage(stage.id);
+                  return (
+                    <div key={stage.id} className="min-w-80 bg-muted/30 rounded-lg p-4 flex flex-col">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${stage.color}`} />
+                          <h3 className="font-medium">{stage.name}</h3>
+                          <Badge variant="secondary">{stageDeals.length}</Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          R$ {calculateStageValue(stageDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        R$ {calculateStageValue(stageDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </div>
+                      <Droppable droppableId={stage.id}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`space-y-3 flex-1 overflow-y-auto min-h-32 ${
+                              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
+                            }`}
+                          >
+                            {stageDeals.map((deal, index) => (
+                              <Draggable key={deal.id} draggableId={deal.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <Card
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab ${
+                                      snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50' : ''
+                                    }`}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                    }}
+                                  >
+                                    <CardContent className="p-3 space-y-2">
+                                      <div className="flex items-start justify-between">
+                                        <p className="text-sm font-medium leading-tight">{deal.name}</p>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                                          <MoreHorizontal className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Building2 className="h-3 w-3" />
+                                        <span>{deal.company}</span>
+                                      </div>
+                                      <p className="text-sm text-green-600 font-semibold">
+                                        R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                      </p>
+                                      <div className="flex items-center justify-between">
+                                        <Badge variant="outline" className="text-xs">
+                                          {deal.probability}% prob.
+                                        </Badge>
+                                        <span className="text-xs text-muted-foreground">{deal.owner}</span>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {deal.tags.map((tag, i) => (
+                                          <Badge key={i} variant="outline" className="text-xs">
+                                            {tag}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                      <Button variant="ghost" className="w-full mt-3" size="sm">
+                        <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
+                      </Button>
                     </div>
-                    <div className="space-y-3 flex-1 overflow-y-auto">
-                      {stageDeals.map(deal => (
-                        <Card key={deal.id} className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                          <CardContent className="p-3 space-y-2">
-                            <div className="flex items-start justify-between">
-                              <p className="text-sm font-medium leading-tight">{deal.name}</p>
-                              <Button variant="ghost" size="icon" className="h-6 w-6">
-                                <MoreHorizontal className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Building2 className="h-3 w-3" />
-                              <span>{deal.company}</span>
-                            </div>
-                            <p className="text-sm text-green-600 font-semibold">
-                              R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-xs">
-                                {deal.probability}% prob.
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">{deal.owner}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {deal.tags.map((tag, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    <Button variant="ghost" className="w-full mt-3" size="sm">
-                      <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
-                    </Button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </DragDropContext>
         ) : (
           <div className="p-6">
             <div className="rounded-md border">
