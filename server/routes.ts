@@ -3733,6 +3733,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ROTAS DO MÓDULO BI (BUSINESS INTELLIGENCE)
   // ==========================================
 
+  // KPIs do Dashboard
+  app.get('/api/bi/kpis', async (req, res) => {
+    try {
+      const { period = '30', macrosetor = 'all', channel = 'all' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Buscar dados reais do banco
+      const conversations = await storage.getConversations(10000, 0);
+      const allContacts = await storage.searchContacts('');
+      const allDeals = await storage.getDeals();
+
+      // Filtrar por período
+      const filteredConversations = conversations.filter(conv => {
+        const date = conv.createdAt || conv.lastMessageAt;
+        return date ? new Date(date) >= startDate : false;
+      });
+      
+      const filteredContacts = allContacts.filter(contact => {
+        return contact.createdAt ? new Date(contact.createdAt) >= startDate : false;
+      });
+
+      const filteredDeals = allDeals.filter(deal => {
+        return deal.createdAt ? new Date(deal.createdAt) >= startDate : false;
+      });
+
+      // Calcular KPIs
+      const totalAtendimentos = filteredConversations.length;
+      const novosContatos = filteredContacts.length;
+      const dealsConvertidos = filteredDeals.filter(deal => deal.stage === 'won').length;
+      const taxaConversao = totalAtendimentos > 0 ? (dealsConvertidos / totalAtendimentos) * 100 : 0;
+      
+      // Calcular taxa de desistência (conversas sem resposta recente)
+      const conversasAbandonadas = filteredConversations.filter(conv => {
+        if (!conv.lastMessageAt) return false;
+        const lastMessage = new Date(conv.lastMessageAt);
+        const daysSinceLastMessage = (Date.now() - lastMessage.getTime()) / (1000 * 60 * 60 * 24);
+        return daysSinceLastMessage > 7;
+      }).length;
+      
+      const taxaDesistencia = totalAtendimentos > 0 ? (conversasAbandonadas / totalAtendimentos) * 100 : 0;
+
+      const kpis = {
+        totalAtendimentos,
+        novosContatos,
+        taxaConversao: Number(taxaConversao.toFixed(1)),
+        taxaDesistencia: Number(taxaDesistencia.toFixed(1)),
+        satisfacaoMedia: 4.2, // Valor base - pode ser implementado sistema de avaliação
+        tempoMedioResposta: 15, // Em minutos - pode ser calculado das mensagens
+        tempoMedioResolucao: 24 // Em horas - pode ser calculado dos deals fechados
+      };
+
+      res.json(kpis);
+    } catch (error) {
+      console.error('Erro ao buscar KPIs:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Dados dos canais
+  app.get('/api/bi/channels', async (req, res) => {
+    try {
+      const { period = '30' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const conversations = await storage.getConversations(10000, 0);
+      const filteredConversations = conversations.filter(conv => 
+        new Date(conv.createdAt || conv.lastMessageAt) >= startDate
+      );
+
+      // Agrupar por canal
+      const channelStats = filteredConversations.reduce((acc, conv) => {
+        const channel = conv.channel || 'whatsapp';
+        if (!acc[channel]) {
+          acc[channel] = { name: channel, count: 0, percentage: 0 };
+        }
+        acc[channel].count++;
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Calcular percentuais
+      const total = filteredConversations.length;
+      Object.values(channelStats).forEach((stat: any) => {
+        stat.percentage = total > 0 ? (stat.count / total) * 100 : 0;
+      });
+
+      res.json(Object.values(channelStats));
+    } catch (error) {
+      console.error('Erro ao buscar dados dos canais:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Dados dos macrosetores
+  app.get('/api/bi/macrosetores', async (req, res) => {
+    try {
+      const { period = '30' } = req.query;
+      const days = parseInt(period as string);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const deals = await storage.getDeals();
+      const filteredDeals = deals.filter(deal => 
+        new Date(deal.createdAt) >= startDate
+      );
+
+      // Agrupar por macrosetor
+      const macrosetorStats = filteredDeals.reduce((acc, deal) => {
+        const macrosetor = deal.macrosetor || 'comercial';
+        if (!acc[macrosetor]) {
+          acc[macrosetor] = { 
+            name: macrosetor, 
+            deals: 0, 
+            convertidos: 0, 
+            taxaConversao: 0,
+            valorTotal: 0
+          };
+        }
+        acc[macrosetor].deals++;
+        if (deal.stage === 'won') {
+          acc[macrosetor].convertidos++;
+          acc[macrosetor].valorTotal += deal.value || 0;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Calcular taxas de conversão
+      Object.values(macrosetorStats).forEach((stat: any) => {
+        stat.taxaConversao = stat.deals > 0 ? (stat.convertidos / stat.deals) * 100 : 0;
+      });
+
+      res.json(Object.values(macrosetorStats));
+    } catch (error) {
+      console.error('Erro ao buscar dados dos macrosetores:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Dashboard Estratégico - Métricas gerais
   app.get('/api/bi/dashboard', async (req, res) => {
     try {
