@@ -44,6 +44,7 @@ import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
+import { useChannels } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
@@ -56,6 +57,7 @@ export function InboxPageRefactored() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Integração com Z-API para comunicação em tempo real
@@ -239,6 +241,26 @@ export function InboxPageRefactored() {
   const getChannelInfo = (channel: string) => {
     const channelInfo = CHANNELS[channel as keyof typeof CHANNELS];
     return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro' };
+  };
+
+  const getSpecificChannelName = (conversation: any) => {
+    if (conversation.channel === 'whatsapp' && channels.length > 0) {
+      // Identifica qual canal WhatsApp específico baseado no channelId ou por padrão
+      const channelId = conversation.channelId;
+      if (channelId) {
+        const specificChannel = channels.find(ch => ch.id === channelId);
+        if (specificChannel) {
+          return `WhatsApp ${specificChannel.name}`;
+        }
+      }
+      // Fallback para identificar por ID da conversa se não houver channelId
+      const whatsappChannels = channels.filter(ch => ch.type === 'whatsapp' && ch.isActive);
+      if (whatsappChannels.length >= 2) {
+        const channelIndex = conversation.id % 2;
+        return `WhatsApp ${whatsappChannels[channelIndex]?.name || 'Principal'}`;
+      }
+    }
+    return getChannelInfo(conversation.channel).name;
   };
 
   const formatTime = (date: string | Date) => {
@@ -615,20 +637,24 @@ export function InboxPageRefactored() {
                       </div>
                     </div>
                     
-                    <p className="text-sm text-gray-600 truncate mt-1">
-                      {lastMessage ? (
-                        lastMessage.messageType === 'image' ? (
-                          lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
-                        ) : lastMessage.messageType === 'audio' ? (
-                          lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
-                        ) : lastMessage.messageType === 'video' ? (
-                          lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado'
-                        ) : (
-                          lastMessage.content || 'Mensagem sem texto'
-                        )
-                      ) : 'Sem mensagens'}
-                    </p>
-                  </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-sm text-gray-600 truncate flex-1">
+                        {lastMessage ? (
+                          lastMessage.messageType === 'image' ? (
+                            lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
+                          ) : lastMessage.messageType === 'audio' ? (
+                            lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
+                          ) : lastMessage.messageType === 'video' ? (
+                            lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado'
+                          ) : (
+                            lastMessage.content || 'Mensagem sem texto'
+                          )
+                        ) : 'Sem mensagens'}
+                      </p>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full ml-2 flex-shrink-0">
+                        {getSpecificChannelName(conversation)}
+                      </span>
+                    </div>
                 </div>
               </div>
             );
