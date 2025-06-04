@@ -819,12 +819,12 @@ export function InputArea() {
               value={message}
               onChange={handleMessageChange}
               onKeyDown={handleKeyPress}
-              className="min-h-[2.5rem] max-h-32 resize-none pr-16 pl-12"
+              className="min-h-[2.5rem] max-h-32 resize-none pr-20 pl-3"
               rows={1}
             />
             
-            {/* Message/Note toggle icons inside textarea */}
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {/* Message/Note toggle icons inside textarea - right side */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
