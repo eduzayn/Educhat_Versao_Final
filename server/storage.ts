@@ -1314,6 +1314,48 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Formação Livre em Psicanálise'
     },
 
+    // ========== FORMAÇÃO LIVRE (9 cursos adicionais) ==========
+    'sexologia_livre': {
+      variations: ['sexologia', 'sexualidade', 'educação sexual', 'terapia sexual'],
+      courseType: 'Formação Livre',
+      courseName: 'Sexologia'
+    },
+    'terapia_aba_clinico_livre': {
+      variations: ['terapia aba clínico', 'aba clinico', 'terapia comportamental aba', 'analise comportamental aplicada clinica'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia em ABA Clínico'
+    },
+    'terapia_aba_livre': {
+      variations: ['terapia aba', 'aba terapia', 'análise comportamental aplicada', 'analise comportamental aplicada'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia em ABA'
+    },
+    'terapia_tdah_livre': {
+      variations: ['terapia tdah', 'tdah terapia', 'deficit atenção hiperatividade', 'transtorno deficit atencao'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia em TDAH'
+    },
+    'terapia_tdah_clinico_livre': {
+      variations: ['terapia tdah clínico', 'tdah clinico', 'terapia deficit atenção clínico', 'transtorno deficit atencao clinico'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia em TDAH Clínico'
+    },
+    'terapia_cognitivo_comportamental_livre': {
+      variations: ['terapia cognitivo comportamental', 'terapia cognitiva comportamental', 'tcc formacao', 'cognitivo comportamental', 'terapia comportamental cognitiva'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia Cognitivo Comportamental'
+    },
+    'terapia_familiar_livre': {
+      variations: ['terapia familiar livre', 'terapia de família livre', 'terapia sistêmica familiar livre', 'aconselhamento familiar livre'],
+      courseType: 'Formação Livre',
+      courseName: 'Terapia Familiar'
+    },
+    'musica_livre': {
+      variations: ['música', 'musica', 'educação musical', 'teoria musical', 'musicoterapia'],
+      courseType: 'Formação Livre',
+      courseName: 'Música'
+    },
+
     // ========== PSICOPEDAGOGIA (5 cursos) ==========
     'psicopedagogia_clinica_institucional': {
       variations: ['psicopedagogia clínica institucional', 'psicopedagogia hospitalar'],
