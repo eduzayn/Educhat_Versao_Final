@@ -2976,6 +2976,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para unificar contatos duplicados
+  app.post('/api/contacts/unify', async (req, res) => {
+    try {
+      const result = await storage.unifyDuplicateContacts();
+      res.json(result);
+    } catch (error) {
+      console.error('❌ Erro ao unificar contatos:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para buscar todas as conversas de um contato (multi-canal)
+  app.get('/api/contacts/:contactId/conversations', async (req, res) => {
+    try {
+      const { contactId } = req.params;
+      const conversations = await storage.getContactConversations(parseInt(contactId));
+      res.json(conversations);
+    } catch (error) {
+      console.error('❌ Erro ao buscar conversas do contato:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Test channel connection with Z-API
   app.post('/api/channels/:id/test', async (req, res) => {
     try {
