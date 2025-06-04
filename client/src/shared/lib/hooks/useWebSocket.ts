@@ -114,11 +114,13 @@ export function useWebSocket() {
                 action: unreadData.action
               });
               
-              // Invalidar IMEDIATAMENTE cache de conversas para atualizar bolinhas vermelhas
+              // Invalidar E FORÇAR refetch IMEDIATO das conversas
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+              queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
               
-              // Invalidar contador global de não lidas
+              // Invalidar E FORÇAR refetch do contador global
               queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+              queryClient.refetchQueries({ queryKey: ['/api/conversations/unread-count'] });
             }
             break;
         }

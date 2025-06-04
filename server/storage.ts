@@ -599,6 +599,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.id, conversationId));
   }
 
+  async markConversationAsUnread(conversationId: number): Promise<void> {
+    // Marcar a conversa como não lida com contador 1
+    await db
+      .update(conversations)
+      .set({ 
+        unreadCount: 1,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
   async recalculateUnreadCounts(): Promise<void> {
     console.log('🔄 Recalculando todos os contadores de mensagens não lidas...');
     
