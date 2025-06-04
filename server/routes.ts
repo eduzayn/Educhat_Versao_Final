@@ -748,13 +748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messageContent = 'Mensagem sem conteúdo de texto';
         }
         
-        console.log('📱 Nova mensagem via WhatsApp:', {
-          de: phone,
-          nome: webhookData.senderName || webhookData.chatName,
-          mensagem: messageContent,
-          tipo: messageType,
-          timestamp: new Date(webhookData.momment || Date.now())
-        });
+        // Process new WhatsApp message
         
         // Buscar ou criar contato pelo telefone
         const contacts = await storage.searchContacts(phone);
@@ -819,7 +813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: message
         });
         
-        console.log(`✅ Mensagem processada: ${contact.name} (${phone}) - ${messageContent}`);
+
       }
       
       res.status(200).json({ success: true });
@@ -1287,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/channels/:id/qrcode', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      console.log(`🔍 Gerando QR Code para canal ID: ${id}`);
+
       
       const channel = await storage.getChannel(id);
       
