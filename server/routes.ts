@@ -786,6 +786,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para testar detecção de macrosetor
+  app.post('/api/test-macrosetor', async (req, res) => {
+    try {
+      const { message, canal } = req.body;
+      console.log('🧪 Testando detecção de macrosetor:', message);
+      
+      const detectedMacrosetor = storage.detectMacrosetor(message, canal);
+      console.log('🎯 Macrosetor detectado:', detectedMacrosetor);
+      
+      res.json({ 
+        success: true, 
+        message,
+        canal,
+        detectedMacrosetor 
+      });
+    } catch (error) {
+      console.error('Erro no teste de macrosetor:', error);
+      res.status(500).json({ error: 'Erro no teste' });
+    }
+  });
+
   // Instagram webhook endpoint for omnichannel integration
   app.post('/api/instagram/webhook', async (req, res) => {
     try {
