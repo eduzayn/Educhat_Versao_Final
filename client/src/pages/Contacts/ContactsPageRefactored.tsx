@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, Clock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -17,6 +17,7 @@ import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
+import { useLocation } from 'wouter';
 
 export function ContactsPageRefactored() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,6 +45,7 @@ export function ContactsPageRefactored() {
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
   const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -295,6 +297,10 @@ export function ContactsPageRefactored() {
 
   const handleDeleteContact = (contact: Contact) => {
     setContactToDelete(contact);
+  };
+
+  const handleViewTimeline = (contact: Contact) => {
+    setLocation(`/contacts/${contact.id}/timeline`);
   };
 
   const handleConfirmDelete = async (contactId: number) => {
@@ -867,6 +873,15 @@ export function ContactsPageRefactored() {
                       
                       <div className="col-span-1 flex justify-end">
                         <div className="flex items-center space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 text-purple-600 hover:text-purple-700" 
+                            title="Ver Timeline"
+                            onClick={() => handleViewTimeline(contact)}
+                          >
+                            <Clock className="w-3 h-3" />
+                          </Button>
                           <Button 
                             size="sm" 
                             variant="ghost" 
