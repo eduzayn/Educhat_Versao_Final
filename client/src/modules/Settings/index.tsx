@@ -7,7 +7,7 @@ interface SettingsModuleProps {
 
 export const SettingsModule = ({ children }: SettingsModuleProps) => {
   return (
-    <div className="container mx-auto py-6 px-4 max-w-5xl">
+    <div className="h-full px-6 py-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Configurações do Tenant</h1>
@@ -17,7 +17,7 @@ export const SettingsModule = ({ children }: SettingsModuleProps) => {
       </div>
       
       {/* Layout Principal */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100%-120px)]">
         {/* Sidebar */}
         <div className="lg:w-64 flex-shrink-0">
           <SettingsSidebar />
@@ -25,7 +25,7 @@ export const SettingsModule = ({ children }: SettingsModuleProps) => {
         
         {/* Conteúdo Principal */}
         <div className="flex-1 min-w-0">
-          <div className="bg-card border rounded-md p-6">
+          <div className="bg-card border rounded-md p-6 h-full overflow-auto">
             {children}
           </div>
         </div>
