@@ -118,7 +118,17 @@ export function DealsModule() {
       return await apiRequest(`/api/deals/${dealId}`, 'PATCH', { stage });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+      // Invalidate the specific query with all parameters
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+      });
+      // Also invalidate the base query
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals'] 
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar estágio do negócio:', error);
     }
   });
 

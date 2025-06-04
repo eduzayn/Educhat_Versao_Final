@@ -3333,17 +3333,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update deal endpoint for drag and drop functionality
   app.patch('/api/deals/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const validatedData = insertDealSchema.partial().parse(req.body);
-      const deal = await storage.updateDeal(id, validatedData);
-      res.json(deal);
+      const updateData = req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid deal ID' });
+      }
+
+      // Check if deal exists
+      const existingDeal = await storage.getDeal(id);
+      if (!existingDeal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+
+      // Update the deal
+      const updatedDeal = await storage.updateDeal(id, updateData);
+      console.log(`✅ Deal ${id} updated:`, updateData);
+      
+      res.json(updatedDeal);
     } catch (error) {
       console.error('Error updating deal:', error);
-      res.status(400).json({ message: 'Failed to update deal' });
+      res.status(500).json({ message: 'Failed to update deal' });
     }
   });
+
+  // Deals endpoint implementation complete above
 
   app.delete('/api/deals/:id', async (req, res) => {
     try {
