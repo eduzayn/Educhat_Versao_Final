@@ -142,7 +142,7 @@ export function ActivitiesModule() {
             <SelectValue placeholder="Tipo de atividade" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="call">Ligações</SelectItem>
             <SelectItem value="meeting">Reuniões</SelectItem>
             <SelectItem value="email">E-mails</SelectItem>
@@ -156,7 +156,7 @@ export function ActivitiesModule() {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os status</SelectItem>
+            <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="completed">Concluídas</SelectItem>
             <SelectItem value="scheduled">Agendadas</SelectItem>
             <SelectItem value="pending">Pendentes</SelectItem>
