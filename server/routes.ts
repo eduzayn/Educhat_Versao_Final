@@ -911,6 +911,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Não interromper o processamento da mensagem por erro no negócio
         }
 
+        // Sistema de atribuição automática de equipes baseado no macrosetor
+        try {
+          const detectedMacrosetor = storage.detectMacrosetor(messageContent, canalOrigem);
+          
+          // Buscar equipe responsável pelo macrosetor detectado
+          const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+          
+          if (team) {
+            console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+            
+            // Atribuir conversa à equipe automaticamente
+            await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+            console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+            
+            // Tentar encontrar um usuário disponível na equipe para atribuição direta
+            const availableUser = await storage.getAvailableUserFromTeam(team.id);
+            
+            if (availableUser) {
+              await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+              console.log(`👤 Conversa também atribuída ao usuário disponível: ${availableUser.displayName || availableUser.username}`);
+            } else {
+              console.log(`⏳ Nenhum usuário disponível na equipe ${team.name} no momento - conversa ficará na fila da equipe`);
+            }
+            
+            // Broadcast da atribuição para clientes conectados
+            broadcastToAll({
+              type: 'conversation_assigned',
+              conversationId: conversation.id,
+              teamId: team.id,
+              teamName: team.name,
+              userId: availableUser?.id,
+              userName: availableUser?.displayName || availableUser?.username,
+              macrosetor: detectedMacrosetor,
+              method: 'automatic'
+            });
+            
+          } else {
+            console.log(`⚠️ Nenhuma equipe configurada para o macrosetor: ${detectedMacrosetor}`);
+            // Conversa fica sem atribuição específica - será tratada manualmente
+          }
+          
+        } catch (assignmentError) {
+          console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+          // Não interromper o processamento - atribuição é opcional
+        }
+
       }
       
       res.status(200).json({ success: true });
@@ -3373,6 +3419,234 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting deal:', error);
       res.status(500).json({ message: 'Failed to delete deal' });
+    }
+  });
+
+  // =============================================================================
+  // SISTEMA DE EQUIPES DE ATENDIMENTO - APIs
+  // =============================================================================
+
+  // Listar todas as equipes
+  app.get('/api/teams', async (req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error('Erro ao buscar equipes:', error);
+      res.status(500).json({ message: 'Erro ao buscar equipes' });
+    }
+  });
+
+  // Criar nova equipe
+  app.post('/api/teams', async (req, res) => {
+    try {
+      const teamData = req.body;
+      const newTeam = await storage.createTeam(teamData);
+      console.log(`🎯 Nova equipe criada: ${newTeam.name} - Macrosetor: ${newTeam.macrosetor}`);
+      res.status(201).json(newTeam);
+    } catch (error) {
+      console.error('Erro ao criar equipe:', error);
+      res.status(500).json({ message: 'Erro ao criar equipe' });
+    }
+  });
+
+  // Atualizar equipe existente
+  app.put('/api/teams/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const teamData = req.body;
+      const updatedTeam = await storage.updateTeam(id, teamData);
+      console.log(`✏️ Equipe atualizada: ${updatedTeam.name}`);
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error('Erro ao atualizar equipe:', error);
+      res.status(500).json({ message: 'Erro ao atualizar equipe' });
+    }
+  });
+
+  // Deletar equipe
+  app.delete('/api/teams/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTeam(id);
+      console.log(`🗑️ Equipe deletada: ID ${id}`);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao deletar equipe:', error);
+      res.status(500).json({ message: 'Erro ao deletar equipe' });
+    }
+  });
+
+  // Buscar equipes por macrosetor
+  app.get('/api/teams/macrosetor/:macrosetor', async (req, res) => {
+    try {
+      const { macrosetor } = req.params;
+      const team = await storage.getTeamByMacrosetor(macrosetor);
+      if (team) {
+        res.json(team);
+      } else {
+        res.status(404).json({ message: `Nenhuma equipe encontrada para o macrosetor: ${macrosetor}` });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar equipe por macrosetor:', error);
+      res.status(500).json({ message: 'Erro ao buscar equipe por macrosetor' });
+    }
+  });
+
+  // =============================================================================
+  // GERENCIAMENTO DE MEMBROS DAS EQUIPES
+  // =============================================================================
+
+  // Buscar equipes de um usuário
+  app.get('/api/users/:userId/teams', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userTeams = await storage.getUserTeams(userId);
+      res.json(userTeams);
+    } catch (error) {
+      console.error('Erro ao buscar equipes do usuário:', error);
+      res.status(500).json({ message: 'Erro ao buscar equipes do usuário' });
+    }
+  });
+
+  // Adicionar usuário a uma equipe
+  app.post('/api/teams/:teamId/members', async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { userId, roleInTeam } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'userId é obrigatório' });
+      }
+
+      const userTeam = await storage.addUserToTeam({
+        userId: parseInt(userId),
+        teamId: teamId,
+        roleInTeam: roleInTeam || 'member',
+        isActive: true
+      });
+
+      console.log(`👤 Usuário ${userId} adicionado à equipe ${teamId} como ${roleInTeam || 'member'}`);
+      res.status(201).json(userTeam);
+    } catch (error) {
+      console.error('Erro ao adicionar usuário à equipe:', error);
+      res.status(500).json({ message: 'Erro ao adicionar usuário à equipe' });
+    }
+  });
+
+  // Remover usuário de uma equipe
+  app.delete('/api/teams/:teamId/members/:userId', async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = parseInt(req.params.userId);
+      
+      await storage.removeUserFromTeam(userId, teamId);
+      console.log(`❌ Usuário ${userId} removido da equipe ${teamId}`);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao remover usuário da equipe:', error);
+      res.status(500).json({ message: 'Erro ao remover usuário da equipe' });
+    }
+  });
+
+  // =============================================================================
+  // ATRIBUIÇÃO DE CONVERSAS A EQUIPES E USUÁRIOS
+  // =============================================================================
+
+  // Atribuir conversa manualmente a uma equipe
+  app.post('/api/conversations/:conversationId/assign-team', async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const { teamId } = req.body;
+      
+      if (!teamId) {
+        return res.status(400).json({ message: 'teamId é obrigatório' });
+      }
+
+      await storage.assignConversationToTeam(conversationId, parseInt(teamId), 'manual');
+      
+      // Tentar atribuir a um usuário disponível na equipe
+      const availableUser = await storage.getAvailableUserFromTeam(parseInt(teamId));
+      if (availableUser) {
+        await storage.assignConversationToUser(conversationId, availableUser.id, 'manual');
+      }
+
+      console.log(`📌 Conversa ${conversationId} atribuída manualmente à equipe ${teamId}`);
+      
+      // Broadcast da atribuição
+      broadcastToAll({
+        type: 'conversation_assigned',
+        conversationId: conversationId,
+        teamId: parseInt(teamId),
+        userId: availableUser?.id,
+        method: 'manual'
+      });
+
+      res.json({ 
+        success: true, 
+        teamId: parseInt(teamId),
+        userId: availableUser?.id,
+        method: 'manual'
+      });
+    } catch (error) {
+      console.error('Erro ao atribuir conversa à equipe:', error);
+      res.status(500).json({ message: 'Erro ao atribuir conversa à equipe' });
+    }
+  });
+
+  // Atribuir conversa manualmente a um usuário específico
+  app.post('/api/conversations/:conversationId/assign-user', async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'userId é obrigatório' });
+      }
+
+      await storage.assignConversationToUser(conversationId, parseInt(userId), 'manual');
+      console.log(`👤 Conversa ${conversationId} atribuída manualmente ao usuário ${userId}`);
+      
+      // Broadcast da atribuição
+      broadcastToAll({
+        type: 'conversation_assigned',
+        conversationId: conversationId,
+        userId: parseInt(userId),
+        method: 'manual'
+      });
+
+      res.json({ 
+        success: true, 
+        userId: parseInt(userId),
+        method: 'manual'
+      });
+    } catch (error) {
+      console.error('Erro ao atribuir conversa ao usuário:', error);
+      res.status(500).json({ message: 'Erro ao atribuir conversa ao usuário' });
+    }
+  });
+
+  // Buscar conversas atribuídas a uma equipe
+  app.get('/api/teams/:teamId/conversations', async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const conversations = await storage.getConversationsByTeam(teamId);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Erro ao buscar conversas da equipe:', error);
+      res.status(500).json({ message: 'Erro ao buscar conversas da equipe' });
+    }
+  });
+
+  // Buscar conversas atribuídas a um usuário
+  app.get('/api/users/:userId/conversations', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const conversations = await storage.getConversationsByUser(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Erro ao buscar conversas do usuário:', error);
+      res.status(500).json({ message: 'Erro ao buscar conversas do usuário' });
     }
   });
 

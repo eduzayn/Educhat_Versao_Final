@@ -13,6 +13,7 @@ import {
   channels,
   contactNotes,
   deals,
+  userTeams,
   type User,
   type UpsertUser,
   type Contact,
@@ -41,6 +42,8 @@ import {
   type InsertContactNote,
   type Deal,
   type InsertDeal,
+  type UserTeam,
+  type InsertUserTeam,
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
@@ -1352,6 +1355,114 @@ export class DatabaseStorage implements IStorage {
         eq(userTeams.userId, userId),
         eq(userTeams.teamId, teamId)
       ));
+  }
+
+  // CRUD operations for teams
+  async getAllTeams(): Promise<Team[]> {
+    const result = await db.select()
+      .from(teams)
+      .where(eq(teams.isActive, true))
+      .orderBy(teams.name);
+    
+    return result;
+  }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const result = await db.insert(teams).values(team).returning();
+    return result[0];
+  }
+
+  async updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team> {
+    const result = await db.update(teams)
+      .set(team)
+      .where(eq(teams.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    await db.update(teams)
+      .set({ isActive: false })
+      .where(eq(teams.id, id));
+  }
+
+  // Conversation assignment queries
+  async getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]> {
+    const result = await db.select({
+      id: conversations.id,
+      contactId: conversations.contactId,
+      channel: conversations.channel,
+      status: conversations.status,
+      lastMessageAt: conversations.lastMessageAt,
+      assignedTeamId: conversations.assignedTeamId,
+      assignedUserId: conversations.assignedUserId,
+      assignmentMethod: conversations.assignmentMethod,
+      assignedAt: conversations.assignedAt,
+      createdAt: conversations.createdAt,
+      updatedAt: conversations.updatedAt,
+      contact: {
+        id: contacts.id,
+        name: contacts.name,
+        phone: contacts.phone,
+        email: contacts.email,
+        isOnline: contacts.isOnline,
+        profileImageUrl: contacts.profileImageUrl,
+        canalOrigem: contacts.canalOrigem,
+        nomeCanal: contacts.nomeCanal,
+        idCanal: contacts.idCanal,
+        createdAt: contacts.createdAt,
+        updatedAt: contacts.updatedAt
+      }
+    })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.assignedTeamId, teamId))
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    // Transform to match ConversationWithContact type
+    return result.map(row => ({
+      ...row,
+      messages: [] // Will be populated separately if needed
+    }));
+  }
+
+  async getConversationsByUser(userId: number): Promise<ConversationWithContact[]> {
+    const result = await db.select({
+      id: conversations.id,
+      contactId: conversations.contactId,
+      channel: conversations.channel,
+      status: conversations.status,
+      lastMessageAt: conversations.lastMessageAt,
+      assignedTeamId: conversations.assignedTeamId,
+      assignedUserId: conversations.assignedUserId,
+      assignmentMethod: conversations.assignmentMethod,
+      assignedAt: conversations.assignedAt,
+      createdAt: conversations.createdAt,
+      updatedAt: conversations.updatedAt,
+      contact: {
+        id: contacts.id,
+        name: contacts.name,
+        phone: contacts.phone,
+        email: contacts.email,
+        isOnline: contacts.isOnline,
+        profileImageUrl: contacts.profileImageUrl,
+        canalOrigem: contacts.canalOrigem,
+        nomeCanal: contacts.nomeCanal,
+        idCanal: contacts.idCanal,
+        createdAt: contacts.createdAt,
+        updatedAt: contacts.updatedAt
+      }
+    })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.assignedUserId, userId))
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    // Transform to match ConversationWithContact type
+    return result.map(row => ({
+      ...row,
+      messages: [] // Will be populated separately if needed
+    }));
   }
 }
 
