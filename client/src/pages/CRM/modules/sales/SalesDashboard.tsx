@@ -5,6 +5,9 @@ import { Button } from '@/shared/ui/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Progress } from '@/shared/ui/ui/progress';
+import { Input } from '@/shared/ui/ui/input';
+import { Label } from '@/shared/ui/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -23,6 +26,9 @@ export function SalesDashboard() {
   const [period, setPeriod] = useState('month');
   const [channel, setChannel] = useState('all');
   const [salesperson, setSalesperson] = useState('all');
+  const [customDateStart, setCustomDateStart] = useState('');
+  const [customDateEnd, setCustomDateEnd] = useState('');
+  const [isCustomDateOpen, setIsCustomDateOpen] = useState(false);
 
   // Buscar dados do dashboard
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
@@ -107,12 +113,61 @@ export function SalesDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="today">Hoje</SelectItem>
               <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mês</SelectItem>
               <SelectItem value="quarter">Este trimestre</SelectItem>
               <SelectItem value="year">Este ano</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
+
+          {period === 'custom' && (
+            <Dialog open={isCustomDateOpen} onOpenChange={setIsCustomDateOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {customDateStart && customDateEnd 
+                    ? `${new Date(customDateStart).toLocaleDateString('pt-BR')} - ${new Date(customDateEnd).toLocaleDateString('pt-BR')}`
+                    : 'Definir período'
+                  }
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Filtro de Data Personalizado</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="startDate">Data de Início</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={customDateStart}
+                      onChange={(e) => setCustomDateStart(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="endDate">Data Final</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={customDateEnd}
+                      onChange={(e) => setCustomDateEnd(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsCustomDateOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={() => setIsCustomDateOpen(false)}>
+                      Aplicar Filtro
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <Select value={channel} onValueChange={setChannel}>
             <SelectTrigger className="w-40">

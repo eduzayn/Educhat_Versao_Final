@@ -4225,10 +4225,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard de Vendas
   app.get('/api/sales/dashboard', async (req, res) => {
     try {
-      const { period = 'month', channel = 'all', salesperson = 'all' } = req.query;
-      const days = parseInt(period === 'week' ? '7' : period === 'month' ? '30' : period === 'quarter' ? '90' : '365');
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      const { period = 'month', channel = 'all', salesperson = 'all', customDateStart, customDateEnd } = req.query;
+      
+      let startDate: Date;
+      let endDate = new Date();
+      
+      if (period === 'custom' && customDateStart && customDateEnd) {
+        startDate = new Date(customDateStart as string);
+        endDate = new Date(customDateEnd as string);
+        endDate.setHours(23, 59, 59, 999); // Final do dia
+      } else {
+        const days = parseInt(
+          period === 'today' ? '1' :
+          period === 'week' ? '7' : 
+          period === 'month' ? '30' : 
+          period === 'quarter' ? '90' : '365'
+        );
+        
+        if (period === 'today') {
+          startDate = new Date();
+          startDate.setHours(0, 0, 0, 0); // Início do dia
+          endDate = new Date();
+          endDate.setHours(23, 59, 59, 999); // Final do dia
+        } else {
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - days);
+        }
+      }
 
       // Buscar negócios fechados (won) no período
       const deals = await storage.getDeals();
@@ -4243,13 +4266,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Período anterior para comparação
       const previousStartDate = new Date(startDate);
-      previousStartDate.setDate(previousStartDate.getDate() - days);
+      const previousEndDate = new Date(startDate);
+      
+      if (period === 'today') {
+        previousStartDate.setDate(previousStartDate.getDate() - 1);
+        previousStartDate.setHours(0, 0, 0, 0);
+        previousEndDate.setHours(23, 59, 59, 999);
+      } else if (period === 'custom') {
+        const diffTime = endDate.getTime() - startDate.getTime();
+        previousStartDate.setTime(startDate.getTime() - diffTime);
+        previousEndDate.setTime(startDate.getTime() - 1);
+      } else {
+        const days = parseInt(
+          period === 'week' ? '7' : 
+          period === 'month' ? '30' : 
+          period === 'quarter' ? '90' : '365'
+        );
+        previousStartDate.setDate(previousStartDate.getDate() - days);
+        previousEndDate = new Date(startDate);
+      }
       
       const previousDeals = deals.filter(deal => 
         deal.stage === 'won' && 
         deal.createdAt && 
         new Date(deal.createdAt) >= previousStartDate && 
-        new Date(deal.createdAt) < startDate
+        new Date(deal.createdAt) <= previousEndDate
       );
 
       const totalSalesLastMonth = previousDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
