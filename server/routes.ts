@@ -595,75 +595,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Buscar conversas de um contato específico
-  app.get('/api/contacts/:id/conversations', async (req, res) => {
-    try {
-      const contactId = parseInt(req.params.id);
-      const conversations = await storage.getConversationsByContactId(contactId);
-      
-      res.json(conversations);
-    } catch (error) {
-      console.error('Error fetching contact conversations:', error);
-      res.status(500).json({ message: 'Failed to fetch contact conversations' });
-    }
-  });
-
-  // Get all messages from all channels for a specific contact (unified timeline)
-  app.get('/api/contacts/:id/messages', async (req, res) => {
-    try {
-      const contactId = parseInt(req.params.id);
-      const channelFilter = req.query.channel as string;
-      
-      console.log(`📋 Buscando mensagens unificadas para contato ${contactId}, filtro: ${channelFilter || 'todos'}`);
-      
-      // Get all conversations for this contact
-      const conversations = await storage.getConversationsByContactId(contactId);
-      console.log(`📊 Encontradas ${conversations.length} conversas para o contato ${contactId}`);
-      console.log(`🔍 Conversas encontradas:`, conversations.map(c => ({ id: c.id, channel: c.channel, lastMessageAt: c.lastMessageAt })));
-      
-      // Log detalhado da lógica de filtro
-      if (channelFilter && channelFilter !== 'all') {
-        const matchingConversations = conversations.filter(c => c.channel === channelFilter);
-        console.log(`🎯 Filtro "${channelFilter}" aplicado: ${matchingConversations.length} conversas correspondem`);
-        console.log(`🎯 Conversas que correspondem:`, matchingConversations.map(c => ({ id: c.id, channel: c.channel })));
-      }
-      
-      // Get all messages from all conversations
-      let allMessages: any[] = [];
-      for (const conversation of conversations) {
-        console.log(`🔍 Avaliando conversa ${conversation.id} - Canal: "${conversation.channel}" vs Filtro: "${channelFilter}"`);
-        
-        // Apply channel filter if specified
-        if (channelFilter && channelFilter !== 'all') {
-          if (conversation.channel !== channelFilter) {
-            console.log(`❌ Conversa ${conversation.id} filtrada (canal ${conversation.channel} não corresponde ao filtro ${channelFilter})`);
-            continue;
-          }
-        }
-        console.log(`✅ Conversa ${conversation.id} incluída no resultado`);
-        
-        
-        const messages = await storage.getMessages(conversation.id);
-        // Add conversation channel info to each message
-        const messagesWithChannel = messages.map(msg => ({
-          ...msg,
-          conversationChannel: conversation.channel,
-          conversationId: conversation.id
-        }));
-        allMessages = allMessages.concat(messagesWithChannel);
-      }
-      
-      // Sort messages by sentAt chronologically (oldest first)
-      allMessages.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
-      
-      console.log(`📄 Retornando ${allMessages.length} mensagens unificadas`);
-      res.json(allMessages);
-    } catch (error) {
-      console.error('Error fetching contact unified messages:', error);
-      res.status(500).json({ message: 'Failed to fetch contact messages' });
-    }
-  });
-
   // Contact tags endpoints
   app.get('/api/contacts/:id/tags', async (req, res) => {
     try {
@@ -745,21 +676,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
       if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
         const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
-        const instanceId = webhookData.instanceId; // Identificar o canal de origem
-        
-        console.log(`📱 Mensagem recebida do canal: ${instanceId} - Telefone: ${phone}`);
-        
-        // Buscar o canal correspondente no banco de dados
-        const channels = await storage.getChannels();
-        const sourceChannel = channels.find(channel => channel.instanceId === instanceId);
-        
-        if (!sourceChannel) {
-          console.warn(`⚠️ Canal não encontrado para instanceId: ${instanceId}`);
-          return res.status(200).json({ success: true, message: 'Canal não cadastrado no sistema' });
-        }
-        
-        console.log(`✅ Canal identificado: ${sourceChannel.name} (ID: ${sourceChannel.id})`);
-        
         let messageContent = '';
         let messageType = 'text';
         
@@ -856,13 +772,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateContactOnlineStatus(contact.id, true);
         }
         
-        // Buscar ou criar conversa usando o canal específico
-        const channelIdentifier = `whatsapp-${sourceChannel.id}`; // Identificador único por canal
-        let conversation = await storage.getConversationByContactAndChannel(contact.id, channelIdentifier);
+        // Buscar ou criar conversa
+        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
         if (!conversation) {
           conversation = await storage.createConversation({
             contactId: contact.id,
-            channel: channelIdentifier,
+            channel: 'whatsapp',
             status: 'open',
             lastMessageAt: new Date()
           });
@@ -2314,35 +2229,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoints para Canais
-  app.get('/api/channels', async (req, res) => {
-    try {
-      const channels = await storage.getChannels();
-      res.json(channels);
-    } catch (error) {
-      console.error('Erro ao buscar canais:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
-
-  app.get('/api/channels/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const channel = await storage.getChannel(id);
-      if (!channel) {
-        return res.status(404).json({ error: 'Canal não encontrado' });
-      }
-      res.json(channel);
-    } catch (error) {
-      console.error('Erro ao buscar canal:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
-
   // Verificar se um número de telefone existe no WhatsApp
   app.get('/api/zapi/phone-exists/:phone', async (req, res) => {
     try {
@@ -3042,29 +2928,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting channel:', error);
       res.status(500).json({ message: 'Failed to delete channel' });
-    }
-  });
-
-  // Endpoint para unificar contatos duplicados
-  app.post('/api/contacts/unify', async (req, res) => {
-    try {
-      const result = await storage.unifyDuplicateContacts();
-      res.json(result);
-    } catch (error) {
-      console.error('❌ Erro ao unificar contatos:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Endpoint para buscar todas as conversas de um contato (multi-canal)
-  app.get('/api/contacts/:contactId/conversations', async (req, res) => {
-    try {
-      const { contactId } = req.params;
-      const conversations = await storage.getContactConversations(parseInt(contactId));
-      res.json(conversations);
-    } catch (error) {
-      console.error('❌ Erro ao buscar conversas do contato:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 

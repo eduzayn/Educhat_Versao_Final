@@ -43,18 +43,6 @@ export const CHANNELS: Record<string, ChannelInfo> = {
     color: 'text-green-500',
     name: 'WhatsApp'
   },
-  'whatsapp-1': {
-    type: 'whatsapp',
-    icon: '📱',
-    color: 'text-green-600',
-    name: 'WhatsApp - Canal 1'
-  },
-  'whatsapp-2': {
-    type: 'whatsapp',
-    icon: '📞',
-    color: 'text-green-700',
-    name: 'WhatsApp - Canal 2'
-  },
   instagram: {
     type: 'instagram',
     icon: 'fab fa-instagram',

@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
@@ -16,7 +14,7 @@ import { Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { insertContactSchema } from '@shared/schema';
-import type { InsertContact, Message } from '@shared/schema';
+import type { InsertContact } from '@shared/schema';
 import { 
   Search, 
   Filter,
@@ -50,17 +48,14 @@ import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
 import { InputArea } from '@/modules/Messages/components/InputArea';
-import { UnifiedConversationView } from '@/components/UnifiedConversationView';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
-import { useChannels } from '@/shared/lib/hooks/useChannels';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
-  const [messageChannelFilter, setMessageChannelFilter] = useState('all'); // Filtro específico para mensagens
   const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Integração com Z-API para comunicação em tempo real
@@ -78,77 +73,7 @@ export function InboxPageRefactored() {
     refetchInterval: 5000, // Recarregar a cada 5 segundos para capturar mudanças
     staleTime: 0 // Considerar dados imediatamente obsoletos
   }); // Carregar 1000 contatos
-  const { data: channels } = useChannels();
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
-
-  // Função para obter todos os canais que um contato está usando
-  const getContactChannels = (contactId: number) => {
-    const contactConversations = conversations?.filter(conv => conv.contactId === contactId) || [];
-    const uniqueChannels = Array.from(new Set(contactConversations.map(conv => conv.channel)));
-    
-    return uniqueChannels.map(channelId => {
-      // Se for o canal whatsapp genérico (formato antigo), tentar identificar qual canal específico
-      if (channelId === 'whatsapp') {
-        // Para conversas antigas, vamos mostrar todos os canais WhatsApp disponíveis
-        // já que não sabemos qual canal específico foi usado
-        const whatsappChannels = channels?.filter(c => c.type === 'whatsapp') || [];
-        
-        // Se temos apenas um canal WhatsApp, usar esse
-        if (whatsappChannels.length === 1) {
-          return {
-            id: `whatsapp-${whatsappChannels[0].id}`,
-            name: whatsappChannels[0].name,
-            color: 'bg-green-100 text-green-700 border-green-300',
-            icon: '📱'
-          };
-        }
-        
-        // Se temos múltiplos canais, retornar o primeiro como fallback
-        // (idealmente isso deveria ser resolvido pelo instanceId das mensagens)
-        if (whatsappChannels.length > 0) {
-          return {
-            id: `whatsapp-${whatsappChannels[0].id}`,
-            name: whatsappChannels[0].name,
-            color: 'bg-green-100 text-green-700 border-green-300',
-            icon: '📱'
-          };
-        }
-        
-        // Fallback para WhatsApp genérico
-        return {
-          id: channelId,
-          name: 'WhatsApp',
-          color: 'bg-green-100 text-green-700 border-green-300',
-          icon: '📱'
-        };
-      }
-      
-      if (channelId?.startsWith('whatsapp-')) {
-        const id = parseInt(channelId.replace('whatsapp-', ''));
-        const dbChannel = channels?.find(c => c.id === id);
-        
-        return {
-          id: channelId,
-          name: dbChannel?.name || `Canal ${id}`,
-          color: 'bg-green-100 text-green-700 border-green-300',
-          icon: '📱'
-        };
-      }
-      
-      const channelInfo = CHANNELS[channelId] || {
-        icon: '💬',
-        color: 'bg-gray-100 text-gray-700 border-gray-300',
-        name: 'Canal Desconhecido'
-      };
-      
-      return {
-        id: channelId,
-        name: channelInfo.name,
-        color: channelInfo.color,
-        icon: channelInfo.icon
-      };
-    });
-  };
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
@@ -159,33 +84,10 @@ export function InboxPageRefactored() {
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
-  // Buscar mensagens unificadas do contato quando necessário
   const { 
-    data: unifiedMessages, 
-    isLoading: isLoadingUnifiedMessages,
-    refetch: refetchUnifiedMessages 
-  } = useQuery<Message[]>({
-    queryKey: [`/api/contacts/${activeConversation?.contactId}/messages`, messageChannelFilter],
-    queryFn: async () => {
-      if (!activeConversation?.contactId) throw new Error('No contact selected');
-      const channelParam = messageChannelFilter !== 'all' ? `?channel=${messageChannelFilter}` : '';
-      const response = await fetch(`/api/contacts/${activeConversation.contactId}/messages${channelParam}`);
-      if (!response.ok) throw new Error('Failed to fetch unified messages');
-      return response.json();
-    },
-    enabled: !!activeConversation?.contactId,
-    refetchInterval: 3000,
-    staleTime: 0
-  });
-
-  const { 
-    data: conversationMessages, 
-    isLoading: isLoadingConversationMessages
-  } = useMessages(activeConversation?.id || null, 100);
-
-  // Determinar quais mensagens usar baseado no filtro
-  const messages = messageChannelFilter === 'all' ? unifiedMessages : conversationMessages;
-  const isLoadingMessages = messageChannelFilter === 'all' ? isLoadingUnifiedMessages : isLoadingConversationMessages;
+    data: messages, 
+    isLoading: isLoadingMessages
+  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
   
 
   const createContact = useCreateContact();
@@ -780,19 +682,9 @@ export function InboxPageRefactored() {
                       <h2 className="font-semibold text-gray-900 text-base">
                         {activeConversation.contact.name}
                       </h2>
-                      {/* Badges dos canais que o contato está usando */}
-                      <div className="flex items-center space-x-1">
-                        {getContactChannels(activeConversation.contactId).map((channel) => (
-                          <Badge
-                            key={channel.id}
-                            variant="outline"
-                            className={`text-xs px-2 py-0.5 h-5 ${channel.color} border-current`}
-                            title={`Conversa ativa via ${channel.name}`}
-                          >
-                            <span className="text-xs font-medium">{channel.name}</span>
-                          </Badge>
-                        ))}
-                      </div>
+                      <span className={`text-sm ${getChannelInfo(activeConversation.channel).color}`}>
+                        {getChannelInfo(activeConversation.channel).icon}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 mt-0.5">
                       <Select 
@@ -838,46 +730,6 @@ export function InboxPageRefactored() {
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    {/* Filtro de Canal - nova linha abaixo do status */}
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500">Filtro:</span>
-                      <Select 
-                        value={messageChannelFilter} 
-                        onValueChange={(newFilter) => {
-                          setMessageChannelFilter(newFilter);
-                          // Invalidar cache das mensagens unificadas para forçar novo fetch
-                          if (activeConversation?.contactId) {
-                            queryClient.invalidateQueries({
-                              queryKey: [`/api/contacts/${activeConversation.contactId}/messages`]
-                            });
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
-                          <SelectValue>
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
-                              {messageChannelFilter === 'all' ? 'Todos os canais' : 
-                               getContactChannels(activeConversation.contactId).find(ch => ch.id.includes(messageChannelFilter))?.name || 'Canal específico'}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">
-                            <Badge variant="outline" className="text-xs">
-                              Todos os canais
-                            </Badge>
-                          </SelectItem>
-                          {getContactChannels(activeConversation.contactId).map((channel) => (
-                            <SelectItem key={channel.id} value={channel.id}>
-                              <Badge variant="outline" className={`text-xs ${channel.color}`}>
-                                {channel.name}
-                              </Badge>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
                 </div>
                 
@@ -920,6 +772,8 @@ export function InboxPageRefactored() {
                       key={message.id} 
                       message={message} 
                       contact={activeConversation.contact}
+                      channelIcon={getChannelInfo(activeConversation.channel).icon}
+                      channelColor={getChannelInfo(activeConversation.channel).color}
                       conversationId={activeConversation.id}
                     />
                   ))}

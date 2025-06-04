@@ -113,10 +113,6 @@ export interface IStorage {
 
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
-  
-  // Contact unification operations
-  unifyDuplicateContacts(): Promise<{ unified: number; kept: number; removed: number }>;
-  getContactConversations(contactId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -338,37 +334,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.id, id))
       .returning();
     return updatedConversation;
-  }
-
-  async getConversationsByContactId(contactId: number): Promise<ConversationWithContact[]> {
-    const conversationsData = await db
-      .select()
-      .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.contactId, contactId))
-      .orderBy(desc(conversations.lastMessageAt));
-
-    const result: ConversationWithContact[] = [];
-    
-    for (const row of conversationsData) {
-      if (row.conversations && row.contacts) {
-        // Buscar última mensagem de cada conversa
-        const lastMessage = await db
-          .select()
-          .from(messages)
-          .where(eq(messages.conversationId, row.conversations.id))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
-        
-        result.push({
-          ...row.conversations,
-          contact: row.contacts,
-          messages: lastMessage,
-        });
-      }
-    }
-    
-    return result;
   }
 
   async getConversationByContactAndChannel(contactId: number, channel: string): Promise<Conversation | undefined> {
@@ -774,106 +739,6 @@ export class DatabaseStorage implements IStorage {
       .from(conversations);
     
     return result[0]?.total || 0;
-  }
-
-  // Unificar contatos duplicados baseado no número de telefone
-  async unifyDuplicateContacts(): Promise<{ unified: number; kept: number; removed: number }> {
-    console.log('🔍 Iniciando unificação de contatos duplicados...');
-    
-    // Buscar contatos duplicados por telefone
-    const duplicatePhones = await db
-      .select({
-        phone: contacts.phone,
-        count: sql<number>`count(*)`
-      })
-      .from(contacts)
-      .where(isNotNull(contacts.phone))
-      .groupBy(contacts.phone)
-      .having(sql`count(*) > 1`);
-
-    let unifiedCount = 0;
-    let removedCount = 0;
-
-    for (const group of duplicatePhones) {
-      // Buscar todos os contatos com esse telefone
-      const contactsList = await db
-        .select()
-        .from(contacts)
-        .where(eq(contacts.phone, group.phone!))
-        .orderBy(contacts.createdAt);
-
-      if (contactsList.length <= 1) continue;
-
-      // Manter o contato mais antigo (já ordenado por createdAt)
-      const mainContact = contactsList[0];
-      const duplicateContacts = contactsList.slice(1);
-
-      console.log(`📞 Unificando contatos para telefone ${group.phone}:`, {
-        principal: mainContact.name,
-        duplicatas: duplicateContacts.map((c: any) => c.name)
-      });
-
-      // Atualizar conversas dos contatos duplicados para apontar para o principal
-      for (const duplicate of duplicateContacts) {
-        await db
-          .update(conversations)
-          .set({ contactId: mainContact.id })
-          .where(eq(conversations.contactId, duplicate.id));
-
-        // Remover contato duplicado
-        await db
-          .delete(contacts)
-          .where(eq(contacts.id, duplicate.id));
-
-        removedCount++;
-      }
-
-      unifiedCount++;
-    }
-
-    console.log(`✅ Unificação concluída: ${unifiedCount} grupos unificados, ${removedCount} contatos removidos`);
-    
-    return {
-      unified: unifiedCount,
-      kept: unifiedCount,
-      removed: removedCount
-    };
-  }
-
-  // Buscar todas as conversas de um contato (multi-canal)
-  async getContactConversations(contactId: number): Promise<any[]> {
-    const conversationsList = await db
-      .select({
-        conversation: conversations,
-        contact: contacts,
-        lastMessage: {
-          id: messages.id,
-          content: messages.content,
-          sentAt: messages.sentAt,
-          isFromContact: messages.isFromContact,
-          messageType: messages.messageType
-        }
-      })
-      .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .leftJoin(
-        messages,
-        sql`${messages.conversationId} = ${conversations.id} AND ${messages.id} = (
-          SELECT ${messages.id} 
-          FROM ${messages} 
-          WHERE ${messages.conversationId} = ${conversations.id} 
-          ORDER BY ${messages.sentAt} DESC 
-          LIMIT 1
-        )`
-      )
-      .where(eq(conversations.contactId, contactId))
-      .orderBy(desc(conversations.updatedAt));
-
-    return conversationsList.map(row => ({
-      ...row.conversation,
-      contact: row.contact,
-      lastMessage: row.lastMessage
-    }));
   }
 }
 

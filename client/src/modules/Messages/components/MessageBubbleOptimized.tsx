@@ -2,14 +2,11 @@ import { memo, useMemo, useState, useRef } from "react";
 import { Check, CheckCheck, Play, Pause, Volume2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
-import { Badge } from "@/shared/ui/ui/badge";
 import { format } from "date-fns";
 import type { Message, Contact } from "@shared/schema";
 import { AudioMessage } from "./AudioMessage";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { secureLog } from "@/lib/secureLogger";
-import { CHANNELS } from "@/types/chat";
-import { useChannels } from "@/shared/lib/hooks/useChannels";
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,7 +14,6 @@ interface MessageBubbleProps {
   channelIcon?: string;
   channelColor?: string;
   conversationId?: number;
-  channelIdentifier?: string;
 }
 
 // Função auxiliar para formatar o horário
@@ -30,34 +26,8 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   channelIcon,
   channelColor,
   conversationId,
-  channelIdentifier,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
-  const { data: channels } = useChannels();
-
-  // Função para obter informações do canal baseada nos dados reais do banco
-  const getChannelInfo = (channel: string) => {
-    // Para canais específicos do tipo whatsapp-{id}, extrair o ID
-    if (channel?.startsWith('whatsapp-')) {
-      const channelId = parseInt(channel.replace('whatsapp-', ''));
-      const dbChannel = channels?.find(c => c.id === channelId);
-      
-      if (dbChannel) {
-        return {
-          icon: '📱',
-          color: 'bg-green-100 text-green-700 border-green-300',
-          name: dbChannel.name || `Canal ${channelId}`
-        };
-      }
-    }
-    
-    // Fallback para canais padrão
-    return CHANNELS[channel] || {
-      icon: '💬',
-      color: 'bg-gray-100 text-gray-700 border-gray-300',
-      name: 'Canal Desconhecido'
-    };
-  };
 
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
@@ -241,15 +211,6 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
           <span title={new Date(messageTimestamp).toLocaleString()}>
             {messageTime}
           </span>
-          {channelIdentifier && (
-            <Badge 
-              variant="outline" 
-              className={`text-xs px-2 py-0.5 h-5 ${getChannelInfo(channelIdentifier).color} border-current`}
-              title={`Mensagem via ${getChannelInfo(channelIdentifier).name}`}
-            >
-              <span className="text-xs font-medium">{getChannelInfo(channelIdentifier).name}</span>
-            </Badge>
-          )}
         </div>
       </div>
     </div>

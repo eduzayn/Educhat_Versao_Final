@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, Clock } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -17,7 +17,6 @@ import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
-import { useLocation } from 'wouter';
 
 export function ContactsPageRefactored() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +44,6 @@ export function ContactsPageRefactored() {
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
   const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -54,7 +52,7 @@ export function ContactsPageRefactored() {
   // Verificar se WhatsApp está disponível para sincronização
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
-  const { data: allContactsData = [], isLoading } = useContacts();
+  const { data: allContacts = [], isLoading } = useContacts(searchQuery);
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const deleteContact = useDeleteContact();
@@ -66,29 +64,12 @@ export function ContactsPageRefactored() {
   // Hook para buscar foto de perfil atualizada via Z-API
   const { data: profilePicture, isLoading: loadingProfilePicture, refetch: fetchProfilePicture } = useZApiProfilePicture(profilePicturePhone);
 
-  // Filtrar contatos pela busca
-  const filteredContacts = allContactsData.filter(contact => {
-    if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
-    return (
-      contact.name?.toLowerCase().includes(query) ||
-      contact.email?.toLowerCase().includes(query) ||
-      contact.phone?.toLowerCase().includes(query)
-    );
-  });
-
-  // Calcular paginação com dados filtrados
-  const totalContacts = filteredContacts.length;
+  // Calcular paginação
+  const totalContacts = allContacts.length;
   const totalPages = Math.ceil(totalContacts / contactsPerPage);
   const startIndex = (currentPage - 1) * contactsPerPage;
   const endIndex = startIndex + contactsPerPage;
-  const contacts = filteredContacts.slice(startIndex, endIndex);
-
-  // Reset pagination when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  const contacts = allContacts.slice(startIndex, endIndex);
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -297,10 +278,6 @@ export function ContactsPageRefactored() {
 
   const handleDeleteContact = (contact: Contact) => {
     setContactToDelete(contact);
-  };
-
-  const handleViewTimeline = (contact: Contact) => {
-    setLocation(`/contacts/${contact.id}/timeline`);
   };
 
   const handleConfirmDelete = async (contactId: number) => {
@@ -873,15 +850,6 @@ export function ContactsPageRefactored() {
                       
                       <div className="col-span-1 flex justify-end">
                         <div className="flex items-center space-x-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-7 w-7 p-0 text-purple-600 hover:text-purple-700" 
-                            title="Ver Timeline"
-                            onClick={() => handleViewTimeline(contact)}
-                          >
-                            <Clock className="w-3 h-3" />
-                          </Button>
                           <Button 
                             size="sm" 
                             variant="ghost" 
