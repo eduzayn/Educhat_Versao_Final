@@ -1070,12 +1070,17 @@ export class DatabaseStorage implements IStorage {
     // Palavras-chave para SECRETARIA  
     const secretariaKeywords = [
       'documento', 'documentos', 'certidão', 'certificado', 'diploma', 'histórico escolar',
-      'declaração de matrícula', 'atestado', 'comprovante', 'segunda via', 'requerimento',
+      'declaração', 'declaração de matrícula', 'atestado', 'comprovante', 'segunda via', 'requerimento',
       'solicitação de documento', 'protocolo', 'processo', 'tramitação', 'secretaria',
-      'acadêmico', 'escolar', 'rematrícula', 'transferência',
-      'aproveitamento', 'validação', 'reconhecimento', 'equivalência',
-      'prazo', 'entrega', 'retirada', 'documentação', 'papelada',
-      'burocracia', 'procedimento', 'como solicitar', 'onde retirar'
+      'acadêmico', 'escolar', 'rematrícula', 'matrícula', 'transferência', 'boletim',
+      'aproveitamento', 'validação', 'reconhecimento', 'equivalência', 'registro acadêmico',
+      'prazo', 'entrega', 'retirada', 'documentação', 'papelada', 'nota', 'presença',
+      'burocracia', 'procedimento', 'como solicitar', 'onde retirar', 'cancelamento',
+      'trancamento', 'mudança de curso', 'mudança de polo', 'erro nos dados',
+      'enviei o documento', 'foto do rg', 'confirmação', 'emissão', 'onde pego',
+      'preciso de uma declaração', 'quero meu histórico', 'meu diploma já foi emitido',
+      'como faço a rematrícula', 'qual o prazo', 'preciso corrigir', 'meu nome saiu errado',
+      'apresentar documento', 'histórico', 'emissão de boletos'
     ];
     
     // Palavras-chave para COMERCIAL (contexto educacional)
