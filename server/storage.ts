@@ -155,6 +155,15 @@ export interface IStorage {
   // Automatic contact creation
   findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact>;
 
+  // Team assignment operations
+  assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual'): Promise<void>;
+  assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual'): Promise<void>;
+  getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined>;
+  getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined>;
+  getUserTeams(userId: number): Promise<Team[]>;
+  addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam>;
+  removeUserFromTeam(userId: number, teamId: number): Promise<void>;
+
   // Statistics operations
   getTotalUnreadCount(): Promise<number>;
 }
@@ -1253,6 +1262,96 @@ export class DatabaseStorage implements IStorage {
     console.log(`🎯 Deal criado automaticamente: ID ${newDeal.id} para contato ${contact.name} - Setor: ${determinedMacrosetor} (${canalOrigem})`);
     
     return newDeal;
+  }
+
+  // Team assignment operations
+  async assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual'): Promise<void> {
+    await db.update(conversations)
+      .set({
+        assignedTeamId: teamId,
+        assignmentMethod: method,
+        assignedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
+  async assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual'): Promise<void> {
+    await db.update(conversations)
+      .set({
+        assignedUserId: userId,
+        assignmentMethod: method,
+        assignedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
+  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
+    const result = await db.select()
+      .from(teams)
+      .where(and(eq(teams.macrosetor, macrosetor), eq(teams.isActive, true)))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
+    const result = await db.select({
+      id: systemUsers.id,
+      username: systemUsers.username,
+      displayName: systemUsers.displayName,
+      email: systemUsers.email,
+      isOnline: systemUsers.isOnline,
+      lastLoginAt: systemUsers.lastLoginAt,
+      createdAt: systemUsers.createdAt,
+      updatedAt: systemUsers.updatedAt
+    })
+      .from(userTeams)
+      .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
+      .where(and(
+        eq(userTeams.teamId, teamId),
+        eq(userTeams.isActive, true),
+        eq(systemUsers.isOnline, true)
+      ))
+      .orderBy(systemUsers.lastLoginAt)
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getUserTeams(userId: number): Promise<Team[]> {
+    const result = await db.select({
+      id: teams.id,
+      name: teams.name,
+      description: teams.description,
+      color: teams.color,
+      macrosetor: teams.macrosetor,
+      isActive: teams.isActive,
+      createdAt: teams.createdAt,
+      updatedAt: teams.updatedAt
+    })
+      .from(userTeams)
+      .innerJoin(teams, eq(userTeams.teamId, teams.id))
+      .where(and(
+        eq(userTeams.userId, userId),
+        eq(userTeams.isActive, true),
+        eq(teams.isActive, true)
+      ));
+    
+    return result;
+  }
+
+  async addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam> {
+    const result = await db.insert(userTeams).values(userTeam).returning();
+    return result[0];
+  }
+
+  async removeUserFromTeam(userId: number, teamId: number): Promise<void> {
+    await db.update(userTeams)
+      .set({ isActive: false })
+      .where(and(
+        eq(userTeams.userId, userId),
+        eq(userTeams.teamId, teamId)
+      ));
   }
 }
 

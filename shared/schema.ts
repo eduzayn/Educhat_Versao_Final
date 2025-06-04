@@ -56,6 +56,12 @@ export const conversations = pgTable("conversations", {
   status: varchar("status", { length: 20 }).default("open"), // open, pending, resolved
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
+  // Campos para sistema de equipes e atribuição
+  macrosetor: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  assignedTeamId: integer("assigned_team_id").references(() => teams.id), // equipe atribuída
+  assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
+  assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
+  assignedAt: timestamp("assigned_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -135,9 +141,20 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   color: varchar("color", { length: 20 }).default("blue"),
+  macrosetor: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User-Team relationship table
+export const userTeams = pgTable("user_teams", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  teamId: integer("team_id").references(() => teams.id).notNull(),
+  role: varchar("role", { length: 50 }).default("agent"), // agent, supervisor, manager
+  isActive: boolean("is_active").default(true),
+  joinedAt: timestamp("joined_at").defaultNow(),
 });
 
 // Roles table
@@ -432,6 +449,14 @@ export type QuickReplyShare = typeof quickReplyShares.$inferSelect;
 export type InsertQuickReplyShare = z.infer<typeof insertQuickReplyShareSchema>;
 export type QuickReplyTeamShare = typeof quickReplyTeamShares.$inferSelect;
 export type InsertQuickReplyTeamShare = z.infer<typeof insertQuickReplyTeamShareSchema>;
+
+export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export type UserTeam = typeof userTeams.$inferSelect;
+export type InsertUserTeam = z.infer<typeof insertUserTeamSchema>;
 
 export type QuickReplyWithCreator = QuickReply & {
   creator?: User;
