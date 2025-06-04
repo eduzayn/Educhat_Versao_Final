@@ -57,7 +57,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     const isInternalNote = message.isInternalNote;
     
     if (isInternalNote) {
-      return "bg-gray-600 text-gray-100 border border-gray-500";
+      return "bg-amber-50 text-amber-900 border border-amber-200";
     }
     
     return isFromContact
@@ -191,14 +191,14 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
         {message.isInternalNote && (
-          <div className="mb-2 pb-2 border-b border-gray-400">
+          <div className="mb-2 pb-2 border-b border-amber-300">
             <div className="flex items-center gap-2 mb-1">
-              <StickyNote className="w-3 h-3 text-gray-300" />
-              <span className="text-xs font-medium text-gray-200">Nota Interna</span>
-              <span className="text-xs text-gray-300">•</span>
-              <span className="text-xs text-gray-300">Visível apenas para a equipe</span>
+              <StickyNote className="w-3 h-3 text-amber-600" />
+              <span className="text-xs font-medium text-amber-800">Nota Interna</span>
+              <span className="text-xs text-amber-700">•</span>
+              <span className="text-xs text-amber-700">Visível apenas para a equipe</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center gap-2 text-xs text-amber-600">
               <span className="font-medium">
                 {message.authorName || 'Sistema'}
               </span>
