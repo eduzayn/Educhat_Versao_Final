@@ -1373,7 +1373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // ========================================
         try {
           // Detectar curso mencionado na mensagem para enriquecer o cadastro
-          const detectedCourse = storage.detectMentionedCourse(messageContent);
+          const detectedCourses = storage.detectMentionedCourses(messageContent);
           
           if (detectedCourse) {
             console.log(`🎓 Curso detectado na mensagem: "${detectedCourse.courseName}" (${detectedCourse.courseType})`);
