@@ -105,6 +105,8 @@ export default function QuickRepliesSettingsPage() {
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<{ blob: Blob; duration: number } | null>(null);
   const [shareScope, setShareScope] = useState<string>('private');
+  const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,6 +119,26 @@ export default function QuickRepliesSettingsPage() {
     queryFn: async () => {
       const response = await fetch('/api/user');
       if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    },
+  });
+
+  // Fetch teams
+  const { data: teams = [] } = useQuery({
+    queryKey: ['/api/teams'],
+    queryFn: async () => {
+      const response = await fetch('/api/teams');
+      if (!response.ok) throw new Error('Failed to fetch teams');
+      return response.json();
+    },
+  });
+
+  // Fetch system users
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-users');
+      if (!response.ok) throw new Error('Failed to fetch users');
       return response.json();
     },
   });
@@ -288,8 +310,30 @@ export default function QuickRepliesSettingsPage() {
       return;
     }
 
+    // Validate granular sharing selections
+    if (shareScope === 'team' && selectedTeams.length === 0) {
+      toast({
+        title: 'Erro',
+        description: 'Selecione pelo menos uma equipe para compartilhar.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (shareScope === 'users' && selectedUsers.length === 0) {
+      toast({
+        title: 'Erro', 
+        description: 'Selecione pelo menos um usuário para compartilhar.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     mutation.mutate({
       ...data,
+      shareScope,
+      selectedTeams: shareScope === 'team' ? selectedTeams : [],
+      selectedUsers: shareScope === 'users' ? selectedUsers : [],
       ...(editingQuickReply && { id: editingQuickReply.id }),
     });
   };
@@ -753,6 +797,91 @@ export default function QuickRepliesSettingsPage() {
                       Defina quem pode ver e usar esta resposta rápida
                     </p>
                   </div>
+
+                  {/* Seleção de Equipes */}
+                  {shareScope === 'team' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Selecionar Equipes</label>
+                      <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+                        {teams.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-2">
+                            Nenhuma equipe disponível
+                          </p>
+                        ) : (
+                          teams.map((team: any) => (
+                            <div key={team.id} className="flex items-center space-x-2 py-1">
+                              <input
+                                type="checkbox"
+                                id={`team-${team.id}`}
+                                checked={selectedTeams.includes(team.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedTeams([...selectedTeams, team.id]);
+                                  } else {
+                                    setSelectedTeams(selectedTeams.filter(id => id !== team.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300"
+                              />
+                              <label htmlFor={`team-${team.id}`} className="text-sm flex-1 cursor-pointer">
+                                {team.name}
+                              </label>
+                              {team.color && (
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: team.color }}
+                                />
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Selecione as equipes que podem acessar esta resposta
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Seleção de Usuários */}
+                  {shareScope === 'users' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Selecionar Usuários</label>
+                      <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+                        {systemUsers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-2">
+                            Nenhum usuário disponível
+                          </p>
+                        ) : (
+                          systemUsers.map((user: any) => (
+                            <div key={user.id} className="flex items-center space-x-2 py-1">
+                              <input
+                                type="checkbox"
+                                id={`user-${user.id}`}
+                                checked={selectedUsers.includes(user.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedUsers([...selectedUsers, user.id]);
+                                  } else {
+                                    setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300"
+                              />
+                              <label htmlFor={`user-${user.id}`} className="text-sm flex-1 cursor-pointer">
+                                {user.displayName || `${user.firstName} ${user.lastName}`}
+                              </label>
+                              <span className="text-xs text-muted-foreground">
+                                {user.email}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Selecione os usuários que podem acessar esta resposta
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-2">
