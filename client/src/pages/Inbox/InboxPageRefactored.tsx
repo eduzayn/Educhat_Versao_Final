@@ -110,6 +110,8 @@ export function InboxPageRefactored() {
   });
   const [newTags, setNewTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [newNote, setNewNote] = useState('');
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
@@ -124,6 +126,46 @@ export function InboxPageRefactored() {
 
   const handleRemoveTag = (tagToRemove: string) => {
     setNewTags(newTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !activeConversation) return;
+
+    try {
+      const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: newNote.trim(),
+          authorName: 'Atendente Atual' // Em produção, pegar do usuário logado
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar nota');
+      }
+
+      toast({
+        title: "Nota adicionada",
+        description: "A nota interna foi salva com sucesso."
+      });
+
+      setNewNote('');
+      setShowNoteDialog(false);
+      
+      // Recarregar dados para mostrar a nova nota
+      refetch();
+
+    } catch (error) {
+      console.error('Erro ao adicionar nota:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a nota. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateContact = async () => {
@@ -1060,10 +1102,59 @@ export function InboxPageRefactored() {
                 </p>
               </div>
               
-              <Button variant="outline" size="sm" className="w-full text-xs">
-                <Plus className="w-3 h-3 mr-1" />
-                Adicionar nota
-              </Button>
+              <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Adicionar nota
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Nova Nota Interna</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Nota para: {activeConversation?.contact.name}
+                      </label>
+                      <Textarea
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                        placeholder="Digite sua anotação aqui... (Ex: Solicitou boleto dia 25/05 – retorno agendado para 28/05)"
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        💡 Esta nota será visível apenas para a equipe interna e ficará anexada ao perfil do contato.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowNoteDialog(false);
+                        setNewNote('');
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Salvar nota
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* 📦 Resumo Estatístico */}

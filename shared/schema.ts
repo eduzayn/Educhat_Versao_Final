@@ -165,10 +165,30 @@ export const systemUsers = pgTable("system_users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Contact notes table for internal annotations
+export const contactNotes = pgTable("contact_notes", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").references(() => contacts.id).notNull(),
+  content: text("content").notNull(),
+  authorName: varchar("author_name", { length: 100 }).notNull(),
+  authorId: varchar("author_id"),
+  isPrivate: boolean("is_private").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
   tags: many(contactTags),
+  notes: many(contactNotes),
+}));
+
+export const contactNotesRelations = relations(contactNotes, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [contactNotes.contactId],
+    references: [contacts.id],
+  }),
 }));
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
@@ -290,6 +310,12 @@ export const insertChannelSchema = createInsertSchema(channels).omit({
   lastConnectionCheck: true,
 });
 
+export const insertContactNoteSchema = createInsertSchema(contactNotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -309,6 +335,8 @@ export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Channel = typeof channels.$inferSelect;
 export type InsertChannel = z.infer<typeof insertChannelSchema>;
+export type ContactNote = typeof contactNotes.$inferSelect;
+export type InsertContactNote = z.infer<typeof insertContactNoteSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
