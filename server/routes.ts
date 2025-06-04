@@ -1340,7 +1340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Solicitando QR Code da Z-API (endpoint legacy)...');
       
-      const qrData = await getZApiQRCode(credentials);
+      const { instanceId, token, clientToken } = credentials as { valid: true; instanceId: string; token: string; clientToken: string };
+      const qrData = await getZApiQRCode({ instanceId, token, clientToken });
       console.log('QR Code recebido da Z-API');
 
       if (qrData.value) {
