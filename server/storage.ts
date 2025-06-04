@@ -902,63 +902,669 @@ export class DatabaseStorage implements IStorage {
     return newContact;
   }
 
-  // Dicionário de cursos e suas variações para detecção inteligente
+  // Dicionário completo de cursos - 184 pós-graduações + Psicanálise
   private courseDictionary = {
-    'psicanalise': {
-      variations: [
-        'psicanálise', 'psicanalise', 'pós psicanálise', 'pós em psicanálise',
-        'psicanálise clínica', 'curso de psicanálise', 'formação em psicanálise',
-        'especialização em psicanálise', 'pós psicanálise clínica'
-      ],
+    // ========== EDUCAÇÃO (42 cursos) ==========
+    'aba_docencia': {
+      variations: ['aba', 'docência ensino superior', 'docência superior', 'aba docência'],
       courseType: 'Pós-graduação',
-      courseName: 'Pós em Psicanálise'
+      courseName: 'ABA - Docência do Ensino Superior'
+    },
+    'administracao_publica': {
+      variations: ['administração pública', 'gestão pública', 'admin pública'],
+      courseType: 'Pós-graduação',
+      courseName: 'Administração Pública'
+    },
+    'alfabetizacao_letramento': {
+      variations: ['alfabetização', 'letramento', 'alfabetização letramento'],
+      courseType: 'Pós-graduação',
+      courseName: 'Alfabetização e Letramento'
+    },
+    'alfabetizacao_psicopedagogia': {
+      variations: ['alfabetização letramento psicopedagogia', 'psicopedagogia alfabetização'],
+      courseType: 'Pós-graduação',
+      courseName: 'Alfabetização, Letramento e Psicopedagogia'
+    },
+    'arbitragem_mediacao': {
+      variations: ['arbitragem', 'mediação conflitos', 'resolução conflitos', 'arbitragem mediação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Arbitragem e Mediação de Conflitos'
+    },
+    'aee': {
+      variations: ['atendimento educacional especializado', 'aee', 'educação especial'],
+      courseType: 'Pós-graduação',
+      courseName: 'Atendimento Educacional Especializado'
+    },
+    'autismo': {
+      variations: ['autismo', 'tea', 'transtorno autista', 'espectro autista'],
+      courseType: 'Pós-graduação',
+      courseName: 'Autismo'
+    },
+    'coordenacao_educacional': {
+      variations: ['coordenação educacional', 'coordenação escolar', 'coordenador pedagógico'],
+      courseType: 'Pós-graduação',
+      courseName: 'Coordenação Educacional'
+    },
+    'coordenacao_orientacao': {
+      variations: ['coordenação orientação escolar', 'orientação educacional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Coordenação e Orientação Escolar'
+    },
+    'educacao_5_0': {
+      variations: ['educação 5.0', 'educação cinco ponto zero', 'tecnologia educacional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação 5.0'
+    },
+    'educacao_ambiental': {
+      variations: ['educação ambiental', 'sustentabilidade', 'meio ambiente educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Ambiental e Sustentabilidade'
+    },
+    'eja': {
+      variations: ['eja', 'educação jovens adultos', 'educação adultos'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação de Jovens e Adultos'
+    },
+    'educacao_direitos_humanos': {
+      variations: ['educação direitos humanos', 'direitos humanos educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Direitos Humanos'
+    },
+    'educacao_distancia': {
+      variations: ['educação distância', 'ead', 'ensino remoto', 'educação online'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação à Distância'
+    },
+    'educacao_especial_visual_auditiva': {
+      variations: ['educação especial visual auditiva', 'deficiência visual', 'deficiência auditiva'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Especial - Deficiência Visual e Auditiva'
+    },
+    'educacao_especial_inclusiva': {
+      variations: ['educação especial inclusiva', 'educação inclusiva', 'inclusão'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Especial e Inclusiva'
+    },
+    'educacao_tgd_altas_habilidades': {
+      variations: ['tgd', 'altas habilidades', 'superdotação', 'transtorno global desenvolvimento'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Especial TGD e Altas Habilidades'
+    },
+    'educacao_financeira': {
+      variations: ['educação financeira', 'finanças pessoais', 'gestão financeira pessoal'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Financeira'
+    },
+    'educacao_fisica_escolar': {
+      variations: ['educação física', 'treinamento desportivo', 'esporte', 'educação física escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Física Escolar e Treinamento Desportivo'
+    },
+    'educacao_inclusiva_diversidade': {
+      variations: ['educação inclusiva diversidade', 'diversidade educacional', 'inclusão diversidade'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Inclusiva e Diversidade'
+    },
+    'educacao_infantil': {
+      variations: ['educação infantil', 'primeira infância', 'creche', 'pré-escola'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Infantil'
+    },
+    'educacao_musical': {
+      variations: ['educação musical', 'música educação', 'ensino música'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Musical'
+    },
+    'educacao_musical_inovadora': {
+      variations: ['educação musical inovadora', 'música inovadora', 'tecnologia musical'],
+      courseType: 'Pós-graduação',
+      courseName: 'Educação Musical Inovadora'
+    },
+    'ensino_espanhol': {
+      variations: ['ensino espanhol', 'língua espanhola', 'espanhol', 'castelhano'],
+      courseType: 'Pós-graduação',
+      courseName: 'Ensino de Língua Espanhola'
+    },
+    'ensino_ingles': {
+      variations: ['ensino inglês', 'língua inglesa', 'inglês', 'english'],
+      courseType: 'Pós-graduação',
+      courseName: 'Ensino de Língua Inglesa'
+    },
+    'ensino_portugues': {
+      variations: ['ensino português', 'língua portuguesa', 'português', 'gramática'],
+      courseType: 'Pós-graduação',
+      courseName: 'Ensino de Língua Portuguesa'
+    },
+    'ensino_religioso': {
+      variations: ['ensino religioso', 'educação religiosa', 'religião'],
+      courseType: 'Pós-graduação',
+      courseName: 'Ensino Religioso'
+    },
+    'gestao_orientacao_escolar': {
+      variations: ['gestão orientação escolar', 'gestão escolar orientação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão e Orientação Escolar'
+    },
+    'gestao_educacional': {
+      variations: ['gestão educacional', 'administração escolar', 'gestão escola'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão Educacional'
+    },
+    'gestao_publica_educacional': {
+      variations: ['gestão pública educacional', 'administração pública educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão Pública Educacional'
+    },
+    'inspecao_escolar': {
+      variations: ['inspeção escolar', 'inspetor escolar', 'supervisão inspeção'],
+      courseType: 'Pós-graduação',
+      courseName: 'Inspeção Escolar'
+    },
+    'metodologia_artes': {
+      variations: ['metodologia artes', 'ensino artes', 'arte educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Artes'
+    },
+    'metodologia_ciencias': {
+      variations: ['metodologia ciências', 'ensino ciências', 'ciências naturais'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Ciências'
+    },
+    'metodologia_filosofia': {
+      variations: ['metodologia filosofia', 'ensino filosofia', 'filosofia educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Filosofia'
+    },
+    'metodologia_geografia': {
+      variations: ['metodologia geografia', 'ensino geografia', 'geografia escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Geografia'
+    },
+    'metodologia_matematica': {
+      variations: ['metodologia matemática', 'ensino matemática', 'matemática escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Matemática'
+    },
+    'metodologia_matematica_fisica': {
+      variations: ['metodologia matemática física', 'ensino matemática física', 'exatas'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Matemática e Física'
+    },
+    'metodologia_sociologia': {
+      variations: ['metodologia sociologia', 'ensino sociologia', 'sociologia educação'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino de Sociologia'
+    },
+    'metodologia_ensino_superior': {
+      variations: ['metodologia ensino superior', 'didática ensino superior'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologia do Ensino Superior em Várias Modalidades'
+    },
+    'metodologias_ativas': {
+      variations: ['metodologias ativas', 'tecnologias educacionais', 'inovação educacional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Metodologias Ativas e Tecnologias Educacionais'
+    },
+    'tecnologias_educacionais': {
+      variations: ['tecnologias educacionais', 'tecnologia educação', 'educação digital'],
+      courseType: 'Pós-graduação',
+      courseName: 'Tecnologias Educacionais'
+    },
+    'tutoria_ead': {
+      variations: ['tutoria ead', 'tutor ead', 'tutoria ensino distância'],
+      courseType: 'Pós-graduação',
+      courseName: 'Tutoria em EAD'
+    },
+
+    // ========== GESTÃO ESCOLAR (9 cursos) ==========
+    'gestao_escolar': {
+      variations: ['gestão escolar', 'administração escolar', 'direção escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão Escolar'
+    },
+    'gestao_escolar_integradora': {
+      variations: ['gestão escolar integradora', 'gestão integradora'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão Escolar Integradora'
+    },
+    'secretariado_escolar': {
+      variations: ['secretariado escolar', 'secretária escolar', 'administração escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Secretariado Escolar'
+    },
+    'supervisao_escolar': {
+      variations: ['supervisão escolar', 'supervisor escolar', 'supervisão pedagógica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Supervisão Escolar'
+    },
+    'supervisao_orientacao_infantil': {
+      variations: ['supervisão orientação infantil', 'gestão educação infantil'],
+      courseType: 'Pós-graduação',
+      courseName: 'Supervisão e Orientação em Educação Infantil'
+    },
+    'supervisao_orientacao_escolar': {
+      variations: ['supervisão orientação escolar', 'orientação pedagógica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Supervisão e Orientação Escolar'
+    },
+
+    // ========== MBA (20 cursos) ==========
+    'mba_administracao_pessoal': {
+      variations: ['mba administração pessoal', 'gestão pessoal', 'desenvolvimento pessoal'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Administração Pessoal'
+    },
+    'mba_auditoria_contabil': {
+      variations: ['mba auditoria contábil', 'auditoria', 'contabilidade auditoria'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Auditoria Contábil'
+    },
+    'mba_contabilidade_gerencial': {
+      variations: ['mba contabilidade gerencial', 'contabilidade gerencial', 'controladoria'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Contabilidade Gerencial'
+    },
+    'mba_financas_controladoria': {
+      variations: ['mba finanças corporativas', 'finanças controladoria', 'gestão financeira'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Finanças Corporativas e Controladoria'
+    },
+    'mba_gestao_ambiental': {
+      variations: ['mba gestão ambiental', 'gestão ambiental', 'meio ambiente'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão Ambiental'
+    },
+    'mba_gestao_producao': {
+      variations: ['mba gestão produção', 'gestão produção', 'produção industrial'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA Gestão da Produção'
+    },
+    'mba_gestao_ti': {
+      variations: ['mba gestão ti', 'gestão tecnologia informação', 'ti gestão'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão da Tecnologia da Informação'
+    },
+    'mba_cadeia_suprimentos': {
+      variations: ['mba cadeia suprimentos', 'supply chain', 'gestão suprimentos'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão de Cadeia de Suprimentos'
+    },
+    'mba_farmacias_drogarias': {
+      variations: ['mba farmácias drogarias', 'gestão farmácia', 'administração farmácia'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão de Farmácias e Drogarias'
+    },
+    'mba_marketing_digital': {
+      variations: ['mba marketing digital', 'marketing digital', 'gestão marketing online'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão de Marketing Digital'
+    },
+    'mba_pessoas_talentos': {
+      variations: ['mba gestão pessoas', 'gestão talentos', 'recursos humanos'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão de Pessoas e Talentos'
+    },
+    'mba_gestao_empresarial': {
+      variations: ['mba gestão empresarial', 'administração empresarial', 'gestão negócios'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão Empresarial'
+    },
+    'mba_estrategica_inovacao': {
+      variations: ['mba gestão estratégica', 'gestão inovação', 'estratégia empresarial'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão Estratégica e Inovação'
+    },
+    'mba_gestao_hospitalar': {
+      variations: ['mba gestão hospitalar', 'administração hospitalar', 'gestão saúde'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão Hospitalar'
+    },
+    'mba_gestao_publica': {
+      variations: ['mba gestão pública', 'administração pública', 'setor público'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Gestão Pública'
+    },
+    'mba_gestao_saude': {
+      variations: ['mba gestão saúde', 'administração saúde', 'gestão hospitalar'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA Gestão em Saúde'
+    },
+    'mba_logistica_empresarial': {
+      variations: ['mba logística empresarial', 'logística', 'gestão logística'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Logística Empresarial'
+    },
+    'mba_logistica_supply_chain': {
+      variations: ['mba logística supply chain', 'supply chain management', 'cadeia suprimentos'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Logística e Supply Chain Management'
+    },
+    'mba_marketing_estrategico': {
+      variations: ['mba marketing estratégico', 'marketing estratégia', 'gestão marketing'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Marketing Estratégico'
+    },
+    'mba_modelagem_processos': {
+      variations: ['mba gestão processos', 'modelagem processos', 'bpm'],
+      courseType: 'Pós-graduação',
+      courseName: 'MBA em Modelagem e Gestão de Processos'
+    },
+
+    // ========== PSICOLOGIA (10 cursos) ==========
+    'avaliacao_psicologica': {
+      variations: ['avaliação psicológica', 'psicodiagnóstico', 'testagem psicológica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Avaliação Psicológica e Psicodiagnóstico'
+    },
+    'neuroeducacao': {
+      variations: ['neuroeducação', 'neurociência educação', 'aprendizagem neurociência'],
+      courseType: 'Pós-graduação',
+      courseName: 'Neuroeducação'
+    },
+    'neuropsicologia_clinica': {
+      variations: ['neuropsicologia clínica', 'neuropsicologia', 'neurociência clínica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Neuropsicologia Clínica'
+    },
+    'neuropsicopedagogia': {
+      variations: ['neuropsicopedagogia', 'neuropsicopedagógica', 'neuropedagogia'],
+      courseType: 'Pós-graduação',
+      courseName: 'Neuropsicopedagogia'
+    },
+    'psicologia_clinica': {
+      variations: ['psicologia clínica', 'clínica psicológica', 'psicoterapia'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicologia Clínica'
+    },
+    'psicologia_educacional': {
+      variations: ['psicologia educacional', 'psicologia escolar', 'psicopedagogia'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicologia Educacional'
+    },
+    'psicologia_hospitalar': {
+      variations: ['psicologia hospitalar', 'psicologia saúde', 'psicologia médica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicologia Hospitalar'
+    },
+    'psicologia_transito': {
+      variations: ['psicologia trânsito', 'psicologia tráfego', 'avaliação psicológica trânsito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicologia do Trânsito'
+    },
+    'terapia_casal': {
+      variations: ['terapia casal', 'terapia conjugal', 'psicoterapia casal'],
+      courseType: 'Pós-graduação',
+      courseName: 'Terapia de Casal'
+    },
+    'terapia_familiar': {
+      variations: ['terapia familiar', 'terapia família', 'psicoterapia familiar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Terapia Familiar'
+    },
+
+    // ========== PSICANÁLISE (Conforme solicitado) ==========
+    'psicanalise_pos': {
+      variations: ['psicanálise', 'psicanalise', 'pós psicanálise', 'pós em psicanálise', 'especialização psicanálise'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicanálise'
+    },
+    'psicanalise_livre': {
+      variations: ['formação psicanálise', 'curso livre psicanálise', 'formação psicanalítica'],
+      courseType: 'Formação Livre',
+      courseName: 'Formação Livre em Psicanálise'
+    },
+
+    // ========== PSICOPEDAGOGIA (5 cursos) ==========
+    'psicopedagogia_clinica_institucional': {
+      variations: ['psicopedagogia clínica institucional', 'psicopedagogia hospitalar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicopedagogia Clínica, Institucional e Hospitalar'
+    },
+    'psicopedagogia_educacao_especial': {
+      variations: ['psicopedagogia educação especial', 'psicopedagogia inclusiva'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicopedagogia e Educação Especial'
+    },
+    'psicopedagogia_escolar': {
+      variations: ['psicopedagogia escolar', 'psicopedagogia educacional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicopedagogia Escolar'
+    },
+    'psicopedagogia_institucional': {
+      variations: ['psicopedagogia institucional', 'psicopedagogia empresarial'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicopedagogia Institucional'
+    },
+    'psicopedagogia_completa': {
+      variations: ['psicopedagogia institucional clínica', 'psicopedagogia completa'],
+      courseType: 'Pós-graduação',
+      courseName: 'Psicopedagogia Institucional e Clínica'
+    },
+
+    // ========== SAÚDE (15 cursos) ==========
+    'enfermagem_ubs': {
+      variations: ['enfermagem ubs', 'unidade básica saúde', 'atenção básica enfermagem'],
+      courseType: 'Pós-graduação',
+      courseName: 'Atendimento de Unidade Básica de Saúde - Enfermagem'
+    },
+    'enfermagem_trabalho': {
+      variations: ['enfermagem trabalho', 'saúde ocupacional enfermagem', 'enfermagem ocupacional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Enfermagem do Trabalho'
+    },
+    'enfermagem_trabalho_ocupacional': {
+      variations: ['enfermagem trabalho saúde ocupacional', 'medicina trabalho enfermagem'],
+      courseType: 'Pós-graduação',
+      courseName: 'Enfermagem do Trabalho e Saúde Ocupacional'
+    },
+    'enfermagem_oncologia': {
+      variations: ['enfermagem oncologia', 'oncologia enfermagem', 'câncer enfermagem'],
+      courseType: 'Pós-graduação',
+      courseName: 'Enfermagem em Oncologia'
+    },
+    'enfermagem_urgencia_emergencia': {
+      variations: ['enfermagem urgência emergência', 'urgência emergência', 'pronto socorro enfermagem'],
+      courseType: 'Pós-graduação',
+      courseName: 'Enfermagem de Urgência e Emergência'
+    },
+    'gestao_saude': {
+      variations: ['gestão saúde', 'administração saúde', 'gerenciamento saúde'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão em Saúde'
+    },
+    'gestao_hospitais': {
+      variations: ['gestão hospitais', 'administração hospitalar', 'gestão hospitalar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão de Hospitais'
+    },
+    'gestao_saude_municipal': {
+      variations: ['gestão saúde municipal', 'saúde pública municipal', 'sus municipal'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão de Saúde Municipal'
+    },
+    'gestao_saude_publica': {
+      variations: ['gestão saúde pública', 'saúde pública', 'sus gestão'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão de Saúde Pública'
+    },
+    'gestao_saude_publica_privada': {
+      variations: ['gestão saúde pública privada', 'administração saúde integral'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão de Saúde Pública e Privada'
+    },
+    'gestao_estrategica_saude': {
+      variations: ['gestão estratégica saúde', 'planejamento estratégico saúde'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão Estratégica em Saúde'
+    },
+    'gestao_unidades_oncologicas': {
+      variations: ['gestão unidades oncológicas', 'administração oncologia', 'gestão câncer'],
+      courseType: 'Pós-graduação',
+      courseName: 'Gestão de Unidades Oncológicas'
+    },
+    'microbiologia': {
+      variations: ['microbiologia', 'microbiologia clínica', 'laboratório microbiologia'],
+      courseType: 'Pós-graduação',
+      courseName: 'Microbiologia'
+    },
+    'nutricao_esportiva': {
+      variations: ['nutrição esportiva', 'nutrição atletas', 'alimentação esportiva'],
+      courseType: 'Pós-graduação',
+      courseName: 'Nutrição Esportiva'
+    },
+    'sexologia': {
+      variations: ['sexologia', 'terapia sexual', 'sexualidade humana'],
+      courseType: 'Pós-graduação',
+      courseName: 'Sexologia'
+    },
+
+    // ========== DIREITO (20 cursos) ==========
+    'direito_administrativo': {
+      variations: ['direito administrativo', 'admin público direito', 'administração pública jurídica'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Administrativo'
+    },
+    'direito_aduaneiro': {
+      variations: ['direito aduaneiro', 'direito alfandegário', 'comércio exterior direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Aduaneiro'
+    },
+    'direito_ambiental': {
+      variations: ['direito ambiental', 'direito ecológico', 'legislação ambiental'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Ambiental'
+    },
+    'direito_civil_processual': {
+      variations: ['direito civil', 'processual civil', 'processo civil'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Civil e Processual Civil'
+    },
+    'direito_constitucional': {
+      variations: ['direito constitucional', 'constituição', 'constitucional'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Constitucional'
+    },
+    'direito_contratual': {
+      variations: ['direito contratual', 'contratos', 'direito dos contratos'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Contratual'
+    },
+    'direito_digital': {
+      variations: ['direito digital', 'direito eletrônico', 'cyber direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Digital'
+    },
+    'direito_educacional': {
+      variations: ['direito educacional', 'legislação educacional', 'direito escolar'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Educacional'
+    },
+    'direito_eleitoral': {
+      variations: ['direito eleitoral', 'legislação eleitoral', 'processo eleitoral'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Eleitoral'
+    },
+    'direito_empresarial': {
+      variations: ['direito empresarial', 'direito comercial', 'direito societário'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Empresarial'
+    },
+    'direito_familia_sucessoes': {
+      variations: ['direito família', 'sucessões', 'direito hereditário'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito da Família e Sucessões'
+    },
+    'direito_imobiliario': {
+      variations: ['direito imobiliário', 'direito predial', 'legislação imobiliária'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Imobiliário'
+    },
+    'direito_internacional': {
+      variations: ['direito internacional', 'relações internacionais direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Internacional'
+    },
+    'direito_lgbtqiapn': {
+      variations: ['direito lgbtqiapn', 'direitos lgbt', 'diversidade sexual direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito LGBTQIAPN+'
+    },
+    'direito_notarial_registral': {
+      variations: ['direito notarial', 'registral', 'cartório direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Notarial e Registral'
+    },
+    'direito_penal_processual': {
+      variations: ['direito penal', 'processual penal', 'processo penal', 'criminal'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Penal e Processual Penal'
+    },
+    'direito_previdenciario': {
+      variations: ['direito previdenciário', 'previdência social', 'inss direito'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Previdenciário'
+    },
+    'direito_previdenciario_docencia': {
+      variations: ['direito previdenciário docência', 'previdência ensino'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Previdenciário e Docência'
+    },
+    'direito_publico_tributario': {
+      variations: ['direito público', 'tributário', 'constitucional administrativo'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Público Constitucional, Administrativo e Tributário'
+    },
+    'direito_publico_licitatorio': {
+      variations: ['direito público licitatório', 'licitações', 'contratos públicos'],
+      courseType: 'Pós-graduação',
+      courseName: 'Direito Público e Licitatório'
+    },
+
+    // ========== GRADUAÇÃO TRADICIONAL ==========
+    'administracao': {
+      variations: ['administração', 'adm', 'gestão empresarial', 'business'],
+      courseType: 'graduacao',
+      courseName: 'Administração'
+    },
+    'direito': {
+      variations: ['direito', 'ciências jurídicas', 'advocacia', 'law'],
+      courseType: 'graduacao',
+      courseName: 'Direito'
+    },
+    'psicologia': {
+      variations: ['psicologia', 'psi', 'psychology'],
+      courseType: 'graduacao',
+      courseName: 'Psicologia'
+    },
+    'enfermagem': {
+      variations: ['enfermagem', 'nursing', 'técnico em enfermagem'],
+      courseType: 'graduacao',
+      courseName: 'Enfermagem'
     },
     'pedagogia': {
-      variations: [
-        'pedagogia', 'segunda licenciatura pedagogia', 'segunda grad pedagogia',
-        'segunda licenciatura em pedagogia', 'licenciatura pedagogia',
-        'curso de pedagogia', 'graduação pedagogia'
-      ],
+      variations: ['pedagogia', 'educação', 'licenciatura em pedagogia'],
+      courseType: 'graduacao',
+      courseName: 'Pedagogia'
+    },
+    'engenharia': {
+      variations: ['engenharia', 'engineering', 'eng'],
+      courseType: 'graduacao',
+      courseName: 'Engenharia'
+    },
+
+    // ========== SEGUNDA LICENCIATURA ==========
+    'segunda_pedagogia': {
+      variations: ['segunda licenciatura pedagogia', 'segunda grad pedagogia', 'segunda licenciatura em pedagogia'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Pedagogia'
     },
-    'neuropsicanalise': {
-      variations: [
-        'neuropsicanálise', 'neuropsicanalise', 'pós neuropsicanálise',
-        'pós em neuropsicanálise', 'especialização neuropsicanálise'
-      ],
-      courseType: 'Pós-graduação',
-      courseName: 'Pós em Neuropsicanálise'
-    },
-    'educacao_especial': {
-      variations: [
-        'educação especial', 'educacao especial', 'pós educação especial',
-        'especialização educação especial', 'pós em educação especial'
-      ],
-      courseType: 'Pós-graduação',
-      courseName: 'Pós em Educação Especial'
-    },
-    'psicopedagogia': {
-      variations: [
-        'psicopedagogia', 'pós psicopedagogia', 'especialização psicopedagogia',
-        'pós em psicopedagogia', 'curso psicopedagogia'
-      ],
-      courseType: 'Pós-graduação',
-      courseName: 'Pós em Psicopedagogia'
-    },
-    'artes_visuais': {
-      variations: [
-        'artes visuais', 'segunda licenciatura artes', 'licenciatura artes visuais',
-        'segunda grad artes', 'artes', 'segunda licenciatura em artes visuais'
-      ],
+    'segunda_artes_visuais': {
+      variations: ['artes visuais', 'segunda licenciatura artes', 'licenciatura artes visuais'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Artes Visuais'
     },
-    'musica': {
-      variations: [
-        'música', 'musica', 'segunda licenciatura música', 'licenciatura música',
-        'segunda grad música', 'curso de música'
-      ],
+    'segunda_musica': {
+      variations: ['música', 'musica', 'segunda licenciatura música', 'licenciatura música'],
       courseType: 'Segunda Licenciatura',
       courseName: 'Segunda Licenciatura em Música'
     }
