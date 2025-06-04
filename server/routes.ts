@@ -409,20 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Migration endpoint for existing contacts
-  app.post('/api/contacts/migrate', async (req, res) => {
-    try {
-      const { migrateExistingContacts } = await import('./migration-contacts');
-      const result = await migrateExistingContacts();
-      res.json({
-        message: 'Migração de contatos concluída',
-        ...result
-      });
-    } catch (error) {
-      console.error('Error running contact migration:', error);
-      res.status(500).json({ message: 'Erro ao executar migração de contatos' });
-    }
-  });
+
 
   // Conversations endpoints
   app.get('/api/conversations', async (req, res) => {
