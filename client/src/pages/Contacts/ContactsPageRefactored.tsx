@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Input } from '@/shared/ui/ui/input';
@@ -52,7 +52,7 @@ export function ContactsPageRefactored() {
   // Verificar se WhatsApp está disponível para sincronização
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
-  const { data: allContacts = [], isLoading } = useContacts(searchQuery);
+  const { data: allContactsData = [], isLoading } = useContacts();
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const deleteContact = useDeleteContact();
@@ -64,12 +64,29 @@ export function ContactsPageRefactored() {
   // Hook para buscar foto de perfil atualizada via Z-API
   const { data: profilePicture, isLoading: loadingProfilePicture, refetch: fetchProfilePicture } = useZApiProfilePicture(profilePicturePhone);
 
-  // Calcular paginação
-  const totalContacts = allContacts.length;
+  // Filtrar contatos pela busca
+  const filteredContacts = allContactsData.filter(contact => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      contact.name?.toLowerCase().includes(query) ||
+      contact.email?.toLowerCase().includes(query) ||
+      contact.phone?.toLowerCase().includes(query)
+    );
+  });
+
+  // Calcular paginação com dados filtrados
+  const totalContacts = filteredContacts.length;
   const totalPages = Math.ceil(totalContacts / contactsPerPage);
   const startIndex = (currentPage - 1) * contactsPerPage;
   const endIndex = startIndex + contactsPerPage;
-  const contacts = allContacts.slice(startIndex, endIndex);
+  const contacts = filteredContacts.slice(startIndex, endIndex);
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
