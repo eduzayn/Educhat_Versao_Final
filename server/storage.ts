@@ -1413,7 +1413,7 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Psicopedagogia e Educação Especial'
     },
     'psicopedagogia_escolar': {
-      variations: ['psicopedagogia escolar', 'psicopedagogia educacional', 'psicoped escolar', 'psicoped'],
+      variations: ['psicopedagogia escolar', 'psicopedagogia educacional', 'psicoped escolar', 'psicoped', 'psicopedagogia', 'psico pedagogia', 'psicopedagógica'],
       courseType: 'Pós-graduação',
       courseName: 'Psicopedagogia Escolar'
     },
@@ -1609,34 +1609,94 @@ export class DatabaseStorage implements IStorage {
 
     // ========== GRADUAÇÃO TRADICIONAL ==========
     'administracao': {
-      variations: ['administração', 'adm', 'gestão empresarial', 'business'],
+      variations: ['administração', 'adm', 'gestão empresarial', 'business', 'administracao', 'curso de administração', 'faculdade de administração', 'bacharelado em administração'],
       courseType: 'graduacao',
       courseName: 'Administração'
     },
     'direito': {
-      variations: ['direito', 'ciências jurídicas', 'advocacia', 'law'],
+      variations: ['direito', 'ciências jurídicas', 'advocacia', 'law', 'curso de direito', 'faculdade de direito', 'bacharelado em direito', 'ciencias juridicas'],
       courseType: 'graduacao',
       courseName: 'Direito'
     },
     'psicologia': {
-      variations: ['psicologia', 'psychology'],
+      variations: ['psicologia', 'psychology', 'curso de psicologia', 'faculdade de psicologia', 'bacharelado em psicologia', 'psi'],
       courseType: 'graduacao',
       courseName: 'Psicologia'
     },
     'enfermagem': {
-      variations: ['enfermagem', 'nursing', 'técnico em enfermagem'],
+      variations: ['enfermagem', 'nursing', 'técnico em enfermagem', 'curso de enfermagem', 'faculdade de enfermagem', 'bacharelado em enfermagem'],
       courseType: 'graduacao',
       courseName: 'Enfermagem'
     },
     'pedagogia': {
-      variations: ['pedagogia', 'educação', 'licenciatura em pedagogia'],
+      variations: ['pedagogia', 'educação', 'licenciatura em pedagogia', 'curso de pedagogia', 'faculdade de pedagogia', 'licenciatura pedagogia', 'educacao'],
       courseType: 'graduacao',
       courseName: 'Pedagogia'
     },
     'engenharia': {
-      variations: ['engenharia', 'engineering', 'eng'],
+      variations: ['engenharia', 'engineering', 'eng', 'curso de engenharia', 'faculdade de engenharia', 'bacharelado em engenharia'],
       courseType: 'graduacao',
       courseName: 'Engenharia'
+    },
+    'letras': {
+      variations: ['letras', 'língua portuguesa', 'literatura', 'licenciatura em letras', 'curso de letras', 'faculdade de letras', 'lingua portuguesa'],
+      courseType: 'graduacao',
+      courseName: 'Letras'
+    },
+    'historia': {
+      variations: ['história', 'historia', 'licenciatura em história', 'curso de história', 'faculdade de história', 'bacharelado em história'],
+      courseType: 'graduacao',
+      courseName: 'História'
+    },
+    'geografia': {
+      variations: ['geografia', 'licenciatura em geografia', 'curso de geografia', 'faculdade de geografia', 'bacharelado em geografia'],
+      courseType: 'graduacao',
+      courseName: 'Geografia'
+    },
+    'matematica': {
+      variations: ['matemática', 'matematica', 'licenciatura em matemática', 'curso de matemática', 'faculdade de matemática'],
+      courseType: 'graduacao',
+      courseName: 'Matemática'
+    },
+    'ciencias_biologicas': {
+      variations: ['ciências biológicas', 'biologia', 'ciencias biologicas', 'curso de biologia', 'faculdade de biologia', 'licenciatura em biologia'],
+      courseType: 'graduacao',
+      courseName: 'Ciências Biológicas'
+    },
+    'servico_social': {
+      variations: ['serviço social', 'servico social', 'assistência social', 'assistencia social', 'curso de serviço social', 'faculdade de serviço social'],
+      courseType: 'graduacao',
+      courseName: 'Serviço Social'
+    },
+    'educacao_fisica': {
+      variations: ['educação física', 'educacao fisica', 'ed física', 'licenciatura em educação física', 'curso de educação física', 'faculdade de educação física'],
+      courseType: 'graduacao',
+      courseName: 'Educação Física'
+    },
+    'medicina': {
+      variations: ['medicina', 'curso de medicina', 'faculdade de medicina', 'bacharelado em medicina', 'medical'],
+      courseType: 'graduacao',
+      courseName: 'Medicina'
+    },
+    'fisioterapia': {
+      variations: ['fisioterapia', 'curso de fisioterapia', 'faculdade de fisioterapia', 'bacharelado em fisioterapia'],
+      courseType: 'graduacao',
+      courseName: 'Fisioterapia'
+    },
+    'odontologia': {
+      variations: ['odontologia', 'curso de odontologia', 'faculdade de odontologia', 'bacharelado em odontologia', 'dentistry'],
+      courseType: 'graduacao',
+      courseName: 'Odontologia'
+    },
+    'farmacia': {
+      variations: ['farmácia', 'farmacia', 'curso de farmácia', 'faculdade de farmácia', 'bacharelado em farmácia'],
+      courseType: 'graduacao',
+      courseName: 'Farmácia'
+    },
+    'nutricao': {
+      variations: ['nutrição', 'nutricao', 'curso de nutrição', 'faculdade de nutrição', 'bacharelado em nutrição'],
+      courseType: 'graduacao',
+      courseName: 'Nutrição'
     },
 
     // ========== CURSOS SUPERIORES TECNÓLOGOS - 18 MESES ==========
@@ -2025,8 +2085,8 @@ export class DatabaseStorage implements IStorage {
     return 1 - matrix[str2.length][str1.length] / maxLength;
   }
 
-  // Função para detectar curso mencionado na mensagem
-  detectMentionedCourse(messageContent: string): { courseName: string; courseType: string; courseKey: string } | null {
+  // Função para detectar múltiplos cursos mencionados na mensagem
+  detectMentionedCourses(messageContent: string): Array<{ courseName: string; courseType: string; courseKey: string }> {
     const normalizedMessage = messageContent.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
       .replace(/[^\w\s]/g, ' ') // Remove pontuação
@@ -2086,23 +2146,33 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    // Priorizar matches exatos e mais longos
+    // Filtrar duplicatas e priorizar matches exatos e mais longos
     if (matches.length > 0) {
-      const bestMatch = matches.sort((a, b) => {
+      // Remover duplicatas baseado na courseKey
+      const uniqueMatches = matches.filter((match, index, self) => 
+        index === self.findIndex(m => m.courseKey === match.courseKey)
+      );
+
+      // Ordenar por prioridade
+      const sortedMatches = uniqueMatches.sort((a, b) => {
         // Primeiro priorizar matches exatos
         if (a.matchType === 'exact' && b.matchType !== 'exact') return -1;
         if (b.matchType === 'exact' && a.matchType !== 'exact') return 1;
         
         // Depois priorizar matches mais longos (mais específicos)
         return b.matchLength - a.matchLength;
-      })[0];
+      });
 
-      console.log(`✅ Curso detectado por ${bestMatch.matchType}: ${bestMatch.courseName} (${bestMatch.courseType}) - variação: "${bestMatch.variation}"`);
-      return {
-        courseName: bestMatch.courseName,
-        courseType: bestMatch.courseType,
-        courseKey: bestMatch.courseKey
-      };
+      console.log(`✅ ${sortedMatches.length} curso(s) detectado(s):`);
+      sortedMatches.forEach(match => {
+        console.log(`   - ${match.courseName} (${match.courseType}) - variação: "${match.variation}"`);
+      });
+
+      return sortedMatches.map(match => ({
+        courseName: match.courseName,
+        courseType: match.courseType,
+        courseKey: match.courseKey
+      }));
     }
 
     // SEGUNDO: Buscar por combinações de palavras-chave com contexto educacional
@@ -2238,7 +2308,13 @@ export class DatabaseStorage implements IStorage {
     }
 
     console.log(`❌ Nenhum curso detectado na mensagem`);
-    return null;
+    return [];
+  }
+
+  // Função auxiliar para compatibilidade - retorna apenas o primeiro curso detectado
+  detectMentionedCourse(messageContent: string): { courseName: string; courseType: string; courseKey: string } | null {
+    const courses = this.detectMentionedCourses(messageContent);
+    return courses.length > 0 ? courses[0] : null;
   }
 
   // Função para salvar curso mencionado no contato
