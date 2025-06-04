@@ -9,6 +9,7 @@ import { AudioMessage } from "./AudioMessage";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { secureLog } from "@/lib/secureLogger";
 import { CHANNELS } from "@/types/chat";
+import { useChannels } from "@/shared/lib/hooks/useChannels";
 
 interface MessageBubbleProps {
   message: Message;

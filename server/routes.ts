@@ -2245,6 +2245,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoints para Canais
+  app.get('/api/channels', async (req, res) => {
+    try {
+      const channels = await storage.getChannels();
+      res.json(channels);
+    } catch (error) {
+      console.error('Erro ao buscar canais:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  app.get('/api/channels/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const channel = await storage.getChannel(id);
+      if (!channel) {
+        return res.status(404).json({ error: 'Canal não encontrado' });
+      }
+      res.json(channel);
+    } catch (error) {
+      console.error('Erro ao buscar canal:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Verificar se um número de telefone existe no WhatsApp
   app.get('/api/zapi/phone-exists/:phone', async (req, res) => {
     try {
