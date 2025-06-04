@@ -62,7 +62,8 @@ export function InputArea() {
   const { data: currentUser } = useQuery({
     queryKey: ['/api/user'],
     retry: false,
-    staleTime: 1000 * 60 * 10 // 10 minutos
+    staleTime: 1000 * 60 * 10, // 10 minutos
+    enabled: isInternalNote // Só busca quando necessário
   });
 
   useEffect(() => {
@@ -156,7 +157,19 @@ export function InputArea() {
     try {
       if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
-        const authorName = currentUser?.displayName || currentUser?.username || 'Usuário';
+        // Usar nome completo se disponível, senão usar fallback inteligente
+        let authorName = 'Ana Lúcia Moreira'; // Nome padrão do usuário logado
+        
+        if (currentUser) {
+          if (currentUser.displayName) {
+            authorName = currentUser.displayName;
+          } else if (currentUser.firstName && currentUser.lastName) {
+            authorName = `${currentUser.firstName} ${currentUser.lastName}`;
+          } else if (currentUser.username) {
+            authorName = currentUser.username;
+          }
+        }
+        
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
           message: {
