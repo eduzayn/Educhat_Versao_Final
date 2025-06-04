@@ -636,37 +636,53 @@ export function InputArea() {
 
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         {/* Toggle entre mensagem normal e nota interna */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-            <Button
-              variant={!isInternalNote ? "default" : "ghost"}
-              size="sm"
-              className={cn(
-                "h-8 px-3 text-xs transition-all",
-                !isInternalNote ? "bg-white dark:bg-gray-800 shadow-sm" : "hover:bg-gray-200 dark:hover:bg-gray-600"
-              )}
-              onClick={() => setIsInternalNote(false)}
-            >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              Mensagem
-            </Button>
-            <Button
-              variant={isInternalNote ? "default" : "ghost"}
-              size="sm"
-              className={cn(
-                "h-8 px-3 text-xs transition-all",
-                isInternalNote ? "bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm" : "hover:bg-gray-200 dark:hover:bg-gray-600"
-              )}
-              onClick={() => setIsInternalNote(true)}
-            >
-              <StickyNote className="h-3 w-3 mr-1" />
-              Nota Interna
-            </Button>
+        <div className="mb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-1 border border-gray-200 dark:border-gray-600">
+              <Button
+                variant={!isInternalNote ? "default" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-8 px-4 text-xs transition-all rounded-lg font-medium",
+                  !isInternalNote 
+                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-sm border-0" 
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                )}
+                onClick={() => setIsInternalNote(false)}
+              >
+                <MessageSquare className="h-3 w-3 mr-1.5" />
+                Mensagem
+              </Button>
+              <Button
+                variant={isInternalNote ? "default" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-8 px-4 text-xs transition-all rounded-lg font-medium",
+                  isInternalNote 
+                    ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0" 
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                )}
+                onClick={() => setIsInternalNote(true)}
+              >
+                <StickyNote className="h-3 w-3 mr-1.5" />
+                Nota Interna
+              </Button>
+            </div>
+            {isInternalNote && (
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                  Apenas para equipe
+                </span>
+              </div>
+            )}
           </div>
           {isInternalNote && (
-            <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
-              Visível apenas para a equipe
-            </span>
+            <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                <strong>💡 Nota Interna:</strong> Esta mensagem será salva apenas no sistema e não será enviada ao cliente via WhatsApp. Ideal para anotações da equipe, observações e registros internos.
+              </p>
+            </div>
           )}
         </div>
 

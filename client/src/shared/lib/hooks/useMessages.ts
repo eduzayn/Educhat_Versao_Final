@@ -32,7 +32,14 @@ export function useSendMessage() {
       message: Omit<InsertMessage, 'conversationId'>;
       contact?: any;
     }) => {
-      // Se tiver telefone, enviar via Z-API (assumindo WhatsApp como padrão)
+      // Se for nota interna, NUNCA enviar via Z-API - apenas salvar localmente
+      if (message.isInternalNote) {
+        console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
+        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
+        return response.json();
+      }
+
+      // Se tiver telefone e NÃO for nota interna, enviar via Z-API
       if (contact?.phone) {
         console.log('📤 Enviando mensagem via Z-API:', {
           phone: contact.phone,
