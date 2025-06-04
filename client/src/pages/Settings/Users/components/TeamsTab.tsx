@@ -481,11 +481,12 @@ export const TeamsTab = () => {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="config-name" className="text-right">
-                Nome
+                Nome *
               </Label>
               <Input
                 id="config-name"
-                defaultValue={selectedTeam?.name}
+                value={editTeamForm.name}
+                onChange={(e) => setEditTeamForm(prev => ({ ...prev, name: e.target.value }))}
                 className="col-span-3"
               />
             </div>
@@ -496,7 +497,8 @@ export const TeamsTab = () => {
               </Label>
               <Textarea
                 id="config-description"
-                defaultValue={selectedTeam?.description || ''}
+                value={editTeamForm.description}
+                onChange={(e) => setEditTeamForm(prev => ({ ...prev, description: e.target.value }))}
                 className="col-span-3"
                 rows={3}
               />
@@ -504,9 +506,9 @@ export const TeamsTab = () => {
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="config-macrosetor" className="text-right">
-                Macrosetor
+                Macrosetor *
               </Label>
-              <Select defaultValue={selectedTeam?.macrosetor || ''}>
+              <Select value={editTeamForm.macrosetor} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, macrosetor: value }))}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o macrosetor" />
                 </SelectTrigger>
@@ -526,7 +528,7 @@ export const TeamsTab = () => {
               <Label htmlFor="config-status" className="text-right">
                 Status
               </Label>
-              <Select defaultValue={selectedTeam?.isActive ? "true" : "false"}>
+              <Select value={editTeamForm.isActive ? "true" : "false"} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, isActive: value === "true" }))}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
@@ -542,10 +544,11 @@ export const TeamsTab = () => {
             <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              console.log('Salvar configurações da equipe');
-              setShowConfigDialog(false);
-            }}>
+            <Button 
+              onClick={handleUpdateTeam}
+              disabled={updateTeamMutation.isPending}
+            >
+              {updateTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar Configurações
             </Button>
           </DialogFooter>
