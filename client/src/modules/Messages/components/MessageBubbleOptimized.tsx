@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import type { Message, Contact } from "@shared/schema";
 import { AudioMessage } from "./AudioMessage";
 import { LazyMediaContent } from "./LazyMediaContent";
+import { secureLog } from "@/lib/secureLogger";
 
 interface MessageBubbleProps {
   message: Message;
@@ -94,11 +95,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   // Função para renderizar o conteúdo da mensagem baseado no tipo
   const renderMessageContent = () => {
     if (message.messageType === 'audio') {
-      console.log('🎧 Processando mensagem de áudio:', {
-        messageId: message.id,
-        content: message.content,
-        metadata: message.metadata
-      });
+      secureLog.audio('Processando mensagem', message.id, (message.metadata as any)?.duration);
 
       // Verificar se temos uma URL válida para o áudio
       let audioUrl: string | null = null;
@@ -127,7 +124,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
       if (!audioUrl) {
         const messageIdFromMetadata = (message.metadata as any)?.messageId;
         if (messageIdFromMetadata) {
-          console.log('🔄 Tentando buscar áudio via API com messageId:', messageIdFromMetadata);
+          secureLog.debug('Buscando áudio via API', { messageId: messageIdFromMetadata });
           
           const duration = (message.metadata as any)?.duration || 0;
           return (
@@ -184,7 +181,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
             )}
             {message.metadata && (
               <p className="text-xs mt-1">
-                Dados: {JSON.stringify(message.metadata, null, 2).substring(0, 100)}...
+                Metadados disponíveis
               </p>
             )}
           </div>

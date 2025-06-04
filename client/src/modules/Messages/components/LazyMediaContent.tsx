@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Download, Play, FileText, Image } from 'lucide-react';
+import { secureLog } from '@/lib/secureLogger';
 
 interface LazyMediaContentProps {
   messageId: number;
@@ -20,15 +21,25 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
     if (loaded || loading) return;
     
     setLoading(true);
+    secureLog.debug(`Carregando ${messageType}`, { messageId });
+    
     try {
       const response = await fetch(`/api/messages/${messageId}/media`);
       if (response.ok) {
         const data = await response.json();
         setContent(data.content);
         setLoaded(true);
+        
+        if (messageType === 'video') {
+          secureLog.debug('Vídeo carregado com sucesso', { messageId });
+        } else if (messageType === 'image') {
+          secureLog.image('Carregada com sucesso', messageId);
+        }
+      } else {
+        secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error loading media content:', error);
+      secureLog.error(`Erro ao carregar ${messageType}`, error);
     } finally {
       setLoading(false);
     }
