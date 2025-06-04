@@ -1041,7 +1041,12 @@ export class DatabaseStorage implements IStorage {
       'problema', 'ajuda', 'suporte', 'erro', 'bug', 'não funciona', 'dificuldade',
       'como usar', 'tutorial', 'dúvida', 'não consigo', 'quebrou', 'defeito',
       'não está funcionando', 'travou', 'lento', 'senha', 'login', 'acesso',
-      'recuperar', 'resetar', 'configurar', 'instalar', 'atualizar'
+      'recuperar', 'resetar', 'configurar', 'instalar', 'atualizar',
+      // Adicionando suas sugestões específicas
+      'falha', 'instável', 'não aparece', 'esqueci minha senha', 'link não funciona',
+      'não abre', 'mensagem de erro', 'sistema lento', 'fora do ar', 'cadastro não vai',
+      'não recebi', 'não carrega', 'meu curso sumiu', 'não finalizei a matrícula',
+      'já sou aluno', 'minha aula não abre', 'plataforma está com erro'
     ];
     
     // Palavras-chave para COBRANÇA
