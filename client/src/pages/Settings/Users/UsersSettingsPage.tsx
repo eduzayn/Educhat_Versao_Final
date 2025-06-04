@@ -11,7 +11,7 @@ export const UsersSettingsPage = () => {
   const [activeTab, setActiveTab] = useState('users');
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto max-w-7xl px-4 py-6 space-y-6">
       <BackButton to="/settings" label="Voltar às Configurações" />
       
       <div>
