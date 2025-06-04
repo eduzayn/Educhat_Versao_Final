@@ -898,6 +898,16 @@ export function InboxPageRefactored() {
                   />
                 </div>
               </div>
+
+              {/* Interface de Atribuição Manual */}
+              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                <ConversationAssignmentDropdown
+                  conversationId={activeConversation.id}
+                  currentTeamId={activeConversation.assignedTeamId}
+                  currentUserId={activeConversation.assignedUserId}
+                  currentMacrosetor={activeConversation.macrosetor}
+                />
+              </div>
             </div>
 
             {/* Mensagens */}
@@ -925,10 +935,10 @@ export function InboxPageRefactored() {
                     <MessageBubble 
                       key={message.id} 
                       message={message} 
-                      contact={activeConversation.contact}
-                      channelIcon={getChannelInfo(activeConversation.channel).icon}
-                      channelColor={getChannelInfo(activeConversation.channel).color}
-                      conversationId={activeConversation.id}
+                      contact={activeConversation?.contact}
+                      channelIcon={getChannelInfo(activeConversation?.channel || '').icon}
+                      channelColor={getChannelInfo(activeConversation?.channel || '').color}
+                      conversationId={activeConversation?.id || 0}
                     />
                   ))}
                 </>
@@ -958,14 +968,14 @@ export function InboxPageRefactored() {
             {/* Header do contato */}
             <div className="text-center mb-4">
               <Avatar className="w-16 h-16 mx-auto mb-3">
-                <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
+                <AvatarImage src={activeConversation?.contact?.profileImageUrl || ''} />
                 <AvatarFallback className="text-lg">
-                  {activeConversation.contact.name.charAt(0).toUpperCase()}
+                  {activeConversation?.contact?.name?.charAt(0).toUpperCase() || '?'}
                 </AvatarFallback>
               </Avatar>
               
               <h3 className="font-semibold text-base text-gray-900 mb-1">
-                {activeConversation.contact.name}
+                {activeConversation?.contact?.name}
               </h3>
               
               <div className="flex items-center justify-center text-sm mb-2">

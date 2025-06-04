@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
+import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Users, User } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { useTeams } from '@/shared/lib/hooks/useTeams';
-import { useSystemUsers } from '@/shared/lib/hooks/useSystemUsers';
+import type { Team, SystemUser } from '@shared/schema';
 
 interface ConversationAssignmentDropdownProps {
   conversationId: number;
@@ -22,110 +19,101 @@ export function ConversationAssignmentDropdown({
   currentMacrosetor
 }: ConversationAssignmentDropdownProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [users, setUsers] = useState<SystemUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Buscar equipes e usuários usando hooks existentes
-  const { data: teams = [] } = useTeams();
-  const { data: users = [] } = useSystemUsers();
+  // Carregar dados iniciais
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [teamsResponse, usersResponse] = await Promise.all([
+          fetch('/api/teams'),
+          fetch('/api/system-users')
+        ]);
 
-  // Mutação para atribuir à equipe
-  const assignToTeamMutation = useMutation({
-    mutationFn: ({ teamId }: { teamId: number }) =>
-      apiRequest(`/api/conversations/${conversationId}/assign-team`, {
+        if (teamsResponse.ok && usersResponse.ok) {
+          const teamsData = await teamsResponse.json();
+          const usersData = await usersResponse.json();
+          setTeams(teamsData);
+          setUsers(usersData);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleTeamAssignment = async (teamId: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/assign-team`, {
         method: 'POST',
-        body: JSON.stringify({ teamId, method: 'manual' })
-      }),
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Conversa atribuída à equipe com sucesso"
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          teamId: teamId === 'none' ? null : parseInt(teamId), 
+          method: 'manual' 
+        })
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-    },
-    onError: () => {
+
+      if (response.ok) {
+        toast({
+          title: "Sucesso",
+          description: teamId === 'none' ? "Conversa movida para fila neutra" : "Conversa atribuída à equipe com sucesso"
+        });
+        // Refresh da página para atualizar os dados
+        window.location.reload();
+      } else {
+        throw new Error('Erro na atribuição');
+      }
+    } catch (error) {
       toast({
         title: "Erro",
         description: "Não foi possível atribuir à equipe",
         variant: "destructive"
       });
     }
-  });
+  };
 
-  // Mutação para atribuir ao usuário
-  const assignToUserMutation = useMutation({
-    mutationFn: ({ userId }: { userId: number }) =>
-      apiRequest(`/api/conversations/${conversationId}/assign-user`, {
+  const handleUserAssignment = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/assign-user`, {
         method: 'POST',
-        body: JSON.stringify({ userId, method: 'manual' })
-      }),
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Conversa atribuída ao usuário com sucesso"
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: userId === 'none' ? null : parseInt(userId), 
+          method: 'manual' 
+        })
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-    },
-    onError: () => {
+
+      if (response.ok) {
+        toast({
+          title: "Sucesso",
+          description: userId === 'none' ? "Conversa não atribuída a usuário específico" : "Conversa atribuída ao usuário com sucesso"
+        });
+        // Refresh da página para atualizar os dados
+        window.location.reload();
+      } else {
+        throw new Error('Erro na atribuição');
+      }
+    } catch (error) {
       toast({
         title: "Erro",
         description: "Não foi possível atribuir ao usuário",
         variant: "destructive"
       });
     }
-  });
-
-  const handleTeamAssignment = async (teamId: string) => {
-    if (teamId === 'none') {
-      // Remover atribuição de equipe
-      try {
-        await apiRequest(`/api/conversations/${conversationId}/assign-team`, {
-          method: 'POST',
-          body: JSON.stringify({ teamId: null, method: 'manual' })
-        });
-        toast({
-          title: "Sucesso",
-          description: "Conversa movida para fila neutra"
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      } catch (error) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível remover atribuição",
-          variant: "destructive"
-        });
-      }
-    } else {
-      assignToTeamMutation.mutate({ teamId: parseInt(teamId) });
-    }
-  };
-
-  const handleUserAssignment = async (userId: string) => {
-    if (userId === 'none') {
-      // Remover atribuição de usuário
-      try {
-        await apiRequest(`/api/conversations/${conversationId}/assign-user`, {
-          method: 'POST',
-          body: JSON.stringify({ userId: null, method: 'manual' })
-        });
-        toast({
-          title: "Sucesso",
-          description: "Conversa não atribuída a usuário específico"
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      } catch (error) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível remover atribuição",
-          variant: "destructive"
-        });
-      }
-    } else {
-      assignToUserMutation.mutate({ userId: parseInt(userId) });
-    }
   };
 
   const currentTeam = teams.find(team => team.id === currentTeamId);
   const currentUser = users.find(user => user.id === currentUserId);
+
+  if (loading) {
+    return <div className="text-xs text-gray-500">Carregando...</div>;
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -135,7 +123,6 @@ export function ConversationAssignmentDropdown({
         <Select
           value={currentTeamId ? currentTeamId.toString() : 'none'}
           onValueChange={handleTeamAssignment}
-          disabled={assignToTeamMutation.isPending}
         >
           <SelectTrigger className="h-7 min-w-[120px] text-xs border-gray-300">
             <SelectValue>
@@ -161,7 +148,7 @@ export function ConversationAssignmentDropdown({
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: team.color }}
+                    style={{ backgroundColor: team.color || '#6b7280' }}
                   />
                   {team.name}
                   {team.macrosetor && (
@@ -182,7 +169,6 @@ export function ConversationAssignmentDropdown({
         <Select
           value={currentUserId ? currentUserId.toString() : 'none'}
           onValueChange={handleUserAssignment}
-          disabled={assignToUserMutation.isPending}
         >
           <SelectTrigger className="h-7 min-w-[120px] text-xs border-gray-300">
             <SelectValue>
