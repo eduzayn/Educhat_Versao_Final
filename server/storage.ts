@@ -1619,7 +1619,7 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Direito'
     },
     'psicologia': {
-      variations: ['psicologia', 'psi', 'psychology'],
+      variations: ['psicologia', 'psychology'],
       courseType: 'graduacao',
       courseName: 'Psicologia'
     },
