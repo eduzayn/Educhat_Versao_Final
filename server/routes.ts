@@ -2954,6 +2954,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk import system users
+  app.post('/api/system-users/bulk-import', async (req, res) => {
+    try {
+      const { users } = req.body;
+      
+      if (!users || !Array.isArray(users)) {
+        return res.status(400).json({ 
+          message: 'Lista de usuários é obrigatória e deve ser um array' 
+        });
+      }
+
+      const results = {
+        success: [],
+        errors: [],
+        total: users.length
+      };
+
+      for (let i = 0; i < users.length; i++) {
+        const userData = users[i];
+        
+        try {
+          // Validar dados obrigatórios
+          if (!userData.displayName || !userData.email || !userData.username || !userData.password || !userData.role) {
+            results.errors.push({
+              index: i,
+              userData,
+              error: 'Campos obrigatórios faltando: displayName, email, username, password, role'
+            });
+            continue;
+          }
+
+          // Gerar iniciais se não fornecidas
+          if (!userData.initials) {
+            const names = userData.displayName.split(' ');
+            userData.initials = names.length > 1 
+              ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
+              : userData.displayName.substring(0, 2).toUpperCase();
+          }
+
+          // Criar usuário
+          const newUser = await storage.createSystemUser({
+            username: userData.username,
+            displayName: userData.displayName,
+            email: userData.email,
+            password: userData.password,
+            role: userData.role,
+            team: userData.team || null,
+            isActive: userData.isActive !== undefined ? userData.isActive : true,
+            initials: userData.initials
+          });
+
+          results.success.push({
+            index: i,
+            user: newUser
+          });
+
+        } catch (error) {
+          results.errors.push({
+            index: i,
+            userData,
+            error: error instanceof Error ? error.message : 'Erro desconhecido'
+          });
+        }
+      }
+
+      res.status(201).json({
+        message: `Importação concluída: ${results.success.length} usuários criados, ${results.errors.length} erros`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error in bulk import:', error);
+      res.status(500).json({ 
+        message: 'Erro interno no servidor durante importação em lote',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
   // Teams API endpoints
   app.get('/api/teams', async (req, res) => {
     try {
