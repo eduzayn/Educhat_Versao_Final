@@ -1375,22 +1375,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Detectar curso mencionado na mensagem para enriquecer o cadastro
           const detectedCourses = storage.detectMentionedCourses(messageContent);
           
-          if (detectedCourse) {
-            console.log(`🎓 Curso detectado na mensagem: "${detectedCourse.courseName}" (${detectedCourse.courseType})`);
+          if (detectedCourses.length > 0) {
+            console.log(`🎓 ${detectedCourses.length} curso(s) detectado(s) na mensagem`);
             
-            // Salvar curso como interesse do contato
-            await storage.saveMentionedCourse(contact.id, detectedCourse);
-            
-            // Broadcast da detecção de curso para atualizar UI em tempo real
-            broadcastToAll({
-              type: 'course_detected',
-              conversationId: conversation.id,
-              contactId: contact.id,
-              courseInfo: detectedCourse,
-              messageId: message.id
-            });
-            
-            console.log(`📚 Curso "${detectedCourse.courseName}" registrado como interesse do contato ${contact.name}`);
+            // Salvar todos os cursos como interesse do contato
+            for (const course of detectedCourses) {
+              await storage.saveMentionedCourse(contact.id, course);
+              
+              // Broadcast individual da detecção de curso para atualizar UI em tempo real
+              broadcastToAll({
+                type: 'course_detected',
+                conversationId: conversation.id,
+                contactId: contact.id,
+                courseInfo: course,
+                messageId: message.id
+              });
+              
+              console.log(`📚 Curso "${course.courseName}" registrado como interesse do contato ${contact.name}`);
+            }
           }
         } catch (courseDetectionError) {
           console.error('❌ Erro na detecção inteligente de cursos:', courseDetectionError);
@@ -5373,12 +5375,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🧪 Testando detecção de curso na mensagem: "${message}"`);
       
-      const detectedCourse = storage.detectMentionedCourse(message);
+      const detectedCourses = storage.detectMentionedCourses(message);
       
       res.json({
         message,
-        detected: !!detectedCourse,
-        course: detectedCourse || null,
+        detected: detectedCourses.length > 0,
+        courses: detectedCourses,
+        count: detectedCourses.length,
         timestamp: new Date().toISOString()
       });
       
