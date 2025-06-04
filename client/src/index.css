@@ -53,6 +53,33 @@
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Line clamp utility for deal cards */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Optimized kanban layout for better space usage */
+@media (max-width: 1200px) {
+  .deals-kanban-container {
+    gap: 12px !important;
+  }
+  
+  .deals-column {
+    min-width: 280px !important;
+    max-width: 320px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .deals-column {
+    min-width: 260px !important;
+    max-width: 300px !important;
+  }
+}
+
 /* Firefox scrollbar styles */
 .deals-column-scroll {
   scrollbar-width: thin;

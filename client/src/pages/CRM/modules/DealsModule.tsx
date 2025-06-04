@@ -182,12 +182,13 @@ export function DealsModule() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
-              variant="ghost" 
-              size="icon" 
+              variant="outline" 
+              size="sm" 
               onClick={() => setLocation('/')}
-              className="h-8 w-8"
+              className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300"
             >
               <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Voltar</span>
             </Button>
             <div>
               <h2 className="text-2xl font-bold">Negócios</h2>
@@ -249,15 +250,15 @@ export function DealsModule() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-hidden">
         {viewMode === 'kanban' ? (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="h-full p-6">
-              <div className="flex gap-6 h-full overflow-x-auto">
+            <div className="h-full p-4">
+              <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
                 {currentMacrosetor.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
-                    <div key={stage.id} className="min-w-80 bg-muted/30 rounded-lg p-4 flex flex-col">
+                    <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${stage.color}`} />
@@ -273,7 +274,7 @@ export function DealsModule() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`space-y-3 flex-1 overflow-y-auto min-h-[800px] max-h-[800px] pr-2 deals-column-scroll ${
+                            className={`space-y-3 flex-1 overflow-y-auto min-h-[400px] max-h-[calc(100vh-300px)] pr-2 deals-column-scroll ${
                               snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
                             }`}
                           >
@@ -291,33 +292,40 @@ export function DealsModule() {
                                       ...provided.draggableProps.style,
                                     }}
                                   >
-                                    <CardContent className="p-3 space-y-2">
+                                    <CardContent className="p-2.5 space-y-1.5">
                                       <div className="flex items-start justify-between">
-                                        <p className="text-sm font-medium leading-tight">{deal.name}</p>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                                        <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
+                                        <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
                                           <MoreHorizontal className="h-3 w-3" />
                                         </Button>
                                       </div>
-                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Building2 className="h-3 w-3" />
-                                        <span>{deal.company}</span>
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <Building2 className="h-3 w-3 flex-shrink-0" />
+                                        <span className="truncate">{deal.company}</span>
                                       </div>
                                       <p className="text-sm text-green-600 font-semibold">
                                         R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                       </p>
                                       <div className="flex items-center justify-between">
-                                        <Badge variant="outline" className="text-xs">
-                                          {deal.probability}% prob.
+                                        <Badge variant="outline" className="text-xs py-0 px-1.5">
+                                          {deal.probability}%
                                         </Badge>
-                                        <span className="text-xs text-muted-foreground">{deal.owner}</span>
+                                        <span className="text-xs text-muted-foreground truncate max-w-[60px]">{deal.owner}</span>
                                       </div>
-                                      <div className="flex flex-wrap gap-1">
-                                        {deal.tags.map((tag: string, i: number) => (
-                                          <Badge key={i} variant="outline" className="text-xs">
-                                            {tag}
-                                          </Badge>
-                                        ))}
-                                      </div>
+                                      {deal.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 max-h-6 overflow-hidden">
+                                          {deal.tags.slice(0, 2).map((tag: string, i: number) => (
+                                            <Badge key={i} variant="outline" className="text-xs py-0 px-1">
+                                              {tag}
+                                            </Badge>
+                                          ))}
+                                          {deal.tags.length > 2 && (
+                                            <Badge variant="outline" className="text-xs py-0 px-1">
+                                              +{deal.tags.length - 2}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )}
                                     </CardContent>
                                   </Card>
                                 )}
