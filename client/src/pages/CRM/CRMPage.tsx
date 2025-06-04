@@ -7,11 +7,13 @@ import {
   Calendar,
   FileText,
   Settings,
-  Plus
+  Plus,
+  ArrowLeft
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Button } from '@/shared/ui/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
+import { Link } from "wouter";
 
 import {
   CRMDashboard,
@@ -69,11 +71,19 @@ function CRMHeader() {
   return (
     <div className="border-b bg-background p-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">CRM</h1>
-          <p className="text-muted-foreground">
-            Gerencie relacionamentos com clientes e oportunidades de negócio
-          </p>
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">CRM</h1>
+            <p className="text-muted-foreground">
+              Gerencie relacionamentos com clientes e oportunidades de negócio
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Select defaultValue="month">
