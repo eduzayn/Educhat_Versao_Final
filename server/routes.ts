@@ -595,6 +595,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar conversas de um contato específico
+  app.get('/api/contacts/:id/conversations', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const conversations = await storage.getConversationsByContactId(contactId);
+      
+      res.json(conversations);
+    } catch (error) {
+      console.error('Error fetching contact conversations:', error);
+      res.status(500).json({ message: 'Failed to fetch contact conversations' });
+    }
+  });
+
   // Contact tags endpoints
   app.get('/api/contacts/:id/tags', async (req, res) => {
     try {

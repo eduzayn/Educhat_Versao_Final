@@ -340,6 +340,37 @@ export class DatabaseStorage implements IStorage {
     return updatedConversation;
   }
 
+  async getConversationsByContactId(contactId: number): Promise<ConversationWithContact[]> {
+    const conversationsData = await db
+      .select()
+      .from(conversations)
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.contactId, contactId))
+      .orderBy(desc(conversations.lastMessageAt));
+
+    const result: ConversationWithContact[] = [];
+    
+    for (const row of conversationsData) {
+      if (row.conversations && row.contacts) {
+        // Buscar última mensagem de cada conversa
+        const lastMessage = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.conversationId, row.conversations.id))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+        
+        result.push({
+          ...row.conversations,
+          contact: row.contacts,
+          messages: lastMessage,
+        });
+      }
+    }
+    
+    return result;
+  }
+
   async getConversationByContactAndChannel(contactId: number, channel: string): Promise<Conversation | undefined> {
     const [conversation] = await db
       .select()
