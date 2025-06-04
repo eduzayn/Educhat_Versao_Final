@@ -1,0 +1,60 @@
+ esse tipo de lentidão é comum quando há grandes volumes de dados sendo carregados de uma só vez no frontend, como no seu caso (mais de 6 mil negócios). A boa notícia é que isso tem solução técnica clara e eficiente.
+
+✅ Soluções para melhorar a performance da página de negócios
+1. Paginação com lazy loading (recomendado)
+Carregar apenas os primeiros 20 ou 50 negócios por vez.
+
+Conforme o usuário rola a tela, carregar os próximos blocos (infinite scroll ou botão “carregar mais”).
+
+Como pedir ao Replit:
+
+Implemente paginação no módulo de negócios do CRM para que apenas os primeiros 50 negócios sejam carregados inicialmente.
+Conforme o usuário rola ou clica em “carregar mais”, novos negócios devem ser carregados da base (com offset).
+A consulta deve incluir LIMIT e OFFSET ou similar, com ordenação por data de criação ou prioridade.
+
+2. Filtro inicial obrigatório por macrosetor
+Antes de exibir qualquer negócio, exigir que o usuário selecione o tipo (comercial, suporte ou cobrança).
+
+Isso reduz drasticamente o volume inicial de dados carregados.
+
+Como pedir ao Replit:
+
+Antes de carregar os negócios, exija que o usuário selecione um macrosetor (comercial, suporte ou cobrança).
+Somente após essa seleção, os dados devem ser buscados do banco com WHERE setor = 'comercial' (ou correspondente).
+
+3. Indexação no banco de dados
+Se estiver usando Supabase/PostgreSQL ou outro banco relacional:
+
+Criar índices nos campos:
+
+macrosetor
+
+stage
+
+created_at
+
+Como pedir ao Replit:
+
+Verifique se os campos macrosetor, stage e created_at da tabela de negócios possuem índices criados.
+Caso não possuam, crie os índices para acelerar as buscas por esses campos.
+
+4. Evitar renderizações desnecessárias no React
+Se os 6 mil negócios estão sendo transformados em componentes React (como <DealCard />), o navegador vai engasgar.
+
+Use React.memo, virtualization com react-window ou react-virtualized.
+
+Como pedir ao Replit:
+
+Otimize o render dos cards de negócios com virtualização (ex: react-window) ou React.memo para evitar re-renderizações desnecessárias.
+Isso deve ser aplicado tanto no modo tabela quanto no modo kanban.
+
+Exemplo de uso de paginação (simples):
+ts
+Copiar
+Editar
+const [page, setPage] = useState(1);
+const limit = 50;
+
+useEffect(() => {
+  fetch(`/api/deals?page=${page}&limit=${limit}`).then(...);
+}, [page]);

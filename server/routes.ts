@@ -3262,10 +3262,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Deals API endpoints for CRM
+  // Deals API endpoints for CRM with pagination and filtering
   app.get('/api/deals', async (req, res) => {
     try {
-      const deals = await storage.getDeals();
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const macrosetor = req.query.macrosetor as string;
+      const stage = req.query.stage as string;
+      const search = req.query.search as string;
+      
+      const deals = await storage.getDealsWithPagination({
+        page,
+        limit,
+        macrosetor,
+        stage,
+        search
+      });
+      
       res.json(deals);
     } catch (error) {
       console.error('Error fetching deals:', error);

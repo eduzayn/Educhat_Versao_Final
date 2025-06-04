@@ -65,10 +65,30 @@ export function DealsModule() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  // Fetch deals from database
-  const { data: rawDeals = [], isLoading } = useQuery<Deal[]>({
-    queryKey: ['/api/deals']
+  // State para paginação
+  const [page, setPage] = useState(1);
+  const limit = 50;
+
+  // Fetch deals from database with pagination and filtering
+  const { data: dealsResponse, isLoading } = useQuery({
+    queryKey: ['/api/deals', selectedMacrosetor, page, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        macrosetor: selectedMacrosetor
+      });
+      
+      const response = await fetch(`/api/deals?${params}`);
+      if (!response.ok) throw new Error('Falha ao carregar negócios');
+      return response.json();
+    },
+    enabled: !!selectedMacrosetor // Só busca se macrosetor estiver selecionado
   });
+
+  const rawDeals = dealsResponse?.deals || [];
+  const totalPages = dealsResponse?.totalPages || 1;
+  const currentPage = dealsResponse?.currentPage || 1;
 
   // Get current macrosetor configuration
   const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];

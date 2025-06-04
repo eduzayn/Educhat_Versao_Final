@@ -137,6 +137,13 @@ export interface IStorage {
 
   // Deal operations for CRM
   getDeals(): Promise<Deal[]>;
+  getDealsWithPagination(params: {
+    page: number;
+    limit: number;
+    macrosetor?: string;
+    stage?: string;
+    search?: string;
+  }): Promise<{ deals: Deal[]; total: number; totalPages: number; currentPage: number }>;
   getDeal(id: number): Promise<Deal | undefined>;
   getDealsByContact(contactId: number): Promise<Deal[]>;
   getDealsByStage(stage: string): Promise<Deal[]>;
@@ -922,6 +929,60 @@ export class DatabaseStorage implements IStorage {
       .from(deals)
       .where(eq(deals.isActive, true))
       .orderBy(desc(deals.createdAt));
+  }
+
+  async getDealsWithPagination(params: {
+    page: number;
+    limit: number;
+    macrosetor?: string;
+    stage?: string;
+    search?: string;
+  }): Promise<{ deals: Deal[]; total: number; totalPages: number; currentPage: number }> {
+    const { page, limit, macrosetor, stage, search } = params;
+    const offset = (page - 1) * limit;
+
+    // Construir condições WHERE
+    const conditions = [eq(deals.isActive, true)];
+    
+    if (macrosetor) {
+      conditions.push(eq(deals.macrosetor, macrosetor));
+    }
+    
+    if (stage) {
+      conditions.push(eq(deals.stage, stage));
+    }
+    
+    // Para busca por nome ou notas
+    if (search) {
+      conditions.push(
+        sql`(${deals.name} ILIKE ${'%' + search + '%'} OR ${deals.notes} ILIKE ${'%' + search + '%'})`
+      );
+    }
+
+    // Buscar total de registros
+    const [totalResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(deals)
+      .where(and(...conditions));
+    
+    const total = totalResult.count;
+    const totalPages = Math.ceil(total / limit);
+
+    // Buscar deals paginados
+    const dealsResult = await db
+      .select()
+      .from(deals)
+      .where(and(...conditions))
+      .orderBy(desc(deals.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      deals: dealsResult,
+      total,
+      totalPages,
+      currentPage: page
+    };
   }
 
   async getDeal(id: number): Promise<Deal | undefined> {
