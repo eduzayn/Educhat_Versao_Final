@@ -6,7 +6,7 @@ export interface ZApiCredentials {
   clientToken: string;
 }
 
-export function validateZApiCredentials(): { valid: boolean; error?: string } & Partial<ZApiCredentials> {
+export function validateZApiCredentials(): { valid: true; instanceId: string; token: string; clientToken: string } | { valid: false; error: string } {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
   const token = process.env.ZAPI_TOKEN;
   const clientToken = process.env.ZAPI_CLIENT_TOKEN;

@@ -15,7 +15,6 @@ import ReportsPage from "@/pages/ReportsPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
-import ChannelsSettingsPage from "@/pages/Settings/Channels/ChannelsSettingsPage";
 import ChannelsPage from "@/pages/Settings/ChannelsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 

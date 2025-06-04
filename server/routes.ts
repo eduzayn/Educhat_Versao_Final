@@ -847,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -890,7 +890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts?page=${page}&pageSize=${pageSize}`;
       const response = await fetch(url, {
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -928,7 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -965,7 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ phone })
@@ -1000,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ phone })
@@ -1053,7 +1053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -1121,7 +1121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -1197,7 +1197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -1417,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const response = await fetch(url, {
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -1867,7 +1867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -2189,7 +2189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/read-message`, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -2258,7 +2258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/phone-exists/${phone}`, {
         method: 'GET',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -2314,7 +2314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/chats`, {
         method: 'GET',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -2393,7 +2393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -2479,7 +2479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/chat-presence/${phone}`, {
         method: 'GET',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
@@ -2533,7 +2533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Client-Token': clientToken,
+          'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
         }
       });
