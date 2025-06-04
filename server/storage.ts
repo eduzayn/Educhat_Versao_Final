@@ -293,9 +293,12 @@ export class DatabaseStorage implements IStorage {
       if (row.conversations && row.contacts) {
         const lastMessage = lastMessagesMap.get(row.conversations.id);
         
+        const { channel: channelType, ...conversationData } = row.conversations;
         result.push({
-          ...row.conversations,
+          ...conversationData,
+          channel: channelType,
           contact: row.contacts,
+          channelInfo: row.channels || undefined,
           messages: lastMessage ? [lastMessage] : [],
         });
       }
@@ -308,9 +311,14 @@ export class DatabaseStorage implements IStorage {
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
     const [conversation] = await db
-      .select()
+      .select({
+        conversations: conversations,
+        contacts: contacts,
+        channels: channels
+      })
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(channels, eq(conversations.channelId, channels.id))
       .where(eq(conversations.id, id));
 
     if (!conversation?.conversations || !conversation?.contacts) return undefined;
@@ -320,6 +328,7 @@ export class DatabaseStorage implements IStorage {
     return {
       ...conversation.conversations,
       contact: conversation.contacts,
+      channelInfo: conversation.channels || undefined,
       messages: conversationMessages,
     };
   }

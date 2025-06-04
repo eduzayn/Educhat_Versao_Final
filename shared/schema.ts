@@ -176,6 +176,10 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
     fields: [conversations.contactId],
     references: [contacts.id],
   }),
+  channel: one(channels, {
+    fields: [conversations.channelId],
+    references: [channels.id],
+  }),
   messages: many(messages),
 }));
 
@@ -309,6 +313,7 @@ export type InsertChannel = z.infer<typeof insertChannelSchema>;
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
   contact: Contact;
+  channelInfo?: Channel;
   messages: Message[];
   _count?: {
     messages: number;
