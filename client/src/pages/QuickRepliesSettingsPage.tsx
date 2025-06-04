@@ -85,6 +85,7 @@ const formSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   content: z.string().min(1, 'Conteúdo é obrigatório'),
   type: z.enum(['text', 'audio', 'image', 'video', 'document']),
+  additionalText: z.string().optional(),
   category: z.string().optional(),
   isActive: z.boolean().default(true),
 });
@@ -272,6 +273,7 @@ export default function QuickRepliesSettingsPage() {
       title: quickReply.title,
       content: quickReply.content || '',
       type: quickReply.type as 'text' | 'audio' | 'image' | 'video' | 'document',
+      additionalText: quickReply.additionalText || '',
       category: quickReply.category || '',
       isActive: quickReply.isActive ?? true,
     });
@@ -288,6 +290,7 @@ export default function QuickRepliesSettingsPage() {
       title: '',
       content: '',
       type: 'text',
+      additionalText: '',
       category: '',
       isActive: true,
     });
@@ -586,6 +589,30 @@ export default function QuickRepliesSettingsPage() {
                     );
                   }}
                 />
+
+                {/* Additional Text Field for Audio */}
+                {form.watch('type') === 'audio' && (
+                  <FormField
+                    control={form.control}
+                    name="additionalText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Texto Adicional (opcional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Digite um texto que será enviado junto com o áudio..."
+                            className="min-h-[80px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-sm text-muted-foreground">
+                          Este texto será enviado junto com o áudio para complementar a mensagem
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
