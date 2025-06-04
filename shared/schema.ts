@@ -463,3 +463,26 @@ export type QuickReplyWithCreator = QuickReply & {
   sharedUsers?: User[];
   sharedTeams?: Team[];
 };
+
+// System Settings table for controlling various features
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).unique().notNull(),
+  value: text("value").notNull(),
+  type: varchar("type", { length: 20 }).default("string"), // string, boolean, number, json
+  description: text("description"),
+  category: varchar("category", { length: 50 }).default("general"), // general, ai, integrations, security
+  isEnabled: boolean("is_enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schema for system settings
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;

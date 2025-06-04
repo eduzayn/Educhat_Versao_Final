@@ -5160,5 +5160,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ SYSTEM SETTINGS ROUTES ============
+  
+  // Get all system settings or by category
+  app.get('/api/system-settings', async (req, res) => {
+    try {
+      const { category } = req.query;
+      const settings = await storage.getSystemSettings(category as string);
+      res.json(settings);
+    } catch (error) {
+      console.error('Erro ao buscar configurações:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get specific system setting
+  app.get('/api/system-settings/:key', async (req, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await storage.getSystemSetting(key);
+      
+      if (!setting) {
+        return res.status(404).json({ error: 'Configuração não encontrada' });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Erro ao buscar configuração:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Set/Update system setting
+  app.post('/api/system-settings', async (req, res) => {
+    try {
+      const { key, value, type = 'string', description, category = 'general' } = req.body;
+      
+      if (!key || value === undefined) {
+        return res.status(400).json({ error: 'Chave e valor são obrigatórios' });
+      }
+      
+      const setting = await storage.setSystemSetting(key, value, type, description, category);
+      res.json(setting);
+    } catch (error) {
+      console.error('Erro ao salvar configuração:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Toggle boolean system setting
+  app.patch('/api/system-settings/:key/toggle', async (req, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await storage.toggleSystemSetting(key);
+      res.json(setting);
+    } catch (error) {
+      console.error('Erro ao alternar configuração:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Delete system setting
+  app.delete('/api/system-settings/:key', async (req, res) => {
+    try {
+      const { key } = req.params;
+      await storage.deleteSystemSetting(key);
+      res.json({ message: 'Configuração removida com sucesso' });
+    } catch (error) {
+      console.error('Erro ao remover configuração:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   return httpServer;
 }

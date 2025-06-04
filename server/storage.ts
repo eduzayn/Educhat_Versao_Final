@@ -14,6 +14,7 @@ import {
   contactNotes,
   deals,
   userTeams,
+  systemSettings,
   type User,
   type UpsertUser,
   type Contact,
@@ -47,6 +48,8 @@ import {
   type ConversationWithContact,
   type ContactWithTags,
   type QuickReplyWithCreator,
+  type SystemSetting,
+  type InsertSystemSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, count, isNotNull, ne, not, like, sql, gt, isNull } from "drizzle-orm";
@@ -2816,6 +2819,63 @@ export class DatabaseStorage implements IStorage {
       ...row,
       messages: [] // Will be populated separately if needed
     }));
+  }
+
+  // ============ SYSTEM SETTINGS METHODS ============
+  async getSystemSetting(key: string): Promise<SystemSetting | null> {
+    const result = await this.db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, key))
+      .limit(1);
+    
+    return result[0] || null;
+  }
+
+  async getSystemSettings(category?: string): Promise<SystemSetting[]> {
+    let query = this.db.select().from(systemSettings);
+    
+    if (category) {
+      query = query.where(eq(systemSettings.category, category));
+    }
+    
+    return await query.orderBy(systemSettings.category, systemSettings.key);
+  }
+
+  async setSystemSetting(key: string, value: string, type: string = 'string', description?: string, category: string = 'general'): Promise<SystemSetting> {
+    const existing = await this.getSystemSetting(key);
+    
+    if (existing) {
+      const updated = await this.db.update(systemSettings)
+        .set({ 
+          value, 
+          type, 
+          description: description || existing.description,
+          category: category || existing.category,
+          updatedAt: new Date() 
+        })
+        .where(eq(systemSettings.key, key))
+        .returning();
+      return updated[0];
+    } else {
+      const created = await this.db.insert(systemSettings)
+        .values({ key, value, type, description, category })
+        .returning();
+      return created[0];
+    }
+  }
+
+  async toggleSystemSetting(key: string): Promise<SystemSetting> {
+    const setting = await this.getSystemSetting(key);
+    if (!setting) {
+      throw new Error(`Setting ${key} not found`);
+    }
+    
+    const newValue = setting.value === 'true' ? 'false' : 'true';
+    return await this.setSystemSetting(key, newValue, 'boolean', setting.description, setting.category);
+  }
+
+  async deleteSystemSetting(key: string): Promise<void> {
+    await this.db.delete(systemSettings).where(eq(systemSettings.key, key));
   }
 }
 
