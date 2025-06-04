@@ -1413,7 +1413,7 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Psicopedagogia e Educação Especial'
     },
     'psicopedagogia_escolar': {
-      variations: ['psicopedagogia escolar', 'psicopedagogia educacional'],
+      variations: ['psicopedagogia escolar', 'psicopedagogia educacional', 'psicoped escolar', 'psicoped'],
       courseType: 'Pós-graduação',
       courseName: 'Psicopedagogia Escolar'
     },
@@ -2035,6 +2035,16 @@ export class DatabaseStorage implements IStorage {
 
     console.log(`🔍 Analisando mensagem para detecção de curso: "${normalizedMessage}"`);
 
+    // Coletar todos os matches possíveis para priorizar o mais específico
+    const matches: Array<{
+      courseName: string;
+      courseType: string;
+      courseKey: string;
+      variation: string;
+      matchLength: number;
+      matchType: 'exact' | 'similarity';
+    }> = [];
+
     // PRIMEIRO: Buscar por frases exatas e combinações específicas
     for (const [courseKey, courseData] of Object.entries(this.courseDictionary)) {
       for (const variation of courseData.variations) {
@@ -2046,12 +2056,14 @@ export class DatabaseStorage implements IStorage {
 
         // Verificar se a variação está contida na mensagem (exact match)
         if (normalizedMessage.includes(normalizedVariation)) {
-          console.log(`✅ Curso detectado por match exato: ${courseData.courseName} (${courseData.courseType}) - variação: "${normalizedVariation}"`);
-          return {
+          matches.push({
             courseName: courseData.courseName,
             courseType: courseData.courseType,
-            courseKey: courseKey
-          };
+            courseKey: courseKey,
+            variation: normalizedVariation,
+            matchLength: normalizedVariation.length,
+            matchType: 'exact'
+          });
         }
 
         // Para palavras únicas importantes como "psicanálise", verificar com tolerância maior
@@ -2060,16 +2072,37 @@ export class DatabaseStorage implements IStorage {
           for (const word of words) {
             // Verificar similaridade com palavras-chave importantes
             if (this.calculateSimilarity(word, normalizedVariation) > 0.8) {
-              console.log(`✅ Curso detectado por similaridade: ${courseData.courseName} (${courseData.courseType}) - palavra: "${word}" similar a "${normalizedVariation}"`);
-              return {
+              matches.push({
                 courseName: courseData.courseName,
                 courseType: courseData.courseType,
-                courseKey: courseKey
-              };
+                courseKey: courseKey,
+                variation: normalizedVariation,
+                matchLength: normalizedVariation.length,
+                matchType: 'similarity'
+              });
             }
           }
         }
       }
+    }
+
+    // Priorizar matches exatos e mais longos
+    if (matches.length > 0) {
+      const bestMatch = matches.sort((a, b) => {
+        // Primeiro priorizar matches exatos
+        if (a.matchType === 'exact' && b.matchType !== 'exact') return -1;
+        if (b.matchType === 'exact' && a.matchType !== 'exact') return 1;
+        
+        // Depois priorizar matches mais longos (mais específicos)
+        return b.matchLength - a.matchLength;
+      })[0];
+
+      console.log(`✅ Curso detectado por ${bestMatch.matchType}: ${bestMatch.courseName} (${bestMatch.courseType}) - variação: "${bestMatch.variation}"`);
+      return {
+        courseName: bestMatch.courseName,
+        courseType: bestMatch.courseType,
+        courseKey: bestMatch.courseKey
+      };
     }
 
     // SEGUNDO: Buscar por combinações de palavras-chave com contexto educacional
