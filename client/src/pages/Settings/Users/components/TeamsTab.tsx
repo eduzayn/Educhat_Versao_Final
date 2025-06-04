@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -8,7 +8,9 @@ import { Input } from '@/shared/ui/ui/input';
 import { Label } from '@/shared/ui/ui/label';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Building2, Plus, Users, Settings, UserPlus } from 'lucide-react';
+import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import type { Team } from '@shared/schema';
 
 const teams = [
   {
