@@ -615,10 +615,13 @@ export const UsersTab = () => {
                   <SelectValue placeholder="Selecione uma equipe" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="suporte">Suporte Técnico</SelectItem>
-                  <SelectItem value="vendas">Vendas</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                  <SelectItem value="comercial">Equipe Comercial</SelectItem>
+                  <SelectItem value="suporte">Equipe Suporte</SelectItem>
+                  <SelectItem value="financeiro">Equipe Financeiro</SelectItem>
+                  <SelectItem value="secretaria">Equipe Secretaria</SelectItem>
+                  <SelectItem value="secretaria_pos">Equipe Secretaria Pós</SelectItem>
+                  <SelectItem value="tutoria">Equipe Tutoria</SelectItem>
+                  <SelectItem value="cobranca">Equipe Cobrança</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -723,10 +726,13 @@ export const UsersTab = () => {
                   <SelectValue placeholder="Selecione uma equipe" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="suporte">Suporte Técnico</SelectItem>
-                  <SelectItem value="vendas">Vendas</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                  <SelectItem value="comercial">Equipe Comercial</SelectItem>
+                  <SelectItem value="suporte">Equipe Suporte</SelectItem>
+                  <SelectItem value="financeiro">Equipe Financeiro</SelectItem>
+                  <SelectItem value="secretaria">Equipe Secretaria</SelectItem>
+                  <SelectItem value="secretaria_pos">Equipe Secretaria Pós</SelectItem>
+                  <SelectItem value="tutoria">Equipe Tutoria</SelectItem>
+                  <SelectItem value="cobranca">Equipe Cobrança</SelectItem>
                 </SelectContent>
               </Select>
             </div>
