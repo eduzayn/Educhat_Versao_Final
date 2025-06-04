@@ -57,7 +57,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
     const isInternalNote = message.isInternalNote;
     
     if (isInternalNote) {
-      return "bg-yellow-50 text-yellow-900 border border-yellow-200";
+      return "bg-indigo-900 text-indigo-100 border border-indigo-700";
     }
     
     return isFromContact
