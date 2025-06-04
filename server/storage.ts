@@ -851,7 +851,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(contactNotes.id, id));
   }
 
-  // Automatic contact creation
+  // Automatic contact creation with lead classification
   async findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact> {
     // First, try to find existing contact by userIdentity
     const [existingContact] = await db
@@ -861,10 +861,25 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (existingContact) {
+      // Update existing contact with new channel info if provided
+      if (contactData.canalOrigem && existingContact.canalOrigem !== contactData.canalOrigem) {
+        await db
+          .update(contacts)
+          .set({
+            canalOrigem: contactData.canalOrigem,
+            nomeCanal: contactData.nomeCanal,
+            idCanal: contactData.idCanal,
+            lastSeenAt: new Date(),
+            isOnline: contactData.isOnline || existingContact.isOnline,
+          })
+          .where(eq(contacts.id, existingContact.id));
+      }
       return existingContact;
     }
 
-    // If not found, create new contact
+    // If not found, create new contact with lead classification
+    const leadClassification = this.classifyLead(contactData.canalOrigem);
+    
     const [newContact] = await db
       .insert(contacts)
       .values({
@@ -875,15 +890,39 @@ export class DatabaseStorage implements IStorage {
         location: contactData.location || null,
         age: contactData.age || null,
         isOnline: contactData.isOnline || false,
-        lastSeenAt: contactData.lastSeenAt || null,
-        canalOrigem: contactData.canalOrigem || null,
-        nomeCanal: contactData.nomeCanal || null,
+        lastSeenAt: contactData.lastSeenAt || new Date(),
+        canalOrigem: contactData.canalOrigem || 'unknown',
+        nomeCanal: contactData.nomeCanal || 'Canal Desconhecido',
         idCanal: contactData.idCanal || null,
         userIdentity,
       })
       .returning();
 
+    console.log(`👤 Novo contato criado: ${newContact.name} (${contactData.canalOrigem}) - Classificação: ${leadClassification}`);
     return newContact;
+  }
+
+  // Lead classification based on channel and behavior
+  private classifyLead(canalOrigem?: string): 'frio' | 'morno' | 'quente' {
+    if (!canalOrigem) return 'frio';
+    
+    // WhatsApp leads are typically warmer due to direct interaction
+    if (canalOrigem === 'whatsapp') return 'morno';
+    
+    // Instagram leads can vary but tend to be cooler
+    if (canalOrigem === 'instagram') return 'frio';
+    
+    // Email leads are typically cooler unless specific context
+    if (canalOrigem === 'email') return 'frio';
+    
+    // SMS leads are typically medium warmth
+    if (canalOrigem === 'sms') return 'morno';
+    
+    // Voice calls are typically hot leads
+    if (canalOrigem === 'voice') return 'quente';
+    
+    // Default classification
+    return 'frio';
   }
 
   // Quick reply sharing operations
@@ -1231,6 +1270,16 @@ export class DatabaseStorage implements IStorage {
         break;
     }
 
+    // Classificar lead baseado no conteúdo da mensagem e canal
+    const leadClassification = this.classifyLeadByMessage(messageContent, canalOrigem);
+    
+    // Gerar tags automáticas baseadas no contexto
+    const automaticTags = this.generateAutomaticTags(canalOrigem, determinedMacrosetor, messageContent, leadClassification);
+    
+    // Ajustar probabilidade baseada na classificação do lead
+    if (leadClassification === 'quente') probability = Math.min(probability + 20, 95);
+    if (leadClassification === 'frio') probability = Math.max(probability - 15, 25);
+
     const dealData: InsertDeal = {
       name: dealName,
       contactId: contactId,
@@ -1241,16 +1290,138 @@ export class DatabaseStorage implements IStorage {
       expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'unknown',
-      tags: JSON.stringify([canalOrigem || 'lead', 'automatico', determinedMacrosetor]),
-      notes: `Deal criado automaticamente para ${contact.name || 'Contato'} via ${canalOrigem || 'sistema'} - Setor: ${determinedMacrosetor} em ${new Date().toLocaleDateString('pt-BR')}`,
+      tags: JSON.stringify(automaticTags),
+      notes: `Deal criado automaticamente para ${contact.name || 'Contato'} via ${canalOrigem || 'sistema'} - Setor: ${determinedMacrosetor} - Classificação: ${leadClassification} em ${new Date().toLocaleDateString('pt-BR')}${messageContent ? `\nPrimeira mensagem: "${messageContent.substring(0, 100)}${messageContent.length > 100 ? '...' : ''}"` : ''}`,
       isActive: true
     };
 
     const newDeal = await this.createDeal(dealData);
     
-    console.log(`🎯 Deal criado automaticamente: ID ${newDeal.id} para contato ${contact.name} - Setor: ${determinedMacrosetor} (${canalOrigem})`);
+    console.log(`🎯 Deal criado automaticamente: ID ${newDeal.id} para contato ${contact.name} - Setor: ${determinedMacrosetor} (${canalOrigem}) - Lead ${leadClassification}`);
     
     return newDeal;
+  }
+
+  // Classify lead based on message content and urgency
+  private classifyLeadByMessage(messageContent?: string, canalOrigem?: string): 'frio' | 'morno' | 'quente' {
+    if (!messageContent) return this.classifyLead(canalOrigem);
+    
+    const content = messageContent.toLowerCase();
+    
+    // Hot lead indicators (urgency, direct purchase intent)
+    const hotIndicators = [
+      'urgente', 'preciso agora', 'hoje mesmo', 'rápido', 'imediato',
+      'quero comprar', 'vou fechar', 'aceito', 'pode enviar',
+      'qual o valor', 'como pago', 'tem desconto', 'posso pagar',
+      'vencimento hoje', 'prazo final', 'último dia'
+    ];
+    
+    // Warm lead indicators (interest, questions)
+    const warmIndicators = [
+      'tenho interesse', 'gostaria de saber', 'pode me ajudar',
+      'preciso de informação', 'dúvida', 'como funciona',
+      'quais os cursos', 'valor do curso', 'formas de pagamento',
+      'quando começa', 'certificado', 'duration'
+    ];
+    
+    // Cold lead indicators (complaints, problems, support)
+    const coldIndicators = [
+      'problema', 'erro', 'não funciona', 'reclamação',
+      'cancelar', 'insatisfeito', 'ruim', 'péssimo'
+    ];
+    
+    if (hotIndicators.some(indicator => content.includes(indicator))) {
+      return 'quente';
+    }
+    
+    if (warmIndicators.some(indicator => content.includes(indicator))) {
+      return 'morno';
+    }
+    
+    if (coldIndicators.some(indicator => content.includes(indicator))) {
+      return 'frio';
+    }
+    
+    // Fallback to channel-based classification
+    return this.classifyLead(canalOrigem);
+  }
+
+  // Generate automatic tags based on context
+  private generateAutomaticTags(canalOrigem?: string, macrosetor?: string, messageContent?: string, leadClassification?: string): string[] {
+    const tags: string[] = [];
+    
+    // Channel tags
+    if (canalOrigem) {
+      switch (canalOrigem) {
+        case 'whatsapp':
+          tags.push('Lead WhatsApp', 'Chat Direto');
+          break;
+        case 'instagram':
+          tags.push('Lead Instagram', 'Rede Social');
+          break;
+        case 'email':
+          tags.push('Lead Email', 'Contato Formal');
+          break;
+        case 'sms':
+          tags.push('Lead SMS', 'Mensagem Texto');
+          break;
+        case 'voice':
+          tags.push('Lead Telefone', 'Contato Direto');
+          break;
+        default:
+          tags.push('Lead Digital');
+      }
+    }
+    
+    // Sector tags
+    if (macrosetor) {
+      tags.push(`Setor ${macrosetor.charAt(0).toUpperCase() + macrosetor.slice(1)}`);
+    }
+    
+    // Lead classification tags
+    if (leadClassification) {
+      switch (leadClassification) {
+        case 'quente':
+          tags.push('Lead Quente', 'Alta Prioridade');
+          break;
+        case 'morno':
+          tags.push('Lead Morno', 'Interesse Médio');
+          break;
+        case 'frio':
+          tags.push('Lead Frio', 'Acompanhar');
+          break;
+      }
+    }
+    
+    // Content-based tags
+    if (messageContent) {
+      const content = messageContent.toLowerCase();
+      
+      if (content.includes('curso') || content.includes('graduação') || content.includes('pós')) {
+        tags.push('Interesse Acadêmico');
+      }
+      
+      if (content.includes('valor') || content.includes('preço') || content.includes('pagamento')) {
+        tags.push('Consulta Financeira');
+      }
+      
+      if (content.includes('urgente') || content.includes('hoje') || content.includes('agora')) {
+        tags.push('Urgente');
+      }
+      
+      if (content.includes('problema') || content.includes('erro') || content.includes('ajuda')) {
+        tags.push('Suporte Necessário');
+      }
+    }
+    
+    // Always add automatic tag
+    tags.push('Automático');
+    
+    // Add timestamp tag
+    const now = new Date();
+    tags.push(`Criado ${now.toLocaleDateString('pt-BR')}`);
+    
+    return tags;
   }
 
   // Team assignment operations

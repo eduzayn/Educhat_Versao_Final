@@ -730,6 +730,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Instagram webhook endpoint for omnichannel integration
+  app.post('/api/instagram/webhook', async (req, res) => {
+    try {
+      console.log('📸 Webhook Instagram recebido:', JSON.stringify(req.body, null, 2));
+      
+      const webhookData = req.body;
+      
+      // Processar mensagens do Instagram
+      if (webhookData.object === 'instagram' && webhookData.entry) {
+        for (const entry of webhookData.entry) {
+          if (entry.messaging) {
+            for (const messagingEvent of entry.messaging) {
+              if (messagingEvent.message) {
+                await processInstagramMessage(messagingEvent);
+              }
+            }
+          }
+        }
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Instagram:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Email webhook endpoint for omnichannel integration
+  app.post('/api/email/webhook', async (req, res) => {
+    try {
+      console.log('📧 Webhook Email recebido:', JSON.stringify(req.body, null, 2));
+      
+      const emailData = req.body;
+      
+      // Processar email recebido
+      if (emailData.from && emailData.subject && emailData.text) {
+        await processEmailMessage(emailData);
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Email:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // SMS webhook endpoint for omnichannel integration  
+  app.post('/api/sms/webhook', async (req, res) => {
+    try {
+      console.log('📱 Webhook SMS recebido:', JSON.stringify(req.body, null, 2));
+      
+      const smsData = req.body;
+      
+      // Processar SMS recebido
+      if (smsData.from && smsData.body) {
+        await processSMSMessage(smsData);
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook SMS:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Z-API webhook endpoint baseado na documentação oficial
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
