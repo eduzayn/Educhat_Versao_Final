@@ -3198,8 +3198,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Conversa não encontrada' });
       }
 
-      // Resetar o contador de mensagens não lidas da conversa
-      await storage.updateConversation(conversationId, { unreadCount: 1 });
+      // Usar método específico do storage para marcar como não lida
+      await storage.markConversationAsUnread(conversationId);
 
       // Broadcast IMEDIATO para atualizar bolinhas vermelhas em tempo real
       broadcastToAll({
@@ -3209,7 +3209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'mark_unread'
       });
 
-      console.log(`📧 Conversa ${conversationId} marcada como não lida`);
+      console.log(`📧 Conversa ${conversationId} marcada como não lida via WebSocket`);
       
       res.json({ success: true, message: 'Conversa marcada como não lida' });
     } catch (error) {
