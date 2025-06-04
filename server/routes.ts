@@ -619,14 +619,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all conversations for this contact
       const conversations = await storage.getConversationsByContactId(contactId);
       console.log(`📊 Encontradas ${conversations.length} conversas para o contato ${contactId}`);
+      console.log(`🔍 Conversas encontradas:`, conversations.map(c => ({ id: c.id, channel: c.channel, lastMessageAt: c.lastMessageAt })));
+      
+      // Log detalhado da lógica de filtro
+      if (channelFilter && channelFilter !== 'all') {
+        const matchingConversations = conversations.filter(c => c.channel === channelFilter);
+        console.log(`🎯 Filtro "${channelFilter}" aplicado: ${matchingConversations.length} conversas correspondem`);
+        console.log(`🎯 Conversas que correspondem:`, matchingConversations.map(c => ({ id: c.id, channel: c.channel })));
+      }
       
       // Get all messages from all conversations
       let allMessages: any[] = [];
       for (const conversation of conversations) {
+        console.log(`🔍 Avaliando conversa ${conversation.id} - Canal: "${conversation.channel}" vs Filtro: "${channelFilter}"`);
+        
         // Apply channel filter if specified
         if (channelFilter && channelFilter !== 'all' && conversation.channel !== channelFilter) {
+          console.log(`❌ Conversa ${conversation.id} filtrada (canal ${conversation.channel} não corresponde ao filtro ${channelFilter})`);
           continue;
         }
+        console.log(`✅ Conversa ${conversation.id} incluída no resultado`);
+        
         
         const messages = await storage.getMessages(conversation.id);
         // Add conversation channel info to each message
