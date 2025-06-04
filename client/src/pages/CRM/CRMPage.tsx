@@ -7,7 +7,8 @@ import {
   FileText,
   Settings,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Button } from '@/shared/ui/ui/button';
@@ -18,7 +19,8 @@ import {
   CRMDashboard,
   DealsModule,
   ActivitiesModule,
-  ReportsModule
+  ReportsModule,
+  SalesModule
 } from "./modules";
 
 export function CRMPage() {
@@ -34,7 +36,9 @@ export function CRMPage() {
             <TabsTrigger value="deals" className="flex items-center gap-2">
               <Target className="h-4 w-4" /> Negócios
             </TabsTrigger>
-
+            <TabsTrigger value="sales" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" /> Vendas
+            </TabsTrigger>
             <TabsTrigger value="activities" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Atividades
             </TabsTrigger>
@@ -50,6 +54,11 @@ export function CRMPage() {
           <TabsContent value="deals" className="flex-1">
             <div className="container mx-auto max-w-7xl px-4 py-6">
               <DealsModule />
+            </div>
+          </TabsContent>
+          <TabsContent value="sales" className="flex-1">
+            <div className="container mx-auto max-w-7xl px-4 py-6">
+              <SalesModule />
             </div>
           </TabsContent>
           <TabsContent value="activities" className="flex-1">

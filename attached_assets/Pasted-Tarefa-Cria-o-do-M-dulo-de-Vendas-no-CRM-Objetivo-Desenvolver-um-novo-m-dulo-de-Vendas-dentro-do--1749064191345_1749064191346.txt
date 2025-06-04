@@ -1,0 +1,148 @@
+Tarefa: Criação do Módulo de Vendas no CRM
+Objetivo:
+Desenvolver um novo módulo de Vendas dentro do sistema CRM, com rotas e páginas específicas que forneçam visibilidade completa sobre metas, comissões, territórios, rankings e coaching comercial, permitindo análise em tempo real e ações estratégicas com base em dados.
+
+🔗 Rotas e Componentes
+Cada rota deve ser uma página independente, acessada pelo menu lateral ou superior do CRM.
+
+Rota	Página	Descrição
+/crm/sales	Dashboard de Vendas	Visão geral de vendas: totais, conversões, tickets médios, etc.
+/crm/sales/targets	Metas de Vendas	Definição, acompanhamento e status das metas por equipe e vendedor.
+/crm/sales/commissions	Comissões	Cálculo automático das comissões por negócio ganho, por vendedor.
+/crm/sales/territories	Territórios de Vendas	Mapeamento e distribuição geográfica de leads e vendedores.
+/crm/sales/leaderboard	Ranking de Vendedores	Classificação dos melhores vendedores por período.
+/crm/sales/coaching	Coaching de Vendas	Relatórios e orientações personalizadas para evolução de cada vendedor.
+
+🔧 Detalhamento das Páginas
+1️⃣ /crm/sales – Dashboard de Vendas
+Cards com:
+
+Total de vendas no mês
+
+Total de negócios ganhos
+
+Taxa de conversão (%)
+
+Ticket médio por venda
+
+Gráficos:
+
+Barras: vendas por vendedor
+
+Linha: evolução das vendas por dia/mês
+
+Pizza: distribuição por tipo de negócio
+
+Filtros:
+
+Período (semana/mês/trimestre/ano)
+
+Canal de entrada
+
+Vendedor
+
+2️⃣ /crm/sales/targets – Metas de Vendas
+Tabela com:
+
+Nome do vendedor
+
+Meta estabelecida
+
+Valor realizado
+
+% de atingimento com barra de progresso
+
+Opção de:
+
+Cadastrar meta por vendedor ou equipe
+
+Editar metas existentes
+
+Filtro por período e status da meta (em andamento, atingida, não atingida)
+
+3️⃣ /crm/sales/commissions – Comissões
+Cálculo automático com base em regras definidas no sistema (ex: % da venda ou valor fixo por negócio ganho)
+
+Listagem com:
+
+Vendedor
+
+Valor total vendido
+
+Comissão % e valor
+
+Status: pendente / liberada / paga
+
+Filtros por:
+
+Período
+
+Status
+
+Botão para baixar relatório em CSV
+
+4️⃣ /crm/sales/territories – Territórios de Vendas
+Mapa interativo (usar lib de mapas como Leaflet ou Google Maps API)
+
+Lista de territórios:
+
+Nome do território
+
+Estados/cidades cobertos
+
+Vendedores responsáveis
+
+Volume de leads / vendas por região
+
+Opções:
+
+Cadastrar novo território
+
+Associar territórios a canais de entrada ou funis
+
+Redirecionar leads automaticamente por território
+
+5️⃣ /crm/sales/leaderboard – Ranking de Vendedores
+Exibição em formato de medalhas ou ranking vertical:
+
+Nome do vendedor
+
+Total vendido no período
+
+% de metas atingidas
+
+Nº de negócios ganhos
+
+Ordenação por diferentes critérios:
+
+Vendas
+
+Conversão
+
+Ticket médio
+
+6️⃣ /crm/sales/coaching – Coaching de Vendas
+Painel por vendedor com:
+
+Histórico de performance
+
+Padrão de resposta e tempo de atendimento
+
+Pontos fortes / fracos (baseado em indicadores)
+
+Campo para registro de:
+
+Orientações de coaching
+
+Metas comportamentais
+
+Upload de materiais de treinamento por equipe
+
+📋 Observações Técnicas
+Todas as páginas devem ser completamente integradas com os dados reais do módulo de negócios (deals).
+
+Utilizar os mesmos componentes de UI já padronizados no CRM, como Tabs, Cards, Tabelas, Filtros e Gráficos.
+
+Garantir paginação ou lazy loading nas tabelas para performance.
+
+Todas as ações devem ser auditáveis no módulo de relatórios e rastreamento de usuários.
