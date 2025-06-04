@@ -50,6 +50,7 @@ import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/comp
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
+import { useChannels } from '@/shared/lib/hooks/useChannels';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -73,7 +74,40 @@ export function InboxPageRefactored() {
     refetchInterval: 5000, // Recarregar a cada 5 segundos para capturar mudanças
     staleTime: 0 // Considerar dados imediatamente obsoletos
   }); // Carregar 1000 contatos
+  const { data: channels } = useChannels();
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+
+  // Função para obter todos os canais que um contato está usando
+  const getContactChannels = (contactId: number) => {
+    const contactConversations = conversations?.filter(conv => conv.contactId === contactId) || [];
+    const uniqueChannels = Array.from(new Set(contactConversations.map(conv => conv.channel)));
+    
+    return uniqueChannels.map(channelId => {
+      if (channelId?.startsWith('whatsapp-')) {
+        const id = parseInt(channelId.replace('whatsapp-', ''));
+        const dbChannel = channels?.find(c => c.id === id);
+        return {
+          id: channelId,
+          name: dbChannel?.name || `Canal ${id}`,
+          color: 'bg-green-100 text-green-700 border-green-300',
+          icon: '📱'
+        };
+      }
+      
+      const channelInfo = CHANNELS[channelId] || {
+        icon: '💬',
+        color: 'bg-gray-100 text-gray-700 border-gray-300',
+        name: 'Canal Desconhecido'
+      };
+      
+      return {
+        id: channelId,
+        name: channelInfo.name,
+        color: channelInfo.color,
+        icon: channelInfo.icon
+      };
+    });
+  };
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
@@ -682,9 +716,19 @@ export function InboxPageRefactored() {
                       <h2 className="font-semibold text-gray-900 text-base">
                         {activeConversation.contact.name}
                       </h2>
-                      <span className={`text-sm ${getChannelInfo(activeConversation.channel).color}`}>
-                        {getChannelInfo(activeConversation.channel).icon}
-                      </span>
+                      {/* Badges dos canais que o contato está usando */}
+                      <div className="flex items-center space-x-1">
+                        {getContactChannels(activeConversation.contactId).map((channel) => (
+                          <Badge
+                            key={channel.id}
+                            variant="outline"
+                            className={`text-xs px-2 py-0.5 h-5 ${channel.color} border-current`}
+                            title={`Conversa ativa via ${channel.name}`}
+                          >
+                            <span className="text-xs font-medium">{channel.name}</span>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2 mt-0.5">
                       <Select 
@@ -772,10 +816,7 @@ export function InboxPageRefactored() {
                       key={message.id} 
                       message={message} 
                       contact={activeConversation.contact}
-                      channelIcon={getChannelInfo(activeConversation.channel).icon}
-                      channelColor={getChannelInfo(activeConversation.channel).color}
                       conversationId={activeConversation.id}
-                      channelIdentifier={activeConversation.channel}
                     />
                   ))}
                 </>
