@@ -1295,12 +1295,31 @@ export function InboxPageRefactored() {
               
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-purple-50 p-2 rounded text-center">
-                  <div className="font-semibold text-purple-700">87</div>
+                  <div className="font-semibold text-purple-700">
+                    {activeConversation.messages?.length || 0}
+                  </div>
                   <div className="text-purple-600">Mensagens</div>
                 </div>
                 <div className="bg-green-50 p-2 rounded text-center">
-                  <div className="font-semibold text-green-700">3</div>
-                  <div className="text-green-600">Atendimentos</div>
+                  <div className="font-semibold text-green-700">
+                    {contactDeals.length}
+                  </div>
+                  <div className="text-green-600">Negócios</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                <div className="bg-blue-50 p-2 rounded text-center">
+                  <div className="font-semibold text-blue-700">
+                    {contactNotes.length}
+                  </div>
+                  <div className="text-blue-600">Notas</div>
+                </div>
+                <div className="bg-orange-50 p-2 rounded text-center">
+                  <div className="font-semibold text-orange-700">
+                    {activeConversation.contact.isOnline ? 'On' : 'Off'}
+                  </div>
+                  <div className="text-orange-600">Status</div>
                 </div>
               </div>
             </div>
