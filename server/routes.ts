@@ -6,6 +6,7 @@ import multer from 'multer';
 import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema, insertDealSchema, type User } from "@shared/schema";
 import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
+import { requirePermission, type AuthenticatedRequest } from "./permissions";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
@@ -4066,7 +4067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deals endpoint implementation complete above
 
   app.delete('/api/deals/:id', 
-    requireAuthentication(),
+    requirePermission('excluir:negocio'),
     async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
