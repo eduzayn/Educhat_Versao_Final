@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { SettingsSidebar } from './components/SettingsSidebar';
 
 interface SettingsModuleProps {
   children: ReactNode;
