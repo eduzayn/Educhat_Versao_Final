@@ -217,8 +217,8 @@ export function DealsModule() {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="border-b p-6">
+    <div className="space-y-6">
+      <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -294,10 +294,10 @@ export function DealsModule() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="overflow-hidden">
         {viewMode === 'kanban' ? (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="h-full p-4">
+            <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
                 {currentMacrosetor.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
