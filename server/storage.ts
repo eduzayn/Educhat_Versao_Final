@@ -198,8 +198,22 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User operations for auth
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    const [systemUser] = await db.select().from(systemUsers).where(eq(systemUsers.id, parseInt(id)));
+    if (!systemUser) return undefined;
+    
+    return {
+      id: systemUser.id,
+      email: systemUser.email,
+      username: systemUser.username,
+      displayName: systemUser.displayName,
+      role: systemUser.role,
+      roleId: systemUser.roleId || 1,
+      dataKey: systemUser.dataKey || undefined,
+      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
+      macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+      teamId: systemUser.teamId ?? undefined,
+      team: systemUser.team ?? undefined
+    };
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
