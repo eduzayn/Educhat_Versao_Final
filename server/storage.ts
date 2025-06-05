@@ -2039,9 +2039,26 @@ export class DatabaseStorage implements IStorage {
       courseName: 'Formação Pedagógica em Letras Português/Inglês'
     },
     'formacao_musica': {
-      variations: ['formação pedagógica música', 'formação música', 'pedagogica música'],
+      variations: ['formação pedagógica música', 'formação música', 'pedagogica música', 'diplomação superior música', 'licenciatura música', 'superior em música', 'música licenciatura', 'diplomação música'],
       courseType: 'Formação Pedagógica',
       courseName: 'Formação Pedagógica em Música'
+    },
+    
+    // ========== CURSOS DE MÚSICA E ARTES ==========
+    'licenciatura_musica': {
+      variations: ['licenciatura em música', 'licenciatura música', 'superior música', 'graduação música', 'bacharelado música', 'diplomação superior música', 'curso superior música'],
+      courseType: 'Graduação',
+      courseName: 'Licenciatura em Música'
+    },
+    'pos_musica': {
+      variations: ['pós-graduação música', 'especialização música', 'mestrado música', 'educação musical', 'teoria musical'],
+      courseType: 'Pós-graduação', 
+      courseName: 'Pós-graduação em Música'
+    },
+    'certificacao_geral': {
+      variations: ['certificação', 'certificado', 'diploma', 'certificação curso', 'processo certificação', 'emissão certificado', 'data certificação', 'colocação grau', 'diplomação'],
+      courseType: 'Certificação',
+      courseName: 'Processo de Certificação'
     },
 
     // ========== CURSO DE PSICANÁLISE ==========
@@ -2267,7 +2284,8 @@ export class DatabaseStorage implements IStorage {
           return {
             courseName: subjectName,
             courseType: 'A definir',
-            courseKey: `disciplina_${subject}`
+            courseKey: `disciplina_${subject}`,
+            confidence: 0.7
           };
         }
       }

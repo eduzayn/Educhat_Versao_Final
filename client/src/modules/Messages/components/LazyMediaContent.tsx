@@ -27,13 +27,39 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
       const response = await fetch(`/api/messages/${messageId}/media`);
       if (response.ok) {
         const data = await response.json();
-        setContent(data.content);
-        setLoaded(true);
         
-        if (messageType === 'video') {
-          secureLog.debug('Vídeo carregado com sucesso', { messageId });
-        } else if (messageType === 'image') {
-          secureLog.image('Carregada com sucesso', messageId);
+        // Para imagens, verificar se a URL é válida antes de definir
+        if (messageType === 'image' && data.content) {
+          // Se for URL do WhatsApp, testar se está acessível
+          if (data.content.includes('pps.whatsapp.net')) {
+            try {
+              const imgTest = document.createElement('img');
+              imgTest.onload = () => {
+                setContent(data.content);
+                setLoaded(true);
+                secureLog.image('Imagem WhatsApp carregada', messageId);
+              };
+              imgTest.onerror = () => {
+                secureLog.error('URL WhatsApp expirada', { messageId, url: data.content });
+                setLoaded(true); // Marcar como carregado para não tentar novamente
+              };
+              imgTest.src = data.content;
+            } catch (error) {
+              secureLog.error('Erro ao testar imagem WhatsApp', error);
+              setLoaded(true);
+            }
+          } else {
+            setContent(data.content);
+            setLoaded(true);
+            secureLog.image('Imagem carregada', messageId);
+          }
+        } else {
+          setContent(data.content);
+          setLoaded(true);
+          
+          if (messageType === 'video') {
+            secureLog.debug('Vídeo carregado com sucesso', { messageId });
+          }
         }
       } else {
         secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
