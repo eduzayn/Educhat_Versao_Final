@@ -5411,5 +5411,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================================================
+  // SYSTEM SETTINGS API - Configurações do Sistema
+  // =============================================================================
+
+  // Buscar todas as configurações do sistema
+  app.get('/api/system-settings', async (req, res) => {
+    try {
+      const settings = await storage.getSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Erro ao buscar configurações do sistema:', error);
+      res.status(500).json({ message: 'Erro ao buscar configurações do sistema' });
+    }
+  });
+
+  // Buscar configuração específica
+  app.get('/api/system-settings/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const setting = await storage.getSystemSetting(id);
+      
+      if (!setting) {
+        return res.status(404).json({ message: 'Configuração não encontrada' });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Erro ao buscar configuração:', error);
+      res.status(500).json({ message: 'Erro ao buscar configuração' });
+    }
+  });
+
+  // Atualizar configuração do sistema
+  app.patch('/api/system-settings/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { value, is_enabled } = req.body;
+      
+      const updateData: any = {};
+      if (value !== undefined) updateData.value = value;
+      if (is_enabled !== undefined) updateData.is_enabled = is_enabled;
+      updateData.updated_at = new Date();
+      
+      const updatedSetting = await storage.updateSystemSetting(id, updateData);
+      
+      if (!updatedSetting) {
+        return res.status(404).json({ message: 'Configuração não encontrada' });
+      }
+      
+      console.log(`⚙️ Configuração atualizada: ${updatedSetting.key} = ${updatedSetting.value}`);
+      res.json(updatedSetting);
+    } catch (error) {
+      console.error('Erro ao atualizar configuração:', error);
+      res.status(500).json({ message: 'Erro ao atualizar configuração' });
+    }
+  });
+
+  // Buscar configurações por categoria
+  app.get('/api/system-settings/category/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      const settings = await storage.getSystemSettingsByCategory(category);
+      res.json(settings);
+    } catch (error) {
+      console.error('Erro ao buscar configurações por categoria:', error);
+      res.status(500).json({ message: 'Erro ao buscar configurações por categoria' });
+    }
+  });
+
+  // Criar nova configuração do sistema
+  app.post('/api/system-settings', async (req, res) => {
+    try {
+      const settingData = req.body;
+      const newSetting = await storage.createSystemSetting(settingData);
+      
+      console.log(`➕ Nova configuração criada: ${newSetting.key}`);
+      res.status(201).json(newSetting);
+    } catch (error) {
+      console.error('Erro ao criar configuração:', error);
+      res.status(400).json({ message: 'Erro ao criar configuração' });
+    }
+  });
+
   return httpServer;
 }

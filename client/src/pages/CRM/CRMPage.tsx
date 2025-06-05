@@ -36,9 +36,11 @@ import {
 import { CRMSettings } from "./components/CRMSettings";
 
 export function CRMPage() {
+  const [showSettings, setShowSettings] = useState(false);
+
   return (
     <div className="flex flex-col h-screen">
-      <CRMHeader />
+      <CRMHeader onOpenSettings={() => setShowSettings(true)} />
       <div className="flex-1 flex flex-col">
         <Tabs defaultValue="dashboard" className="h-full">
           <TabsList className="w-full justify-start border-b rounded-none h-12 px-6">
@@ -85,11 +87,16 @@ export function CRMPage() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <CRMSettings 
+        open={showSettings} 
+        onOpenChange={setShowSettings} 
+      />
     </div>
   );
 }
 
-function CRMHeader() {
+function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <div className="border-b bg-background p-6">
       <div className="flex items-center justify-between">
