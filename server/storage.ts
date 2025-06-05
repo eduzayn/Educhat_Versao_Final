@@ -3453,7 +3453,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     const newValue = setting.value === 'true' ? 'false' : 'true';
-    return await this.setSystemSetting(key, newValue, 'boolean', setting.description || undefined, setting.category || undefined);
+    return await this.setSystemSetting(key, newValue, 'boolean', setting.description ?? undefined, setting.category ?? 'general');
   }
 
   async deleteSystemSetting(key: string): Promise<void> {
