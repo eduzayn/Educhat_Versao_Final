@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/ui/dialog';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { Shield, Users, Settings, Edit } from 'lucide-react';
+import { Shield, Users, Settings, Edit, ChevronDown, ChevronUp } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { PermissionItem } from './components/PermissionItem';
 
 interface Permission {
   id: number;
@@ -86,8 +87,11 @@ export default function PermissionsPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'conversation': true
+  });
 
   // Buscar permissões
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
