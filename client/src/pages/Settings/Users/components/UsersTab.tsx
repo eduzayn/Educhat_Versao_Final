@@ -831,8 +831,8 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdateUser}>
-              Salvar Alterações
+            <Button onClick={handleUpdateUser} disabled={updateUserMutation.isPending}>
+              {updateUserMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </DialogFooter>
         </DialogContent>

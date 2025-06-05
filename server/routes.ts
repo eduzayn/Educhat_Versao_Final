@@ -3549,6 +3549,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Atualizar usuário específico
+  app.put('/api/system-users/:id', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { username, displayName, email, role, team, isActive } = req.body;
+      
+      if (!username || !displayName || !email || !role) {
+        return res.status(400).json({ error: 'Campos obrigatórios: username, displayName, email, role' });
+      }
+
+      const updatedUser = await storage.updateSystemUser(userId, {
+        username,
+        displayName,
+        email,
+        role,
+        team: team || null,
+        isActive: isActive !== undefined ? isActive : true,
+        updatedAt: new Date()
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      console.log(`👤 Usuário atualizado: ${displayName} (ID: ${userId})`);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Teams API endpoints
   app.get('/api/teams', async (req, res) => {
     try {
