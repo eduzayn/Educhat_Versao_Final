@@ -426,7 +426,7 @@ export const TeamsTab = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTeamDialog(false)}>
+            <Button variant="outline" onClick={handleCloseTeamDialog}>
               Cancelar
             </Button>
             <Button 
