@@ -103,7 +103,7 @@ export function registerAdminRoutes(app: Express) {
           .select({
             id: roles.id,
             name: roles.name,
-            description: roles.description,
+            displayName: roles.displayName,
             isActive: roles.isActive,
             createdAt: roles.createdAt,
             permissionId: permissions.id,
@@ -125,7 +125,7 @@ export function registerAdminRoutes(app: Express) {
             acc[roleId] = {
               id: row.id,
               name: row.name,
-              description: row.description,
+              description: row.displayName,
               isActive: row.isActive,
               createdAt: row.createdAt,
               permissions: []
@@ -169,6 +169,7 @@ export function registerAdminRoutes(app: Express) {
           .insert(roles)
           .values({
             name,
+            displayName: name,
             permissions: []
           })
           .returning();
@@ -273,7 +274,7 @@ export function registerAdminRoutes(app: Express) {
             lastActivityAt: systemUsers.lastActivityAt,
             createdAt: systemUsers.createdAt,
             roleName: roles.name,
-            roleDescription: roles.description
+            roleDescription: roles.displayName
           })
           .from(systemUsers)
           .leftJoin(roles, eq(systemUsers.roleId, roles.id))

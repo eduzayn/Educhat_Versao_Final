@@ -464,9 +464,6 @@ export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
   usageCount: true,
 });
 
-export type QuickReply = typeof quickReplies.$inferSelect;
-export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
-
 export const insertQuickReplyShareSchema = createInsertSchema(quickReplyShares).omit({
   id: true,
   createdAt: true,
@@ -476,6 +473,9 @@ export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeam
   id: true,
   createdAt: true,
 });
+
+export type QuickReply = typeof quickReplies.$inferSelect;
+export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
 
 export type QuickReplyShare = typeof quickReplyShares.$inferSelect;
 export type InsertQuickReplyShare = z.infer<typeof insertQuickReplyShareSchema>;
