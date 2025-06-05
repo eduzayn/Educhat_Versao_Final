@@ -59,7 +59,11 @@ function Router() {
             </ProtectedRoute>
           } />
           <Route path="/reports" component={ReportsPage} />
-          <Route path="/integrations" component={IntegrationsPage} />
+          <Route path="/integrations" component={() => 
+            <ProtectedRoute allowedRoles={['admin']}>
+              <IntegrationsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/settings/channels" component={() => 
             <ProtectedRoute allowedRoles={['admin', 'gerente']}>
