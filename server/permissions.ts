@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from './db';
-import { systemUsers, roles, permissions, rolePermissions, customRules, auditLogs } from '../shared/schema';
+import { systemUsers, roles, permissions, rolePermissions, customRules, auditLogs, contacts, deals, conversations } from '../shared/schema';
 import { eq, and, or, inArray } from 'drizzle-orm';
 
 export interface AuthenticatedRequest extends Request {
