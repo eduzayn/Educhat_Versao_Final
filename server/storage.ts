@@ -208,15 +208,17 @@ export class DatabaseStorage implements IStorage {
     
     // Convert SystemUser to User type for auth compatibility
     return {
-      id: systemUser.id.toString(),
+      id: systemUser.id,
       email: systemUser.email,
-      password: systemUser.password,
-      firstName: systemUser.displayName.split(' ')[0] || systemUser.username,
-      lastName: systemUser.displayName.split(' ').slice(1).join(' ') || '',
-      profileImageUrl: systemUser.avatar || null,
+      username: systemUser.username,
+      displayName: systemUser.displayName,
       role: systemUser.role,
-      createdAt: systemUser.createdAt,
-      updatedAt: systemUser.updatedAt,
+      roleId: systemUser.roleId || 1,
+      dataKey: systemUser.dataKey || undefined,
+      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
+      macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+      teamId: systemUser.teamId ?? undefined,
+      team: systemUser.team ?? undefined
     };
   }
 
