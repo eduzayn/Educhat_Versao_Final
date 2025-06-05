@@ -103,11 +103,11 @@ export const PermissionsTab = () => {
 
   // Load initial permissions when rolePermissions data is fetched
   useEffect(() => {
-    if (rolePermissions.length > 0 && selectedPermissions.length === 0) {
+    if (rolePermissions.length > 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
       setSelectedPermissions(permissionNames);
     }
-  }, [rolePermissions.length]); // Only depend on length to prevent infinite loops
+  }, [rolePermissions]); // Depend on rolePermissions data directly
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
