@@ -398,9 +398,34 @@ export const MessageBubble = memo(function MessageBubble({
       );
     }
 
+    // Verificar se é uma mensagem de resposta
+    const isReplyMessage = message.metadata && 
+      typeof message.metadata === 'object' && 
+      'replyToMessageId' in message.metadata && 
+      message.metadata.replyToMessageId;
+
     // Mensagem de texto padrão
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
+        {/* Exibir mensagem original sendo respondida */}
+        {isReplyMessage && (
+          <div className={`mb-2 pb-2 border-l-4 pl-3 ${
+            isFromContact 
+              ? 'border-gray-400 bg-gray-50' 
+              : 'border-blue-300 bg-blue-50'
+          }`}>
+            <div className="flex items-center gap-2 mb-1">
+              <Reply className="w-3 h-3 text-gray-500" />
+              <span className="text-xs font-medium text-gray-600">
+                Respondendo a mensagem
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 italic">
+              ID: {message.metadata.replyToMessageId}
+            </div>
+          </div>
+        )}
+        
         {message.isInternalNote && (
           <div className="mb-2 pb-2 border-b border-amber-300">
             <div className="flex items-center gap-2 mb-1">
