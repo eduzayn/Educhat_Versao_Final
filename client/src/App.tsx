@@ -20,7 +20,7 @@ import { BIPage } from "@/pages/BI/BIPage";
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
-
+import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -61,8 +61,8 @@ function Router() {
           <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
           <Route path="/settings/webhook" component={WebhookConfigPage} />
           <Route path="/settings/ai-detection" component={AIDetectionSettingsPage} />
-          <Route path="/admin" component={() => { window.location.href = '/settings/users'; return null; }} />
-          <Route path="/admin/permissions" component={() => { window.location.href = '/settings/users'; return null; }} />
+          <Route path="/admin" component={PermissionsPanel} />
+          <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />
           <Route component={NotFound} />
         </>
