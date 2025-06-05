@@ -244,6 +244,20 @@ export function InputArea() {
     textareaRef.current?.focus();
   };
 
+  // Escutar eventos de resposta de mensagem
+  useEffect(() => {
+    const handleReplyEvent = (event: CustomEvent) => {
+      const { messageId, content } = event.detail;
+      handleReply(messageId, content);
+    };
+
+    window.addEventListener('replyToMessage', handleReplyEvent as EventListener);
+    
+    return () => {
+      window.removeEventListener('replyToMessage', handleReplyEvent as EventListener);
+    };
+  }, []);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       if (e.shiftKey) {

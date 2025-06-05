@@ -1032,6 +1032,12 @@ export function InboxPageRefactored() {
                       channelIcon={getChannelInfo(activeConversation?.channel || '').icon}
                       channelColor={getChannelInfo(activeConversation?.channel || '').color}
                       conversationId={activeConversation?.id || 0}
+                      onReply={(messageId: string, content: string) => {
+                        // Enviar evento para InputArea via custom event
+                        window.dispatchEvent(new CustomEvent('replyToMessage', {
+                          detail: { messageId, content }
+                        }));
+                      }}
                     />
                   ))}
                 </>
