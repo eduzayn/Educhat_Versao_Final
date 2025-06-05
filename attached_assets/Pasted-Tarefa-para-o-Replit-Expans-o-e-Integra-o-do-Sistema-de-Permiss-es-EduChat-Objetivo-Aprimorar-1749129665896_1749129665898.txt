@@ -1,0 +1,105 @@
+Tarefa para o Replit: Expansão e Integração do Sistema de Permissões – EduChat
+🎯 Objetivo
+Aprimorar o sistema atual de autenticação, funções e permissões, elevando-o para um modelo híbrido RBAC/ABAC, com controle multicanal, integração com macrosetores, roteamento inteligente e hierarquia baseada em escopo organizacional.
+
+🧩 BASE EXISTENTE (resumo do que já temos)
+Autenticação com Passport.js, hash scrypt + salt, cookies persistentes via express-session
+
+Tabelas: users (legado) e system_users (principal)
+
+Funções: admin, manager, agent, supervisor, viewer
+
+Permissões básicas por função
+
+Macrosetores e Equipes ativas:
+
+Comercial, Suporte, Tutoria, Secretaria, Secretaria Pós, Financeiro, Cobrança
+
+Roteamento inteligente por análise de mensagem + canal de origem
+
+Interface de gestão com CRUDs, filtros e templates
+
+🛠️ Tarefa Técnica para Expandir e Integrar:
+1. Unificação e refatoração de tabelas de usuário
+Consolidar users e system_users em uma estrutura única, com controle de status (ativo, inativo, bloqueado)
+
+Garantir compatibilidade com senhas hash e texto plano (fase de transição)
+
+2. Reestruturação do sistema de permissões
+Criar novas tabelas:
+
+permissions: (ex: conversa:atribuir, relatorio:ver, canal:editar)
+
+roles_permissions: ligação entre papéis e permissões
+
+custom_rules: para regras condicionais (ABAC)
+
+3. Permissões por canal e macrosetor
+Usuários devem ter permissões condicionadas a:
+
+Canal: WhatsApp, Instagram, Facebook, etc.
+
+Macrosetor: suporte, comercial, financeiro, etc.
+
+Ex: um atendente pode responder apenas mensagens de canais do macrosetor ao qual está vinculado
+
+4. Roteamento inteligente aprimorado
+O sistema já detecta setor por palavras-chave
+
+Expandir para também capturar e vincular:
+
+Canal
+
+Curso mencionado (via NLP leve)
+
+Finalidade da conversa (suporte, matrícula, cobrança etc.)
+
+5. Gerador de Permissões e Templates
+Criar um painel onde seja possível:
+
+Criar novos papéis
+
+Selecionar permissões por recurso e ação
+
+Filtrar permissões por macrosetor
+
+Criar templates de permissão (por tipo de empresa, operação ou canal)
+
+6. Filtro por escopo organizacional (DataKey)
+Adicionar campo dataKey a todas as entidades (ex: zayn.piracema.tutoria)
+
+Toda consulta de dados deve aplicar filtro dataKey.startsWith(user.dataKey) para respeitar hierarquia
+
+7. Log de auditoria de ações sensíveis
+Criar tabela audit_logs com:
+
+userId, canal, ação, resultado, IP, dataKey, timestamp
+
+Todas as ações de administração, reatribuição de conversa, login e edição de permissões devem ser rastreadas
+
+8. Auto logout por inatividade
+Implementar sistema de logout automático após 10 min de inatividade (mouse/teclado)
+
+A contagem de tempo de atividade do operador só deve ser retomada após novo login
+
+9. Interface adaptada por permissão
+Se o usuário não tiver permissão, a funcionalidade correspondente deve:
+
+Ser oculta na interface
+
+Ou exibir mensagem clara de acesso negado
+
+📋 Instruções finais para o time:
+O objetivo é garantir um sistema de permissões profissional, seguro e escalável, capaz de:
+
+Suportar múltiplas instituições (white label)
+
+Permitir granularidade de acesso por canal, macrosetor e escopo
+
+Trazer inteligência de roteamento automatizada e ajustável
+
+Rastrear todas as ações relevantes dos usuários
+
+Melhorar a governança e a performance operacional do sistema
+
+Favor garantir que a nova estrutura de permissões funcione com a arquitetura existente de login, macrosetores e canais já implementados.

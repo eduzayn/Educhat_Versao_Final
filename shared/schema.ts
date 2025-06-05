@@ -207,9 +207,14 @@ export const systemUsers = pgTable("system_users", {
   role: varchar("role", { length: 50 }).notNull(), // 'admin', 'manager', 'agent', 'viewer'
   teamId: integer("team_id").references(() => teams.id),
   team: varchar("team", { length: 100 }),
+  dataKey: varchar("data_key", { length: 200 }), // ex: "zayn", "zayn.piracema", "zayn.piracema.tutoria"
+  channels: jsonb("channels").default([]), // array of channels user can access
+  macrosetores: jsonb("macrosetores").default([]), // array of macrosetores user can access
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
+  status: varchar("status", { length: 20 }).default("active"), // active, inactive, blocked
   lastLoginAt: timestamp("last_login_at"),
+  lastActivityAt: timestamp("last_activity_at"),
   avatar: text("avatar"),
   initials: varchar("initials", { length: 5 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -471,6 +476,58 @@ export type QuickReplyWithCreator = QuickReply & {
   sharedTeams?: Team[];
 };
 
+// Permissions table - granular permissions system
+export const permissions = pgTable("permissions", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).unique().notNull(), // ex: "conversa:atribuir", "relatorio:ver"
+  resource: varchar("resource", { length: 50 }).notNull(), // ex: "conversa", "relatorio", "canal"
+  action: varchar("action", { length: 50 }).notNull(), // ex: "atribuir", "ver", "editar"
+  description: text("description"),
+  category: varchar("category", { length: 50 }).default("general"), // general, admin, operations
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Role-Permission relationship table
+export const rolePermissions = pgTable("role_permissions", {
+  id: serial("id").primaryKey(),
+  roleId: integer("role_id").references(() => roles.id).notNull(),
+  permissionId: integer("permission_id").references(() => permissions.id).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Custom rules for ABAC (Attribute-Based Access Control)
+export const customRules = pgTable("custom_rules", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  userId: integer("user_id").references(() => systemUsers.id),
+  roleId: integer("role_id").references(() => roles.id),
+  permissionId: integer("permission_id").references(() => permissions.id).notNull(),
+  conditions: jsonb("conditions"), // JSON with conditions like channel, macrosetor, etc.
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Audit logs for sensitive actions
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id),
+  action: varchar("action", { length: 100 }).notNull(),
+  resource: varchar("resource", { length: 50 }).notNull(),
+  resourceId: varchar("resource_id", { length: 50 }),
+  channel: varchar("channel", { length: 50 }),
+  macrosetor: varchar("macrosetor", { length: 20 }),
+  dataKey: varchar("data_key", { length: 200 }),
+  details: jsonb("details"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  result: varchar("result", { length: 20 }).default("success"), // success, failure, unauthorized
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // System Settings table for controlling various features
 export const systemSettings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
@@ -485,11 +542,96 @@ export const systemSettings = pgTable("system_settings", {
 });
 
 // Schema for system settings
+// Schemas for new permission tables
+export const insertPermissionSchema = createInsertSchema(permissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCustomRuleSchema = createInsertSchema(customRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
+// Types for new permission tables
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type CustomRule = typeof customRules.$inferSelect;
+export type InsertCustomRule = z.infer<typeof insertCustomRuleSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
+// Relations for new permission tables
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  rolePermissions: many(rolePermissions),
+  customRules: many(customRules),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(roles, {
+    fields: [rolePermissions.roleId],
+    references: [roles.id],
+  }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
+  }),
+}));
+
+export const customRulesRelations = relations(customRules, ({ one }) => ({
+  user: one(systemUsers, {
+    fields: [customRules.userId],
+    references: [systemUsers.id],
+  }),
+  role: one(roles, {
+    fields: [customRules.roleId],
+    references: [roles.id],
+  }),
+  permission: one(permissions, {
+    fields: [customRules.permissionId],
+    references: [permissions.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(systemUsers, {
+    fields: [auditLogs.userId],
+    references: [systemUsers.id],
+  }),
+}));
+
+// Extended types for complex queries
+export type RoleWithPermissions = Role & {
+  rolePermissions: (RolePermission & {
+    permission: Permission;
+  })[];
+};
+
+export type UserWithPermissions = SystemUser & {
+  roleInfo?: Role;
+  customRules: (CustomRule & {
+    permission: Permission;
+  })[];
+};
