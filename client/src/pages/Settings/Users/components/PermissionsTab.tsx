@@ -94,29 +94,19 @@ export const PermissionsTab = () => {
     enabled: !!selectedRoleId
   });
 
-  // Track if we've initialized permissions for the current role to prevent loops
-  const [initializedRoleId, setInitializedRoleId] = useState<string | null>(null);
-
-  // Update selected permissions when role changes
+  // Load initial permissions when rolePermissions data is fetched
   useEffect(() => {
-    if (selectedRoleId && selectedRoleId !== initializedRoleId) {
-      setSelectedPermissions([]);
-      setInitializedRoleId(null); // Reset initialization flag
-    }
-  }, [selectedRoleId, initializedRoleId]);
-
-  // Load initial permissions when rolePermissions data is fetched (only once per role)
-  useEffect(() => {
-    if (selectedRoleId && initializedRoleId !== selectedRoleId && rolePermissions) {
+    if (selectedRoleId && rolePermissions) {
       if (rolePermissions.length > 0) {
         const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
         setSelectedPermissions(permissionNames);
       } else {
         setSelectedPermissions([]);
       }
-      setInitializedRoleId(selectedRoleId); // Mark this role as initialized
+    } else {
+      setSelectedPermissions([]);
     }
-  }, [rolePermissions, selectedRoleId, initializedRoleId]);
+  }, [rolePermissions, selectedRoleId]);
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
