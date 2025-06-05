@@ -29,6 +29,7 @@ interface MessageBubbleProps {
   channelColor?: string;
   conversationId?: number;
   onReply?: (messageId: string, content: string) => void;
+  allMessages?: Message[];
 }
 
 // Função auxiliar para formatar o horário
@@ -41,7 +42,8 @@ export const MessageBubble = memo(function MessageBubble({
   channelIcon,
   channelColor,
   conversationId,
-  onReply
+  onReply,
+  allMessages
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
@@ -390,24 +392,40 @@ export const MessageBubble = memo(function MessageBubble({
       'replyToMessageId' in message.metadata && 
       message.metadata.replyToMessageId;
 
+    // Buscar a mensagem original sendo respondida
+    const originalMessage = useMemo(() => {
+      if (!isReplyMessage || !allMessages) return null;
+      
+      const replyToMessageId = (message.metadata as any).replyToMessageId;
+      return allMessages.find(msg => 
+        (msg.metadata && 
+         typeof msg.metadata === 'object' && 
+         ('messageId' in msg.metadata && (msg.metadata as any).messageId === replyToMessageId)) ||
+        (msg.whatsappMessageId === replyToMessageId)
+      );
+    }, [isReplyMessage, allMessages, message.metadata]);
+
     // Mensagem de texto padrão
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
         {/* Exibir mensagem original sendo respondida */}
         {isReplyMessage && (
-          <div className={`mb-2 pb-2 border-l-4 pl-3 ${
+          <div className={`mb-3 rounded-md p-2 border-l-4 ${
             isFromContact 
-              ? 'border-gray-400 bg-gray-50' 
-              : 'border-blue-300 bg-blue-50'
+              ? 'border-green-500 bg-gray-50/80' 
+              : 'border-white/60 bg-white/10'
           }`}>
-            <div className="flex items-center gap-2 mb-1">
-              <Reply className="w-3 h-3 text-gray-500" />
-              <span className="text-xs font-medium text-gray-600">
-                Respondendo a mensagem
+            <div className="flex items-center gap-1 mb-1">
+              <span className={`text-xs font-semibold ${
+                isFromContact ? 'text-green-600' : 'text-white/90'
+              }`}>
+                {originalMessage?.isFromContact ? contact.name : 'Você'}
               </span>
             </div>
-            <div className="text-xs text-gray-500 italic">
-              ID: {message.metadata.replyToMessageId}
+            <div className={`text-xs line-clamp-2 ${
+              isFromContact ? 'text-gray-600' : 'text-white/70'
+            }`}>
+              {originalMessage?.content || 'Mensagem original'}
             </div>
           </div>
         )}

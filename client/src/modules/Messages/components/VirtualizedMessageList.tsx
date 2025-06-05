@@ -19,11 +19,12 @@ interface MessageItemProps {
     contact: Contact;
     conversationId?: number;
     onReply?: (messageId: string, content: string) => void;
+    allMessages: Message[];
   };
 }
 
 const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
-  const { messages, contact, conversationId, onReply } = data;
+  const { messages, contact, conversationId, onReply, allMessages } = data;
   const message = messages[index];
 
   if (!message) return null;
@@ -35,6 +36,7 @@ const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
         contact={contact}
         conversationId={conversationId}
         onReply={onReply}
+        allMessages={allMessages}
       />
     </div>
   );
@@ -71,7 +73,8 @@ export const VirtualizedMessageList = memo(({
     messages,
     contact,
     conversationId,
-    onReply
+    onReply,
+    allMessages: messages
   };
 
   return (
