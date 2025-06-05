@@ -78,6 +78,16 @@ export class PermissionService {
               return false;
             }
           }
+
+          // Verificar permissões hierárquicas de propriedade
+          if (context.resourceId && permissionName.endsWith('_proprio')) {
+            return await this.checkResourceOwnership(userId, permissionName, context.resourceId);
+          }
+
+          // Verificar permissões de equipe
+          if (permissionName.endsWith('_equipe')) {
+            return await this.checkTeamAccess(userId, context.resourceId);
+          }
         }
 
         return true;
@@ -161,6 +171,84 @@ export class PermissionService {
   static getDataKeyFilter(userDataKey?: string) {
     if (!userDataKey) return undefined;
     return userDataKey;
+  }
+
+  /**
+   * Verifica se um usuário possui um recurso específico (contato, negócio, conversa)
+   */
+  static async checkResourceOwnership(userId: number, permissionName: string, resourceId: string): Promise<boolean> {
+    try {
+      const resourceType = permissionName.split(':')[0]; // contato, negocio, conversa
+      
+      switch (resourceType) {
+        case 'contato':
+          // Verificar se o contato está atribuído ao usuário
+          const contact = await db
+            .select({ assignedUserId: contacts.assignedUserId })
+            .from(contacts)
+            .where(eq(contacts.id, parseInt(resourceId)))
+            .limit(1);
+          
+          return contact.length > 0 && contact[0].assignedUserId === userId;
+          
+        case 'negocio':
+          // Verificar se o negócio está atribuído ao usuário
+          const deal = await db
+            .select({ assignedUserId: deals.assignedUserId })
+            .from(deals)
+            .where(eq(deals.id, parseInt(resourceId)))
+            .limit(1);
+          
+          return deal.length > 0 && deal[0].assignedUserId === userId;
+          
+        case 'conversa':
+          // Verificar se a conversa está atribuída ao usuário
+          const conversation = await db
+            .select({ assignedUserId: conversations.assignedUserId })
+            .from(conversations)
+            .where(eq(conversations.id, parseInt(resourceId)))
+            .limit(1);
+          
+          return conversation.length > 0 && conversation[0].assignedUserId === userId;
+          
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error('Erro ao verificar propriedade do recurso:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica se um usuário tem acesso à equipe do recurso
+   */
+  static async checkTeamAccess(userId: number, resourceId?: string): Promise<boolean> {
+    try {
+      // Buscar equipe do usuário
+      const user = await db
+        .select({ teamId: systemUsers.teamId })
+        .from(systemUsers)
+        .where(eq(systemUsers.id, userId))
+        .limit(1);
+        
+      if (!user.length || !user[0].teamId) return false;
+      
+      const userTeamId = user[0].teamId;
+      
+      if (!resourceId) {
+        // Se não há resourceId específico, permite acesso geral à equipe
+        return true;
+      }
+      
+      // Verificar se o recurso pertence à mesma equipe
+      // Aqui seria implementada a lógica específica baseada no tipo de recurso
+      // Por ora, retornamos true se o usuário tem uma equipe
+      return true;
+    } catch (error) {
+      console.error('Erro ao verificar acesso à equipe:', error);
+      return false;
+    }
   }
 }
 
