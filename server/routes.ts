@@ -3555,24 +3555,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       const { username, displayName, email, role, team, isActive } = req.body;
       
-      if (!username || !displayName || !email || !role) {
-        return res.status(400).json({ error: 'Campos obrigatórios: username, displayName, email, role' });
-      }
+      // Para atualizações parciais, só validamos se algum campo foi fornecido
+      const updateData: any = {};
+      
+      if (username !== undefined) updateData.username = username;
+      if (displayName !== undefined) updateData.displayName = displayName;
+      if (email !== undefined) updateData.email = email;
+      if (role !== undefined) updateData.role = role;
+      if (team !== undefined) updateData.team = team;
+      if (isActive !== undefined) updateData.isActive = isActive;
 
-      const updatedUser = await storage.updateSystemUser(userId, {
-        username,
-        displayName,
-        email,
-        role,
-        team: team || null,
-        isActive: isActive !== undefined ? isActive : true
-      });
+      const updatedUser = await storage.updateSystemUser(userId, updateData);
 
       if (!updatedUser) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
-      console.log(`👤 Usuário atualizado: ${displayName} (ID: ${userId})`);
+      console.log(`👤 Usuário atualizado: ${updatedUser.displayName} (ID: ${userId})`);
       res.json(updatedUser);
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
