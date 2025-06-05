@@ -579,9 +579,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/conversations/:id/messages', async (req, res) => {
+  app.post('/api/conversations/:id/messages', async (req: AuthenticatedRequest, res) => {
     try {
       const conversationId = parseInt(req.params.id);
+      const userId = req.user?.id;
+
+      // Check if user has permission to respond to this conversation
+      if (userId) {
+        const canRespond = await storage.canUserRespondToConversation(userId, conversationId);
+        if (!canRespond) {
+          return res.status(403).json({ 
+            error: 'Você não tem permissão para responder a esta conversa' 
+          });
+        }
+      }
+
       const validatedData = insertMessageSchema.parse({
         ...req.body,
         conversationId,

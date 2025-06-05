@@ -3556,7 +3556,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     // If conversation is assigned to this user, they can respond
-    return conversation.assignedUserId === userId.toString();
+    const assignedId = conversation.assignedUserId;
+    if (assignedId === null) return false;
+    return assignedId === userId;
   }
 }
 
