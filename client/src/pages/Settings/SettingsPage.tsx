@@ -23,7 +23,7 @@ const getAllSettingsCards = () => [
     description: "Configurar mensagens pré-definidas e templates",
     href: "/settings/quick-replies",
     icon: "⚡",
-    requiredRoles: ["admin", "gerente", "agent", "atendente"]
+    requiredRoles: ["admin", "gerente"]
   },
   {
     title: "Webhook",

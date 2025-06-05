@@ -67,7 +67,11 @@ function Router() {
               <UsersSettingsPage />
             </ProtectedRoute>
           } />
-          <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
+          <Route path="/settings/quick-replies" component={() => 
+            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
+              <QuickRepliesSettingsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/settings/webhook" component={() => 
             <ProtectedRoute adminOnly={true}>
               <WebhookConfigPage />
