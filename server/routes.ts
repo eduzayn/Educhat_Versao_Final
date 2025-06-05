@@ -3337,70 +3337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Obter status de presença de um contato via Z-API
-  app.get('/api/zapi/chat-presence/:phone', async (req, res) => {
-    try {
-      const { phone } = req.params;
-      
-      console.log('👁️ Verificando status de presença:', phone);
-      
-      if (!phone) {
-        return res.status(400).json({ 
-          error: 'Número de telefone é obrigatório' 
-        });
-      }
 
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
-      }
-
-      console.log('🔍 Consultando Z-API para status de presença:', phone);
-
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/chat-presence/${phone}`, {
-        method: 'GET',
-        headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const responseText = await response.text();
-      console.log('📥 Resposta Z-API chat-presence:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText
-      });
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
-        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
-      }
-
-      console.log('✅ Status de presença obtido:', data);
-
-      res.json({
-        phone,
-        presence: data.presence || 'unavailable',
-        lastSeen: data.lastSeen || null,
-        ...data
-      });
-    } catch (error) {
-      console.error('💥 Erro ao verificar presença via Z-API:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
 
   // Desconectar instância Z-API
   app.post('/api/zapi/disconnect', async (req, res) => {
