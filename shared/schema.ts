@@ -364,12 +364,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
-  id: true,
-  usageCount: true,
-  createdAt: true,
-  updatedAt: true,
-});
+
 
 export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({
   id: true,
@@ -408,16 +403,6 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-});
-
-export const insertQuickReplyShareSchema = createInsertSchema(quickReplyShares).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeamShares).omit({
-  id: true,
-  createdAt: true,
 });
 
 // Custom User interface for authentication compatibility
@@ -472,8 +457,25 @@ export type ContactWithTags = Contact & {
   contactTags: ContactTag[];
 };
 
+export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  usageCount: true,
+});
+
 export type QuickReply = typeof quickReplies.$inferSelect;
 export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
+
+export const insertQuickReplyShareSchema = createInsertSchema(quickReplyShares).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeamShares).omit({
+  id: true,
+  createdAt: true,
+});
 
 export type QuickReplyShare = typeof quickReplyShares.$inferSelect;
 export type InsertQuickReplyShare = z.infer<typeof insertQuickReplyShareSchema>;

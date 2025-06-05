@@ -378,7 +378,7 @@ export default function QuickRepliesSettingsPage() {
 
     mutation.mutate({
       ...data,
-      shareScope,
+      shareScope: shareScope,
       selectedTeams: shareScope === 'team' ? selectedTeams : [],
       selectedUsers: shareScope === 'users' ? selectedUsers : [],
       ...(editingQuickReply && { id: editingQuickReply.id }),
