@@ -160,7 +160,8 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getSystemUser(parseInt(id));
+      const result = await db.select().from(systemUsers).where(eq(systemUsers.id, parseInt(id))).limit(1);
+      const user = result[0];
       if (!user) {
         return done(null, false);
       }
