@@ -1093,11 +1093,14 @@ export function InboxPageRefactored() {
               )}
               
               {/* Informações do Canal */}
-              {activeConversation.contact.canalOrigem && (
+              {(activeConversation.contact.canalOrigem || activeConversation.channelId) && (
                 <div className="flex items-center space-x-2">
                   <MessageSquare className="w-3 h-3 text-gray-400" />
-                  <span className="text-gray-600 text-xs">
-                    {activeConversation.contact.nomeCanal || activeConversation.contact.canalOrigem}
+                  <span className={`text-xs px-2 py-1 rounded-md ${getChannelStyle(activeConversation)}`}>
+                    {getSpecificChannelName(activeConversation) || 
+                     activeConversation.contact.nomeCanal || 
+                     activeConversation.contact.canalOrigem ||
+                     'Canal não identificado'}
                   </span>
                 </div>
               )}
