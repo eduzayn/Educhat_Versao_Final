@@ -46,10 +46,11 @@ export function setupAuth(app: Express) {
   // Configurar CORS para permitir credenciais
   app.use((req, res, next) => {
     const origin = req.headers.origin;
+    // Para desenvolvimento, permitir todas as origens, mas para produção deve ser específico
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+    res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cookie');
     
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
@@ -252,6 +253,12 @@ export function setupAuth(app: Express) {
 
   // Verificar usuário atual
   app.get("/api/user", (req, res) => {
+    console.log('🔍 Verificando autenticação:', {
+      isAuthenticated: req.isAuthenticated(),
+      session: req.session?.id,
+      user: req.user ? 'presente' : 'ausente'
+    });
+    
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Não autenticado" });
     }
