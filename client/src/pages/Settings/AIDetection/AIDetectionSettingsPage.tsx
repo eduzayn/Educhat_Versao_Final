@@ -194,14 +194,14 @@ export const AIDetectionSettingsPage = () => {
 
         {/* Status Overview */}
         <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Status do Sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Status do Sistema
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-medium">Sistema de Detecção IA</p>
               <p className="text-sm text-muted-foreground">
@@ -240,20 +240,20 @@ export const AIDetectionSettingsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Configuration Cards */}
-      <div className="grid gap-6">
-        {/* Main Detection Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              Configurações Principais
-            </CardTitle>
-            <CardDescription>
-              Controle as funcionalidades principais do sistema de detecção
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* Configuration Cards */}
+        <div className="grid gap-6">
+          {/* Main Detection Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Configurações Principais
+              </CardTitle>
+              <CardDescription>
+                Controle as funcionalidades principais do sistema de detecção
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
             {aiDetectionSettings.filter(s => s.type === 'boolean').map(setting => (
               <div key={setting.key} className="flex items-center justify-between">
                 <div className="space-y-0.5 flex-1">
@@ -293,18 +293,18 @@ export const AIDetectionSettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Course Database Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Base de Conhecimento
-            </CardTitle>
-            <CardDescription>
-              Informações sobre a base de cursos cadastrados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          {/* Course Database Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Base de Conhecimento
+              </CardTitle>
+              <CardDescription>
+                Informações sobre a base de cursos cadastrados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <h4 className="font-medium">Modalidades Suportadas</h4>
