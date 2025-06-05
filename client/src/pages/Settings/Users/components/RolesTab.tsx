@@ -126,7 +126,7 @@ export const RolesTab = () => {
           Nova Função
         </Button>
         
-        <Dialog open={isDialogOpen} onOpenChange={handleCloseCreateDialog}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Nova Função</DialogTitle>

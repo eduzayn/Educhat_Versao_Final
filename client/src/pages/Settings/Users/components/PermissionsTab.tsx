@@ -96,17 +96,13 @@ export const PermissionsTab = () => {
 
   // Load initial permissions when rolePermissions data is fetched
   useEffect(() => {
-    if (selectedRoleId && rolePermissions) {
-      if (rolePermissions.length > 0) {
-        const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
-        setSelectedPermissions(permissionNames);
-      } else {
-        setSelectedPermissions([]);
-      }
-    } else {
+    if (selectedRoleId && rolePermissions && Array.isArray(rolePermissions)) {
+      const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
+      setSelectedPermissions(permissionNames);
+    } else if (selectedRoleId) {
       setSelectedPermissions([]);
     }
-  }, [rolePermissions, selectedRoleId]);
+  }, [rolePermissions]);
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
