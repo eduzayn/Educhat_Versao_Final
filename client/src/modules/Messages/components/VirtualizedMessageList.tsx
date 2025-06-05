@@ -1,6 +1,6 @@
 import { memo, useRef, useEffect, useState } from 'react';
 import { FixedSizeList as List } from 'react-window';
-import { MessageBubbleOptimized } from './MessageBubbleOptimized';
+import { MessageBubble } from './MessageBubble';
 import type { Message, Contact } from '@shared/schema';
 
 interface VirtualizedMessageListProps {
@@ -28,7 +28,7 @@ const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
 
   return (
     <div style={style}>
-      <MessageBubbleOptimized
+      <MessageBubble
         message={message}
         contact={contact}
         conversationId={conversationId}
