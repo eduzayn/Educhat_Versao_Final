@@ -3565,8 +3565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email,
         role,
         team: team || null,
-        isActive: isActive !== undefined ? isActive : true,
-        updatedAt: new Date()
+        isActive: isActive !== undefined ? isActive : true
       });
 
       if (!updatedUser) {

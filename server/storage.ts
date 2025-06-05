@@ -660,13 +660,13 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
-    const [updatedUser] = await db
+  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser | null> {
+    const result = await db
       .update(systemUsers)
       .set({ ...user, updatedAt: new Date() })
       .where(eq(systemUsers.id, id))
       .returning();
-    return updatedUser;
+    return result[0] || null;
   }
 
   async deleteSystemUser(id: number): Promise<void> {
@@ -3138,17 +3138,7 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateSystemUser(userId: number, userData: Partial<SystemUser>): Promise<SystemUser | null> {
-    const result = await db.update(systemUsers)
-      .set({
-        ...userData,
-        updatedAt: new Date()
-      })
-      .where(eq(systemUsers.id, userId))
-      .returning();
-    
-    return result[0] || null;
-  }
+
 
   async removeUserFromTeam(userId: number, teamId: number): Promise<void> {
     await db.update(userTeams)
