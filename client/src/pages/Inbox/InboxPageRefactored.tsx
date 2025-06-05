@@ -47,6 +47,7 @@ import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationR
 import { useChannels } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
+import { useQuery } from '@tanstack/react-query';
 import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
@@ -62,6 +63,16 @@ export function InboxPageRefactored() {
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
+  
+  // Carregar equipes para identificação de canais
+  const { data: teams = [] } = useQuery({
+    queryKey: ['/api/teams'],
+    queryFn: async () => {
+      const response = await fetch('/api/teams');
+      if (!response.ok) throw new Error('Erro ao carregar equipes');
+      return response.json();
+    }
+  });
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -388,6 +399,22 @@ export function InboxPageRefactored() {
       }
     }
     
+    // Se há equipe atribuída, usa o macrosetor para inferir o canal
+    if (conversation.assignedTeamId) {
+      const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
+      if (team) {
+        // Mapeia macrosetor para nome de canal correspondente
+        const macrosetorToChannel = {
+          'comercial': 'Comercial',
+          'suporte': 'Suporte',
+          'cobranca': 'Cobrança',
+          'secretaria': 'Secretaria',
+          'tutoria': 'Tutoria'
+        };
+        return macrosetorToChannel[team.macrosetor as keyof typeof macrosetorToChannel] || team.name;
+      }
+    }
+    
     // Fallback para conversas sem channelId específico
     const channelType = conversation.channel || 'unknown';
     if (channelType === 'whatsapp') {
@@ -431,6 +458,22 @@ export function InboxPageRefactored() {
         return colors[hash % colors.length];
       }
     }
+    
+    // Se há equipe atribuída, usa cores baseadas no macrosetor
+    if (conversation.assignedTeamId) {
+      const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
+      if (team) {
+        const macrosetorColors = {
+          'comercial': 'bg-blue-100 text-blue-700',
+          'suporte': 'bg-pink-100 text-pink-700', 
+          'cobranca': 'bg-orange-100 text-orange-700',
+          'secretaria': 'bg-purple-100 text-purple-700',
+          'tutoria': 'bg-green-100 text-green-700'
+        };
+        return macrosetorColors[team.macrosetor as keyof typeof macrosetorColors] || 'bg-indigo-100 text-indigo-700';
+      }
+    }
+    
     return 'bg-gray-100 text-gray-600';
   };
 
