@@ -3370,7 +3370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const canEdit = await storage.canUserEditQuickReply((req.user as any).id, id);
       if (!canEdit) {
         return res.status(403).json({ 
-          message: 'Você não tem permissão para editar esta resposta rápida. Apenas o criador, administradores e gerentes podem editá-la.' 
+          message: 'Você não tem permissão para editar esta resposta rápida. Atendentes só podem editar respostas criadas por eles próprios.' 
         });
       }
       

@@ -118,6 +118,7 @@ export const quickReplies = pgTable("quick_replies", {
   isActive: boolean("is_active").default(true),
   usageCount: integer("usage_count").default(0), // track usage for analytics
   createdBy: varchar("created_by").references(() => users.id),
+  teamId: integer("team_id").references(() => teams.id), // for team-scoped quick replies
   isShared: boolean("is_shared").default(false), // se é compartilhada ou privada
   shareScope: varchar("share_scope", { length: 20 }).default("private"), // private, team, global
   createdAt: timestamp("created_at").defaultNow(),
