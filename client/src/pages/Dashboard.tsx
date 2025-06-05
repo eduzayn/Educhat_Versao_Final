@@ -122,8 +122,8 @@ export function Dashboard() {
 
   // Filtrar itens do menu baseado no role do usuário
   const menuItems = allMenuItems.filter(item => {
-    if (!user || !user.role) return true; // Se não há role definido, mostrar todos
-    return item.allowedRoles.includes(user.role);
+    if (!user || !(user as any).role) return true; // Se não há role definido, mostrar todos
+    return item.allowedRoles.includes((user as any).role);
   });
 
   const channelStats = [
@@ -357,10 +357,10 @@ export function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-educhat-dark truncate">
-                    {user?.displayName || user?.username || 'Usuário'}
+                    {(user as any)?.displayName || (user as any)?.username || 'Usuário'}
                   </p>
                   <p className="text-xs text-educhat-medium truncate">
-                    {user?.email || 'email@exemplo.com'}
+                    {(user as any)?.email || 'email@exemplo.com'}
                   </p>
                 </div>
               </div>

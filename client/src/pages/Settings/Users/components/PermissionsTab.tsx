@@ -94,24 +94,29 @@ export const PermissionsTab = () => {
     enabled: !!selectedRoleId
   });
 
-  // Update selected permissions when role changes (only when role changes, not when permissions are updated)
-  useEffect(() => {
-    if (selectedRoleId) {
-      setSelectedPermissions([]);
-    }
-  }, [selectedRoleId]);
+  // Track if we've initialized permissions for the current role to prevent loops
+  const [initializedRoleId, setInitializedRoleId] = useState<string | null>(null);
 
-  // Load initial permissions when rolePermissions data is fetched
+  // Update selected permissions when role changes
   useEffect(() => {
-    if (rolePermissions.length > 0) {
-      const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
-      console.log('Current permissions:', permissionNames);
-      setSelectedPermissions(permissionNames);
-    } else if (rolePermissions.length === 0 && selectedRoleId) {
-      // Clear permissions if no data for selected role
+    if (selectedRoleId && selectedRoleId !== initializedRoleId) {
       setSelectedPermissions([]);
+      setInitializedRoleId(null); // Reset initialization flag
     }
-  }, [rolePermissions]); // Only depend on rolePermissions to avoid conflicts
+  }, [selectedRoleId, initializedRoleId]);
+
+  // Load initial permissions when rolePermissions data is fetched (only once per role)
+  useEffect(() => {
+    if (selectedRoleId && initializedRoleId !== selectedRoleId && rolePermissions) {
+      if (rolePermissions.length > 0) {
+        const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
+        setSelectedPermissions(permissionNames);
+      } else {
+        setSelectedPermissions([]);
+      }
+      setInitializedRoleId(selectedRoleId); // Mark this role as initialized
+    }
+  }, [rolePermissions, selectedRoleId, initializedRoleId]);
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
