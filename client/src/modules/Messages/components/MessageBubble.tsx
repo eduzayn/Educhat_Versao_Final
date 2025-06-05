@@ -229,14 +229,33 @@ export function MessageBubble({ message, contact, channelIcon, channelColor, con
 
   // Verificar se a mensagem pode ser deletada (dentro de 7 minutos para WhatsApp)
   const canDelete = () => {
-    if (isFromContact) return false; // Só permite deletar mensagens enviadas pelo agente
+    if (isFromContact) {
+      console.log('🚫 Não pode deletar: mensagem do contato');
+      return false; // Só permite deletar mensagens enviadas pelo agente
+    }
     
     const messageDate = new Date(message.sentAt || new Date());
     const now = new Date();
     const timeDifference = now.getTime() - messageDate.getTime();
     const sevenMinutesInMs = 7 * 60 * 1000; // 7 minutos em milissegundos
     
-    return timeDifference <= sevenMinutesInMs;
+    const canDeleteMsg = timeDifference <= sevenMinutesInMs;
+    
+    console.log('🗑️ Debug canDelete:', {
+      messageId: message.id,
+      content: message.content?.substring(0, 20),
+      isFromContact,
+      sentAt: message.sentAt,
+      messageDate: messageDate.toISOString(),
+      now: now.toISOString(),
+      timeDifference: Math.round(timeDifference / 1000) + 's',
+      canDelete: canDeleteMsg,
+      hasPhone: !!contact.phone,
+      hasConversationId: !!conversationId,
+      metadata: message.metadata
+    });
+    
+    return canDeleteMsg;
   };
 
   const handleDeleteMessage = async () => {
