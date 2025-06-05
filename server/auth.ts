@@ -50,10 +50,27 @@ export function setupAuth(app: Express) {
       { usernameField: 'email' },
       async (email, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
-          if (!user || !(await comparePasswords(password, user.password))) {
+          // Buscar na tabela system_users ao invés de users
+          const systemUsers = await storage.getSystemUsers();
+          const user = systemUsers.find(u => u.email === email);
+          
+          if (!user) {
             return done(null, false, { message: 'Email ou senha incorretos' });
           }
+          
+          // Verificar senha - primeiro tenta hash, depois texto plano para compatibilidade
+          let isValidPassword = false;
+          try {
+            isValidPassword = await comparePasswords(password, user.password);
+          } catch (error) {
+            // Se falha na comparação hash, tenta texto plano (para senhas não hasheadas)
+            isValidPassword = password === user.password;
+          }
+          
+          if (!isValidPassword) {
+            return done(null, false, { message: 'Email ou senha incorretos' });
+          }
+          
           return done(null, user);
         } catch (error) {
           return done(error);
@@ -65,7 +82,7 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getSystemUser(parseInt(id));
       done(null, user);
     } catch (error) {
       done(error);
@@ -133,9 +150,10 @@ export function setupAuth(app: Express) {
         res.json({
           id: user.id,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profileImageUrl: user.profileImageUrl,
+          displayName: user.displayName,
+          username: user.username,
+          role: user.role,
+          team: user.team,
         });
       });
     })(req, res, next);
