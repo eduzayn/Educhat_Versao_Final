@@ -105,9 +105,13 @@ export const PermissionsTab = () => {
   useEffect(() => {
     if (rolePermissions.length > 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
+      console.log('Current permissions:', permissionNames);
       setSelectedPermissions(permissionNames);
+    } else if (rolePermissions.length === 0 && selectedRoleId) {
+      // Clear permissions if no data for selected role
+      setSelectedPermissions([]);
     }
-  }, [rolePermissions]); // Depend on rolePermissions data directly
+  }, [rolePermissions, selectedRoleId]); // Depend on both rolePermissions and selectedRoleId
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
