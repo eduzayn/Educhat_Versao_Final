@@ -164,7 +164,8 @@ export const AIDetectionSettingsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-6 space-y-6">
+      <div className="min-h-screen bg-educhat-light">
+        <div className="p-6 space-y-6">
         <div className="flex items-center gap-4">
           <BackButton to="/settings" label="Voltar às Configurações" />
           <div>
@@ -172,25 +173,27 @@ export const AIDetectionSettingsPage = () => {
             <p className="text-muted-foreground">Carregando...</p>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <BackButton to="/settings" label="Voltar às Configurações" />
-        <div>
-          <h2 className="text-2xl font-bold">Sistema de Detecção IA</h2>
-          <p className="text-muted-foreground">
-            Configure o sistema inteligente de detecção de cursos e departamentos
-          </p>
+    <div className="min-h-screen bg-educhat-light">
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <BackButton to="/settings" label="Voltar às Configurações" />
+          <div>
+            <h2 className="text-2xl font-bold">Sistema de Detecção IA</h2>
+            <p className="text-muted-foreground">
+              Configure o sistema inteligente de detecção de cursos e departamentos
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Status Overview */}
-      <Card>
+        {/* Status Overview */}
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
@@ -388,6 +391,7 @@ export const AIDetectionSettingsPage = () => {
         >
           Descartar Alterações
         </Button>
+      </div>
       </div>
     </div>
   );
