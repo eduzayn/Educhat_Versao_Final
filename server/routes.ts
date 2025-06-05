@@ -23,12 +23,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket server for real-time communication
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
-  // Store connected clients with their metadata
-  const clients = new Map<WebSocket, { contactId?: number; conversationId?: number }>();
+  // Store connected clients with their metadata and heartbeat info
+  const clients = new Map<WebSocket, { 
+    contactId?: number; 
+    conversationId?: number; 
+    isAlive?: boolean;
+    lastPing?: number;
+  }>();
+
+  // Heartbeat interval (30 seconds)
+  const HEARTBEAT_INTERVAL = 30000;
+  const PING_TIMEOUT = 10000;
+
+  // Setup heartbeat for all connections
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      const clientData = clients.get(ws);
+      if (!clientData?.isAlive) {
+        console.log('⚰️ Terminando conexão WebSocket inativa');
+        ws.terminate();
+        clients.delete(ws);
+        return;
+      }
+
+      // Mark as not alive and send ping
+      clients.set(ws, { ...clientData, isAlive: false, lastPing: Date.now() });
+      
+      if (ws.readyState === WebSocket.OPEN) {
+        console.log('🏓 Enviando ping para cliente WebSocket');
+        ws.ping();
+      }
+    });
+  }, HEARTBEAT_INTERVAL);
+
+  // Cleanup interval on server close
+  wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+  });
 
   wss.on('connection', (ws) => {
-    console.log('Client connected to WebSocket');
-    clients.set(ws, {});
+    console.log('🔌 Cliente conectado ao WebSocket');
+    clients.set(ws, { isAlive: true, lastPing: Date.now() });
+
+    // Handle pong response
+    ws.on('pong', () => {
+      const clientData = clients.get(ws);
+      if (clientData) {
+        const pingTime = Date.now() - (clientData.lastPing || 0);
+        console.log(`🏓 Pong recebido em ${pingTime}ms`);
+        clients.set(ws, { ...clientData, isAlive: true });
+      }
+    });
+
+    // Handle ping from client (respond with pong)
+    ws.on('ping', () => {
+      console.log('🏓 Ping recebido do cliente, enviando pong');
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.pong();
+      }
+    });
 
     ws.on('message', async (data) => {
       try {

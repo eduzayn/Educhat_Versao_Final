@@ -6,8 +6,13 @@ import type { Message } from '../../../types/chat';
 
 export function useWebSocket() {
   const socketRef = useRef<WebSocket | null>(null);
+  const pingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
+
+  // Heartbeat configuration
+  const PING_TIMEOUT = 60000; // 60 seconds timeout for ping response
 
   const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
@@ -28,7 +33,14 @@ export function useWebSocket() {
     }
 
     socketRef.current.onopen = () => {
+      console.log('🔌 WebSocket conectado');
       setConnectionStatus(true);
+      
+      // Clear any existing reconnect timeout
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       
       if (activeConversation) {
         sendMessage({
@@ -38,7 +50,27 @@ export function useWebSocket() {
       }
     };
 
+    // Handle ping from server - automatically handled by browser WebSocket API
+    // The browser automatically responds to ping frames with pong frames
+    
+    // Setup timeout for detecting server disconnection
+    const setupPingTimeout = () => {
+      if (pingTimeoutRef.current) {
+        clearTimeout(pingTimeoutRef.current);
+      }
+      
+      pingTimeoutRef.current = setTimeout(() => {
+        console.log('🚨 Timeout do ping - servidor não responde');
+        if (socketRef.current) {
+          socketRef.current.close();
+        }
+      }, PING_TIMEOUT);
+    };
+
+    setupPingTimeout(); // Start initial timeout
+
     socketRef.current.onmessage = (event) => {
+      setupPingTimeout(); // Reset timeout on any server activity
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
         
@@ -152,9 +184,17 @@ export function useWebSocket() {
     };
 
     socketRef.current.onclose = () => {
+      console.log('🔌 WebSocket desconectado');
       setConnectionStatus(false);
+      
+      // Clear ping timeout
+      if (pingTimeoutRef.current) {
+        clearTimeout(pingTimeoutRef.current);
+        pingTimeoutRef.current = null;
+      }
+      
       // Attempt to reconnect after 3 seconds
-      setTimeout(connect, 3000);
+      reconnectTimeoutRef.current = setTimeout(connect, 3000);
     };
 
     socketRef.current.onerror = () => {
@@ -180,6 +220,18 @@ export function useWebSocket() {
     connect();
 
     return () => {
+      // Clear all timeouts
+      if (pingTimeoutRef.current) {
+        clearTimeout(pingTimeoutRef.current);
+        pingTimeoutRef.current = null;
+      }
+      
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      
+      // Close WebSocket connection
       if (socketRef.current) {
         socketRef.current.close();
       }
