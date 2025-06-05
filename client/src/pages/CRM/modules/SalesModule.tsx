@@ -8,6 +8,7 @@ import {
   Trophy, 
   Users 
 } from "lucide-react";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 // Importar subcomponentes de vendas
 import { SalesDashboard } from "./sales/SalesDashboard";
@@ -19,6 +20,10 @@ import { SalesCoaching } from "./sales/SalesCoaching";
 
 export function SalesModule() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { user } = useAuth();
+  
+  // Verificar se o usuário pode acessar comissões
+  const canAccessCommissions = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   return (
     <div className="space-y-6">
@@ -30,7 +35,7 @@ export function SalesModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className={`grid w-full ${canAccessCommissions ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Dashboard
@@ -39,10 +44,12 @@ export function SalesModule() {
             <Target className="h-4 w-4" />
             Metas
           </TabsTrigger>
-          <TabsTrigger value="commissions" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Comissões
-          </TabsTrigger>
+          {canAccessCommissions && (
+            <TabsTrigger value="commissions" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Comissões
+            </TabsTrigger>
+          )}
           <TabsTrigger value="territories" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Territórios
@@ -65,9 +72,11 @@ export function SalesModule() {
           <SalesTargets />
         </TabsContent>
 
-        <TabsContent value="commissions" className="space-y-6 mt-6">
-          <SalesCommissions />
-        </TabsContent>
+        {canAccessCommissions && (
+          <TabsContent value="commissions" className="space-y-6 mt-6">
+            <SalesCommissions />
+          </TabsContent>
+        )}
 
         <TabsContent value="territories" className="space-y-6 mt-6">
           <SalesTerritories />
