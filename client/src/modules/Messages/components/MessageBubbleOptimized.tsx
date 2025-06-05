@@ -175,8 +175,64 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
       );
     }
 
+    // Para vídeos, verificar se há URL direta nos metadados primeiro
+    if (message.messageType === 'video') {
+      const metadata = message.metadata as any;
+      let videoUrl: string | null = null;
+      
+      // 1. Verificar se há videoUrl nos metadados (mensagens do WhatsApp)
+      if (metadata?.video?.videoUrl) {
+        videoUrl = metadata.video.videoUrl;
+      }
+      // 2. Verificar se content é uma data URL válida
+      else if (message.content && message.content.startsWith('data:video/')) {
+        videoUrl = message.content;
+      }
+      // 3. Verificar se é uma URL HTTP/HTTPS válida
+      else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
+        videoUrl = message.content;
+      }
+
+      if (videoUrl) {
+        return (
+          <div className={`max-w-md rounded-lg overflow-hidden ${
+            isFromContact ? 'bg-gray-100' : 'bg-blue-600'
+          }`}>
+            <video 
+              src={videoUrl} 
+              controls
+              className="w-full h-auto max-h-96"
+              preload="metadata"
+              onError={(e) => secureLog.error('Erro ao carregar vídeo', { messageId: message.id, url: videoUrl })}
+              onLoadedData={() => secureLog.debug('Vídeo carregado com sucesso', { messageId: message.id })}
+            >
+              Seu navegador não suporta a reprodução de vídeo.
+            </video>
+            {metadata?.video?.caption && (
+              <div className={`px-3 py-2 text-xs ${
+                isFromContact ? 'text-gray-600 bg-gray-50' : 'text-blue-100 bg-blue-700'
+              }`}>
+                {metadata.video.caption}
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      // Fallback para LazyMediaContent se não há URL direta
+      return (
+        <LazyMediaContent
+          messageId={message.id}
+          messageType="video"
+          conversationId={conversationId}
+          isFromContact={isFromContact}
+          metadata={metadata}
+        />
+      );
+    }
+
     // Para outros tipos de mídia, usar LazyMediaContent
-    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
+    if (message.messageType && ['image', 'document'].includes(message.messageType as string)) {
       return (
         <LazyMediaContent
           messageId={message.id}
