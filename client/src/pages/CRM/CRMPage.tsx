@@ -47,27 +47,27 @@ export function CRMPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="dashboard" className="flex-1">
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="p-6">
               <CRMDashboard />
             </div>
           </TabsContent>
           <TabsContent value="deals" className="flex-1">
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="p-6">
               <DealsModule />
             </div>
           </TabsContent>
           <TabsContent value="sales" className="flex-1">
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="p-6">
               <SalesModule />
             </div>
           </TabsContent>
           <TabsContent value="activities" className="flex-1">
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="p-6">
               <ActivitiesModule />
             </div>
           </TabsContent>
           <TabsContent value="reports" className="flex-1">
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="p-6">
               <ReportsModule />
             </div>
           </TabsContent>
