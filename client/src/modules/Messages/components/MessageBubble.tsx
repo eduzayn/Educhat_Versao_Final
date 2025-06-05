@@ -92,20 +92,6 @@ export const MessageBubble = memo(function MessageBubble({
     
     const canDeleteMsg = timeDifference <= sevenMinutesInMs;
     
-    console.log('🗑️ Debug canDelete:', {
-      messageId: message.id,
-      content: message.content?.substring(0, 20),
-      isFromContact,
-      sentAt: message.sentAt,
-      messageDate: messageDate.toISOString(),
-      now: now.toISOString(),
-      timeDifference: Math.round(timeDifference / 1000) + 's',
-      canDelete: canDeleteMsg,
-      hasPhone: !!contact.phone,
-      hasConversationId: !!conversationId,
-      metadata: message.metadata
-    });
-    
     return canDeleteMsg;
   };
 
