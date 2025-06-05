@@ -193,6 +193,11 @@ export interface IStorage {
 
   // Contact interests operations
   getContactInterests(contactId: number): Promise<any[]>;
+
+  // Permission operations for conversation responses
+  canUserRespondToOthersConversations(userId: number): Promise<boolean>;
+  canUserRespondToOwnConversations(userId: number): Promise<boolean>;
+  canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
