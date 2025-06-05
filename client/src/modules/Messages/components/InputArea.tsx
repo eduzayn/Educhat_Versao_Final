@@ -62,7 +62,7 @@ export function InputArea() {
       conversationId: number;
       replyToMessageId: string;
     }) => {
-      const response = await apiRequest('/api/zapi/reply-message', 'POST', {
+      const response = await apiRequest('POST', '/api/zapi/reply-message', {
         phone,
         message,
         conversationId,
