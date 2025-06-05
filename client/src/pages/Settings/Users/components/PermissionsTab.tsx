@@ -99,10 +99,10 @@ export const PermissionsTab = () => {
     if (rolePermissions.length > 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
       setSelectedPermissions(permissionNames);
-    } else {
+    } else if (selectedRoleId) {
       setSelectedPermissions([]);
     }
-  }, [rolePermissions]);
+  }, [rolePermissions, selectedRoleId]);
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
@@ -209,7 +209,9 @@ export const PermissionsTab = () => {
     });
   };
 
-  const handleCreatePermission = (formData: FormData) => {
+  const handleCreatePermission = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     const permission = {
       name: formData.get('name') as string,
       displayName: formData.get('displayName') as string,
@@ -270,7 +272,7 @@ export const PermissionsTab = () => {
                   Defina uma nova permissão no sistema
                 </DialogDescription>
               </DialogHeader>
-              <form action={handleCreatePermission} className="space-y-4">
+              <form onSubmit={handleCreatePermission} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Nome da Permissão</Label>
                   <Input id="name" name="name" placeholder="ex: reports_view" required />
