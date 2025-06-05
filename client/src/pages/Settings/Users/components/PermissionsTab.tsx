@@ -107,7 +107,7 @@ export const PermissionsTab = () => {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
       setSelectedPermissions(permissionNames);
     }
-  }, [rolePermissions]);
+  }, [rolePermissions.length]); // Only depend on length to prevent infinite loops
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {

@@ -99,7 +99,7 @@ export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
   };
 
   const getSettingsByCategory = (category: string) => {
-    return settings?.filter((setting: SystemSetting) => setting.category === category) || [];
+    return (settings || []).filter((setting: SystemSetting) => setting.category === category);
   };
 
   const renderSettingInput = (setting: SystemSetting) => {
