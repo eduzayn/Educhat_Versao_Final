@@ -24,8 +24,10 @@ export function ProtectedRoute({
   allowedRoles = []
 }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
-  const { data: userPermissions } = useUserPermissions();
   const [, setLocation] = useLocation();
+  
+  // Temporariamente removendo useUserPermissions para evitar re-renderizações que fecham modais
+  // const { data: userPermissions } = useUserPermissions();
 
   // Verificar autenticação
   if (!isAuthenticated || !user) {
@@ -75,7 +77,9 @@ export function ProtectedRoute({
     );
   }
 
-  // Verificar permissão específica
+  // Temporariamente desabilitando verificação de permissão específica
+  // para evitar re-renderizações que fecham modais
+  /*
   if (requiredPermission && userPermissions) {
     if (!hasPermission(userPermissions, requiredPermission)) {
       return (
@@ -96,6 +100,7 @@ export function ProtectedRoute({
       );
     }
   }
+  */
 
   return <>{children}</>;
 }
