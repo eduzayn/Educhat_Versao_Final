@@ -116,12 +116,8 @@ export default function PermissionsPanel() {
 
   // Mutation para atualizar permissões de role
   const updateRolePermissions = useMutation({
-    mutationFn: ({ roleId, permissionIds }: { roleId: number; permissionIds: number[] }) =>
-      apiRequest(`/api/admin/roles/${roleId}/permissions`, {
-        method: 'PUT',
-        body: JSON.stringify({ permissionIds }),
-        headers: { 'Content-Type': 'application/json' }
-      }),
+    mutationFn: async ({ roleId, permissionIds }: { roleId: number; permissionIds: number[] }) =>
+      await apiRequest(`/api/admin/roles/${roleId}/permissions`, 'PUT', { permissionIds }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/roles'] });
       toast({
@@ -163,10 +159,10 @@ export default function PermissionsPanel() {
   };
 
   const getPermissionsByCategory = (category: string) => {
-    return permissions.filter((p: Permission) => p.category === category);
+    return Array.isArray(permissions) ? (permissions as Permission[]).filter((p: Permission) => p.category === category) : [];
   };
 
-  const categories = [...new Set(permissions.map((p: Permission) => p.category))];
+  const categories = Array.isArray(permissions) ? Array.from(new Set((permissions as Permission[]).map((p: Permission) => p.category))) : [];
 
   if (loadingPermissions || loadingRoles || loadingUsers) {
     return (
@@ -194,9 +190,9 @@ export default function PermissionsPanel() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.users.total}</div>
+              <div className="text-2xl font-bold">{(stats as Stats).users.total}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.users.active} ativos, {stats.users.online} online
+                {(stats as Stats).users.active} ativos, {(stats as Stats).users.online} online
               </p>
             </CardContent>
           </Card>
@@ -206,7 +202,7 @@ export default function PermissionsPanel() {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.roles}</div>
+              <div className="text-2xl font-bold">{(stats as Stats).roles}</div>
             </CardContent>
           </Card>
           <Card>
@@ -215,7 +211,7 @@ export default function PermissionsPanel() {
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.permissions}</div>
+              <div className="text-2xl font-bold">{(stats as Stats).permissions}</div>
             </CardContent>
           </Card>
           <Card>
@@ -224,7 +220,7 @@ export default function PermissionsPanel() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.teams}</div>
+              <div className="text-2xl font-bold">{(stats as Stats).teams}</div>
             </CardContent>
           </Card>
         </div>
@@ -257,7 +253,7 @@ export default function PermissionsPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {roles.map((role: Role) => (
+                  {Array.isArray(roles) && (roles as Role[]).map((role: Role) => (
                     <TableRow key={role.id}>
                       <TableCell className="font-medium">{role.name}</TableCell>
                       <TableCell>
