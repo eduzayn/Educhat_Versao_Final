@@ -530,4 +530,151 @@ export function registerAdminRoutes(app: Express) {
       }
     }
   );
+
+  // ==================== PERMISSÕES DE FUNÇÃO ====================
+
+  // Buscar permissões de uma função específica
+  app.get('/api/admin/role-permissions/:roleId', 
+    updateLastActivity(),
+    requirePermission('permissao:gerenciar'),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const roleId = parseInt(req.params.roleId);
+        
+        const rolePermissionsData = await db
+          .select({
+            id: rolePermissions.id,
+            permissionId: rolePermissions.permissionId,
+            roleId: rolePermissions.roleId,
+            permissionName: permissions.name,
+            permission: {
+              id: permissions.id,
+              name: permissions.name,
+              resource: permissions.resource,
+              action: permissions.action,
+              description: permissions.description,
+              category: permissions.category
+            }
+          })
+          .from(rolePermissions)
+          .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+          .where(and(
+            eq(rolePermissions.roleId, roleId),
+            eq(rolePermissions.isActive, true),
+            eq(permissions.isActive, true)
+          ));
+
+        res.json(rolePermissionsData);
+      } catch (error) {
+        console.error('Erro ao buscar permissões da função:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
+  // Atualizar permissões de uma função
+  app.post('/api/admin/role-permissions',
+    updateLastActivity(),
+    requirePermission('permissao:gerenciar'),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { roleId, permissions: permissionNames } = req.body;
+
+        if (!roleId || !Array.isArray(permissionNames)) {
+          return res.status(400).json({ message: 'roleId e permissions são obrigatórios' });
+        }
+
+        // Buscar IDs das permissões pelos nomes
+        const permissionIds = await db
+          .select({ id: permissions.id })
+          .from(permissions)
+          .where(and(
+            inArray(permissions.name, permissionNames),
+            eq(permissions.isActive, true)
+          ));
+
+        // Remover todas as permissões existentes da função
+        await db
+          .delete(rolePermissions)
+          .where(eq(rolePermissions.roleId, roleId));
+
+        // Adicionar as novas permissões
+        if (permissionIds.length > 0) {
+          const newRolePermissions = permissionIds.map(p => ({
+            roleId: roleId,
+            permissionId: p.id,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }));
+
+          await db.insert(rolePermissions).values(newRolePermissions);
+        }
+
+        // Log da ação
+        await PermissionService.logAction({
+          userId: req.user!.id,
+          action: 'update',
+          resource: 'role_permissions',
+          resourceId: roleId.toString(),
+          details: { permissions: permissionNames },
+          result: 'success'
+        });
+
+        res.json({ success: true, message: 'Permissões atualizadas com sucesso' });
+      } catch (error) {
+        console.error('Erro ao atualizar permissões da função:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
+  // Endpoint para buscar permissões do usuário atual (para o frontend)
+  app.get('/api/admin/user-permissions',
+    updateLastActivity(),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.user) {
+          return res.status(401).json({ message: 'Não autenticado' });
+        }
+
+        // Buscar permissões diretas da função
+        const userRolePermissions = await db
+          .select({
+            id: permissions.id,
+            name: permissions.name,
+            resource: permissions.resource,
+            action: permissions.action,
+            description: permissions.description,
+            category: permissions.category
+          })
+          .from(permissions)
+          .innerJoin(rolePermissions, eq(permissions.id, rolePermissions.permissionId))
+          .where(and(
+            eq(rolePermissions.roleId, req.user.roleId || 0),
+            eq(permissions.isActive, true),
+            eq(rolePermissions.isActive, true)
+          ));
+
+        // Buscar regras customizadas (se existirem)
+        const customPermissions: any[] = [];
+
+        res.json({
+          isAdmin: req.user.role === 'admin',
+          rolePermissions: userRolePermissions,
+          customPermissions,
+          user: {
+            id: req.user.id,
+            role: req.user.role,
+            dataKey: req.user.dataKey,
+            channels: req.user.channels,
+            macrosetores: req.user.macrosetores
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao buscar permissões do usuário:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
 }
