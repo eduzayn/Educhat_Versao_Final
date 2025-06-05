@@ -208,9 +208,22 @@ export function registerAdminRoutes(app: Express) {
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const roleId = parseInt(req.params.id);
-        const { permissionIds } = req.body;
+        const { permissionIds, permissionNames } = req.body;
 
-        if (!Array.isArray(permissionIds)) {
+        // Suporte para IDs ou nomes de permissões
+        let finalPermissionIds: number[] = [];
+
+        if (permissionNames && Array.isArray(permissionNames)) {
+          // Converter nomes para IDs
+          const permissionsData = await db
+            .select()
+            .from(permissions)
+            .where(inArray(permissions.name, permissionNames));
+          
+          finalPermissionIds = permissionsData.map((p: any) => p.id);
+        } else if (permissionIds && Array.isArray(permissionIds)) {
+          finalPermissionIds = permissionIds;
+        } else {
           return res.status(400).json({ message: 'Lista de permissões é obrigatória' });
         }
 
@@ -220,8 +233,8 @@ export function registerAdminRoutes(app: Express) {
           .where(eq(rolePermissions.roleId, roleId));
 
         // Adicionar novas permissões
-        if (permissionIds.length > 0) {
-          const rolePermissionValues = permissionIds.map((permissionId: number) => ({
+        if (finalPermissionIds.length > 0) {
+          const rolePermissionValues = finalPermissionIds.map((permissionId: number) => ({
             roleId,
             permissionId
           }));
@@ -234,7 +247,7 @@ export function registerAdminRoutes(app: Express) {
           action: 'update',
           resource: 'role_permissions',
           resourceId: roleId.toString(),
-          details: { permissionIds },
+          details: { permissionIds: finalPermissionIds, permissionNames },
           result: 'success'
         });
 

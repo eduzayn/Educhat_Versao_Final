@@ -172,7 +172,18 @@ export default function PermissionsPanel() {
     }));
   };
 
-  const getPermissionsByCategory = (category: string) => {
+  const getPermissionsByCategory = () => {
+    if (!Array.isArray(permissions)) return {};
+    
+    return (permissions as Permission[]).reduce((acc, permission) => {
+      const category = permission.category || 'other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(permission);
+      return acc;
+    }, {} as Record<string, Permission[]>);
+  };
+
+  const getCategoryPermissions = (category: string) => {
     return Array.isArray(permissions) ? (permissions as Permission[]).filter((p: Permission) => p.category === category) : [];
   };
 
@@ -465,22 +476,48 @@ export default function PermissionsPanel() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
-            {categories.map(category => (
-              <div key={category} className="space-y-3">
-                <h3 className="text-lg font-semibold capitalize">{category}</h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {getPermissionsByCategory(category).map((permission: Permission) => (
-                    <PermissionItem
-                      key={permission.id}
-                      permission={permission}
-                      checked={selectedPermissions.includes(permission.name)}
-                      onCheckedChange={(checked) => togglePermission(permission.name)}
-                    />
-                  ))}
+          <div className="space-y-4">
+            {(() => {
+              const permissionsByCategory = getPermissionsByCategory();
+              const categoryNames: Record<string, string> = {
+                'conversation': 'Conversas',
+                'Sistema de Chat': 'Conversas',
+                'user': 'Usuários',
+                'admin': 'Administração',
+                'system': 'Sistema',
+                'other': 'Outras'
+              };
+
+              return Object.entries(permissionsByCategory).map(([category, perms]) => (
+                <div key={category} className="border rounded-lg p-4">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer mb-3"
+                    onClick={() => toggleSection(category)}
+                  >
+                    <h3 className="text-lg font-semibold">
+                      {categoryNames[category] || category}
+                    </h3>
+                    {expandedSections[category] ? 
+                      <ChevronUp className="h-4 w-4" /> : 
+                      <ChevronDown className="h-4 w-4" />
+                    }
+                  </div>
+                  
+                  {expandedSections[category] && (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {perms.map((permission: Permission) => (
+                        <PermissionItem
+                          key={permission.id}
+                          permission={permission}
+                          checked={selectedPermissions.includes(permission.name)}
+                          onCheckedChange={(checked) => togglePermission(permission.name)}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
 
           <div className="flex justify-end space-x-2">
