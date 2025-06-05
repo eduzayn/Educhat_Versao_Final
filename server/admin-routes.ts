@@ -169,7 +169,6 @@ export function registerAdminRoutes(app: Express) {
           .insert(roles)
           .values({
             name,
-            description,
             permissions: []
           })
           .returning();
@@ -478,7 +477,7 @@ export function registerAdminRoutes(app: Express) {
         }
 
         // Buscar permissões diretas da função
-        const rolePermissions = await db
+        const userRolePermissions = await db
           .select({
             id: permissions.id,
             name: permissions.name,
@@ -515,7 +514,7 @@ export function registerAdminRoutes(app: Express) {
 
         res.json({
           isAdmin: req.user.role === 'admin',
-          rolePermissions,
+          rolePermissions: userRolePermissions,
           customPermissions,
           user: {
             id: req.user.id,
