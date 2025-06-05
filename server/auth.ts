@@ -178,9 +178,9 @@ export function setupAuth(app: Express) {
     try {
       const { email, password, firstName, lastName } = req.body;
 
-      // Verificar se o usuário já existe
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
+      // Verificar se o usuário já existe na tabela system_users
+      const existingUser = await db.select().from(systemUsers).where(eq(systemUsers.email, email)).limit(1);
+      if (existingUser.length > 0) {
         return res.status(400).json({ message: "Email já está em uso" });
       }
 
@@ -193,12 +193,15 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Senha deve ter pelo menos 6 caracteres" });
       }
 
-      // Criar usuário
-      const user = await storage.createUser({
+      // Criar usuário na tabela system_users
+      const [user] = await db.insert(systemUsers).values({
         email,
         password: await hashPassword(password),
-        firstName,
-        lastName,
+        username: email.split('@')[0],
+        displayName: `${firstName} ${lastName}`,
+        role: 'user',
+        roleId: 2, // Role padrão de usuário
+        isActive: true
       });
 
       // Fazer login automático após registro
