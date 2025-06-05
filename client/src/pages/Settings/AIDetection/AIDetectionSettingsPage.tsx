@@ -305,7 +305,7 @@ export const AIDetectionSettingsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <h4 className="font-medium">Modalidades Suportadas</h4>
                 <div className="flex flex-wrap gap-2">
@@ -331,15 +331,15 @@ export const AIDetectionSettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Product Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              Informações do Produto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Product Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Informações do Produto
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
               <div className="flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -391,7 +391,7 @@ export const AIDetectionSettingsPage = () => {
         >
           Descartar Alterações
         </Button>
-      </div>
+        </div>
       </div>
     </div>
   );
