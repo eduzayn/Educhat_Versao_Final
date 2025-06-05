@@ -134,7 +134,21 @@ export function setupAuth(app: Express) {
           }
           
           console.log('✅ Login bem-sucedido para:', user.email);
-          return done(null, user);
+          // Formatar usuário para compatibilidade com interface User
+          const formattedUser = {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            displayName: user.displayName,
+            role: user.role,
+            roleId: user.roleId || 1,
+            dataKey: user.dataKey,
+            channels: Array.isArray(user.channels) ? user.channels : [],
+            macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
+            teamId: user.teamId,
+            team: user.team
+          };
+          return done(null, formattedUser);
         } catch (error) {
           console.error('🚨 Erro na autenticação:', error);
           return done(error);
@@ -147,8 +161,12 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await storage.getSystemUser(parseInt(id));
+      if (!user) {
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
+      console.error('❌ Erro na deserialização do usuário:', error);
       done(error);
     }
   });
