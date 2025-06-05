@@ -1,11 +1,8 @@
 import { useState, useCallback } from 'react';
-import { useModalState } from '@/hooks/useModalState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
-import { Textarea } from '@/shared/ui/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/ui/table';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -28,8 +25,7 @@ import {
   Trash, 
   Mail, 
   Building2,
-  Upload,
-  Download
+  Upload
 } from 'lucide-react';
 
 const getRoleBadgeStyle = (role: string) => {
@@ -90,9 +86,14 @@ export const UsersTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const userModal = useModalState(false);
-  const editModal = useModalState(false);
-  const importModal = useModalState(false);
+  
+  // Estado robusto para modais
+  const [modalState, setModalState] = useState({
+    userDialog: false,
+    editDialog: false,
+    importDialog: false
+  });
+  
   const [editingUser, setEditingUser] = useState<any>(null);
   const [importData, setImportData] = useState('');
   const [formData, setFormData] = useState({
@@ -104,21 +105,24 @@ export const UsersTab = () => {
     team: ''
   });
 
-  const handleOpenUserDialog = useCallback(() => {
-    userModal.open();
-  }, [userModal]);
+  // Funções robustas para controle de modais
+  const openModal = useCallback((modalName: keyof typeof modalState) => {
+    setModalState(prev => ({ ...prev, [modalName]: true }));
+  }, []);
 
-  const handleCloseUserDialog = useCallback(() => {
-    userModal.close();
-    setFormData({
-      name: '',
-      email: '',
-      username: '',
-      password: '',
-      role: '',
-      team: ''
-    });
-  }, [userModal]);
+  const closeModal = useCallback((modalName: keyof typeof modalState) => {
+    setModalState(prev => ({ ...prev, [modalName]: false }));
+    if (modalName === 'userDialog') {
+      setFormData({
+        name: '',
+        email: '',
+        username: '',
+        password: '',
+        role: '',
+        team: ''
+      });
+    }
+  }, []);
 
   const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -149,7 +153,7 @@ export const UsersTab = () => {
       }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-      handleCloseUserDialog();
+      closeModal('userDialog');
     }
   });
 
@@ -230,7 +234,7 @@ export const UsersTab = () => {
             <UserCheck className="h-8 w-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground">Usuários Ativos</p>
-              <p className="text-2xl font-bold">{users.filter(u => u.isActive).length}</p>
+              <p className="text-2xl font-bold">{users.filter((u: any) => u.isActive).length}</p>
             </div>
           </CardContent>
         </Card>
@@ -264,11 +268,11 @@ export const UsersTab = () => {
               <CardTitle>Lista de Usuários</CardTitle>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => importModal.open()}>
+              <Button variant="outline" onClick={() => openModal('importDialog')}>
                 <Upload className="h-4 w-4 mr-2" />
                 Importar Usuários
               </Button>
-              <Button onClick={handleOpenUserDialog}>
+              <Button onClick={() => openModal('userDialog')}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Usuário
               </Button>
@@ -384,7 +388,7 @@ export const UsersTab = () => {
       </Card>
 
       {/* Modal de Criação de Usuário */}
-      <Dialog open={userModal.isOpen} onOpenChange={userModal.handleOpenChange}>
+      <Dialog open={modalState.userDialog} onOpenChange={(open) => !open && closeModal('userDialog')}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Usuário</DialogTitle>
@@ -484,7 +488,7 @@ export const UsersTab = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={handleCloseUserDialog}>
+            <Button variant="outline" onClick={() => closeModal('userDialog')}>
               Cancelar
             </Button>
             <Button onClick={handleCreateUser}>
