@@ -54,6 +54,22 @@ export const TeamsTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Funções para controlar modais de forma robusta
+  const handleOpenTeamDialog = () => {
+    setShowTeamDialog(true);
+  };
+
+  const handleCloseTeamDialog = () => {
+    setShowTeamDialog(false);
+    setNewTeamForm({
+      name: '',
+      description: '',
+      macrosetor: '',
+      color: '',
+      isActive: true
+    });
+  };
+
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
     queryKey: ['/api/teams'],
@@ -249,7 +265,7 @@ export const TeamsTab = () => {
           </p>
         </div>
         <Button 
-          onClick={() => setShowTeamDialog(true)}
+          onClick={handleOpenTeamDialog}
           className="z-10 relative"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -332,7 +348,7 @@ export const TeamsTab = () => {
       )}
 
       {/* Modal de Criação de Equipe */}
-      <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
+      <Dialog open={showTeamDialog} onOpenChange={handleCloseTeamDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Criar Nova Equipe</DialogTitle>

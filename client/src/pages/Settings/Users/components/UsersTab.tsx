@@ -512,7 +512,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                 <Upload className="h-4 w-4 mr-2" />
                 Importar Usuários
               </Button>
-              <Button onClick={() => setShowUserDialog(true)}>
+              <Button onClick={handleOpenUserDialog}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Usuário
               </Button>
@@ -631,7 +631,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
       </Card>
 
       {/* Modal de Criação de Usuário */}
-      <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+      <Dialog open={showUserDialog} onOpenChange={handleCloseUserDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Usuário</DialogTitle>
@@ -734,7 +734,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUserDialog(false)}>
+            <Button variant="outline" onClick={handleCloseUserDialog}>
               Cancelar
             </Button>
             <Button onClick={handleCreateUser}>

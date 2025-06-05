@@ -46,6 +46,16 @@ export const RolesTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Funções para controlar modais de forma robusta
+  const handleOpenCreateDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setIsDialogOpen(false);
+    form.reset();
+  };
+
   // Fetch roles from database
   const { data: roles = [], isLoading } = useQuery({
     queryKey: ['/api/roles'],
@@ -112,13 +122,12 @@ export const RolesTab = () => {
             Configure as funções e permissões para diferentes tipos de usuários
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Função
-            </Button>
-          </DialogTrigger>
+        <Button onClick={handleOpenCreateDialog}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Função
+        </Button>
+        
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseCreateDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Nova Função</DialogTitle>
@@ -155,7 +164,7 @@ export const RolesTab = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => setIsDialogOpen(false)}
+                    onClick={handleCloseCreateDialog}
                   >
                     Cancelar
                   </Button>
