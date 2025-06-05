@@ -2514,11 +2514,11 @@ export class DatabaseStorage implements IStorage {
 
             if (hasGeneralContext) {
               console.log(`✅ Curso detectado por contexto geral: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
-              return {
+              return [{
                 courseName: courseData.courseName,
                 courseType: courseData.courseType,
                 courseKey: courseKey
-              };
+              }];
             }
           }
         }
@@ -2530,11 +2530,11 @@ export class DatabaseStorage implements IStorage {
     const turmaMatch = messageContent.match(turmaRegex);
     if (turmaMatch) {
       console.log(`📅 Código de turma detectado: ${turmaMatch[0]}`);
-      return {
+      return [{
         courseName: `Turma ${turmaMatch[0]}`,
         courseType: 'Código de Turma',
         courseKey: 'turma_codigo'
-      };
+      }];
     }
 
     console.log(`❌ Nenhum curso detectado na mensagem`);
@@ -3285,18 +3285,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
-    const result = await db.select({
-      id: systemUsers.id,
-      username: systemUsers.username,
-      displayName: systemUsers.displayName,
-      email: systemUsers.email,
-      isOnline: systemUsers.isOnline,
-      lastLoginAt: systemUsers.lastLoginAt,
-      createdAt: systemUsers.createdAt,
-      updatedAt: systemUsers.updatedAt
-    })
-      .from(userTeams)
-      .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
+    const result = await db.select()
+      .from(systemUsers)
+      .innerJoin(userTeams, eq(userTeams.userId, systemUsers.id))
       .where(and(
         eq(userTeams.teamId, teamId),
         eq(userTeams.isActive, true),
@@ -3305,22 +3296,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(systemUsers.lastLoginAt)
       .limit(1);
     
-    return result[0];
+    return result[0]?.system_users;
   }
 
   async getUserTeams(userId: number): Promise<Team[]> {
-    const result = await db.select({
-      id: teams.id,
-      name: teams.name,
-      description: teams.description,
-      color: teams.color,
-      macrosetor: teams.macrosetor,
-      isActive: teams.isActive,
-      createdAt: teams.createdAt,
-      updatedAt: teams.updatedAt
-    })
-      .from(userTeams)
-      .innerJoin(teams, eq(userTeams.teamId, teams.id))
+    const result = await db.select()
+      .from(teams)
+      .innerJoin(userTeams, eq(userTeams.teamId, teams.id))
       .where(and(
         eq(userTeams.userId, userId),
         eq(userTeams.isActive, true),
