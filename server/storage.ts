@@ -1136,7 +1136,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // If not found, create new contact with lead classification
-    const leadClassification = this.classifyLead(contactData.canalOrigem);
+    const leadClassification = this.classifyLead(contactData.canalOrigem ?? undefined);
     
     const [newContact] = await db
       .insert(contacts)
@@ -2441,11 +2441,11 @@ export class DatabaseStorage implements IStorage {
 
             if (hasSpecificContext) {
               console.log(`✅ Curso detectado por contexto específico: ${courseData.courseName} (${courseData.courseType}) - palavra-chave: "${keyword}"`);
-              return {
+              return [{
                 courseName: courseData.courseName,
                 courseType: courseData.courseType,
                 courseKey: courseKey
-              };
+              }];
             }
           }
         }
@@ -2479,12 +2479,11 @@ export class DatabaseStorage implements IStorage {
 
         if (hasEducationalContext) {
           console.log(`✅ Disciplina detectada sem modalidade específica: ${subjectName} - Para completar manualmente`);
-          return {
+          return [{
             courseName: subjectName,
             courseType: 'A definir',
-            courseKey: `disciplina_${subject}`,
-            confidence: 0.7
-          };
+            courseKey: `disciplina_${subject}`
+          }];
         }
       }
     }
