@@ -452,7 +452,7 @@ export type ConversationWithContact = Conversation & {
 };
 
 export type ContactWithTags = Contact & {
-  tags: ContactTag[];
+  contactTags: ContactTag[];
 };
 
 export type QuickReply = typeof quickReplies.$inferSelect;

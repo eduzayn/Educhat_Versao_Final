@@ -203,8 +203,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(systemUsers).where(eq(systemUsers.email, email));
-    return user;
+    const [systemUser] = await db.select().from(systemUsers).where(eq(systemUsers.email, email));
+    if (!systemUser) return undefined;
+    
+    // Convert SystemUser to User type for auth compatibility
+    return {
+      id: systemUser.id.toString(),
+      email: systemUser.email,
+      password: systemUser.password,
+      firstName: systemUser.displayName.split(' ')[0] || systemUser.username,
+      lastName: systemUser.displayName.split(' ').slice(1).join(' ') || '',
+      profileImageUrl: systemUser.avatar || null,
+      role: systemUser.role,
+      createdAt: systemUser.createdAt,
+      updatedAt: systemUser.updatedAt,
+    };
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
@@ -244,8 +257,8 @@ export class DatabaseStorage implements IStorage {
     const contact = await this.getContact(id);
     if (!contact) return undefined;
 
-    const tags = await this.getContactTags(id);
-    return { ...contact, tags };
+    const contactTags = await this.getContactTags(id);
+    return { ...contact, contactTags };
   }
 
   async createContact(contact: InsertContact): Promise<Contact> {

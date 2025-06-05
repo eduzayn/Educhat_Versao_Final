@@ -143,7 +143,7 @@ export function setupAuth(app: Express) {
             displayName: user.displayName,
             role: user.role,
             roleId: user.roleId || 1,
-            dataKey: user.dataKey,
+            dataKey: user.dataKey || undefined,
             channels: Array.isArray(user.channels) ? user.channels : [],
             macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
             teamId: user.teamId,
@@ -166,7 +166,21 @@ export function setupAuth(app: Express) {
       if (!user) {
         return done(null, false);
       }
-      done(null, user);
+      
+      const formattedUser = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+        roleId: user.roleId || 1,
+        dataKey: user.dataKey || undefined,
+        channels: Array.isArray(user.channels) ? user.channels : [],
+        macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
+        teamId: user.teamId,
+        team: user.team
+      };
+      done(null, formattedUser);
     } catch (error) {
       console.error('❌ Erro na deserialização do usuário:', error);
       done(error);
