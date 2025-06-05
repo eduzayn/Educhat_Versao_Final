@@ -246,6 +246,8 @@ export const deals = pgTable("deals", {
   expectedCloseDate: timestamp("expected_close_date"),
   actualCloseDate: timestamp("actual_close_date"),
   owner: varchar("owner", { length: 100 }),
+  assignedUserId: integer("assigned_user_id").references(() => systemUsers.id),
+  createdByUserId: integer("created_by_user_id").references(() => systemUsers.id),
   canalOrigem: varchar("canal_origem", { length: 50 }), // whatsapp, instagram, etc
   tags: jsonb("tags").default([]), // array de strings
   notes: text("notes"),

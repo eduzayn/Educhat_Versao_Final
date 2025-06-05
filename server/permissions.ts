@@ -16,7 +16,7 @@ export interface AuthenticatedRequest extends Request {
     macrosetores: string[];
     teamId?: number | null;
     team?: string | null;
-  };
+  } | undefined;
 }
 
 export class PermissionService {

@@ -751,13 +751,16 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser | null> {
+  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
     const result = await db
       .update(systemUsers)
       .set({ ...user, updatedAt: new Date() })
       .where(eq(systemUsers.id, id))
       .returning();
-    return result[0] || null;
+    if (!result[0]) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    return result[0];
   }
 
   async deleteSystemUser(id: number): Promise<void> {
@@ -2269,7 +2272,7 @@ export class DatabaseStorage implements IStorage {
       courseType: 'Pós-graduação',
       courseName: 'Psicologia Clínica'
     },
-    'terapia_familiar': {
+    'terapia_familiar_avancada': {
       variations: ['terapia familiar', 'terapia de casal', 'aconselhamento familiar', 'psicoterapia familiar'],
       courseType: 'Pós-graduação',
       courseName: 'Terapia Familiar e de Casal'
