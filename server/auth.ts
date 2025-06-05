@@ -177,8 +177,8 @@ export function setupAuth(app: Express) {
         dataKey: user.dataKey || undefined,
         channels: Array.isArray(user.channels) ? user.channels : [],
         macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
-        teamId: user.teamId,
-        team: user.team
+        teamId: user.teamId ?? undefined,
+        team: user.team ?? undefined
       };
       done(null, formattedUser);
     } catch (error) {

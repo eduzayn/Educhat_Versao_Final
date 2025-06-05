@@ -417,8 +417,22 @@ export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeam
   createdAt: true,
 });
 
+// Custom User interface for authentication compatibility
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  displayName: string;
+  role: string;
+  roleId: number;
+  dataKey?: string;
+  channels: string[];
+  macrosetores: string[];
+  teamId?: number;
+  team?: string;
+}
+
 // Types
-export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
