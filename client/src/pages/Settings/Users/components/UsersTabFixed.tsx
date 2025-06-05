@@ -31,73 +31,6 @@ import {
   Download
 } from 'lucide-react';
 
-// Dados mockados para demonstração
-const mockUsers = [
-  {
-    id: 1,
-    username: 'admin',
-    displayName: 'Administrador Sistema',
-    email: 'admin@educhat.com',
-    role: 'admin',
-    team: 'Administração',
-    status: 'active',
-    isOnline: true,
-    lastLoginAt: new Date('2025-06-03T02:00:00'),
-    avatar: '',
-    initials: 'AS',
-    isActive: true
-  },
-  {
-    id: 2,
-    username: 'manager1',
-    displayName: 'João Silva',
-    email: 'joao@educhat.com',
-    role: 'manager',
-    team: 'Vendas',
-    status: 'active',
-    isOnline: false,
-    lastLoginAt: new Date('2025-06-02T18:30:00'),
-    avatar: '',
-    initials: 'JS',
-    isActive: true
-  },
-  {
-    id: 3,
-    username: 'agent1',
-    displayName: 'Maria Santos',
-    email: 'maria@educhat.com',
-    role: 'agent',
-    team: 'Atendimento',
-    status: 'active',
-    isOnline: true,
-    lastLoginAt: new Date('2025-06-03T01:45:00'),
-    avatar: '',
-    initials: 'MS',
-    isActive: true
-  },
-  {
-    id: 4,
-    username: 'agent2',
-    displayName: 'Pedro Costa',
-    email: 'pedro@educhat.com',
-    role: 'agent',
-    team: 'Suporte',
-    status: 'inactive',
-    isOnline: false,
-    lastLoginAt: new Date('2025-05-30T14:20:00'),
-    avatar: '',
-    initials: 'PC',
-    isActive: false
-  }
-];
-
-const userStats = {
-  total: 24,
-  active: 18,
-  online: 8,
-  pending: 3
-};
-
 const getRoleBadgeStyle = (role: string) => {
   switch (role) {
     case 'admin':
@@ -170,7 +103,7 @@ export const UsersTab = () => {
     team: ''
   });
 
-  // Prevenir fechamento automático do modal usando useCallback
+  // Usar useCallback para prevenir re-renderizações
   const handleOpenUserDialog = useCallback(() => {
     setShowUserDialog(true);
   }, []);
@@ -187,7 +120,9 @@ export const UsersTab = () => {
     });
   }, []);
 
-
+  const handleInputChange = useCallback((field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
 
   // Fetch users from API
   const { data: users = [], isLoading } = useQuery({
@@ -214,193 +149,17 @@ export const UsersTab = () => {
       }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-      setShowUserDialog(false);
-      setFormData({
-        name: '',
-        email: '',
-        username: '',
-        password: '',
-        role: '',
-        team: ''
-      });
+      handleCloseUserDialog();
     }
   });
-
-  // Update user mutation
-  const updateUserMutation = useMutation({
-    mutationFn: ({ id, userData }: { id: number; userData: any }) => 
-      fetch(`/api/system-users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: userData.username,
-          displayName: userData.name,
-          email: userData.email,
-          role: userData.role,
-          team: userData.team,
-          isActive: userData.isActive
-        })
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-      setShowEditDialog(false);
-      setEditingUser(null);
-    }
-  });
-
-  // Delete user mutation
-  const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => 
-      fetch(`/api/system-users/${userId}`, {
-        method: 'DELETE'
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-    }
-  });
-
-  // Import users mutation
-  const importUsersMutation = useMutation({
-    mutationFn: (usersData: any[]) => 
-      fetch('/api/system-users/bulk-import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ users: usersData })
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-      setShowImportDialog(false);
-      setImportData('');
-    }
-  });
-
-
-
-  const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }, []);
 
   const handleCreateUser = useCallback(() => {
     if (!formData.name || !formData.email || !formData.username || !formData.password || !formData.role) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-
     createUserMutation.mutate(formData);
   }, [formData, createUserMutation]);
-
-  const handleEditUser = (user: any) => {
-    setEditingUser(user);
-    setFormData({
-      name: user.displayName,
-      email: user.email,
-      username: user.username,
-      password: '',
-      role: user.role,
-      team: user.team || ''
-    });
-    setShowEditDialog(true);
-  };
-
-  const handleImportUsers = () => {
-    try {
-      // Parse dos dados da importação (formato JSON ou texto estruturado)
-      const lines = importData.trim().split('\n').filter(line => line.trim());
-      const usersToImport = [];
-
-      for (const line of lines) {
-        // Se for JSON
-        if (line.trim().startsWith('{')) {
-          try {
-            const userData = JSON.parse(line);
-            usersToImport.push(userData);
-          } catch (e) {
-            console.error('Erro ao parsear JSON:', e);
-          }
-        } else {
-          // Se for formato CSV/TSV (nome;email;função;equipe)
-          const parts = line.split(';').map(p => p.trim());
-          if (parts.length >= 3) {
-            const [name, email, role, team = ''] = parts;
-            const username = email.split('@')[0]; // Gerar username do email
-            const password = 'senha123'; // Senha padrão
-            
-            usersToImport.push({
-              displayName: name,
-              email,
-              username,
-              password,
-              role: role.toLowerCase(),
-              team,
-              isActive: true
-            });
-          }
-        }
-      }
-
-      if (usersToImport.length > 0) {
-        importUsersMutation.mutate(usersToImport);
-      } else {
-        alert('Nenhum usuário válido encontrado nos dados de importação');
-      }
-    } catch (error) {
-      console.error('Erro na importação:', error);
-      alert('Erro ao processar dados de importação');
-    }
-  };
-
-  const generateSampleData = () => {
-    const sampleUsers = `Ana Silva;ana.silva@educhat.com;atendente;Atendimento
-João Santos;joao.santos@educhat.com;gerente;Vendas
-Maria Costa;maria.costa@educhat.com;atendente;Suporte
-Pedro Oliveira;pedro.oliveira@educhat.com;supervisor;Tutoria
-Carla Ferreira;carla.ferreira@educhat.com;atendente;Secretaria
-Lucas Almeida;lucas.almeida@educhat.com;gerente;Financeiro
-Camila Rodrigues;camila.rodrigues@educhat.com;atendente;Cobrança
-Rafael Lima;rafael.lima@educhat.com;supervisor;Comercial
-Juliana Martins;juliana.martins@educhat.com;atendente;Atendimento
-Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
-    setImportData(sampleUsers);
-  };
-
-  const handleUpdateUser = () => {
-    if (!editingUser || !formData.name || !formData.email || !formData.username || !formData.role) {
-      alert('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    updateUserMutation.mutate({
-      id: editingUser.id,
-      userData: {
-        ...formData,
-        isActive: editingUser.isActive
-      }
-    });
-  };
-
-  const handleDeleteUser = (userId: number) => {
-    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
-      deleteUserMutation.mutate(userId);
-    }
-  };
-
-  const handleToggleUserStatus = (user: any) => {
-    updateUserMutation.mutate({
-      id: user.id,
-      userData: {
-        name: user.displayName,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        team: user.team || '',
-        isActive: !user.isActive
-      }
-    });
-  };
 
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -450,67 +209,60 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
             <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="active">Ativo</SelectItem>
             <SelectItem value="inactive">Inativo</SelectItem>
-            <SelectItem value="pending">Pendente</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      
-      {/* Estatísticas */}
+
+      {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Usuários</p>
-                <p className="text-2xl font-bold">{userStats.total}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-500" />
+          <CardContent className="flex items-center p-6">
+            <Users className="h-8 w-8 text-blue-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-muted-foreground">Total de Usuários</p>
+              <p className="text-2xl font-bold">{users.length}</p>
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Usuários Ativos</p>
-                <p className="text-2xl font-bold text-green-600">{userStats.active}</p>
-              </div>
-              <UserCheck className="h-8 w-8 text-green-500" />
+          <CardContent className="flex items-center p-6">
+            <UserCheck className="h-8 w-8 text-green-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-muted-foreground">Usuários Ativos</p>
+              <p className="text-2xl font-bold">{users.filter(u => u.isActive).length}</p>
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Online Agora</p>
-                <p className="text-2xl font-bold text-blue-600">{userStats.online}</p>
-              </div>
-              <Activity className="h-8 w-8 text-blue-500" />
+          <CardContent className="flex items-center p-6">
+            <Activity className="h-8 w-8 text-orange-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-muted-foreground">Online Agora</p>
+              <p className="text-2xl font-bold">0</p>
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pendentes</p>
-                <p className="text-2xl font-bold text-orange-600">{userStats.pending}</p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-500" />
+          <CardContent className="flex items-center p-6">
+            <Clock className="h-8 w-8 text-purple-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+              <p className="text-2xl font-bold">0</p>
             </div>
           </CardContent>
         </Card>
       </div>
-      
-      {/* Lista de Usuários */}
+
+      {/* Tabela de Usuários */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Lista de Usuários</CardTitle>
+            <div>
+              <CardTitle>Lista de Usuários</CardTitle>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowImportDialog(true)}>
                 <Upload className="h-4 w-4 mr-2" />
@@ -552,11 +304,8 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                         <div className="relative">
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={user.avatar} />
-                            <AvatarFallback>{user.initials}</AvatarFallback>
+                            <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
                           </Avatar>
-                          {user.isOnline && (
-                            <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 border-2 border-white rounded-full" />
-                          )}
                         </div>
                         <div>
                           <p className="font-medium">{user.displayName}</p>
@@ -587,8 +336,8 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                     
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${getStatusColor(user.status)}`} />
-                        <span className="capitalize">{user.status}</span>
+                        <div className={`h-2 w-2 rounded-full ${getStatusColor(user.isActive ? 'active' : 'inactive')}`} />
+                        <span className="capitalize">{user.isActive ? 'Ativo' : 'Inativo'}</span>
                       </div>
                     </TableCell>
                     
@@ -606,7 +355,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                          <DropdownMenuItem>
                             <Edit className="h-4 w-4 mr-2" />
                             Editar usuário
                           </DropdownMenuItem>
@@ -614,12 +363,12 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                             <Key className="h-4 w-4 mr-2" />
                             Resetar senha
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleUserStatus(user)}>
+                          <DropdownMenuItem>
                             <UserX className="h-4 w-4 mr-2" />
                             {user.isActive ? 'Desativar' : 'Ativar'}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(user.id)}>
+                          <DropdownMenuItem className="text-destructive">
                             <Trash className="h-4 w-4 mr-2" />
                             Excluir usuário
                           </DropdownMenuItem>
@@ -729,9 +478,6 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                   <SelectItem value="suporte">Equipe Suporte</SelectItem>
                   <SelectItem value="financeiro">Equipe Financeiro</SelectItem>
                   <SelectItem value="secretaria">Equipe Secretaria</SelectItem>
-                  <SelectItem value="secretaria_pos">Equipe Secretaria Pós</SelectItem>
-                  <SelectItem value="tutoria">Equipe Tutoria</SelectItem>
-                  <SelectItem value="cobranca">Equipe Cobrança</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -743,179 +489,6 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
             </Button>
             <Button onClick={handleCreateUser}>
               Criar Usuário
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
-            <DialogDescription>
-              Edite as informações do usuário. A senha é opcional.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-name" className="text-right">
-                Nome
-              </Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-username" className="text-right">
-                Usuário
-              </Label>
-              <Input
-                id="edit-username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-password" className="text-right">
-                Nova Senha
-              </Label>
-              <Input
-                id="edit-password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                className="col-span-3"
-                placeholder="Deixe em branco para manter atual"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-role" className="text-right">
-                Função
-              </Label>
-              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione uma função" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="manager">Gerente</SelectItem>
-                  <SelectItem value="agent">Agente</SelectItem>
-                  <SelectItem value="viewer">Visualizador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-team" className="text-right">
-                Equipe
-              </Label>
-              <Select value={formData.team} onValueChange={(value) => handleInputChange('team', value)}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione uma equipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="comercial">Equipe Comercial</SelectItem>
-                  <SelectItem value="suporte">Equipe Suporte</SelectItem>
-                  <SelectItem value="financeiro">Equipe Financeiro</SelectItem>
-                  <SelectItem value="secretaria">Equipe Secretaria</SelectItem>
-                  <SelectItem value="secretaria_pos">Equipe Secretaria Pós</SelectItem>
-                  <SelectItem value="tutoria">Equipe Tutoria</SelectItem>
-                  <SelectItem value="cobranca">Equipe Cobrança</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleUpdateUser} disabled={updateUserMutation.isPending}>
-              {updateUserMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo de Importação de Usuários */}
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Importar Usuários em Lote</DialogTitle>
-            <DialogDescription>
-              Importe múltiplos usuários de uma vez usando o formato: Nome;Email;Função;Equipe (um por linha)
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="import-data">Dados dos Usuários</Label>
-              <Textarea
-                id="import-data"
-                placeholder="Ana Silva;ana.silva@educhat.com;atendente;Atendimento
-João Santos;joao.santos@educhat.com;gerente;Vendas
-Maria Costa;maria.costa@educhat.com;atendente;Suporte"
-                value={importData}
-                onChange={(e) => setImportData(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
-              />
-            </div>
-            
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Formato aceito:</h4>
-              <p className="text-sm text-muted-foreground mb-2">
-                Nome Completo;email@dominio.com;função;equipe
-              </p>
-              <div className="text-xs space-y-1">
-                <p><strong>Funções válidas:</strong> admin, gerente, atendente, supervisor</p>
-                <p><strong>Equipes válidas:</strong> Atendimento, Vendas, Suporte, Tutoria, Secretaria, Financeiro, Cobrança, Comercial, Operações</p>
-                <p><strong>Senha padrão:</strong> senha123 (usuários devem alterar no primeiro acesso)</p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={generateSampleData}
-                className="flex-1"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Carregar Exemplo
-              </Button>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleImportUsers}
-              disabled={!importData.trim() || importUsersMutation.isPending}
-            >
-              {importUsersMutation.isPending ? 'Importando...' : 'Importar Usuários'}
             </Button>
           </DialogFooter>
         </DialogContent>
