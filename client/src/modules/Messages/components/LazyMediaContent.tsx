@@ -58,7 +58,22 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
                 alt="Imagem enviada"
                 className="rounded-lg max-w-full h-auto cursor-pointer"
                 onClick={() => window.open(content, '_blank')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+                onLoad={() => secureLog.image('Imagem carregada', messageId)}
               />
+              <div 
+                className="hidden items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                style={{ display: 'none' }}
+              >
+                <Image className="w-5 h-5" />
+                <span className="text-sm">Imagem indisponível</span>
+                <span className="text-xs text-gray-500">Link expirado</span>
+              </div>
             </div>
           );
         }

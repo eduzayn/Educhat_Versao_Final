@@ -54,25 +54,7 @@ export function useWebSocket() {
       }
     });
 
-    // Handle new messages
-    socketRef.current.on('new_message', (data) => {
-      if (data.message && data.conversationId) {
-        console.log('📨 Nova mensagem via Socket.IO:', {
-          conversationId: data.conversationId,
-          messageId: data.message.id,
-          content: data.message.content,
-          isFromContact: data.message.isFromContact
-        });
-        
-        addMessage(data.conversationId, data.message);
-        updateConversationLastMessage(data.conversationId, data.message);
-        
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
-        });
-      }
-    });
+    // All events are now handled via broadcast_message
 
     // Handle typing indicators
     socketRef.current.on('typing', (data) => {
@@ -83,6 +65,19 @@ export function useWebSocket() {
 
     // Handle broadcast messages for other events
     socketRef.current.on('broadcast_message', (data) => {
+      // Handle new_message within broadcast_message
+      if (data.type === 'new_message' && data.message && data.conversationId) {
+        console.log('📨 Nova mensagem via broadcast:', data);
+        addMessage(data.conversationId, data.message);
+        updateConversationLastMessage(data.conversationId, data.message);
+        
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+        });
+        return;
+      }
+
       switch (data.type) {
         case 'status_update':
           if (data.contactId && data.isOnline !== undefined) {
@@ -151,7 +146,7 @@ export function useWebSocket() {
           }
           break;
         default:
-          console.log('📨 Mensagem Socket.IO não reconhecida:', data);
+          console.log('📨 Evento Socket.IO não mapeado:', data.type);
       }
     });
 
