@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useRef } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, StickyNote } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, StickyNote, EyeOff, Eye } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
 import { format } from "date-fns";
@@ -7,6 +7,8 @@ import type { Message, Contact } from "@shared/schema";
 import { AudioMessage } from "./AudioMessage";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { secureLog } from "@/lib/secureLogger";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/shared/lib/hooks/use-toast";
 
 interface MessageBubbleProps {
   message: Message;
@@ -28,6 +30,39 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   conversationId,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
+  const { toast } = useToast();
+  const [isHiding, setIsHiding] = useState(false);
+
+  // Função para ocultar mensagem localmente
+  const handleHideMessage = async () => {
+    try {
+      setIsHiding(true);
+      await apiRequest(`/api/messages/${message.id}/hide`, {
+        method: 'POST',
+      });
+      
+      // Invalidar cache das mensagens para atualizar a lista
+      if (conversationId) {
+        await queryClient.invalidateQueries({
+          queryKey: ['/api/conversations', conversationId, 'messages']
+        });
+      }
+      
+      toast({
+        title: "Mensagem ocultada",
+        description: "A mensagem foi ocultada apenas para você.",
+      });
+    } catch (error) {
+      console.error('Erro ao ocultar mensagem:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível ocultar a mensagem.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsHiding(false);
+    }
+  };
 
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
@@ -318,6 +353,23 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
           <span title={new Date(messageTimestamp).toLocaleString()}>
             {messageTime}
           </span>
+          {/* Botão de ocultar mensagem - apenas para mensagens recebidas */}
+          {isFromContact && !message.isInternalNote && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 w-5 p-0 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+              onClick={handleHideMessage}
+              disabled={isHiding}
+              title="Ocultar mensagem apenas para mim"
+            >
+              {isHiding ? (
+                <div className="animate-spin w-3 h-3 border border-gray-400 border-t-transparent rounded-full" />
+              ) : (
+                <EyeOff className="w-3 h-3" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -580,6 +580,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, id));
   }
 
+  async hideMessageForUser(id: number, isHidden: boolean): Promise<void> {
+    await db
+      .update(messages)
+      .set({ isHiddenForUser: isHidden })
+      .where(eq(messages.id, id));
+  }
+
   async markMessageAsDeleted(id: number): Promise<void> {
     await db
       .update(messages)
