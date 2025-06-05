@@ -112,13 +112,14 @@ export const TeamsTab = () => {
   // Mutação para adicionar membro à equipe
   const addMemberMutation = useMutation({
     mutationFn: async ({ userId, teamId }: { userId: number; teamId: number }) => {
-      const response = await fetch('/api/user-teams', {
+      const response = await fetch(`/api/teams/${teamId}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, teamId })
+        body: JSON.stringify({ userId })
       });
       if (!response.ok) {
-        throw new Error('Erro ao adicionar membro');
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao adicionar membro');
       }
       return response.json();
     },
