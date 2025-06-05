@@ -206,16 +206,9 @@ export function registerAdminRoutes(app: Express) {
     updateLastActivity(),
     requirePermission('permissao:gerenciar'), 
     async (req: AuthenticatedRequest, res: Response) => {
-      console.log(`🔧 PUT /api/admin/roles/${req.params.id}/permissions chamado`);
-      console.log('📥 Body recebido:', req.body);
-      
       try {
         const roleId = parseInt(req.params.id);
         const { permissionIds, permissionNames } = req.body;
-
-        console.log('🔑 Role ID:', roleId);
-        console.log('📋 Permission IDs:', permissionIds);
-        console.log('📋 Permission Names:', permissionNames);
 
         // Suporte para IDs ou nomes de permissões
         let finalPermissionIds: number[] = [];
@@ -228,12 +221,9 @@ export function registerAdminRoutes(app: Express) {
             .where(inArray(permissions.name, permissionNames));
           
           finalPermissionIds = permissionsData.map((p: any) => p.id);
-          console.log('🔄 Converted names to IDs:', finalPermissionIds);
         } else if (permissionIds && Array.isArray(permissionIds)) {
           finalPermissionIds = permissionIds;
-          console.log('✅ Using provided IDs:', finalPermissionIds);
         } else {
-          console.log('❌ No valid permissions provided');
           return res.status(400).json({ message: 'Lista de permissões é obrigatória' });
         }
 
@@ -241,7 +231,6 @@ export function registerAdminRoutes(app: Express) {
         await db
           .delete(rolePermissions)
           .where(eq(rolePermissions.roleId, roleId));
-        console.log('🗑️ Removed existing permissions for role', roleId);
 
         // Adicionar novas permissões
         if (finalPermissionIds.length > 0) {
@@ -251,7 +240,6 @@ export function registerAdminRoutes(app: Express) {
           }));
 
           await db.insert(rolePermissions).values(rolePermissionValues);
-          console.log('✅ Added new permissions:', rolePermissionValues);
         }
 
         await PermissionService.logAction({
@@ -263,10 +251,9 @@ export function registerAdminRoutes(app: Express) {
           result: 'success'
         });
 
-        console.log('✅ Role permissions updated successfully');
         res.json({ message: 'Permissões atualizadas com sucesso' });
       } catch (error) {
-        console.error('❌ Erro ao atualizar permissões da função:', error);
+        console.error('Erro ao atualizar permissões da função:', error);
         res.status(500).json({ message: 'Erro interno do servidor' });
       }
     }

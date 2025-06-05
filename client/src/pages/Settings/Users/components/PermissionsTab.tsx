@@ -94,16 +94,16 @@ export const PermissionsTab = () => {
     enabled: !!selectedRoleId
   });
 
-  // Update selected permissions when role changes
+  // Update selected permissions when role changes (only when role changes, not when permissions are updated)
   useEffect(() => {
     if (selectedRoleId) {
       setSelectedPermissions([]);
     }
   }, [selectedRoleId]);
 
-  // Load permissions when data is available (only when role permissions change)
+  // Load initial permissions when rolePermissions data is fetched
   useEffect(() => {
-    if (rolePermissions.length > 0) {
+    if (rolePermissions.length > 0 && selectedPermissions.length === 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
       setSelectedPermissions(permissionNames);
     }
