@@ -107,11 +107,11 @@ export const PermissionsTab = () => {
   useEffect(() => {
     if (rolePermissions.length > 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
+      // Simple comparison to prevent unnecessary updates
       setSelectedPermissions(prev => {
-        // Only update if different to prevent loops
-        const newSet = new Set(permissionNames);
-        const prevSet = new Set(prev);
-        if (newSet.size !== prevSet.size || [...newSet].some(p => !prevSet.has(p))) {
+        const sortedPrev = [...prev].sort();
+        const sortedNew = [...permissionNames].sort();
+        if (JSON.stringify(sortedPrev) !== JSON.stringify(sortedNew)) {
           return permissionNames;
         }
         return prev;
