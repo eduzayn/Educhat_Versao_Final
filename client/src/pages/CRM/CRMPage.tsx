@@ -8,11 +8,22 @@ import {
   Settings,
   Plus,
   ArrowLeft,
-  TrendingUp
+  TrendingUp,
+  UserPlus,
+  Phone,
+  Mail,
+  MessageSquare
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Button } from '@/shared/ui/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/shared/ui/ui/dropdown-menu';
 import { Link } from "wouter";
 
 import {
@@ -110,9 +121,45 @@ function CRMHeader() {
           <Button variant="outline">
             <Settings className="h-4 w-4 mr-2" /> Configurações
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" /> Ação Rápida
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" /> Ação Rápida
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => window.open('/inbox', '_blank')}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Novo Atendimento
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Adicionar Contato
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Target className="h-4 w-4 mr-2" />
+                Criar Negócio
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Phone className="h-4 w-4 mr-2" />
+                Ligar para Contato
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Mail className="h-4 w-4 mr-2" />
+                Enviar Email
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Calendar className="h-4 w-4 mr-2" />
+                Agendar Atividade
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <FileText className="h-4 w-4 mr-2" />
+                Gerar Relatório
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
