@@ -4,12 +4,26 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
-import { type User } from "@shared/schema";
+import { db } from "./db";
+import { systemUsers } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
+import { PermissionService } from "./permissions";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User {
+      id: number;
+      email: string;
+      username: string;
+      displayName: string;
+      role: string;
+      roleId: number;
+      dataKey?: string;
+      channels: string[];
+      macrosetores: string[];
+      teamId?: number;
+      team?: string;
+    }
   }
 }
 
@@ -68,9 +82,33 @@ export function setupAuth(app: Express) {
         try {
           console.log('🔐 Tentativa de login:', { email: email, hasPassword: !!password });
           
-          // Buscar na tabela system_users ao invés de users
-          const systemUsers = await storage.getSystemUsers();
-          const user = systemUsers.find(u => u.email === email);
+          // Buscar na tabela system_users diretamente
+          const userResult = await db
+            .select({
+              id: systemUsers.id,
+              email: systemUsers.email,
+              username: systemUsers.username,
+              displayName: systemUsers.displayName,
+              password: systemUsers.password,
+              role: systemUsers.role,
+              roleId: systemUsers.roleId,
+              dataKey: systemUsers.dataKey,
+              channels: systemUsers.channels,
+              macrosetores: systemUsers.macrosetores,
+              teamId: systemUsers.teamId,
+              team: systemUsers.team,
+              isActive: systemUsers.isActive,
+              status: systemUsers.status
+            })
+            .from(systemUsers)
+            .where(and(
+              eq(systemUsers.email, email),
+              eq(systemUsers.isActive, true),
+              eq(systemUsers.status, 'active')
+            ))
+            .limit(1);
+
+          const user = userResult[0];
           
           console.log('👤 Usuário encontrado:', !!user);
           

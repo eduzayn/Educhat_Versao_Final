@@ -11,6 +11,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
   const { setupAuth } = await import("./auth");
   setupAuth(app);
+  
+  // Registrar rotas administrativas
+  const { registerAdminRoutes } = await import("./admin-routes");
+  registerAdminRoutes(app);
 
   // Configurar multer para upload de arquivos
   const upload = multer({ 
