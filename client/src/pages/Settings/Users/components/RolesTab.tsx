@@ -40,6 +40,9 @@ const getPermissionName = (permission: string) => {
 
 export const RolesTab = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -88,6 +91,16 @@ export const RolesTab = () => {
 
   const onSubmit = (values: z.infer<typeof roleFormSchema>) => {
     createRoleMutation.mutate(values);
+  };
+
+  const handleViewRole = (role: any) => {
+    setSelectedRole(role);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditRole = (role: any) => {
+    setSelectedRole(role);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -229,11 +242,21 @@ export const RolesTab = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleViewRole(role)}
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       Visualizar
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleEditRole(role)}
+                    >
                       <Settings className="h-4 w-4 mr-2" />
                       Editar
                     </Button>
@@ -244,6 +267,66 @@ export const RolesTab = () => {
           ))}
         </div>
       )}
+
+      {/* Dialog de Visualização */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalhes da Função</DialogTitle>
+          </DialogHeader>
+          {selectedRole && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Nome:</label>
+                <p className="text-sm text-muted-foreground">{selectedRole.name}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Nome de Exibição:</label>
+                <p className="text-sm text-muted-foreground">{selectedRole.displayName}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status:</label>
+                <Badge variant={selectedRole.isActive ? "default" : "secondary"}>
+                  {selectedRole.isActive ? "Ativa" : "Inativa"}
+                </Badge>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Permissões:</label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedRole.permissions && selectedRole.permissions.length > 0 ? (
+                    selectedRole.permissions.map((permission: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {getPermissionName(permission)}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Nenhuma permissão definida</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Função</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Use a aba "Permissões" para configurar as permissões específicas desta função.
+            </p>
+            <div className="flex justify-end">
+              <Button onClick={() => setIsEditDialogOpen(false)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

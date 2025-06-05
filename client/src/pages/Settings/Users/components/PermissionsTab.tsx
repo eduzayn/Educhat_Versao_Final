@@ -186,11 +186,17 @@ export const PermissionsTab = () => {
   });
 
   const handlePermissionToggle = (permissionId: string) => {
-    setSelectedPermissions(prev => 
-      prev.includes(permissionId) 
+    console.log('Toggle permission:', permissionId);
+    console.log('Current permissions:', selectedPermissions);
+    
+    setSelectedPermissions(prev => {
+      const newPermissions = prev.includes(permissionId) 
         ? prev.filter(id => id !== permissionId)
-        : [...prev, permissionId]
-    );
+        : [...prev, permissionId];
+      
+      console.log('New permissions:', newPermissions);
+      return newPermissions;
+    });
   };
 
   const handleSavePermissions = () => {
