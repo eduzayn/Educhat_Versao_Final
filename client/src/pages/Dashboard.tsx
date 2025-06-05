@@ -51,7 +51,7 @@ export function Dashboard() {
       icon: BarChart3,
       description: 'Visão geral do sistema',
       route: '/',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'inbox',
@@ -60,7 +60,7 @@ export function Dashboard() {
       description: 'Conversas unificadas',
       badge: unreadData?.count ? unreadData.count.toString() : undefined,
       route: '/inbox',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'contacts',
@@ -68,7 +68,7 @@ export function Dashboard() {
       icon: UserCheck,
       description: 'Gerenciar contatos e WhatsApp',
       route: '/contacts',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'chat-interno',
@@ -76,7 +76,7 @@ export function Dashboard() {
       icon: MessageCircle,
       description: 'Comunicação entre agentes',
       route: '/chat-interno',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'crm',
@@ -84,7 +84,7 @@ export function Dashboard() {
       icon: Users,
       description: 'Gestão de leads e contatos',
       route: '/crm',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'bi',
@@ -108,7 +108,7 @@ export function Dashboard() {
       icon: BarChart3,
       description: 'Analytics e métricas',
       route: '/reports',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     },
     {
       id: 'settings',
@@ -116,7 +116,7 @@ export function Dashboard() {
       icon: Settings,
       description: 'Configurar sistema',
       route: '/settings',
-      allowedRoles: ['admin', 'gerente', 'atendente']
+      allowedRoles: ['admin', 'gerente', 'agent']
     }
   ];
 
