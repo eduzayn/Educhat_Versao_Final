@@ -1,7 +1,18 @@
 import { memo, useMemo, useState, useRef } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, StickyNote, EyeOff, Eye } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, StickyNote, EyeOff, Eye, Trash2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/shared/ui/ui/alert-dialog';
 import { format } from "date-fns";
 import type { Message, Contact } from "@shared/schema";
 import { AudioMessage } from "./AudioMessage";
@@ -32,6 +43,8 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   const [isHiding, setIsHiding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
 
   // Função para ocultar mensagem localmente
   const handleHideMessage = async () => {
@@ -59,6 +72,112 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
       });
     } finally {
       setIsHiding(false);
+    }
+  };
+
+  // Verificar se a mensagem pode ser deletada (dentro de 7 minutos para WhatsApp)
+  const canDelete = () => {
+    if (isFromContact) {
+      console.log('🚫 Não pode deletar: mensagem do contato');
+      return false; // Só permite deletar mensagens enviadas pelo agente
+    }
+    
+    const messageDate = new Date(message.sentAt || new Date());
+    const now = new Date();
+    const timeDifference = now.getTime() - messageDate.getTime();
+    const sevenMinutesInMs = 7 * 60 * 1000; // 7 minutos em milissegundos
+    
+    const canDeleteMsg = timeDifference <= sevenMinutesInMs;
+    
+    console.log('🗑️ Debug canDelete:', {
+      messageId: message.id,
+      content: message.content?.substring(0, 20),
+      isFromContact,
+      sentAt: message.sentAt,
+      messageDate: messageDate.toISOString(),
+      now: now.toISOString(),
+      timeDifference: Math.round(timeDifference / 1000) + 's',
+      canDelete: canDeleteMsg,
+      hasPhone: !!contact.phone,
+      hasConversationId: !!conversationId,
+      metadata: message.metadata
+    });
+    
+    return canDeleteMsg;
+  };
+
+  const handleDeleteMessage = async () => {
+    if (!contact.phone || !conversationId) return;
+
+    // Extrair messageId dos metadados - tentar múltiplas possibilidades
+    const metadata = message.metadata && typeof message.metadata === 'object' ? message.metadata : {};
+    let messageId = null;
+    
+    // Buscar o ID da mensagem nos metadados em diferentes campos possíveis
+    if ('messageId' in metadata && metadata.messageId) {
+      messageId = metadata.messageId;
+    } else if ('zaapId' in metadata && metadata.zaapId) {
+      messageId = metadata.zaapId;
+    } else if ('id' in metadata && metadata.id) {
+      messageId = metadata.id;
+    }
+
+    // Log para debug
+    console.log('🗑️ Tentando deletar mensagem:', {
+      messageLocalId: message.id,
+      messageId,
+      metadata,
+      phone: contact.phone,
+      conversationId
+    });
+
+    if (!messageId) {
+      toast({
+        title: "Erro",
+        description: "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await apiRequest('POST', '/api/zapi/delete-message', {
+        phone: contact.phone,
+        messageId: messageId.toString(),
+        conversationId: conversationId
+      });
+
+      console.log('✅ Resposta da exclusão:', response);
+
+      // Marcar mensagem como deletada localmente e invalidar cache
+      setIsDeleted(true);
+      
+      // Invalidar cache para recarregar mensagens com status atualizado
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/conversations/${conversationId}/messages`] 
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Mensagem deletada com sucesso"
+      });
+    } catch (error) {
+      console.error('❌ Erro ao deletar mensagem:', error);
+      
+      // Mostrar erro mais específico baseado na resposta
+      let errorMessage = "Não foi possível deletar a mensagem";
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as Error).message;
+      }
+      
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -367,6 +486,47 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
                 <EyeOff className="w-3 h-3" />
               )}
             </Button>
+          )}
+          
+          {/* Botão de deletar mensagem - apenas para mensagens enviadas pelo agente dentro de 7 minutos */}
+          {!isFromContact && !message.isInternalNote && canDelete() && !isDeleted && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                  title="Excluir mensagem para todos"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir mensagem</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. A mensagem será removida permanentemente do WhatsApp para todos os participantes da conversa.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteMessage}
+                    disabled={isDeleting}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {isDeleting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                        Excluindo...
+                      </div>
+                    ) : (
+                      'Excluir para todos'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
