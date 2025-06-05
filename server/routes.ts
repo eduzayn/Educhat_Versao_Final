@@ -3662,6 +3662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/roles', async (req, res) => {
     try {
       const roles = await storage.getRoles();
+      console.log('API /api/roles retornando:', roles.map(r => ({ id: r.id, name: r.name, isActive: r.isActive })));
       res.json(roles);
     } catch (error) {
       console.error('Error fetching roles:', error);
