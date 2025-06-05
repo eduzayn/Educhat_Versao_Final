@@ -170,6 +170,23 @@ export const UsersTab = () => {
     team: ''
   });
 
+  // Prevenir fechamento automático do modal
+  const handleOpenUserDialog = () => {
+    setShowUserDialog(true);
+  };
+
+  const handleCloseUserDialog = () => {
+    setShowUserDialog(false);
+    setFormData({
+      name: '',
+      email: '',
+      username: '',
+      password: '',
+      role: '',
+      team: ''
+    });
+  };
+
   // Fetch users from API
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['/api/system-users'],
