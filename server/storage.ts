@@ -810,6 +810,62 @@ export class DatabaseStorage implements IStorage {
     return false;
   }
 
+  // Check if user can edit a deal with hierarchical permissions
+  async canUserEditDeal(userId: number, dealId: number): Promise<boolean> {
+    const deal = await this.getDeal(dealId);
+    if (!deal) return false;
+
+    const user = await this.getSystemUser(userId);
+    if (!user) return false;
+
+    // Check user permissions
+    const userPermissions = await this.getUserPermissions(userId);
+    const canEditPermission = userPermissions.some(p => p.permission === 'editar:negocio');
+    
+    if (!canEditPermission) return false;
+
+    // Admin sempre pode editar
+    if (user.role === 'admin') return true;
+
+    // Para roles superiores (manager, supervisor), podem editar qualquer negócio
+    if (['manager', 'supervisor'].includes(user.role)) return true;
+
+    // Atendentes só podem editar negócios atribuídos a eles ou criados por eles
+    if (user.role === 'atendente') {
+      return deal.assignedUserId === userId || deal.createdByUserId === userId;
+    }
+
+    return false;
+  }
+
+  // Check if user can delete a deal with hierarchical permissions
+  async canUserDeleteDeal(userId: number, dealId: number): Promise<boolean> {
+    const deal = await this.getDeal(dealId);
+    if (!deal) return false;
+
+    const user = await this.getSystemUser(userId);
+    if (!user) return false;
+
+    // Check user permissions
+    const userPermissions = await this.getUserPermissions(userId);
+    const canDeletePermission = userPermissions.some(p => p.permission === 'excluir:negocio');
+    
+    if (!canDeletePermission) return false;
+
+    // Admin sempre pode excluir
+    if (user.role === 'admin') return true;
+
+    // Para roles superiores (manager, supervisor), podem excluir qualquer negócio
+    if (['manager', 'supervisor'].includes(user.role)) return true;
+
+    // Atendentes só podem excluir negócios criados por eles
+    if (user.role === 'atendente') {
+      return deal.createdByUserId === userId;
+    }
+
+    return false;
+  }
+
   async getQuickReply(id: number): Promise<QuickReply | undefined> {
     const [quickReply] = await db
       .select()

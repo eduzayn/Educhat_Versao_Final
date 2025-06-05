@@ -4027,7 +4027,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update deal endpoint for drag and drop functionality
-  app.patch('/api/deals/:id', async (req, res) => {
+  app.patch('/api/deals/:id', 
+    requirePermission('editar:negocio'),
+    async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const updateData = req.body;
@@ -4042,9 +4044,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Deal not found' });
       }
 
+      // Verificar permissões hierárquicas
+      const canEdit = await storage.canUserEditDeal(req.user!.id, id);
+      if (!canEdit) {
+        return res.status(403).json({ 
+          message: 'Você não tem permissão para editar este negócio. Atendentes só podem editar negócios atribuídos a eles ou criados por eles.' 
+        });
+      }
+
       // Update the deal
       const updatedDeal = await storage.updateDeal(id, updateData);
-      console.log(`✅ Deal ${id} updated:`, updateData);
+      console.log(`✅ Deal ${id} updated by user ${req.user!.id}:`, updateData);
       
       res.json(updatedDeal);
     } catch (error) {
@@ -4055,10 +4065,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Deals endpoint implementation complete above
 
-  app.delete('/api/deals/:id', async (req, res) => {
+  app.delete('/api/deals/:id', 
+    requireAuthentication(),
+    async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid deal ID' });
+      }
+
+      // Check if deal exists
+      const existingDeal = await storage.getDeal(id);
+      if (!existingDeal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+
+      // Verificar permissões hierárquicas para exclusão
+      const canDelete = await storage.canUserDeleteDeal(req.user!.id, id);
+      if (!canDelete) {
+        return res.status(403).json({ 
+          message: 'Você não tem permissão para excluir este negócio. Atendentes só podem excluir negócios criados por eles próprios.' 
+        });
+      }
+
       await storage.deleteDeal(id);
+      console.log(`✅ Deal ${id} deleted by user ${req.user!.id}`);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting deal:', error);

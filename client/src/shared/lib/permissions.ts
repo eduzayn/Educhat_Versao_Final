@@ -149,3 +149,63 @@ export function PermissionGate({
   
   return hasAccess ? children : fallback;
 }
+
+/**
+ * Verifica se o usuário pode editar um negócio específico
+ * Atendentes só podem editar seus próprios negócios
+ */
+export function canEditDeal(
+  userPermissions: UserPermissions | undefined,
+  deal: { assignedUserId?: number; createdByUserId?: number },
+  currentUserId?: number
+): boolean {
+  if (!userPermissions || !currentUserId) return false;
+  
+  // Admin sempre pode editar
+  if (userPermissions.isAdmin) return true;
+  
+  // Verificar se tem permissão geral
+  const hasGeneralPermission = hasPermission(userPermissions, 'editar:negocio');
+  if (!hasGeneralPermission) return false;
+  
+  // Para roles superiores (não atendente), permitir editar qualquer negócio
+  const userRole = userPermissions.rolePermissions?.[0]?.name || '';
+  const isSuperiorRole = ['admin', 'manager', 'supervisor'].some(role => 
+    userRole.toLowerCase().includes(role)
+  );
+  
+  if (isSuperiorRole) return true;
+  
+  // Para atendentes, só permitir editar negócios atribuídos a eles ou criados por eles
+  return deal.assignedUserId === currentUserId || deal.createdByUserId === currentUserId;
+}
+
+/**
+ * Verifica se o usuário pode excluir um negócio específico
+ * Atendentes só podem excluir seus próprios negócios
+ */
+export function canDeleteSpecificDeal(
+  userPermissions: UserPermissions | undefined,
+  deal: { assignedUserId?: number; createdByUserId?: number },
+  currentUserId?: number
+): boolean {
+  if (!userPermissions || !currentUserId) return false;
+  
+  // Admin sempre pode excluir
+  if (userPermissions.isAdmin) return true;
+  
+  // Verificar se tem permissão geral
+  const hasGeneralPermission = hasPermission(userPermissions, 'excluir:negocio');
+  if (!hasGeneralPermission) return false;
+  
+  // Para roles superiores (não atendente), permitir excluir qualquer negócio
+  const userRole = userPermissions.rolePermissions?.[0]?.name || '';
+  const isSuperiorRole = ['admin', 'manager', 'supervisor'].some(role => 
+    userRole.toLowerCase().includes(role)
+  );
+  
+  if (isSuperiorRole) return true;
+  
+  // Para atendentes, só permitir excluir negócios criados por eles
+  return deal.createdByUserId === currentUserId;
+}
