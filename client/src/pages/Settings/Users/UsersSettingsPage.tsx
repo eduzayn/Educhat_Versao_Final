@@ -11,8 +11,9 @@ export const UsersSettingsPage = () => {
   const [activeTab, setActiveTab] = useState('users');
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <BackButton to="/settings" label="Voltar às Configurações" />
+    <div className="min-h-screen bg-educhat-light">
+      <div className="p-6 space-y-6">
+        <BackButton to="/settings" label="Voltar às Configurações" />
       
       <div>
         <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
@@ -57,6 +58,7 @@ export const UsersSettingsPage = () => {
           <PermissionsTab />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 };

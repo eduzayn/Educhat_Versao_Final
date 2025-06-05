@@ -249,7 +249,7 @@ export default function ChannelsPage() {
 
   return (
     <div className="min-h-screen bg-educhat-light">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="p-6">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
