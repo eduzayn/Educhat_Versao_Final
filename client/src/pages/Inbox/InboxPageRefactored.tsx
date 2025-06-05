@@ -48,7 +48,7 @@ import { useChannels } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
-import { MessageBubbleOptimized as MessageBubble } from '@/modules/Messages/components/MessageBubbleOptimized';
+import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
