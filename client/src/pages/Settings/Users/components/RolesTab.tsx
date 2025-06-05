@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -46,15 +46,14 @@ export const RolesTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Funções para controlar modais de forma robusta
-  const handleOpenCreateDialog = () => {
+  // Funções para controlar modais de forma robusta usando useCallback
+  const handleOpenCreateDialog = useCallback(() => {
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleCloseCreateDialog = () => {
+  const handleCloseCreateDialog = useCallback(() => {
     setIsDialogOpen(false);
-    form.reset();
-  };
+  }, []);
 
   // Fetch roles from database
   const { data: roles = [], isLoading } = useQuery({

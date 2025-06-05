@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -54,12 +54,12 @@ export const TeamsTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Funções para controlar modais de forma robusta
-  const handleOpenTeamDialog = () => {
+  // Funções para controlar modais de forma robusta usando useCallback
+  const handleOpenTeamDialog = useCallback(() => {
     setShowTeamDialog(true);
-  };
+  }, []);
 
-  const handleCloseTeamDialog = () => {
+  const handleCloseTeamDialog = useCallback(() => {
     setShowTeamDialog(false);
     setNewTeamForm({
       name: '',
@@ -68,7 +68,7 @@ export const TeamsTab = () => {
       color: '',
       isActive: true
     });
-  };
+  }, []);
 
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
