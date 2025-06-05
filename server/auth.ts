@@ -66,11 +66,16 @@ export function setupAuth(app: Express) {
       { usernameField: 'email' },
       async (email, password, done) => {
         try {
+          console.log('🔐 Tentativa de login:', { email: email, hasPassword: !!password });
+          
           // Buscar na tabela system_users ao invés de users
           const systemUsers = await storage.getSystemUsers();
           const user = systemUsers.find(u => u.email === email);
           
+          console.log('👤 Usuário encontrado:', !!user);
+          
           if (!user) {
+            console.log('❌ Usuário não encontrado');
             return done(null, false, { message: 'Email ou senha incorretos' });
           }
           
@@ -78,17 +83,22 @@ export function setupAuth(app: Express) {
           let isValidPassword = false;
           try {
             isValidPassword = await comparePasswords(password, user.password);
+            console.log('🔑 Verificação de senha hash:', isValidPassword);
           } catch (error) {
             // Se falha na comparação hash, tenta texto plano (para senhas não hasheadas)
             isValidPassword = password === user.password;
+            console.log('🔑 Verificação de senha plana:', isValidPassword);
           }
           
           if (!isValidPassword) {
+            console.log('❌ Senha incorreta');
             return done(null, false, { message: 'Email ou senha incorretos' });
           }
           
+          console.log('✅ Login bem-sucedido para:', user.email);
           return done(null, user);
         } catch (error) {
+          console.error('🚨 Erro na autenticação:', error);
           return done(error);
         }
       }
