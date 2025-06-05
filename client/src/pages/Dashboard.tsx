@@ -122,7 +122,7 @@ export function Dashboard() {
 
   // Filtrar itens do menu baseado no role do usuário
   const menuItems = allMenuItems.filter(item => {
-    if (!user?.role) return true; // Se não há role definido, mostrar todos
+    if (!user || !user.role) return true; // Se não há role definido, mostrar todos
     return item.allowedRoles.includes(user.role);
   });
 

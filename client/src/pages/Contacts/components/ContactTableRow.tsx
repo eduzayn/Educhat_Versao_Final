@@ -4,6 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Eye, Edit, Trash2, Phone, Camera } from 'lucide-react';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 import type { Contact } from '@shared/schema';
 
 interface ContactTableRowProps {
@@ -28,6 +29,10 @@ export function ContactTableRow({
   isWhatsAppAvailable
 }: ContactTableRowProps) {
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
+  const { user } = useAuth();
+  
+  // Verificar se o usuário pode excluir contatos (apenas admin e gerente)
+  const canDeleteContacts = user?.role === 'admin' || user?.role === 'gerente';
 
   const handleUpdatePhoto = async () => {
     if (!contact.phone) return;
@@ -147,14 +152,16 @@ export function ContactTableRow({
               <Edit className="w-4 h-4" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(contact)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {canDeleteContacts && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(contact)}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </td>
