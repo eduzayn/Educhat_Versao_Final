@@ -74,9 +74,9 @@ export const PermissionsTab = () => {
 
   // Fetch roles from database
   const { data: roles = [], isLoading: rolesLoading } = useQuery({
-    queryKey: ['/api/admin/roles'],
+    queryKey: ['/api/roles'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/roles');
+      const response = await fetch('/api/roles');
       if (!response.ok) throw new Error('Failed to fetch roles');
       return response.json();
     }
