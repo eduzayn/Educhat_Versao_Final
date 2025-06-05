@@ -116,7 +116,7 @@ export function Dashboard() {
       icon: Settings,
       description: 'Configurar sistema',
       route: '/settings',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      allowedRoles: ['admin', 'gerente']
     }
   ];
 
