@@ -100,17 +100,21 @@ const userStats = {
 
 const getRoleBadgeStyle = (role: string) => {
   switch (role) {
+    case 'Administrador':
     case 'administrador':
     case 'admin':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    case 'Gerente':
     case 'gerente':
     case 'manager':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
     case 'supervisor':
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+    case 'Atendente':
     case 'atendente':
     case 'agent':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    case 'Visualizador':
     case 'visualizador':
     case 'viewer':
       return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
@@ -123,13 +127,17 @@ const getRoleDisplayName = (role: string) => {
   const roleNames = {
     admin: 'Administrador',
     administrador: 'Administrador',
+    Administrador: 'Administrador',
     manager: 'Gerente',
     gerente: 'Gerente',
+    Gerente: 'Gerente',
     supervisor: 'Supervisor',
     agent: 'Atendente',
     atendente: 'Atendente',
+    Atendente: 'Atendente',
     viewer: 'Visualizador',
-    visualizador: 'Visualizador'
+    visualizador: 'Visualizador',
+    Visualizador: 'Visualizador'
   };
   return roleNames[role as keyof typeof roleNames] || role;
 };
