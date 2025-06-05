@@ -207,7 +207,7 @@ export default function PermissionsPanel() {
       </div>
 
       {/* Estatísticas */}
-      {stats && (
+      {stats && typeof stats === 'object' && stats !== null && 'users' in stats && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -215,9 +215,9 @@ export default function PermissionsPanel() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats as Stats).users?.total || 0}</div>
+              <div className="text-2xl font-bold">{(stats as any).users?.total || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {(stats as Stats).users?.active || 0} ativos, {(stats as Stats).users?.online || 0} online
+                {(stats as any).users?.active || 0} ativos, {(stats as any).users?.online || 0} online
               </p>
             </CardContent>
           </Card>
@@ -227,7 +227,7 @@ export default function PermissionsPanel() {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats as Stats).roles || 0}</div>
+              <div className="text-2xl font-bold">{(stats as any).roles || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -236,7 +236,7 @@ export default function PermissionsPanel() {
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats as Stats).permissions || 0}</div>
+              <div className="text-2xl font-bold">{(stats as any).permissions || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -245,7 +245,7 @@ export default function PermissionsPanel() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats as Stats).teams || 0}</div>
+              <div className="text-2xl font-bold">{(stats as any).teams || 0}</div>
             </CardContent>
           </Card>
         </div>
