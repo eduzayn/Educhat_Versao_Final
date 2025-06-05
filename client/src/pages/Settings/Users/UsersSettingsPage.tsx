@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
+import { TestModal } from '@/components/TestModal';
 import { UsersTab } from './components/UsersTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
@@ -30,11 +31,14 @@ export const UsersSettingsPage = () => {
       <div className="p-6 space-y-6">
         <BackButton to="/settings" label="Voltar às Configurações" />
       
-      <div>
-        <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
-        <p className="text-muted-foreground">
-          Configure usuários, funções, equipes e permissões do sistema
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
+          <p className="text-muted-foreground">
+            Configure usuários, funções, equipes e permissões do sistema
+          </p>
+        </div>
+        <TestModal />
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
