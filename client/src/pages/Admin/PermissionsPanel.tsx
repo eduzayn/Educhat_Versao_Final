@@ -92,31 +92,26 @@ export default function PermissionsPanel() {
   // Buscar permissões
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
     queryKey: ['/api/admin/permissions'],
-    queryFn: () => apiRequest('/api/admin/permissions')
   });
 
   // Buscar roles
   const { data: roles = [], isLoading: loadingRoles } = useQuery({
     queryKey: ['/api/admin/roles'],
-    queryFn: () => apiRequest('/api/admin/roles')
   });
 
   // Buscar usuários
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['/api/admin/users'],
-    queryFn: () => apiRequest('/api/admin/users')
   });
 
   // Buscar logs de auditoria
   const { data: auditLogs = [], isLoading: loadingLogs } = useQuery({
     queryKey: ['/api/admin/audit-logs'],
-    queryFn: () => apiRequest('/api/admin/audit-logs')
   });
 
   // Buscar estatísticas
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['/api/admin/stats'],
-    queryFn: () => apiRequest('/api/admin/stats')
   });
 
   // Mutation para atualizar permissões de role

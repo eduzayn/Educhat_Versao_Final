@@ -520,7 +520,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map(user => (
+                {filteredUsers.map((user: any) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <Checkbox />

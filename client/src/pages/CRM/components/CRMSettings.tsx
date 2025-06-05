@@ -65,7 +65,7 @@ export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
   // Buscar configurações do sistema
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<SystemSetting[]>({
     queryKey: ['/api/system-settings'],
     enabled: open,
   });
@@ -99,7 +99,7 @@ export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
   };
 
   const getSettingsByCategory = (category: string) => {
-    return (settings || []).filter((setting: SystemSetting) => setting.category === category);
+    return Array.isArray(settings) ? settings.filter((setting: SystemSetting) => setting.category === category) : [];
   };
 
   const renderSettingInput = (setting: SystemSetting) => {
