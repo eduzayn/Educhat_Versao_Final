@@ -472,8 +472,8 @@ export const MessageBubble = memo(function MessageBubble({
             {messageTime}
           </span>
           
-          {/* Reações de mensagem - apenas para mensagens do contato */}
-          {isFromContact && !message.isInternalNote && contact.phone && conversationId && (
+          {/* Reações de mensagem - para todas as mensagens exceto notas internas */}
+          {!message.isInternalNote && contact.phone && conversationId && (
             <MessageReactions
               message={message}
               conversationId={conversationId}
