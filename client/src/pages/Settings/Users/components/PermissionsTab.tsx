@@ -94,20 +94,30 @@ export const PermissionsTab = () => {
     enabled: !!selectedRoleId
   });
 
-  // Update selected permissions when role changes (only when role changes, not when permissions are updated)
+  // Update selected permissions when role changes
   useEffect(() => {
     if (selectedRoleId) {
       setSelectedPermissions([]);
+      // Reload permissions for new role
+      refetchRolePermissions();
     }
-  }, [selectedRoleId]);
+  }, [selectedRoleId, refetchRolePermissions]);
 
-  // Load initial permissions when rolePermissions data is fetched
+  // Load permissions when data is available
   useEffect(() => {
-    if (rolePermissions.length > 0 && selectedPermissions.length === 0) {
+    if (rolePermissions.length > 0) {
       const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
-      setSelectedPermissions(permissionNames);
+      setSelectedPermissions(prev => {
+        // Only update if different to prevent loops
+        const newSet = new Set(permissionNames);
+        const prevSet = new Set(prev);
+        if (newSet.size !== prevSet.size || [...newSet].some(p => !prevSet.has(p))) {
+          return permissionNames;
+        }
+        return prev;
+      });
     }
-  }, [rolePermissions.length]); // Only depend on length to prevent infinite loops
+  }, [rolePermissions]);
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
