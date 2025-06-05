@@ -283,7 +283,7 @@ export default function PermissionsPanel() {
                       <TableCell className="font-medium">{role.name}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {role.permissions.slice(0, 3).map((perm: Permission) => (
+                          {role.permissions?.slice(0, 3).map((perm: Permission) => (
                             <Badge key={perm.id} variant="outline" className="text-xs">
                               {perm.name}
                             </Badge>
@@ -332,7 +332,7 @@ export default function PermissionsPanel() {
                   <div key={category} className="space-y-2">
                     <h3 className="text-lg font-semibold capitalize">{category}</h3>
                     <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                      {getPermissionsByCategory(category).map((permission: Permission) => (
+                      {getCategoryPermissions(category).map((permission: Permission) => (
                         <Card key={permission.id} className="p-3">
                           <div className="flex items-center justify-between">
                             <div>
