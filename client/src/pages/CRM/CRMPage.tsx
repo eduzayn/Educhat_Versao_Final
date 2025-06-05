@@ -33,6 +33,7 @@ import {
   ReportsModule,
   SalesModule
 } from "./modules";
+import { CRMSettings } from "./components/CRMSettings";
 
 export function CRMPage() {
   return (
