@@ -57,8 +57,16 @@ function Router() {
           <Route path="/reports" component={ReportsPage} />
           <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
-          <Route path="/settings/channels" component={ChannelsPage} />
-          <Route path="/settings/users" component={UsersSettingsPage} />
+          <Route path="/settings/channels" component={() => 
+            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
+              <ChannelsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/users" component={() => 
+            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
+              <UsersSettingsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
           <Route path="/settings/webhook" component={WebhookConfigPage} />
           <Route path="/settings/ai-detection" component={AIDetectionSettingsPage} />

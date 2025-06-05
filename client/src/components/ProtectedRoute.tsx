@@ -3,6 +3,13 @@ import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useUserPermissions, hasPermission } from '@/shared/lib/permissions';
 import { useLocation } from 'wouter';
 
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  displayName: string;
+}
+
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredPermission?: string;
@@ -26,8 +33,10 @@ export function ProtectedRoute({
     return null;
   }
 
+  const userRole = (user as any)?.role || '';
+
   // Verificar se é admin only
-  if (adminOnly && user.role !== 'admin') {
+  if (adminOnly && userRole !== 'admin') {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-8">
@@ -47,13 +56,13 @@ export function ProtectedRoute({
   }
 
   // Verificar roles permitidos
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-8">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Acesso Negado</h1>
           <p className="text-muted-foreground">
-            Sua função "{user.role}" não tem permissão para acessar esta página.
+            Sua função "{userRole}" não tem permissão para acessar esta página.
           </p>
           <button 
             onClick={() => setLocation('/dashboard')}
