@@ -12,7 +12,7 @@ import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/Contact
 import ReportsPage from "@/pages/ReportsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
-import ChannelsPage from "@/pages/Settings/ChannelsPage";
+import ChannelsPage from "@/pages/Settings/Channels/ChannelsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
