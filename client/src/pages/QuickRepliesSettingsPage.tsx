@@ -459,22 +459,27 @@ export default function QuickRepliesSettingsPage() {
           </SelectContent>
         </Select>
 
+        <PermissionGate permission="resposta_rapida:criar">
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => {
+                setEditingQuickReply(null);
+                form.reset({
+                  title: '',
+                  content: '',
+                  type: 'text',
+                  category: '',
+                  isActive: true,
+                });
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Resposta
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </PermissionGate>
+
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingQuickReply(null);
-              form.reset({
-                title: '',
-                content: '',
-                type: 'text',
-                category: '',
-                isActive: true,
-              });
-            }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Resposta
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>
@@ -964,7 +969,7 @@ export default function QuickRepliesSettingsPage() {
                       title={
                         canEditQuickReply(quickReply) 
                           ? "Editar resposta rápida" 
-                          : "Apenas o criador, administradores e gerentes podem editar"
+                          : "Você não tem permissão para editar esta resposta rápida"
                       }
                     >
                       <Edit className="h-4 w-4" />
@@ -973,11 +978,11 @@ export default function QuickRepliesSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(quickReply.id)}
-                      disabled={!canEditQuickReply(quickReply)}
+                      disabled={!canEditQuickReply(quickReply) || !canDeleteQuickReply}
                       title={
-                        canEditQuickReply(quickReply) 
+                        (canEditQuickReply(quickReply) && canDeleteQuickReply)
                           ? "Excluir resposta rápida" 
-                          : "Apenas o criador, administradores e gerentes podem excluir"
+                          : "Você não tem permissão para excluir esta resposta rápida"
                       }
                     >
                       <Trash2 className="h-4 w-4" />
