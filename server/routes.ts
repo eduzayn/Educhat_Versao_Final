@@ -1700,7 +1700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reaction
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-message-reaction`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-reaction`;
       console.log('📤 Enviando reação para Z-API:', { url, payload });
 
       const response = await fetch(url, {
