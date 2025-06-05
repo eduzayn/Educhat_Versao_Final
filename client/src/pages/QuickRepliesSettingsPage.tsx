@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
+import { useHasPermission, useHasAnyPermission, PermissionGate } from '@/shared/lib/permissions';
 import type { QuickReply } from '@shared/schema';
 
 // Helper function to validate document file types
@@ -153,15 +154,30 @@ export default function QuickRepliesSettingsPage() {
     },
   });
 
-  // Check if user can edit a quick reply
+  // Permissões específicas para respostas rápidas
+  const canCreateQuickReply = useHasPermission('resposta_rapida:criar');
+  const canEditQuickReplyPermission = useHasPermission('resposta_rapida:editar');
+  const canDeleteQuickReply = useHasPermission('resposta_rapida:excluir');
+  const canManageGlobalQuickReplies = useHasPermission('resposta_rapida:global_gerenciar');
+  const canShareQuickReplies = useHasPermission('resposta_rapida:compartilhar');
+
+  // Check if user can edit a specific quick reply
   const canEditQuickReply = (quickReply: QuickReply) => {
-    if (!currentUser) return false;
-    // Admins, managers, and superadmins can edit any quick reply
-    if (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'superadmin') {
-      return true;
-    }
-    // Users can edit their own quick replies
-    return quickReply.createdBy === currentUser.id;
+    if (!currentUser || !canEditQuickReplyPermission) return false;
+    
+    // Se pode gerenciar respostas globais, pode editar qualquer uma
+    if (canManageGlobalQuickReplies) return true;
+    
+    // Se for resposta global e não tem permissão global, não pode editar
+    if (quickReply.isGlobal && !canManageGlobalQuickReplies) return false;
+    
+    // Se for resposta individual e o usuário for o criador
+    if (!quickReply.isGlobal && quickReply.createdBy === currentUser.id) return true;
+    
+    // Se for resposta da equipe e o usuário pertencer à mesma equipe
+    if (quickReply.teamId && currentUser.teamId === quickReply.teamId) return true;
+    
+    return false;
   };
 
   // Create/Update mutation
