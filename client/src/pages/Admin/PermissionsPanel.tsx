@@ -141,7 +141,7 @@ export default function PermissionsPanel() {
 
   const handleEditRolePermissions = (role: Role) => {
     setSelectedRole(role);
-    setSelectedPermissions(role.permissions.map(p => p.id));
+    setSelectedPermissions(role.permissions?.map((p: any) => String(p.name)) || []);
     setIsDialogOpen(true);
   };
 
@@ -149,17 +149,27 @@ export default function PermissionsPanel() {
     if (selectedRole) {
       updateRolePermissions.mutate({
         roleId: selectedRole.id,
-        permissionIds: selectedPermissions
+        permissionIds: selectedPermissions.map(name => {
+          const permission = (permissions as Permission[]).find(p => p.name === name);
+          return permission?.id || 0;
+        })
       });
     }
   };
 
-  const togglePermission = (permissionId: number) => {
+  const togglePermission = (permissionName: string) => {
     setSelectedPermissions(prev =>
-      prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
-        : [...prev, permissionId]
+      prev.includes(permissionName)
+        ? prev.filter(name => name !== permissionName)
+        : [...prev, permissionName]
     );
+  };
+
+  const toggleSection = (sectionName: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
   };
 
   const getPermissionsByCategory = (category: string) => {
@@ -461,24 +471,12 @@ export default function PermissionsPanel() {
                 <h3 className="text-lg font-semibold capitalize">{category}</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {getPermissionsByCategory(category).map((permission: Permission) => (
-                    <div key={permission.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`permission-${permission.id}`}
-                        checked={selectedPermissions.includes(permission.id)}
-                        onCheckedChange={() => togglePermission(permission.id)}
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor={`permission-${permission.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {permission.name}
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          {permission.description}
-                        </p>
-                      </div>
-                    </div>
+                    <PermissionItem
+                      key={permission.id}
+                      permission={permission}
+                      checked={selectedPermissions.includes(permission.name)}
+                      onCheckedChange={(checked) => togglePermission(permission.name)}
+                    />
                   ))}
                 </div>
               </div>
