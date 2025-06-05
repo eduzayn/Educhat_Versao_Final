@@ -354,7 +354,7 @@ export default function PermissionsPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user: User) => (
+                  {Array.isArray(users) && (users as User[]).map((user: User) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
@@ -410,7 +410,7 @@ export default function PermissionsPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {auditLogs.map((log: AuditLog) => (
+                  {Array.isArray(auditLogs) && (auditLogs as AuditLog[]).map((log: AuditLog) => (
                     <TableRow key={log.id}>
                       <TableCell>
                         <div>
