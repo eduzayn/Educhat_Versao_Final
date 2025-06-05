@@ -718,28 +718,76 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(quickReplies.createdAt));
   }
 
-  // Check if user can edit a quick reply (creator, admin, manager, or superadmin)
-  async canUserEditQuickReply(userId: string, quickReplyId: number): Promise<boolean> {
+  // Check if user can edit a quick reply with hierarchical permissions
+  async canUserEditQuickReply(userId: number, quickReplyId: number): Promise<boolean> {
     const quickReply = await this.getQuickReply(quickReplyId);
     if (!quickReply) return false;
 
-    // Check if user is admin, manager, or superadmin (they can edit any quick reply)
-    const user = await this.getUser(userId);
+    const user = await this.getSystemUser(userId);
     if (!user) return false;
+
+    // Check user permissions
+    const userPermissions = await this.getUserPermissions(userId);
+    const canEditPermission = userPermissions.some(p => p.permission === 'resposta_rapida:editar');
+    const canManageGlobal = userPermissions.some(p => p.permission === 'resposta_rapida:global_gerenciar');
     
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'superadmin') {
-      return true;
+    if (!canEditPermission) return false;
+
+    // Atendentes só podem editar respostas criadas por eles próprios
+    if (user.role === 'atendente') {
+      return quickReply.createdBy === userId.toString();
     }
 
-    // Creator can edit their own quick replies
-    if (quickReply.createdBy === userId) return true;
+    // Para outros papéis (supervisores, gestores, admin)
+    // Se pode gerenciar respostas globais, pode editar qualquer uma
+    if (canManageGlobal) return true;
+
+    // Se for resposta global e não tem permissão global, não pode editar
+    if (quickReply.shareScope === 'global' && !canManageGlobal) return false;
+
+    // Se for resposta individual e o usuário for o criador
+    if (quickReply.shareScope === 'personal' && quickReply.createdBy === userId.toString()) return true;
+
+    // Se for resposta da equipe e o usuário pertencer à mesma equipe
+    if (quickReply.shareScope === 'team' && user.teamId === quickReply.teamId) return true;
 
     return false;
   }
 
-  // Check if user can delete a quick reply
-  async canUserDeleteQuickReply(userId: string, quickReplyId: number): Promise<boolean> {
-    return this.canUserEditQuickReply(userId, quickReplyId);
+  // Check if user can delete a quick reply with hierarchical permissions
+  async canUserDeleteQuickReply(userId: number, quickReplyId: number): Promise<boolean> {
+    const quickReply = await this.getQuickReply(quickReplyId);
+    if (!quickReply) return false;
+
+    const user = await this.getSystemUser(userId);
+    if (!user) return false;
+
+    // Check user permissions
+    const userPermissions = await this.getUserPermissions(userId);
+    const canDeletePermission = userPermissions.some(p => p.permission === 'resposta_rapida:excluir');
+    const canManageGlobal = userPermissions.some(p => p.permission === 'resposta_rapida:global_gerenciar');
+    
+    if (!canDeletePermission) return false;
+
+    // Atendentes só podem excluir respostas criadas por eles próprios
+    if (user.role === 'atendente') {
+      return quickReply.createdBy === userId.toString();
+    }
+
+    // Para outros papéis (supervisores, gestores, admin)
+    // Se pode gerenciar respostas globais, pode excluir qualquer uma
+    if (canManageGlobal) return true;
+
+    // Se for resposta global e não tem permissão global, não pode excluir
+    if (quickReply.shareScope === 'global' && !canManageGlobal) return false;
+
+    // Se for resposta individual e o usuário for o criador
+    if (quickReply.shareScope === 'personal' && quickReply.createdBy === userId.toString()) return true;
+
+    // Se for resposta da equipe e o usuário pertencer à mesma equipe
+    if (quickReply.shareScope === 'team' && user.teamId === quickReply.teamId) return true;
+
+    return false;
   }
 
   async getQuickReply(id: number): Promise<QuickReply | undefined> {

@@ -165,17 +165,48 @@ export default function QuickRepliesSettingsPage() {
   const canEditQuickReply = (quickReply: QuickReply) => {
     if (!currentUser || !canEditQuickReplyPermission) return false;
     
+    // Atendentes só podem editar respostas criadas por eles próprios
+    if (currentUser.role === 'atendente') {
+      return quickReply.createdBy === currentUser.id;
+    }
+    
+    // Para outros papéis (supervisores, gestores, admin)
     // Se pode gerenciar respostas globais, pode editar qualquer uma
     if (canManageGlobalQuickReplies) return true;
     
     // Se for resposta global e não tem permissão global, não pode editar
-    if (quickReply.isGlobal && !canManageGlobalQuickReplies) return false;
+    if (quickReply.shareScope === 'global' && !canManageGlobalQuickReplies) return false;
     
     // Se for resposta individual e o usuário for o criador
-    if (!quickReply.isGlobal && quickReply.createdBy === currentUser.id) return true;
+    if (quickReply.shareScope === 'personal' && quickReply.createdBy === currentUser.id) return true;
     
     // Se for resposta da equipe e o usuário pertencer à mesma equipe
-    if (quickReply.teamId && currentUser.teamId === quickReply.teamId) return true;
+    if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
+    
+    return false;
+  };
+
+  // Check if user can delete a specific quick reply
+  const canDeleteSpecificQuickReply = (quickReply: QuickReply) => {
+    if (!currentUser || !canDeleteQuickReply) return false;
+    
+    // Atendentes só podem excluir respostas criadas por eles próprios
+    if (currentUser.role === 'atendente') {
+      return quickReply.createdBy === currentUser.id;
+    }
+    
+    // Para outros papéis (supervisores, gestores, admin)
+    // Se pode gerenciar respostas globais, pode excluir qualquer uma
+    if (canManageGlobalQuickReplies) return true;
+    
+    // Se for resposta global e não tem permissão global, não pode excluir
+    if (quickReply.shareScope === 'global' && !canManageGlobalQuickReplies) return false;
+    
+    // Se for resposta individual e o usuário for o criador
+    if (quickReply.shareScope === 'personal' && quickReply.createdBy === currentUser.id) return true;
+    
+    // Se for resposta da equipe e o usuário pertencer à mesma equipe
+    if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
     
     return false;
   };
@@ -978,9 +1009,9 @@ export default function QuickRepliesSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(quickReply.id)}
-                      disabled={!canEditQuickReply(quickReply) || !canDeleteQuickReply}
+                      disabled={!canDeleteSpecificQuickReply(quickReply)}
                       title={
-                        (canEditQuickReply(quickReply) && canDeleteQuickReply)
+                        canDeleteSpecificQuickReply(quickReply)
                           ? "Excluir resposta rápida" 
                           : "Você não tem permissão para excluir esta resposta rápida"
                       }
