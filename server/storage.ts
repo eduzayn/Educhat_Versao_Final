@@ -3522,6 +3522,42 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  // Check if user can respond to conversations of other users
+  async canUserRespondToOthersConversations(userId: number): Promise<boolean> {
+    const userPermissions = await this.getUserPermissions(userId);
+    return userPermissions.some(p => p.permission === 'conversa:responder_outros');
+  }
+
+  // Check if user can respond to their own conversations only
+  async canUserRespondToOwnConversations(userId: number): Promise<boolean> {
+    const userPermissions = await this.getUserPermissions(userId);
+    return userPermissions.some(p => p.permission === 'conversa:responder_proprio');
+  }
+
+  // Check if user can respond to a specific conversation
+  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> {
+    // Check if user can respond to others' conversations (managers, supervisors)
+    const canRespondToOthers = await this.canUserRespondToOthersConversations(userId);
+    if (canRespondToOthers) {
+      return true;
+    }
+
+    // Check if user can respond to own conversations and if this conversation is assigned to them
+    const canRespondToOwn = await this.canUserRespondToOwnConversations(userId);
+    if (!canRespondToOwn) {
+      return false;
+    }
+
+    // Get conversation details to check assignment
+    const conversation = await this.getConversation(conversationId);
+    if (!conversation) {
+      return false;
+    }
+
+    // If conversation is assigned to this user, they can respond
+    return conversation.assignedUserId === userId.toString();
+  }
 }
 
 export const storage = new DatabaseStorage();
