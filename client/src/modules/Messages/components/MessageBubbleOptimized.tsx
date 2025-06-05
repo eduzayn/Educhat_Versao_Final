@@ -37,9 +37,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
   const handleHideMessage = async () => {
     try {
       setIsHiding(true);
-      await apiRequest(`/api/messages/${message.id}/hide`, {
-        method: 'POST',
-      });
+      await apiRequest(`/api/messages/${message.id}/hide`, 'POST');
       
       // Invalidar cache das mensagens para atualizar a lista
       if (conversationId) {
@@ -328,7 +326,7 @@ export const MessageBubbleOptimized = memo(function MessageBubble({
 
   // Mensagem normal
   return (
-    <div className={containerClasses}>
+    <div className={`${containerClasses} group`}>
       {message.isInternalNote ? (
         <div className="w-8 h-8 flex-shrink-0 bg-gray-500 rounded-full flex items-center justify-center">
           <StickyNote className="w-4 h-4 text-gray-200" />
