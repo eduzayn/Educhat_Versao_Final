@@ -54,12 +54,9 @@ export const TeamsTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Funções para controlar modais de forma robusta usando useCallback
-  const handleOpenTeamDialog = useCallback(() => {
-    setShowTeamDialog(true);
-  }, []);
-
-  const handleCloseTeamDialog = useCallback(() => {
+  // Funções para controlar modais de forma robusta
+  const handleOpenTeamDialog = () => setShowTeamDialog(true);
+  const handleCloseTeamDialog = () => {
     setShowTeamDialog(false);
     setNewTeamForm({
       name: '',
@@ -68,7 +65,7 @@ export const TeamsTab = () => {
       color: '',
       isActive: true
     });
-  }, []);
+  };
 
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({

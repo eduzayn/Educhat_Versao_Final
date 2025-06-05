@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
@@ -19,10 +19,10 @@ export const UsersSettingsPage = () => {
   // Atualizar URL quando aba muda, sem causar re-renderização
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
-    // Usar pushState em vez de replaceState para manter histórico
+    // Usar replaceState para evitar interferência com modais
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set('tab', newTab);
-    window.history.pushState({}, '', newUrl.toString());
+    window.history.replaceState({}, '', newUrl.toString());
   };
 
   return (
