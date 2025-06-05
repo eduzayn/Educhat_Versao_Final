@@ -111,7 +111,7 @@ export const PermissionsTab = () => {
       // Clear permissions if no data for selected role
       setSelectedPermissions([]);
     }
-  }, [rolePermissions, selectedRoleId]); // Depend on both rolePermissions and selectedRoleId
+  }, [rolePermissions]); // Only depend on rolePermissions to avoid conflicts
 
   // Group permissions by category
   const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {

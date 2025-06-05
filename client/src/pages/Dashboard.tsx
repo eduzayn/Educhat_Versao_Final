@@ -357,10 +357,10 @@ export function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-educhat-dark truncate">
-                    Admin EduChat
+                    {user?.displayName || user?.username || 'Usuário'}
                   </p>
                   <p className="text-xs text-educhat-medium truncate">
-                    admin@educhat.com
+                    {user?.email || 'email@exemplo.com'}
                   </p>
                 </div>
               </div>
