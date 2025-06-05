@@ -6,184 +6,188 @@ import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { Switch } from '@/shared/ui/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/shared/ui/ui/dialog';
+import { Input } from '@/shared/ui/ui/input';
+import { Label } from '@/shared/ui/ui/label';
+import { Textarea } from '@/shared/ui/ui/textarea';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database, Download } from 'lucide-react';
+import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database, Download, Plus, Edit, Trash2, Save, History } from 'lucide-react';
 
-const permissionGroups = [
-  {
-    id: 'users',
-    name: 'Gerenciamento de Usuários',
-    description: 'Permissões para gerenciar usuários e equipes',
-    icon: <Users className="h-5 w-5" />,
-    permissions: [
-      { id: 'user_create', name: 'Criar usuários', description: 'Permitir criação de novos usuários' },
-      { id: 'user_edit', name: 'Editar usuários', description: 'Permitir edição de dados de usuários' },
-      { id: 'user_delete', name: 'Excluir usuários', description: 'Permitir exclusão de usuários' },
-      { id: 'user_view', name: 'Visualizar usuários', description: 'Permitir visualização da lista de usuários' }
-    ]
-  },
-  {
-    id: 'system',
-    name: 'Configurações do Sistema',
-    description: 'Permissões para configurar o sistema',
-    icon: <Settings className="h-5 w-5" />,
-    permissions: [
-      { id: 'system_config', name: 'Configurar sistema', description: 'Acesso às configurações gerais' },
-      { id: 'channel_config', name: 'Configurar canais', description: 'Gerenciar canais de comunicação' },
-      { id: 'webhook_config', name: 'Configurar webhooks', description: 'Configurar integrações via webhook' },
-      { id: 'security_config', name: 'Configurar segurança', description: 'Gerenciar configurações de segurança' }
-    ]
-  },
-  {
-    id: 'chat',
-    name: 'Sistema de Chat',
-    description: 'Permissões para uso do sistema de chat',
-    icon: <MessageSquare className="h-5 w-5" />,
-    permissions: [
-      { id: 'chat_access', name: 'Acessar chat', description: 'Permitir acesso ao sistema de chat' },
-      { id: 'chat_assign', name: 'Atribuir conversas', description: 'Permitir atribuição de conversas' },
-      { id: 'chat_transfer', name: 'Transferir conversas', description: 'Permitir transferência entre agentes' },
-      { id: 'chat_history', name: 'Histórico completo', description: 'Visualizar histórico completo de conversas' }
-    ]
-  },
-  {
-    id: 'reports',
-    name: 'Relatórios e Análises',
-    description: 'Permissões para acessar relatórios',
-    icon: <BarChart className="h-5 w-5" />,
-    permissions: [
-      { id: 'reports_view', name: 'Visualizar relatórios', description: 'Acesso aos relatórios básicos' },
-      { id: 'reports_advanced', name: 'Relatórios avançados', description: 'Acesso aos relatórios avançados' },
-      { id: 'reports_export', name: 'Exportar dados', description: 'Permitir exportação de relatórios' },
-      { id: 'analytics_access', name: 'Análises avançadas', description: 'Acesso às ferramentas de análise' }
-    ]
-  },
-  {
-    id: 'data',
-    name: 'Gerenciamento de Dados',
-    description: 'Permissões para gerenciar dados do sistema',
-    icon: <Database className="h-5 w-5" />,
-    permissions: [
-      { id: 'contacts_manage', name: 'Gerenciar contatos', description: 'Criar, editar e excluir contatos' },
-      { id: 'conversations_manage', name: 'Gerenciar conversas', description: 'Gerenciar conversas e mensagens' },
-      { id: 'backup_access', name: 'Backup e restauração', description: 'Acesso às funções de backup' },
-      { id: 'import_export', name: 'Importar/Exportar', description: 'Importar e exportar dados' }
-    ]
-  }
-];
+function getCategoryName(category: string) {
+  const names: Record<string, string> = {
+    'users': 'Gerenciamento de Usuários',
+    'system': 'Configurações do Sistema', 
+    'conversations': 'Sistema de Chat',
+    'contacts': 'Gerenciamento de Contatos',
+    'reports': 'Relatórios e Análises',
+    'integrations': 'Integrações',
+    'other': 'Outras Permissões'
+  };
+  return names[category] || category;
+}
 
-// Permission templates
-const permissionTemplates = [
-  {
-    id: 'admin',
-    name: 'Administrador Completo',
-    description: 'Acesso total ao sistema - todas as permissões',
-    permissions: [
-      'user_create', 'user_edit', 'user_delete', 'user_view', 'teams_manage',
-      'system_settings', 'integrations_manage', 'api_access', 'security_manage',
-      'chat_access', 'chat_assign', 'chat_supervise', 'templates_manage',
-      'reports_view', 'reports_export', 'analytics_access', 'performance_metrics',
-      'contacts_manage', 'conversations_manage', 'backup_access', 'import_export'
-    ]
-  },
-  {
-    id: 'manager',
-    name: 'Gerente',
-    description: 'Permissões para gerenciamento de equipes e relatórios',
-    permissions: [
-      'user_view', 'teams_manage', 'chat_access', 'chat_assign', 'chat_supervise',
-      'reports_view', 'reports_export', 'analytics_access', 'contacts_manage'
-    ]
-  },
-  {
-    id: 'supervisor',
-    name: 'Supervisor',
-    description: 'Supervisão de atendentes e relatórios básicos',
-    permissions: [
-      'user_view', 'chat_access', 'chat_supervise', 'reports_view', 'contacts_manage'
-    ]
-  },
-  {
-    id: 'agent',
-    name: 'Atendente',
-    description: 'Acesso básico para atendimento ao cliente',
-    permissions: [
-      'chat_access', 'contacts_manage', 'templates_manage'
-    ]
-  },
-  {
-    id: 'viewer',
-    name: 'Visualizador',
-    description: 'Acesso apenas para visualização',
-    permissions: [
-      'user_view', 'reports_view', 'contacts_manage'
-    ]
-  }
-];
+function getCategoryDescription(category: string) {
+  const descriptions: Record<string, string> = {
+    'users': 'Permissões para gerenciar usuários e equipes',
+    'system': 'Permissões para configurar o sistema',
+    'conversations': 'Permissões para uso do sistema de chat',
+    'contacts': 'Permissões para gerenciar contatos',
+    'reports': 'Permissões para acessar relatórios',
+    'integrations': 'Permissões para gerenciar integrações',
+    'other': 'Outras permissões do sistema'
+  };
+  return descriptions[category] || 'Permissões do sistema';
+}
+
+function getCategoryIcon(category: string) {
+  const icons: Record<string, JSX.Element> = {
+    'users': <Users className="h-5 w-5" />,
+    'system': <Settings className="h-5 w-5" />,
+    'conversations': <MessageSquare className="h-5 w-5" />,
+    'contacts': <Database className="h-5 w-5" />,
+    'reports': <BarChart className="h-5 w-5" />,
+    'integrations': <Key className="h-5 w-5" />,
+    'other': <Shield className="h-5 w-5" />
+  };
+  return icons[category] || <Shield className="h-5 w-5" />;
+}
 
 export const PermissionsTab = () => {
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([
-    'user_view', 'chat_access', 'reports_view', 'contacts_manage'
-  ]);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingPermission, setEditingPermission] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch permissions from database
+  const { data: permissionsData = [], isLoading: permissionsLoading } = useQuery({
+    queryKey: ['/api/admin/permissions'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/permissions');
+      if (!response.ok) throw new Error('Failed to fetch permissions');
+      return response.json();
+    }
+  });
+
   // Fetch roles from database
   const { data: roles = [], isLoading: rolesLoading } = useQuery({
-    queryKey: ['/api/roles'],
+    queryKey: ['/api/admin/roles'],
     queryFn: async () => {
-      const response = await fetch('/api/roles');
+      const response = await fetch('/api/admin/roles');
       if (!response.ok) throw new Error('Failed to fetch roles');
       return response.json();
     }
   });
 
+  // Fetch role permissions when role is selected
+  const { data: rolePermissions = [], refetch: refetchRolePermissions } = useQuery({
+    queryKey: ['/api/admin/role-permissions', selectedRoleId],
+    queryFn: async () => {
+      if (!selectedRoleId) return [];
+      const response = await fetch(`/api/admin/role-permissions/${selectedRoleId}`);
+      if (!response.ok) throw new Error('Failed to fetch role permissions');
+      return response.json();
+    },
+    enabled: !!selectedRoleId
+  });
+
+  // Update selected permissions when role changes
+  useEffect(() => {
+    if (rolePermissions.length > 0) {
+      const permissionNames = rolePermissions.map((rp: any) => rp.permission?.name || rp.permissionName).filter(Boolean);
+      setSelectedPermissions(permissionNames);
+    } else {
+      setSelectedPermissions([]);
+    }
+  }, [rolePermissions]);
+
+  // Group permissions by category
+  const permissionGroups = permissionsData.reduce((groups: any[], permission: any) => {
+    const category = permission.category || 'other';
+    let group = groups.find((g: any) => g.id === category);
+    
+    if (!group) {
+      group = {
+        id: category,
+        name: getCategoryName(category),
+        description: getCategoryDescription(category),
+        icon: getCategoryIcon(category),
+        permissions: []
+      };
+      groups.push(group);
+    }
+    
+    group.permissions.push({
+      id: permission.name,
+      name: permission.displayName,
+      description: permission.description
+    });
+    
+    return groups;
+  }, []);
+
   // Save permissions mutation
   const savePermissionsMutation = useMutation({
     mutationFn: async ({ roleId, permissions }: { roleId: string; permissions: string[] }) => {
-      const response = await apiRequest('POST', '/api/permissions/save', { roleId, permissions });
+      const response = await fetch('/api/admin/role-permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roleId: parseInt(roleId), permissions })
+      });
+      if (!response.ok) throw new Error('Failed to save permissions');
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: "Configurações de permissões salvas com sucesso!"
+        title: "Permissões salvas",
+        description: "As permissões foram atualizadas com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles'] });
+      refetchRolePermissions();
     },
     onError: (error: Error) => {
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar configurações",
-        variant: "destructive"
+        description: error.message,
+        variant: "destructive",
       });
     }
   });
 
-  // Load permissions when role is selected
-  useEffect(() => {
-    if (selectedRoleId && roles.length > 0) {
-      const selectedRole = roles.find((role: any) => role.id.toString() === selectedRoleId);
-      if (selectedRole && selectedRole.permissions) {
-        try {
-          const permissions = JSON.parse(selectedRole.permissions);
-          setSelectedPermissions(Array.isArray(permissions) ? permissions : []);
-        } catch {
-          setSelectedPermissions([]);
-        }
-      } else {
-        setSelectedPermissions([]);
-      }
+  // Create permission mutation
+  const createPermissionMutation = useMutation({
+    mutationFn: async (permission: { name: string; displayName: string; description: string; category: string }) => {
+      const response = await fetch('/api/admin/permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(permission)
+      });
+      if (!response.ok) throw new Error('Failed to create permission');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Permissão criada",
+        description: "Nova permissão criada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/permissions'] });
+      setIsEditDialogOpen(false);
+      setEditingPermission(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-  }, [selectedRoleId, roles]);
+  });
 
   const handlePermissionToggle = (permissionId: string) => {
     setSelectedPermissions(prev => 
-      prev.includes(permissionId)
+      prev.includes(permissionId) 
         ? prev.filter(id => id !== permissionId)
         : [...prev, permissionId]
     );
@@ -193,223 +197,225 @@ export const PermissionsTab = () => {
     if (!selectedRoleId) {
       toast({
         title: "Erro",
-        description: "Selecione uma função para configurar as permissões",
-        variant: "destructive"
+        description: "Selecione uma função primeiro.",
+        variant: "destructive",
       });
       return;
     }
-    
-    savePermissionsMutation.mutate({
-      roleId: selectedRoleId,
-      permissions: selectedPermissions
+
+    savePermissionsMutation.mutate({ 
+      roleId: selectedRoleId, 
+      permissions: selectedPermissions 
     });
   };
 
-  const handleApplyTemplate = (templateId: string) => {
-    const template = permissionTemplates.find(t => t.id === templateId);
-    if (template) {
-      setSelectedPermissions(template.permissions);
-      setIsTemplateDialogOpen(false);
-      toast({
-        title: "Template aplicado",
-        description: `Template "${template.name}" aplicado com sucesso. Lembre-se de salvar as configurações.`
-      });
-    }
+  const handleCreatePermission = (formData: FormData) => {
+    const permission = {
+      name: formData.get('name') as string,
+      displayName: formData.get('displayName') as string,
+      description: formData.get('description') as string,
+      category: formData.get('category') as string
+    };
+
+    createPermissionMutation.mutate(permission);
   };
 
-  const getGroupPermissionCount = (groupPermissions: { id: string }[]) => {
-    return groupPermissions.filter(p => selectedPermissions.includes(p.id)).length;
+  const getAllPermissions = () => {
+    return permissionGroups.flatMap((g: any) => g.permissions.map((p: any) => p.id));
   };
+
+  const handleSelectAll = () => {
+    setSelectedPermissions(getAllPermissions());
+  };
+
+  const handleSelectNone = () => {
+    setSelectedPermissions([]);
+  };
+
+  if (permissionsLoading || rolesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header Controls */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Gerenciamento de Permissões</h3>
+          <h3 className="text-lg font-semibold">Configuração de Permissões</h3>
           <p className="text-sm text-muted-foreground">
-            Configure permissões detalhadas para cada função do sistema
+            Configure permissões granulares para funções do sistema
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Importar Template
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Permissão
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle>Importar Template de Permissões</DialogTitle>
+                <DialogTitle>Criar Nova Permissão</DialogTitle>
                 <DialogDescription>
-                  Escolha um template predefinido para aplicar rapidamente um conjunto de permissões.
+                  Defina uma nova permissão no sistema
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                {permissionTemplates.map(template => (
-                  <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center justify-between">
-                        {template.name}
-                        <Badge variant="outline">
-                          {template.permissions.length} permissões
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription className="text-sm">
-                        {template.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Permissões incluídas:</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {template.permissions.slice(0, 4).map(permissionId => {
-                              const permission = permissionGroups
-                                .flatMap(g => g.permissions)
-                                .find(p => p.id === permissionId);
-                              
-                              return permission ? (
-                                <Badge key={permissionId} variant="secondary" className="text-xs">
-                                  {permission.name}
-                                </Badge>
-                              ) : null;
-                            })}
-                            {template.permissions.length > 4 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{template.permissions.length - 4} mais
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <Button 
-                          onClick={() => handleApplyTemplate(template.id)}
-                          className="w-full"
-                          size="sm"
-                        >
-                          Aplicar Template
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <form action={handleCreatePermission} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Nome da Permissão</Label>
+                  <Input id="name" name="name" placeholder="ex: reports_view" required />
+                </div>
+                <div>
+                  <Label htmlFor="displayName">Nome de Exibição</Label>
+                  <Input id="displayName" name="displayName" placeholder="ex: Visualizar Relatórios" required />
+                </div>
+                <div>
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea id="description" name="description" placeholder="Descreva o que esta permissão permite" />
+                </div>
+                <div>
+                  <Label htmlFor="category">Categoria</Label>
+                  <Select name="category" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="users">Usuários</SelectItem>
+                      <SelectItem value="system">Sistema</SelectItem>
+                      <SelectItem value="conversations">Conversas</SelectItem>
+                      <SelectItem value="contacts">Contatos</SelectItem>
+                      <SelectItem value="reports">Relatórios</SelectItem>
+                      <SelectItem value="integrations">Integrações</SelectItem>
+                      <SelectItem value="other">Outros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" disabled={createPermissionMutation.isPending}>
+                  {createPermissionMutation.isPending ? 'Criando...' : 'Criar Permissão'}
+                </Button>
+              </form>
             </DialogContent>
           </Dialog>
-          <Button 
-            onClick={handleSavePermissions}
-            disabled={savePermissionsMutation.isPending || !selectedRoleId}
-          >
-            {savePermissionsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
-          </Button>
         </div>
       </div>
 
+      {/* Role Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Selecionar Função</CardTitle>
-          <CardDescription>
-            Escolha a função para configurar suas permissões
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione uma função" />
-            </SelectTrigger>
-            <SelectContent>
-              {rolesLoading ? (
-                <SelectItem value="loading">Carregando...</SelectItem>
-              ) : (
-                roles.map((role: any) => (
-                  <SelectItem key={role.id} value={role.id.toString()}>
-                    {role.displayName}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {permissionGroups.map(group => (
-          <Card key={group.id} className="h-fit">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {group.icon}
-                  <CardTitle className="text-base">{group.name}</CardTitle>
-                </div>
-                <Badge variant="outline">
-                  {getGroupPermissionCount(group.permissions)}/{group.permissions.length}
-                </Badge>
-              </div>
-              <CardDescription className="text-sm">
-                {group.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {group.permissions.map(permission => (
-                  <div key={permission.id} className="flex items-start gap-3 p-3 rounded-md hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      checked={selectedPermissions.includes(permission.id)}
-                      onCheckedChange={() => handlePermissionToggle(permission.id)}
-                      className="mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{permission.name}</span>
-                        <Switch
-                          checked={selectedPermissions.includes(permission.id)}
-                          onCheckedChange={() => handlePermissionToggle(permission.id)}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {permission.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            <CardTitle>Resumo de Permissões Selecionadas</CardTitle>
-          </div>
+            Selecionar Função
+          </CardTitle>
           <CardDescription>
-            Visualize todas as permissões atualmente selecionadas
+            Escolha uma função para configurar suas permissões
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {selectedPermissions.map(permissionId => {
-              const permission = permissionGroups
-                .flatMap(g => g.permissions)
-                .find(p => p.id === permissionId);
-              
-              return permission ? (
-                <Badge key={permissionId} variant="secondary" className="flex items-center gap-1">
-                  <Key className="h-3 w-3" />
-                  {permission.name}
-                </Badge>
-              ) : null;
-            })}
-            {selectedPermissions.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Nenhuma permissão selecionada
-              </p>
-            )}
+        <CardContent className="space-y-4">
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <Label htmlFor="role">Função</Label>
+              <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma função" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role: any) => (
+                    <SelectItem key={role.id} value={role.id.toString()}>
+                      {role.displayName || role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                Selecionar Todas
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSelectNone}>
+                Limpar Seleção
+              </Button>
+            </div>
           </div>
+
+          {selectedRoleId && (
+            <div className="flex items-center justify-between pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                {selectedPermissions.length} de {getAllPermissions().length} permissões selecionadas
+              </div>
+              <Button 
+                onClick={handleSavePermissions}
+                disabled={savePermissionsMutation.isPending}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savePermissionsMutation.isPending ? 'Salvando...' : 'Salvar Permissões'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Permissions Groups */}
+      {selectedRoleId && (
+        <div className="space-y-4">
+          {permissionGroups.map((group: any) => (
+            <Card key={group.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {group.icon}
+                  {group.name}
+                  <Badge variant="secondary" className="ml-auto">
+                    {group.permissions.filter((p: any) => selectedPermissions.includes(p.id)).length}/
+                    {group.permissions.length}
+                  </Badge>
+                </CardTitle>
+                <CardDescription>{group.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {group.permissions.map((permission: any) => (
+                    <div key={permission.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                      <Checkbox
+                        id={permission.id}
+                        checked={selectedPermissions.includes(permission.id)}
+                        onCheckedChange={() => handlePermissionToggle(permission.id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <Label htmlFor={permission.id} className="text-sm font-medium cursor-pointer">
+                          {permission.name}
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {permission.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!selectedRoleId && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center text-muted-foreground">
+              <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Selecione uma função para configurar suas permissões</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
