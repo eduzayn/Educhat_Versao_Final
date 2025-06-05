@@ -90,6 +90,8 @@ const formSchema = z.object({
   category: z.string().optional(),
   isActive: z.boolean().default(true),
   shareScope: z.string().optional(),
+  selectedTeams: z.array(z.number()).optional(),
+  selectedUsers: z.array(z.string()).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
