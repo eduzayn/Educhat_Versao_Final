@@ -348,7 +348,7 @@ export const TeamsTab = () => {
       )}
 
       {/* Modal de Criação de Equipe */}
-      <Dialog open={showTeamDialog} onOpenChange={handleCloseTeamDialog}>
+      <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Criar Nova Equipe</DialogTitle>
