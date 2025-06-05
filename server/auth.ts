@@ -21,8 +21,8 @@ declare global {
       dataKey?: string;
       channels: string[];
       macrosetores: string[];
-      teamId?: number;
-      team?: string;
+      teamId?: number | null;
+      team?: string | null;
     }
   }
 }

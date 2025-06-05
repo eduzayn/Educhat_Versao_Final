@@ -237,30 +237,72 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const [user] = await db
-      .insert(users)
+    const [systemUser] = await db
+      .insert(systemUsers)
       .values({
-        ...userData,
-        id: userId,
+        email: userData.email,
+        username: userData.firstName || userData.email.split('@')[0],
+        displayName: `${userData.firstName} ${userData.lastName}`.trim() || userData.email,
+        password: userData.password,
+        role: userData.role || 'user',
+        roleId: 1,
+        isActive: true,
+        channels: [],
+        macrosetores: []
       })
       .returning();
-    return user;
+    
+    return {
+      id: systemUser.id,
+      email: systemUser.email,
+      username: systemUser.username,
+      displayName: systemUser.displayName,
+      role: systemUser.role,
+      roleId: systemUser.roleId || 1,
+      dataKey: systemUser.dataKey || undefined,
+      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
+      macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+      teamId: systemUser.teamId ?? undefined,
+      team: systemUser.team ?? undefined
+    };
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
+    const [systemUser] = await db
+      .insert(systemUsers)
+      .values({
+        email: userData.email,
+        username: userData.firstName || userData.email.split('@')[0],
+        displayName: `${userData.firstName} ${userData.lastName}`.trim() || userData.email,
+        password: userData.password,
+        role: userData.role || 'user',
+        roleId: 1,
+        isActive: true,
+        channels: [],
+        macrosetores: []
+      })
       .onConflictDoUpdate({
-        target: users.id,
+        target: systemUsers.email,
         set: {
-          ...userData,
+          displayName: `${userData.firstName} ${userData.lastName}`.trim() || userData.email,
           updatedAt: new Date(),
         },
       })
       .returning();
-    return user;
+    
+    return {
+      id: systemUser.id,
+      email: systemUser.email,
+      username: systemUser.username,
+      displayName: systemUser.displayName,
+      role: systemUser.role,
+      roleId: systemUser.roleId || 1,
+      dataKey: systemUser.dataKey || undefined,
+      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
+      macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+      teamId: systemUser.teamId ?? undefined,
+      team: systemUser.team ?? undefined
+    };
   }
 
   // Contact operations
