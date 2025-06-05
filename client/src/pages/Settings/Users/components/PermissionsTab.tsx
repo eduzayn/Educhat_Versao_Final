@@ -16,12 +16,12 @@ import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database, Downlo
 
 function getCategoryName(category: string) {
   const names: Record<string, string> = {
-    'users': 'Gerenciamento de Usuários',
-    'system': 'Configurações do Sistema', 
+    'admin': 'Administração',
+    'crm': 'CRM & Vendas',
     'conversations': 'Sistema de Chat',
-    'contacts': 'Gerenciamento de Contatos',
-    'reports': 'Relatórios e Análises',
-    'integrations': 'Integrações',
+    'comunicacao': 'Comunicação',
+    'analytics': 'Relatórios e Análises',
+    'administracao': 'Configurações',
     'other': 'Outras Permissões'
   };
   return names[category] || category;
@@ -29,12 +29,12 @@ function getCategoryName(category: string) {
 
 function getCategoryDescription(category: string) {
   const descriptions: Record<string, string> = {
-    'users': 'Permissões para gerenciar usuários e equipes',
-    'system': 'Permissões para configurar o sistema',
-    'conversations': 'Permissões para uso do sistema de chat',
-    'contacts': 'Permissões para gerenciar contatos',
-    'reports': 'Permissões para acessar relatórios',
-    'integrations': 'Permissões para gerenciar integrações',
+    'admin': 'Permissões administrativas e de gerenciamento',
+    'crm': 'Permissões para contatos e negócios com controle hierárquico',
+    'conversations': 'Permissões para conversas e atendimento',
+    'comunicacao': 'Permissões para canais de comunicação',
+    'analytics': 'Permissões para relatórios e análises',
+    'administracao': 'Permissões de configuração do sistema',
     'other': 'Outras permissões do sistema'
   };
   return descriptions[category] || 'Permissões do sistema';
@@ -42,12 +42,12 @@ function getCategoryDescription(category: string) {
 
 function getCategoryIcon(category: string) {
   const icons: Record<string, JSX.Element> = {
-    'users': <Users className="h-5 w-5" />,
-    'system': <Settings className="h-5 w-5" />,
+    'admin': <Users className="h-5 w-5" />,
+    'crm': <Database className="h-5 w-5" />,
     'conversations': <MessageSquare className="h-5 w-5" />,
-    'contacts': <Database className="h-5 w-5" />,
-    'reports': <BarChart className="h-5 w-5" />,
-    'integrations': <Key className="h-5 w-5" />,
+    'comunicacao': <Key className="h-5 w-5" />,
+    'analytics': <BarChart className="h-5 w-5" />,
+    'administracao': <Settings className="h-5 w-5" />,
     'other': <Shield className="h-5 w-5" />
   };
   return icons[category] || <Shield className="h-5 w-5" />;
@@ -303,12 +303,12 @@ export const PermissionsTab = () => {
                       <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="users">Usuários</SelectItem>
-                      <SelectItem value="system">Sistema</SelectItem>
-                      <SelectItem value="conversations">Conversas</SelectItem>
-                      <SelectItem value="contacts">Contatos</SelectItem>
-                      <SelectItem value="reports">Relatórios</SelectItem>
-                      <SelectItem value="integrations">Integrações</SelectItem>
+                      <SelectItem value="admin">Administração</SelectItem>
+                      <SelectItem value="crm">CRM & Vendas</SelectItem>
+                      <SelectItem value="conversations">Sistema de Chat</SelectItem>
+                      <SelectItem value="comunicacao">Comunicação</SelectItem>
+                      <SelectItem value="analytics">Relatórios e Análises</SelectItem>
+                      <SelectItem value="administracao">Configurações</SelectItem>
                       <SelectItem value="other">Outros</SelectItem>
                     </SelectContent>
                   </Select>
