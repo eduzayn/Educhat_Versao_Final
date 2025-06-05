@@ -32,7 +32,7 @@ export function ContactTableRow({
   const { user } = useAuth();
   
   // Verificar se o usuário pode excluir contatos (apenas admin e gerente)
-  const canDeleteContacts = user?.role === 'admin' || user?.role === 'gerente';
+  const canDeleteContacts = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   const handleUpdatePhoto = async () => {
     if (!contact.phone) return;
@@ -46,7 +46,7 @@ export function ContactTableRow({
   };
 
   const getContactTypeBadge = (type: string | null) => {
-    const variants = {
+    const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
       'Lead': 'default',
       'Cliente': 'secondary',
       'Parceiro': 'outline',
@@ -54,7 +54,7 @@ export function ContactTableRow({
     };
     
     return (
-      <Badge variant={variants[type as keyof typeof variants] || 'default'}>
+      <Badge variant={(variants[type || ''] || 'default') as "default" | "destructive" | "outline" | "secondary"}>
         {type || 'Não definido'}
       </Badge>
     );
@@ -95,8 +95,8 @@ export function ContactTableRow({
           
           <div>
             <div className="font-medium text-gray-900">{contact.name}</div>
-            {contact.company && (
-              <div className="text-sm text-gray-500">{contact.company}</div>
+            {(contact as any).company && (
+              <div className="text-sm text-gray-500">{(contact as any).company}</div>
             )}
           </div>
         </div>
@@ -112,17 +112,17 @@ export function ContactTableRow({
             {contact.phone || '-'}
           </span>
           {contact.phone && (
-            <Phone className="w-4 h-4 text-green-500" title="WhatsApp disponível" />
+            <Phone className="w-4 h-4 text-green-500" />
           )}
         </div>
       </td>
       
       <td className="px-6 py-4">
-        {getContactTypeBadge(contact.contactType)}
+        {getContactTypeBadge((contact as any).contactType)}
       </td>
       
       <td className="px-6 py-4">
-        <div className="text-sm text-gray-900">{contact.owner || '-'}</div>
+        <div className="text-sm text-gray-900">{(contact as any).owner || '-'}</div>
       </td>
       
       <td className="px-6 py-4">
