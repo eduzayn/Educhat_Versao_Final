@@ -650,6 +650,26 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(systemUsers).orderBy(desc(systemUsers.createdAt));
   }
 
+  // Get user permissions for hierarchical permission checks
+  async getUserPermissions(userId: number): Promise<{ permission: string }[]> {
+    const user = await this.getSystemUser(userId);
+    if (!user || !user.roleId) return [];
+
+    const role = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.id, user.roleId))
+      .limit(1);
+
+    if (!role[0] || !role[0].permissions) return [];
+
+    const permissions = Array.isArray(role[0].permissions) 
+      ? role[0].permissions 
+      : JSON.parse(role[0].permissions as string || '[]');
+
+    return permissions.map((permission: string) => ({ permission }));
+  }
+
   async getSystemUser(id: number): Promise<SystemUser | undefined> {
     const [user] = await db.select().from(systemUsers).where(eq(systemUsers.id, id));
     return user;
