@@ -3300,7 +3300,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTeams(userId: number): Promise<Team[]> {
-    const result = await db.select()
+    const result = await db.select({
+      id: teams.id,
+      name: teams.name,
+      description: teams.description,
+      color: teams.color,
+      macrosetor: teams.macrosetor,
+      isActive: teams.isActive,
+      createdAt: teams.createdAt,
+      updatedAt: teams.updatedAt
+    })
       .from(teams)
       .innerJoin(userTeams, eq(userTeams.teamId, teams.id))
       .where(and(
@@ -3374,32 +3383,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversationsByUser(userId: number): Promise<ConversationWithContact[]> {
-    const result = await db.select({
-      id: conversations.id,
-      contactId: conversations.contactId,
-      channel: conversations.channel,
-      status: conversations.status,
-      lastMessageAt: conversations.lastMessageAt,
-      assignedTeamId: conversations.assignedTeamId,
-      assignedUserId: conversations.assignedUserId,
-      assignmentMethod: conversations.assignmentMethod,
-      assignedAt: conversations.assignedAt,
-      createdAt: conversations.createdAt,
-      updatedAt: conversations.updatedAt,
-      contact: {
-        id: contacts.id,
-        name: contacts.name,
-        phone: contacts.phone,
-        email: contacts.email,
-        isOnline: contacts.isOnline,
-        profileImageUrl: contacts.profileImageUrl,
-        canalOrigem: contacts.canalOrigem,
-        nomeCanal: contacts.nomeCanal,
-        idCanal: contacts.idCanal,
-        createdAt: contacts.createdAt,
-        updatedAt: contacts.updatedAt
-      }
-    })
+    const result = await db.select()
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(eq(conversations.assignedUserId, userId))
@@ -3407,7 +3391,11 @@ export class DatabaseStorage implements IStorage {
     
     // Transform to match ConversationWithContact type
     return result.map(row => ({
-      ...row,
+      ...row.conversations,
+      macrosetor: row.conversations.macrosetor || null,
+      channelId: row.conversations.channelId || null,
+      unreadCount: row.conversations.unreadCount || 0,
+      contact: row.contacts,
       messages: [] // Will be populated separately if needed
     }));
   }
@@ -3423,13 +3411,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSystemSettings(category?: string): Promise<SystemSetting[]> {
-    let query = db.select().from(systemSettings);
-    
     if (category) {
-      query = query.where(eq(systemSettings.category, category));
+      return await db.select()
+        .from(systemSettings)
+        .where(eq(systemSettings.category, category))
+        .orderBy(systemSettings.category, systemSettings.key);
     }
     
-    return await query.orderBy(systemSettings.category, systemSettings.key);
+    return await db.select()
+      .from(systemSettings)
+      .orderBy(systemSettings.category, systemSettings.key);
   }
 
   async setSystemSetting(key: string, value: string, type: string = 'string', description?: string, category: string = 'general'): Promise<SystemSetting> {
@@ -3462,7 +3453,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     const newValue = setting.value === 'true' ? 'false' : 'true';
-    return await this.setSystemSetting(key, newValue, 'boolean', setting.description, setting.category);
+    return await this.setSystemSetting(key, newValue, 'boolean', setting.description || undefined, setting.category || undefined);
   }
 
   async deleteSystemSetting(key: string): Promise<void> {
