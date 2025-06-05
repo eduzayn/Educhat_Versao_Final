@@ -734,6 +734,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete contact endpoint - protected by permissions
+  app.delete('/api/contacts/:id', 
+    requirePermission('contatos:excluir'),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        await storage.deleteContact(id);
+        res.status(204).send();
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+        res.status(500).json({ message: 'Failed to delete contact' });
+      }
+    }
+  );
+
   // Contact tags endpoints
   app.get('/api/contacts/:id/tags', async (req, res) => {
     try {
