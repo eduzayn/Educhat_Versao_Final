@@ -20,6 +20,7 @@ import { BIPage } from "@/pages/BI/BIPage";
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import NotFound from "@/pages/not-found";
 

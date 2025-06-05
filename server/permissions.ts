@@ -50,8 +50,25 @@ export class PermissionService {
 
       const userData = user[0];
 
+      // Verificar se role_id existe - crítico para segurança
+      if (!userData.roleId) {
+        console.error(`🚨 FALHA DE SEGURANÇA: Usuário ${userId} sem role_id definido`);
+        return false;
+      }
+
       // Admin tem acesso total
       if (userData.role === 'admin') return true;
+      
+      // Verificações específicas para agents/atendentes
+      if (userData.role === 'agent' && (
+        permissionName.includes('admin') ||
+        permissionName.includes('gerenciar_usuarios') ||
+        permissionName.includes('canal:') ||
+        permissionName.includes('sistema:')
+      )) {
+        console.warn(`🔒 Acesso negado: Agent ${userId} tentou acessar ${permissionName}`);
+        return false;
+      }
 
       // Verificar permissões por função
       const rolePermission = await db
