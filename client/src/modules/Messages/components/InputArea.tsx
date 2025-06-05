@@ -42,6 +42,7 @@ export function InputArea() {
   const [quickReplyFilter, setQuickReplyFilter] = useState('');
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
   const [isInternalNote, setIsInternalNote] = useState(false);
+  const [replyToMessage, setReplyToMessage] = useState<{messageId: string, content: string} | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +53,31 @@ export function InputArea() {
   const sendAudioMutation = useSendAudioMessage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mutation para enviar resposta de mensagem
+  const sendReplyMutation = useMutation({
+    mutationFn: async ({ phone, message, conversationId, replyToMessageId }: {
+      phone: string;
+      message: string;
+      conversationId: number;
+      replyToMessageId: string;
+    }) => {
+      const response = await apiRequest('/api/zapi/reply-message', 'POST', {
+        phone,
+        message,
+        conversationId,
+        replyToMessageId
+      });
+      return response;
+    },
+    onSuccess: () => {
+      if (activeConversation) {
+        queryClient.invalidateQueries({
+          queryKey: ['/api/conversations', activeConversation.id, 'messages']
+        });
+      }
+    }
+  });
 
   // Query para buscar respostas rápidas
   const { data: quickReplies = [] } = useQuery({

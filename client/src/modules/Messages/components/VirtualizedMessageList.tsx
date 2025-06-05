@@ -8,6 +8,7 @@ interface VirtualizedMessageListProps {
   contact: Contact;
   conversationId?: number;
   height: number;
+  onReply?: (messageId: string, content: string) => void;
 }
 
 interface MessageItemProps {
@@ -17,11 +18,12 @@ interface MessageItemProps {
     messages: Message[];
     contact: Contact;
     conversationId?: number;
+    onReply?: (messageId: string, content: string) => void;
   };
 }
 
 const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
-  const { messages, contact, conversationId } = data;
+  const { messages, contact, conversationId, onReply } = data;
   const message = messages[index];
 
   if (!message) return null;
@@ -44,7 +46,8 @@ export const VirtualizedMessageList = memo(({
   messages,
   contact,
   conversationId,
-  height
+  height,
+  onReply
 }: VirtualizedMessageListProps) => {
   const listRef = useRef<List>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
@@ -67,7 +70,8 @@ export const VirtualizedMessageList = memo(({
   const itemData = {
     messages,
     contact,
-    conversationId
+    conversationId,
+    onReply
   };
 
   return (
