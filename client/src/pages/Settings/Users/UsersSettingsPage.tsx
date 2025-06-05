@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
@@ -8,7 +9,21 @@ import { TeamsTab } from './components/TeamsTab';
 import { PermissionsTab } from './components/PermissionsTab';
 
 export const UsersSettingsPage = () => {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Inicializar com base na URL atual
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    return (tab && ['users', 'roles', 'teams', 'permissions'].includes(tab)) ? tab : 'users';
+  });
+
+  // Atualizar URL quando aba muda, sem causar re-renderização
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    // Usar pushState em vez de replaceState para manter histórico
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('tab', newTab);
+    window.history.pushState({}, '', newUrl.toString());
+  };
 
   return (
     <div className="min-h-screen bg-educhat-light">
@@ -22,7 +37,7 @@ export const UsersSettingsPage = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
