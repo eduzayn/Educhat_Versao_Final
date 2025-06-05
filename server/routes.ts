@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+import { Server as SocketIOServer } from "socket.io";
 import QRCode from 'qrcode';
 import multer from 'multer';
 import { storage } from "./storage";
@@ -20,138 +20,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // WebSocket server for real-time communication
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  // Store connected clients with their metadata and heartbeat info
-  const clients = new Map<WebSocket, { 
+  // Socket.IO server for real-time communication with enhanced features
+  const io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling']
+  });
+
+  // Store connected clients with their metadata
+  const clients = new Map<string, { 
     contactId?: number; 
     conversationId?: number; 
-    isAlive?: boolean;
-    lastPing?: number;
+    socketId: string;
+    connectedAt: number;
   }>();
 
-  // Heartbeat interval (30 seconds)
-  const HEARTBEAT_INTERVAL = 30000;
-  const PING_TIMEOUT = 10000;
-
-  // Setup heartbeat for all connections
-  const heartbeatInterval = setInterval(() => {
-    wss.clients.forEach((ws) => {
-      const clientData = clients.get(ws);
-      if (!clientData?.isAlive) {
-        console.log('⚰️ Terminando conexão WebSocket inativa');
-        ws.terminate();
-        clients.delete(ws);
-        return;
-      }
-
-      // Mark as not alive and send ping
-      clients.set(ws, { ...clientData, isAlive: false, lastPing: Date.now() });
-      
-      if (ws.readyState === WebSocket.OPEN) {
-        console.log('🏓 Enviando ping para cliente WebSocket');
-        ws.ping();
-      }
+  io.on('connection', (socket) => {
+    console.log(`🔌 Cliente conectado via Socket.IO: ${socket.id}`);
+    clients.set(socket.id, { 
+      socketId: socket.id, 
+      connectedAt: Date.now() 
     });
-  }, HEARTBEAT_INTERVAL);
 
-  // Cleanup interval on server close
-  wss.on('close', () => {
-    clearInterval(heartbeatInterval);
-  });
-
-  wss.on('connection', (ws) => {
-    console.log('🔌 Cliente conectado ao WebSocket');
-    clients.set(ws, { isAlive: true, lastPing: Date.now() });
-
-    // Handle pong response
-    ws.on('pong', () => {
-      const clientData = clients.get(ws);
+    // Handle joining a conversation room
+    socket.on('join_conversation', (data) => {
+      const { conversationId } = data;
+      const clientData = clients.get(socket.id);
       if (clientData) {
-        const pingTime = Date.now() - (clientData.lastPing || 0);
-        console.log(`🏓 Pong recebido em ${pingTime}ms`);
-        clients.set(ws, { ...clientData, isAlive: true });
+        clients.set(socket.id, { ...clientData, conversationId });
+        socket.join(`conversation:${conversationId}`);
+        console.log(`🏠 Cliente ${socket.id} entrou na conversa ${conversationId}`);
       }
     });
 
-    // Handle ping from client (respond with pong)
-    ws.on('ping', () => {
-      console.log('🏓 Ping recebido do cliente, enviando pong');
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.pong();
-      }
+    // Handle typing indicators
+    socket.on('typing', (data) => {
+      const { conversationId, isTyping } = data;
+      socket.to(`conversation:${conversationId}`).emit('typing', {
+        conversationId,
+        isTyping,
+        socketId: socket.id
+      });
     });
 
-    ws.on('message', async (data) => {
+    // Handle new messages
+    socket.on('send_message', async (data) => {
       try {
-        const message = JSON.parse(data.toString());
+        const { conversationId, content, isFromContact = false } = data;
         
-        switch (message.type) {
-          case 'join_conversation':
-            clients.set(ws, { 
-              ...clients.get(ws), 
-              conversationId: message.conversationId 
-            });
-            break;
-            
-          case 'typing':
-            // Broadcast typing indicator to other clients in the same conversation
-            broadcast(message.conversationId, {
-              type: 'typing',
-              conversationId: message.conversationId,
-              isTyping: message.isTyping,
-            }, ws);
-            break;
-            
-          case 'send_message':
-            // Handle new message
-            const newMessage = await storage.createMessage({
-              conversationId: message.conversationId,
-              content: message.content,
-              isFromContact: message.isFromContact || false,
-            });
-            
-            // Broadcast to all clients in the conversation
-            broadcast(message.conversationId, {
-              type: 'new_message',
-              message: newMessage,
-            });
-            break;
-        }
+        const newMessage = await storage.createMessage({
+          conversationId,
+          content,
+          isFromContact,
+        });
+        
+        // Broadcast to all clients in the conversation
+        io.to(`conversation:${conversationId}`).emit('new_message', {
+          message: newMessage,
+          conversationId
+        });
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error('Erro ao processar mensagem Socket.IO:', error);
+        socket.emit('error', { message: 'Erro ao enviar mensagem' });
       }
     });
 
-    ws.on('close', () => {
-      console.log('Client disconnected from WebSocket');
-      clients.delete(ws);
+    // Handle disconnection
+    socket.on('disconnect', (reason) => {
+      console.log(`🔌 Cliente ${socket.id} desconectado: ${reason}`);
+      clients.delete(socket.id);
     });
   });
 
-  // Broadcast function to send messages to clients in a specific conversation
-  function broadcast(conversationId: number, message: any, sender?: WebSocket) {
-    clients.forEach((clientData, client) => {
-      if (
-        client !== sender &&
-        client.readyState === WebSocket.OPEN &&
-        clientData.conversationId === conversationId
-      ) {
-        client.send(JSON.stringify(message));
-      }
-    });
+  // Broadcast function to send messages to clients in a specific conversation using Socket.IO
+  function broadcast(conversationId: number, message: any, excludeSocketId?: string) {
+    const roomName = `conversation:${conversationId}`;
+    if (excludeSocketId) {
+      io.to(roomName).except(excludeSocketId).emit('broadcast_message', message);
+    } else {
+      io.to(roomName).emit('broadcast_message', message);
+    }
   }
 
-  function broadcastToAll(message: any, sender?: WebSocket) {
-    clients.forEach((clientData, client) => {
-      if (
-        client !== sender &&
-        client.readyState === WebSocket.OPEN
-      ) {
-        client.send(JSON.stringify(message));
-      }
-    });
+  function broadcastToAll(message: any, excludeSocketId?: string) {
+    if (excludeSocketId) {
+      io.except(excludeSocketId).emit('broadcast_message', message);
+    } else {
+      io.emit('broadcast_message', message);
+    }
   }
 
   // API Routes

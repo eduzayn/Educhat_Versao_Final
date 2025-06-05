@@ -3,16 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useChatStore } from '../../store/store/chatStore';
 import type { WebSocketMessage } from '../../../types/chat';
 import type { Message } from '../../../types/chat';
+import { io, Socket } from 'socket.io-client';
 
 export function useWebSocket() {
-  const socketRef = useRef<WebSocket | null>(null);
-  const pingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
-
-  // Heartbeat configuration
-  const PING_TIMEOUT = 60000; // 60 seconds timeout for ping response
 
   const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
