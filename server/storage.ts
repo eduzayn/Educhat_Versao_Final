@@ -211,8 +211,8 @@ export class DatabaseStorage implements IStorage {
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
       macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
-      teamId: systemUser.teamId ?? undefined,
-      team: systemUser.team ?? undefined
+      teamId: systemUser.teamId || undefined,
+      team: systemUser.team || undefined
     };
   }
 
@@ -231,8 +231,8 @@ export class DatabaseStorage implements IStorage {
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
       macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
-      teamId: systemUser.teamId ?? undefined,
-      team: systemUser.team ?? undefined
+      teamId: systemUser.teamId || undefined,
+      team: systemUser.team || undefined
     };
   }
 
@@ -262,8 +262,8 @@ export class DatabaseStorage implements IStorage {
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
       macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
-      teamId: systemUser.teamId ?? undefined,
-      team: systemUser.team ?? undefined
+      teamId: systemUser.teamId || undefined,
+      team: systemUser.team || undefined
     };
   }
 
@@ -300,8 +300,8 @@ export class DatabaseStorage implements IStorage {
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
       macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
-      teamId: systemUser.teamId ?? undefined,
-      team: systemUser.team ?? undefined
+      teamId: systemUser.teamId || undefined,
+      team: systemUser.team || undefined
     };
   }
 

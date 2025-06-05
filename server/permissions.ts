@@ -7,11 +7,15 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: number;
     email: string;
+    username: string;
+    displayName: string;
     role: string;
     roleId: number;
     dataKey?: string;
     channels: string[];
     macrosetores: string[];
+    teamId?: number | null;
+    team?: string | null;
   };
 }
 
