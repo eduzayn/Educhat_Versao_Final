@@ -3580,6 +3580,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deletar usuário específico
+  app.delete('/api/system-users/:id', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      await storage.deleteSystemUser(userId);
+      
+      console.log(`🗑️ Usuário deletado: ID ${userId}`);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Teams API endpoints
   app.get('/api/teams', async (req, res) => {
     try {
@@ -5461,7 +5476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/system-settings/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const setting = await storage.getSystemSetting(id);
+      const setting = await storage.getSystemSetting(id.toString());
       
       if (!setting) {
         return res.status(404).json({ message: 'Configuração não encontrada' });

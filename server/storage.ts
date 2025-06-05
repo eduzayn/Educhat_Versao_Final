@@ -3290,6 +3290,37 @@ export class DatabaseStorage implements IStorage {
     await db.delete(systemSettings).where(eq(systemSettings.key, key));
   }
 
+  async updateSystemSetting(id: number, data: any): Promise<SystemSetting | null> {
+    const result = await db.update(systemSettings)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(systemSettings.id, id))
+      .returning();
+    
+    return result[0] || null;
+  }
+
+  async getSystemSettingsByCategory(category: string): Promise<SystemSetting[]> {
+    return await db.select()
+      .from(systemSettings)
+      .where(eq(systemSettings.category, category))
+      .orderBy(systemSettings.key);
+  }
+
+  async createSystemSetting(data: any): Promise<SystemSetting> {
+    const result = await db.insert(systemSettings)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return result[0];
+  }
+
   async getContactInterests(contactId: number): Promise<any[]> {
     try {
       // Buscar o contato com suas tags
