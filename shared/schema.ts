@@ -87,7 +87,9 @@ export const messages = pgTable("messages", {
   // Campos para notas internas
   isInternalNote: boolean("is_internal_note").default(false), // indica se é uma nota interna
   authorId: integer("author_id").references(() => systemUsers.id), // ID do usuário que criou a nota
-  authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar exibição
+  authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar
+  // Campo para ocultação local de mensagens
+  isHiddenForUser: boolean("is_hidden_for_user").default(false), // oculta mensagem apenas localmente exibição
 });
 
 // Contact tags table

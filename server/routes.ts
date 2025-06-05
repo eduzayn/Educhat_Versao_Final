@@ -2059,6 +2059,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para ocultar mensagens localmente (apenas para mim)
+  app.patch('/api/messages/:id/hide', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const { isHidden } = req.body;
+      
+      if (typeof isHidden !== 'boolean') {
+        return res.status(400).json({ error: 'isHidden deve ser um valor booleano' });
+      }
+      
+      await storage.hideMessageForUser(messageId, isHidden);
+      
+      res.json({ 
+        success: true, 
+        message: isHidden ? 'Mensagem ocultada com sucesso' : 'Mensagem exibida novamente'
+      });
+    } catch (error) {
+      console.error('Erro ao ocultar/exibir mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   app.get('/api/zapi/status', async (req, res) => {
     try {
       const credentials = validateZApiCredentials();

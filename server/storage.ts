@@ -467,7 +467,8 @@ export class DatabaseStorage implements IStorage {
         referenceMessageId: messages.referenceMessageId,
         isInternalNote: messages.isInternalNote,
         authorId: messages.authorId,
-        authorName: messages.authorName
+        authorName: messages.authorName,
+        isHiddenForUser: messages.isHiddenForUser
       })
       .from(messages)
       .orderBy(desc(messages.sentAt));
@@ -497,10 +498,16 @@ export class DatabaseStorage implements IStorage {
         referenceMessageId: messages.referenceMessageId,
         isInternalNote: messages.isInternalNote,
         authorId: messages.authorId,
-        authorName: messages.authorName
+        authorName: messages.authorName,
+        isHiddenForUser: messages.isHiddenForUser
       })
       .from(messages)
-      .where(eq(messages.conversationId, conversationId))
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isHiddenForUser, false)
+        )
+      )
       .orderBy(desc(messages.sentAt))
       .limit(limit)
       .offset(offset);
