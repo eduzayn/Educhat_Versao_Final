@@ -216,17 +216,25 @@ export function setupAuth(app: Express) {
         role: 'user',
         roleId: 2, // Role padrão de usuário
         isActive: true
-      });
+      }).returning();
 
       // Fazer login automático após registro
-      req.login(user, (err) => {
+      const userForLogin = {
+        ...user,
+        roleId: user.roleId || 2,
+        channels: [],
+        macrosetores: [],
+        teamId: user.teamId,
+        team: null
+      };
+      
+      req.login(userForLogin, (err) => {
         if (err) return next(err);
         res.status(201).json({
           id: user.id,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profileImageUrl: user.profileImageUrl,
+          displayName: user.displayName,
+          role: user.role
         });
       });
     } catch (error) {

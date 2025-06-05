@@ -3486,7 +3486,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const results = {
+      const results: {
+        success: { index: number; user: any }[];
+        errors: { index: number; userData: any; error: string }[];
+        total: number;
+      } = {
         success: [],
         errors: [],
         total: users.length
