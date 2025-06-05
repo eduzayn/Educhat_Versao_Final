@@ -2187,8 +2187,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Se tiver conversationId, salvar no banco de dados local
       if (conversationId) {
+        console.log('💾 Salvando mensagem de resposta no banco:', { conversationId, type: typeof conversationId });
         const replyMessage = await storage.createMessage({
-          conversationId: parseInt(conversationId),
+          conversationId: typeof conversationId === 'string' ? parseInt(conversationId) : conversationId,
           content: message,
           isFromContact: false,
           messageType: 'text',
