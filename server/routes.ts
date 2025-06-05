@@ -2116,6 +2116,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para responder mensagens via Z-API
+  app.post('/api/zapi/reply-message', async (req, res) => {
+    try {
+      console.log('💬 Recebendo solicitação de resposta de mensagem:', req.body);
+      
+      const { phone, message, conversationId, replyToMessageId } = req.body;
+      
+      if (!phone || !message) {
+        console.log('❌ Dados ausentes:', { phone: !!phone, message: !!message });
+        return res.status(400).json({ 
+          error: 'Telefone e mensagem são obrigatórios' 
+        });
+      }
+
+      if (!replyToMessageId) {
+        console.log('❌ ID da mensagem para resposta não fornecido');
+        return res.status(400).json({ 
+          error: 'ID da mensagem para resposta é obrigatório' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+
+      const payload = {
+        phone: phone.replace(/\D/g, ''),
+        message: message,
+        messageId: replyToMessageId,
+        delayMessage: 1
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+      console.log('💬 Enviando resposta para Z-API:', { url, payload });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API para reply:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro detalhado da Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${responseText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Sucesso no envio de resposta:', data);
+
+      // Se tiver conversationId, salvar no banco de dados local
+      if (conversationId) {
+        const replyMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: message,
+          isFromContact: false,
+          messageType: 'text',
+          metadata: {
+            zaapId: data.zaapId || data.id,
+            messageId: data.messageId || data.id,
+            replyToMessageId: replyToMessageId
+          },
+          whatsappMessageId: data.messageId || data.id,
+          zapiStatus: 'SENT',
+          isGroup: false,
+          referenceMessageId: replyToMessageId
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: replyMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: replyMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
+    } catch (error) {
+      console.error('💥 Erro ao enviar resposta via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Endpoint para enviar mensagens via Z-API
   app.post('/api/zapi/send-message', async (req, res) => {
     try {

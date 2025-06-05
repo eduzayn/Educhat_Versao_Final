@@ -32,6 +32,7 @@ const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
         message={message}
         contact={contact}
         conversationId={conversationId}
+        onReply={onReply}
       />
     </div>
   );

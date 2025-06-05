@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useRef } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, StickyNote, EyeOff, Eye, Trash2 } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, StickyNote, EyeOff, Eye, Trash2, Reply } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
 import { 
@@ -28,6 +28,7 @@ interface MessageBubbleProps {
   channelIcon?: string;
   channelColor?: string;
   conversationId?: number;
+  onReply?: (messageId: string, content: string) => void;
 }
 
 // Função auxiliar para formatar o horário
@@ -40,6 +41,7 @@ export const MessageBubble = memo(function MessageBubble({
   channelIcon,
   channelColor,
   conversationId,
+  onReply
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
@@ -480,6 +482,20 @@ export const MessageBubble = memo(function MessageBubble({
               contactPhone={contact.phone}
             />
           )}
+          
+          {/* Botão de responder mensagem - apenas para mensagens do contato */}
+          {isFromContact && !message.isInternalNote && onReply && message.whatsappMessageId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 w-5 p-0 text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+              onClick={() => onReply(message.whatsappMessageId!, message.content)}
+              title="Responder esta mensagem"
+            >
+              <Reply className="w-3 h-3" />
+            </Button>
+          )}
+          
           {/* Botão de ocultar mensagem - apenas para mensagens recebidas */}
           {isFromContact && !message.isInternalNote && (
             <Button
