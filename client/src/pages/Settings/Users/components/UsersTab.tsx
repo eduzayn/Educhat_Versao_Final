@@ -159,7 +159,7 @@ export const UsersTab = () => {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
   const [importData, setImportData] = useState('');
   const [formData, setFormData] = useState({
     name: '',

@@ -222,6 +222,7 @@ export function setupAuth(app: Express) {
       const userForLogin = {
         ...user,
         roleId: user.roleId || 2,
+        dataKey: user.dataKey ?? undefined,
         channels: [],
         macrosetores: [],
         teamId: user.teamId,
