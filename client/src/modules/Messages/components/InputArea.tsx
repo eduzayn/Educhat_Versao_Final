@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload, Zap, MessageSquare, StickyNote } from 'lucide-react';
+import { Paperclip, Smile, Send, Mic, Image, Video, FileText, Link, Upload, Zap, MessageSquare, StickyNote, X, Reply } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
@@ -182,7 +182,17 @@ export function InputArea() {
     if (!message.trim() || !activeConversation) return;
 
     try {
-      if (isInternalNote) {
+      if (replyToMessage) {
+        // Enviar resposta de mensagem
+        await sendReplyMutation.mutateAsync({
+          phone: activeConversation.contact.phone,
+          message: message.trim(),
+          conversationId: activeConversation.id,
+          replyToMessageId: replyToMessage.messageId
+        });
+        
+        setReplyToMessage(null);
+      } else if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
         // Definir nome específico do usuário logado
         const authorName = 'Ana Lúcia Moreira';
@@ -226,6 +236,12 @@ export function InputArea() {
         variant: 'destructive',
       });
     }
+  };
+
+  // Função para lidar com resposta de mensagem
+  const handleReply = (messageId: string, content: string) => {
+    setReplyToMessage({ messageId, content });
+    textareaRef.current?.focus();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -624,6 +640,31 @@ export function InputArea() {
 
   return (
     <div className="relative">
+      {/* Reply Preview */}
+      {replyToMessage && (
+        <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-blue-500">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Reply className="w-4 h-4" />
+              <span>Respondendo a:</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+              onClick={() => setReplyToMessage(null)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+            {replyToMessage.content.length > 50 
+              ? `${replyToMessage.content.substring(0, 50)}...` 
+              : replyToMessage.content}
+          </p>
+        </div>
+      )}
+
       {/* Quick Replies Dropdown */}
       {showQuickReplies && filteredQuickReplies.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mb-2 max-h-64 overflow-y-auto z-50">

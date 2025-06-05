@@ -2845,6 +2845,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para enviar resposta de mensagem via Z-API
+  app.post('/api/zapi/reply-message', async (req, res) => {
+    try {
+      console.log('🔄 Recebendo solicitação de resposta:', req.body);
+      
+      const { phone, message, conversationId, replyToMessageId } = req.body;
+      
+      if (!phone || !message || !replyToMessageId) {
+        return res.status(400).json({ 
+          error: 'Telefone, mensagem e messageId da resposta são obrigatórios' 
+        });
+      }
+
+      const baseUrl = 'https://api.z-api.io';
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Credenciais da Z-API não configuradas' 
+        });
+      }
+
+      const payload = {
+        phone: phone.replace(/\D/g, ''),
+        message: message,
+        messageId: replyToMessageId
+      };
+
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-reply`;
+      console.log('📤 Enviando resposta para Z-API:', { url, payload });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('📥 Resposta Z-API reply:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      const responseText = await response.text();
+      console.log('📄 Conteúdo da resposta:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao parsear resposta JSON:', parseError);
+        data = { rawResponse: responseText };
+      }
+
+      if (response.ok && conversationId) {
+        // Salvar mensagem local como resposta
+        const replyMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: message,
+          isFromContact: false,
+          messageType: 'text',
+          metadata: {
+            zaapId: (data && data.zaapId) || (data && data.id) || null,
+            messageId: (data && data.messageId) || (data && data.id) || null,
+            replyToMessageId: replyToMessageId
+          }
+        });
+
+        // Broadcast para outros clientes conectados
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: replyMessage
+        });
+
+        res.json({
+          success: true,
+          ...data,
+          localMessage: replyMessage
+        });
+      } else {
+        res.json({
+          success: response.ok,
+          ...data
+        });
+      }
+    } catch (error) {
+      console.error('💥 Erro ao enviar resposta via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Endpoint para enviar link via Z-API
   app.post('/api/zapi/send-link', async (req, res) => {
     try {
