@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
-import { secureLog } from "@/lib/secureLogger";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -25,42 +24,33 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Buscar áudio via API se necessário (apenas uma vez, com cache de falhas)
+  // Buscar áudio apenas uma vez quando necessário
   useEffect(() => {
-    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
-      // Verificar se já tentamos buscar este áudio e falhou
-      const failedKey = `audio_failed_${messageIdForFetch}`;
-      if (sessionStorage.getItem(failedKey)) {
-        setError('Áudio não disponível');
-        return;
-      }
-
+    if (audioUrl) {
+      setActualAudioUrl(audioUrl);
+    } else if (messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
       setIsLoading(true);
-      secureLog.audio('Buscando via API', messageIdForFetch);
       
       fetch(`/api/messages/${messageIdForFetch}/audio`)
         .then(response => {
-          if (!response.ok) {
-            throw new Error('Áudio não encontrado');
-          }
+          if (!response.ok) throw new Error('Áudio não encontrado');
           return response.json();
         })
         .then(data => {
           if (data.audioUrl) {
             setActualAudioUrl(data.audioUrl);
-            secureLog.audio('Carregado com sucesso', messageIdForFetch);
           } else {
-            throw new Error('Áudio não encontrado');
+            setError('Áudio não disponível');
           }
         })
         .catch(() => {
-          sessionStorage.setItem(failedKey, 'true');
           setError('Áudio não disponível');
-          secureLog.error('Falha ao carregar áudio', { messageId: messageIdForFetch });
         })
-        .finally(() => setIsLoading(false));
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-  }, [audioUrl, messageIdForFetch, actualAudioUrl, isLoading, error]);
+  }, []); // Array vazio para executar apenas uma vez
 
   const togglePlayPause = async () => {
     if (!actualAudioUrl || !audioRef.current) {
