@@ -1,11 +1,16 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { registerInternalChatRoutes } from "./internal-chat-routes";
+import { registerMediaRoutes } from "./media-routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Servir arquivos estáticos de upload
+app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -39,6 +44,8 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  registerInternalChatRoutes(app);
+  registerMediaRoutes(app);
 
 
 

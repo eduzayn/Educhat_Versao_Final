@@ -6,7 +6,7 @@ import { Label } from '@/shared/ui/ui/label';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Eye, EyeOff } from 'lucide-react';
-import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
+// Logo removido durante limpeza - usando texto simples
 
 export function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,12 +32,11 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/login', loginData);
-      const user = await response.json();
+      const user = await apiRequest('POST', '/api/login', loginData);
       
       toast({
         title: "Login realizado com sucesso!",
-        description: `Bem-vindo de volta, ${user.firstName}!`,
+        description: `Bem-vindo de volta, ${user.displayName}!`,
       });
       
       window.location.reload();
@@ -76,18 +75,16 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/register', {
+      const user = await apiRequest('POST', '/api/register', {
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
       });
       
-      const user = await response.json();
-      
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: `Bem-vindo ao EduChat, ${user.firstName}!`,
+        description: `Bem-vindo ao EduChat, ${user.displayName}!`,
       });
       
       window.location.reload();
@@ -109,11 +106,9 @@ export function Login() {
           <div className="space-y-6">
             {/* Logo do EduChat */}
             <div className="flex justify-center">
-              <img 
-                src={logoPath} 
-                alt="EduChat Logo" 
-                className="w-32 h-auto"
-              />
+              <div className="text-4xl font-bold text-educhat-primary">
+                EduChat
+              </div>
             </div>
 
             {/* Título */}

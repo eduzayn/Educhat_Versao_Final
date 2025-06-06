@@ -1863,27 +1863,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      // Construir URL corretamente conforme documentação Z-API
-      // Evitar barras duplas e usar query params corretos
-      const queryParams = new URLSearchParams({
-        phone: cleanPhone,
-        messageId: messageId.toString(),
-        owner: 'true'
-      });
-
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?${queryParams.toString()}`;
+      // Construir URL conforme documentação Z-API para deletar mensagens
+      // DELETE /instances/{instanceId}/token/{token}/messages?phone={phone}&messageId={messageId}&owner=true
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
+      
       console.log('🗑️ Deletando mensagem via Z-API:', { 
-        url, 
-        phone: cleanPhone, 
-        messageId: messageId.toString(),
+        url,
         conversationId 
       });
 
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
+          'Client-Token': clientToken || ''
         }
       });
 
@@ -1968,6 +1960,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reply to message via Z-API
+  app.post('/api/zapi/reply-message', async (req, res) => {
+    try {
+      console.log('↩️ Recebendo solicitação de resposta à mensagem:', req.body);
+      
+      const { phone, messageId, replyText, conversationId } = req.body;
+      
+      if (!phone || !messageId || !replyText) {
+        return res.status(400).json({ 
+          error: 'Phone, messageId e replyText são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Construir payload conforme documentação Z-API para responder mensagens
+      const payload = {
+        phone: cleanPhone,
+        message: replyText,
+        quotedMessageId: messageId.toString()
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+      console.log('↩️ Respondendo mensagem via Z-API:', { 
+        url, 
+        payload,
+        conversationId 
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API reply:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        
+        let errorMessage = 'Erro ao responder mensagem';
+        if (response.status === 401) {
+          errorMessage = 'Credenciais Z-API inválidas ou sem permissão';
+        }
+        
+        return res.status(response.status).json({ 
+          error: errorMessage,
+          details: responseText
+        });
+      }
+
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : { success: true };
+      } catch (parseError) {
+        console.log('⚠️ Resposta não é JSON válido, tratando como sucesso:', responseText);
+        data = { success: true, rawResponse: responseText };
+      }
+
+      // Se a resposta foi bem-sucedida, salvar a mensagem no banco
+      if (conversationId && data.messageId) {
+        const replyMessage = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: replyText,
+          messageType: 'text',
+          isFromContact: false,
+          sentAt: new Date(),
+          metadata: {
+            messageId: data.messageId,
+            replyToMessageId: messageId.toString(),
+            zaapId: data.messageId
+          }
+        });
+
+        broadcast(parseInt(conversationId), {
+          type: 'new_message',
+          message: replyMessage
+        });
+      }
+
+      console.log('✅ Resposta enviada com sucesso via Z-API:', data);
+      
+      res.json({
+        success: true,
+        messageId: data.messageId,
+        replyToMessageId: messageId.toString(),
+        sentAt: new Date().toISOString(),
+        ...data
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao responder mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor',
+        details: error instanceof Error ? error.stack : 'Erro desconhecido'
+      });
+    }
+  });
+
   // Z-API QR Code endpoint for specific channel
   app.get('/api/channels/:id/qrcode', async (req, res) => {
     try {
@@ -2015,33 +2120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Legacy Z-API QR Code endpoint (mantido para compatibilidade)
-  app.get('/api/zapi/qrcode', async (req, res) => {
-    try {
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
-      }
 
-      console.log('Solicitando QR Code da Z-API (endpoint legacy)...');
-      
-      const { instanceId, token, clientToken } = credentials as { valid: true; instanceId: string; token: string; clientToken: string };
-      const qrData = await getZApiQRCode({ instanceId, token, clientToken });
-      console.log('QR Code recebido da Z-API');
-
-      if (qrData.value) {
-        const qrCodeDataURL = await generateQRCode(qrData.value);
-        res.json({ qrCode: qrCodeDataURL });
-      } else {
-        res.json(qrData);
-      }
-    } catch (error) {
-      console.error('Erro ao obter QR Code:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
 
   // Endpoint para buscar conteúdo de áudio por messageId do banco de dados
   app.get('/api/messages/:messageId/audio', async (req, res) => {
@@ -2179,11 +2258,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payload = {
         phone: phone.replace(/\D/g, ''),
         message: message,
-        messageId: replyToMessageId,
-        delayMessage: 1
+        messageId: replyToMessageId
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-reply-message`;
       console.log('💬 Enviando resposta para Z-API:', { url, payload });
       
       const response = await fetch(url, {
@@ -3613,6 +3691,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao deletar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Profile API endpoints
+  app.patch('/api/profile', async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const { displayName, email, phone, location, bio } = req.body;
+      const updateData: any = {};
+      
+      if (displayName !== undefined) updateData.displayName = displayName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (location !== undefined) updateData.location = location;
+      if (bio !== undefined) updateData.bio = bio;
+
+      const updatedUser = await storage.updateSystemUser(req.user.id, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      res.json({ 
+        message: 'Perfil atualizado com sucesso',
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/profile/change-password', async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          error: 'Senha atual e nova senha são obrigatórias' 
+        });
+      }
+
+      // Verificar senha atual
+      const { comparePasswords } = await import("./auth");
+      const user = await storage.getSystemUser(req.user.id);
+      
+      if (!user || !user.password) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: 'Senha atual incorreta' });
+      }
+
+      // Atualizar com nova senha
+      const { hashPassword } = await import("./auth");
+      const hashedNewPassword = await hashPassword(newPassword);
+      
+      await storage.updateSystemUser(req.user.id, { 
+        password: hashedNewPassword 
+      });
+
+      res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao alterar senha:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

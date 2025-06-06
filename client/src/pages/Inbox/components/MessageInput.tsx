@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
-import { Send, Paperclip, Mic } from 'lucide-react';
+import { Send, Mic } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/shared/lib/queryClient';
-import { queryClient } from '@/shared/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
 
 interface MessageInputProps {
   conversationId: number;
@@ -14,6 +15,7 @@ interface MessageInputProps {
 export function MessageInput({ conversationId, onSendMessage }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleSendMessage = async () => {
@@ -57,6 +59,86 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     }
   };
 
+  const handleFileUpload = async (file: File, caption?: string) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('conversationId', conversationId.toString());
+      if (caption) {
+        formData.append('caption', caption);
+      }
+
+      const response = await fetch('/api/messages/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha no upload do arquivo');
+      }
+
+      // Invalidar cache para atualizar as mensagens
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
+      });
+      
+      onSendMessage?.();
+      
+      toast({
+        title: "Arquivo enviado",
+        description: "Seu arquivo foi enviado com sucesso.",
+      });
+
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível enviar o arquivo. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleLinkShare = async (url: string, caption?: string) => {
+    setIsLoading(true);
+    try {
+      const content = caption ? `${caption}\n\n${url}` : url;
+      
+      await apiRequest(`/api/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+          messageType: 'text'
+        })
+      });
+
+      // Invalidar cache para atualizar as mensagens
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
+      });
+      
+      onSendMessage?.();
+      
+      toast({
+        title: "Link compartilhado",
+        description: "Seu link foi compartilhado com sucesso.",
+      });
+
+    } catch (error) {
+      console.error('Erro ao compartilhar link:', error);
+      toast({
+        title: "Erro ao compartilhar",
+        description: "Não foi possível compartilhar o link. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -67,29 +149,12 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   return (
     <div className="bg-white border-t border-gray-200 p-4">
       <div className="flex items-end gap-3">
-        {/* Botão de anexo */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-2"
-          onClick={() => {
-            // Integrar com sistema de anexos existente
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*,video/*';
-            input.onchange = (e) => {
-              const file = (e.target as HTMLInputElement).files?.[0];
-              if (file) {
-                // Aqui integraria com o sistema de upload existente
-                console.log('Arquivo selecionado:', file.name);
-              }
-            };
-            input.click();
-          }}
-          aria-label="Anexar arquivo"
-        >
-          <Paperclip className="w-4 h-4" />
-        </Button>
+        {/* Componente de anexo de mídia com interface colorida */}
+        <MediaAttachmentModal
+          onFileUpload={handleFileUpload}
+          onLinkShare={handleLinkShare}
+          isUploading={isUploading}
+        />
 
         {/* Campo de texto */}
         <div className="flex-1">

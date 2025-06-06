@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/ui/button';
 import { Play, Pause, Volume2 } from 'lucide-react';
 
 interface AudioMessageSimpleProps {
@@ -25,23 +25,27 @@ export function AudioMessageSimple({ audioUrl, duration, isFromContact, messageI
   };
 
   const fetchAudio = async () => {
-    if (!messageIdForFetch || isLoading) return false;
+    if (!messageIdForFetch || isLoading || fetchedAudioUrl) return false;
     
     setIsLoading(true);
     setError(null);
 
     try {
+      console.log('🎧 Áudio: Buscando áudio para mensagem', messageIdForFetch);
       const response = await fetch(`/api/messages/${messageIdForFetch}/audio`);
       const data = await response.json();
 
       if (data.success && data.audioUrl) {
+        console.log('✅ Áudio: URL obtida com sucesso');
         setFetchedAudioUrl(data.audioUrl);
         return true;
       } else {
+        console.log('❌ Áudio: Não disponível');
         setError('Áudio não disponível');
         return false;
       }
     } catch (err) {
+      console.log('❌ Áudio: Erro de conexão', err);
       setError('Erro de conexão');
       return false;
     } finally {
@@ -50,27 +54,51 @@ export function AudioMessageSimple({ audioUrl, duration, isFromContact, messageI
   };
 
   const handlePlayPause = async () => {
+    console.log('🎧 Áudio: Clique no botão play/pause');
+    
     // Se não temos URL e temos ID para buscar, buscar primeiro
     if (!fetchedAudioUrl && messageIdForFetch) {
+      console.log('🎧 Áudio: Buscando URL primeiro...');
       const success = await fetchAudio();
-      if (!success) return;
+      if (!success) {
+        console.log('❌ Áudio: Falha ao buscar URL');
+        return;
+      }
       
-      // Aguardar o áudio carregar antes de tentar reproduzir
-      setTimeout(() => handlePlayPause(), 100);
+      // Aguardar o próximo frame para garantir que o áudio foi carregado
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Tentar reproduzir novamente
+      if (audioRef.current && fetchedAudioUrl) {
+        try {
+          console.log('🎧 Áudio: Tentando reproduzir após fetch...');
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (err) {
+          console.log('❌ Áudio: Erro na reprodução após fetch', err);
+          setError('Erro na reprodução');
+        }
+      }
       return;
     }
 
-    if (!fetchedAudioUrl || !audioRef.current) return;
+    if (!fetchedAudioUrl || !audioRef.current) {
+      console.log('❌ Áudio: URL ou ref não disponível');
+      return;
+    }
 
     try {
       if (isPlaying) {
+        console.log('⏸️ Áudio: Pausando...');
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
+        console.log('▶️ Áudio: Reproduzindo...');
         await audioRef.current.play();
         setIsPlaying(true);
       }
     } catch (err) {
+      console.log('❌ Áudio: Erro na reprodução', err);
       setError('Erro na reprodução');
       setIsPlaying(false);
     }

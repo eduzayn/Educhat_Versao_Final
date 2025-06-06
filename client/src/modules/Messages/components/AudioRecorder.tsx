@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Mic, Square, Trash2, Send, Play, Pause } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useState, useRef, useEffect } from "react";
+import { Button } from "@/shared/ui/ui/button";
+import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AudioRecorderProps {
   onSendAudio: (audioBlob: Blob, duration: number) => void;
@@ -9,17 +9,28 @@ interface AudioRecorderProps {
   className?: string;
 }
 
-type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'preview' | 'sending';
+type RecordingState =
+  | "idle"
+  | "requesting-permission"
+  | "recording"
+  | "preview"
+  | "sending";
 
-export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorderProps) {
-  const [state, setState] = useState<RecordingState>('idle');
+export function AudioRecorder({
+  onSendAudio,
+  onCancel,
+  className,
+}: AudioRecorderProps) {
+  const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [permission, setPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
-  
+  const [permission, setPermission] = useState<"granted" | "denied" | "prompt">(
+    "prompt",
+  );
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -34,7 +45,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
         clearInterval(timerRef.current);
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
@@ -45,63 +56,63 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const startRecording = async () => {
     try {
-      setState('requesting-permission');
-      
+      setState("requesting-permission");
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      setPermission('granted');
-      
+      setPermission("granted");
+
       chunksRef.current = [];
       // Verificar formatos suportados e escolher o melhor para WhatsApp
-      let mimeType = 'audio/webm;codecs=opus';
-      if (MediaRecorder.isTypeSupported('audio/mp4')) {
-        mimeType = 'audio/mp4';
-      } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
-        mimeType = 'audio/mpeg';
-      } else if (MediaRecorder.isTypeSupported('audio/wav')) {
-        mimeType = 'audio/wav';
+      let mimeType = "audio/webm;codecs=opus";
+      if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      } else if (MediaRecorder.isTypeSupported("audio/mpeg")) {
+        mimeType = "audio/mpeg";
+      } else if (MediaRecorder.isTypeSupported("audio/wav")) {
+        mimeType = "audio/wav";
       }
-      
-      console.log('🎤 Formato de áudio selecionado:', mimeType);
-      
+
+      console.log("🎤 Formato de áudio selecionado:", mimeType);
+
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType
+        mimeType: mimeType,
       });
-      
+
       mediaRecorderRef.current = mediaRecorder;
-      
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
-      
+
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mimeType });
         setAudioBlob(blob);
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
-        setState('preview');
-        
+        setState("preview");
+
         // Limpar o stream
         if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
         }
       };
-      
+
       mediaRecorder.start();
-      setState('recording');
+      setState("recording");
       setDuration(0);
-      
+
       // Iniciar timer
       timerRef.current = setInterval(() => {
-        setDuration(prev => {
+        setDuration((prev) => {
           const newDuration = prev + 1;
           if (newDuration >= MAX_DURATION) {
             stopRecording();
@@ -110,19 +121,21 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
           return newDuration;
         });
       }, 1000);
-      
     } catch (error) {
-      console.error('Erro ao iniciar gravação:', error);
-      setPermission('denied');
-      setState('idle');
+      console.error("Erro ao iniciar gravação:", error);
+      setPermission("denied");
+      setState("idle");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
       mediaRecorderRef.current.stop();
     }
-    
+
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -130,26 +143,26 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   };
 
   const cancelRecording = () => {
-    if (state === 'recording') {
+    if (state === "recording") {
       stopRecording();
     }
-    
+
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    
+
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-    
+
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
     }
-    
-    setState('idle');
+
+    setState("idle");
     setDuration(0);
     setAudioBlob(null);
     setCurrentTime(0);
@@ -159,7 +172,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
 
   const togglePlayback = () => {
     if (!audioRef.current || !audioUrl) return;
-    
+
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -170,16 +183,16 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
 
   const handleSendAudio = async () => {
     if (!audioBlob) return;
-    
-    setState('sending');
+
+    setState("sending");
     await onSendAudio(audioBlob, duration);
-    
+
     // Reset após envio
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
     }
-    setState('idle');
+    setState("idle");
     setDuration(0);
     setAudioBlob(null);
     setCurrentTime(0);
@@ -187,7 +200,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   };
 
   // Estado Padrão/Inativo
-  if (state === 'idle') {
+  if (state === "idle") {
     return (
       <Button
         type="button"
@@ -196,7 +209,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
         onClick={startRecording}
         className={cn(
           "p-2 h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800",
-          className
+          className,
         )}
         title="Gravar áudio"
       >
@@ -206,9 +219,14 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   }
 
   // Estado Solicitando Permissão
-  if (state === 'requesting-permission') {
+  if (state === "requesting-permission") {
     return (
-      <div className={cn("flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg", className)}>
+      <div
+        className={cn(
+          "flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg",
+          className,
+        )}
+      >
         <Mic className="w-5 h-5 text-blue-600 animate-pulse" />
         <span className="text-sm text-blue-700 dark:text-blue-300">
           Solicitando permissão do microfone...
@@ -218,9 +236,14 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   }
 
   // Estado Gravando
-  if (state === 'recording') {
+  if (state === "recording") {
     return (
-      <div className={cn("flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800", className)}>
+      <div
+        className={cn(
+          "flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800",
+          className,
+        )}
+      >
         <div className="flex items-center space-x-2">
           <div className="relative">
             <Mic className="w-6 h-6 text-red-600" />
@@ -230,7 +253,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
             {formatTime(duration)}
           </span>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             type="button"
@@ -242,7 +265,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
             <Square className="w-4 h-4 mr-1" />
             Parar
           </Button>
-          
+
           <Button
             type="button"
             variant="outline"
@@ -259,9 +282,14 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   }
 
   // Estado Preview
-  if (state === 'preview') {
+  if (state === "preview") {
     return (
-      <div className={cn("flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border", className)}>
+      <div
+        className={cn(
+          "flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border",
+          className,
+        )}
+      >
         {audioUrl && (
           <audio
             ref={audioRef}
@@ -272,7 +300,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
             onPause={() => setIsPlaying(false)}
           />
         )}
-        
+
         <div className="flex items-center space-x-2">
           <Button
             type="button"
@@ -287,20 +315,20 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
               <Play className="w-4 h-4" />
             )}
           </Button>
-          
+
           <div className="flex flex-col">
             <span className="text-xs text-gray-600 dark:text-gray-400">
               Áudio ({formatTime(duration)})
             </span>
             <div className="w-20 h-1 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-blue-500 transition-all duration-100"
                 style={{ width: `${(currentTime / duration) * 100}%` }}
               />
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2 ml-auto">
           <Button
             type="button"
@@ -312,7 +340,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
             <Trash2 className="w-4 h-4 mr-1" />
             Descartar
           </Button>
-          
+
           <Button
             type="button"
             size="sm"
@@ -328,9 +356,14 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
   }
 
   // Estado Enviando
-  if (state === 'sending') {
+  if (state === "sending") {
     return (
-      <div className={cn("flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg", className)}>
+      <div
+        className={cn(
+          "flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg",
+          className,
+        )}
+      >
         <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <span className="text-sm text-blue-700 dark:text-blue-300">
           Enviando áudio...

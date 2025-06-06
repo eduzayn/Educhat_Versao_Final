@@ -17,12 +17,14 @@ import ChannelsPage from "@/pages/Settings/ChannelsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
+import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
-import NotFound from "@/pages/not-found";
+import { ProfilePage } from "@/pages/ProfilePage";
+
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -49,7 +51,6 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
@@ -72,16 +73,25 @@ function Router() {
           <Route path="/settings/quick-replies">
             {() => <ProtectedRoute component={QuickRepliesSettingsPage} />}
           </Route>
-          <Route path="/settings/webhook">
+          <Route path="/settings/webhooks">
             {() => <ProtectedRoute component={WebhookConfigPage} />}
           </Route>
           <Route path="/settings/ai-detection">
             {() => <ProtectedRoute component={AIDetectionSettingsPage} />}
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
-          <Route path="/admin/permissions" component={PermissionsPanel} />
-          <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />
-          <Route component={NotFound} />
+          <Route path="/chat-interno" component={InternalChatPage} />
+          <Route path="/profile">
+            {() => <ProtectedRoute component={ProfilePage} />}
+          </Route>
+          <Route>
+            <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">Página não encontrada</h1>
+                <p className="text-gray-600">A página solicitada não existe.</p>
+              </div>
+            </div>
+          </Route>
         </>
       )}
     </Switch>

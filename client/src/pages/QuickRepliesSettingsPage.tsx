@@ -707,7 +707,7 @@ export default function QuickRepliesSettingsPage() {
                                       {selectedType === 'audio' && showAudioRecorder && (
                                         <div className="mt-4">
                                           <AudioRecorder
-                                            onSendAudio={handleAudioRecorded}
+                                            onAudioRecorded={handleAudioRecorded}
                                             onCancel={handleCancelAudioRecording}
                                             className="w-full"
                                           />
