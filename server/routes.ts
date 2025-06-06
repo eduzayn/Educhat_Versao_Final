@@ -2120,33 +2120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Legacy Z-API QR Code endpoint (mantido para compatibilidade)
-  app.get('/api/zapi/qrcode', async (req, res) => {
-    try {
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
-      }
 
-      console.log('Solicitando QR Code da Z-API (endpoint legacy)...');
-      
-      const { instanceId, token, clientToken } = credentials as { valid: true; instanceId: string; token: string; clientToken: string };
-      const qrData = await getZApiQRCode({ instanceId, token, clientToken });
-      console.log('QR Code recebido da Z-API');
-
-      if (qrData.value) {
-        const qrCodeDataURL = await generateQRCode(qrData.value);
-        res.json({ qrCode: qrCodeDataURL });
-      } else {
-        res.json(qrData);
-      }
-    } catch (error) {
-      console.error('Erro ao obter QR Code:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
 
   // Endpoint para buscar conteúdo de áudio por messageId do banco de dados
   app.get('/api/messages/:messageId/audio', async (req, res) => {
@@ -3769,7 +3743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verificar senha atual
       const { comparePasswords } = await import("./auth");
-      const user = await storage.getSystemUserById(req.user.id);
+      const user = await storage.getSystemUser(req.user.id);
       
       if (!user || !user.password) {
         return res.status(404).json({ error: 'Usuário não encontrado' });

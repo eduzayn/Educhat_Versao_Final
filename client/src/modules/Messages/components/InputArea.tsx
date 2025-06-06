@@ -167,7 +167,7 @@ export function InputArea() {
     try {
       if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
-        const authorName = currentUser?.displayName || currentUser?.username || 'Usuário';
+        const authorName = (currentUser as any)?.displayName || (currentUser as any)?.username || 'Usuário';
         
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
@@ -177,7 +177,7 @@ export function InputArea() {
             messageType: "text",
             isInternalNote: true,
             authorName: authorName,
-            authorId: currentUser?.id,
+            authorId: (currentUser as any)?.id,
           },
           contact: activeConversation.contact,
         });
