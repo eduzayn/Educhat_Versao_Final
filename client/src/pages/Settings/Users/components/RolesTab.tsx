@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Input } from '@/shared/ui/ui/input';
 import { Textarea } from '@/shared/ui/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,15 +45,6 @@ export const RolesTab = () => {
   const [selectedRole, setSelectedRole] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Funções para controlar modais de forma robusta usando useCallback
-  const handleOpenCreateDialog = useCallback(() => {
-    setIsDialogOpen(true);
-  }, []);
-
-  const handleCloseCreateDialog = useCallback(() => {
-    setIsDialogOpen(false);
-  }, []);
 
   // Fetch roles from database
   const { data: roles = [], isLoading } = useQuery({
@@ -121,12 +112,13 @@ export const RolesTab = () => {
             Configure as funções e permissões para diferentes tipos de usuários
           </p>
         </div>
-        <Button onClick={handleOpenCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Função
-        </Button>
-        
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Função
+            </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Nova Função</DialogTitle>
@@ -163,7 +155,7 @@ export const RolesTab = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={handleCloseCreateDialog}
+                    onClick={() => setIsDialogOpen(false)}
                   >
                     Cancelar
                   </Button>
@@ -281,9 +273,6 @@ export const RolesTab = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Detalhes da Função</DialogTitle>
-            <DialogDescription>
-              Visualize as informações e permissões desta função do sistema.
-            </DialogDescription>
           </DialogHeader>
           {selectedRole && (
             <div className="space-y-4">
@@ -325,9 +314,6 @@ export const RolesTab = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Função</DialogTitle>
-            <DialogDescription>
-              Configure as propriedades e permissões desta função do sistema.
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">

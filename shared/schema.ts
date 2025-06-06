@@ -45,10 +45,6 @@ export const contacts = pgTable("contacts", {
   userIdentity: varchar("user_identity", { length: 100 }), // número de telefone ou email único
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id),
   tags: text("tags").array(), // Array de tags incluindo cursos detectados
-  // Campos adicionais para CRM
-  company: text("company"), // Empresa do contato
-  contactType: varchar("contact_type", { length: 50 }).default("Lead"), // Lead, Cliente, Parceiro, Fornecedor
-  owner: text("owner"), // Responsável pelo contato
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

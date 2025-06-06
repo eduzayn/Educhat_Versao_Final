@@ -1,46 +1,28 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
-import { SimpleModal } from '@/components/SimpleModal';
 import { UsersTab } from './components/UsersTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
 import { PermissionsTab } from './components/PermissionsTab';
 
 export const UsersSettingsPage = () => {
-  const [activeTab, setActiveTab] = useState(() => {
-    // Inicializar com base na URL atual
-    const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get('tab');
-    return (tab && ['users', 'roles', 'teams', 'permissions'].includes(tab)) ? tab : 'users';
-  });
-
-  // Atualizar URL quando aba muda, sem causar re-renderização
-  const handleTabChange = (newTab: string) => {
-    setActiveTab(newTab);
-    // Usar replaceState para evitar interferência com modais
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set('tab', newTab);
-    window.history.replaceState({}, '', newUrl.toString());
-  };
+  const [activeTab, setActiveTab] = useState('users');
 
   return (
     <div className="min-h-screen bg-educhat-light">
       <div className="p-6 space-y-6">
         <BackButton to="/settings" label="Voltar às Configurações" />
       
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
-          <p className="text-muted-foreground">
-            Configure usuários, funções, equipes e permissões do sistema
-          </p>
-        </div>
-        <TestModal />
+      <div>
+        <h2 className="text-2xl font-bold">Gerenciamento de Usuários</h2>
+        <p className="text-muted-foreground">
+          Configure usuários, funções, equipes e permissões do sistema
+        </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />

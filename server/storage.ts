@@ -67,7 +67,6 @@ export interface IStorage {
   getContactWithTags(id: number): Promise<ContactWithTags | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
-  deleteContact(id: number): Promise<void>;
   searchContacts(query: string): Promise<Contact[]>;
   updateContactOnlineStatus(id: number, isOnline: boolean): Promise<void>;
 
@@ -344,16 +343,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(contacts.id, id))
       .returning();
     return updatedContact;
-  }
-
-  async deleteContact(id: number): Promise<void> {
-    // First delete related data
-    await db.delete(contactTags).where(eq(contactTags.contactId, id));
-    await db.delete(contactNotes).where(eq(contactNotes.contactId, id));
-    // Note: conversations and messages are kept for audit purposes
-    
-    // Then delete the contact
-    await db.delete(contacts).where(eq(contacts.id, id));
   }
 
   async searchContacts(query: string): Promise<Contact[]> {

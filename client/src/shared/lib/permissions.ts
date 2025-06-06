@@ -51,18 +51,6 @@ export function hasPermission(
 ): boolean {
   if (!userPermissions) return false;
   
-  // Verificações de segurança críticas para agentes/atendentes
-  if (userPermissions.user.role === 'agent' && (
-    permissionName.includes('admin') ||
-    permissionName.includes('gerenciar_usuarios') ||
-    permissionName.includes('canal:') ||
-    permissionName.includes('sistema:') ||
-    permissionName.includes('configuracao')
-  )) {
-    console.warn(`🔒 Acesso frontend negado: Agent tentou acessar ${permissionName}`);
-    return false;
-  }
-  
   // Admin tem todas as permissões
   if (userPermissions.isAdmin) return true;
   

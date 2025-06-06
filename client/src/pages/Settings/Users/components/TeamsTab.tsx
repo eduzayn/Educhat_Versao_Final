@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
@@ -53,19 +53,6 @@ export const TeamsTab = () => {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Funções para controlar modais de forma robusta
-  const handleOpenTeamDialog = () => setShowTeamDialog(true);
-  const handleCloseTeamDialog = () => {
-    setShowTeamDialog(false);
-    setNewTeamForm({
-      name: '',
-      description: '',
-      macrosetor: '',
-      color: '',
-      isActive: true
-    });
-  };
 
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
@@ -125,14 +112,13 @@ export const TeamsTab = () => {
   // Mutação para adicionar membro à equipe
   const addMemberMutation = useMutation({
     mutationFn: async ({ userId, teamId }: { userId: number; teamId: number }) => {
-      const response = await fetch(`/api/teams/${teamId}/members`, {
+      const response = await fetch('/api/user-teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId, teamId })
       });
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao adicionar membro');
+        throw new Error('Erro ao adicionar membro');
       }
       return response.json();
     },
@@ -262,7 +248,7 @@ export const TeamsTab = () => {
           </p>
         </div>
         <Button 
-          onClick={handleOpenTeamDialog}
+          onClick={() => setShowTeamDialog(true)}
           className="z-10 relative"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -423,7 +409,7 @@ export const TeamsTab = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={handleCloseTeamDialog}>
+            <Button variant="outline" onClick={() => setShowTeamDialog(false)}>
               Cancelar
             </Button>
             <Button 

@@ -44,14 +44,13 @@ export function Dashboard() {
     }
   };
 
-  const allMenuItems = [
+  const menuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: BarChart3,
       description: 'Visão geral do sistema',
-      route: '/',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/'
     },
     {
       id: 'inbox',
@@ -59,72 +58,59 @@ export function Dashboard() {
       icon: Inbox,
       description: 'Conversas unificadas',
       badge: unreadData?.count ? unreadData.count.toString() : undefined,
-      route: '/inbox',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/inbox'
     },
     {
       id: 'contacts',
       label: 'Contatos',
       icon: UserCheck,
       description: 'Gerenciar contatos e WhatsApp',
-      route: '/contacts',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/contacts'
     },
     {
       id: 'chat-interno',
       label: 'Chat Interno',
       icon: MessageCircle,
       description: 'Comunicação entre agentes',
-      route: '/chat-interno',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/chat-interno'
     },
     {
       id: 'crm',
       label: 'CRM',
       icon: Users,
       description: 'Gestão de leads e contatos',
-      route: '/crm',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/crm'
     },
     {
       id: 'bi',
       label: 'Business Intelligence',
       icon: BarChart3,
       description: 'Análises e produtividade',
-      route: '/bi',
-      allowedRoles: ['admin', 'gerente']
+      route: '/bi'
     },
     {
       id: 'integrations',
       label: 'Integrações',
       icon: Zap,
       description: 'Canais e APIs',
-      route: '/integrations',
-      allowedRoles: ['admin']
+      route: '/integrations'
     },
+
     {
       id: 'reports',
       label: 'Relatórios',
       icon: BarChart3,
       description: 'Analytics e métricas',
-      route: '/reports',
-      allowedRoles: ['admin', 'gerente', 'agent']
+      route: '/reports'
     },
     {
       id: 'settings',
       label: 'Configurações',
       icon: Settings,
       description: 'Configurar sistema',
-      route: '/settings',
-      allowedRoles: ['admin', 'gerente']
+      route: '/settings'
     }
   ];
-
-  // Filtrar itens do menu baseado no role do usuário
-  const menuItems = allMenuItems.filter(item => {
-    if (!user || !(user as any).role) return true; // Se não há role definido, mostrar todos
-    return item.allowedRoles.includes((user as any).role);
-  });
 
   const channelStats = [
     { name: 'WhatsApp', icon: Phone, count: 45, color: 'bg-green-100 text-green-800' },
@@ -357,10 +343,10 @@ export function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-educhat-dark truncate">
-                    {(user as any)?.displayName || (user as any)?.username || 'Usuário'}
+                    Admin EduChat
                   </p>
                   <p className="text-xs text-educhat-medium truncate">
-                    {(user as any)?.email || 'email@exemplo.com'}
+                    admin@educhat.com
                   </p>
                 </div>
               </div>

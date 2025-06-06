@@ -4,7 +4,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Eye, Edit, Trash2, Phone, Camera } from 'lucide-react';
-import { useAuth } from '@/shared/lib/hooks/useAuth';
 import type { Contact } from '@shared/schema';
 
 interface ContactTableRowProps {
@@ -29,10 +28,6 @@ export function ContactTableRow({
   isWhatsAppAvailable
 }: ContactTableRowProps) {
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
-  const { user } = useAuth();
-  
-  // Verificar se o usuário pode excluir contatos (apenas admin e gerente)
-  const canDeleteContacts = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   const handleUpdatePhoto = async () => {
     if (!contact.phone) return;
@@ -46,7 +41,7 @@ export function ContactTableRow({
   };
 
   const getContactTypeBadge = (type: string | null) => {
-    const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
+    const variants = {
       'Lead': 'default',
       'Cliente': 'secondary',
       'Parceiro': 'outline',
@@ -54,7 +49,7 @@ export function ContactTableRow({
     };
     
     return (
-      <Badge variant={(variants[type || ''] || 'default') as "default" | "destructive" | "outline" | "secondary"}>
+      <Badge variant={variants[type as keyof typeof variants] || 'default'}>
         {type || 'Não definido'}
       </Badge>
     );
@@ -95,8 +90,8 @@ export function ContactTableRow({
           
           <div>
             <div className="font-medium text-gray-900">{contact.name}</div>
-            {(contact as any).company && (
-              <div className="text-sm text-gray-500">{(contact as any).company}</div>
+            {contact.company && (
+              <div className="text-sm text-gray-500">{contact.company}</div>
             )}
           </div>
         </div>
@@ -112,17 +107,17 @@ export function ContactTableRow({
             {contact.phone || '-'}
           </span>
           {contact.phone && (
-            <Phone className="w-4 h-4 text-green-500" />
+            <Phone className="w-4 h-4 text-green-500" title="WhatsApp disponível" />
           )}
         </div>
       </td>
       
       <td className="px-6 py-4">
-        {getContactTypeBadge((contact as any).contactType)}
+        {getContactTypeBadge(contact.contactType)}
       </td>
       
       <td className="px-6 py-4">
-        <div className="text-sm text-gray-900">{(contact as any).owner || '-'}</div>
+        <div className="text-sm text-gray-900">{contact.owner || '-'}</div>
       </td>
       
       <td className="px-6 py-4">
@@ -152,16 +147,14 @@ export function ContactTableRow({
               <Edit className="w-4 h-4" />
             </Button>
             
-            {canDeleteContacts && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(contact)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(contact)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </td>

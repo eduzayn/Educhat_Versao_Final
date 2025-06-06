@@ -576,10 +576,7 @@ export function registerAdminRoutes(app: Express) {
             eq(rolePermissions.roleId, roleId),
             eq(rolePermissions.isActive, true),
             eq(permissions.isActive, true)
-          ))
-          .orderBy(permissions.category, permissions.name);
-
-        console.log(`Buscando permissões para role ID ${roleId}: encontradas ${rolePermissionsData.length} permissões`);
+          ));
 
         res.json(rolePermissionsData);
       } catch (error) {

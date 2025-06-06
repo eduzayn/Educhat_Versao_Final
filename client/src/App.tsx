@@ -12,16 +12,15 @@ import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/Contact
 import ReportsPage from "@/pages/ReportsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
-import ChannelsPage from "@/pages/Settings/Channels/ChannelsPage";
-import { UsersSettingsPageFixed as UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPageFixed";
+import ChannelsPage from "@/pages/Settings/ChannelsPage";
+import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
 
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-
+import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -53,44 +52,17 @@ function Router() {
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
-          <Route path="/bi" component={() => 
-            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
-              <BIPage />
-            </ProtectedRoute>
-          } />
+          <Route path="/bi" component={BIPage} />
           <Route path="/reports" component={ReportsPage} />
-          <Route path="/integrations" component={() => 
-            <ProtectedRoute allowedRoles={['admin']}>
-              <IntegrationsPage />
-            </ProtectedRoute>
-          } />
+          <Route path="/integrations" component={IntegrationsPage} />
           <Route path="/settings" component={SettingsPage} />
-          <Route path="/settings/channels" component={() => 
-            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
-              <ChannelsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/users" component={() => 
-            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
-              <UsersSettingsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/quick-replies" component={() => 
-            <ProtectedRoute allowedRoles={['admin', 'gerente']}>
-              <QuickRepliesSettingsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/webhook" component={() => 
-            <ProtectedRoute adminOnly={true}>
-              <WebhookConfigPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings/ai-detection" component={() => 
-            <ProtectedRoute adminOnly={true}>
-              <AIDetectionSettingsPage />
-            </ProtectedRoute>
-          } />
-
+          <Route path="/settings/channels" component={ChannelsPage} />
+          <Route path="/settings/users" component={UsersSettingsPage} />
+          <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
+          <Route path="/settings/webhook" component={WebhookConfigPage} />
+          <Route path="/settings/ai-detection" component={AIDetectionSettingsPage} />
+          <Route path="/admin" component={PermissionsPanel} />
+          <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />
           <Route component={NotFound} />
         </>
