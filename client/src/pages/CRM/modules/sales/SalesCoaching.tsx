@@ -347,17 +347,19 @@ export function SalesCoaching() {
                         Último coaching: {new Date(profile.lastCoaching).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingRecord(null);
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Coaching
-                    </Button>
+                    {canCreateRecords && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingRecord(null);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Coaching
+                      </Button>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -467,10 +469,12 @@ export function SalesCoaching() {
               <p className="text-muted-foreground mb-4">
                 Comece registrando sessões de coaching para sua equipe
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Primeiro Registro
-              </Button>
+              {canCreateRecords && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Primeiro Registro
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
