@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/shared/ui/ui/label';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Textarea } from '@/shared/ui/ui/textarea';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { 
   Plus, 
   Edit, 
@@ -36,6 +37,10 @@ export function SalesTerritories() {
   const [editingTerritory, setEditingTerritory] = useState<Territory | null>(null);
   
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Verificar se usuário pode gerenciar territórios (apenas gerentes e admin)
+  const canManageTerritories = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   // Buscar territórios
   const { data: territories, isLoading } = useQuery({
@@ -128,13 +133,14 @@ export function SalesTerritories() {
           <p className="text-muted-foreground">Gerencie a distribuição geográfica de leads e vendedores</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingTerritory(null)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Território
-            </Button>
-          </DialogTrigger>
+        {canManageTerritories && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditingTerritory(null)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Território
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -219,7 +225,8 @@ export function SalesTerritories() {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        )}
       </div>
 
       {/* Estatísticas Gerais */}
@@ -310,24 +317,28 @@ export function SalesTerritories() {
                     ) : (
                       <Badge variant="outline">Inativo</Badge>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingTerritory(territory);
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(territory.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {canManageTerritories && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingTerritory(territory);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(territory.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -398,12 +409,17 @@ export function SalesTerritories() {
                 <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Nenhum território configurado</h3>
                 <p className="text-muted-foreground mb-4">
-                  Comece criando territórios para organizar sua equipe de vendas
+                  {canManageTerritories 
+                    ? 'Comece criando territórios para organizar sua equipe de vendas'
+                    : 'Nenhum território foi configurado ainda'
+                  }
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro Território
-                </Button>
+                {canManageTerritories && (
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeiro Território
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
