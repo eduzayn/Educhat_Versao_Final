@@ -124,22 +124,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for Railway
   app.get('/api/health', async (req, res) => {
     try {
-      // Test database connection
-      await storage.getUser('test');
-      
+      // Basic health check without database dependency
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        database: 'connected',
+        port: process.env.PORT || '5000',
         version: '1.0.0'
       });
     } catch (error) {
       res.status(503).json({
         status: 'error',
         timestamp: new Date().toISOString(),
-        error: 'Database connection failed'
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
