@@ -4,14 +4,14 @@ import { Mic, Square, Trash2, Send, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AudioRecorderProps {
-  onSendAudio: (audioBlob: Blob, duration: number) => void;
+  onAudioRecorded: (audioBlob: Blob, duration: number) => void;
   onCancel: () => void;
   className?: string;
 }
 
 type RecordingState = 'idle' | 'requesting-permission' | 'recording' | 'preview' | 'sending';
 
-export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorderProps) {
+export function AudioRecorder({ onAudioRecorded, onCancel, className }: AudioRecorderProps) {
   const [state, setState] = useState<RecordingState>('idle');
   const [duration, setDuration] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -172,7 +172,7 @@ export function AudioRecorder({ onSendAudio, onCancel, className }: AudioRecorde
     if (!audioBlob) return;
     
     setState('sending');
-    await onSendAudio(audioBlob, duration);
+    await onAudioRecorded(audioBlob, duration);
     
     // Reset após envio
     if (audioUrl) {
