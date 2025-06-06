@@ -3,11 +3,34 @@ import { registerRoutes } from "./routes";
 import { registerInternalChatRoutes } from "./internal-chat-routes";
 import { registerMediaRoutes } from "./media-routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
+import cors from "cors";
 
+// Garantir que o diretório de uploads exista
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log(`Diretório de uploads criado: ${uploadsDir}`);
+}
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Configuração de CORS adequada para produção
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://educhat.com.br', 
+        'https://www.educhat.com.br', 
+        ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : [])
+      ] 
+    : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 // Adicionar endpoint de healthcheck diretamente no nível raiz
 // para garantir que esteja disponível mesmo que outras rotas falhem

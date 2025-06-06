@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: educhat
+    env: node
+    plan: starter
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    healthCheckTimeout: 5
+    healthCheckInterval: 10
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # Você precisa definir manualmente
+      - key: PGDATABASE
+        sync: false # Você precisa definir manualmente
+      - key: PGHOST
+        sync: false # Você precisa definir manualmente
+      - key: PGPORT
+        value: 5432
+      - key: PGUSER
+        sync: false # Você precisa definir manualmente
+      - key: PGPASSWORD
+        sync: false # Você precisa definir manualmente
+      - key: ZAPI_TOKEN
+        sync: false # Você precisa definir manualmente
+      - key: ZAPI_INSTANCE_ID
+        sync: false # Você precisa definir manualmente
+      - key: ZAPI_BASE_URL
+        value: https://api.z-api.io
+      - key: ZAPI_CLIENT_TOKEN
+        sync: false # Você precisa definir manualmente
+      - key: ANTHROPIC_API_KEY
+        sync: false # Você precisa definir manualmente 

@@ -64,10 +64,10 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // false para desenvolvimento, true para produção com HTTPS
-      httpOnly: false, // permitir acesso via JS para desenvolvimento
+      secure: process.env.NODE_ENV === 'production', // true em produção para exigir HTTPS
+      httpOnly: true, // sempre true para segurança
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax'
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     },
   };
 
