@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
-import { SimpleModal } from '@/components/SimpleModal';
+import { PortalModal } from '@/components/PortalModal';
 import { UsersTab } from './components/UsersTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
@@ -82,24 +82,37 @@ export const UsersSettingsPageFixed = () => {
           </div>
         </div>
 
-        <SimpleModal
+        <PortalModal
           isOpen={testModalOpen}
           onClose={() => setTestModalOpen(false)}
-          title="Modal de Teste Isolado - Versão Final"
+          title="Modal Portal - Solução Definitiva"
         >
-          <div className="space-y-4">
-            <p>Este modal usa implementação completamente isolada sem shadcn/ui.</p>
-            <p>Se permanecer aberto, confirmamos que eliminamos todas as interferências.</p>
-            <div className="flex justify-end">
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ marginBottom: '8px' }}>Este modal usa React Portal completamente isolado do contexto da aplicação.</p>
+            <p style={{ marginBottom: '16px' }}>Se permanecer aberto, confirmamos que resolvemos definitivamente o problema.</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setTestModalOpen(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1d4ed8';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2563eb';
+                }}
               >
-                Fechar
+                Fechar Modal
               </button>
             </div>
           </div>
-        </SimpleModal>
+        </PortalModal>
       </div>
     </div>
   );
