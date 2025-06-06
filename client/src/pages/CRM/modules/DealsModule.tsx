@@ -408,7 +408,11 @@ export function DealsModule() {
                   </div>
 
                   <div className="text-sm text-muted-foreground">
-                    O negócio será criado no estágio inicial do funil {currentMacrosetor.name}: {currentMacrosetor.stages[0].name}
+                    O negócio será criado no estágio: {
+                      selectedStageForNewDeal 
+                        ? currentMacrosetor.stages.find(s => s.id === selectedStageForNewDeal)?.name
+                        : currentMacrosetor.stages[0].name
+                    } ({currentMacrosetor.name})
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -511,7 +515,12 @@ export function DealsModule() {
                           </div>
                         )}
                       </Droppable>
-                      <Button variant="ghost" className="w-full mt-3" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full mt-3" 
+                        size="sm"
+                        onClick={() => openNewDealDialog(stage.id)}
+                      >
                         <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
                       </Button>
                     </div>
