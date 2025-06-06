@@ -5,19 +5,19 @@
 ✅ NODE_ENV=production adicionado  
 ✅ Comando de build corrigido no render.yaml  
 
-## Problema Identificado
-O erro `vite: not found` ocorre porque o Render precisa instalar as devDependencies (como vite, esbuild) para fazer o build.
+## Problema Identificado e Resolvido
+O erro `vite: not found` ocorria porque o Render não instala devDependencies em produção. As ferramentas de build (vite, esbuild, etc.) foram movidas para dependencies.
 
-## Solução Aplicada
-Comando de build corrigido de:
-```
-npm install; npm run build
-```
-
-Para:
-```
-npm install && npm run build
-```
+## Soluções Aplicadas
+1. **Ferramentas de build movidas para dependencies**: vite, esbuild, @vitejs/plugin-react, tailwindcss, postcss, autoprefixer
+2. **Comando de build corrigido** de:
+   ```
+   npm install; npm run build
+   ```
+   Para:
+   ```
+   npm install && npm run build
+   ```
 
 ## Configuração Final do Render
 
