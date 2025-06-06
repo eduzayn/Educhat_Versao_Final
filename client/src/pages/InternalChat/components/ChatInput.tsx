@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic, Image } from 'lucide-react';
+import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic, Image, MicOff } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
 
@@ -20,10 +21,14 @@ export function ChatInput() {
   const [showCommands, setShowCommands] = useState(false);
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const filteredCommands = COMMANDS.filter(cmd => 
     message.startsWith('/') && cmd.command.toLowerCase().includes(message.toLowerCase())
@@ -66,6 +71,79 @@ export function ChatInput() {
       }
     };
   }, [message, activeChannel, user?.id]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        handleAudioMessage(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (error) {
+      toast({
+        title: "Erro de Gravação",
+        description: "Não foi possível acessar o microfone. Verifique as permissões.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setMediaRecorder(null);
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const handleAudioMessage = (audioBlob: Blob) => {
+    if (!activeChannel || !user?.id) return;
+
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const duration = recordingTime;
+
+    const newMessage = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      channelId: activeChannel,
+      userId: user.id,
+      userName: user.displayName || user.username || 'Usuário',
+      userAvatar: user.avatar,
+      content: `Áudio (${duration}s)`,
+      messageType: 'file' as const,
+      timestamp: new Date(),
+      reactions: {},
+      metadata: {
+        fileType: 'audio',
+        audioUrl,
+        duration
+      }
+    };
+
+    addMessage(newMessage);
+    setRecordingTime(0);
+  };
 
   const handleSendMessage = () => {
     if (!message.trim() || !activeChannel || !user?.id) return;
@@ -272,11 +350,13 @@ export function ChatInput() {
           variant={isRecording ? "destructive" : "ghost"}
           size="icon"
           className="h-10 w-10 flex-shrink-0"
-          onMouseDown={() => setIsRecording(true)}
-          onMouseUp={() => setIsRecording(false)}
-          onMouseLeave={() => setIsRecording(false)}
+          onMouseDown={startRecording}
+          onMouseUp={stopRecording}
+          onMouseLeave={stopRecording}
+          onTouchStart={startRecording}
+          onTouchEnd={stopRecording}
         >
-          <Mic className="h-4 w-4" />
+          {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
 
         {/* Send Button */}
@@ -308,7 +388,7 @@ export function ChatInput() {
       {isRecording && (
         <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
           <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-          <span>Gravando áudio...</span>
+          <span>Gravando áudio... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}</span>
         </div>
       )}
     </div>
