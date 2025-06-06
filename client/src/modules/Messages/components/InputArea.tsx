@@ -10,6 +10,8 @@ import {
   Link,
   Upload,
   Zap,
+  MessageSquare,
+  StickyNote,
 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
 import { Textarea } from "@/shared/ui/ui/textarea";
@@ -25,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Input } from "@/shared/ui/ui/input";
 import { Label } from "@/shared/ui/ui/label";
 import { Badge } from "@/shared/ui/ui/badge";
@@ -880,9 +883,54 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-12 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
+            className="min-h-[44px] max-h-[120px] resize-none pr-20 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             rows={1}
           />
+          
+          {/* Botões de toggle entre Mensagem e Nota Interna */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      !isInternalNote ? "text-blue-600" : "text-gray-400"
+                    )}
+                    onClick={() => setIsInternalNote(false)}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Mensagem</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      isInternalNote ? "text-amber-600" : "text-gray-400"
+                    )}
+                    onClick={() => setIsInternalNote(true)}
+                  >
+                    <StickyNote className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Nota Interna</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           {/* Dropdown de Respostas Rápidas */}
           {showQuickReplies && filteredQuickReplies.length > 0 && (
