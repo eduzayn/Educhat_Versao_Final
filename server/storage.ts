@@ -3046,7 +3046,14 @@ export class DatabaseStorage implements IStorage {
       'enviei o documento', 'foto do rg', 'confirmação', 'emissão', 'onde pego',
       'preciso de uma declaração', 'quero meu histórico', 'meu diploma já foi emitido',
       'como faço a rematrícula', 'qual o prazo', 'preciso corrigir', 'meu nome saiu errado',
-      'apresentar documento', 'histórico', 'emissão de boletos'
+      'apresentar documento', 'histórico', 'emissão de boletos',
+      // Certificados específicos de graduação/licenciatura (NÃO pós-graduação)
+      'certificado digital', 'certificado de licenciatura', 'certificado do curso',
+      'certificado de graduação', 'segunda licenciatura', 'licenciatura em',
+      'gostaria de solicitar meu certificado', 'solicitar certificado digital',
+      'preciso do meu certificado', 'onde está meu certificado', 'certificado digital do curso',
+      'diploma de licenciatura', 'diploma de graduação', 'formação pedagógica',
+      'complementação pedagógica', 'certificado digital de licenciatura'
     ];
     
     // Palavras-chave para FINANCEIRO ALUNO (prioridade alta - questões administrativas financeiras)
@@ -3075,12 +3082,12 @@ export class DatabaseStorage implements IStorage {
       'estou na etapa final da pós', 'certificado para empresa', 'comprovação da pós'
     ];
     
-    // Palavras-chave para COMERCIAL (contexto educacional)
+    // Palavras-chave para COMERCIAL (contexto educacional) - EXCLUINDO solicitações de certificado
     const comercialKeywords = [
-      'curso', 'cursos', 'valores', 'mensalidade', 'preço', 'preços', 'promoção',
+      'valores', 'mensalidade', 'preço', 'preços', 'promoção',
       'inscrição', 'matrícula', 'matricular', 'oferta', 'condição', 'desconto',
       'quero estudar', 'quero começar', 'modalidade', 'formação', 'faculdade',
-      'pós-graduação', 'segunda licenciatura', 'formação pedagógica', 'graduação',
+      'pós-graduação', 'graduação',
       'quero saber mais', 'como funciona', 'interesse', 'sou novo', 'sou nova',
       'quero fazer', 'gostaria de saber', 'quero me matricular', 'tem curso',
       'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação',
@@ -3099,9 +3106,16 @@ export class DatabaseStorage implements IStorage {
       'vi sobre', 'soube sobre', 'conhecer mais', 'saber sobre'
     ];
     
-    // PRIORIDADE 1: Verificar palavras-chave comerciais PRIMEIRO (interesse em cursos tem prioridade)
-    if (comercialKeywords.some(keyword => content.includes(keyword))) {
-      return 'comercial';
+    // PRIORIDADE 1: Verificar solicitações específicas de certificado/documento (alta especificidade)
+    const certificadoSolicitacaoKeywords = [
+      'gostaria de solicitar meu certificado', 'solicitar certificado digital',
+      'preciso do meu certificado', 'onde está meu certificado', 'certificado digital do curso',
+      'certificado de licenciatura', 'certificado do curso', 'certificado de graduação',
+      'segunda licenciatura', 'diploma de licenciatura', 'diploma de graduação'
+    ];
+    
+    if (certificadoSolicitacaoKeywords.some(keyword => content.includes(keyword))) {
+      return 'secretaria';
     }
     
     // PRIORIDADE 2: Verificar palavras-chave de secretaria pós (específico para pós-graduação)
@@ -3109,27 +3123,32 @@ export class DatabaseStorage implements IStorage {
       return 'secretaria_pos';
     }
     
-    // PRIORIDADE 3: Verificar palavras-chave de financeiro aluno (questões administrativas financeiras)
-    if (financeiroKeywords.some(keyword => content.includes(keyword))) {
-      return 'financeiro';
-    }
-    
-    // PRIORIDADE 4: Verificar palavras-chave de tutoria (especificidade pedagógica)
+    // PRIORIDADE 3: Verificar palavras-chave de tutoria (especificidade pedagógica)
     if (tutoriaKeywords.some(keyword => content.includes(keyword))) {
       return 'tutoria';
     }
     
-    // PRIORIDADE 5: Verificar palavras-chave de secretaria
+    // PRIORIDADE 4: Verificar palavras-chave de financeiro aluno (questões administrativas financeiras)
+    if (financeiroKeywords.some(keyword => content.includes(keyword))) {
+      return 'financeiro';
+    }
+    
+    // PRIORIDADE 5: Verificar palavras-chave de secretaria (geral)
     if (secretariaKeywords.some(keyword => content.includes(keyword))) {
       return 'secretaria';
     }
     
-    // PRIORIDADE 6: Verificar palavras-chave de suporte
+    // PRIORIDADE 6: Verificar palavras-chave comerciais (interesse em cursos)
+    if (comercialKeywords.some(keyword => content.includes(keyword))) {
+      return 'comercial';
+    }
+    
+    // PRIORIDADE 7: Verificar palavras-chave de suporte
     if (suporteKeywords.some(keyword => content.includes(keyword))) {
       return 'suporte';
     }
     
-    // PRIORIDADE 7: Verificar palavras-chave de cobrança (última prioridade)
+    // PRIORIDADE 8: Verificar palavras-chave de cobrança (última prioridade)
     if (cobrancaKeywords.some(keyword => content.includes(keyword))) {
       return 'cobranca';
     }
