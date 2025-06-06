@@ -59,6 +59,7 @@ export function InputArea() {
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [quickReplyFilter, setQuickReplyFilter] = useState("");
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
+  const [isInternalNote, setIsInternalNote] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,6 +75,14 @@ export function InputArea() {
   const { data: quickReplies = [] } = useQuery<QuickReply[]>({
     queryKey: ["/api/quick-replies"],
     enabled: true,
+  });
+
+  // Query para buscar usuário atual (para notas internas)
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+    retry: false,
+    staleTime: 1000 * 60 * 10, // 10 minutos
+    enabled: isInternalNote // Só busca quando necessário
   });
 
   // Filtrar respostas rápidas baseado no texto após "/"
@@ -153,15 +162,36 @@ export function InputArea() {
     }
 
     try {
-      await sendMessageMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        message: {
-          content: messageContent,
-          isFromContact: false,
-          messageType: "text",
-        },
-        contact: activeConversation.contact,
-      });
+      if (isInternalNote) {
+        // Enviar nota interna com nome do usuário atual
+        const authorName = currentUser?.displayName || currentUser?.username || 'Usuário';
+        
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: messageContent,
+            isFromContact: false,
+            messageType: "text",
+            isInternalNote: true,
+            authorName: authorName,
+            authorId: currentUser?.id,
+          },
+          contact: activeConversation.contact,
+        });
+        
+        setIsInternalNote(false); // Reset nota interna state
+      } else {
+        // Enviar mensagem normal
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: messageContent,
+            isFromContact: false,
+            messageType: "text",
+          },
+          contact: activeConversation.contact,
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -691,6 +721,14 @@ export function InputArea() {
             onSendAudio={handleSendAudio}
             onCancel={handleCancelAudio}
           />
+        </div>
+      )}
+
+      {/* Indicador visual do modo de nota interna */}
+      {isInternalNote && (
+        <div className="mb-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded text-xs text-amber-700 dark:text-amber-400">
+          <StickyNote className="h-3 w-3" />
+          <span>Modo: Nota Interna (apenas equipe)</span>
         </div>
       )}
 
