@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { registerInternalChatRoutes } from "./internal-chat-routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  registerInternalChatRoutes(app);
 
 
 
