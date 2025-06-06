@@ -1,9 +1,10 @@
-import { Hash, Users, Info, Settings, Phone, Video, MoreHorizontal } from 'lucide-react';
+import { Hash, Users, Info, Settings, Phone, Video, MoreHorizontal, ArrowLeft } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/ui/tooltip';
 import { useInternalChatStore } from '../store/internalChatStore';
+import { useLocation } from 'wouter';
 
 interface ChatHeaderProps {
   onToggleInfo: () => void;
@@ -12,8 +13,13 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
   const { channels, activeChannel } = useInternalChatStore();
+  const [, setLocation] = useLocation();
   
   const channel = channels.find(c => c.id === activeChannel);
+
+  const handleBackToDashboard = () => {
+    setLocation('/');
+  };
 
   if (!channel) {
     return (
@@ -45,8 +51,24 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
 
   return (
     <div className="h-16 border-b bg-card flex items-center justify-between px-4">
-      {/* Channel Info */}
+      {/* Back button and Channel Info */}
       <div className="flex items-center gap-3">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToDashboard}
+              className="h-8 w-8 p-0 hover:bg-muted"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Voltar ao Dashboard</p>
+          </TooltipContent>
+        </Tooltip>
+        
         <div className="flex items-center gap-2">
           {getChannelIcon(channel.type)}
           <div>
