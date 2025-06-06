@@ -50,7 +50,6 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
@@ -73,14 +72,13 @@ function Router() {
           <Route path="/settings/quick-replies">
             {() => <ProtectedRoute component={QuickRepliesSettingsPage} />}
           </Route>
-          <Route path="/settings/webhook">
+          <Route path="/settings/webhooks">
             {() => <ProtectedRoute component={WebhookConfigPage} />}
           </Route>
           <Route path="/settings/ai-detection">
             {() => <ProtectedRoute component={AIDetectionSettingsPage} />}
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
-          <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={InternalChatPage} />
           <Route component={NotFound} />
         </>
