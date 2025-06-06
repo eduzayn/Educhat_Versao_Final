@@ -19,5 +19,6 @@ RUN mkdir -p uploads
 # Expose port (Railway will override this)
 EXPOSE 8080
 
-# Start the application in development mode (which works in production)
+# Start the application in development mode (works best for this setup)
+ENV NODE_ENV=development
 CMD ["npm", "run", "dev"]
