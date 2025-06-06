@@ -8,6 +8,7 @@ import {
   Trophy, 
   Users 
 } from "lucide-react";
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 // Importar subcomponentes de vendas
 import { SalesDashboard } from "./sales/SalesDashboard";
@@ -19,6 +20,9 @@ import { SalesCoaching } from "./sales/SalesCoaching";
 
 export function SalesModule() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { user } = useAuth();
+  
+  const isAdmin = (user as any)?.role === 'admin';
 
   return (
     <div className="space-y-6">
@@ -39,10 +43,12 @@ export function SalesModule() {
             <Target className="h-4 w-4" />
             Metas
           </TabsTrigger>
-          <TabsTrigger value="commissions" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Comissões
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="commissions" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Comissões
+            </TabsTrigger>
+          )}
           <TabsTrigger value="territories" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Territórios
@@ -65,9 +71,11 @@ export function SalesModule() {
           <SalesTargets />
         </TabsContent>
 
-        <TabsContent value="commissions" className="space-y-6 mt-6">
-          <SalesCommissions />
-        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="commissions" className="space-y-6 mt-6">
+            <SalesCommissions />
+          </TabsContent>
+        )}
 
         <TabsContent value="territories" className="space-y-6 mt-6">
           <SalesTerritories />
