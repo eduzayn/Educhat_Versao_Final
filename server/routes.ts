@@ -3617,6 +3617,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile API endpoints
+  app.patch('/api/profile', async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const { displayName, email, phone, location, bio } = req.body;
+      const updateData: any = {};
+      
+      if (displayName !== undefined) updateData.displayName = displayName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (location !== undefined) updateData.location = location;
+      if (bio !== undefined) updateData.bio = bio;
+
+      const updatedUser = await storage.updateSystemUser(req.user.id, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      res.json({ 
+        message: 'Perfil atualizado com sucesso',
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/profile/change-password', async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          error: 'Senha atual e nova senha são obrigatórias' 
+        });
+      }
+
+      // Verificar senha atual
+      const { comparePasswords } = await import("./auth");
+      const user = await storage.getSystemUserById(req.user.id);
+      
+      if (!user || !user.password) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: 'Senha atual incorreta' });
+      }
+
+      // Atualizar com nova senha
+      const { hashPassword } = await import("./auth");
+      const hashedNewPassword = await hashPassword(newPassword);
+      
+      await storage.updateSystemUser(req.user.id, { 
+        password: hashedNewPassword 
+      });
+
+      res.json({ message: 'Senha alterada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao alterar senha:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Teams API endpoints
   app.get('/api/teams', async (req, res) => {
     try {
