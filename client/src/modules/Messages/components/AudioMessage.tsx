@@ -94,7 +94,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg max-w-md ${
+    <div className={`flex items-center gap-3 p-3 rounded-lg max-w-lg ${
       isFromContact 
         ? 'bg-gray-100 text-gray-900' 
         : 'bg-blue-600 text-white'
