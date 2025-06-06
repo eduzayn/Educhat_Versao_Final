@@ -56,12 +56,24 @@ function Router() {
           <Route path="/bi" component={BIPage} />
           <Route path="/reports" component={ReportsPage} />
           <Route path="/integrations" component={IntegrationsPage} />
-          <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
-          <Route path="/settings/channels" component={() => <ProtectedRoute component={ChannelsPage} />} />
-          <Route path="/settings/users" component={() => <ProtectedRoute component={UsersSettingsPage} />} />
-          <Route path="/settings/quick-replies" component={() => <ProtectedRoute component={QuickRepliesSettingsPage} />} />
-          <Route path="/settings/webhook" component={() => <ProtectedRoute component={WebhookConfigPage} />} />
-          <Route path="/settings/ai-detection" component={() => <ProtectedRoute component={AIDetectionSettingsPage} />} />
+          <Route path="/settings">
+            {() => <ProtectedRoute component={SettingsPage} />}
+          </Route>
+          <Route path="/settings/channels">
+            {() => <ProtectedRoute component={ChannelsPage} />}
+          </Route>
+          <Route path="/settings/users">
+            {() => <ProtectedRoute component={UsersSettingsPage} />}
+          </Route>
+          <Route path="/settings/quick-replies">
+            {() => <ProtectedRoute component={QuickRepliesSettingsPage} />}
+          </Route>
+          <Route path="/settings/webhook">
+            {() => <ProtectedRoute component={WebhookConfigPage} />}
+          </Route>
+          <Route path="/settings/ai-detection">
+            {() => <ProtectedRoute component={AIDetectionSettingsPage} />}
+          </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />

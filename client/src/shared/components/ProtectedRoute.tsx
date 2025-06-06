@@ -1,6 +1,7 @@
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { Card, CardContent } from '@/shared/ui/ui/card';
 import { Shield, AlertCircle } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface User {
   id: number;
@@ -19,8 +20,14 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requiredRole = 'admin', component: Component }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
+  
+  const hasPermission = useMemo(() => {
+    if (isLoading) return null;
+    if (!requiredRole) return true;
+    return (user as User)?.role === requiredRole;
+  }, [user, isLoading, requiredRole]);
 
-  if (isLoading) {
+  if (hasPermission === null) {
     return (
       <div className="min-h-screen bg-educhat-light flex items-center justify-center">
         <div className="text-center">
@@ -32,7 +39,7 @@ export function ProtectedRoute({ children, requiredRole = 'admin', component: Co
   }
 
   // Verificar se o usuário tem o role necessário
-  if (requiredRole && (user as User)?.role !== requiredRole) {
+  if (hasPermission === false) {
     return (
       <div className="min-h-screen bg-educhat-light flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
