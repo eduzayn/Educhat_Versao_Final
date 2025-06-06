@@ -456,7 +456,6 @@ export function MessageBubble({
   // Função para renderizar o conteúdo da mensagem baseado no tipo
   const renderMessageContent = () => {
     if (message.messageType === 'audio') {
-      console.log('🎧 Áudio: Processando mensagem', `ID: ${message.id}`, `Duração: ${(message.metadata as any)?.duration || 0}s`);
 
       // Verificar se temos uma URL válida para o áudio
       let audioUrl: string | null = null;
