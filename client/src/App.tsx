@@ -56,12 +56,12 @@ function Router() {
           <Route path="/bi" component={BIPage} />
           <Route path="/reports" component={ReportsPage} />
           <Route path="/integrations" component={IntegrationsPage} />
-          <Route path="/settings" component={SettingsPage} />
-          <Route path="/settings/channels" component={ChannelsPage} />
-          <Route path="/settings/users" component={UsersSettingsPage} />
-          <Route path="/settings/quick-replies" component={QuickRepliesSettingsPage} />
-          <Route path="/settings/webhook" component={WebhookConfigPage} />
-          <Route path="/settings/ai-detection" component={AIDetectionSettingsPage} />
+          <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
+          <Route path="/settings/channels" component={() => <ProtectedRoute component={ChannelsPage} />} />
+          <Route path="/settings/users" component={() => <ProtectedRoute component={UsersSettingsPage} />} />
+          <Route path="/settings/quick-replies" component={() => <ProtectedRoute component={QuickRepliesSettingsPage} />} />
+          <Route path="/settings/webhook" component={() => <ProtectedRoute component={WebhookConfigPage} />} />
+          <Route path="/settings/ai-detection" component={() => <ProtectedRoute component={AIDetectionSettingsPage} />} />
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />

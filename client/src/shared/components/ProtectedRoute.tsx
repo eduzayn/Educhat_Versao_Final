@@ -2,8 +2,17 @@ import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { Card, CardContent } from '@/shared/ui/ui/card';
 import { Shield, AlertCircle } from 'lucide-react';
 
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  displayName: string;
+  role: string;
+  roleId: number;
+}
+
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   requiredRole?: string;
   component?: React.ComponentType;
 }
@@ -23,7 +32,7 @@ export function ProtectedRoute({ children, requiredRole = 'admin', component: Co
   }
 
   // Verificar se o usuário tem o role necessário
-  if (requiredRole && user?.role !== requiredRole) {
+  if (requiredRole && (user as User)?.role !== requiredRole) {
     return (
       <div className="min-h-screen bg-educhat-light flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
@@ -42,7 +51,7 @@ export function ProtectedRoute({ children, requiredRole = 'admin', component: Co
             </p>
             <div className="flex items-center justify-center text-sm text-gray-500">
               <AlertCircle className="w-4 h-4 mr-2" />
-              Seu nível de acesso: {user?.role || 'Não definido'}
+              Seu nível de acesso: {(user as User)?.role || 'Não definido'}
             </div>
           </CardContent>
         </Card>

@@ -115,7 +115,7 @@ export function Dashboard() {
   // Filtrar itens do menu baseado no role do usuário
   const menuItems = allMenuItems.filter(item => {
     if (item.adminOnly) {
-      return user?.role === 'admin';
+      return (user as any)?.role === 'admin';
     }
     return true;
   });
