@@ -7,6 +7,7 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import type { User } from '@shared/schema';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
 
@@ -23,8 +24,10 @@ export function ChatInput() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
   const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
   const { user } = useAuth();
@@ -45,7 +48,7 @@ export function ChatInput() {
 
   // Indicador de digitação
   useEffect(() => {
-    if (!activeChannel || !user?.id) return;
+    if (!activeChannel || !user) return;
 
     let typingTimer: NodeJS.Timeout;
 
@@ -66,15 +69,22 @@ export function ChatInput() {
 
     return () => {
       if (typingTimer) clearTimeout(typingTimer);
-      if (activeChannel && user?.id) {
+      if (activeChannel && user) {
         removeTyping(user.id, activeChannel);
       }
     };
-  }, [message, activeChannel, user?.id]);
+  }, [message, activeChannel, user]);
 
   const startRecording = async () => {
+    if (isRecording) return; // Evita múltiplas gravações simultâneas
+    
     try {
       console.log('Iniciando gravação...');
+      
+      // Limpar estados anteriores
+      setAudioChunks([]);
+      setRecordingTime(0);
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -83,30 +93,45 @@ export function ChatInput() {
         }
       });
       
-      const audioChunks: Blob[] = [];
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      streamRef.current = stream;
+      
+      // Verificar se o navegador suporta webm, senão usar mp4
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/mp4';
+      }
+      
+      const recorder = new MediaRecorder(stream, { mimeType });
+      
+      const chunks: Blob[] = [];
 
       recorder.ondataavailable = (event) => {
         console.log('Dados de áudio disponíveis:', event.data.size, 'bytes');
         if (event.data.size > 0) {
-          audioChunks.push(event.data);
+          chunks.push(event.data);
         }
       };
 
       recorder.onstop = () => {
-        console.log('Gravação parada. Chunks:', audioChunks.length);
-        if (audioChunks.length > 0) {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        console.log('Gravação parada. Chunks:', chunks.length);
+        if (chunks.length > 0 && recordingTime >= 1) {
+          const audioBlob = new Blob(chunks, { type: mimeType });
           console.log('Blob criado:', audioBlob.size, 'bytes');
           handleAudioMessage(audioBlob);
+        } else {
+          console.log('Gravação muito curta, descartando...');
         }
-        stream.getTracks().forEach(track => track.stop());
+        
+        // Limpar stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
       };
 
       recorder.onerror = (event) => {
         console.error('Erro na gravação:', event);
+        cleanupRecording();
         toast({
           title: "Erro de Gravação",
           description: "Erro durante a gravação do áudio.",
@@ -114,19 +139,20 @@ export function ChatInput() {
         });
       };
 
-      recorder.start(1000); // Coleta dados a cada 1 segundo
+      recorder.start(100); // Coleta dados a cada 100ms para melhor qualidade
       setMediaRecorder(recorder);
       setIsRecording(true);
-      setRecordingTime(0);
-
+      
+      // Iniciar contador de tempo
       recordingIntervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
 
-      console.log('Gravação iniciada');
+      console.log('Gravação iniciada com sucesso');
 
     } catch (error) {
       console.error('Erro ao acessar microfone:', error);
+      cleanupRecording();
       toast({
         title: "Erro de Gravação",
         description: "Não foi possível acessar o microfone. Verifique as permissões.",
@@ -139,23 +165,12 @@ export function ChatInput() {
     console.log('Parando gravação...', { mediaRecorder, isRecording, recordingTime });
     
     if (mediaRecorder && isRecording) {
-      // Só para se tiver gravado pelo menos 1 segundo
-      if (recordingTime < 1) {
-        console.log('Gravação muito curta, cancelando...');
-        mediaRecorder.stream?.getTracks().forEach(track => track.stop());
-        setIsRecording(false);
-        setMediaRecorder(null);
-        if (recordingIntervalRef.current) {
-          clearInterval(recordingIntervalRef.current);
-          recordingIntervalRef.current = null;
-        }
-        return;
-      }
-
       mediaRecorder.stop();
       console.log('MediaRecorder.stop() chamado');
-      setMediaRecorder(null);
+      
       setIsRecording(false);
+      setMediaRecorder(null);
+      
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
         recordingIntervalRef.current = null;
@@ -163,8 +178,25 @@ export function ChatInput() {
     }
   };
 
+  const cleanupRecording = () => {
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setRecordingTime(0);
+    setAudioChunks([]);
+    
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
   const handleAudioMessage = (audioBlob: Blob) => {
-    if (!activeChannel || !user?.id) return;
+    if (!activeChannel || !user) return;
 
     const audioUrl = URL.createObjectURL(audioBlob);
     const duration = recordingTime;
