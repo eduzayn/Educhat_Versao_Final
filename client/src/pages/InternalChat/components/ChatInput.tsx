@@ -74,21 +74,47 @@ export function ChatInput() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      console.log('Iniciando gravação...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      });
+      
       const audioChunks: Blob[] = [];
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
 
       recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+        console.log('Dados de áudio disponíveis:', event.data.size, 'bytes');
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        handleAudioMessage(audioBlob);
+        console.log('Gravação parada. Chunks:', audioChunks.length);
+        if (audioChunks.length > 0) {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          console.log('Blob criado:', audioBlob.size, 'bytes');
+          handleAudioMessage(audioBlob);
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
-      recorder.start();
+      recorder.onerror = (event) => {
+        console.error('Erro na gravação:', event);
+        toast({
+          title: "Erro de Gravação",
+          description: "Erro durante a gravação do áudio.",
+          variant: "destructive"
+        });
+      };
+
+      recorder.start(1000); // Coleta dados a cada 1 segundo
       setMediaRecorder(recorder);
       setIsRecording(true);
       setRecordingTime(0);
@@ -97,7 +123,10 @@ export function ChatInput() {
         setRecordingTime(prev => prev + 1);
       }, 1000);
 
+      console.log('Gravação iniciada');
+
     } catch (error) {
+      console.error('Erro ao acessar microfone:', error);
       toast({
         title: "Erro de Gravação",
         description: "Não foi possível acessar o microfone. Verifique as permissões.",
@@ -107,8 +136,24 @@ export function ChatInput() {
   };
 
   const stopRecording = () => {
+    console.log('Parando gravação...', { mediaRecorder, isRecording, recordingTime });
+    
     if (mediaRecorder && isRecording) {
+      // Só para se tiver gravado pelo menos 1 segundo
+      if (recordingTime < 1) {
+        console.log('Gravação muito curta, cancelando...');
+        mediaRecorder.stream?.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        setMediaRecorder(null);
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
+        return;
+      }
+
       mediaRecorder.stop();
+      console.log('MediaRecorder.stop() chamado');
       setMediaRecorder(null);
       setIsRecording(false);
       if (recordingIntervalRef.current) {
