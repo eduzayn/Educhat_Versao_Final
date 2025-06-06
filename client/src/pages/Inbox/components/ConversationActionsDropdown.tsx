@@ -87,14 +87,36 @@ export function ConversationActionsDropdown({
       if (!response.ok) throw new Error('Erro ao marcar como não lida');
       return response.json();
     },
+    onMutate: async () => {
+      // Cancelar queries em andamento para evitar conflitos
+      await queryClient.cancelQueries({ queryKey: ['/api/conversations'] });
+
+      // Snapshot do estado anterior
+      const previousConversations = queryClient.getQueryData(['/api/conversations']);
+
+      // Atualização otimista - atualizar cache imediatamente
+      queryClient.setQueryData(['/api/conversations'], (old: any) => {
+        if (!old) return old;
+        
+        return old.map((conv: any) => 
+          conv.id === conversationId 
+            ? { ...conv, unreadCount: 1 }
+            : conv
+        );
+      });
+
+      return { previousConversations };
+    },
+    onError: (err, variables, context) => {
+      // Reverter em caso de erro
+      if (context?.previousConversations) {
+        queryClient.setQueryData(['/api/conversations'], context.previousConversations);
+      }
+    },
     onSuccess: () => {
-      // Forçar atualização imediata da lista de conversas
+      // Garantir sincronização com servidor
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
-      
-      // Invalidar e atualizar imediatamente o contador de mensagens não lidas
       queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-      queryClient.refetchQueries({ queryKey: ['/api/conversations/unread-count'] });
       
       toast({
         title: "Marcado como não lida",
