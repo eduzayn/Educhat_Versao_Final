@@ -44,7 +44,7 @@ export function Dashboard() {
     }
   };
 
-  const menuItems = [
+  const allMenuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
@@ -95,7 +95,6 @@ export function Dashboard() {
       description: 'Canais e APIs',
       route: '/integrations'
     },
-
     {
       id: 'reports',
       label: 'Relatórios',
@@ -108,9 +107,18 @@ export function Dashboard() {
       label: 'Configurações',
       icon: Settings,
       description: 'Configurar sistema',
-      route: '/settings'
+      route: '/settings',
+      adminOnly: true
     }
   ];
+
+  // Filtrar itens do menu baseado no role do usuário
+  const menuItems = allMenuItems.filter(item => {
+    if (item.adminOnly) {
+      return user?.role === 'admin';
+    }
+    return true;
+  });
 
   const channelStats = [
     { name: 'WhatsApp', icon: Phone, count: 45, color: 'bg-green-100 text-green-800' },

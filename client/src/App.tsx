@@ -5,6 +5,7 @@ import { Toaster } from "@/shared/ui/ui/toaster";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
+import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
