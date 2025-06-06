@@ -655,6 +655,16 @@ export function InputArea() {
 
   return (
     <div className="relative">
+      {/* Audio Recorder - positioned at the top */}
+      {showAudioRecorder && (
+        <div className="mb-3 px-4">
+          <AudioRecorder
+            onAudioRecorded={handleAudioRecorded}
+            onCancel={() => setShowAudioRecorder(false)}
+          />
+        </div>
+      )}
+
       {/* Reply Preview */}
       {replyToMessage && (
         <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-blue-500">
@@ -963,13 +973,7 @@ export function InputArea() {
           )}
         </div>
 
-        {/* Audio Recorder Modal */}
-        {showAudioRecorder && (
-          <AudioRecorder
-            onAudioRecorded={handleAudioRecorded}
-            onCancel={() => setShowAudioRecorder(false)}
-          />
-        )}
+
       </div>
     </div>
   );
