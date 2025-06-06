@@ -9,6 +9,19 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Adicionar endpoint de healthcheck diretamente no nível raiz
+// para garantir que esteja disponível mesmo que outras rotas falhem
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || '5000',
+    version: '1.0.0'
+  });
+});
+
 // Servir arquivos estáticos de upload
 app.use('/uploads', express.static('uploads'));
 

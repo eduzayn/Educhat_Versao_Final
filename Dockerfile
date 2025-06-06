@@ -16,9 +16,10 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p uploads
 
-# Expose port (Railway will override this)
+# Expose port (Railway will override this with PORT env var)
 EXPOSE 8080
 
 # Start the application in development mode (works best for this setup)
 ENV NODE_ENV=development
+ENV PORT=8080
 CMD ["npm", "run", "dev"]
