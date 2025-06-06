@@ -121,6 +121,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API Routes
 
+  // Health check endpoint for Railway
+  app.get('/api/health', async (req, res) => {
+    try {
+      // Test database connection
+      await storage.getUser('test');
+      
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        database: 'connected',
+        version: '1.0.0'
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: 'Database connection failed'
+      });
+    }
+  });
+
   // Contacts endpoints
   app.get('/api/contacts', async (req, res) => {
     try {
