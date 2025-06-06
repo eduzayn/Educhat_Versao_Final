@@ -2269,6 +2269,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para soft delete de mensagens (ocultar apenas na interface)
+  app.post('/api/messages/soft-delete', async (req, res) => {
+    try {
+      const { messageId, conversationId } = req.body;
+      
+      console.log('🗑️ Soft delete solicitado:', { messageId, conversationId });
+      
+      if (!messageId || !conversationId) {
+        return res.status(400).json({ 
+          error: 'messageId e conversationId são obrigatórios' 
+        });
+      }
+
+      // Marcar mensagem como deletada no banco (soft delete)
+      await storage.markMessageAsDeleted(parseInt(messageId));
+      
+      // Broadcast para clientes conectados sobre a mensagem deletada
+      broadcast(parseInt(conversationId), {
+        type: 'message_soft_deleted',
+        messageId: parseInt(messageId),
+        deletedAt: new Date().toISOString(),
+        conversationId: parseInt(conversationId)
+      });
+
+      console.log('✅ Mensagem marcada como deletada via soft delete:', messageId);
+      
+      res.json({
+        success: true,
+        message: 'Mensagem removida da interface',
+        messageId: parseInt(messageId),
+        deletedAt: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao fazer soft delete da mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  });
+
   app.get('/api/zapi/status', async (req, res) => {
     try {
       // Log para facilitar o diagnóstico

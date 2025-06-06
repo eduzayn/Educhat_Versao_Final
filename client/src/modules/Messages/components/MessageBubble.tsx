@@ -338,10 +338,12 @@ export function MessageBubble({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
 
-  // Verificar se a mensagem pode ser deletada (dentro de 7 minutos para WhatsApp)
+  // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
-    if (isFromContact) return false; // Só permite deletar mensagens enviadas pelo agente
-
+    // Para mensagens recebidas: sempre permite exclusão na interface
+    if (isFromContact) return true;
+    
+    // Para mensagens enviadas: dentro de 7 minutos para WhatsApp
     const messageDate = new Date(message.sentAt || new Date());
     const now = new Date();
     const timeDifference = now.getTime() - messageDate.getTime();
@@ -351,69 +353,81 @@ export function MessageBubble({
   };
 
   const handleDeleteMessage = async () => {
-    if (!contact.phone || !conversationId) return;
-
-    // Extrair messageId dos metadados - tentar múltiplas possibilidades
-    const metadata =
-      message.metadata && typeof message.metadata === "object"
-        ? message.metadata
-        : {};
-    let messageId = null;
-
-    // Buscar o ID da mensagem nos metadados em diferentes campos possíveis
-    if ("messageId" in metadata && metadata.messageId) {
-      messageId = metadata.messageId;
-    } else if ("zaapId" in metadata && metadata.zaapId) {
-      messageId = metadata.zaapId;
-    } else if ("id" in metadata && metadata.id) {
-      messageId = metadata.id;
-    }
-
-    // Log para debug
-    console.log("🗑️ Tentando deletar mensagem:", {
-      messageLocalId: message.id,
-      messageId,
-      metadata,
-      phone: contact.phone,
-      conversationId,
-    });
-
-    if (!messageId) {
-      toast({
-        title: "Erro",
-        description:
-          "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!conversationId) return;
 
     setIsDeleting(true);
     try {
-      const response = await apiRequest("POST", "/api/zapi/delete-message", {
-        phone: contact.phone,
-        messageId: messageId.toString(),
-        conversationId: conversationId,
-      });
+      if (isFromContact) {
+        // Para mensagens recebidas: soft delete apenas na interface
+        const response = await apiRequest("POST", "/api/messages/soft-delete", {
+          messageId: message.id,
+          conversationId: conversationId,
+        });
 
-      console.log("✅ Resposta da exclusão:", response);
+        console.log("✅ Mensagem recebida ocultada da interface:", response);
 
-      // Marcar mensagem como deletada localmente e invalidar cache
-      setIsDeleted(true);
+        // Marcar mensagem como deletada localmente
+        setIsDeleted(true);
 
-      // Invalidar cache para recarregar mensagens com status atualizado
-      queryClient.invalidateQueries({
-        queryKey: [`/api/conversations/${conversationId}/messages`],
-      });
+        // Invalidar cache para recarregar mensagens
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${conversationId}/messages`],
+        });
 
-      toast({
-        title: "Sucesso",
-        description: "Mensagem deletada com sucesso",
-      });
+        toast({
+          title: "Sucesso",
+          description: "Mensagem removida da interface",
+        });
+      } else {
+        // Para mensagens enviadas: deletar via Z-API (lógica original)
+        const metadata =
+          message.metadata && typeof message.metadata === "object"
+            ? message.metadata
+            : {};
+        let messageId = null;
+
+        // Buscar o ID da mensagem nos metadados
+        if ("messageId" in metadata && metadata.messageId) {
+          messageId = metadata.messageId;
+        } else if ("zaapId" in metadata && metadata.zaapId) {
+          messageId = metadata.zaapId;
+        } else if ("id" in metadata && metadata.id) {
+          messageId = metadata.id;
+        }
+
+        if (!messageId) {
+          toast({
+            title: "Erro",
+            description: "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const response = await apiRequest("POST", "/api/zapi/delete-message", {
+          phone: contact.phone,
+          messageId: messageId.toString(),
+          conversationId: conversationId,
+        });
+
+        console.log("✅ Mensagem enviada deletada via Z-API:", response);
+
+        // Marcar mensagem como deletada localmente
+        setIsDeleted(true);
+
+        // Invalidar cache para recarregar mensagens
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${conversationId}/messages`],
+        });
+
+        toast({
+          title: "Sucesso",
+          description: "Mensagem deletada com sucesso",
+        });
+      }
     } catch (error) {
       console.error("❌ Erro ao deletar mensagem:", error);
 
-      // Mostrar erro mais específico baseado na resposta
       let errorMessage = "Não foi possível deletar a mensagem";
       if (error && typeof error === "object" && "message" in error) {
         errorMessage = (error as Error).message;
@@ -609,8 +623,8 @@ export function MessageBubble({
               </Button>
             )}
             
-            {/* Botão de Excluir - apenas para mensagens enviadas pelo agente e dentro de 7 minutos */}
-            {!isFromContact && canDelete() && (
+            {/* Botão de Excluir - para todas as mensagens que podem ser deletadas */}
+            {canDelete() && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -627,7 +641,10 @@ export function MessageBubble({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Excluir mensagem</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita.
+                      {isFromContact 
+                        ? "Tem certeza que deseja remover esta mensagem da interface? A mensagem será ocultada apenas para você, não será deletada do WhatsApp."
+                        : "Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita e será removida do WhatsApp."
+                      }
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
