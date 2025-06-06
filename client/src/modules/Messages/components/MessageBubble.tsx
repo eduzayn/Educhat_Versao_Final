@@ -425,246 +425,145 @@ export const MessageBubble = memo(function MessageBubble({
     }
   };
 
-  // Se a mensagem foi deletada (localmente ou no banco), mostrar interface simplificada
+  // Mensagem deletada
   if (isDeleted || message.isDeleted) {
     return (
-      <div
-        className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
-      >
+      <div className={containerClasses}>
         <Avatar className="w-8 h-8 flex-shrink-0 opacity-50">
           <AvatarImage
             src={isFromContact ? contact.profileImageUrl || "" : ""}
             alt={isFromContact ? contact.name : "Agente"}
           />
           <AvatarFallback className="text-xs">
-            {isFromContact
-              ? contact.name?.charAt(0)?.toUpperCase() || "C"
-              : "A"}
+            {avatarFallbackChar}
           </AvatarFallback>
         </Avatar>
 
-        <div
-          className={`flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`}
-        >
+        <div className={bubbleWrapperClasses}>
           <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500 opacity-75">
-            <div className="flex items-center gap-2">
-              <Trash2 className="w-4 h-4" />
-              <span className="text-sm italic">Esta mensagem foi deletada</span>
-            </div>
+            <span className="text-sm italic">Esta mensagem foi deletada</span>
           </div>
-          <div
-            className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${isFromContact ? "" : "justify-end"}`}
-          >
-            <span>{messageTime}</span>
+          <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
+            <span title={new Date(messageTimestamp).toLocaleString()}>
+              {messageTime}
+            </span>
           </div>
         </div>
       </div>
     );
   }
 
+  // Função para renderizar o conteúdo da mensagem baseado no tipo
+  const renderMessageContent = () => {
+    if (message.messageType === 'audio') {
+      console.log('🎧 Áudio: Processando mensagem', `ID: ${message.id}`, `Duração: ${(message.metadata as any)?.duration || 0}s`);
+
+      // Verificar se temos uma URL válida para o áudio
+      let audioUrl: string | null = null;
+      
+      // 1. Verificar se content é uma data URL válida
+      if (message.content && message.content.startsWith('data:audio/')) {
+        audioUrl = message.content;
+      }
+      // 2. Verificar se é apenas base64 e construir data URL
+      else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
+        const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
+        audioUrl = `data:${mimeType};base64,${message.content}`;
+      }
+      // 3. Verificar se é uma URL HTTP/HTTPS válida
+      else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
+        audioUrl = message.content;
+      }
+      // 4. Verificar se há audioUrl nos metadados (para mensagens recebidas)
+      else if ((message.metadata as any)?.audio?.audioUrl) {
+        audioUrl = (message.metadata as any).audio.audioUrl;
+      }
+
+      // Se não temos URL válida, tentar buscar usando messageId dos metadados
+      if (!audioUrl) {
+        const messageIdFromMetadata = (message.metadata as any)?.messageId;
+        if (messageIdFromMetadata) {
+          const duration = (message.metadata as any)?.duration || 0;
+          return (
+            <AudioMessage
+              audioUrl={null}
+              duration={duration}
+              isFromContact={isFromContact}
+              messageIdForFetch={messageIdFromMetadata}
+            />
+          );
+        }
+        
+        // Se não tem messageId, mostrar fallback
+        return (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+            <Volume2 className="w-4 h-4 text-red-500" />
+            <span className="text-sm text-red-600">Áudio indisponível</span>
+          </div>
+        );
+      }
+
+      const duration = (message.metadata as any)?.duration || 0;
+      return (
+        <AudioMessage
+          audioUrl={audioUrl}
+          duration={duration}
+          isFromContact={isFromContact}
+        />
+      );
+    }
+
+    // Para outros tipos de mídia, usar LazyMediaContent
+    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
+      return (
+        <LazyMediaContent
+          messageId={message.id}
+          messageType={message.messageType as "audio" | "video" | "image" | "document"}
+          conversationId={conversationId}
+          isFromContact={isFromContact}
+        />
+      );
+    }
+
+    // Mensagem de texto padrão
+    return (
+      <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
+        {message.content ? (
+          <p className="text-sm">{message.content}</p>
+        ) : (
+          <div className="text-sm text-gray-500 italic">
+            <p>Mensagem sem conteúdo de texto</p>
+            {message.messageType && (
+              <p className="text-xs mt-1">Tipo: {message.messageType}</p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Mensagem normal
   return (
-    <div
-      className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
-    >
+    <div className={containerClasses}>
       <Avatar className="w-8 h-8 flex-shrink-0">
         <AvatarImage
           src={isFromContact ? contact.profileImageUrl || "" : ""}
           alt={isFromContact ? contact.name : "Agente"}
         />
         <AvatarFallback className="text-xs">
-          {isFromContact ? contact.name?.charAt(0)?.toUpperCase() || "C" : "A"}
+          {avatarFallbackChar}
         </AvatarFallback>
       </Avatar>
 
-      <div
-        className={`flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`}
-      >
-        <div
-          className={`${
-            message.messageType === "audio" ||
-            message.messageType === "image" ||
-            message.messageType === "video" ||
-            message.messageType === "document"
-              ? ""
-              : "px-4 py-2"
-          } rounded-lg ${
-            message.messageType === "image" ||
-            message.messageType === "video" ||
-            message.messageType === "document"
-              ? ""
-              : isFromContact
-                ? "bg-gray-100 text-gray-900"
-                : "bg-blue-600 text-white"
-          }`}
-        >
-          {message.messageType === "audio" ? (
-            (() => {
-              // Verificar se temos uma URL válida para o áudio
-              let audioUrl: string | null = null;
+      <div className={bubbleWrapperClasses}>
+        {renderMessageContent()}
 
-              // 1. Verificar se content é uma data URL válida
-              if (
-                message.content &&
-                message.content.startsWith("data:audio/")
-              ) {
-                audioUrl = message.content;
-              }
-              // 2. Verificar se é apenas base64 e construir data URL
-              else if (
-                message.content &&
-                message.content.match(/^[A-Za-z0-9+/]+=*$/)
-              ) {
-                const mimeType =
-                  (message.metadata as any)?.mimeType || "audio/mp4";
-                audioUrl = `data:${mimeType};base64,${message.content}`;
-              }
-              // 3. Verificar se é uma URL HTTP/HTTPS válida
-              else if (
-                message.content &&
-                (message.content.startsWith("http://") ||
-                  message.content.startsWith("https://"))
-              ) {
-                audioUrl = message.content;
-              }
-              // 4. Verificar se há audioUrl nos metadados (mensagens do WhatsApp)
-              else if (
-                message.metadata &&
-                typeof message.metadata === "object" &&
-                "audio" in message.metadata
-              ) {
-                const audioMeta = (message.metadata as any).audio;
-                if (
-                  audioMeta &&
-                  audioMeta.audioUrl &&
-                  (audioMeta.audioUrl.startsWith("http://") ||
-                    audioMeta.audioUrl.startsWith("https://"))
-                ) {
-                  audioUrl = audioMeta.audioUrl;
-                }
-              }
-
-              // Se temos URL válida, usar diretamente sem buscar no banco
-              if (audioUrl) {
-                const duration =
-                  (message.metadata as any)?.duration ||
-                  (message.metadata as any)?.audio?.seconds ||
-                  0;
-                return (
-                  <AudioMessage
-                    audioUrl={audioUrl}
-                    duration={duration}
-                    isFromContact={isFromContact}
-                  />
-                );
-              }
-
-              // Se não temos URL válida, tentar buscar usando messageId dos metadados
-              if (!audioUrl) {
-                const messageIdFromMetadata = (message.metadata as any)
-                  ?.messageId;
-                if (messageIdFromMetadata) {
-                  const duration = (message.metadata as any)?.duration || 0;
-                  return (
-                    <AudioMessageSimple
-                      audioUrl={null}
-                      duration={duration}
-                      isFromContact={isFromContact}
-                      messageIdForFetch={messageIdFromMetadata}
-                    />
-                  );
-                }
-
-                // Se não tem messageId, mostrar fallback
-                return (
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
-                    <span className="text-sm text-red-600">
-                      Áudio indisponível
-                    </span>
-                  </div>
-                );
-              }
-
-              const duration = (message.metadata as any)?.duration || 0;
-              return (
-                <AudioMessageSimple
-                  audioUrl={audioUrl}
-                  duration={duration}
-                  isFromContact={isFromContact}
-                />
-              );
-            })()
-          ) : message.messageType === "image" ? (
-            <ImageMessage message={message} isFromContact={isFromContact} />
-          ) : message.messageType === "video" ? (
-            <VideoMessage message={message} isFromContact={isFromContact} />
-          ) : message.messageType === "document" ? (
-            <DocumentMessage message={message} isFromContact={isFromContact} />
-          ) : (
-            <p className="text-sm">{message.content}</p>
-          )}
-        </div>
-
-        <div
-          className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${isFromContact ? "" : "justify-end"}`}
-        >
-          {/* Reações disponíveis apenas para mensagens do contato (WhatsApp) */}
-          {isFromContact && contact.phone && conversationId && (
-            <MessageReactions
-              message={message}
-              conversationId={conversationId}
-              contactPhone={contact.phone}
-            />
-          )}
-
-          <div className="flex items-center gap-1">
-            {/* Botão de deletar mensagem (apenas para mensagens recentes enviadas pelo agente) */}
-            {canDelete() && contact.phone && conversationId && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button
-                    disabled={isDeleting}
-                    className="p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                    title="Deletar mensagem (disponível por 7 minutos)"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Por favor, confirme</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja excluir essa mensagem? Esta
-                      operação não poderá ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteMessage}
-                      disabled={isDeleting}
-                    >
-                      Excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-
-            {!isFromContact && (
-              <div className="flex items-center">
-                {message.readAt ? (
-                  <CheckCheck className="w-3 h-3 text-blue-500" />
-                ) : message.deliveredAt ? (
-                  <CheckCheck className="w-3 h-3 text-gray-400" />
-                ) : (
-                  <Check className="w-3 h-3 text-gray-400" />
-                )}
-              </div>
-            )}
-            <span>{messageTime}</span>
-          </div>
+        <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
+          {messageStatus}
+          <span title={new Date(messageTimestamp).toLocaleString()}>
+            {messageTime}
+          </span>
         </div>
       </div>
     </div>
-  );
-}
+});
