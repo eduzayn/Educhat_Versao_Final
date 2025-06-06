@@ -282,7 +282,7 @@ function DocumentMessage({
   );
 }
 
-export const MessageBubble = memo(function MessageBubble({
+export function MessageBubble({
   message,
   contact,
   channelIcon,
