@@ -18,6 +18,7 @@ import {
   Users,
   Calendar
 } from "lucide-react";
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 // Toast notifications will be handled inline
 
 interface SalesTarget {
@@ -40,6 +41,10 @@ export function SalesTargets() {
   
   // Toast notifications handled inline
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Verificar se usuário pode criar/editar metas (apenas gerentes e admin)
+  const canManageTargets = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   // Buscar metas de vendas
   const { data: targets, isLoading } = useQuery({
@@ -160,13 +165,14 @@ export function SalesTargets() {
             </SelectContent>
           </Select>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingTarget(null)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Meta
-              </Button>
-            </DialogTrigger>
+          {canManageTargets && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setEditingTarget(null)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Meta
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
@@ -248,7 +254,8 @@ export function SalesTargets() {
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -370,12 +377,17 @@ export function SalesTargets() {
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">Nenhuma meta encontrada</h3>
               <p className="text-muted-foreground mb-4">
-                Comece criando metas para seus vendedores
+                {canManageTargets 
+                  ? 'Comece criando metas para seus vendedores'
+                  : 'Nenhuma meta foi definida ainda'
+                }
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Primeira Meta
-              </Button>
+              {canManageTargets && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeira Meta
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
