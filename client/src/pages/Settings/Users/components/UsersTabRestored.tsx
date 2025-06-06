@@ -455,14 +455,14 @@ export function UsersTabRestored() {
                 Equipe
               </Label>
               <Select 
-                value={newUserForm.teamId?.toString() || ""} 
-                onValueChange={(value) => setNewUserForm({...newUserForm, teamId: value ? parseInt(value) : undefined})}
+                value={newUserForm.teamId?.toString() || "none"} 
+                onValueChange={(value) => setNewUserForm({...newUserForm, teamId: value === "none" ? undefined : parseInt(value)})}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione uma equipe" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma equipe</SelectItem>
+                  <SelectItem value="none">Nenhuma equipe</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id.toString()}>
                       {team.name}
