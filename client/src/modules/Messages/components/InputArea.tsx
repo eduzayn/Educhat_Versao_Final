@@ -729,9 +729,9 @@ export function InputArea() {
 
       {/* Indicador visual do modo de nota interna */}
       {isInternalNote && (
-        <div className="mb-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded text-xs text-amber-700 dark:text-amber-400">
+        <div className="mb-2 flex items-center gap-1.5 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md text-xs text-amber-700 dark:text-amber-400 relative z-50 shadow-sm">
           <StickyNote className="h-3 w-3" />
-          <span>Modo: Nota Interna (apenas equipe)</span>
+          <span className="font-medium">Modo: Nota Interna (apenas equipe)</span>
         </div>
       )}
 
@@ -1020,7 +1020,7 @@ export function InputArea() {
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-80 p-0" align="end">
+            <PopoverContent className="w-80 p-0 z-40" align="end">
               <div className="p-3">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-medium">Emojis</h4>
