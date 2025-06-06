@@ -570,11 +570,26 @@ export function MessageBubble({
       <div className={bubbleWrapperClasses}>
         {renderMessageContent()}
 
-        <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
-          {messageStatus}
-          <span title={new Date(messageTimestamp).toLocaleString()}>
-            {messageTime}
-          </span>
+        {/* Reações e informações da mensagem */}
+        <div className="flex flex-col gap-1 mt-1">
+          {/* Reações - apenas para mensagens de contatos do WhatsApp */}
+          {contact.phone && conversationId && (
+            <div className="flex justify-end">
+              <MessageReactions
+                message={message}
+                conversationId={conversationId}
+                contactPhone={contact.phone}
+              />
+            </div>
+          )}
+          
+          {/* Horário e status */}
+          <div className={`flex items-center gap-1 ${timeClasses}`}>
+            {messageStatus}
+            <span title={new Date(messageTimestamp).toLocaleString()}>
+              {messageTime}
+            </span>
+          </div>
         </div>
       </div>
     </div>

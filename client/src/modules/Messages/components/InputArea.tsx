@@ -883,12 +883,12 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-24 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
+            className="min-h-[44px] max-h-[120px] resize-none pr-28 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             rows={1}
           />
           
           {/* Botões de toggle entre Mensagem e Nota Interna */}
-          <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute right-12 top-2 flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -896,12 +896,12 @@ export function InputArea() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      "h-7 w-7 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
                       !isInternalNote ? "text-blue-600" : "text-gray-400"
                     )}
                     onClick={() => setIsInternalNote(false)}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -917,12 +917,12 @@ export function InputArea() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      "h-7 w-7 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
                       isInternalNote ? "text-amber-600" : "text-gray-400"
                     )}
                     onClick={() => setIsInternalNote(true)}
                   >
-                    <StickyNote className="h-3.5 w-3.5" />
+                    <StickyNote className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -1009,13 +1009,13 @@ export function InputArea() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-3 bottom-3 p-1 text-educhat-medium hover:text-educhat-blue"
+                className="absolute right-2 bottom-2 h-7 w-7 p-0 text-educhat-medium hover:text-educhat-blue"
                 disabled={sendQuickReactionMutation.isPending}
               >
                 {sendQuickReactionMutation.isPending ? (
                   <div className="w-4 h-4 animate-spin rounded-full border border-gray-400 border-t-transparent" />
                 ) : (
-                  <Smile className="w-5 h-5" />
+                  <Smile className="w-4 h-4" />
                 )}
               </Button>
             </PopoverTrigger>
