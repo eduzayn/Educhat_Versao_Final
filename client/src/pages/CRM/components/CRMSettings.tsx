@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -14,26 +13,6 @@ import { Switch } from '@/shared/ui/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Separator } from '@/shared/ui/ui/separator';
-// Implementação simplificada do toast para evitar dependências
-const useToast = () => ({
-  toast: (props: any) => console.log('Toast:', props)
-});
-
-// Implementação simplificada do queryClient
-const queryClient = {
-  invalidateQueries: (props: any) => console.log('Invalidating queries:', props)
-};
-
-const apiRequest = async (url: string, options?: any) => {
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    },
-    ...options
-  });
-  return response.json();
-};
 import {
   Settings,
   Database,
@@ -43,123 +22,45 @@ import {
   RefreshCw
 } from "lucide-react";
 
-interface SystemSetting {
-  id: number;
-  key: string;
-  value: string;
-  type: string;
-  description: string;
-  category: string;
-  is_enabled: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 interface CRMSettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("general");
 
-  // Buscar configurações do sistema
-  const { data: settings, isLoading } = useQuery<SystemSetting[]>({
-    queryKey: ['/api/system-settings'],
-    enabled: open,
+  // Mock data para demonstração das configurações
+  const [generalSettings, setGeneralSettings] = useState({
+    autoAssignDeals: true,
+    enableNotifications: true,
+    dealReminder: 24,
+    companyName: "EduChat CRM"
   });
 
-  // Mutation para atualizar configuração
-  const updateSettingMutation = useMutation({
-    mutationFn: async ({ id, value, is_enabled }: { id: number; value?: string; is_enabled?: boolean }) => {
-      return apiRequest(`/api/system-settings/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ value, is_enabled }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
-      toast({
-        title: "Configuração atualizada",
-        description: "As alterações foram salvas com sucesso.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar as configurações.",
-        variant: "destructive",
-      });
-    },
+  const [databaseSettings, setDatabaseSettings] = useState({
+    autoBackup: true,
+    backupFrequency: 24,
+    retentionDays: 30
   });
 
-  const handleSettingUpdate = (id: number, value?: string, is_enabled?: boolean) => {
-    updateSettingMutation.mutate({ id, value, is_enabled });
-  };
+  const [teamSettings, setTeamSettings] = useState({
+    autoAssignment: true,
+    maxDealsPerUser: 10,
+    enableTeamLeaderboard: true
+  });
 
-  const getSettingsByCategory = (category: string) => {
-    return Array.isArray(settings) ? settings.filter((setting: SystemSetting) => setting.category === category) : [];
-  };
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    slackIntegration: false
+  });
 
-  const renderSettingInput = (setting: SystemSetting) => {
-    const handleChange = (newValue: string | boolean) => {
-      if (typeof newValue === 'boolean') {
-        handleSettingUpdate(setting.id, undefined, newValue);
-      } else {
-        handleSettingUpdate(setting.id, newValue);
-      }
-    };
-
-    switch (setting.type) {
-      case 'boolean':
-        return (
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-base">{setting.description}</Label>
-              <div className="text-sm text-muted-foreground">
-                Chave: {setting.key}
-              </div>
-            </div>
-            <Switch
-              checked={setting.is_enabled}
-              onCheckedChange={handleChange}
-            />
-          </div>
-        );
-      case 'number':
-        return (
-          <div className="space-y-2">
-            <Label htmlFor={setting.key}>{setting.description}</Label>
-            <Input
-              id={setting.key}
-              type="number"
-              value={setting.value}
-              onChange={(e) => handleChange(e.target.value)}
-              className="w-full"
-            />
-            <div className="text-sm text-muted-foreground">
-              Chave: {setting.key}
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="space-y-2">
-            <Label htmlFor={setting.key}>{setting.description}</Label>
-            <Input
-              id={setting.key}
-              value={setting.value}
-              onChange={(e) => handleChange(e.target.value)}
-              className="w-full"
-            />
-            <div className="text-sm text-muted-foreground">
-              Chave: {setting.key}
-            </div>
-          </div>
-        );
-    }
-  };
+  const [dealSettings, setDealSettings] = useState({
+    defaultProbability: 50,
+    autoMoveStages: false,
+    requireApproval: true
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

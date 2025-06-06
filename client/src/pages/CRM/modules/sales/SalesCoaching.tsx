@@ -434,16 +434,18 @@ export function SalesCoaching() {
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(record.status)}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingRecord(record);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        Editar
-                      </Button>
+                      {canCreateRecords && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingRecord(record);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          Editar
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -492,10 +494,12 @@ export function SalesCoaching() {
             <p className="text-muted-foreground mb-4">
               Adicione apresentações, vídeos e documentos de treinamento
             </p>
-            <Button variant="outline">
-              <Upload className="h-4 w-4 mr-2" />
-              Fazer Upload
-            </Button>
+            {canCreateRecords && (
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Fazer Upload
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

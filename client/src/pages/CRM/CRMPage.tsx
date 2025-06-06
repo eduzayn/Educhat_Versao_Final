@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator
 } from '@/shared/ui/ui/dropdown-menu';
 import { Link } from "wouter";
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 import {
   CRMDashboard,
@@ -97,6 +98,11 @@ export function CRMPage() {
 }
 
 function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const { user, hasPermission } = useAuth();
+  
+  // Verificar se o usuário pode acessar configurações
+  const canAccessSettings = hasPermission('gerenciar_crm') || user?.role === 'admin';
+
   return (
     <div className="border-b bg-background p-6">
       <div className="flex items-center justify-between">
@@ -126,9 +132,11 @@ function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
               <SelectItem value="year">Este ano</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
-            <Settings className="h-4 w-4 mr-2" /> Configurações
-          </Button>
+          {canAccessSettings && (
+            <Button variant="outline" onClick={onOpenSettings}>
+              <Settings className="h-4 w-4 mr-2" /> Configurações
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>
