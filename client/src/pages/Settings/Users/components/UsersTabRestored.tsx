@@ -22,7 +22,7 @@ import {
   UserCheck,
   AlertTriangle
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 interface User {
   id: number;

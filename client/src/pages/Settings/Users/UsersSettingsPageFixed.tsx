@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
 import { PortalModal } from '@/components/PortalModal';
-import { UsersTab } from './components/UsersTab';
+import { UsersTabRestored as UsersTab } from './components/UsersTabRestored';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
 import { PermissionsTab } from './components/PermissionsTab';
