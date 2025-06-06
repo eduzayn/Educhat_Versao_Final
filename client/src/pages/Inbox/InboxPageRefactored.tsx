@@ -1032,10 +1032,22 @@ export function InboxPageRefactored() {
                       channelIcon={getChannelInfo(activeConversation?.channel || '').icon}
                       channelColor={getChannelInfo(activeConversation?.channel || '').color}
                       conversationId={activeConversation?.id || 0}
-                      onReply={(messageId: string, content: string) => {
+                      onReply={(message) => {
+                        // Extrair messageId dos metadados da mensagem
+                        const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
+                        let messageId = null;
+                        
+                        if ("messageId" in metadata && metadata.messageId) {
+                          messageId = metadata.messageId;
+                        } else if ("zaapId" in metadata && metadata.zaapId) {
+                          messageId = metadata.zaapId;
+                        } else if ("id" in metadata && metadata.id) {
+                          messageId = metadata.id;
+                        }
+                        
                         // Enviar evento para InputArea via custom event
                         window.dispatchEvent(new CustomEvent('replyToMessage', {
-                          detail: { messageId, content }
+                          detail: { messageId, content: message.content }
                         }));
                       }}
                     />

@@ -1870,7 +1870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         owner: true
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages`;
       console.log('🗑️ Deletando mensagem via Z-API:', { 
         url, 
         payload,
@@ -1878,7 +1878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
@@ -1992,10 +1992,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payload = {
         phone: cleanPhone,
         message: replyText,
-        messageId: messageId.toString()
+        quotedMessageId: messageId.toString()
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-reply`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
       console.log('↩️ Respondendo mensagem via Z-API:', { 
         url, 
         payload,
