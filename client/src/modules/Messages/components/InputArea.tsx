@@ -748,23 +748,7 @@ export function InputArea() {
           </div>
         )}
 
-        {/* Quick Action Buttons */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex gap-1">
-            {QUICK_REPLIES.slice(0, 3).map((reply, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="text-xs h-7 px-2"
-                onClick={() => insertQuickReply(reply)}
-              >
-                <Zap className="w-3 h-3 mr-1" />
-                {reply.length > 15 ? `${reply.substring(0, 15)}...` : reply}
-              </Button>
-            ))}
-          </div>
-        </div>
+
 
         <div className="flex items-end gap-3">
           {/* Attachment Button */}
