@@ -24,7 +24,7 @@ import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/ProfilePage";
-import NotFound from "@/pages/not-found";
+
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -84,7 +84,14 @@ function Router() {
           <Route path="/profile">
             {() => <ProtectedRoute component={ProfilePage} />}
           </Route>
-          <Route component={NotFound} />
+          <Route>
+            <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">Página não encontrada</h1>
+                <p className="text-gray-600">A página solicitada não existe.</p>
+              </div>
+            </div>
+          </Route>
         </>
       )}
     </Switch>
