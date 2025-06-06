@@ -3022,7 +3022,15 @@ export class DatabaseStorage implements IStorage {
       'tenho dúvida no tcc', 'qual é o prazo do estágio', 'não entendi a matéria',
       'a atividade não abriu', 'como entrego o portfólio', 'onde envio o trabalho',
       'fiquei sem nota', 'o professor não corrigiu', 'meu orientador não respondeu',
-      'tenho aula ao vivo', 'dúvida sobre matéria', 'pergunta sobre matéria'
+      'tenho aula ao vivo', 'dúvida sobre matéria', 'pergunta sobre matéria',
+      // Palavras específicas de aprovação e estágio (prioridade alta para tutoria)
+      'aprovado', 'aprovada', 'aprovação', 'foi aprovado', 'se foi aprovado',
+      'retorno se foi aprovado', 'preciso da aprovação', 'aguardando aprovação',
+      'status da aprovação', 'resultado da aprovação', 'confirmação de aprovação',
+      'relatório de estágio', 'estágio supervisionado', 'supervisor de estágio',
+      'documentação do estágio', 'horas de estágio', 'validação do estágio',
+      'conclusão do estágio', 'estágio obrigatório', 'orientação de estágio',
+      'ficha de estágio', 'termo de estágio', 'avaliação do estágio'
     ];
     
     // Palavras-chave para SECRETARIA  
