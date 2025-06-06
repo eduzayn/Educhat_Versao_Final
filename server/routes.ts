@@ -624,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             console.log('📤 Enviando mensagem via Z-API:', {
               phone: conversation.contact.phone,
-              message: validatedData.content,
+              message: parsedData.content,
               conversationId
             });
             
@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               },
               body: JSON.stringify({
                 phone: conversation.contact.phone,
-                message: validatedData.content,
+                message: parsedData.content,
                 conversationId: conversationId.toString()
               })
             });
@@ -649,7 +649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('❌ Erro ao chamar Z-API:', error);
           }
         }
-      } else if (validatedData.isInternalNote) {
+      } else if (parsedData.isInternalNote) {
         console.log('📝 Nota interna criada - não enviada via Z-API');
       }
       
