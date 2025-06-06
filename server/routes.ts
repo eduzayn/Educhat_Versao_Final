@@ -2557,22 +2557,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const baseUrl = 'https://api.z-api.io';
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-      console.log('🔑 Credenciais Z-API:', {
-        instanceId: instanceId ? 'OK' : 'MISSING',
-        token: token ? 'OK' : 'MISSING',
-        clientToken: clientToken ? 'OK' : 'MISSING'
-      });
-
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Credenciais da Z-API não configuradas' 
-        });
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
+        return res.status(400).json({ error: credentials.error });
       }
+
+      // Limpar credenciais removendo espaços e caracteres especiais
+      const cleanInstanceId = credentials.instanceId.trim();
+      const cleanToken = credentials.token.trim();
+      const cleanClientToken = credentials.clientToken.trim();
+
+      console.log('🔑 Credenciais Z-API (verificadas):', {
+        instanceId: `${cleanInstanceId.substring(0, 4)}...`,
+        token: `${cleanToken.substring(0, 4)}...`,
+        clientToken: `${cleanClientToken.substring(0, 4)}...`
+      });
 
       // Criar payload conforme documentação Z-API
       const payload = {
@@ -2581,13 +2581,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delayMessage: 1
       };
 
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-      console.log('📤 Enviando para Z-API:', { url, payload });
+      const url = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/send-text`;
+      console.log('📤 Enviando para Z-API:', { url: url.replace(cleanToken, '***'), payload });
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Client-Token': clientToken!,
+          'Client-Token': cleanClientToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
