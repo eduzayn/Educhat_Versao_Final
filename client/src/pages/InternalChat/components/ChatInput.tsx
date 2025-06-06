@@ -328,7 +328,7 @@ export function ChatInput() {
             onClick={() => setShowAudioRecorder(true)}
             disabled={!currentUser || !activeChannel}
           >
-            <Image className="h-4 w-4" />
+            <Mic className="h-4 w-4" />
           </Button>
         )}
 
@@ -358,12 +358,7 @@ export function ChatInput() {
         </div>
       )}
 
-      {isRecording && (
-        <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
-          <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-          <span>Gravando áudio... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}</span>
-        </div>
-      )}
+
     </div>
   );
 }
