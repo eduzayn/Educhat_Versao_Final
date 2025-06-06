@@ -24,33 +24,38 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Buscar áudio apenas uma vez quando necessário
+  // Buscar áudio via API se necessário
   useEffect(() => {
-    if (audioUrl) {
-      setActualAudioUrl(audioUrl);
-    } else if (messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
+    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
+      const failedKey = `audio_failed_${messageIdForFetch}`;
+      if (sessionStorage.getItem(failedKey)) {
+        setError('Áudio não disponível');
+        return;
+      }
+
       setIsLoading(true);
       
       fetch(`/api/messages/${messageIdForFetch}/audio`)
         .then(response => {
-          if (!response.ok) throw new Error('Áudio não encontrado');
+          if (!response.ok) {
+            throw new Error('Áudio não encontrado');
+          }
           return response.json();
         })
         .then(data => {
           if (data.audioUrl) {
             setActualAudioUrl(data.audioUrl);
           } else {
-            setError('Áudio não disponível');
+            throw new Error('Áudio não encontrado');
           }
         })
         .catch(() => {
+          sessionStorage.setItem(failedKey, 'true');
           setError('Áudio não disponível');
         })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        .finally(() => setIsLoading(false));
     }
-  }, []); // Array vazio para executar apenas uma vez
+  }, [audioUrl, messageIdForFetch, actualAudioUrl, isLoading, error]);
 
   const togglePlayPause = async () => {
     if (!actualAudioUrl || !audioRef.current) {
@@ -94,7 +99,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg max-w-lg ${
+    <div className={`flex items-center gap-3 p-3 rounded-lg max-w-sm ${
       isFromContact 
         ? 'bg-gray-100 text-gray-900' 
         : 'bg-blue-600 text-white'

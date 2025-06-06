@@ -3,8 +3,8 @@ import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Send, Mic } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/shared/lib/queryClient';
-import { queryClient } from '@/shared/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
 
 interface MessageInputProps {
