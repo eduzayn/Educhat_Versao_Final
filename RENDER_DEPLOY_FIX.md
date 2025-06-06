@@ -2,11 +2,11 @@
 
 ## Problemas Identificados
 
-Baseado nos erros 404 e 500 mostrados nos logs do Render, identifiquei os seguintes problemas:
+Baseado nos erros 502 (Bad Gateway) e 500 (Internal Server Error) mostrados no console do Render:
 
-1. **Erro 404**: Recursos não encontrados (CSS, JS, imagens)
-2. **Erro 500**: Falha no servidor interno
-3. **Problema de API**: Status Z-API indisponível (502)
+1. **Erro 502 Bad Gateway**: O servidor não consegue inicializar adequadamente
+2. **Erro 500**: Falha interna do servidor durante o startup
+3. **Build Command**: Comando de build inadequado (corrigido para `npm ci && npm run build`)
 
 ## Correções Necessárias
 
@@ -110,24 +110,29 @@ app.get('/api/health', (req, res) => {
 ## Passos para Deploy Correto
 
 1. **Configure o Banco de Dados**: 
-   - Use um banco PostgreSQL do Render ou externo
-   - Configure a `DATABASE_URL` com a string de conexão completa
+   - Use um banco PostgreSQL do Render ou externo (Neon configurado ✅)
+   - Configure a `DATABASE_URL` com a string de conexão completa (configurado ✅)
 
-2. **Configure as Variáveis Z-API**:
+2. **Configure as Variáveis Z-API** (todas configuradas ✅):
    - `ZAPI_TOKEN`: Token de autenticação
    - `ZAPI_INSTANCE_ID`: ID da instância
    - `ZAPI_CLIENT_TOKEN`: Token do cliente
 
-3. **Teste Local em Produção**:
-   ```bash
-   NODE_ENV=production npm run build
-   NODE_ENV=production npm start
+3. **Comandos de Deploy Corretos**:
+   - Build Command: `npm ci && npm run build` (corrigido ✅)
+   - Start Command: `npm start`
+   - Health Check Path: `/api/health`
+
+4. **Adicionar Variável NODE_ENV**:
+   No painel do Render, adicione explicitamente:
+   ```
+   NODE_ENV=production
    ```
 
-4. **Deploy no Render**:
-   - Configure todas as variáveis de ambiente
-   - Use o comando de build: `npm ci && npm run build`
-   - Use o comando de start: `npm start`
+5. **Verificar Logs de Build**:
+   - Acesse os logs de build no Render
+   - Verifique se `npm ci` e `npm run build` executam sem erros
+   - Confirme se o diretório `dist/` é criado com `index.js` e `public/`
 
 ## Debugging
 
