@@ -8,6 +8,9 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/ui/select';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
+import { Label } from '@/shared/ui/ui/label';
+import { Textarea } from '@/shared/ui/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import type { Deal } from '@shared/schema';
 import {
@@ -104,6 +107,10 @@ export function DealsModule() {
   const [selectedMacrosetor, setSelectedMacrosetor] = useState("comercial");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  
+  // Estado para modal de novo negócio
+  const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
+  const [selectedStageForNewDeal, setSelectedStageForNewDeal] = useState<string | null>(null);
 
   // State para paginação
   const [page, setPage] = useState(1);
@@ -152,6 +159,25 @@ export function DealsModule() {
       probability: deal.probability || 0
     }));
 
+  // Create new deal mutation
+  const createDealMutation = useMutation({
+    mutationFn: async (dealData: any) => {
+      return await apiRequest('POST', '/api/deals', dealData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals'] 
+      });
+      setIsNewDealDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Erro ao criar novo negócio:', error);
+    }
+  });
+
   // Update deal stage mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
@@ -171,6 +197,31 @@ export function DealsModule() {
       console.error('Erro ao atualizar estágio do negócio:', error);
     }
   });
+
+  // Handle new deal form submission
+  const handleNewDealSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const dealData = {
+      name: formData.get('name'),
+      contactId: parseInt(formData.get('contactId') as string) || null,
+      value: parseFloat(formData.get('value') as string) || 0,
+      expectedCloseDate: formData.get('expectedCloseDate') || null,
+      probability: parseInt(formData.get('probability') as string) || 0,
+      description: formData.get('description') || '',
+      stage: selectedStageForNewDeal || currentMacrosetor.stages[0].id, // Usa estágio selecionado ou primeiro do funil
+      macrosetor: selectedMacrosetor
+    };
+
+    createDealMutation.mutate(dealData);
+  };
+
+  // Function to open modal for specific stage
+  const openNewDealDialog = (stageId?: string) => {
+    setSelectedStageForNewDeal(stageId || null);
+    setIsNewDealDialogOpen(true);
+  };
 
   const filtered = deals.filter((deal) =>
     deal.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -287,9 +338,90 @@ export function DealsModule() {
               </Button>
             </div>
 
-            <Button>
-              <Plus className="h-4 w-4 mr-2" /> Novo Negócio
-            </Button>
+            <Dialog open={isNewDealDialogOpen} onOpenChange={setIsNewDealDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => openNewDealDialog()}>
+                  <Plus className="h-4 w-4 mr-2" /> Novo Negócio
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Novo Negócio</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleNewDealSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Nome do Negócio</Label>
+                    <Input
+                      name="name"
+                      placeholder="Ex: Venda de Curso de Marketing"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactId">ID do Contato (opcional)</Label>
+                    <Input
+                      name="contactId"
+                      type="number"
+                      placeholder="ID do contato relacionado"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="value">Valor (R$)</Label>
+                    <Input
+                      name="value"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="probability">Probabilidade (%)</Label>
+                    <Input
+                      name="probability"
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="50"
+                      defaultValue="50"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="expectedCloseDate">Data Prevista de Fechamento</Label>
+                    <Input
+                      name="expectedCloseDate"
+                      type="date"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Descrição</Label>
+                    <Textarea
+                      name="description"
+                      placeholder="Detalhes sobre o negócio..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="text-sm text-muted-foreground">
+                    O negócio será criado no estágio inicial do funil {currentMacrosetor.name}: {currentMacrosetor.stages[0].name}
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsNewDealDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={createDealMutation.isPending}>
+                      {createDealMutation.isPending ? 'Criando...' : 'Criar Negócio'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
