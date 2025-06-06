@@ -17,27 +17,39 @@ import { Key, Shield, Users, Settings, MessageSquare, BarChart, Database, Downlo
 function getCategoryName(category: string) {
   const names: Record<string, string> = {
     'admin': 'Administração',
-    'crm': 'CRM & Vendas',
+    'crm': 'CRM & Vendas', 
     'conversations': 'Sistema de Chat',
     'comunicacao': 'Comunicação',
     'analytics': 'Relatórios e Análises',
     'administracao': 'Configurações',
-    'other': 'Outras Permissões'
+    'Negociações': 'Negociações',
+    'Contatos': 'Contatos',
+    'Restrições': 'Restrições de Acesso',
+    'Relatórios': 'Relatórios',
+    'Tarefas': 'Tarefas',
+    'Copiloto': 'Assistente IA',
+    'Sistema de Chat': 'Chat Interno'
   };
   return names[category] || category;
 }
 
 function getCategoryDescription(category: string) {
   const descriptions: Record<string, string> = {
-    'admin': 'Permissões administrativas e de gerenciamento',
-    'crm': 'Permissões para contatos e negócios com controle hierárquico',
-    'conversations': 'Permissões para conversas e atendimento',
-    'comunicacao': 'Permissões para canais de comunicação',
-    'analytics': 'Permissões para relatórios e análises',
-    'administracao': 'Permissões de configuração do sistema',
-    'other': 'Outras permissões do sistema'
+    'admin': 'Permissões administrativas e de gerenciamento de usuários',
+    'crm': 'Permissões para CRM, contatos e negócios',
+    'conversations': 'Permissões para sistema de chat e conversas',
+    'comunicacao': 'Permissões para canais de comunicação e integrações',
+    'analytics': 'Permissões para relatórios e análises de performance',
+    'administracao': 'Permissões de configuração e administração do sistema',
+    'Negociações': 'Controle específico sobre negócios e vendas',
+    'Contatos': 'Gestão e manipulação de dados de contatos',
+    'Restrições': 'Limitações e controles de acesso específicos',
+    'Relatórios': 'Geração e visualização de relatórios detalhados',
+    'Tarefas': 'Gerenciamento de tarefas e atividades',
+    'Copiloto': 'Funcionalidades do assistente de IA',
+    'Sistema de Chat': 'Chat interno entre operadores'
   };
-  return descriptions[category] || 'Permissões do sistema';
+  return descriptions[category] || 'Permissões específicas do sistema';
 }
 
 function getCategoryIcon(category: string) {
