@@ -25,10 +25,9 @@ import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectio
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/ProfilePage";
 
-
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   // Inicializar monitoramento global da Z-API
   useGlobalZApiMonitor();
 
@@ -55,11 +54,21 @@ function Router() {
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
           <Route path="/bi">
-            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={BIPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente"]}
+                component={BIPage}
+              />
+            )}
           </Route>
           <Route path="/reports" component={ReportsPage} />
           <Route path="/integrations">
-            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={IntegrationsPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente"]}
+                component={IntegrationsPage}
+              />
+            )}
           </Route>
           <Route path="/settings">
             {() => <ProtectedRoute component={SettingsPage} />}
@@ -80,18 +89,9 @@ function Router() {
             {() => <ProtectedRoute component={AIDetectionSettingsPage} />}
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
-          <Route path="/chat-interno" component={InternalChatPage} />
-          <Route path="/profile">
-            {() => <ProtectedRoute component={ProfilePage} />}
-          </Route>
-          <Route>
-            <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Página não encontrada</h1>
-                <p className="text-gray-600">A página solicitada não existe.</p>
-              </div>
-            </div>
-          </Route>
+          <Route path="/admin/permissions" component={PermissionsPanel} />
+          <Route path="/chat-interno" component={InboxPage} />
+          <Route component={NotFound} />
         </>
       )}
     </Switch>
