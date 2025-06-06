@@ -3075,7 +3075,20 @@ export class DatabaseStorage implements IStorage {
       'pós-graduação', 'segunda licenciatura', 'formação pedagógica', 'graduação',
       'quero saber mais', 'como funciona', 'interesse', 'sou novo', 'sou nova',
       'quero fazer', 'gostaria de saber', 'quero me matricular', 'tem curso',
-      'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação'
+      'vocês oferecem', 'quero estudar online', 'estou procurando', 'captação',
+      // Palavras específicas de interesse comercial
+      'tenho interesse', 'interesse nas', 'interesse nos', 'interesse no',
+      'interesse em', 'tenho interesse em', 'tenho interesse nas', 'tenho interesse nos',
+      'gostaria de fazer', 'pretendo fazer', 'posso fazer', 'como fazer',
+      'informações sobre', 'informação sobre', 'detalhes sobre', 'quero informações',
+      'preciso de informações', 'mais informações', 'pode me explicar',
+      'zayn', 'pós do zayn', 'pos do zayn', 'pós graduação zayn',
+      'pos graduacao zayn', 'instituição zayn', 'faculdade zayn',
+      'como funciona o', 'como funciona a', 'funciona como',
+      'quais são os', 'quais são as', 'o que vocês', 'que vocês',
+      'estou interessado', 'estou interessada', 'me interessei',
+      'fiquei interessado', 'fiquei interessada', 'chamou atenção',
+      'vi sobre', 'soube sobre', 'conhecer mais', 'saber sobre'
     ];
     
     // PRIORIDADE 1: Verificar palavras-chave comerciais PRIMEIRO (interesse em cursos tem prioridade)
