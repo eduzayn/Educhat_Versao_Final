@@ -119,7 +119,7 @@ app.get('/api/health', (req, res) => {
    - `ZAPI_CLIENT_TOKEN`: Token do cliente
 
 3. **Comandos de Deploy Corretos**:
-   - Build Command: `npm ci && npm run build` (corrigido ✅)
+   - Build Command: `npm install && npm run build` (corrigido para incluir devDependencies ✅)
    - Start Command: `npm start`
    - Health Check Path: `/api/health`
 

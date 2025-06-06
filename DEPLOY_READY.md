@@ -1,87 +1,57 @@
-# EduChat - Deploy Railway Pronto ✅
+# Deploy Correto no Render - EduChat
 
-## Status Final
-- ✅ Dockerfile otimizado e testado
-- ✅ Health check funcionando (`/api/health`)
-- ✅ Configuração de porta dinâmica
-- ✅ Build Docker validado
-- ✅ Aplicação iniciando corretamente
+## Status Atual
+✅ Variáveis de ambiente configuradas corretamente  
+✅ NODE_ENV=production adicionado  
+✅ Comando de build corrigido no render.yaml  
 
-## Configuração Final Implementada
+## Problema Identificado
+O erro `vite: not found` ocorre porque o Render precisa instalar as devDependencies (como vite, esbuild) para fazer o build.
 
-### 1. Dockerfile
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN mkdir -p uploads
-EXPOSE 8080
-ENV NODE_ENV=development
-CMD ["npm", "run", "dev"]
+## Solução Aplicada
+Comando de build corrigido de:
+```
+npm install; npm run build
 ```
 
-### 2. Health Check Simplificado
-```javascript
-app.get('/api/health', async (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    port: process.env.PORT || '5000',
-    version: '1.0.0'
-  });
-});
+Para:
+```
+npm install && npm run build
 ```
 
-### 3. Railway Configuration
-```json
-{
-  "build": { "builder": "DOCKERFILE" },
-  "deploy": {
-    "healthcheckPath": "/api/health",
-    "healthcheckTimeout": 100,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
-  }
-}
+## Configuração Final do Render
+
+### Build Settings:
+- **Build Command**: `npm install && npm run build`
+- **Start Command**: `npm start`
+- **Health Check Path**: `/api/health`
+- **Environment**: Node.js
+
+### Variáveis de Ambiente (já configuradas):
 ```
-
-## Deploy Instructions
-
-### 1. Push to GitHub
-```bash
-git add .
-git commit -m "Railway deployment ready - health check fixed"
-git push origin main
-```
-
-### 2. Railway Variables (Required)
-```env
 NODE_ENV=production
-SESSION_SECRET=sua-chave-super-secura-aqui
+DATABASE_URL=postgresql://neondb_owner:npg_Bm1IRe39SAq@ep-shy-mode-a5b4ocv7.us-east-2.aws.neon.tech/neondb?sslmode=require
+SESSION_SECRET=k9$mP2nX8@vR5qL#wE7tY3uI6oA1sD4fG
+ZAPI_BASE_URL=https://api.z-api.io
+ZAPI_CLIENT_TOKEN=Fe4f45c32c552449dbf8b290c83f5200d5
+ZAPI_INSTANCE_ID=3DF871A7ADF820F049998E60862CE0C1
+ZAPI_TOKEN=A4E42029C248B7DA0842F47
+ANTHROPIC_API_KEY=sk-ant-api03-...
 ```
 
-### 3. PostgreSQL Service
-- Add PostgreSQL service in Railway
-- DATABASE_URL will be configured automatically
+## Próximo Deploy
+O Render deve detectar automaticamente as mudanças no arquivo `render.yaml` e iniciar um novo deploy. 
 
-### 4. Migration After Deploy
-```bash
-npm run db:push
-```
+O build agora deve:
+1. Instalar todas as dependências (incluindo vite e esbuild)
+2. Executar `npm run build` com sucesso
+3. Gerar o diretório `dist/` com os arquivos necessários
+4. Iniciar o servidor em produção
 
-## Test Credentials
-- Email: admin@educhat.com
-- Password: admin123
+## Verificação Pós-Deploy
+Após o deploy bem-sucedido, teste:
+- Acesso à aplicação: `https://educhat-versao-final.onrender.com`
+- Health check: `https://educhat-versao-final.onrender.com/api/health`
+- Login e funcionalidades básicas
 
-## Expected Deploy Flow
-1. GitHub webhook triggers Railway
-2. Docker build completes in ~10 seconds
-3. Health check passes immediately
-4. Application accessible at Railway domain
-5. Login works with test credentials
-
-A aplicação está pronta para produção no Railway.
+A aplicação deve estar totalmente funcional com todas as integrações Z-API e banco de dados operacionais.
