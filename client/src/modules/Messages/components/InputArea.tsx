@@ -883,12 +883,12 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-20 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
+            className="min-h-[44px] max-h-[120px] resize-none pr-24 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             rows={1}
           />
           
           {/* Botões de toggle entre Mensagem e Nota Interna */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
