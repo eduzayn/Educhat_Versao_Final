@@ -584,8 +584,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.id);
       const userId = req.user?.id;
 
-      // Check if user has permission to respond to this conversation
-      if (userId) {
+      // Parse data first to check if it's an internal note
+      const parsedData = insertMessageSchema.parse({
+        ...req.body,
+        conversationId,
+      });
+
+      // For internal notes, only check basic authentication
+      // For regular messages, check conversation permissions
+      if (!parsedData.isInternalNote && userId) {
         const canRespond = await storage.canUserRespondToConversation(userId, conversationId);
         if (!canRespond) {
           return res.status(403).json({ 
@@ -594,12 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const validatedData = insertMessageSchema.parse({
-        ...req.body,
-        conversationId,
-      });
-      
-      const message = await storage.createMessage(validatedData);
+      const message = await storage.createMessage(parsedData);
       
       // Broadcast to WebSocket clients IMEDIATAMENTE
       broadcast(conversationId, {
@@ -616,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Se não for uma nota interna E for uma mensagem do agente, enviar via Z-API
-      if (!validatedData.isInternalNote && !validatedData.isFromContact) {
+      if (!parsedData.isInternalNote && !parsedData.isFromContact) {
         const conversation = await storage.getConversation(conversationId);
         if (conversation && conversation.contact.phone) {
           try {
