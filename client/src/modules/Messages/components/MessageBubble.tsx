@@ -286,8 +286,6 @@ export const MessageBubble = memo(function MessageBubble({
       if (!audioUrl) {
         const messageIdFromMetadata = (message.metadata as any)?.messageId;
         if (messageIdFromMetadata) {
-          secureLog.debug('Buscando áudio via API', { messageId: messageIdFromMetadata });
-          
           const duration = (message.metadata as any)?.duration || 0;
           return (
             <AudioMessage
