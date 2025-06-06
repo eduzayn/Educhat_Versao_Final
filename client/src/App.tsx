@@ -90,7 +90,7 @@ function Router() {
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
-          <Route path="/chat-interno" component={InboxPage} />
+          <Route path="/chat-interno" component={InternalChatPage} />
           <Route path="/profile" component={ProfilePage} />
           <Route component={() => <div className="min-h-screen bg-educhat-light flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-educhat-dark mb-4">Página não encontrada</h1><p className="text-educhat-medium">A página que você está procurando não existe.</p></div></div>} />
         </>
