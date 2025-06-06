@@ -120,7 +120,7 @@ export function InputArea() {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, { passive: false });
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showQuickReplies, selectedQuickReplyIndex, message]);
 
