@@ -1,0 +1,256 @@
+import { useEffect, useRef, useState } from 'react';
+import { format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ScrollArea } from '@/shared/ui/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Badge } from '@/shared/ui/ui/badge';
+import { Button } from '@/shared/ui/ui/button';
+import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { useInternalChatStore, type InternalChatMessage } from '../store/internalChatStore';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
+
+export function ChatMessages() {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { activeChannel, getChannelMessages, addReaction, removeReaction } = useInternalChatStore();
+  const { user } = useAuth();
+  const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
+  
+  const messages = activeChannel ? getChannelMessages(activeChannel) : [];
+
+  // Auto scroll para última mensagem
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages.length, activeChannel]);
+
+  const formatMessageTime = (date: Date) => {
+    return format(date, 'HH:mm', { locale: ptBR });
+  };
+
+  const formatDateSeparator = (date: Date) => {
+    if (isToday(date)) return 'Hoje';
+    if (isYesterday(date)) return 'Ontem';
+    return format(date, 'dd \'de\' MMMM', { locale: ptBR });
+  };
+
+  const groupMessagesByDate = (messages: InternalChatMessage[]) => {
+    const groups: { date: Date; messages: InternalChatMessage[] }[] = [];
+    
+    messages.forEach((message) => {
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && isSameDay(lastGroup.date, message.timestamp)) {
+        lastGroup.messages.push(message);
+      } else {
+        groups.push({
+          date: message.timestamp,
+          messages: [message]
+        });
+      }
+    });
+    
+    return groups;
+  };
+
+  const handleReaction = (messageId: string, emoji: string) => {
+    if (!activeChannel || !user?.id) return;
+    
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+    
+    const userReacted = message.reactions[emoji]?.includes(user.id);
+    
+    if (userReacted) {
+      removeReaction(messageId, activeChannel, emoji, user.id);
+    } else {
+      addReaction(messageId, activeChannel, emoji, user.id);
+    }
+  };
+
+  const renderMessage = (message: InternalChatMessage, isConsecutive: boolean) => {
+    const isOwnMessage = message.userId === user?.id;
+    
+    return (
+      <div
+        key={message.id}
+        className={`group relative px-4 py-1 hover:bg-accent/50 ${isConsecutive ? 'mt-0.5' : 'mt-4'}`}
+        onMouseEnter={() => setHoveredMessage(message.id)}
+        onMouseLeave={() => setHoveredMessage(null)}
+      >
+        <div className="flex gap-3">
+          {!isConsecutive && (
+            <Avatar className="h-10 w-10 mt-0.5">
+              <AvatarImage src={message.userAvatar} />
+              <AvatarFallback className="text-sm">
+                {message.userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          )}
+          {isConsecutive && <div className="w-10" />}
+          
+          <div className="flex-1 min-w-0">
+            {!isConsecutive && (
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-sm text-foreground">
+                  {message.userName}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatMessageTime(message.timestamp)}
+                </span>
+                {message.edited && (
+                  <Badge variant="secondary" className="text-xs h-4 px-1">
+                    editado
+                  </Badge>
+                )}
+                {message.isImportant && (
+                  <AlertTriangle className="h-3 w-3 text-amber-500" />
+                )}
+              </div>
+            )}
+            
+            <div className="text-sm text-foreground leading-relaxed">
+              {message.messageType === 'reminder' && (
+                <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md mb-2">
+                  <AlertTriangle className="h-4 w-4 text-blue-600" />
+                  <span className="text-blue-800">Lembrete para {message.reminderDate ? format(message.reminderDate, 'dd/MM/yyyy HH:mm') : 'data não definida'}</span>
+                </div>
+              )}
+              
+              {message.replyTo && (
+                <div className="border-l-2 border-muted pl-2 mb-2 text-xs text-muted-foreground">
+                  <div>Respondendo a mensagem anterior</div>
+                </div>
+              )}
+              
+              <div className="break-words">{message.content}</div>
+              
+              {/* Reactions */}
+              {Object.keys(message.reactions).length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {Object.entries(message.reactions).map(([emoji, userIds]) => (
+                    <Button
+                      key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs hover:bg-accent"
+                      onClick={() => handleReaction(message.id, emoji)}
+                    >
+                      <span className="mr-1">{emoji}</span>
+                      <span>{userIds.length}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Message Actions */}
+          {hoveredMessage === message.id && (
+            <div className="absolute right-4 top-1 bg-background border rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Reply className="h-3 w-3" />
+                </Button>
+                {/* Quick Reactions */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleReaction(message.id, '👍')}
+                >
+                  👍
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleReaction(message.id, '❤️')}
+                >
+                  ❤️
+                </Button>
+                {isOwnMessage && (
+                  <>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const messageGroups = groupMessagesByDate(messages);
+
+  if (!activeChannel) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            Bem-vindo ao Chat Interno
+          </h3>
+          <p className="text-muted-foreground">
+            Selecione um canal para começar a conversar
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            Nenhuma mensagem ainda
+          </h3>
+          <p className="text-muted-foreground">
+            Seja o primeiro a enviar uma mensagem neste canal
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ScrollArea className="flex-1 bg-background" ref={scrollAreaRef}>
+      <div className="py-4">
+        {messageGroups.map((group, groupIndex) => (
+          <div key={groupIndex}>
+            {/* Date Separator */}
+            <div className="flex items-center justify-center my-4">
+              <div className="px-3 py-1 bg-muted rounded-full">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {formatDateSeparator(group.date)}
+                </span>
+              </div>
+            </div>
+            
+            {/* Messages */}
+            {group.messages.map((message, messageIndex) => {
+              const previousMessage = messageIndex > 0 ? group.messages[messageIndex - 1] : null;
+              const isConsecutive = 
+                previousMessage && 
+                previousMessage.userId === message.userId &&
+                message.timestamp.getTime() - previousMessage.timestamp.getTime() < 300000; // 5 minutos
+              
+              return renderMessage(message, isConsecutive);
+            })}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+}
