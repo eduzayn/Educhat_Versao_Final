@@ -117,12 +117,12 @@ export function LazyMediaContent({
       case "video":
         if (content) {
           return (
-            <div className="relative max-w-xs">
+            <div className="relative max-w-sm">
               <video
                 controls
-                className="rounded-lg max-w-full h-auto"
+                className="rounded-lg w-full h-auto"
                 preload="metadata"
-                style={{ maxHeight: "300px" }}
+                style={{ maxHeight: "400px", minWidth: "280px" }}
                 onError={() =>
                   secureLog.error("Erro ao carregar vídeo", { messageId })
                 }
