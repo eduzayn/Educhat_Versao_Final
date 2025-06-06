@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic, Image, MicOff } from 'lucide-react';
+import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
@@ -7,6 +7,7 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
 
 // Interface para o usuário no contexto de chat interno
 interface ChatUser {
@@ -28,13 +29,8 @@ export function ChatInput() {
   const [message, setMessage] = useState('');
   const [showCommands, setShowCommands] = useState(false);
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   
   const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
   const { user } = useAuth();
@@ -85,138 +81,10 @@ export function ChatInput() {
     };
   }, [message, activeChannel, currentUser]);
 
-  // Cleanup quando componente é desmontado
-  useEffect(() => {
-    return () => {
-      cleanupRecording();
-    };
-  }, []);
-
-  const startRecording = async () => {
-    if (isRecording) return; // Evita múltiplas gravações simultâneas
-    
-    try {
-      console.log('Iniciando gravação...');
-      
-      // Limpar estados anteriores
-      setAudioChunks([]);
-      setRecordingTime(0);
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        }
-      });
-      
-      streamRef.current = stream;
-      
-      // Verificar se o navegador suporta webm, senão usar mp4
-      let mimeType = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/mp4';
-      }
-      
-      const recorder = new MediaRecorder(stream, { mimeType });
-      
-      const chunks: Blob[] = [];
-
-      recorder.ondataavailable = (event) => {
-        console.log('Dados de áudio disponíveis:', event.data.size, 'bytes');
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        console.log('Gravação parada. Chunks:', chunks.length);
-        if (chunks.length > 0 && recordingTime >= 1) {
-          const audioBlob = new Blob(chunks, { type: mimeType });
-          console.log('Blob criado:', audioBlob.size, 'bytes');
-          handleAudioMessage(audioBlob);
-        } else {
-          console.log('Gravação muito curta, descartando...');
-        }
-        
-        // Limpar stream
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
-        }
-      };
-
-      recorder.onerror = (event) => {
-        console.error('Erro na gravação:', event);
-        cleanupRecording();
-        toast({
-          title: "Erro de Gravação",
-          description: "Erro durante a gravação do áudio.",
-          variant: "destructive"
-        });
-      };
-
-      recorder.start(100); // Coleta dados a cada 100ms para melhor qualidade
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      
-      // Iniciar contador de tempo
-      recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-
-      console.log('Gravação iniciada com sucesso');
-
-    } catch (error) {
-      console.error('Erro ao acessar microfone:', error);
-      cleanupRecording();
-      toast({
-        title: "Erro de Gravação",
-        description: "Não foi possível acessar o microfone. Verifique as permissões.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const stopRecording = () => {
-    console.log('Parando gravação...', { mediaRecorder, isRecording, recordingTime });
-    
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      console.log('MediaRecorder.stop() chamado');
-      
-      setIsRecording(false);
-      setMediaRecorder(null);
-      
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        recordingIntervalRef.current = null;
-      }
-    }
-  };
-
-  const cleanupRecording = () => {
-    setIsRecording(false);
-    setMediaRecorder(null);
-    setRecordingTime(0);
-    setAudioChunks([]);
-    
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-      recordingIntervalRef.current = null;
-    }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-  };
-
-  const handleAudioMessage = (audioBlob: Blob) => {
+  const handleSendAudio = (audioBlob: Blob, duration: number) => {
     if (!activeChannel || !currentUser) return;
 
     const audioUrl = URL.createObjectURL(audioBlob);
-    const duration = recordingTime;
 
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -224,7 +92,7 @@ export function ChatInput() {
       userId: currentUser.id,
       userName: currentUser.displayName || currentUser.username || 'Usuário',
       userAvatar: currentUser.avatar,
-      content: `Áudio (${duration}s)`,
+      content: `Áudio (${Math.floor(duration)}s)`,
       messageType: 'file' as const,
       timestamp: new Date(),
       reactions: {},
@@ -236,8 +104,14 @@ export function ChatInput() {
     };
 
     addMessage(newMessage);
-    setRecordingTime(0);
+    setShowAudioRecorder(false);
   };
+
+  const handleCancelAudio = () => {
+    setShowAudioRecorder(false);
+  };
+
+
 
   const handleSendMessage = () => {
     if (!message.trim() || !activeChannel || !currentUser) return;
@@ -440,15 +314,23 @@ export function ChatInput() {
         </div>
 
         {/* Voice Recording */}
-        <Button
-          variant={isRecording ? "destructive" : "ghost"}
-          size="icon"
-          className="h-10 w-10 flex-shrink-0"
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={!currentUser || !activeChannel}
-        >
-          {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        </Button>
+        {showAudioRecorder ? (
+          <AudioRecorder
+            onSendAudio={handleSendAudio}
+            onCancel={handleCancelAudio}
+            className="h-10 w-10 flex-shrink-0"
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 flex-shrink-0"
+            onClick={() => setShowAudioRecorder(true)}
+            disabled={!currentUser || !activeChannel}
+          >
+            <Image className="h-4 w-4" />
+          </Button>
+        )}
 
         {/* Send Button */}
         <Button
