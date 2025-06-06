@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2 } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
 import {
@@ -314,7 +314,9 @@ export function MessageBubble({
     ? contact.name?.charAt(0)?.toUpperCase() || "C"
     : "A";
 
-  const bubbleClasses = isFromContact
+  const bubbleClasses = message.isInternalNote
+    ? "bg-amber-50 text-amber-900 border border-amber-200"
+    : isFromContact
     ? "bg-gray-100 text-gray-900"
     : "bg-blue-600 text-white";
 
@@ -527,6 +529,12 @@ export function MessageBubble({
     // Mensagem de texto padrão
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
+        {message.isInternalNote && (
+          <div className="flex items-center gap-1.5 mb-2 text-xs text-amber-700">
+            <StickyNote className="h-3 w-3" />
+            <span className="font-medium">Nota Interna • Visível apenas para a equipe</span>
+          </div>
+        )}
         {message.content ? (
           <p className="text-sm">{message.content}</p>
         ) : (
@@ -535,6 +543,11 @@ export function MessageBubble({
             {message.messageType && (
               <p className="text-xs mt-1">Tipo: {message.messageType}</p>
             )}
+          </div>
+        )}
+        {message.isInternalNote && message.authorName && (
+          <div className="mt-2 text-xs text-amber-600 font-medium">
+            {message.authorName}
           </div>
         )}
       </div>
