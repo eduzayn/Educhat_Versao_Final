@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { registerInternalChatRoutes } from "./internal-chat-routes";
+import { registerMediaRoutes } from "./media-routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 

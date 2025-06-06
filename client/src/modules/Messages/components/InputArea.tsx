@@ -566,7 +566,16 @@ export function InputArea() {
     formData.append('conversationId', activeConversation.id.toString());
 
     try {
-      const response = await apiRequest('POST', '/api/messages/upload', formData);
+      const response = await fetch('/api/messages/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha no upload do arquivo');
+      }
+      
+      const result = await response.json();
       
       let messageType: 'image' | 'video' | 'document' = 'document';
       if (file.type.startsWith('image/')) messageType = 'image';
@@ -575,7 +584,7 @@ export function InputArea() {
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation.id,
         message: {
-          content: response.fileUrl,
+          content: result.fileUrl || result.url,
           isFromContact: false,
           messageType,
         },
