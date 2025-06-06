@@ -1863,28 +1863,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      // Construir URL corretamente conforme documentação Z-API
-      // Evitar barras duplas e usar query params corretos
-      const queryParams = new URLSearchParams({
+      // Construir payload conforme documentação Z-API para deletar mensagens
+      const payload = {
         phone: cleanPhone,
         messageId: messageId.toString(),
-        owner: 'true'
-      });
+        owner: true
+      };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?${queryParams.toString()}`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
       console.log('🗑️ Deletando mensagem via Z-API:', { 
         url, 
-        phone: cleanPhone, 
-        messageId: messageId.toString(),
+        payload,
         conversationId 
       });
 
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
           'Client-Token': clientToken || '',
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(payload)
       });
 
       const responseText = await response.text();
@@ -2179,11 +2178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payload = {
         phone: phone.replace(/\D/g, ''),
         message: message,
-        messageId: replyToMessageId,
-        delayMessage: 1
+        messageId: replyToMessageId
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-reply-message`;
       console.log('💬 Enviando resposta para Z-API:', { url, payload });
       
       const response = await fetch(url, {
