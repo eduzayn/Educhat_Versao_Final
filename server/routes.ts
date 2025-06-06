@@ -1863,27 +1863,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      // Construir payload conforme documentação Z-API para deletar mensagens
-      const payload = {
-        phone: cleanPhone,
-        messageId: messageId.toString(),
-        owner: true
-      };
-
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages`;
+      // Construir URL conforme documentação Z-API para deletar mensagens
+      // DELETE /instances/{instanceId}/token/{token}/messages?phone={phone}&messageId={messageId}&owner=true
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
+      
       console.log('🗑️ Deletando mensagem via Z-API:', { 
-        url, 
-        payload,
+        url,
         conversationId 
       });
 
       const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+          'Client-Token': clientToken || ''
+        }
       });
 
       const responseText = await response.text();
