@@ -869,11 +869,11 @@ export function InputArea() {
           size="sm"
           onClick={() => setShowAudioRecorder(!showAudioRecorder)}
           className={cn(
-            "p-2 text-educhat-medium hover:text-educhat-blue",
+            "p-2.5 text-educhat-medium hover:text-educhat-blue",
             showAudioRecorder && "bg-educhat-primary text-white",
           )}
         >
-          <Mic className="w-5 h-5" />
+          <Mic className="w-5.5 h-5.5" />
         </Button>
 
         <div className="flex-1 relative">
@@ -883,12 +883,12 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[44px] max-h-[120px] resize-none pr-28 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
+            className="min-h-[48px] max-h-[140px] resize-none pr-32 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent text-base"
             rows={1}
           />
           
           {/* Botões de toggle entre Mensagem e Nota Interna */}
-          <div className="absolute right-12 top-2 flex items-center gap-1">
+          <div className="absolute right-14 top-2.5 flex items-center gap-1.5">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -896,12 +896,12 @@ export function InputArea() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "h-7 w-7 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      "h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
                       !isInternalNote ? "text-blue-600" : "text-gray-400"
                     )}
                     onClick={() => setIsInternalNote(false)}
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <MessageSquare className="h-4.5 w-4.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -917,12 +917,12 @@ export function InputArea() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "h-7 w-7 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                      "h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
                       isInternalNote ? "text-amber-600" : "text-gray-400"
                     )}
                     onClick={() => setIsInternalNote(true)}
                   >
-                    <StickyNote className="h-4 w-4" />
+                    <StickyNote className="h-4.5 w-4.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -1009,13 +1009,13 @@ export function InputArea() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-2 bottom-2 h-7 w-7 p-0 text-educhat-medium hover:text-educhat-blue"
+                className="absolute right-2 bottom-2.5 h-8 w-8 p-0 text-educhat-medium hover:text-educhat-blue"
                 disabled={sendQuickReactionMutation.isPending}
               >
                 {sendQuickReactionMutation.isPending ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border border-gray-400 border-t-transparent" />
+                  <div className="w-4.5 h-4.5 animate-spin rounded-full border border-gray-400 border-t-transparent" />
                 ) : (
-                  <Smile className="w-4 h-4" />
+                  <Smile className="w-4.5 h-4.5" />
                 )}
               </Button>
             </PopoverTrigger>
@@ -1074,14 +1074,14 @@ export function InputArea() {
           onClick={handleSendMessage}
           disabled={!message.trim() || sendMessageMutation.isPending}
           className={cn(
-            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3 rounded-xl transition-colors",
+            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3.5 rounded-xl transition-colors",
             sendMessageMutation.isPending && "opacity-50 cursor-not-allowed",
           )}
         >
           {sendMessageMutation.isPending ? (
-            <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <div className="w-5.5 h-5.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : (
-            <Send className="w-5 h-5" />
+            <Send className="w-5.5 h-5.5" />
           )}
         </Button>
       </div>

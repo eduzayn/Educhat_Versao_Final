@@ -433,12 +433,12 @@ export function MessageBubble({
   if (isDeleted || message.isDeleted) {
     return (
       <div className={containerClasses}>
-        <Avatar className="w-8 h-8 flex-shrink-0 opacity-50">
+        <Avatar className="w-9 h-9 flex-shrink-0 opacity-50">
           <AvatarImage
             src={isFromContact ? contact.profileImageUrl || "" : ""}
             alt={isFromContact ? contact.name : "Agente"}
           />
-          <AvatarFallback className="text-xs">
+          <AvatarFallback className="text-sm">
             {avatarFallbackChar}
           </AvatarFallback>
         </Avatar>
@@ -559,12 +559,12 @@ export function MessageBubble({
   // Mensagem normal
   return (
     <div className={containerClasses}>
-      <Avatar className="w-8 h-8 flex-shrink-0">
+      <Avatar className="w-9 h-9 flex-shrink-0">
         <AvatarImage
           src={isFromContact ? contact.profileImageUrl || "" : ""}
           alt={isFromContact ? contact.name : "Agente"}
         />
-        <AvatarFallback className="text-xs">
+        <AvatarFallback className="text-sm">
           {avatarFallbackChar}
         </AvatarFallback>
       </Avatar>
