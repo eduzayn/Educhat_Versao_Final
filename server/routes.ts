@@ -1336,6 +1336,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (webhookData.listResponseMessage) {
           messageContent = webhookData.listResponseMessage.message;
           messageType = 'list_response';
+        } else if (webhookData.sticker) {
+          messageContent = 'Figurinha enviada';
+          messageType = 'sticker';
+          
+          // Baixar e processar a figurinha se há URL externa
+          if (webhookData.sticker.stickerUrl) {
+            try {
+              console.log('📥 Baixando figurinha externa:', webhookData.sticker.stickerUrl);
+              const stickerResponse = await fetch(webhookData.sticker.stickerUrl);
+              if (stickerResponse.ok) {
+                const stickerBuffer = await stickerResponse.arrayBuffer();
+                const stickerBase64 = Buffer.from(stickerBuffer).toString('base64');
+                const mimeType = webhookData.sticker.mimeType || 'image/webp';
+                messageContent = `data:${mimeType};base64,${stickerBase64}`;
+                console.log('✅ Figurinha externa baixada e convertida para base64');
+              } else {
+                console.error('❌ Erro ao baixar figurinha externa:', stickerResponse.status);
+              }
+            } catch (error) {
+              console.error('💥 Erro ao processar figurinha externa:', error);
+            }
+          }
         } else {
           // Log detalhado para debug de mensagens não identificadas
           console.log('🔍 Mensagem não identificada - dados completos:', JSON.stringify(webhookData, null, 2));

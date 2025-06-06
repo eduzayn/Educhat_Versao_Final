@@ -516,6 +516,27 @@ export function MessageBubble({
       );
     }
 
+    // Renderizar figurinha
+    if (message.messageType === 'sticker') {
+      return (
+        <div className="max-w-xs">
+          {message.content && message.content.startsWith('data:') ? (
+            <img
+              src={message.content}
+              alt="Figurinha"
+              className="max-w-full h-auto rounded-lg"
+              style={{ maxHeight: '200px', maxWidth: '200px' }}
+            />
+          ) : (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-100">
+              <div className="text-2xl">🎭</div>
+              <span className="text-sm text-gray-600">Figurinha enviada</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // Para outros tipos de mídia, usar LazyMediaContent
     if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
       return (
