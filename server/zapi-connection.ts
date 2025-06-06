@@ -1,4 +1,4 @@
-import QRCode from 'qrcode';
+import * as QRCode from 'qrcode';
 
 export interface ZApiCredentials {
   instanceId: string;
@@ -6,7 +6,21 @@ export interface ZApiCredentials {
   clientToken: string;
 }
 
-export function validateZApiCredentials(): { valid: true; instanceId: string; token: string; clientToken: string } | { valid: false; error: string } {
+export interface ZApiValidationSuccess {
+  valid: true;
+  instanceId: string;
+  token: string;
+  clientToken: string;
+}
+
+export interface ZApiValidationError {
+  valid: false;
+  error: string;
+}
+
+export type ZApiValidationResult = ZApiValidationSuccess | ZApiValidationError;
+
+export function validateZApiCredentials(): ZApiValidationResult {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
   const token = process.env.ZAPI_TOKEN;
   const clientToken = process.env.ZAPI_CLIENT_TOKEN;

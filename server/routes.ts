@@ -2227,31 +2227,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/zapi/status', async (req, res) => {
     try {
+      // Log para facilitar o diagnóstico
+      console.log('📊 Solicitação recebida em /api/zapi/status');
+      
+      // Verificar variáveis de ambiente diretamente para diagnóstico
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      
+      console.log('🔑 Variáveis Z-API:', {
+        instanceId: instanceId ? `${instanceId.substring(0, 4)}...` : 'não definido',
+        token: token ? `${token.substring(0, 4)}...` : 'não definido',
+        clientToken: clientToken ? `${clientToken.substring(0, 4)}...` : 'não definido'
+      });
+      
+      // Validar credenciais usando a função existente
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
+        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
         return res.status(400).json({ error: credentials.error });
       }
 
-      const { instanceId, token, clientToken } = credentials;
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
+      // Remover possíveis espaços extras nas credenciais
+      const cleanInstanceId = credentials.instanceId.trim();
+      const cleanToken = credentials.token.trim();
+      const cleanClientToken = credentials.clientToken.trim();
+      
+      const url = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/status`;
+      console.log(`🔍 URL da API Z-API: ${url.replace(cleanInstanceId, '****').replace(cleanToken, '****')}`);
       
       const response = await fetch(url, {
         headers: {
-          'Client-Token': clientToken || '',
+          'Client-Token': cleanClientToken,
           'Content-Type': 'application/json'
         }
       });
 
+      console.log(`📥 Resposta Z-API: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Erro Z-API: ${response.status} - ${response.statusText} - ${errorText}`);
         throw new Error(`Z-API Error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log(`Status da Z-API:`, data);
+      console.log(`✅ Status da Z-API obtido com sucesso:`, data);
       res.json(data);
       
     } catch (error) {
-      console.error('Erro ao verificar status Z-API:', error);
+      console.error('💥 Erro ao verificar status Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Endpoint de diagnóstico Z-API (apenas para troubleshooting)
+  app.get('/api/zapi/diagnostic', async (req, res) => {
+    try {
+      // Verificar variáveis de ambiente
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      const baseUrl = process.env.ZAPI_BASE_URL || 'https://api.z-api.io';
+      
+      // Construir resposta de diagnóstico
+      const diagnostic: {
+        environment: { 
+          NODE_ENV: string; 
+          RENDER_EXTERNAL_URL: string;
+        };
+        credentials: {
+          ZAPI_INSTANCE_ID: string;
+          ZAPI_TOKEN: string;
+          ZAPI_CLIENT_TOKEN: string;
+          ZAPI_BASE_URL: string;
+        };
+        validation: {
+          instanceIdValid: boolean;
+          tokenValid: boolean;
+          clientTokenValid: boolean;
+          instanceIdHasExtraSpaces: boolean;
+          tokenHasExtraSpaces: boolean;
+          clientTokenHasExtraSpaces: boolean;
+        };
+        testCall?: {
+          url?: string;
+          status?: number;
+          statusText?: string;
+          success?: boolean;
+          response?: any;
+          errorText?: string;
+          error?: string;
+        }
+      } = {
+        environment: {
+          NODE_ENV: process.env.NODE_ENV || 'não definido',
+          RENDER_EXTERNAL_URL: process.env.RENDER_EXTERNAL_URL || 'não definido'
+        },
+        credentials: {
+          ZAPI_INSTANCE_ID: instanceId ? `${instanceId.substring(0, 4)}...${instanceId.substring(instanceId.length - 4)}` : 'não definido',
+          ZAPI_TOKEN: token ? `${token.substring(0, 4)}...${token.substring(token.length - 4)}` : 'não definido',
+          ZAPI_CLIENT_TOKEN: clientToken ? `${clientToken.substring(0, 4)}...${clientToken.substring(clientToken.length - 4)}` : 'não definido',
+          ZAPI_BASE_URL: baseUrl
+        },
+        validation: {
+          instanceIdValid: !!(instanceId && instanceId.length > 10),
+          tokenValid: !!(token && token.length > 10),
+          clientTokenValid: !!(clientToken && clientToken.length > 10),
+          instanceIdHasExtraSpaces: !!(instanceId && (instanceId.trim() !== instanceId)),
+          tokenHasExtraSpaces: !!(token && (token.trim() !== token)),
+          clientTokenHasExtraSpaces: !!(clientToken && (clientToken.trim() !== clientToken))
+        }
+      };
+
+      // Tentar fazer uma chamada de teste para a API
+      if (instanceId && token && clientToken) {
+        try {
+          const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+          console.log(`Testando URL: ${url}`);
+          
+          const testResponse = await fetch(url, {
+            headers: {
+              'Client-Token': clientToken,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          diagnostic.testCall = {
+            url: `${baseUrl}/instances/****...****/token/****...****/status`,
+            status: testResponse.status,
+            statusText: testResponse.statusText,
+            success: testResponse.ok
+          };
+
+          if (testResponse.ok) {
+            const data = await testResponse.json();
+            diagnostic.testCall.response = data;
+          } else {
+            const errorText = await testResponse.text();
+            diagnostic.testCall.errorText = errorText;
+          }
+        } catch (testError) {
+          diagnostic.testCall = {
+            error: testError instanceof Error ? testError.message : 'Erro desconhecido'
+          };
+        }
+      }
+
+      // Enviar diagnóstico
+      res.json(diagnostic);
+      
+    } catch (error) {
+      console.error('Erro ao executar diagnóstico Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
