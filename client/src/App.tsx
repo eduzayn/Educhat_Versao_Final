@@ -17,6 +17,7 @@ import ChannelsPage from "@/pages/Settings/ChannelsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
+import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 
 import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
@@ -80,7 +81,7 @@ function Router() {
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
-          <Route path="/chat-interno" component={() => <div className="container mx-auto max-w-7xl px-4 py-6"><h1 className="text-2xl font-bold">Chat Interno</h1><p className="text-muted-foreground mt-2">Funcionalidade em desenvolvimento</p></div>} />
+          <Route path="/chat-interno" component={InternalChatPage} />
           <Route component={NotFound} />
         </>
       )}
