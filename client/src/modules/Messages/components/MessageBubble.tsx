@@ -581,9 +581,9 @@ export function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={() => onReply(message)}
-                className="h-6 px-2 text-xs opacity-60 hover:opacity-100"
+                className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100"
               >
-                <Reply className="w-3 h-3 mr-1" />
+                <Reply className="w-3.5 h-3.5 mr-1" />
                 Responder
               </Button>
             )}
@@ -596,9 +596,9 @@ export function MessageBubble({
                     variant="ghost"
                     size="sm"
                     disabled={isDeleting}
-                    className="h-6 px-2 text-xs opacity-60 hover:opacity-100 text-red-500 hover:text-red-600"
+                    className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100 text-red-500 hover:text-red-600"
                   >
-                    <Trash2 className="w-3 h-3 mr-1" />
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
                     {isDeleting ? "Excluindo..." : "Excluir"}
                   </Button>
                 </AlertDialogTrigger>
