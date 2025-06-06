@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
+import { secureLog } from "@/lib/secureLogger";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -9,7 +10,12 @@ interface AudioMessageProps {
   messageIdForFetch?: string;
 }
 
-export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFetch }: AudioMessageProps) {
+export function AudioMessage({
+  audioUrl,
+  duration,
+  isFromContact,
+  messageIdForFetch,
+}: AudioMessageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
@@ -21,37 +27,49 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Buscar áudio via API se necessário
+  // Buscar áudio via API se necessário (apenas uma vez, com cache de falhas)
   useEffect(() => {
-    if (!audioUrl && messageIdForFetch && !actualAudioUrl && !isLoading && !error) {
+    if (
+      !audioUrl &&
+      messageIdForFetch &&
+      !actualAudioUrl &&
+      !isLoading &&
+      !error
+    ) {
+      // Verificar se já tentamos buscar este áudio e falhou
       const failedKey = `audio_failed_${messageIdForFetch}`;
       if (sessionStorage.getItem(failedKey)) {
-        setError('Áudio não disponível');
+        setError("Áudio não disponível");
         return;
       }
 
       setIsLoading(true);
-      
+      secureLog.audio("Buscando via API", messageIdForFetch);
+
       fetch(`/api/messages/${messageIdForFetch}/audio`)
-        .then(response => {
+        .then((response) => {
           if (!response.ok) {
-            throw new Error('Áudio não encontrado');
+            throw new Error("Áudio não encontrado");
           }
           return response.json();
         })
-        .then(data => {
+        .then((data) => {
           if (data.audioUrl) {
             setActualAudioUrl(data.audioUrl);
+            secureLog.audio("Carregado com sucesso", messageIdForFetch);
           } else {
-            throw new Error('Áudio não encontrado');
+            throw new Error("Áudio não encontrado");
           }
         })
         .catch(() => {
-          sessionStorage.setItem(failedKey, 'true');
-          setError('Áudio não disponível');
+          sessionStorage.setItem(failedKey, "true");
+          setError("Áudio não disponível");
+          secureLog.error("Falha ao carregar áudio", {
+            messageId: messageIdForFetch,
+          });
         })
         .finally(() => setIsLoading(false));
     }
@@ -59,7 +77,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
 
   const togglePlayPause = async () => {
     if (!actualAudioUrl || !audioRef.current) {
-      setError('Áudio não disponível');
+      setError("Áudio não disponível");
       return;
     }
 
@@ -73,8 +91,8 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         setError(null);
       }
     } catch (err) {
-      console.error('Erro na reprodução:', err);
-      setError('Erro ao reproduzir áudio');
+      console.error("Erro na reprodução:", err);
+      setError("Erro ao reproduzir áudio");
       setIsPlaying(false);
     }
   };
@@ -96,14 +114,15 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
     setCurrentTime(0);
   };
 
-  const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
+  const progressPercentage =
+    audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg max-w-sm ${
-      isFromContact 
-        ? 'bg-gray-100 text-gray-900' 
-        : 'bg-blue-600 text-white'
-    }`}>
+    <div
+      className={`flex items-center gap-3 p-3 rounded-lg max-w-sm ${
+        isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"
+      }`}
+    >
       {actualAudioUrl && (
         <audio
           ref={audioRef}
@@ -114,7 +133,7 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
           preload="metadata"
         />
       )}
-      
+
       <Button
         variant="ghost"
         size="sm"
@@ -122,8 +141,8 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         disabled={isLoading}
         className={`w-8 h-8 p-0 rounded-full ${
           isFromContact
-            ? 'hover:bg-gray-200 text-gray-700'
-            : 'hover:bg-blue-500 text-white'
+            ? "hover:bg-gray-200 text-gray-700"
+            : "hover:bg-blue-500 text-white"
         }`}
       >
         {isLoading ? (
@@ -139,25 +158,31 @@ export function AudioMessage({ audioUrl, duration, isFromContact, messageIdForFe
         <div className="flex items-center gap-2 mb-1">
           <Volume2 className="w-3 h-3 opacity-70" />
           <span className="text-xs opacity-70">
-            {isLoading ? 'Carregando...' : 
-             error ? error :
-             actualAudioUrl ? 'Áudio' : 'Processando...'}
+            {isLoading
+              ? "Carregando..."
+              : error
+                ? error
+                : actualAudioUrl
+                  ? "Áudio"
+                  : "Processando..."}
           </span>
         </div>
-        
+
         <div className="relative">
-          <div className={`w-full h-1 rounded-full ${
-            isFromContact ? 'bg-gray-300' : 'bg-blue-400'
-          }`}>
+          <div
+            className={`w-full h-1 rounded-full ${
+              isFromContact ? "bg-gray-300" : "bg-blue-400"
+            }`}
+          >
             <div
               className={`h-full rounded-full transition-all duration-100 ${
-                isFromContact ? 'bg-gray-600' : 'bg-white'
+                isFromContact ? "bg-gray-600" : "bg-white"
               }`}
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
         </div>
-        
+
         <div className="flex justify-between text-xs opacity-70 mt-1">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(audioDuration)}</span>
