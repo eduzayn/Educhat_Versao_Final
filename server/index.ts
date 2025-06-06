@@ -9,6 +9,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Servir arquivos estáticos de upload
+app.use('/uploads', express.static('uploads'));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -42,6 +45,7 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
   registerInternalChatRoutes(app);
+  registerMediaRoutes(app);
 
 
 
