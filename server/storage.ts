@@ -592,12 +592,90 @@ export class DatabaseStorage implements IStorage {
   // Novo método para carregar conteúdo de mídia sob demanda
   async getMessageMedia(messageId: number): Promise<string | null> {
     const result = await db
-      .select({ content: messages.content })
+      .select({ 
+        content: messages.content, 
+        messageType: messages.messageType,
+        metadata: messages.metadata 
+      })
       .from(messages)
       .where(eq(messages.id, messageId))
       .limit(1);
     
-    return result[0]?.content || null;
+    if (!result[0]) return null;
+
+    const message = result[0];
+    
+    // Para mensagens de vídeo, extrair URL dos metadados
+    if (message.messageType === 'video' && message.metadata) {
+      try {
+        const metadata = typeof message.metadata === 'string' 
+          ? JSON.parse(message.metadata) 
+          : message.metadata;
+        
+        if (metadata.video?.videoUrl) {
+          return metadata.video.videoUrl;
+        }
+      } catch (error) {
+        console.error('Erro ao parsear metadados do vídeo:', error);
+      }
+    }
+    
+    // Para mensagens de imagem, extrair URL dos metadados
+    if (message.messageType === 'image' && message.metadata) {
+      try {
+        const metadata = typeof message.metadata === 'string' 
+          ? JSON.parse(message.metadata) 
+          : message.metadata;
+        
+        if (metadata.image?.imageUrl) {
+          return metadata.image.imageUrl;
+        }
+        if (metadata.imageUrl) {
+          return metadata.imageUrl;
+        }
+      } catch (error) {
+        console.error('Erro ao parsear metadados da imagem:', error);
+      }
+    }
+
+    // Para mensagens de áudio, extrair URL dos metadados
+    if (message.messageType === 'audio' && message.metadata) {
+      try {
+        const metadata = typeof message.metadata === 'string' 
+          ? JSON.parse(message.metadata) 
+          : message.metadata;
+        
+        if (metadata.audio?.audioUrl) {
+          return metadata.audio.audioUrl;
+        }
+        if (metadata.audioUrl) {
+          return metadata.audioUrl;
+        }
+      } catch (error) {
+        console.error('Erro ao parsear metadados do áudio:', error);
+      }
+    }
+
+    // Para mensagens de documento, extrair URL dos metadados  
+    if (message.messageType === 'document' && message.metadata) {
+      try {
+        const metadata = typeof message.metadata === 'string' 
+          ? JSON.parse(message.metadata) 
+          : message.metadata;
+        
+        if (metadata.document?.documentUrl) {
+          return metadata.document.documentUrl;
+        }
+        if (metadata.documentUrl) {
+          return metadata.documentUrl;
+        }
+      } catch (error) {
+        console.error('Erro ao parsear metadados do documento:', error);
+      }
+    }
+    
+    // Fallback para o conteúdo original (imagens/áudios em base64)
+    return message.content || null;
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
