@@ -1259,6 +1259,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const webhookData = req.body;
       
+      // Verificar se é um callback de status (não precisa processar como mensagem)
+      if (webhookData.type === 'MessageStatusCallback') {
+        console.log(`📋 Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
+        return res.status(200).json({ success: true, type: 'status_update' });
+      }
+      
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
       if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
         const phone = webhookData.phone.replace(/\D/g, ''); // Remover caracteres não numéricos
@@ -1331,7 +1337,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messageContent = webhookData.listResponseMessage.message;
           messageType = 'list_response';
         } else {
-          messageContent = 'Mensagem sem conteúdo de texto';
+          // Log detalhado para debug de mensagens não identificadas
+          console.log('🔍 Mensagem não identificada - dados completos:', JSON.stringify(webhookData, null, 2));
+          
+          // Tentar extrair conteúdo de outros campos possíveis
+          if (webhookData.message) {
+            messageContent = webhookData.message;
+          } else if (webhookData.body) {
+            messageContent = webhookData.body;
+          } else if (webhookData.content) {
+            messageContent = webhookData.content;
+          } else if (webhookData.caption) {
+            messageContent = webhookData.caption;
+          } else if (webhookData.quotedMessage) {
+            messageContent = `Resposta a: ${webhookData.quotedMessage.body || 'mensagem'}`;
+          } else {
+            messageContent = `Mensagem não processada (tipo: ${webhookData.messageType || 'desconhecido'})`;
+          }
         }
         
         // Process new WhatsApp message
