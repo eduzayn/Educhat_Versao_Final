@@ -813,7 +813,8 @@ export function InboxPageRefactored() {
             const isActive = activeConversation?.id === conversation.id;
             
             // Usar contador de mensagens não lidas do banco de dados
-            const unreadCount = !isActive ? (conversation.unreadCount || 0) : 0;
+            // Mostrar indicador mesmo para conversa ativa se foi marcada manualmente como não lida
+            const unreadCount = conversation.unreadCount || 0;
             
             return (
               <div
