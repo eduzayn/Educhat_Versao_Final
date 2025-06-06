@@ -7,17 +7,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install all dependencies (needed for tsx and cross-env)
 RUN npm install
 
 # Copy source code
 COPY . .
-
-# Build the application
-RUN npm run build
-
-# Remove dev dependencies after build
-RUN npm prune --production
 
 # Create uploads directory
 RUN mkdir -p uploads
@@ -25,5 +19,5 @@ RUN mkdir -p uploads
 # Expose port (Railway will override this)
 EXPOSE 8080
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application in development mode (which works in production)
+CMD ["npm", "run", "dev"]
