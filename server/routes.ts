@@ -2045,7 +2045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const replyMessage = await storage.createMessage({
           conversationId: parseInt(conversationId),
           content: replyText,
-          type: 'text',
+          messageType: 'text',
           isFromContact: false,
           sentAt: new Date(),
           metadata: {
