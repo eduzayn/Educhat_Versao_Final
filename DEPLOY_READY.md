@@ -33,7 +33,7 @@ NODE_ENV=production
 DATABASE_URL=postgresql://neondb_owner:npg_Bm1IRe39SAq@ep-shy-mode-a5b4ocv7.us-east-2.aws.neon.tech/neondb?sslmode=require
 SESSION_SECRET=k9$mP2nX8@vR5qL#wE7tY3uI6oA1sD4fG
 ZAPI_BASE_URL=https://api.z-api.io
-ZAPI_CLIENT_TOKEN=Fe4f45c32c552449dbf8b290c83f5200d5
+ZAPI_CLIENT_TOKEN=seu_client_token_aqui
 ZAPI_INSTANCE_ID=3DF871A7ADF820F049998E60862CE0C1
 ZAPI_TOKEN=A4E42029C248B7DA0842F47
 ANTHROPIC_API_KEY=sk-ant-api03-...

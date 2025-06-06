@@ -2293,9 +2293,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Remover possíveis espaços extras nas credenciais
-      const cleanInstanceId = credentials.instanceId.trim();
-      const cleanToken = credentials.token.trim();
-      const cleanClientToken = credentials.clientToken.trim();
+      const cleanInstanceId = credentials.instanceId!.trim();
+      const cleanToken = credentials.token!.trim();
+      const cleanClientToken = credentials.clientToken!.trim();
       
       const url = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/status`;
       console.log(`🔍 URL da API Z-API: ${url.replace(cleanInstanceId, '****').replace(cleanToken, '****')}`);
@@ -2564,9 +2564,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Limpar credenciais removendo espaços e caracteres especiais
-      const cleanInstanceId = credentials.instanceId.trim();
-      const cleanToken = credentials.token.trim();
-      const cleanClientToken = credentials.clientToken.trim();
+      const cleanInstanceId = credentials.instanceId!.trim();
+      const cleanToken = credentials.token!.trim();
+      const cleanClientToken = credentials.clientToken!.trim();
 
       console.log('🔑 Credenciais Z-API (verificadas):', {
         instanceId: `${cleanInstanceId.substring(0, 4)}...`,

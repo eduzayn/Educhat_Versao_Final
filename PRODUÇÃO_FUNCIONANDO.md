@@ -18,7 +18,7 @@ error: password authentication failed for user 'neondb_owner'
 
 ### 2. Token Z-API Inválido
 ```
-Fe4f45c32c552449dbf8b290c83f5200d5 not allowed
+[CLIENT_TOKEN] not allowed
 ```
 
 **Solução**: Atualizar tokens Z-API no Render
