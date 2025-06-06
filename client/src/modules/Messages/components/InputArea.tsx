@@ -876,6 +876,72 @@ export function InputArea() {
           <Mic className="w-5.5 h-5.5" />
         </Button>
 
+        {/* Botão de Emojis/Reações movido para fora da textarea */}
+        <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2.5 text-educhat-medium hover:text-educhat-blue"
+              disabled={sendQuickReactionMutation.isPending}
+            >
+              {sendQuickReactionMutation.isPending ? (
+                <div className="w-5.5 h-5.5 animate-spin rounded-full border border-gray-400 border-t-transparent" />
+              ) : (
+                <Smile className="w-5.5 h-5.5" />
+              )}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-80 p-0 z-40" align="end">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium">Emojis</h4>
+                {activeConversation?.contact.phone && (
+                  <span className="text-xs text-gray-500">
+                    Clique para inserir ou enviar reação
+                  </span>
+                )}
+              </div>
+
+              {/* Emojis rápidos */}
+              <div className="grid grid-cols-8 gap-2">
+                {QUICK_EMOJIS.map((emoji, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => insertEmoji(emoji)}
+                      className="h-8 w-8 p-0 text-lg hover:bg-gray-100"
+                      title={`Inserir ${emoji} no texto`}
+                    >
+                      {emoji}
+                    </Button>
+                    {activeConversation?.contact.phone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleQuickReaction(emoji)}
+                        className="h-6 w-8 p-0 text-xs text-blue-600 hover:bg-blue-50"
+                        title={`Enviar reação ${emoji}`}
+                        disabled={sendQuickReactionMutation.isPending}
+                      >
+                        →
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {!activeConversation?.contact.phone && (
+                <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600 text-center">
+                  Reações disponíveis apenas para contatos do WhatsApp
+                </div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -883,12 +949,12 @@ export function InputArea() {
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="min-h-[48px] max-h-[140px] resize-none pr-32 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent text-base"
+            className="min-h-[48px] max-h-[140px] resize-none pr-20 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent text-base"
             rows={1}
           />
           
-          {/* Botões de toggle entre Mensagem e Nota Interna */}
-          <div className="absolute right-14 top-2.5 flex items-center gap-1.5">
+          {/* Botões de toggle entre Mensagem e Nota Interna - movidos para a direita */}
+          <div className="absolute right-2 top-2.5 flex items-center gap-1.5">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1004,70 +1070,6 @@ export function InputArea() {
               </div>
             </div>
           )}
-          <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 bottom-2.5 h-8 w-8 p-0 text-educhat-medium hover:text-educhat-blue"
-                disabled={sendQuickReactionMutation.isPending}
-              >
-                {sendQuickReactionMutation.isPending ? (
-                  <div className="w-4.5 h-4.5 animate-spin rounded-full border border-gray-400 border-t-transparent" />
-                ) : (
-                  <Smile className="w-4.5 h-4.5" />
-                )}
-              </Button>
-            </PopoverTrigger>
-
-            <PopoverContent className="w-80 p-0 z-40" align="end">
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium">Emojis</h4>
-                  {activeConversation?.contact.phone && (
-                    <span className="text-xs text-gray-500">
-                      Clique para inserir ou enviar reação
-                    </span>
-                  )}
-                </div>
-
-                {/* Emojis rápidos */}
-                <div className="grid grid-cols-8 gap-2">
-                  {QUICK_EMOJIS.map((emoji, index) => (
-                    <div key={index} className="flex flex-col items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => insertEmoji(emoji)}
-                        className="h-8 w-8 p-0 text-lg hover:bg-gray-100"
-                        title={`Inserir ${emoji} no texto`}
-                      >
-                        {emoji}
-                      </Button>
-                      {activeConversation?.contact.phone && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleQuickReaction(emoji)}
-                          className="h-6 w-8 p-0 text-xs text-blue-600 hover:bg-blue-50"
-                          title={`Enviar reação ${emoji}`}
-                          disabled={sendQuickReactionMutation.isPending}
-                        >
-                          →
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {!activeConversation?.contact.phone && (
-                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600 text-center">
-                    Reações disponíveis apenas para contatos do WhatsApp
-                  </div>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
 
         <Button
