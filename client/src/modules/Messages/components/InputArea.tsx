@@ -194,8 +194,7 @@ export function InputArea() {
         setReplyToMessage(null);
       } else if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
-        // Definir nome específico do usuário logado
-        const authorName = 'Ana Lúcia Moreira';
+        const authorName = currentUser?.displayName || currentUser?.username || 'Usuário';
         
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
@@ -205,6 +204,7 @@ export function InputArea() {
             messageType: 'text',
             isInternalNote: true,
             authorName: authorName,
+            authorId: currentUser?.id,
           },
           contact: activeConversation.contact,
         });
@@ -222,6 +222,7 @@ export function InputArea() {
       }
       
       setMessage('');
+      setIsInternalNote(false); // Reset nota interna state
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
