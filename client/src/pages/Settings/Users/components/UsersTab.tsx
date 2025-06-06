@@ -31,72 +31,7 @@ import {
   Download
 } from 'lucide-react';
 
-// Dados mockados para demonstração
-const mockUsers = [
-  {
-    id: 1,
-    username: 'admin',
-    displayName: 'Administrador Sistema',
-    email: 'admin@educhat.com',
-    role: 'admin',
-    team: 'Administração',
-    status: 'active',
-    isOnline: true,
-    lastLoginAt: new Date('2025-06-03T02:00:00'),
-    avatar: '',
-    initials: 'AS',
-    isActive: true
-  },
-  {
-    id: 2,
-    username: 'manager1',
-    displayName: 'João Silva',
-    email: 'joao@educhat.com',
-    role: 'manager',
-    team: 'Vendas',
-    status: 'active',
-    isOnline: false,
-    lastLoginAt: new Date('2025-06-02T18:30:00'),
-    avatar: '',
-    initials: 'JS',
-    isActive: true
-  },
-  {
-    id: 3,
-    username: 'agent1',
-    displayName: 'Maria Santos',
-    email: 'maria@educhat.com',
-    role: 'agent',
-    team: 'Atendimento',
-    status: 'active',
-    isOnline: true,
-    lastLoginAt: new Date('2025-06-03T01:45:00'),
-    avatar: '',
-    initials: 'MS',
-    isActive: true
-  },
-  {
-    id: 4,
-    username: 'agent2',
-    displayName: 'Pedro Costa',
-    email: 'pedro@educhat.com',
-    role: 'agent',
-    team: 'Suporte',
-    status: 'inactive',
-    isOnline: false,
-    lastLoginAt: new Date('2025-05-30T14:20:00'),
-    avatar: '',
-    initials: 'PC',
-    isActive: false
-  }
-];
 
-const userStats = {
-  total: 24,
-  active: 18,
-  online: 8,
-  pending: 3
-};
 
 const getRoleBadgeStyle = (role: string) => {
   switch (role) {
@@ -194,6 +129,14 @@ export const UsersTab = () => {
     queryKey: ['/api/system-users'],
     queryFn: () => fetch('/api/system-users').then(res => res.json())
   });
+
+  // Calculate user statistics from actual data
+  const userStats = {
+    total: users.length,
+    active: users.filter((user: any) => user.isActive !== false).length,
+    online: users.filter((user: any) => user.isOnline).length,
+    pending: users.filter((user: any) => user.status === 'pending').length
+  };
 
   // Create user mutation
   const createUserMutation = useMutation({

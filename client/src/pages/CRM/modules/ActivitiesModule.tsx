@@ -22,60 +22,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 
-const mockActivities = [
-  {
-    id: "1",
-    type: "call",
-    title: "Ligação de follow-up",
-    description: "Acompanhar proposta enviada para João Silva",
-    contact: "João Silva",
-    company: "Tech Solutions",
-    date: "2025-06-04",
-    time: "14:30",
-    duration: "15 min",
-    status: "completed",
-    owner: "Ana Costa"
-  },
-  {
-    id: "2",
-    type: "meeting",
-    title: "Reunião de apresentação",
-    description: "Apresentar solução para equipe da Educação Moderna",
-    contact: "Maria Santos",
-    company: "Educação Moderna",
-    date: "2025-06-05",
-    time: "10:00",
-    duration: "60 min",
-    status: "scheduled",
-    owner: "Carlos Silva"
-  },
-  {
-    id: "3",
-    type: "email",
-    title: "Envio de proposta",
-    description: "Enviar proposta comercial detalhada",
-    contact: "Pedro Costa",
-    company: "Saúde & Bem Estar",
-    date: "2025-06-03",
-    time: "16:45",
-    duration: "5 min",
-    status: "completed",
-    owner: "Lucia Oliveira"
-  },
-  {
-    id: "4",
-    type: "task",
-    title: "Preparar apresentação",
-    description: "Criar slides para reunião com cliente",
-    contact: "Ana Oliveira",
-    company: "Consulta Individual",
-    date: "2025-06-06",
-    time: "09:00",
-    duration: "120 min",
-    status: "pending",
-    owner: "Eduardo Santos"
-  }
-];
+
 
 const activityTypes = {
   call: { icon: Phone, color: "bg-blue-500", label: "Ligação" },
@@ -99,14 +46,8 @@ export function ActivitiesModule() {
   const [activeTab, setActiveTab] = useState("list");
   const [, setLocation] = useLocation();
 
-  const filtered = mockActivities.filter((activity) => {
-    const matchesSearch = activity.title.toLowerCase().includes(search.toLowerCase()) ||
-                         activity.contact.toLowerCase().includes(search.toLowerCase());
-    const matchesType = !typeFilter || typeFilter === "all" || activity.type === typeFilter;
-    const matchesStatus = !statusFilter || statusFilter === "all" || activity.status === statusFilter;
-    
-    return matchesSearch && matchesType && matchesStatus;
-  });
+  // Replace with real activities data when available
+  const filtered: any[] = [];
 
   const getActivityIcon = (type: string) => {
     const ActivityIcon = activityTypes[type as keyof typeof activityTypes]?.icon || CheckCircle;
@@ -186,14 +127,14 @@ export function ActivitiesModule() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{mockActivities.length}</div>
+            <div className="text-2xl font-bold">{filtered.length}</div>
             <p className="text-sm text-muted-foreground">Total de Atividades</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              {mockActivities.filter(a => a.status === 'completed').length}
+              {filtered.filter((a: any) => a.status === 'completed').length}
             </div>
             <p className="text-sm text-muted-foreground">Concluídas</p>
           </CardContent>
@@ -201,7 +142,7 @@ export function ActivitiesModule() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {mockActivities.filter(a => a.status === 'scheduled').length}
+              {filtered.filter((a: any) => a.status === 'scheduled').length}
             </div>
             <p className="text-sm text-muted-foreground">Agendadas</p>
           </CardContent>
@@ -209,7 +150,7 @@ export function ActivitiesModule() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-orange-600">
-              {mockActivities.filter(a => a.status === 'pending').length}
+              {filtered.filter((a: any) => a.status === 'pending').length}
             </div>
             <p className="text-sm text-muted-foreground">Pendentes</p>
           </CardContent>
@@ -226,7 +167,7 @@ export function ActivitiesModule() {
         <TabsContent value="list" className="space-y-4">
           {/* Lista de atividades */}
           <div className="space-y-4">
-            {filtered.map((activity) => {
+            {filtered.map((activity: any) => {
               const ActivityIcon = getActivityIcon(activity.type);
               const typeConfig = activityTypes[activity.type as keyof typeof activityTypes];
               const statusConfig = statusMap[activity.status as keyof typeof statusMap];
