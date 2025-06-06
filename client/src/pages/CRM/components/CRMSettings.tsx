@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +14,28 @@ import { Switch } from '@/shared/ui/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Separator } from '@/shared/ui/ui/separator';
+import { queryClient } from '@/lib/queryClient';
 import {
   Settings,
   Database,
   Users,
   MessageSquare,
   Target,
-  Save
+  Save,
+  RefreshCw
 } from "lucide-react";
+
+interface SystemSetting {
+  id: number;
+  key: string;
+  value: string;
+  type: string;
+  description: string | null;
+  category: string;
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface CRMSettingsProps {
   open: boolean;
@@ -30,54 +45,57 @@ interface CRMSettingsProps {
 export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
-  // Estados para configurações gerais
-  const [generalSettings, setGeneralSettings] = useState({
-    autoAssignDeals: true,
-    enableNotifications: true,
-    dealReminder: 24,
-    companyName: "EduChat CRM"
+  // Buscar configurações do sistema
+  const { data: settings, isLoading } = useQuery<SystemSetting[]>({
+    queryKey: ['/api/system-settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-settings');
+      if (!response.ok) throw new Error('Erro ao buscar configurações');
+      return response.json();
+    },
+    enabled: open,
   });
 
-  // Estados para configurações de banco
-  const [databaseSettings, setDatabaseSettings] = useState({
-    autoBackup: true,
-    backupFrequency: 24,
-    retentionDays: 30
+  // Mutation para criar/atualizar configurações
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ key, value, type, description, category }: {
+      key: string;
+      value: string;
+      type: string;
+      description: string;
+      category: string;
+    }) => {
+      const response = await fetch('/api/system-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value, type, description, category })
+      });
+      if (!response.ok) throw new Error('Erro ao salvar configuração');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
+    },
   });
 
-  // Estados para configurações de equipes
-  const [teamSettings, setTeamSettings] = useState({
-    autoAssignment: true,
-    maxDealsPerUser: 10,
-    enableTeamLeaderboard: true
-  });
-
-  // Estados para configurações de notificações
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    slackIntegration: false
-  });
-
-  // Estados para configurações de negócios
-  const [dealSettings, setDealSettings] = useState({
-    defaultProbability: 50,
-    autoMoveStages: false,
-    requireApproval: true
-  });
-
-  const handleSaveSettings = () => {
-    // Simular salvamento das configurações
-    console.log('Salvando configurações:', {
-      general: generalSettings,
-      database: databaseSettings,
-      team: teamSettings,
-      notifications: notificationSettings,
-      deals: dealSettings
-    });
+  // Helper para buscar configuração por chave
+  const getSettingValue = (key: string, defaultValue: any = '') => {
+    if (!settings) return defaultValue;
+    const setting = settings.find(s => s.key === key);
+    if (!setting) return defaultValue;
     
-    // Fechar modal
-    onOpenChange(false);
+    if (setting.type === 'boolean') {
+      return setting.value === 'true';
+    } else if (setting.type === 'number') {
+      return parseInt(setting.value) || defaultValue;
+    }
+    return setting.value || defaultValue;
+  };
+
+  // Helper para salvar configuração
+  const saveSetting = (key: string, value: any, type: string, description: string, category: string) => {
+    const stringValue = typeof value === 'boolean' ? value.toString() : value.toString();
+    updateSettingMutation.mutate({ key, value: stringValue, type, description, category });
   };
 
   return (
@@ -118,256 +136,265 @@ export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
           </TabsList>
 
           <div className="mt-6">
-            <TabsContent value="general" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações Gerais</CardTitle>
-                  <CardDescription>
-                    Configurações básicas do sistema CRM
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Nome da Empresa</Label>
-                    <Input
-                      id="companyName"
-                      value={generalSettings.companyName}
-                      onChange={(e) => setGeneralSettings({...generalSettings, companyName: e.target.value})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Atribuição Automática de Negócios</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Distribui novos negócios automaticamente para a equipe
+            {isLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <RefreshCw className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando configurações...</span>
+              </div>
+            ) : (
+              <>
+                <TabsContent value="general" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações Gerais</CardTitle>
+                      <CardDescription>
+                        Configurações básicas do sistema CRM
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="companyName">Nome da Empresa</Label>
+                        <Input
+                          id="companyName"
+                          value={getSettingValue('crm.company_name', 'EduChat CRM')}
+                          onChange={(e) => saveSetting('crm.company_name', e.target.value, 'string', 'Nome da empresa', 'crm_general')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={generalSettings.autoAssignDeals}
-                      onCheckedChange={(checked) => setGeneralSettings({...generalSettings, autoAssignDeals: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Notificações Ativas</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Habilita sistema de notificações do CRM
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Atribuição Automática de Negócios</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Distribui novos negócios automaticamente para a equipe
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.auto_assign_deals', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.auto_assign_deals', checked, 'boolean', 'Atribuição automática de negócios', 'crm_general')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={generalSettings.enableNotifications}
-                      onCheckedChange={(checked) => setGeneralSettings({...generalSettings, enableNotifications: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label htmlFor="dealReminder">Lembrete de Negócios (horas)</Label>
-                    <Input
-                      id="dealReminder"
-                      type="number"
-                      value={generalSettings.dealReminder}
-                      onChange={(e) => setGeneralSettings({...generalSettings, dealReminder: Number(e.target.value)})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Notificações Ativas</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Habilita sistema de notificações do CRM
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.enable_notifications', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.enable_notifications', checked, 'boolean', 'Notificações ativas', 'crm_general')}
+                        />
+                      </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label htmlFor="dealReminder">Lembrete de Negócios (horas)</Label>
+                        <Input
+                          id="dealReminder"
+                          type="number"
+                          value={getSettingValue('crm.deal_reminder_hours', 24)}
+                          onChange={(e) => saveSetting('crm.deal_reminder_hours', Number(e.target.value), 'number', 'Lembrete de negócios (horas)', 'crm_general')}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-            <TabsContent value="database" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Banco de Dados</CardTitle>
-                  <CardDescription>
-                    Configurações relacionadas ao armazenamento de dados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Backup Automático</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Executa backups automáticos dos dados
+                <TabsContent value="database" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações de Banco de Dados</CardTitle>
+                      <CardDescription>
+                        Configurações relacionadas ao armazenamento de dados
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Backup Automático</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Executa backups automáticos dos dados
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.auto_backup', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.auto_backup', checked, 'boolean', 'Backup automático', 'crm_database')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={databaseSettings.autoBackup}
-                      onCheckedChange={(checked) => setDatabaseSettings({...databaseSettings, autoBackup: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label htmlFor="backupFrequency">Frequência de Backup (horas)</Label>
-                    <Input
-                      id="backupFrequency"
-                      type="number"
-                      value={databaseSettings.backupFrequency}
-                      onChange={(e) => setDatabaseSettings({...databaseSettings, backupFrequency: Number(e.target.value)})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label htmlFor="retentionDays">Retenção de Dados (dias)</Label>
-                    <Input
-                      id="retentionDays"
-                      type="number"
-                      value={databaseSettings.retentionDays}
-                      onChange={(e) => setDatabaseSettings({...databaseSettings, retentionDays: Number(e.target.value)})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label htmlFor="backupFrequency">Frequência de Backup (horas)</Label>
+                        <Input
+                          id="backupFrequency"
+                          type="number"
+                          value={getSettingValue('crm.backup_frequency_hours', 24)}
+                          onChange={(e) => saveSetting('crm.backup_frequency_hours', Number(e.target.value), 'number', 'Frequência de backup (horas)', 'crm_database')}
+                        />
+                      </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label htmlFor="retentionDays">Retenção de Dados (dias)</Label>
+                        <Input
+                          id="retentionDays"
+                          type="number"
+                          value={getSettingValue('crm.retention_days', 30)}
+                          onChange={(e) => saveSetting('crm.retention_days', Number(e.target.value), 'number', 'Retenção de dados (dias)', 'crm_database')}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-            <TabsContent value="teams" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Equipes</CardTitle>
-                  <CardDescription>
-                    Configurações de atribuição automática e gestão de equipes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Atribuição Automática</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Distribui leads automaticamente entre membros da equipe
+                <TabsContent value="teams" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações de Equipes</CardTitle>
+                      <CardDescription>
+                        Configurações de atribuição automática e gestão de equipes
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Atribuição Automática</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Distribui leads automaticamente entre membros da equipe
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.team_auto_assignment', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.team_auto_assignment', checked, 'boolean', 'Atribuição automática de equipe', 'crm_teams')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={teamSettings.autoAssignment}
-                      onCheckedChange={(checked) => setTeamSettings({...teamSettings, autoAssignment: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label htmlFor="maxDeals">Máximo de Negócios por Usuário</Label>
-                    <Input
-                      id="maxDeals"
-                      type="number"
-                      value={teamSettings.maxDealsPerUser}
-                      onChange={(e) => setTeamSettings({...teamSettings, maxDealsPerUser: Number(e.target.value)})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Ranking da Equipe</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Exibe ranking de performance da equipe
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label htmlFor="maxDeals">Máximo de Negócios por Usuário</Label>
+                        <Input
+                          id="maxDeals"
+                          type="number"
+                          value={getSettingValue('crm.max_deals_per_user', 10)}
+                          onChange={(e) => saveSetting('crm.max_deals_per_user', Number(e.target.value), 'number', 'Máximo de negócios por usuário', 'crm_teams')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={teamSettings.enableTeamLeaderboard}
-                      onCheckedChange={(checked) => setTeamSettings({...teamSettings, enableTeamLeaderboard: checked})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Ranking da Equipe</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Exibe ranking de performance da equipe
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.enable_team_leaderboard', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.enable_team_leaderboard', checked, 'boolean', 'Ranking da equipe', 'crm_teams')}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Notificações</CardTitle>
-                  <CardDescription>
-                    Configurações de alertas e notificações do sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Notificações por Email</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Envia alertas importantes por email
+                <TabsContent value="notifications" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações de Notificações</CardTitle>
+                      <CardDescription>
+                        Configurações de alertas e notificações do sistema
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Notificações por Email</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Envia alertas importantes por email
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.email_notifications', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.email_notifications', checked, 'boolean', 'Notificações por email', 'crm_notifications')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={notificationSettings.emailNotifications}
-                      onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, emailNotifications: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Notificações por SMS</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Envia alertas urgentes por SMS
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Notificações por SMS</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Envia alertas urgentes por SMS
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.sms_notifications', false)}
+                          onCheckedChange={(checked) => saveSetting('crm.sms_notifications', checked, 'boolean', 'Notificações por SMS', 'crm_notifications')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={notificationSettings.smsNotifications}
-                      onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, smsNotifications: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Integração com Slack</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Conecta notificações ao Slack da equipe
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Integração com Slack</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Conecta notificações ao Slack da equipe
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.slack_integration', false)}
+                          onCheckedChange={(checked) => saveSetting('crm.slack_integration', checked, 'boolean', 'Integração com Slack', 'crm_notifications')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={notificationSettings.slackIntegration}
-                      onCheckedChange={(checked) => setNotificationSettings({...notificationSettings, slackIntegration: checked})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-            <TabsContent value="deals" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Negócios</CardTitle>
-                  <CardDescription>
-                    Configurações do funil de vendas e gestão de negócios
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="defaultProbability">Probabilidade Padrão (%)</Label>
-                    <Input
-                      id="defaultProbability"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={dealSettings.defaultProbability}
-                      onChange={(e) => setDealSettings({...dealSettings, defaultProbability: Number(e.target.value)})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Movimentação Automática de Estágios</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Move negócios automaticamente entre estágios
+                <TabsContent value="deals" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Configurações de Negócios</CardTitle>
+                      <CardDescription>
+                        Configurações do funil de vendas e gestão de negócios
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="defaultProbability">Probabilidade Padrão (%)</Label>
+                        <Input
+                          id="defaultProbability"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={getSettingValue('crm.default_probability', 50)}
+                          onChange={(e) => saveSetting('crm.default_probability', Number(e.target.value), 'number', 'Probabilidade padrão (%)', 'crm_deals')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={dealSettings.autoMoveStages}
-                      onCheckedChange={(checked) => setDealSettings({...dealSettings, autoMoveStages: checked})}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Aprovação Obrigatória</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Requer aprovação para finalizar negócios de alto valor
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Movimentação Automática de Estágios</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Move negócios automaticamente entre estágios
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.auto_move_stages', false)}
+                          onCheckedChange={(checked) => saveSetting('crm.auto_move_stages', checked, 'boolean', 'Movimentação automática de estágios', 'crm_deals')}
+                        />
                       </div>
-                    </div>
-                    <Switch
-                      checked={dealSettings.requireApproval}
-                      onCheckedChange={(checked) => setDealSettings({...dealSettings, requireApproval: checked})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-base">Aprovação Obrigatória</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Requer aprovação para finalizar negócios de alto valor
+                          </div>
+                        </div>
+                        <Switch
+                          checked={getSettingValue('crm.require_approval', true)}
+                          onCheckedChange={(checked) => saveSetting('crm.require_approval', checked, 'boolean', 'Aprovação obrigatória', 'crm_deals')}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </>
+            )}
           </div>
         </Tabs>
 
@@ -375,9 +402,15 @@ export function CRMSettings({ open, onOpenChange }: CRMSettingsProps) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSaveSettings}>
+          <Button 
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
+              onOpenChange(false);
+            }}
+            disabled={updateSettingMutation.isPending}
+          >
             <Save className="h-4 w-4 mr-2" />
-            Salvar Configurações
+            {updateSettingMutation.isPending ? 'Salvando...' : 'Fechar'}
           </Button>
         </div>
       </DialogContent>
