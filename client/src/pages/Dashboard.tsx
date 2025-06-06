@@ -25,7 +25,7 @@ import {
   MessageCircle,
   UserCheck
 } from 'lucide-react';
-import logoPath from '@assets/ChatGPT Image 26 de mai. de 2025, 00_39_36.png';
+// Logo removido durante limpeza - usando texto simples
 import { useLocation } from 'wouter';
 
 export function Dashboard() {
@@ -296,7 +296,9 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <div className="flex items-center space-x-3">
-                <img src={logoPath} alt="EduChat" className="w-8 h-8" />
+                <div className="w-8 h-8 bg-educhat-primary rounded text-white flex items-center justify-center text-sm font-bold">
+                  E
+                </div>
                 <span className="font-bold text-educhat-dark">EduChat</span>
               </div>
             )}
