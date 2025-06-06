@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
@@ -566,4 +566,5 @@ export function MessageBubble({
         </div>
       </div>
     </div>
-});
+  );
+}
