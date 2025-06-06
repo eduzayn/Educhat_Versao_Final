@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
@@ -54,6 +55,10 @@ export function SalesCoaching() {
   const [editingRecord, setEditingRecord] = useState<CoachingRecord | null>(null);
   
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Controle de acesso: apenas gerentes e administradores podem criar novos registros
+  const canCreateRecords = user?.role === 'Gerente' || user?.role === 'Administrador';
 
   // Buscar dados de coaching
   const { data: coachingData, isLoading } = useQuery({
@@ -178,15 +183,16 @@ export function SalesCoaching() {
             </SelectContent>
           </Select>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingRecord(null)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Registro
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
+          {canCreateRecords && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setEditingRecord(null)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Registro
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
                 <DialogTitle>
                   {editingRecord ? 'Editar Registro' : 'Novo Registro de Coaching'}
                 </DialogTitle>
@@ -266,8 +272,9 @@ export function SalesCoaching() {
                   </Button>
                 </div>
               </form>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
