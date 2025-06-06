@@ -98,10 +98,10 @@ export function CRMPage() {
 }
 
 function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
-  const { user, hasPermission } = useAuth();
+  const { user } = useAuth();
   
-  // Verificar se o usuário pode acessar configurações
-  const canAccessSettings = hasPermission('gerenciar_crm') || user?.role === 'admin';
+  // Verificar se o usuário pode acessar configurações (gerentes e administradores)
+  const canAccessSettings = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
   return (
     <div className="border-b bg-background p-6">
