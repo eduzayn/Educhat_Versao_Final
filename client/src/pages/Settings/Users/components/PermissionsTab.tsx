@@ -271,7 +271,7 @@ export const PermissionsTab = () => {
         <div className="flex gap-2">
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button size="sm" className="bg-educhat-primary hover:bg-educhat-primary/90 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Permissão
               </Button>
