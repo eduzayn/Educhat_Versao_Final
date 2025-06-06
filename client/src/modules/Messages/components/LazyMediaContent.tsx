@@ -1,65 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Download, Play, FileText, Image } from 'lucide-react';
-import { secureLog } from '@/lib/secureLogger';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/shared/ui/ui/button";
+import { Download, Play, FileText, Image } from "lucide-react";
+import { secureLog } from "@/lib/secureLogger";
 
 interface LazyMediaContentProps {
   messageId: number;
-  messageType: 'audio' | 'video' | 'image' | 'document';
+  messageType: "audio" | "video" | "image" | "document";
   conversationId?: number;
   isFromContact: boolean;
   metadata?: any;
   initialContent?: string | null;
 }
 
-export function LazyMediaContent({ messageId, messageType, conversationId, isFromContact, metadata, initialContent }: LazyMediaContentProps) {
+export function LazyMediaContent({
+  messageId,
+  messageType,
+  conversationId,
+  isFromContact,
+  metadata,
+  initialContent,
+}: LazyMediaContentProps) {
   const [content, setContent] = useState<string | null>(initialContent || null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!initialContent);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
-    
+
     setLoading(true);
     secureLog.debug(`Carregando ${messageType}`, { messageId });
-    
+
     try {
       const response = await fetch(`/api/messages/${messageId}/media`);
       if (response.ok) {
         const data = await response.json();
-        
-        // Para imagens, verificar se a URL é válida antes de definir
-        if (messageType === 'image' && data.content) {
-          // Se for URL do WhatsApp, testar se está acessível
-          if (data.content.includes('pps.whatsapp.net')) {
-            try {
-              const imgTest = document.createElement('img');
-              imgTest.onload = () => {
-                setContent(data.content);
-                setLoaded(true);
-                secureLog.image('Imagem WhatsApp carregada', messageId);
-              };
-              imgTest.onerror = () => {
-                secureLog.error('URL WhatsApp expirada', { messageId, url: data.content });
-                setLoaded(true); // Marcar como carregado para não tentar novamente
-              };
-              imgTest.src = data.content;
-            } catch (error) {
-              secureLog.error('Erro ao testar imagem WhatsApp', error);
-              setLoaded(true);
-            }
-          } else {
-            setContent(data.content);
-            setLoaded(true);
-            secureLog.image('Imagem carregada', messageId);
-          }
-        } else {
-          setContent(data.content);
-          setLoaded(true);
-          
-          if (messageType === 'video') {
-            secureLog.debug('Vídeo carregado com sucesso', { messageId });
-          }
+        setContent(data.content);
+        setLoaded(true);
+
+        if (messageType === "video") {
+          secureLog.debug("Vídeo carregado com sucesso", { messageId });
+        } else if (messageType === "image") {
+          secureLog.image("Carregada com sucesso", messageId);
         }
       } else {
         secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
@@ -72,34 +53,19 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
   };
 
   const renderMediaPreview = () => {
-    const fileName = metadata?.fileName || metadata?.caption || 'Arquivo';
-    
+    const fileName = metadata?.fileName || metadata?.caption || "Arquivo";
+
     switch (messageType) {
-      case 'image':
+      case "image":
         if (content) {
           return (
             <div className="relative max-w-xs">
-              <img 
-                src={content} 
+              <img
+                src={content}
                 alt="Imagem enviada"
                 className="rounded-lg max-w-full h-auto cursor-pointer"
-                onClick={() => window.open(content, '_blank')}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-                onLoad={() => secureLog.image('Imagem carregada', messageId)}
+                onClick={() => window.open(content, "_blank")}
               />
-              <div 
-                className="hidden items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                style={{ display: 'none' }}
-              >
-                <Image className="w-5 h-5" />
-                <span className="text-sm">Imagem indisponível</span>
-                <span className="text-xs text-gray-500">Link expirado</span>
-              </div>
             </div>
           );
         }
@@ -107,18 +73,18 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Image className="w-5 h-5" />
             <span className="text-sm">Imagem: {fileName}</span>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={loadMediaContent}
               disabled={loading}
             >
-              {loading ? 'Carregando...' : 'Ver imagem'}
+              {loading ? "Carregando..." : "Ver imagem"}
             </Button>
           </div>
         );
 
-      case 'audio':
+      case "audio":
         if (content) {
           return (
             <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -134,29 +100,35 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
         return (
           <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <Play className="w-5 h-5" />
-            <span className="text-sm">Áudio: {metadata?.duration || 'Duração desconhecida'}</span>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <span className="text-sm">
+              Áudio: {metadata?.duration || "Duração desconhecida"}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={loadMediaContent}
               disabled={loading}
             >
-              {loading ? 'Carregando...' : 'Reproduzir'}
+              {loading ? "Carregando..." : "Reproduzir"}
             </Button>
           </div>
         );
 
-      case 'video':
+      case "video":
         if (content) {
           return (
             <div className="relative max-w-xs">
-              <video 
-                controls 
+              <video
+                controls
                 className="rounded-lg max-w-full h-auto"
                 preload="metadata"
-                style={{ maxHeight: '300px' }}
-                onError={() => secureLog.error('Erro ao carregar vídeo', { messageId })}
-                onLoadedData={() => secureLog.debug('Vídeo carregado', { messageId })}
+                style={{ maxHeight: "300px" }}
+                onError={() =>
+                  secureLog.error("Erro ao carregar vídeo", { messageId })
+                }
+                onLoadedData={() =>
+                  secureLog.debug("Vídeo carregado", { messageId })
+                }
               >
                 <source src={content} type="video/mp4" />
                 <source src={content} type="video/webm" />
@@ -170,39 +142,39 @@ export function LazyMediaContent({ messageId, messageType, conversationId, isFro
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Play className="w-5 h-5" />
             <span className="text-sm">Vídeo: {fileName}</span>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={loadMediaContent}
               disabled={loading}
             >
-              {loading ? 'Carregando...' : 'Reproduzir'}
+              {loading ? "Carregando..." : "Reproduzir"}
             </Button>
           </div>
         );
 
-      case 'document':
+      case "document":
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <FileText className="w-5 h-5" />
             <span className="text-sm">Documento: {fileName}</span>
             {content ? (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.open(content, '_blank')}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(content, "_blank")}
               >
                 <Download className="w-4 h-4 mr-1" />
                 Baixar
               </Button>
             ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={loadMediaContent}
                 disabled={loading}
               >
-                {loading ? 'Carregando...' : 'Carregar'}
+                {loading ? "Carregando..." : "Carregar"}
               </Button>
             )}
           </div>

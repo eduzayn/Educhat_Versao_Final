@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/ui/button';
 import { Play, Pause, Volume2 } from 'lucide-react';
 
 interface AudioMessageSimpleProps {
