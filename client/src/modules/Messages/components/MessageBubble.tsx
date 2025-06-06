@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/ui/avatar";
 import { Button } from "@/shared/ui/ui/button";
 import {
@@ -28,6 +28,7 @@ interface MessageBubbleProps {
   channelIcon?: string;
   channelColor?: string;
   conversationId?: number;
+  onReply?: (message: Message) => void;
 }
 
 // Função auxiliar para formatar o horário
@@ -288,6 +289,7 @@ export function MessageBubble({
   channelIcon,
   channelColor,
   conversationId,
+  onReply,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
   
@@ -569,6 +571,55 @@ export function MessageBubble({
 
       <div className={bubbleWrapperClasses}>
         {renderMessageContent()}
+
+        {/* Ações da mensagem - Botões de Responder e Excluir */}
+        {contact.phone && conversationId && (
+          <div className={`flex gap-1 mt-1 ${isFromContact ? 'justify-start' : 'justify-end'}`}>
+            {/* Botão de Responder - apenas para mensagens do contato */}
+            {isFromContact && onReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onReply(message)}
+                className="h-6 px-2 text-xs opacity-60 hover:opacity-100"
+              >
+                <Reply className="w-3 h-3 mr-1" />
+                Responder
+              </Button>
+            )}
+            
+            {/* Botão de Excluir - apenas para mensagens enviadas pelo agente e dentro de 7 minutos */}
+            {!isFromContact && canDelete() && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isDeleting}
+                    className="h-6 px-2 text-xs opacity-60 hover:opacity-100 text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    {isDeleting ? "Excluindo..." : "Excluir"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir mensagem</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteMessage}>
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        )}
 
         {/* Reações e informações da mensagem */}
         <div className="flex flex-col gap-1 mt-1">
