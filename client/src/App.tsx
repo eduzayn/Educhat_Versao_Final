@@ -23,6 +23,7 @@ import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
+import { ProfilePage } from "@/pages/ProfilePage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -80,6 +81,9 @@ function Router() {
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/chat-interno" component={InternalChatPage} />
+          <Route path="/profile">
+            {() => <ProtectedRoute component={ProfilePage} />}
+          </Route>
           <Route component={NotFound} />
         </>
       )}
