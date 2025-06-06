@@ -7,7 +7,14 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import type { User } from '@shared/schema';
+
+// Interface para o usuário no contexto de chat interno
+interface ChatUser {
+  id: number;
+  username: string;
+  displayName: string;
+  avatar?: string;
+}
 
 const QUICK_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
 
@@ -33,6 +40,9 @@ export function ChatInput() {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Garantir que temos user tipado corretamente
+  const currentUser = user as ChatUser | undefined;
+
   const filteredCommands = COMMANDS.filter(cmd => 
     message.startsWith('/') && cmd.command.toLowerCase().includes(message.toLowerCase())
   );
@@ -48,32 +58,39 @@ export function ChatInput() {
 
   // Indicador de digitação
   useEffect(() => {
-    if (!activeChannel || !user) return;
+    if (!activeChannel || !currentUser) return;
 
     let typingTimer: NodeJS.Timeout;
 
     if (message.trim()) {
       setTyping({
-        userId: user.id,
-        userName: user.displayName || user.username || 'Usuário',
+        userId: currentUser.id,
+        userName: currentUser.displayName || currentUser.username || 'Usuário',
         channelId: activeChannel,
         timestamp: new Date()
       });
 
       typingTimer = setTimeout(() => {
-        removeTyping(user.id, activeChannel);
+        removeTyping(currentUser.id, activeChannel);
       }, 3000);
     } else {
-      removeTyping(user.id, activeChannel);
+      removeTyping(currentUser.id, activeChannel);
     }
 
     return () => {
       if (typingTimer) clearTimeout(typingTimer);
-      if (activeChannel && user) {
-        removeTyping(user.id, activeChannel);
+      if (activeChannel && currentUser) {
+        removeTyping(currentUser.id, activeChannel);
       }
     };
-  }, [message, activeChannel, user]);
+  }, [message, activeChannel, currentUser]);
+
+  // Cleanup quando componente é desmontado
+  useEffect(() => {
+    return () => {
+      cleanupRecording();
+    };
+  }, []);
 
   const startRecording = async () => {
     if (isRecording) return; // Evita múltiplas gravações simultâneas
@@ -196,7 +213,7 @@ export function ChatInput() {
   };
 
   const handleAudioMessage = (audioBlob: Blob) => {
-    if (!activeChannel || !user) return;
+    if (!activeChannel || !currentUser) return;
 
     const audioUrl = URL.createObjectURL(audioBlob);
     const duration = recordingTime;
@@ -204,9 +221,9 @@ export function ChatInput() {
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       channelId: activeChannel,
-      userId: user.id,
-      userName: user.displayName || user.username || 'Usuário',
-      userAvatar: user.avatar,
+      userId: currentUser.id,
+      userName: currentUser.displayName || currentUser.username || 'Usuário',
+      userAvatar: currentUser.avatar,
       content: `Áudio (${duration}s)`,
       messageType: 'file' as const,
       timestamp: new Date(),
@@ -223,7 +240,7 @@ export function ChatInput() {
   };
 
   const handleSendMessage = () => {
-    if (!message.trim() || !activeChannel || !user?.id) return;
+    if (!message.trim() || !activeChannel || !currentUser) return;
 
     const messageContent = message.trim();
     let messageType: 'text' | 'reminder' = 'text';
@@ -260,9 +277,9 @@ export function ChatInput() {
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       channelId: activeChannel,
-      userId: user.id,
-      userName: user.displayName || user.username || 'Usuário',
-      userAvatar: user.avatar,
+      userId: currentUser.id,
+      userName: currentUser.displayName || currentUser.username || 'Usuário',
+      userAvatar: currentUser.avatar,
       content: finalContent,
       messageType,
       timestamp: new Date(),
@@ -427,11 +444,8 @@ export function ChatInput() {
           variant={isRecording ? "destructive" : "ghost"}
           size="icon"
           className="h-10 w-10 flex-shrink-0"
-          onMouseDown={startRecording}
-          onMouseUp={stopRecording}
-          onMouseLeave={stopRecording}
-          onTouchStart={startRecording}
-          onTouchEnd={stopRecording}
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={!currentUser || !activeChannel}
         >
           {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
