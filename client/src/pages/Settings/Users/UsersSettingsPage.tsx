@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
+import { Button } from '@/shared/ui/ui/button';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
-import { TestModal } from '@/components/TestModal';
+import { SimpleModal } from '@/components/SimpleModal';
 import { UsersTab } from './components/UsersTab';
 import { RolesTab } from './components/RolesTab';
 import { TeamsTab } from './components/TeamsTab';
