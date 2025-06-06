@@ -53,9 +53,13 @@ function Router() {
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
-          <Route path="/bi" component={BIPage} />
+          <Route path="/bi">
+            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={BIPage} />}
+          </Route>
           <Route path="/reports" component={ReportsPage} />
-          <Route path="/integrations" component={IntegrationsPage} />
+          <Route path="/integrations">
+            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={IntegrationsPage} />}
+          </Route>
           <Route path="/settings">
             {() => <ProtectedRoute component={SettingsPage} />}
           </Route>

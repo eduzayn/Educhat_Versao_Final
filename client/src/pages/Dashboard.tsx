@@ -86,14 +86,16 @@ export function Dashboard() {
       label: 'Business Intelligence',
       icon: BarChart3,
       description: 'Análises e produtividade',
-      route: '/bi'
+      route: '/bi',
+      managerOrAdminOnly: true
     },
     {
       id: 'integrations',
       label: 'Integrações',
       icon: Zap,
       description: 'Canais e APIs',
-      route: '/integrations'
+      route: '/integrations',
+      managerOrAdminOnly: true
     },
     {
       id: 'reports',
@@ -116,6 +118,10 @@ export function Dashboard() {
   const menuItems = allMenuItems.filter(item => {
     if (item.adminOnly) {
       return (user as any)?.role === 'admin';
+    }
+    if (item.managerOrAdminOnly) {
+      const userRole = (user as any)?.role;
+      return userRole === 'admin' || userRole === 'gerente';
     }
     return true;
   });

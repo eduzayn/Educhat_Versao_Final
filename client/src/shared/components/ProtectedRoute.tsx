@@ -14,7 +14,7 @@ interface User {
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
   component?: React.ComponentType;
 }
 
@@ -24,7 +24,15 @@ export function ProtectedRoute({ children, requiredRole = 'admin', component: Co
   const hasPermission = useMemo(() => {
     if (isLoading) return null;
     if (!requiredRole) return true;
-    return (user as User)?.role === requiredRole;
+    
+    const userRole = (user as User)?.role;
+    if (!userRole) return false;
+    
+    if (Array.isArray(requiredRole)) {
+      return requiredRole.includes(userRole);
+    }
+    
+    return userRole === requiredRole;
   }, [user, isLoading, requiredRole]);
 
   if (hasPermission === null) {
