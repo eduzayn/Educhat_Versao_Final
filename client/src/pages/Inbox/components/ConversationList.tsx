@@ -208,7 +208,7 @@ export function ConversationList({
                       <div className="flex items-center gap-2">
                         {getStatusBadge(conversation.status || 'open')}
                         {(conversation.unreadCount || 0) > 0 && (
-                          <Badge variant="destructive" className="text-xs">
+                          <Badge variant="destructive" className="text-xs unread-badge">
                             {conversation.unreadCount}
                           </Badge>
                         )}

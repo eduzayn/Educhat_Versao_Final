@@ -66,7 +66,7 @@ export function ChannelSidebar() {
           <h2 className="text-lg font-semibold">Chat Interno</h2>
           <div className="flex items-center gap-2">
             {totalUnread > 0 && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs unread-badge">
                 {totalUnread}
               </Badge>
             )}

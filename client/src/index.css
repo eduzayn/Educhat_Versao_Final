@@ -49,32 +49,8 @@
   border-radius: 3px;
 }
 
-/* Override blue notification badges to use gray theme */
-.bg-blue-500,
-.bg-blue-600,
-.bg-blue-700 {
-  background-color: hsl(var(--muted-foreground)) !important;
-}
-
-.text-blue-500,
-.text-blue-600,
-.text-blue-700,
-.text-blue-800 {
-  color: hsl(var(--background)) !important;
-}
-
-.bg-blue-100 {
-  background-color: hsl(var(--muted)) !important;
-}
-
-.text-blue-100 {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-/* Force all notification badges to use gray theme */
-.badge,
-[class*="bg-blue"],
-[class*="text-blue"] {
+/* Override only unread count badges to use gray theme - preserve channel/sector color badges */
+.unread-badge {
   background-color: hsl(var(--muted-foreground)) !important;
   color: hsl(var(--background)) !important;
 }
