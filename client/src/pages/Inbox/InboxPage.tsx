@@ -8,13 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Separator } from '@/shared/ui/ui/separator';
 import { BackButton } from '@/shared/components/BackButton';
+import { ContactDialog } from '@/shared/components/ContactDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/ui/form';
 import { Link } from 'wouter';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { insertContactSchema } from '@shared/schema';
-import type { InsertContact } from '@shared/schema';
 import { 
   Search, 
   Filter,
@@ -53,8 +49,6 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
-import { ContactDialog } from '@/shared/components/ContactDialog';
-import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
