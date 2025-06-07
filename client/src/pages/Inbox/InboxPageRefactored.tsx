@@ -60,6 +60,8 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
+import { EmptyConversationState } from './components/EmptyConversationState';
+import { InputAreaWrapper } from './components/InputAreaWrapper';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -518,18 +520,10 @@ export function InboxPageRefactored() {
             />
 
             {/* Área de Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
-              <InputArea />
-            </div>
+            <InputAreaWrapper />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">Selecione uma conversa</h3>
-              <p>Escolha uma conversa da lista para começar a responder</p>
-            </div>
-          </div>
+          <EmptyConversationState />
         )}
       </div>
 
