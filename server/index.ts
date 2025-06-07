@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { registerInternalChatRoutes } from "./internal-chat-routes";
 import { registerMediaRoutes } from "./media-routes";
-import { ZApiModule } from "./zapi-module";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
@@ -37,8 +36,6 @@ app.use(cors({
 
 // Servir arquivos estáticos de upload
 app.use('/uploads', express.static('uploads'));
-
-// Webhook será registrado em routes.ts com acesso correto ao storage
 
 app.use((req, res, next) => {
   const start = Date.now();

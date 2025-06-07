@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 interface BreadcrumbItem {
   label: string;
   href?: string;
+  isCurrentPage?: boolean;
 }
 
 interface BreadcrumbsProps {
@@ -15,45 +16,31 @@ interface BreadcrumbsProps {
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   const [location] = useLocation();
 
-  // Gerar breadcrumbs automaticamente baseado na URL se não fornecido
+  // Auto-generate breadcrumbs from URL if items not provided
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
-    const paths = location.split('/').filter(Boolean);
+    const pathSegments = location.split('/').filter(Boolean);
     const breadcrumbs: BreadcrumbItem[] = [
       { label: 'Dashboard', href: '/' }
     ];
 
     let currentPath = '';
-    paths.forEach((path, index) => {
-      currentPath += `/${path}`;
+    pathSegments.forEach((segment, index) => {
+      currentPath += `/${segment}`;
+      const isLast = index === pathSegments.length - 1;
       
-      // Mapear nomes amigáveis
-      const friendlyNames: Record<string, string> = {
-        'inbox': 'Caixa de Entrada',
-        'contacts': 'Contatos',
-        'crm': 'CRM',
-        'bi': 'Business Intelligence',
-        'reports': 'Relatórios',
-        'integrations': 'Integrações',
-        'settings': 'Configurações',
-        'channels': 'Canais',
-        'users': 'Usuários',
-        'quick-replies': 'Respostas Rápidas',
-        'webhooks': 'Webhooks',
-        'ai-detection': 'Detecção IA',
-        'chat-interno': 'Chat Interno',
-        'profile': 'Perfil',
-        'admin': 'Administração',
-        'permissions': 'Permissões'
-      };
+      // Convert segment to readable label
+      const label = segment
+        .replace(/-/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
-      const label = friendlyNames[path] || path.charAt(0).toUpperCase() + path.slice(1);
-      
-      // Se é o último item, não adiciona href (página atual)
-      if (index === paths.length - 1) {
-        breadcrumbs.push({ label });
-      } else {
-        breadcrumbs.push({ label, href: currentPath });
-      }
+      breadcrumbs.push({
+        label,
+        href: isLast ? undefined : currentPath,
+        isCurrentPage: isLast
+      });
     });
 
     return breadcrumbs;
@@ -61,25 +48,28 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 
   const breadcrumbItems = items || generateBreadcrumbs();
 
+  if (breadcrumbItems.length <= 1) {
+    return null;
+  }
+
   return (
-    <nav className={cn("flex items-center space-x-1 text-sm text-muted-foreground", className)}>
+    <nav className={cn("flex items-center space-x-2 text-sm text-gray-600", className)}>
+      <Home className="w-4 h-4" />
       {breadcrumbItems.map((item, index) => (
-        <div key={index} className="flex items-center">
-          {index === 0 && <Home className="w-4 h-4 mr-1" />}
-          
-          {item.href ? (
-            <Link 
-              href={item.href}
-              className="hover:text-foreground transition-colors"
-            >
-              {item.label}
+        <div key={index} className="flex items-center space-x-2">
+          {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+          {item.href && !item.isCurrentPage ? (
+            <Link href={item.href}>
+              <span className="hover:text-educhat-primary cursor-pointer transition-colors">
+                {item.label}
+              </span>
             </Link>
           ) : (
-            <span className="text-foreground font-medium">{item.label}</span>
-          )}
-          
-          {index < breadcrumbItems.length - 1 && (
-            <ChevronRight className="w-4 h-4 mx-2 text-muted-foreground/50" />
+            <span className={cn(
+              item.isCurrentPage ? "text-educhat-primary font-medium" : "text-gray-900"
+            )}>
+              {item.label}
+            </span>
           )}
         </div>
       ))}

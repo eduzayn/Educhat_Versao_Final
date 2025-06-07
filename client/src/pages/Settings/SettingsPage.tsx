@@ -1,43 +1,55 @@
 import { SettingsModule } from '@/modules/Settings';
 import { Card } from '@/shared/ui/ui/card';
 import { BackButton } from '@/shared/components/BackButton';
-import { Link } from 'wouter';
 
 const settingsCards = [
   {
     title: "Canais de Comunicação",
     description: "WhatsApp, Telegram, SMS e outras integrações",
     href: "/settings/channels",
-    icon: "📱",
-    implemented: true
+    icon: "📱"
   },
   {
     title: "Usuários e Equipes",
     description: "Gerenciamento de usuários, funções e equipes",
     href: "/settings/users",
-    icon: "👥",
-    implemented: true
+    icon: "👥"
   },
   {
     title: "Respostas Rápidas",
     description: "Configurar mensagens pré-definidas e templates",
     href: "/settings/quick-replies",
-    icon: "⚡",
-    implemented: true
+    icon: "⚡"
   },
   {
     title: "Webhook",
     description: "Configurações de webhook para Z-API",
-    href: "/settings/webhooks",
-    icon: "🔗",
-    implemented: true
+    href: "/settings/webhook",
+    icon: "🔗"
   },
   {
-    title: "Detecção IA",
-    description: "Configurações de detecção automática por IA",
-    href: "/settings/ai-detection",
-    icon: "🤖",
-    implemented: true
+    title: "Perfil da Empresa",
+    description: "Informações básicas, logo, contato",
+    href: "/settings/company",
+    icon: "👤"
+  },
+  {
+    title: "Integrações",
+    description: "APIs externas, CRM, automações",
+    href: "/settings/integrations",
+    icon: "🔌"
+  },
+  {
+    title: "Notificações",
+    description: "Configurações de alertas e notificações",
+    href: "/settings/notifications",
+    icon: "🔔"
+  },
+  {
+    title: "Segurança",
+    description: "Permissões, autenticação e logs",
+    href: "/settings/security",
+    icon: "🔒"
   }
 ];
 
@@ -61,12 +73,12 @@ function SettingsPage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-lg mb-2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4">{card.description}</p>
-                  <Link 
-                    href={card.href}
+                  <a 
+                    href={card.href} 
                     className="text-primary text-sm font-medium hover:underline"
                   >
                     Acessar configurações →
-                  </Link>
+                  </a>
                 </div>
               </div>
             </Card>
