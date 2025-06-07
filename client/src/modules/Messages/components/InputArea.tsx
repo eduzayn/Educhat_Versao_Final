@@ -901,19 +901,28 @@ export function InputArea() {
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-80 p-0 z-40" align="end">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-semibold">Emojis</h4>
-                {activeConversation?.contact.phone && (
-                  <span className="text-xs text-gray-500">
-                    Clique para inserir ou → para enviar
-                  </span>
-                )}
+          <PopoverContent className="w-96 p-0 z-40 glass-effect shadow-2xl rounded-2xl border-0" align="end">
+            <div className="p-6">
+              {/* Header elegante com gradiente e ícone animado */}
+              <div className="relative mb-6 pb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-educhat-primary/10 via-blue-500/10 to-purple-500/10 rounded-xl -mx-3 -my-2"></div>
+                <div className="relative flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-gray-800 flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-educhat-primary to-blue-500 rounded-full">
+                      <Smile className="w-4 h-4 text-white" />
+                    </div>
+                    Emojis & Reações
+                  </h4>
+                  {activeConversation?.contact.phone && (
+                    <span className="text-xs text-gray-600 bg-white/80 px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+                      Clique • ou → para reação
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Navegação por categorias */}
-              <div className="flex flex-wrap gap-1 mb-4 pb-2 border-b">
+              {/* Navegação por categorias com design sofisticado */}
+              <div className="flex flex-wrap gap-2 mb-6">
                 {Object.keys(EMOJI_CATEGORIES).map((category) => (
                   <Button
                     key={category}
@@ -921,10 +930,10 @@ export function InputArea() {
                     size="sm"
                     onClick={() => setActiveEmojiCategory(category)}
                     className={cn(
-                      "text-xs px-3 py-1 h-8 rounded-full transition-all",
+                      "text-xs px-4 py-2 h-9 rounded-full font-semibold transition-all duration-300 transform",
                       activeEmojiCategory === category 
-                        ? "bg-educhat-primary text-white shadow-sm" 
-                        : "hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-educhat-primary via-blue-500 to-purple-500 text-white shadow-xl shadow-educhat-primary/30 scale-110 border-0" 
+                        : "bg-white/70 hover:bg-white text-gray-700 hover:scale-105 hover:shadow-lg border border-gray-200 hover:border-educhat-primary/30"
                     )}
                   >
                     {category}
@@ -932,16 +941,16 @@ export function InputArea() {
                 ))}
               </div>
 
-              {/* Grid de emojis da categoria ativa */}
-              <div className="max-h-56 overflow-y-auto pr-1">
-                <div className="grid grid-cols-8 gap-2">
+              {/* Grid de emojis com animações elegantes */}
+              <div className="max-h-72 overflow-y-auto pr-2 scrollbar-thin">
+                <div className="grid grid-cols-9 gap-2 emoji-grid-enter">
                   {EMOJI_CATEGORIES[activeEmojiCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
-                    <div key={index} className="flex flex-col items-center gap-1">
+                    <div key={`${activeEmojiCategory}-${index}`} className="flex flex-col items-center gap-1.5">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => insertEmoji(emoji)}
-                        className="h-9 w-9 p-0 text-lg hover:bg-gray-100 rounded-lg transition-colors"
+                        className="emoji-button-hover h-11 w-11 p-0 text-xl bg-white/50 hover:bg-gradient-to-br hover:from-white hover:to-gray-50 rounded-xl transition-all duration-300 hover:scale-125 hover:shadow-xl hover:shadow-gray-200/50 border border-gray-100 hover:border-educhat-primary/30"
                         title={`Inserir ${emoji} no texto`}
                       >
                         {emoji}
@@ -951,7 +960,7 @@ export function InputArea() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleQuickReaction(emoji)}
-                          className="h-5 w-9 p-0 text-xs text-educhat-primary hover:bg-educhat-primary hover:text-white rounded-md transition-all"
+                          className="h-6 w-11 p-0 text-xs bg-gradient-to-r from-educhat-primary/15 via-blue-500/15 to-purple-500/15 text-educhat-primary hover:from-educhat-primary hover:via-blue-500 hover:to-purple-500 hover:text-white rounded-lg transition-all duration-300 hover:scale-110 hover:shadow-lg border border-educhat-primary/20 hover:border-0"
                           title={`Enviar reação ${emoji}`}
                           disabled={sendQuickReactionMutation.isPending}
                         >
@@ -963,9 +972,16 @@ export function InputArea() {
                 </div>
               </div>
 
+              {/* Info elegante para contatos sem WhatsApp */}
               {!activeConversation?.contact.phone && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-700 text-center">
-                  Reações do WhatsApp disponíveis apenas para contatos com número
+                <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-200/50 rounded-2xl text-sm text-amber-800 text-center shadow-lg">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="p-1.5 bg-amber-100 rounded-full">
+                      <span className="text-lg">💡</span>
+                    </div>
+                    <span className="font-semibold">Reações WhatsApp</span>
+                  </div>
+                  <span className="text-xs text-amber-700">Disponíveis apenas para contatos com número</span>
                 </div>
               )}
             </div>
