@@ -56,6 +56,7 @@ import { ConversationAssignmentDropdown } from './components/ConversationAssignm
 import { CreateContactModal } from './components/CreateContactModal';
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
+import { ConversationListHeader } from './components/ConversationListHeader';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -442,57 +443,14 @@ export function InboxPageRefactored() {
       {/* Lista de Conversas */}
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <BackButton to="/" label="Dashboard" className="mb-3" />
-          
-          {/* Header simplificado */}
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
-            <div className="flex items-center gap-2">
-              <ZApiStatusIndicator />
-              <Button 
-                size="sm" 
-                variant="outline"
-                title="Novo contato"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Aviso quando Z-API não está conectada */}
-          {!isWhatsAppAvailable && (
-            <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-md">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
-                <span className="text-xs text-amber-700">
-                  WhatsApp desconectado
-                </span>
-              </div>
-            </div>
-          )}
-          
-          {/* Busca */}
-          <div className="relative mb-3">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Buscar conversas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-9"
-            />
-          </div>
-          
-          {/* Abas simplificadas */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 h-8">
-              <TabsTrigger value="inbox" className="text-xs">Entrada</TabsTrigger>
-              <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
-              <TabsTrigger value="resolved" className="text-xs">Resolvidas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <ConversationListHeader
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          isWhatsAppAvailable={isWhatsAppAvailable}
+          onTabChange={setActiveTab}
+          onSearchChange={setSearchTerm}
+          onNewContactClick={() => setIsModalOpen(true)}
+        />
 
         {/* Filtros compactos */}
         <ConversationFilters
