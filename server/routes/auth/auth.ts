@@ -70,7 +70,16 @@ export function setupAuth(app: Express) {
             return done(null, false, { message: "Credenciais inválidas" });
           }
 
-          const isMatch = await comparePasswords(password, systemUser.password);
+          // Check if password is hashed (starts with $2b$) or plain text
+          let isMatch = false;
+          if (systemUser.password.startsWith('$2b$')) {
+            // Hashed password - use bcrypt comparison
+            isMatch = await comparePasswords(password, systemUser.password);
+          } else {
+            // Plain text password - direct comparison (temporary for migration)
+            isMatch = password === systemUser.password;
+          }
+          
           if (!isMatch) {
             return done(null, false, { message: "Credenciais inválidas" });
           }
