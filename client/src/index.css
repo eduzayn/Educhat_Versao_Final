@@ -55,6 +55,20 @@
   color: hsl(var(--background)) !important;
 }
 
+/* Override specific blue circular unread count badges that show notification numbers */
+.bg-blue-500,
+.bg-blue-600 {
+  background-color: hsl(var(--muted-foreground)) !important;
+  color: hsl(var(--background)) !important;
+}
+
+/* But preserve blue colors for channel/sector badges that contain text */
+.bg-blue-100.text-blue-700,
+.bg-blue-100.text-blue-800 {
+  background-color: rgb(219 234 254) !important;
+  color: rgb(29 78 216) !important;
+}
+
 /* Custom scrollbar styles for emoji reactions */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
