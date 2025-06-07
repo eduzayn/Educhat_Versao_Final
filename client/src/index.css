@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 98%; /* #FAFAFA */
-  --foreground: 0 0% 20%; /* #333333 */
-  --muted: 0 0% 96%; /* #F5F5F5 */
-  --muted-foreground: 0 0% 45%; /* #737373 */
+  --background: 210 20% 98%; /* #F8FAFC */
+  --foreground: 215 25% 27%; /* #334155 */
+  --muted: 210 40% 95%; /* #F1F5F9 */
+  --muted-foreground: 215 16% 47%; /* #64748B */
   --popover: 0 0% 100%; /* #FFFFFF */
-  --popover-foreground: 0 0% 20%; /* #333333 */
+  --popover-foreground: 215 25% 27%; /* #334155 */
   --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 0 0% 20%; /* #333333 */
-  --border: 0 0% 90%; /* #E5E5E5 */
-  --input: 0 0% 90%; /* #E5E5E5 */
-  --primary: 0 0% 45%; /* #737373 */
-  --primary-foreground: 0 0% 98%; /* #FAFAFA */
-  --secondary: 0 0% 96%; /* #F5F5F5 */
-  --secondary-foreground: 0 0% 20%; /* #333333 */
-  --accent: 0 0% 96%; /* #F5F5F5 */
-  --accent-foreground: 0 0% 20%; /* #333333 */
+  --card-foreground: 215 25% 27%; /* #334155 */
+  --border: 214 32% 91%; /* #E2E8F0 */
+  --input: 214 32% 91%; /* #E2E8F0 */
+  --primary: 217 91% 60%; /* #3B82F6 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 210 40% 96%; /* #F1F5F9 */
+  --secondary-foreground: 215 25% 27%; /* #334155 */
+  --accent: 210 40% 96%; /* #F1F5F9 */
+  --accent-foreground: 215 25% 27%; /* #334155 */
   --destructive: 0 84% 60%; /* #EF4444 */
   --destructive-foreground: 0 0% 98%; /* #FAFAFA */
-  --ring: 0 0% 45%; /* #737373 */
+  --ring: 217 91% 60%; /* #3B82F6 */
   --radius: 0.5rem;
 
-  /* EduChat specific colors - Professional Gray Theme */
-  --educhat-primary: 0 0% 45%; /* #737373 */
-  --educhat-secondary: 0 0% 60%; /* #999999 */
-  --educhat-dark: 0 0% 20%; /* #333333 */
-  --educhat-medium: 0 0% 45%; /* #737373 */
-  --educhat-light: 0 0% 98%; /* #FAFAFA */
-  --educhat-accent: 0 0% 85%; /* #D9D9D9 */
+  /* EduChat specific colors - Professional Blue Theme */
+  --educhat-primary: 217 91% 60%; /* #3B82F6 */
+  --educhat-secondary: 215 70% 70%; /* #7DD3FC */
+  --educhat-dark: 215 25% 27%; /* #334155 */
+  --educhat-medium: 215 16% 47%; /* #64748B */
+  --educhat-light: 210 20% 98%; /* #F8FAFC */
+  --educhat-accent: 210 40% 95%; /* #F1F5F9 */
   --educhat-success: 142 71% 45%; /* #22C55E */
 }
 
@@ -49,46 +49,10 @@
   border-radius: 3px;
 }
 
-/* Override only unread count badges to use gray theme - preserve channel/sector color badges */
+/* Notification badges with primary theme colors */
 .unread-badge {
-  background-color: hsl(var(--muted-foreground)) !important;
-  color: hsl(var(--background)) !important;
-}
-
-/* Force all blue notification badges to gray with maximum specificity */
-*[class*="bg-blue-5"]:not([class*="text-blue-7"]):not([class*="text-blue-8"]),
-*[class*="bg-blue-6"]:not([class*="text-blue-7"]):not([class*="text-blue-8"]),
-span.bg-blue-500,
-div.bg-blue-500,
-.bg-blue-500.rounded-full,
-.bg-blue-600.rounded-full,
-.bg-blue-500:not(.text-blue-700):not(.text-blue-800),
-.bg-blue-600:not(.text-blue-700):not(.text-blue-800) {
-  background-color: hsl(var(--muted-foreground)) !important;
-  color: hsl(var(--background)) !important;
-}
-
-/* Catch any inline styles or computed blue backgrounds */
-[style*="background-color: rgb(59, 130, 246)"],
-[style*="background-color: rgb(37, 99, 235)"],
-[style*="background: rgb(59, 130, 246)"],
-[style*="background: rgb(37, 99, 235)"] {
-  background-color: hsl(var(--muted-foreground)) !important;
-  color: hsl(var(--background)) !important;
-}
-
-/* Universal override for any remaining blue-500/600 classes */
-.bg-blue-500,
-.bg-blue-600 {
-  background-color: hsl(var(--muted-foreground)) !important;
-  color: hsl(var(--background)) !important;
-}
-
-/* But preserve blue colors for channel/sector badges that contain text */
-.bg-blue-100.text-blue-700,
-.bg-blue-100.text-blue-800 {
-  background-color: rgb(219 234 254) !important;
-  color: rgb(29 78 216) !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 /* Custom scrollbar styles for emoji reactions */
@@ -148,33 +112,33 @@ div.bg-blue-500,
 }
 
 .dark {
-  --background: 0 0% 8%; /* #141414 */
-  --foreground: 0 0% 85%; /* #D9D9D9 */
-  --muted: 0 0% 15%; /* #262626 */
-  --muted-foreground: 0 0% 60%; /* #999999 */
-  --popover: 0 0% 8%; /* #141414 */
-  --popover-foreground: 0 0% 85%; /* #D9D9D9 */
-  --card: 0 0% 8%; /* #141414 */
-  --card-foreground: 0 0% 85%; /* #D9D9D9 */
-  --border: 0 0% 20%; /* #333333 */
-  --input: 0 0% 20%; /* #333333 */
-  --primary: 0 0% 60%; /* #999999 */
-  --primary-foreground: 0 0% 8%; /* #141414 */
-  --secondary: 0 0% 15%; /* #262626 */
-  --secondary-foreground: 0 0% 85%; /* #D9D9D9 */
-  --accent: 0 0% 15%; /* #262626 */
-  --accent-foreground: 0 0% 85%; /* #D9D9D9 */
+  --background: 215 28% 17%; /* #1E293B */
+  --foreground: 210 40% 95%; /* #F1F5F9 */
+  --muted: 215 25% 27%; /* #334155 */
+  --muted-foreground: 215 16% 65%; /* #94A3B8 */
+  --popover: 215 28% 17%; /* #1E293B */
+  --popover-foreground: 210 40% 95%; /* #F1F5F9 */
+  --card: 215 28% 17%; /* #1E293B */
+  --card-foreground: 210 40% 95%; /* #F1F5F9 */
+  --border: 215 25% 27%; /* #334155 */
+  --input: 215 25% 27%; /* #334155 */
+  --primary: 217 91% 60%; /* #3B82F6 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 215 25% 27%; /* #334155 */
+  --secondary-foreground: 210 40% 95%; /* #F1F5F9 */
+  --accent: 215 25% 27%; /* #334155 */
+  --accent-foreground: 210 40% 95%; /* #F1F5F9 */
   --destructive: 0 84% 60%; /* #EF4444 */
-  --destructive-foreground: 0 0% 85%; /* #D9D9D9 */
-  --ring: 0 0% 60%; /* #999999 */
+  --destructive-foreground: 210 40% 95%; /* #F1F5F9 */
+  --ring: 217 91% 60%; /* #3B82F6 */
 
-  /* EduChat dark theme colors - Professional Gray */
-  --educhat-primary: 0 0% 60%; /* #999999 */
-  --educhat-secondary: 0 0% 70%; /* #B3B3B3 */
-  --educhat-dark: 0 0% 85%; /* #D9D9D9 */
-  --educhat-medium: 0 0% 60%; /* #999999 */
-  --educhat-light: 0 0% 8%; /* #141414 */
-  --educhat-accent: 0 0% 25%; /* #404040 */
+  /* EduChat dark theme colors - Professional Blue */
+  --educhat-primary: 217 91% 60%; /* #3B82F6 */
+  --educhat-secondary: 215 70% 70%; /* #7DD3FC */
+  --educhat-dark: 210 40% 95%; /* #F1F5F9 */
+  --educhat-medium: 215 16% 65%; /* #94A3B8 */
+  --educhat-light: 215 28% 17%; /* #1E293B */
+  --educhat-accent: 215 25% 27%; /* #334155 */
   --educhat-success: 142 71% 45%; /* #22C55E */
 }
 
