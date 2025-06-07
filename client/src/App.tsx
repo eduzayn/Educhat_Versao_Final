@@ -11,7 +11,7 @@ import { Login } from "@/pages/Auth/Login";
 import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
 import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/ContactsPageRefactored";
 import ReportsPage from "@/pages/Reports/ReportsPage";
-import IntegrationsPage from "@/pages/IntegrationsPage";
+import IntegrationsPage from "@/pages/Settings/Integrations/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/ChannelsPage";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
