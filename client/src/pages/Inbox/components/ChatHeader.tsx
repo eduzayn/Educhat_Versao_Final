@@ -24,7 +24,7 @@ export function ChatHeader({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="bg-red-100 border-b border-gray-200 p-4 flex items-center justify-between min-h-[80px] z-50 relative">
       <div className="flex items-center gap-3">
         {showBackButton && (
           <Button
