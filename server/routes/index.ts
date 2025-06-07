@@ -6,14 +6,14 @@ import { registerInternalChatRoutes } from "../internal-chat-routes";
 import { registerMediaRoutes } from "../media-routes";
 
 // Import modular routes
-import { registerAuthRoutes } from "./auth";
-import { registerInboxRoutes } from "./inbox";
-import { registerMessageRoutes } from "./messages";
-import { registerContactRoutes } from "./contacts";
-import { registerUserRoutes } from "./users";
-import { registerChannelRoutes } from "./channels";
-import { registerWebhookRoutes } from "./webhooks";
-import { registerRealtimeConfig } from "./realtime";
+import { registerAuthRoutes } from "./auth/index";
+import { registerInboxRoutes } from "./inbox/index";
+import { registerMessageRoutes } from "./messages/index";
+import { registerContactRoutes } from "./contacts/index";
+import { registerUserRoutes } from "./users/index";
+import { registerChannelRoutes } from "./channels/index";
+import { registerWebhookRoutes } from "./webhooks/index";
+import { registerRealtimeConfig } from "./realtime/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio

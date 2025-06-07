@@ -44,7 +44,7 @@ export function registerMessageRoutes(app: Express) {
       const message = await storage.createMessage(parsedData);
       
       // Broadcast to WebSocket clients IMMEDIATELY
-      const { broadcast, broadcastToAll } = require('../realtime');
+      const { broadcast, broadcastToAll } = await import('../realtime');
       broadcast(conversationId, {
         type: 'new_message',
         conversationId,

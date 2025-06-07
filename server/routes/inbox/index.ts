@@ -91,7 +91,7 @@ export function registerInboxRoutes(app: Express) {
       }
 
       // Broadcast status update to WebSocket clients
-      const { broadcast } = require('../realtime');
+      const { broadcast } = await import('../realtime');
       broadcast(id, {
         type: 'status_update',
         conversationId: id,

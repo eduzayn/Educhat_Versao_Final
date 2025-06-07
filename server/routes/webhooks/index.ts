@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../storage";
-import { validateZApiCredentials } from "../../zapi-connection";
+import { validateZApiCredentials } from "../shared/zapi-validation";
 
 export function registerWebhookRoutes(app: Express) {
   
