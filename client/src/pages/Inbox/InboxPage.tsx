@@ -61,7 +61,7 @@ import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
 
-export function InboxPageRefactored() {
+export function InboxPage() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

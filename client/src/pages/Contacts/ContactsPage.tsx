@@ -18,7 +18,7 @@ import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/compone
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 
-export function ContactsPageRefactored() {
+export function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [viewingContact, setViewingContact] = useState<Contact | null>(null);
