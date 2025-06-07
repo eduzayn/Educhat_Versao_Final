@@ -6,11 +6,11 @@ import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
-import { Dashboard } from "@/pages/Dashboard";
-import { Login } from "@/pages/Login";
+import { Dashboard } from "@/pages/Dashboard/Dashboard";
+import { Login } from "@/pages/Auth/Login";
 import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
 import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/ContactsPageRefactored";
-import ReportsPage from "@/pages/ReportsPage";
+import ReportsPage from "@/pages/Reports/ReportsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/ChannelsPage";
@@ -19,11 +19,11 @@ import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
 import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 
-import QuickRepliesSettingsPage from "@/pages/QuickRepliesSettingsPage";
-import WebhookConfigPage from "@/pages/WebhookConfigPage";
+import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
+import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
-import { ProfilePage } from "@/pages/ProfilePage";
+import { ProfilePage } from "@/pages/Profile/ProfilePage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
