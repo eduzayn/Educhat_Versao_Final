@@ -53,6 +53,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
+import { CreateContactModal } from './components/CreateContactModal';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -106,24 +107,8 @@ export function InboxPageRefactored() {
   } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
   
 
-  const createContact = useCreateContact();
   const { toast } = useToast();
-  
-
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    address: '',
-    contactType: 'Lead',
-    owner: '',
-    notes: ''
-  });
-  const [newTags, setNewTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState('');
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [contactNotes, setContactNotes] = useState<any[]>([]);
@@ -181,17 +166,7 @@ export function InboxPageRefactored() {
     }
   };
 
-  // Funções para manipular tags
-  const handleAddTag = () => {
-    if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
-      setNewTags([...newTags, currentTag.trim()]);
-      setCurrentTag('');
-    }
-  };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setNewTags(newTags.filter(tag => tag !== tagToRemove));
-  };
 
   const handleAddNote = async () => {
     if (!newNote.trim() || !activeConversation) return;
@@ -253,78 +228,7 @@ export function InboxPageRefactored() {
     loadContactNotes();
   }, [activeConversation?.contactId]);
 
-  const handleCreateContact = async () => {
-    try {
-      // First, try to add contact to Z-API WhatsApp
-      if (createForm.phone && isWhatsAppAvailable) {
-        try {
-          const [firstName, ...lastNameParts] = createForm.name.split(' ');
-          const lastName = lastNameParts.join(' ');
-          
-          const response = await fetch("/api/zapi/contacts/add", {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              firstName,
-              lastName,
-              phone: createForm.phone
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Failed to add contact to WhatsApp: ${response.status}`);
-          }
-          
-          toast({
-            title: "Contato adicionado ao WhatsApp",
-            description: "O contato foi adicionado à sua agenda do WhatsApp."
-          });
-        } catch (zapiError) {
 
-          toast({
-            title: "Aviso",
-            description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
-            variant: "destructive"
-          });
-        }
-      }
-      
-      // Then create in local database
-      await createContact.mutateAsync({
-        name: createForm.name,
-        email: createForm.email,
-        phone: createForm.phone
-      });
-      
-      toast({
-        title: "Contato criado",
-        description: isWhatsAppAvailable && createForm.phone 
-          ? "Contato criado no sistema e adicionado ao WhatsApp." 
-          : "Contato criado no sistema."
-      });
-      
-      setIsModalOpen(false);
-      setCreateForm({ 
-        name: '', 
-        email: '', 
-        phone: '', 
-        company: '', 
-        address: '', 
-        contactType: 'Lead', 
-        owner: '', 
-        notes: '' 
-      });
-      setNewTags([]);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível criar o contato.",
-        variant: "destructive"
-      });
-    }
-  };
 
   // Filtrar conversas baseado na aba ativa e filtros
   const filteredConversations = (conversations || []).filter(conversation => {
