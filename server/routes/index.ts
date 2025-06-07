@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./shared/authentication";
+import { setupAuth } from "../auth";
 
 // Import modular routes
 import { registerAuthRoutes } from "./auth/index";

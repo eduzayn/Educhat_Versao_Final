@@ -130,7 +130,7 @@ export function registerContactRoutes(app: Express) {
   // Migration endpoint for existing contacts
   app.post('/api/contacts/migrate', async (req, res) => {
     try {
-      const { migrateExistingContacts } = await import('../../migration-contacts');
+      const { migrateExistingContacts } = await import('./migration');
       const result = await migrateExistingContacts();
       res.json({
         message: 'Migração de contatos concluída',

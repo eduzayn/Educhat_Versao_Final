@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { eq, desc, and, or, sql } from 'drizzle-orm';
-import { db } from '../shared/database';
+import { db } from '../../db';
 import { 
   internalChatChannels, 
   internalChatMessages, 
