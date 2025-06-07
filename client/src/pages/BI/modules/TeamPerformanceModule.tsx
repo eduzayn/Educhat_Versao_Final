@@ -20,7 +20,7 @@ import {
   BarChart3,
   Activity
 } from 'lucide-react';
-import { formatDurationMinutes } from '@/shared/lib/utils/formatters';
+import { formatDurationMinutes, formatPercentage, formatNumber } from '@/shared/lib/utils/formatters';
 
 export function TeamPerformanceModule() {
   const [period, setPeriod] = useState('30');

@@ -21,7 +21,7 @@ import {
   TrendingUp,
   AlertTriangle
 } from 'lucide-react';
-import { formatDurationMinutes } from '@/shared/lib/utils/formatters';
+import { formatDurationMinutes, formatPercentage } from '@/shared/lib/utils/formatters';
 
 export function ProductivityModule() {
   const [searchTerm, setSearchTerm] = useState('');

@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Badge } from '@/shared/ui/ui/badge';
+import { getStatusBadge } from '@/shared/lib/utils/badgeHelpers';
+import { formatCurrency, formatPercentage } from '@/shared/lib/utils/formatters';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/ui/table';
 import { 
   Download, 
