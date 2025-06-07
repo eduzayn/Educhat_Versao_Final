@@ -21,6 +21,25 @@ const uploadAudio = multer({
   }
 });
 
+// Configurar multer para upload de imagens em memória
+const uploadImage = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de imagem não permitido'));
+    }
+  }
+});
+
 function validateZApiCredentials() {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
   const token = process.env.ZAPI_TOKEN;
@@ -42,6 +61,124 @@ function validateZApiCredentials() {
 }
 
 export function registerWebhookRoutes(app: Express) {
+  
+  // Send image via Z-API - REST: POST /api/zapi/send-image
+  app.post('/api/zapi/send-image', uploadImage.single('image'), async (req, res) => {
+    try {
+      console.log('🖼️ Recebendo solicitação de envio de imagem:', {
+        hasPhone: !!req.body.phone,
+        hasFile: !!req.file,
+        contentType: req.headers['content-type']
+      });
+      
+      const phone = req.body.phone;
+      const conversationId = req.body.conversationId;
+      const caption = req.body.caption || '';
+      
+      if (!phone || !req.file) {
+        return res.status(400).json({ 
+          error: 'Phone e arquivo de imagem são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Converter arquivo para base64 com prefixo data URL conforme documentação Z-API
+      const imageBase64 = req.file.buffer.toString('base64');
+      const dataUrl = `data:${req.file.mimetype};base64,${imageBase64}`;
+      
+      const payload = {
+        phone: cleanPhone,
+        image: dataUrl,
+        caption: caption
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-image`;
+      console.log('🖼️ Enviando imagem para Z-API:', { 
+        url: url.replace(token, '****'), 
+        phone: cleanPhone,
+        imageSize: imageBase64.length,
+        mimeType: req.file.mimetype,
+        hasCaption: !!caption
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API (imagem):', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText.substring(0, 200) + '...'
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API (imagem):', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON (imagem):', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Imagem enviada com sucesso via Z-API:', data);
+      
+      // Salvar mensagem no banco de dados se conversationId foi fornecido
+      if (conversationId) {
+        try {
+          const messageContent = caption ? `📷 ${caption}` : '📷 Imagem';
+          
+          await storage.createMessage({
+            conversationId: parseInt(conversationId),
+            content: dataUrl, // Salvar a imagem em base64 para exibição
+            isFromContact: false,
+            messageType: 'image',
+            sentAt: new Date(),
+            metadata: {
+              zaapId: data.messageId || data.id,
+              imageSent: true,
+              fileName: req.file.originalname,
+              fileSize: req.file.size,
+              mimeType: req.file.mimetype,
+              caption: caption
+            }
+          });
+
+          // Broadcast para WebSocket
+          const { broadcast } = await import('../realtime');
+          broadcast(parseInt(conversationId), {
+            type: 'message_sent',
+            conversationId: parseInt(conversationId)
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem de imagem no banco:', dbError);
+        }
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar imagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
   
   // Send audio via Z-API - REST: POST /api/zapi/send-audio
   app.post('/api/zapi/send-audio', uploadAudio.single('audio'), async (req, res) => {
