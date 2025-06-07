@@ -902,18 +902,18 @@ export function InputArea() {
           </PopoverTrigger>
 
           <PopoverContent className="w-80 p-0 z-40" align="end">
-            <div className="p-3">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium">Emojis</h4>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-semibold">Emojis</h4>
                 {activeConversation?.contact.phone && (
                   <span className="text-xs text-gray-500">
-                    Clique para inserir ou enviar reação
+                    Clique para inserir ou → para enviar
                   </span>
                 )}
               </div>
 
               {/* Navegação por categorias */}
-              <div className="flex gap-1 mb-3 border-b">
+              <div className="flex flex-wrap gap-1 mb-4 pb-2 border-b">
                 {Object.keys(EMOJI_CATEGORIES).map((category) => (
                   <Button
                     key={category}
@@ -921,8 +921,10 @@ export function InputArea() {
                     size="sm"
                     onClick={() => setActiveEmojiCategory(category)}
                     className={cn(
-                      "text-xs px-2 py-1 h-7",
-                      activeEmojiCategory === category && "bg-educhat-primary text-white",
+                      "text-xs px-3 py-1 h-8 rounded-full transition-all",
+                      activeEmojiCategory === category 
+                        ? "bg-educhat-primary text-white shadow-sm" 
+                        : "hover:bg-gray-100"
                     )}
                   >
                     {category}
@@ -931,37 +933,39 @@ export function InputArea() {
               </div>
 
               {/* Grid de emojis da categoria ativa */}
-              <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
-                {EMOJI_CATEGORIES[activeEmojiCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => insertEmoji(emoji)}
-                      className="h-8 w-8 p-0 text-lg hover:bg-gray-100"
-                      title={`Inserir ${emoji} no texto`}
-                    >
-                      {emoji}
-                    </Button>
-                    {activeConversation?.contact.phone && (
+              <div className="max-h-56 overflow-y-auto pr-1">
+                <div className="grid grid-cols-8 gap-2">
+                  {EMOJI_CATEGORIES[activeEmojiCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
+                    <div key={index} className="flex flex-col items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleQuickReaction(emoji)}
-                        className="h-6 w-8 p-0 text-xs text-blue-600 hover:bg-blue-50"
-                        title={`Enviar reação ${emoji}`}
-                        disabled={sendQuickReactionMutation.isPending}
+                        onClick={() => insertEmoji(emoji)}
+                        className="h-9 w-9 p-0 text-lg hover:bg-gray-100 rounded-lg transition-colors"
+                        title={`Inserir ${emoji} no texto`}
                       >
-                        →
+                        {emoji}
                       </Button>
-                    )}
-                  </div>
-                ))}
+                      {activeConversation?.contact.phone && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleQuickReaction(emoji)}
+                          className="h-5 w-9 p-0 text-xs text-educhat-primary hover:bg-educhat-primary hover:text-white rounded-md transition-all"
+                          title={`Enviar reação ${emoji}`}
+                          disabled={sendQuickReactionMutation.isPending}
+                        >
+                          →
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {!activeConversation?.contact.phone && (
-                <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600 text-center">
-                  Reações disponíveis apenas para contatos do WhatsApp
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-700 text-center">
+                  Reações do WhatsApp disponíveis apenas para contatos com número
                 </div>
               )}
             </div>
