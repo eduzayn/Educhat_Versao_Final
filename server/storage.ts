@@ -3966,7 +3966,7 @@ export class DatabaseStorage implements IStorage {
   async getQuickReplyCategories(): Promise<string[]> {
     try {
       const result = await db.select({ category: quickReplies.category }).from(quickReplies).groupBy(quickReplies.category);
-      return result.map(r => r.category).filter((cat): cat is string => Boolean(cat));
+      return result.map(r => r.category).filter(Boolean) as string[];
     } catch (error) {
       return [];
     }
