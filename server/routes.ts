@@ -350,21 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/contacts/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const contact = await storage.getContactWithTags(id);
-      
-      if (!contact) {
-        return res.status(404).json({ message: 'Contact not found' });
-      }
-      
-      res.json(contact);
-    } catch (error) {
-      console.error('Error fetching contact:', error);
-      res.status(500).json({ message: 'Failed to fetch contact' });
-    }
-  });
+  // First contacts/:id endpoint removed - using identical implementation later
 
   app.post('/api/contacts', async (req, res) => {
     try {
