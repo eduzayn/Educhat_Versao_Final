@@ -70,12 +70,13 @@ export function registerWebhookRoutes(app: Express) {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      // Converter arquivo para base64
+      // Converter arquivo para base64 com prefixo data URL conforme documentação Z-API
       const audioBase64 = req.file.buffer.toString('base64');
+      const dataUrl = `data:${req.file.mimetype};base64,${audioBase64}`;
       
       const payload = {
         phone: cleanPhone,
-        audio: audioBase64
+        audio: dataUrl
       };
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-audio`;
