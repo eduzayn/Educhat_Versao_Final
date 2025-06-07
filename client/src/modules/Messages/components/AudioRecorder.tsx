@@ -23,6 +23,7 @@ export function AudioRecorder({
 }: AudioRecorderProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
+  const [realDuration, setRealDuration] = useState(0); // Duração real do áudio
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -97,6 +98,15 @@ export function AudioRecorder({
         setAudioBlob(blob);
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
+        
+        // Calcular a duração real do áudio
+        const tempAudio = new Audio(url);
+        tempAudio.onloadedmetadata = () => {
+          const realDurationSeconds = Math.round(tempAudio.duration);
+          setRealDuration(realDurationSeconds);
+          console.log(`🎵 Duração timer: ${duration}s, Duração real: ${realDurationSeconds}s`);
+        };
+        
         setState("preview");
 
         // Limpar o stream
@@ -164,6 +174,7 @@ export function AudioRecorder({
 
     setState("idle");
     setDuration(0);
+    setRealDuration(0);
     setAudioBlob(null);
     setCurrentTime(0);
     setIsPlaying(false);
@@ -185,7 +196,9 @@ export function AudioRecorder({
     if (!audioBlob) return;
 
     setState("sending");
-    await onSendAudio(audioBlob, duration);
+    // Usar duração real se disponível, senão usar timer
+    const finalDuration = realDuration > 0 ? realDuration : duration;
+    await onSendAudio(audioBlob, finalDuration);
 
     // Reset após envio
     if (audioUrl) {
@@ -194,6 +207,7 @@ export function AudioRecorder({
     }
     setState("idle");
     setDuration(0);
+    setRealDuration(0);
     setAudioBlob(null);
     setCurrentTime(0);
     setIsPlaying(false);
@@ -318,12 +332,12 @@ export function AudioRecorder({
 
           <div className="flex flex-col">
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              Áudio ({formatTime(duration)})
+              Áudio ({formatTime(realDuration > 0 ? realDuration : duration)})
             </span>
             <div className="w-20 h-1 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
               <div
                 className="h-full bg-blue-500 transition-all duration-100"
-                style={{ width: `${(currentTime / duration) * 100}%` }}
+                style={{ width: `${(currentTime / (realDuration > 0 ? realDuration : duration)) * 100}%` }}
               />
             </div>
           </div>
