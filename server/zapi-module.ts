@@ -155,15 +155,27 @@ export class ZApiModule {
     console.log('📥 Mensagem recebida via webhook:', data);
     
     try {
-      const { phone, message, instanceId, messageId, fromMe, chatId } = data;
+      const { phone, text, instanceId, messageId, fromMe, chatId, chatName, photo } = data;
       
       if (fromMe) {
         console.log('📤 Mensagem enviada por mim, ignorando webhook');
         return;
       }
 
-      if (!phone || !message) {
-        console.log('❌ Dados incompletos no webhook:', { phone: !!phone, message: !!message });
+      // Extrair mensagem da estrutura correta do webhook Z-API
+      const messageContent = text?.message || data.message?.text || data.text || '';
+      
+      console.log('🔍 Debug processamento webhook:', {
+        phone: phone,
+        messageContent: messageContent,
+        textStructure: text,
+        hasPhone: !!phone,
+        hasMessage: !!messageContent,
+        messageLength: messageContent?.length
+      });
+
+      if (!phone || !messageContent) {
+        console.log('❌ Dados incompletos no webhook - parando processamento');
         return;
       }
 
@@ -171,13 +183,21 @@ export class ZApiModule {
       let contact = await this.storage.getContactByPhone(phone);
       if (!contact) {
         contact = await this.storage.createContact({
-          name: phone,
+          name: chatName || phone,
           phone: phone,
           isFromWhatsApp: true,
-          profileImageUrl: null,
+          profileImageUrl: photo || null,
           channelId: 1 // WhatsApp padrão
         });
         console.log('👤 Novo contato criado:', contact.name);
+      } else if (chatName && contact.name === phone) {
+        // Atualizar nome do contato se ainda estiver usando o telefone como nome
+        await this.storage.updateContact(contact.id, {
+          name: chatName,
+          profileImageUrl: photo || contact.profileImageUrl
+        });
+        contact.name = chatName;
+        console.log('👤 Nome do contato atualizado:', chatName);
       }
 
       // Buscar ou criar conversa
@@ -196,25 +216,26 @@ export class ZApiModule {
 
       // Determinar tipo de mensagem
       let messageType = 'text';
-      let content = message.text || message.body || '';
+      let content = messageContent;
       let mediaUrl = null;
 
-      if (message.image) {
+      // Verificar se há mídia no webhook
+      if (data.image) {
         messageType = 'image';
-        content = message.image.caption || 'Imagem';
-        mediaUrl = message.image.url;
-      } else if (message.audio) {
+        content = data.image.caption || 'Imagem';
+        mediaUrl = data.image.url;
+      } else if (data.audio) {
         messageType = 'audio';
         content = 'Áudio';
-        mediaUrl = message.audio.url;
-      } else if (message.video) {
+        mediaUrl = data.audio.url;
+      } else if (data.video) {
         messageType = 'video';
-        content = message.video.caption || 'Vídeo';
-        mediaUrl = message.video.url;
-      } else if (message.document) {
+        content = data.video.caption || 'Vídeo';
+        mediaUrl = data.video.url;
+      } else if (data.document) {
         messageType = 'document';
-        content = message.document.filename || 'Documento';
-        mediaUrl = message.document.url;
+        content = data.document.filename || 'Documento';
+        mediaUrl = data.document.url;
       }
 
       // Criar mensagem no banco
