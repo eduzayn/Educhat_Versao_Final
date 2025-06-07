@@ -59,7 +59,7 @@ export function SalesCoaching() {
   const { user } = useAuth();
 
   // Controle de acesso: apenas gerentes e administradores podem criar novos registros
-  const canCreateRecords = user?.role === 'Gerente' || user?.role === 'Administrador';
+  const canCreateRecords = (user as any)?.role === 'Gerente' || (user as any)?.role === 'Administrador';
 
   // Buscar dados de coaching
   const { data: coachingData, isLoading } = useQuery({

@@ -22,6 +22,7 @@ import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useFormSubmission, formatSalesData } from '@/shared/lib/utils/formHelpers';
 import { getProgressBadge } from '@/shared/lib/utils/badgeHelpers';
 
+
 interface SalesTarget {
   id: number;
   salespersonId: number;
@@ -125,6 +126,7 @@ export function SalesTargets() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">Carregando metas de vendas...</span>
       </div>
     );
   }
