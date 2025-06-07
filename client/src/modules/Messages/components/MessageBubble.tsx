@@ -13,12 +13,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/ui/ui/alert-dialog";
-import { format } from "date-fns";
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatTime } from "@/shared/lib/utils/formatters";
 import type { Message, Contact } from "@shared/schema";
 
 interface MessageBubbleProps {
@@ -30,9 +30,7 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
-// Função auxiliar para formatar o horário
-const formatTime = (timestamp: Date | string | number) =>
-  format(new Date(timestamp), "HH:mm");
+
 
 // Componente para exibir mensagem de imagem
 function ImageMessage({
