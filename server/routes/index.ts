@@ -12,7 +12,7 @@ import { registerMessageRoutes } from "./messages/index";
 import { registerContactRoutes } from "./contacts/index";
 import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
-import { registerWebhookRoutes } from "./webhooks/index";
+import { registerWebhookRoutes, registerZApiRoutes } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
 import { registerDealsRoutes } from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics/index";
@@ -26,7 +26,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
   setupAuth(app);
   
-  // Registrar rotas de autenticação IMEDIATAMENTE após setup
+  // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
+  registerWebhookRoutes(app);
+  registerZApiRoutes(app);
+  
+  // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
   registerAdminRoutes(app);
   registerInternalChatRoutes(app);
@@ -36,7 +40,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerContactRoutes(app);
   registerUserRoutes(app);
   registerChannelRoutes(app);
-  registerWebhookRoutes(app);
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);

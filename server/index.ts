@@ -77,6 +77,12 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
+  // Middleware para garantir que rotas API não sejam interceptadas pelo Vite
+  app.use('/api/*', (req, res, next) => {
+    console.log(`🔍 Rota API interceptada: ${req.method} ${req.path}`);
+    next();
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
