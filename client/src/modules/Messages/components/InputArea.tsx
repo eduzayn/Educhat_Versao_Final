@@ -25,8 +25,8 @@ import { EmojiReactionPicker } from "./EmojiReactionPicker";
 import { AttachmentDialog } from "./AttachmentDialog";
 import { useChatStore } from "@/shared/store/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
-import { DEFAULT_QUICK_REPLIES } from "@/shared/constants/quickReplies";
-import { formatDuration } from "@/shared/lib/utils/format";
+import { DEFAULT_QUICK_REPLIES } from "../../../shared/constants/quickReplies";
+import { formatDuration } from "../../../shared/lib/utils/format";
 import { QuickReplyList } from "./QuickReplyList";
 
 export function InputArea() {
@@ -208,19 +208,263 @@ export function InputArea() {
     }
   };
 
-  // restante permanece igual (áudio, renderização, componentes, etc.)
-  // ...
+  const selectQuickReply = (content: string) => {
+    setMessage(content);
+    setShowQuickReplies(false);
+    setQuickReplyFilter("");
+    textareaRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "/" && message === "") {
+      e.preventDefault();
+      setShowQuickReplies(true);
+      setQuickReplyFilter("");
+    } else if (e.key === "Escape" && showQuickReplies) {
+      setShowQuickReplies(false);
+      setQuickReplyFilter("");
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (showQuickReplies && filteredQuickReplies[selectedQuickReplyIndex]) {
+        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
+      } else {
+        handleSendMessage();
+      }
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      timerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: "Erro ao acessar microfone",
+        description: "Não foi possível acessar o microfone.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+    setAudioBlob(null);
+    setRecordingTime(0);
+    setShowAudioRecorder(false);
+  };
+
+  const playAudio = () => {
+    if (audioBlob) {
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      setCurrentAudio(audio);
+      audio.play();
+      setIsPlaying(true);
+      audio.onended = () => {
+        setIsPlaying(false);
+        setCurrentAudio(null);
+      };
+    }
+  };
+
+  const pauseAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const sendAudio = () => {
+    if (audioBlob) {
+      sendAudioMutation.mutate({
+        blob: audioBlob,
+        duration: recordingTime,
+      });
+    }
+  };
 
   return (
-    <div className="...">
-      {/* componentes visuais e renderizações mantidos */}
+    <div className="relative p-4 border-t bg-white dark:bg-gray-900">
       {showQuickReplies && (
         <QuickReplyList
-          replies={filteredQuickReplies}
-          selectedIndex={selectedQuickReplyIndex}
+          isOpen={showQuickReplies}
           onSelect={selectQuickReply}
+          onClose={() => setShowQuickReplies(false)}
+          filter={quickReplyFilter}
+          selectedIndex={selectedQuickReplyIndex}
+          onIndexChange={setSelectedQuickReplyIndex}
         />
       )}
+
+      {showAudioRecorder && (
+        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className={cn(
+                  "w-3 h-3 rounded-full",
+                  isRecording ? "bg-red-500 animate-pulse" : "bg-gray-400"
+                )}>
+                </div>
+                <span className="text-sm font-medium">
+                  {formatDuration(recordingTime)}
+                </span>
+              </div>
+              
+              {audioBlob && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={isPlaying ? pauseAudio : playAudio}
+                  >
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {isRecording ? (
+                <Button size="sm" onClick={stopRecording} variant="destructive">
+                  <Square className="h-4 w-4" />
+                </Button>
+              ) : audioBlob ? (
+                <>
+                  <Button size="sm" onClick={sendAudio} disabled={sendAudioMutation.isPending}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" onClick={cancelRecording} variant="outline">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" onClick={startRecording}>
+                  <Mic className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-end space-x-2">
+        <div className="flex-1 relative">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={isInternalNote ? "Escreva uma nota interna..." : "Digite sua mensagem..."}
+            className={cn(
+              "min-h-[60px] max-h-32 resize-none",
+              isInternalNote && "border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20"
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col space-y-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={isInternalNote ? "default" : "outline"}
+                  onClick={() => setIsInternalNote(!isInternalNote)}
+                >
+                  <StickyNote className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isInternalNote ? "Modo mensagem normal" : "Modo nota interna"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAudioRecorder(!showAudioRecorder)}
+                >
+                  <Mic className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Gravar áudio</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowQuickReplies(!showQuickReplies)}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Respostas rápidas</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button
+            onClick={handleSendMessage}
+            disabled={
+              !message.trim() ||
+              sendMessageMutation.isPending ||
+              sendWhatsAppMutation.isPending
+            }
+            size="sm"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
