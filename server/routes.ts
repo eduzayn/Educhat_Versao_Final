@@ -1557,8 +1557,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Configurar webhook da Z-API
-  app.post('/api/zapi/configure-webhook', async (req, res) => {
+  // Configurar webhook da Z-API - REST: PUT /api/zapi/webhook
+  app.put('/api/zapi/webhook', async (req, res) => {
     try {
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
@@ -1712,7 +1712,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/zapi/contacts/:phone/block', async (req, res) => {
+  // Block contact via Z-API - REST: PATCH /api/zapi/contacts/:phone/block
+  app.patch('/api/zapi/contacts/:phone/block', async (req, res) => {
     try {
       const { phone } = req.params;
       
@@ -3152,8 +3153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para marcar mensagens como lidas via Z-API
-  app.post('/api/zapi/read-message', async (req, res) => {
+  // Endpoint para marcar mensagens como lidas via Z-API - REST: PATCH /api/zapi/messages/read
+  app.patch('/api/zapi/messages/read', async (req, res) => {
     try {
       console.log('📖 Recebendo solicitação para marcar mensagem como lida:', req.body);
       
@@ -3360,8 +3361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Desconectar instância Z-API
-  app.post('/api/zapi/disconnect', async (req, res) => {
+  // Desconectar instância Z-API - REST: DELETE /api/zapi/connection
+  app.delete('/api/zapi/connection', async (req, res) => {
     try {
       const baseUrl = 'https://api.z-api.io';
       const instanceId = process.env.ZAPI_INSTANCE_ID;
