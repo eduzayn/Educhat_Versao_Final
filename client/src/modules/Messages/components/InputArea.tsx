@@ -1,700 +1,532 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  Paperclip,
-  Smile,
-  Send,
-  Mic,
-  Image,
-  Video,
-  FileText,
-  Link,
-  Upload,
-  Zap,
-  MessageSquare,
-  StickyNote,
-} from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
 import { Textarea } from "@/shared/ui/ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/ui/ui/popover";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/shared/ui/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
-import { Input } from "@/shared/ui/ui/input";
-import { Label } from "@/shared/ui/ui/label";
-import { Badge } from "@/shared/ui/ui/badge";
-import { useSendMessage } from "@/shared/lib/hooks/useMessages";
-import { useSendAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
-import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
-import { useChatStore } from "@/shared/store/store/chatStore";
-import { useToast } from "@/shared/lib/hooks/use-toast";
-import { AudioRecorder } from "./AudioRecorder";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/ui/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/ui/tooltip";
+import {
+  Send,
+  Mic,
+  ChevronDown,
+  MessageCircle,
+  StickyNote,
+  Play,
+  Pause,
+  Square,
+  Trash2,
+  Download
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { QuickReply } from "@shared/schema";
 import { EmojiReactionPicker } from "./EmojiReactionPicker";
+import { AttachmentDialog } from "./AttachmentDialog";
 
 const QUICK_REPLIES = [
   "Obrigado pelo contato!",
   "Posso te ajudar com mais alguma coisa?",
-  "Agende uma conversa",
+  "Vou encaminhar sua solicitação para o setor responsável.",
+  "Entendi sua situação, vamos resolver isso.",
+  "Aguarde um momento, por favor.",
 ];
 
-
+import { useChatStore } from "@/shared/store/store/chatStore";
+import { useToast } from "@/shared/lib/hooks/use-toast";
 
 export function InputArea() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
-
-  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkText, setLinkText] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [quickReplyFilter, setQuickReplyFilter] = useState("");
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
   const [isInternalNote, setIsInternalNote] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Estados para gravação de áudio
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const { activeConversation } = useChatStore();
-  const { sendTypingIndicator } = useWebSocket();
-  const sendMessageMutation = useSendMessage();
-  const sendAudioMutation = useSendAudioMessage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar respostas rápidas do servidor
-  const { data: quickReplies = [] } = useQuery<QuickReply[]>({
+  // Query para buscar respostas rápidas personalizadas
+  const { data: customQuickReplies = [] } = useQuery({
     queryKey: ["/api/quick-replies"],
     enabled: true,
   });
 
-  // Query para buscar usuário atual (para notas internas)
-  const { data: currentUser } = useQuery({
-    queryKey: ['/api/user'],
-    retry: false,
-    staleTime: 1000 * 60 * 10, // 10 minutos
-    enabled: isInternalNote // Só busca quando necessário
-  });
+  // Combinar respostas rápidas padrão com personalizadas
+  const allQuickReplies = [...QUICK_REPLIES, ...customQuickReplies.map((qr: QuickReply) => qr.content)];
 
-  // Filtrar respostas rápidas baseado no texto após "/"
-  const filteredQuickReplies = quickReplies.filter(
-    (reply) =>
-      reply.title.toLowerCase().includes(quickReplyFilter.toLowerCase()) ||
-      (reply.description
-        ?.toLowerCase()
-        .includes(quickReplyFilter.toLowerCase()) ??
-        false),
+  // Filtrar respostas rápidas
+  const filteredQuickReplies = allQuickReplies.filter((reply) =>
+    reply.toLowerCase().includes(quickReplyFilter.toLowerCase())
   );
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height =
-        Math.min(textareaRef.current.scrollHeight, 120) + "px";
-    }
-  }, [message]);
-
-  const handleTyping = (value: string) => {
-    setMessage(value);
-
-    // Detectar "/" para ativar respostas rápidas
-    const lastSlashIndex = value.lastIndexOf("/");
-    if (lastSlashIndex !== -1 && lastSlashIndex === value.length - 1) {
-      // "/" no final da mensagem
-      setShowQuickReplies(true);
-      setQuickReplyFilter("");
-      setSelectedQuickReplyIndex(0);
-    } else if (
-      lastSlashIndex !== -1 &&
-      value.substring(lastSlashIndex + 1).indexOf(" ") === -1
-    ) {
-      // "/" seguido de texto sem espaço
-      setShowQuickReplies(true);
-      setQuickReplyFilter(value.substring(lastSlashIndex + 1));
-      setSelectedQuickReplyIndex(0);
-    } else {
-      // Não há "/" ativo ou há espaço após o texto
-      setShowQuickReplies(false);
-      setQuickReplyFilter("");
-    }
-
-    if (!activeConversation) return;
-
-    if (value.trim() && !isTyping) {
-      setIsTyping(true);
-      sendTypingIndicator(activeConversation.id, true);
-    }
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set new timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
-      if (isTyping) {
-        setIsTyping(false);
-        sendTypingIndicator(activeConversation.id, false);
+  // Mutation para enviar mensagem
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { content: string; isInternalNote: boolean }) => {
+      if (!activeConversation?.id) {
+        throw new Error("Nenhuma conversa ativa");
       }
-    }, 1000);
-  };
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || !activeConversation) return;
-
-    const messageContent = message.trim();
-    setMessage("");
-
-    // Stop typing indicator
-    if (isTyping) {
-      setIsTyping(false);
-      sendTypingIndicator(activeConversation.id, false);
-    }
-
-    try {
-      if (isInternalNote) {
-        // Enviar nota interna com nome do usuário atual
-        const authorName = (currentUser as any)?.displayName || (currentUser as any)?.username || 'Usuário';
-        
-        await sendMessageMutation.mutateAsync({
-          conversationId: activeConversation.id,
-          message: {
-            content: messageContent,
-            isFromContact: false,
-            messageType: "text",
-            isInternalNote: true,
-            authorName: authorName,
-            authorId: (currentUser as any)?.id,
-          },
-          contact: activeConversation.contact,
-        });
-        
-        setIsInternalNote(false); // Reset nota interna state
-      } else {
-        // Enviar mensagem normal
-        await sendMessageMutation.mutateAsync({
-          conversationId: activeConversation.id,
-          message: {
-            content: messageContent,
-            isFromContact: false,
-            messageType: "text",
-          },
-          contact: activeConversation.contact,
+      return apiRequest(`/api/conversations/${activeConversation.id}/messages`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      setMessage("");
+      setIsInternalNote(false);
+      
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
         });
       }
-    } catch (error) {
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar mensagem:", error);
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: "Erro ao enviar mensagem",
+        description: "Não foi possível enviar a mensagem. Tente novamente.",
         variant: "destructive",
       });
+    },
+  });
+
+  // Mutation para enviar via WhatsApp (Z-API)
+  const sendWhatsAppMutation = useMutation({
+    mutationFn: async (content: string) => {
+      if (!activeConversation?.contact.phone) {
+        throw new Error("Número do contato não disponível");
+      }
+
+      const response = await fetch("/api/zapi/send-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: activeConversation.contact.phone,
+          message: content,
+          conversationId: activeConversation.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar via WhatsApp");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar via WhatsApp:", error);
+      toast({
+        title: "Erro no WhatsApp",
+        description: "Não foi possível enviar via WhatsApp. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para enviar áudio
+  const sendAudioMutation = useMutation({
+    mutationFn: async ({ blob, duration }: { blob: Blob; duration: number }) => {
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
+      }
+
+      const formData = new FormData();
+      formData.append("phone", activeConversation.contact.phone);
+      formData.append("conversationId", activeConversation.id.toString());
+      formData.append("duration", duration.toString());
+      formData.append("audio", blob, "audio.webm");
+
+      const response = await fetch("/api/zapi/send-audio", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar áudio");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Áudio enviado",
+        description: "Seu áudio foi enviado com sucesso!",
+      });
+      
+      setAudioBlob(null);
+      setRecordingTime(0);
+      setShowAudioRecorder(false);
+
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar áudio:", error);
+      toast({
+        title: "Erro ao enviar áudio",
+        description: "Não foi possível enviar o áudio. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Funções de digitação
+  const handleTyping = (value: string) => {
+    setMessage(value);
+    
+    if (value.length === 0) {
+      setShowQuickReplies(false);
+      setQuickReplyFilter("");
+      return;
+    }
+
+    if (value.startsWith("/")) {
+      setShowQuickReplies(true);
+      setQuickReplyFilter(value.substring(1));
+      setSelectedQuickReplyIndex(0);
+    } else {
+      setShowQuickReplies(false);
+    }
+
+    // Simular digitação para outros usuários
+    if (!isTyping) {
+      setIsTyping(true);
+      setTimeout(() => setIsTyping(false), 2000);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // Navegação nas respostas rápidas
-    if (showQuickReplies && filteredQuickReplies.length > 0) {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedQuickReplyIndex((prev) =>
-          prev < filteredQuickReplies.length - 1 ? prev + 1 : 0,
-        );
-        return;
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedQuickReplyIndex((prev) =>
-          prev > 0 ? prev - 1 : filteredQuickReplies.length - 1,
-        );
-        return;
-      }
-      if (e.key === "Tab") {
-        e.preventDefault();
-        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
-        return;
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setShowQuickReplies(false);
-        return;
-      }
-    }
-
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      
       if (showQuickReplies && filteredQuickReplies.length > 0) {
         selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
       } else {
         handleSendMessage();
       }
     }
+
+    if (showQuickReplies) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedQuickReplyIndex((prev) =>
+          prev < filteredQuickReplies.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedQuickReplyIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredQuickReplies.length - 1
+        );
+      } else if (e.key === "Escape") {
+        setShowQuickReplies(false);
+      }
+    }
   };
 
-  const selectQuickReply = (quickReply: QuickReply) => {
-    const lastSlashIndex = message.lastIndexOf("/");
-    const beforeSlash = message.substring(0, lastSlashIndex);
-
-    let content = "";
-    if (quickReply.type === "text") {
-      content = quickReply.content || "";
-    } else if (quickReply.type === "audio" && quickReply.fileUrl) {
-      // Para áudio, enviar diretamente
-      handleSendQuickReplyAudio(quickReply);
-      return;
-    } else if (quickReply.type === "image" && quickReply.fileUrl) {
-      // Para imagem, enviar diretamente
-      handleSendImage(quickReply);
-      return;
-    } else if (quickReply.type === "video" && quickReply.fileUrl) {
-      // Para vídeo, enviar diretamente
-      handleSendVideo(quickReply);
-      return;
-    }
-
-    setMessage(beforeSlash + content);
+  const selectQuickReply = (quickReply: string) => {
+    setMessage(quickReply);
     setShowQuickReplies(false);
+    setQuickReplyFilter("");
     textareaRef.current?.focus();
   };
 
-  const handleSendQuickReplyAudio = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.fileUrl) return;
+  const handleSendMessage = () => {
+    if (!message.trim() || !activeConversation) return;
 
-    try {
-      // Para áudio de resposta rápida, enviaremos via sendMessage
-      await sendMessageMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        message: {
-          content: quickReply.fileUrl,
-          isFromContact: false,
-          messageType: "audio",
-        },
-        contact: activeConversation.contact,
+    const messageContent = message.trim();
+
+    if (isInternalNote) {
+      // Enviar como nota interna
+      sendMessageMutation.mutate({
+        content: messageContent,
+        isInternalNote: true,
       });
-      setMessage("");
-      setShowQuickReplies(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Falha ao enviar áudio. Tente novamente.",
-        variant: "destructive",
-      });
+    } else {
+      // Para contatos do WhatsApp, enviar via Z-API
+      if (activeConversation.contact.phone) {
+        sendWhatsAppMutation.mutate(messageContent);
+      } else {
+        // Para outros canais, enviar via API normal
+        sendMessageMutation.mutate({
+          content: messageContent,
+          isInternalNote: false,
+        });
+      }
     }
   };
-
-  const handleSendImage = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.fileUrl) return;
-
-    try {
-      await sendMessageMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        message: {
-          content: quickReply.fileUrl,
-          isFromContact: false,
-          messageType: "image",
-        },
-        contact: activeConversation.contact,
-      });
-      setMessage("");
-      setShowQuickReplies(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Falha ao enviar imagem. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSendVideo = async (quickReply: QuickReply) => {
-    if (!activeConversation || !quickReply.fileUrl) return;
-
-    try {
-      await sendMessageMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        message: {
-          content: quickReply.fileUrl,
-          isFromContact: false,
-          messageType: "video",
-        },
-        contact: activeConversation.contact,
-      });
-      setMessage("");
-      setShowQuickReplies(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Falha ao enviar vídeo. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const insertQuickReply = (reply: string) => {
-    setMessage(reply);
-    textareaRef.current?.focus();
-  };
-
-
 
   const insertEmoji = (emoji: string) => {
     setMessage((prev) => prev + emoji);
     textareaRef.current?.focus();
   };
 
-  // Mutation para enviar imagem
-  const sendImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
+  // Funções de áudio
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      
+      chunksRef.current = [];
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setIsPaused(false);
+      setRecordingTime(0);
 
-      const formData = new FormData();
-      formData.append("phone", activeConversation.contact.phone);
-      formData.append("conversationId", activeConversation.id.toString());
-      formData.append("image", file);
-
-      const response = await fetch("/api/zapi/send-image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao enviar imagem");
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Imagem enviada",
-        description: "Sua imagem foi enviada com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar imagem:", error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Não foi possível enviar a imagem. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutation para enviar vídeo
-  const sendVideoMutation = useMutation({
-    mutationFn: async (file: File) => {
-      console.log("🎥 Iniciando envio de vídeo:", {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        conversationId: activeConversation?.id,
-        contactPhone: activeConversation?.contact.phone,
-      });
-
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        console.error("❌ Dados da conversa não disponíveis");
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append("phone", activeConversation.contact.phone);
-        formData.append("conversationId", activeConversation.id.toString());
-        formData.append("video", file);
-
-        console.log("📤 Enviando FormData para servidor:", {
-          phone: activeConversation.contact.phone,
-          conversationId: activeConversation.id,
-          fileName: file.name,
-          fileSize: file.size,
-        });
-
-        const response = await fetch("/api/zapi/send-video", {
-          method: "POST",
-          body: formData,
-          // Aumentar timeout para arquivos grandes
-          signal: AbortSignal.timeout(180000), // 3 minutos
-        });
-
-        console.log("📥 Resposta do servidor:", {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("❌ Erro na resposta do servidor:", errorText);
-          throw new Error(
-            `Erro ao enviar vídeo: ${response.status} - ${errorText}`,
-          );
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
         }
+      };
 
-        const result = await response.json();
-        console.log("✅ Vídeo enviado com sucesso:", result);
-        return result;
-      } catch (error) {
-        console.error("💥 Erro no processo de envio:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Vídeo enviado",
-        description: "Seu vídeo foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
+      };
 
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-        // Força um refetch imediato
-        queryClient.refetchQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar vídeo:", error);
-      const isTimeout =
-        error instanceof Error &&
-        (error.name === "TimeoutError" || error.message.includes("timeout"));
+      recorder.start();
+      
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Erro ao iniciar gravação:", error);
       toast({
-        title: "Erro ao enviar vídeo",
-        description: isTimeout
-          ? "O vídeo é muito grande. Arquivos maiores que 50MB podem demorar mais para enviar."
-          : "Não foi possível enviar o vídeo. Verifique sua conexão e tente novamente.",
+        title: "Erro no microfone",
+        description: "Não foi possível acessar o microfone.",
         variant: "destructive",
       });
-    },
-  });
-
-  // Mutation para enviar documento
-  const sendDocumentMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      console.log("📄 Iniciando envio de documento:", {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        phone: activeConversation.contact.phone,
-        conversationId: activeConversation.id,
-      });
-
-      const formData = new FormData();
-      formData.append("phone", activeConversation.contact.phone);
-      formData.append("conversationId", activeConversation.id.toString());
-      formData.append("document", file);
-
-      try {
-        const response = await fetch("/api/zapi/send-document", {
-          method: "POST",
-          body: formData,
-        });
-
-        console.log("📥 Resposta do servidor:", {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-        });
-
-        const responseData = await response.json();
-        console.log("📊 Dados da resposta:", responseData);
-
-        if (!response.ok) {
-          console.error("❌ Erro na resposta:", responseData);
-          throw new Error(responseData.error || "Erro ao enviar documento");
-        }
-
-        return responseData;
-      } catch (error) {
-        console.error("💥 Erro no processo de envio:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Documento enviado",
-        description: "Seu documento foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-        // Força um refetch imediato
-        queryClient.refetchQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar documento:", error);
-      toast({
-        title: "Erro ao enviar documento",
-        description: "Não foi possível enviar o documento. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutation para enviar link
-  const sendLinkMutation = useMutation({
-    mutationFn: async ({ url, text }: { url: string; text: string }) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      const response = await apiRequest("POST", "/api/zapi/send-link", {
-        phone: activeConversation.contact.phone,
-        conversationId: activeConversation.id,
-        url: url,
-        text: text,
-      });
-
-      return response;
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Link enviado",
-        description: "Seu link foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-      setLinkUrl("");
-      setLinkText("");
-
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar link:", error);
-      toast({
-        title: "Erro ao enviar link",
-        description: "Não foi possível enviar o link. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleFileSelect = (type: "image" | "video" | "document") => {
-    const input = document.createElement("input");
-    input.type = "file";
-
-    if (type === "image") {
-      input.accept = "image/*";
-    } else if (type === "video") {
-      input.accept = "video/*";
-    } else if (type === "document") {
-      input.accept = ".pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx";
     }
+  };
 
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (type === "image") {
-          sendImageMutation.mutate(file);
-        } else if (type === "video") {
-          sendVideoMutation.mutate(file);
-        } else if (type === "document") {
-          sendDocumentMutation.mutate(file);
-        }
+  const pauseRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.pause();
+      setIsPaused(true);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "paused") {
+      mediaRecorder.resume();
+      setIsPaused(false);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+  };
+
+  const playAudio = () => {
+    if (audioBlob) {
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      setCurrentAudio(audio);
+      setIsPlaying(true);
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+        setCurrentAudio(null);
+      };
+      
+      audio.play();
+    }
+  };
+
+  const stopAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setIsPlaying(false);
+      setCurrentAudio(null);
+    }
+  };
+
+  const deleteAudio = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+    }
+    setIsPlaying(false);
+  };
+
+  const sendAudio = () => {
+    if (audioBlob) {
+      sendAudioMutation.mutate({
+        blob: audioBlob,
+        duration: recordingTime,
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
-
-    input.click();
-  };
-
-  const handleSendLink = () => {
-    if (linkUrl.trim() && linkText.trim()) {
-      sendLinkMutation.mutate({ url: linkUrl.trim(), text: linkText.trim() });
-    } else {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha a URL e o texto do link.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
-    if (!activeConversation) return;
-
-    // Esconder o componente de gravação imediatamente
-    setShowAudioRecorder(false);
-
-    try {
-      await sendAudioMutation.mutateAsync({
-        conversationId: activeConversation.id,
-        audioBlob,
-        duration,
-        contact: activeConversation.contact,
-      });
-      toast({
-        title: "Áudio enviado",
-        description: "Sua mensagem de áudio foi enviada com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao enviar áudio",
-        description: "Falha ao enviar mensagem de áudio. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelAudio = () => {
-    setShowAudioRecorder(false);
-  };
+  }, []);
 
   if (!activeConversation) {
-    return null;
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Selecione uma conversa para começar a digitar
+      </div>
+    );
   }
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4">
-      {/* Componente de gravação de áudio */}
+    <div className="border-t bg-white dark:bg-gray-900 p-4 space-y-4">
+      {/* Gravador de áudio */}
       {showAudioRecorder && (
-        <div className="mb-4 border rounded-lg p-3 bg-gray-50">
-          <AudioRecorder
-            onSendAudio={handleSendAudio}
-            onCancel={handleCancelAudio}
-          />
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={cn(
+                "w-3 h-3 rounded-full",
+                isRecording && !isPaused ? "bg-red-500 animate-pulse" : "bg-gray-400"
+              )} />
+              <span className="text-sm font-medium">
+                {isRecording ? (isPaused ? "Pausado" : "Gravando") : "Pronto para gravar"}
+              </span>
+              <span className="text-sm text-gray-600">{formatTime(recordingTime)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center space-x-2">
+            {!isRecording && !audioBlob && (
+              <Button onClick={startRecording} size="sm" className="bg-red-500 hover:bg-red-600">
+                <Mic className="w-4 h-4 mr-2" />
+                Iniciar Gravação
+              </Button>
+            )}
+
+            {isRecording && (
+              <>
+                {!isPaused ? (
+                  <Button onClick={pauseRecording} size="sm" variant="outline">
+                    <Pause className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={resumeRecording} size="sm" variant="outline">
+                    <Play className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button onClick={stopRecording} size="sm" variant="outline">
+                  <Square className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+
+            {audioBlob && (
+              <>
+                <Button
+                  onClick={isPlaying ? stopAudio : playAudio}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
+                <Button onClick={deleteAudio} size="sm" variant="outline">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={sendAudio}
+                  disabled={sendAudioMutation.isPending}
+                  size="sm"
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  {sendAudioMutation.isPending ? "Enviando..." : "Enviar"}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Indicador visual do modo de nota interna */}
+      {/* Quick Replies */}
+      {showQuickReplies && filteredQuickReplies.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+          {filteredQuickReplies.slice(0, 5).map((reply, index) => (
+            <button
+              key={index}
+              className={cn(
+                "w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0",
+                index === selectedQuickReplyIndex && "bg-educhat-primary/10"
+              )}
+              onClick={() => selectQuickReply(reply)}
+            >
+              {reply}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Indicador de modo nota interna */}
       {isInternalNote && (
         <div className="mb-2 flex items-center gap-1.5 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md text-xs text-amber-700 dark:text-amber-400 relative z-50 shadow-sm">
           <StickyNote className="h-3 w-3" />
@@ -702,134 +534,10 @@ export function InputArea() {
         </div>
       )}
 
-      {/* Interface de digitação sempre visível */}
+      {/* Interface de digitação */}
       <div className="flex items-end space-x-3">
-        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 text-educhat-medium hover:text-educhat-blue"
-              disabled={!activeConversation?.contact.phone}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="w-96">
-            <DialogHeader>
-              <DialogTitle>Enviar Anexo</DialogTitle>
-            </DialogHeader>
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              {/* Botão para Imagem */}
-              <Button
-                onClick={() => handleFileSelect("image")}
-                disabled={sendImageMutation.isPending}
-                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                {sendImageMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Image className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Imagem</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Vídeo */}
-              <Button
-                onClick={() => handleFileSelect("video")}
-                disabled={sendVideoMutation.isPending}
-                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
-              >
-                {sendVideoMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Video className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Vídeo</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Documento */}
-              <Button
-                onClick={() => handleFileSelect("document")}
-                disabled={sendDocumentMutation.isPending}
-                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
-              >
-                {sendDocumentMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <FileText className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Documento</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Link */}
-              <Button
-                onClick={() => {
-                  /* Abrirá seção de link */
-                }}
-                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                <Link className="w-8 h-8 mb-2" />
-                <span className="text-sm">Link</span>
-              </Button>
-            </div>
-
-            {/* Seção para envio de link */}
-            <div className="mt-6 space-y-3">
-              <div>
-                <Label htmlFor="linkUrl">URL do Link</Label>
-                <Input
-                  id="linkUrl"
-                  type="url"
-                  placeholder="https://exemplo.com"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="linkText">Texto do Link</Label>
-                <Input
-                  id="linkText"
-                  placeholder="Descrição do link"
-                  value={linkText}
-                  onChange={(e) => setLinkText(e.target.value)}
-                />
-              </div>
-
-              <Button
-                onClick={handleSendLink}
-                disabled={
-                  !linkUrl.trim() ||
-                  !linkText.trim() ||
-                  sendLinkMutation.isPending
-                }
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                {sendLinkMutation.isPending ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                ) : (
-                  <Link className="w-4 h-4 mr-2" />
-                )}
-                Enviar Link
-              </Button>
-            </div>
-
-            {!activeConversation?.contact.phone && (
-              <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
-                Anexos disponíveis apenas para contatos do WhatsApp
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Componente de anexos isolado */}
+        <AttachmentDialog disabled={sendMessageMutation.isPending || sendWhatsAppMutation.isPending} />
 
         <Button
           variant="ghost"
@@ -843,7 +551,7 @@ export function InputArea() {
           <Mic className="w-5.5 h-5.5" />
         </Button>
 
-        {/* Componente robusto de Emojis/Reações */}
+        {/* Componente de emojis */}
         <EmojiReactionPicker onEmojiInsert={insertEmoji} />
 
         <div className="flex-1 relative">
@@ -857,7 +565,7 @@ export function InputArea() {
             rows={1}
           />
           
-          {/* Botões de toggle entre Mensagem e Nota Interna - movidos para a direita */}
+          {/* Botões de toggle entre Mensagem e Nota Interna */}
           <div className="absolute right-2 top-2.5 flex items-center gap-1.5">
             <TooltipProvider>
               <Tooltip>
@@ -871,15 +579,15 @@ export function InputArea() {
                     )}
                     onClick={() => setIsInternalNote(false)}
                   >
-                    <MessageSquare className="h-4.5 w-4.5" />
+                    <MessageCircle className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Mensagem</p>
+                  <p>Mensagem normal</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -892,119 +600,28 @@ export function InputArea() {
                     )}
                     onClick={() => setIsInternalNote(true)}
                   >
-                    <StickyNote className="h-4.5 w-4.5" />
+                    <StickyNote className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Nota Interna</p>
+                  <p>Nota interna (apenas equipe)</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-
-          {/* Dropdown de Respostas Rápidas */}
-          {showQuickReplies && filteredQuickReplies.length > 0 && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
-              <div className="p-2 border-b border-gray-100 bg-gray-50">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Respostas Rápidas ({filteredQuickReplies.length})
-                </div>
-              </div>
-              {filteredQuickReplies.map((reply, index) => (
-                <div
-                  key={reply.id}
-                  className={cn(
-                    "p-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50",
-                    index === selectedQuickReplyIndex &&
-                      "bg-blue-50 border-blue-200",
-                  )}
-                  onClick={() => selectQuickReply(reply)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-900">
-                          {reply.title}
-                        </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {reply.type === "text"
-                            ? "Texto"
-                            : reply.type === "audio"
-                              ? "Áudio"
-                              : reply.type === "image"
-                                ? "Imagem"
-                                : "Vídeo"}
-                        </Badge>
-                      </div>
-                      {reply.description && (
-                        <p className="text-sm text-gray-600 mb-1">
-                          {reply.description}
-                        </p>
-                      )}
-                      {reply.type === "text" && reply.content && (
-                        <p className="text-sm text-gray-800 bg-gray-100 p-2 rounded truncate max-w-xs">
-                          {reply.content}
-                        </p>
-                      )}
-                      {reply.type === "audio" && (
-                        <div className="flex items-center text-sm text-blue-600">
-                          <Mic className="w-4 h-4 mr-1" />
-                          Arquivo de áudio
-                        </div>
-                      )}
-                      {reply.type === "image" && (
-                        <div className="flex items-center text-sm text-green-600">
-                          <Image className="w-4 h-4 mr-1" />
-                          Arquivo de imagem
-                        </div>
-                      )}
-                      {reply.type === "video" && (
-                        <div className="flex items-center text-sm text-purple-600">
-                          <Video className="w-4 h-4 mr-1" />
-                          Arquivo de vídeo
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div className="p-2 bg-gray-50 text-xs text-gray-500 border-t border-gray-100">
-                Use ↑↓ para navegar, Enter/Tab para selecionar, Esc para fechar
-              </div>
-            </div>
-          )}
         </div>
 
         <Button
           onClick={handleSendMessage}
-          disabled={!message.trim() || sendMessageMutation.isPending}
-          className={cn(
-            "bg-educhat-primary hover:bg-educhat-secondary text-white p-3.5 rounded-xl transition-colors",
-            sendMessageMutation.isPending && "opacity-50 cursor-not-allowed",
-          )}
+          disabled={!message.trim() || sendMessageMutation.isPending || sendWhatsAppMutation.isPending}
+          className="bg-educhat-primary hover:bg-educhat-blue text-white px-6 py-3 h-12"
         >
-          {sendMessageMutation.isPending ? (
-            <div className="w-5.5 h-5.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          {(sendMessageMutation.isPending || sendWhatsAppMutation.isPending) ? (
+            <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : (
-            <Send className="w-5.5 h-5.5" />
+            <Send className="w-5 h-5" />
           )}
         </Button>
-      </div>
-
-      {/* Quick Replies */}
-      <div className="flex flex-wrap gap-2 mt-3">
-        {QUICK_REPLIES.map((reply, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            size="sm"
-            onClick={() => insertQuickReply(reply)}
-            className="text-xs rounded-full bg-gray-100 text-educhat-medium hover:bg-gray-200 border-0"
-          >
-            {reply}
-          </Button>
-        ))}
       </div>
     </div>
   );
