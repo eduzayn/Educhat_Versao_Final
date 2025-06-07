@@ -55,7 +55,29 @@
   color: hsl(var(--background)) !important;
 }
 
-/* Override specific blue circular unread count badges that show notification numbers */
+/* Force all blue notification badges to gray with maximum specificity */
+*[class*="bg-blue-5"]:not([class*="text-blue-7"]):not([class*="text-blue-8"]),
+*[class*="bg-blue-6"]:not([class*="text-blue-7"]):not([class*="text-blue-8"]),
+span.bg-blue-500,
+div.bg-blue-500,
+.bg-blue-500.rounded-full,
+.bg-blue-600.rounded-full,
+.bg-blue-500:not(.text-blue-700):not(.text-blue-800),
+.bg-blue-600:not(.text-blue-700):not(.text-blue-800) {
+  background-color: hsl(var(--muted-foreground)) !important;
+  color: hsl(var(--background)) !important;
+}
+
+/* Catch any inline styles or computed blue backgrounds */
+[style*="background-color: rgb(59, 130, 246)"],
+[style*="background-color: rgb(37, 99, 235)"],
+[style*="background: rgb(59, 130, 246)"],
+[style*="background: rgb(37, 99, 235)"] {
+  background-color: hsl(var(--muted-foreground)) !important;
+  color: hsl(var(--background)) !important;
+}
+
+/* Universal override for any remaining blue-500/600 classes */
 .bg-blue-500,
 .bg-blue-600 {
   background-color: hsl(var(--muted-foreground)) !important;
