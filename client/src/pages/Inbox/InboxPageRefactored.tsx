@@ -55,6 +55,7 @@ import { ConversationActionsDropdown } from './components/ConversationActionsDro
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { CreateContactModal } from './components/CreateContactModal';
 import { ContactSidebar } from './components/ContactSidebar';
+import { ConversationFilters } from './components/ConversationFilters';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -494,40 +495,13 @@ export function InboxPageRefactored() {
         </div>
 
         {/* Filtros compactos */}
-        <div className="px-4 py-2 border-b border-gray-100">
-          <div className="flex gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 text-xs">
-                <Filter className="w-3 h-3 mr-1" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="open">Aberta</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="resolved">Resolvida</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Canal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os canais</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp (Todos)</SelectItem>
-                {channels.filter(c => c.type === 'whatsapp' && c.isActive).map(channel => (
-                  <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
-                    WhatsApp {channel.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <ConversationFilters
+          statusFilter={statusFilter}
+          channelFilter={channelFilter}
+          onStatusFilterChange={setStatusFilter}
+          onChannelFilterChange={setChannelFilter}
+          channels={channels}
+        />
 
         {/* Lista de Conversas */}
         <div className="flex-1 overflow-y-auto">
