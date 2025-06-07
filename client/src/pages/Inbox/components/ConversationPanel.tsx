@@ -274,12 +274,12 @@ export function ConversationPanel({
                     
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground truncate">
-                        {conversation.lastMessageContent || 'Sem mensagens'}
+                        {(conversation as any).lastMessageContent || 'Sem mensagens'}
                       </p>
                       <span className="text-xs text-muted-foreground">
                         {conversation.lastMessageAt 
-                          ? formatTime(conversation.lastMessageAt)
-                          : formatTime(conversation.createdAt)
+                          ? formatTime(new Date(conversation.lastMessageAt).getTime())
+                          : conversation.createdAt ? formatTime(new Date(conversation.createdAt).getTime()) : ''
                         }
                       </span>
                     </div>
