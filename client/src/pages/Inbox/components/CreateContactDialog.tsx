@@ -69,11 +69,6 @@ export function CreateContactDialog({ isOpen, onOpenChange, trigger }: CreateCon
         name: form.name.trim(),
         email: form.email || null,
         phone: form.phone || null,
-        company: form.company || null,
-        address: form.address || null,
-        contactType: form.contactType as any,
-        owner: form.owner || null,
-        notes: form.notes || null,
         tags: newTags.length > 0 ? newTags : null,
       };
 

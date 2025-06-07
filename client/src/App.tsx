@@ -8,7 +8,7 @@ import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
-import { InboxPageRefactored as InboxPage } from "@/pages/Inbox/InboxPageRefactored";
+import { InboxPage } from "@/pages/Inbox/InboxPage";
 import { ContactsPageRefactored as ContactsPage } from "@/pages/Contacts/ContactsPageRefactored";
 import ReportsPage from "@/pages/ReportsPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";

@@ -26,10 +26,7 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
   const { 
     data: apiMessages, 
     isLoading: isLoadingMessages 
-  } = useMessages(conversation?.id || 0, {
-    enabled: !!conversation?.id,
-    refetchInterval: false // Usar WebSocket para tempo real
-  });
+  } = useMessages(conversation?.id || 0);
 
   // Combinar mensagens do store (tempo real) com mensagens da API
   const allMessages = conversation?.id ? [
@@ -127,7 +124,6 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
                   <MessageBubble
                     key={`${message.id}-${index}`}
                     message={message}
-                    isFromContact={message.isFromContact}
                     contact={conversation.contact}
                     showAvatar={index === 0 || uniqueMessages[index - 1]?.isFromContact !== message.isFromContact}
                   />
@@ -139,11 +135,9 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
 
           {/* Input de Mensagem */}
           <div className="border-t border-gray-200 p-4">
-            <InputArea 
-              conversationId={conversation.id}
-              contactPhone={conversation.contact?.phone || ''}
-              contactName={conversation.contact?.name || ''}
-            />
+            <div className="text-sm text-gray-500 text-center">
+              Área de input de mensagem - será integrada com componente existente
+            </div>
           </div>
         </div>
 
