@@ -1747,8 +1747,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send reaction via Z-API
-  app.post('/api/zapi/send-reaction', async (req, res) => {
+  // Send reaction via Z-API - REST: POST /api/zapi/reactions
+  app.post('/api/zapi/reactions', async (req, res) => {
     try {
       console.log('📤 Recebendo solicitação de envio de reação:', req.body);
       
@@ -1816,8 +1816,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove reaction via Z-API
-  app.post('/api/zapi/remove-reaction', async (req, res) => {
+  // Remove reaction via Z-API - REST: DELETE /api/zapi/reactions
+  app.delete('/api/zapi/reactions', async (req, res) => {
     try {
       console.log('📤 Recebendo solicitação de remoção de reação:', req.body);
       
@@ -1884,12 +1884,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete message via Z-API
-  app.post('/api/zapi/delete-message', async (req, res) => {
+  // Delete message via Z-API - REST: DELETE /api/zapi/messages/:messageId
+  app.delete('/api/zapi/messages/:messageId', async (req, res) => {
     try {
       console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', req.body);
       
-      const { phone, messageId, conversationId } = req.body;
+      const { phone, conversationId } = req.body;
+      const messageId = req.params.messageId;
       
       if (!phone || !messageId) {
         return res.status(400).json({ 
@@ -2440,8 +2441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar mensagens via Z-API
-  app.post('/api/zapi/send-message', async (req, res) => {
+  // Endpoint para enviar mensagens via Z-API - REST: POST /api/zapi/messages
+  app.post('/api/zapi/messages', async (req, res) => {
     try {
       console.log('📤 Recebendo solicitação de envio de mensagem:', req.body);
       
@@ -2557,8 +2558,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar áudio via Z-API
-  app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
+  // Endpoint para enviar áudio via Z-API - REST: POST /api/zapi/media/audio
+  app.post('/api/zapi/media/audio', upload.single('audio'), async (req, res) => {
     try {
       console.log('🎵 Recebendo solicitação de envio de áudio:', {
         body: req.body,
