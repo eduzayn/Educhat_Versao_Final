@@ -5,7 +5,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/ui/ui/popover";
-import { cn } from "@/lib/utils";
 import { Smile, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -18,50 +17,8 @@ interface MessageReactionsProps {
   contactPhone: string;
 }
 
-const REACTION_CATEGORIES = {
-  emotions: {
-    label: "Emoções",
-    reactions: ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬"],
-  },
-  feelings: {
-    label: "Sentimentos", 
-    reactions: ["🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
-  },
-  gestures: {
-    label: "Gestos",
-    reactions: ["👍", "👎", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁️", "👅"],
-  },
-  hearts: {
-    label: "Corações",
-    reactions: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟"],
-  },
-  objects: {
-    label: "Objetos",
-    reactions: ["💯", "💢", "💥", "💫", "💦", "💨", "🕳️", "💣", "💬", "👁️‍🗨️", "🗨️", "🗯️", "💭", "💤", "👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👏", "🙌", "👐", "🤲", "🤝", "🙏"],
-  },
-  animals: {
-    label: "Animais",
-    reactions: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷️", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺", "🐈", "🐈‍⬛", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁", "🐀", "🐿️", "🦔"],
-  },
-  food: {
-    label: "Comida",
-    reactions: ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕", "🫓", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘", "🫕", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🍘", "🍥", "🥠", "🥮", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🍯"],
-  },
-  activities: {
-    label: "Atividades", 
-    reactions: ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛼", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🪂", "🏋️‍♀️", "🏋️", "🏋️‍♂️", "🤼‍♀️", "🤼", "🤼‍♂️", "🤸‍♀️", "🤸", "🤸‍♂️", "⛹️‍♀️", "⛹️", "⛹️‍♂️", "🤺", "🤾‍♀️", "🤾", "🤾‍♂️", "🏌️‍♀️", "🏌️", "🏌️‍♂️", "🏇", "🧘‍♀️", "🧘", "🧘‍♂️", "🏄‍♀️", "🏄", "🏄‍♂️", "🏊‍♀️", "🏊", "🏊‍♂️", "🤽‍♀️", "🤽", "🤽‍♂️", "🚣‍♀️", "🚣", "🚣‍♂️", "🧗‍♀️", "🧗", "🧗‍♂️", "🚵‍♀️", "🚵", "🚵‍♂️", "🚴‍♀️", "🚴", "🚴‍♂️"],
-  },
-  travel: {
-    label: "Viagem",
-    reactions: ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🏍️", "🛵", "🚲", "🛴", "🛺", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️", "🛫", "🛬", "🛩️", "💺", "🛰️", "🚀", "🛸", "🚁", "🛶", "⛵", "🚤", "🛥️", "🛳️", "⛴️", "🚢", "⚓", "⛽", "🚧", "🚦", "🚥", "🗺️", "🗿", "🗽", "🗼", "🏰", "🏯", "🏟️", "🎡", "🎢", "🎠", "⛱️", "🏖️", "🏝️", "🏜️", "🌋", "⛰️", "🏔️", "🗻", "🏕️", "⛺", "🏠", "🏡", "🏘️", "🏚️", "🏗️", "🏭", "🏢", "🏬", "🏣", "🏤", "🏥", "🏦", "🏨", "🏪", "🏫", "🏩", "💒", "🏛️", "⛪", "🕌", "🕍", "🛐"],
-  },
-  nature: {
-    label: "Natureza",
-    reactions: ["🌱", "🌿", "☘️", "🍀", "🎋", "🎍", "🌾", "🌵", "🌲", "🌳", "🌴", "🌸", "🌺", "🌻", "🌹", "🥀", "🌷", "🌼", "🌻", "🏵️", "💐", "🍄", "🍃", "🌊", "💧", "🔥", "⭐", "🌟", "✨", "⚡", "☄️", "💥", "🔥", "🌪️", "🌈", "☀️", "🌤️", "⛅", "🌦️", "🌧️", "⛈️", "🌩️", "🌨️", "❄️", "☃️", "⛄", "🌬️", "💨", "🌊", "💧", "💦", "☔", "☂️", "🌍", "🌎", "🌏", "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🌙", "🌚", "🌛", "🌜", "🌡️", "☀️", "🔆", "🔅"],
-  },
-};
-
-const COMMON_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡", "🔥", "💯", "👏", "🙏", "💪", "🎉"];
+// Reações comuns para mensagens - sistema simplificado
+const COMMON_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡", "🔥", "💯", "👏", "🙏"];
 
 export function MessageReactions({
   message,
@@ -69,11 +26,10 @@ export function MessageReactions({
   contactPhone,
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("emotions");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const hasReaction = false; // Substituir por lógica real (ex: message.reactions.includes(...))
+  const hasReaction = false; // Substituir por lógica real
 
   const sendReactionMutation = useMutation({
     mutationFn: async ({ reaction }: { reaction: string }) => {
@@ -114,7 +70,7 @@ export function MessageReactions({
     onSuccess: () => {
       toast({
         title: "Reação removida",
-        description: "A reação foi removida com sucesso!",
+        description: "Sua reação foi removida.",
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations", conversationId, "messages"],
@@ -129,40 +85,15 @@ export function MessageReactions({
     },
   });
 
-  const handleReaction = (emoji: string) => {
-    sendReactionMutation.mutate({ reaction: emoji });
-  };
-
   const ReactionButton = ({ emoji }: { emoji: string }) => (
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => handleReaction(emoji)}
+      onClick={() => sendReactionMutation.mutate({ reaction: emoji })}
       disabled={sendReactionMutation.isPending}
       className="h-8 w-8 p-0 text-lg hover:bg-gray-100 transition"
     >
       {emoji}
-    </Button>
-  );
-
-  const ReactionCategoryButton = ({
-    keyName,
-    label,
-  }: {
-    keyName: string;
-    label: string;
-  }) => (
-    <Button
-      key={keyName}
-      variant={activeCategory === keyName ? "default" : "ghost"}
-      size="sm"
-      onClick={() => setActiveCategory(keyName)}
-      className={cn(
-        "text-xs px-2 py-1 h-7",
-        activeCategory === keyName && "bg-educhat-primary text-white",
-      )}
-    >
-      {label}
     </Button>
   );
 
@@ -196,54 +127,17 @@ export function MessageReactions({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-96 p-0 max-h-[500px]" align="start">
-          <div className="flex flex-col h-full">
-            {/* Header fixo */}
-            <div className="p-3 border-b bg-white">
-              {/* Reações frequentes no topo */}
-              <div className="mb-3">
-                <p className="text-xs text-gray-500 mb-2 font-medium">Mais usadas:</p>
-                <div className="grid grid-cols-6 gap-1">
-                  {COMMON_REACTIONS.map((emoji) => (
-                    <ReactionButton emoji={emoji} key={emoji} />
-                  ))}
-                </div>
-              </div>
-
-              {/* Categorias */}
-              <div className="flex flex-wrap gap-1">
-                {Object.entries(REACTION_CATEGORIES).map(([key, value]) => (
-                  <ReactionCategoryButton
-                    keyName={key}
-                    label={value.label}
-                    key={key}
-                  />
-                ))}
-              </div>
+        <PopoverContent className="w-64 p-3" align="start">
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-gray-700">Reações rápidas</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {COMMON_REACTIONS.map((emoji) => (
+                <ReactionButton emoji={emoji} key={emoji} />
+              ))}
             </div>
-
-            {/* Área de scroll com emojis */}
-            <div 
-              className="flex-1 p-3 overflow-y-auto custom-scrollbar" 
-              style={{ 
-                maxHeight: '300px'
-              }}
-            >
-              <div className="grid grid-cols-8 gap-2 pb-2">
-                {REACTION_CATEGORIES[
-                  activeCategory as keyof typeof REACTION_CATEGORIES
-                ].reactions.map((emoji) => (
-                  <ReactionButton emoji={emoji} key={emoji} />
-                ))}
-              </div>
-            </div>
-
-            {/* Footer fixo */}
-            <div className="p-2 border-t bg-gray-50">
-              <p className="text-xs text-gray-400 text-center">
-                {REACTION_CATEGORIES[activeCategory as keyof typeof REACTION_CATEGORIES].reactions.length} emojis disponíveis
-              </p>
-            </div>
+            <p className="text-xs text-gray-500 text-center">
+              Reações disponíveis apenas para WhatsApp
+            </p>
           </div>
         </PopoverContent>
       </Popover>

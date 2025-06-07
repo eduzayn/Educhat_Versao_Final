@@ -17,7 +17,7 @@ interface ChatUser {
   avatar?: string;
 }
 
-const QUICK_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
+const FREQUENT_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
 
 const COMMANDS = [
   { command: '/remind', description: 'Criar lembrete', example: '/remind 15:30 Reunião equipe' },
@@ -286,7 +286,7 @@ export function ChatInput() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align="end">
                 <div className="grid grid-cols-4 gap-1">
-                  {QUICK_EMOJIS.map((emoji) => (
+                  {FREQUENT_EMOJIS.map((emoji) => (
                     <Button
                       key={emoji}
                       variant="ghost"
