@@ -40,25 +40,7 @@ const uploadImage = multer({
   }
 });
 
-function validateZApiCredentials() {
-  const instanceId = process.env.ZAPI_INSTANCE_ID;
-  const token = process.env.ZAPI_TOKEN;
-  const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-
-  if (!instanceId || !token || !clientToken) {
-    return {
-      valid: false,
-      error: 'Credenciais Z-API não configuradas'
-    };
-  }
-
-  return {
-    valid: true,
-    instanceId,
-    token,
-    clientToken
-  };
-}
+import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../core/zapi-utils';
 
 export function registerWebhookRoutes(app: Express) {
   

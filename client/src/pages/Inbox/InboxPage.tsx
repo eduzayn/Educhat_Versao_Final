@@ -543,10 +543,10 @@ export function InboxPage() {
         onAddNote={handleAddNote}
       />
       
-      <CreateContactModal 
+      <ContactDialog 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        zapiStatus={zapiStatus}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => refetch()}
       />
     </div>
   );
