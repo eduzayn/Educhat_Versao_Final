@@ -170,7 +170,7 @@ export function ConversationList({
                 key={conversation.id}
                 onClick={() => onSelectConversation(conversation)}
                 className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  activeConversation?.id === conversation.id ? 'bg-purple-50 border-r-2 border-purple-500' : ''
+                  activeConversation?.id === conversation.id ? 'bg-gray-50 border-r-2 border-gray-500' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
