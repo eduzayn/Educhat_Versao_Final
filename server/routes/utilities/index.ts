@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest, requirePermission } from '../../permissions';
+import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
 import { storage } from '../../core/storage';
 
 function validateZApiCredentials() {
