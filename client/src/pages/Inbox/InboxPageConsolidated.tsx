@@ -258,47 +258,42 @@ export function InboxPageConsolidated() {
           <>
             {/* Header do Chat */}
             <ChatHeader
-              conversation={activeConversation}
-              onBackClick={() => setShowMobileChat(false)}
-              showBackButton={true}
+              activeConversation={activeConversation}
+              showMobileChat={showMobileChat}
+              onMobileBackClick={() => setShowMobileChat(false)}
+              onStatusChange={(conversationId: number, newStatus: string) => {
+                // Implementar mudança de status
+                console.log('Status change:', conversationId, newStatus);
+              }}
+              getChannelInfo={(channel: string) => {
+                const channelConfig = CHANNELS[channel as keyof typeof CHANNELS];
+                return channelConfig || { icon: '📱', color: 'bg-gray-500', label: channel };
+              }}
             />
 
             {/* Área de Mensagens */}
             <div className="flex-1 flex">
               <div className="flex-1 flex flex-col">
                 <MessagesArea
-                  conversation={activeConversation}
                   messages={messages || []}
-                  isLoading={isLoadingMessages}
+                  isLoadingMessages={isLoadingMessages}
+                  activeConversation={activeConversation}
+                  getChannelInfo={(channel: string) => {
+                    const channelConfig = CHANNELS[channel as keyof typeof CHANNELS];
+                    return channelConfig || { icon: '📱', color: 'bg-gray-500', label: channel };
+                  }}
                 />
 
                 {/* Input de Mensagem */}
                 <div className="border-t border-gray-200 bg-white">
-                  <InputArea
-                    conversationId={activeConversation.id}
-                    contactPhone={activeConversation.contact?.phone || ''}
-                    isWhatsAppAvailable={isWhatsAppAvailable}
-                  />
+                  <InputArea />
                 </div>
               </div>
 
               {/* Sidebar de Contato */}
-              <ContactSidebar
-                contact={activeConversation.contact}
-                conversation={activeConversation}
-                notes={contactNotes}
-                deals={contactDeals}
-                interests={contactInterests}
-                onNoteAdd={() => setShowNoteDialog(true)}
-                onNoteDelete={deleteNote}
-                onRefresh={() => {
-                  if (activeConversation?.contactId) {
-                    fetchContactNotes(activeConversation.contactId);
-                    fetchContactDeals(activeConversation.contactId);
-                    fetchContactInterests(activeConversation.contactId);
-                  }
-                }}
-              />
+              {activeConversation.contact && (
+                <ContactSidebar />
+              )}
             </div>
           </>
         ) : (
