@@ -12,7 +12,11 @@ import {
   Tag, 
   MessageSquare, 
   Plus, 
-  X 
+  X,
+  GraduationCap,
+  BookOpen,
+  Target,
+  Users
 } from 'lucide-react';
 
 interface ContactSidebarProps {
@@ -102,21 +106,128 @@ export function ContactSidebar({
           </div>
         </div>
 
-        {/* 🏷️ Tags do Contato */}
-        {activeConversation.contact.tags && activeConversation.contact.tags.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm text-gray-900 flex items-center">
-              <Tag className="w-4 h-4 mr-2" />
-              Tags
-            </h4>
-            <div className="flex flex-wrap gap-1">
-              {activeConversation.contact.tags.map((tag: string, index: number) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+        {/* 🎓 Área de Formação */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm text-gray-900 flex items-center">
+            <GraduationCap className="w-4 h-4 mr-2" />
+            Área de Formação
+          </h4>
+          
+          {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
+            (() => {
+              const formationTags = activeConversation.contact.tags.filter((tag: string) => 
+                tag.startsWith('Formado:') || tag.startsWith('Graduado:') || tag.startsWith('Pós-graduado:')
+              );
+              
+              return formationTags.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2 flex items-center">
+                      <BookOpen className="w-3 h-3 mr-1" />
+                      Cursos Concluídos
+                    </h5>
+                    <div className="space-y-1">
+                      {formationTags.map((tag: string, index: number) => (
+                        <div key={`formation-${index}`} className="bg-white border border-blue-100 p-2 rounded-md">
+                          <p className="text-sm font-medium text-blue-800">
+                            {tag.replace(/^(Formado:|Graduado:|Pós-graduado:)\s*/, '')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhuma formação identificada
+                  </p>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500">
+                Nenhuma formação identificada
+              </p>
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* 🎯 Área de Interesse */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm text-gray-900 flex items-center">
+            <Target className="w-4 h-4 mr-2" />
+            Área de Interesse
+          </h4>
+          
+          {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
+            (() => {
+              const interestTags = activeConversation.contact.tags.filter((tag: string) => 
+                tag.startsWith('Interesse:')
+              );
+              
+              return interestTags.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <h5 className="text-xs font-medium text-green-700 uppercase tracking-wide mb-2 flex items-center">
+                      <Target className="w-3 h-3 mr-1" />
+                      Cursos de Interesse
+                    </h5>
+                    <div className="space-y-1">
+                      {interestTags.map((tag: string, index: number) => (
+                        <div key={`interest-${index}`} className="bg-white border border-green-100 p-2 rounded-md">
+                          <p className="text-sm font-medium text-green-800">
+                            {tag.replace('Interesse: ', '')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhum interesse identificado
+                  </p>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500">
+                Nenhum interesse identificado
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 🏷️ Outras Tags */}
+        {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && (
+          (() => {
+            const otherTags = activeConversation.contact.tags.filter((tag: string) => 
+              !tag.startsWith('Formado:') && 
+              !tag.startsWith('Graduado:') && 
+              !tag.startsWith('Pós-graduado:') && 
+              !tag.startsWith('Interesse:')
+            );
+            
+            return otherTags.length > 0 ? (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm text-gray-900 flex items-center">
+                  <Tag className="w-4 h-4 mr-2" />
+                  Outras Classificações
+                </h4>
+                <div className="flex flex-wrap gap-1">
+                  {otherTags.map((tag: string, index: number) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null;
+          })()
         )}
 
         {/* 📝 Notas do Contato */}
