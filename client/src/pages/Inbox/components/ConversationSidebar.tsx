@@ -9,7 +9,7 @@ import { Search, Filter, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
-// import { CreateContactDialog } from './CreateContactDialog';
+// Removido CreateContactDialog duplicado - usar modal simples
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationSidebarProps {
@@ -99,19 +99,14 @@ export function ConversationSidebar({
           <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
           <div className="flex items-center gap-2">
             <ZApiStatusIndicator />
-            <CreateContactDialog 
-              isOpen={isModalOpen}
-              onOpenChange={setIsModalOpen}
-              trigger={
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  title="Novo contato"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              }
-            />
+            <Button 
+              size="sm" 
+              variant="outline"
+              title="Novo contato"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
         </div>
         
