@@ -251,6 +251,18 @@ export function ConversationSidebar({
           </div>
         )}
       </div>
+
+      {/* Modal simples para criar contato */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Contato</DialogTitle>
+          </DialogHeader>
+          <p className="text-gray-600">
+            Para criar novos contatos, acesse a seção Contatos no menu principal.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
