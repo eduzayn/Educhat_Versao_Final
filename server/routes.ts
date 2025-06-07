@@ -2693,8 +2693,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar imagem via Z-API
-  app.post('/api/zapi/send-image', upload.single('image'), async (req, res) => {
+  // Endpoint para enviar imagem via Z-API - REST: POST /api/zapi/media/images
+  app.post('/api/zapi/media/images', upload.single('image'), async (req, res) => {
     try {
       console.log('🖼️ Recebendo solicitação de envio de imagem:', {
         body: req.body,
@@ -2810,8 +2810,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar vídeo via Z-API (usando send-document/mp4)
-  app.post('/api/zapi/send-video', upload.single('video'), async (req, res) => {
+  // Endpoint para enviar vídeo via Z-API - REST: POST /api/zapi/media/videos
+  app.post('/api/zapi/media/videos', upload.single('video'), async (req, res) => {
     console.log('🎥 === INÍCIO ENVIO DE VÍDEO ===');
     try {
       console.log('🎥 Recebendo solicitação de envio de vídeo:', {
@@ -2933,8 +2933,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar documento via Z-API
-  app.post('/api/zapi/send-document', upload.single('document'), async (req, res) => {
+  // Endpoint para enviar documento via Z-API - REST: POST /api/zapi/media/documents
+  app.post('/api/zapi/media/documents', upload.single('document'), async (req, res) => {
     try {
       console.log('Recebendo solicitação de envio de documento:', {
         body: req.body,
@@ -3060,8 +3060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Endpoint para enviar link via Z-API
-  app.post('/api/zapi/send-link', async (req, res) => {
+  // Endpoint para enviar link via Z-API - REST: POST /api/zapi/links
+  app.post('/api/zapi/links', async (req, res) => {
     try {
       console.log('🔗 Recebendo solicitação de envio de link:', req.body);
 
