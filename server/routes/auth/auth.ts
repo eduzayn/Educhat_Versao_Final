@@ -65,33 +65,33 @@ export function setupAuth(app: Express) {
       },
       async (email, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
-          if (!user || !user.password) {
+          const systemUser = await storage.getUserByEmail(email);
+          if (!systemUser || !systemUser.password) {
             return done(null, false, { message: "Credenciais inválidas" });
           }
 
-          const isMatch = await comparePasswords(password, user.password);
+          const isMatch = await comparePasswords(password, systemUser.password);
           if (!isMatch) {
             return done(null, false, { message: "Credenciais inválidas" });
           }
 
           // Buscar informações de equipe
           let teamInfo = null;
-          if (user.teamId) {
-            teamInfo = await storage.getTeam(user.teamId);
+          if (systemUser.teamId) {
+            teamInfo = await storage.getTeam(systemUser.teamId);
           }
 
           const userWithTeam = {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            displayName: user.displayName,
-            role: user.role,
-            roleId: user.roleId,
-            dataKey: user.dataKey,
-            channels: user.channels || [],
-            macrosetores: user.macrosetores || [],
-            teamId: user.teamId,
+            id: systemUser.id,
+            email: systemUser.email,
+            username: systemUser.username,
+            displayName: systemUser.displayName,
+            role: systemUser.role,
+            roleId: systemUser.roleId || 1,
+            dataKey: systemUser.dataKey,
+            channels: systemUser.channels || [],
+            macrosetores: systemUser.macrosetores || [],
+            teamId: systemUser.teamId,
             team: teamInfo?.name || null,
           };
 

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { storage } from "../../storage";
+import { storage } from "../../core/storage";
 
 let io: SocketIOServer;
 
