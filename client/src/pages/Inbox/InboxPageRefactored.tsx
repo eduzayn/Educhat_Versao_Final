@@ -113,6 +113,8 @@ export function InboxPageRefactored() {
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
   const [contactInterests, setContactInterests] = useState<any[]>([]);
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [newNote, setNewNote] = useState('');
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
@@ -807,8 +809,7 @@ export function InboxPageRefactored() {
       
       <CreateContactModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        zapiStatus={zapiStatus}
+        onOpenChange={setIsModalOpen}
       />
     </div>
   );
