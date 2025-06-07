@@ -1262,4 +1262,72 @@ export function registerZApiRoutes(app: Express) {
       });
     }
   });
+
+  // Send audio via Z-API - REST: POST /api/zapi/send-audio
+  app.post('/api/zapi/send-audio', async (req, res) => {
+    try {
+      console.log('🎵 Enviando áudio via Z-API:', req.body);
+      
+      const { phone, audio, conversationId } = req.body;
+      
+      if (!phone || !audio) {
+        return res.status(400).json({ 
+          error: 'Phone e audio são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        audio: audio
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-audio`;
+      console.log('🎵 Enviando áudio para Z-API:', { url: url.replace(token, '****'), payload: { ...payload, audio: '[AUDIO_DATA]' } });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API (áudio):', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText.substring(0, 200) + '...'
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API (áudio):', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON (áudio):', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Áudio enviado com sucesso via Z-API:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar áudio via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
 }
