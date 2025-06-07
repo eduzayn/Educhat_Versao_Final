@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Inicializar módulo Z-API
+  // Inicializar módulo Z-API (sem webhook - já registrado em index.ts)
   const zapiModule = new ZApiModule(storage, broadcast);
   zapiModule.registerRoutes(app);
 
