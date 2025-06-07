@@ -1,12 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "../auth";
-import { registerInternalChatRoutes } from "../internal-chat-routes";
-import { registerMediaRoutes } from "../media-routes";
 
 // Import modular routes
 import { registerAuthRoutes } from "./auth/index";
 import { registerAdminRoutes } from "./admin/index";
+import { registerInternalChatRoutes } from "./internal-chat/index";
+import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
 import { registerContactRoutes } from "./contacts/index";
@@ -26,13 +26,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
   setupAuth(app);
   
-  // Registrar rotas administrativas existentes
-  registerInternalChatRoutes(app);
-  registerMediaRoutes(app);
-
   // Registrar todos os módulos extraídos
   registerAuthRoutes(app);
   registerAdminRoutes(app);
+  registerInternalChatRoutes(app);
+  registerMediaRoutes(app);
   registerInboxRoutes(app);
   registerMessageRoutes(app);
   registerContactRoutes(app);
