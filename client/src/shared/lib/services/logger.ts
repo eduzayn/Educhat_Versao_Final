@@ -1,4 +1,4 @@
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 export enum LogLevel {
   DEBUG = 'debug',

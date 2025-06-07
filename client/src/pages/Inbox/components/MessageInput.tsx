@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Send, Mic } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
