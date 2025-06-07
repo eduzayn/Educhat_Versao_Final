@@ -729,21 +729,32 @@ export function registerZApiRoutes(app: Express) {
         let messageType = 'text';
         
         // Determinar o conteúdo da mensagem baseado no tipo
+        let mediaUrl = null;
+        let fileName = null;
+        
         if (webhookData.text && webhookData.text.message) {
           messageContent = webhookData.text.message;
           messageType = 'text';
         } else if (webhookData.image) {
           messageContent = webhookData.image.caption || 'Imagem enviada';
           messageType = 'image';
+          mediaUrl = webhookData.image.imageUrl || webhookData.image.url;
+          fileName = webhookData.image.fileName || 'image.jpg';
         } else if (webhookData.audio) {
           messageContent = 'Áudio enviado';
           messageType = 'audio';
+          mediaUrl = webhookData.audio.audioUrl || webhookData.audio.url;
+          fileName = webhookData.audio.fileName || 'audio.mp3';
         } else if (webhookData.video) {
           messageContent = webhookData.video.caption || 'Vídeo enviado';
           messageType = 'video';
+          mediaUrl = webhookData.video.videoUrl || webhookData.video.url;
+          fileName = webhookData.video.fileName || 'video.mp4';
         } else if (webhookData.document) {
           messageContent = webhookData.document.fileName || 'Documento enviado';
           messageType = 'document';
+          mediaUrl = webhookData.document.documentUrl || webhookData.document.url;
+          fileName = webhookData.document.fileName || 'document.pdf';
         } else if (webhookData.location) {
           messageContent = 'Localização enviada';
           messageType = 'location';
@@ -779,14 +790,21 @@ export function registerZApiRoutes(app: Express) {
           });
         }
 
+        // Criar metadados enriquecidos para mensagens de mídia
+        let enhancedMetadata = { ...webhookData };
+        if (mediaUrl) {
+          enhancedMetadata.mediaUrl = mediaUrl;
+          enhancedMetadata.fileName = fileName;
+        }
+
         // Criar a mensagem
         const message = await storage.createMessage({
           conversationId: conversation.id,
-          content: messageContent,
+          content: mediaUrl || messageContent, // Para mídia, salvar a URL no content
           isFromContact: true,
           messageType,
           sentAt: new Date(),
-          metadata: webhookData
+          metadata: enhancedMetadata
         });
 
         console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);

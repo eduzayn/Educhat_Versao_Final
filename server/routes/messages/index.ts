@@ -101,6 +101,67 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
+  // Get media content for a specific message - REST: GET /api/messages/:id/media
+  app.get('/api/messages/:id/media', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const message = await storage.getMessage(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
+      }
+
+      // Verificar se é uma mensagem de mídia
+      if (!['image', 'audio', 'video', 'document'].includes(message.messageType)) {
+        return res.status(400).json({ error: 'Mensagem não é de mídia' });
+      }
+
+      // Retornar a URL da mídia do content ou dos metadados
+      let mediaUrl = null;
+      let fileName = null;
+
+      // Verificar se a URL está no content (novo formato)
+      if (message.content && (message.content.startsWith('http') || message.content.startsWith('data:'))) {
+        mediaUrl = message.content;
+      }
+      
+      // Verificar nos metadados como fallback
+      if (!mediaUrl && message.metadata && typeof message.metadata === 'object') {
+        const metadata = message.metadata as any;
+        
+        // Tentar diferentes campos de URL baseado no tipo
+        if (message.messageType === 'image') {
+          mediaUrl = metadata.mediaUrl || metadata.image?.imageUrl || metadata.image?.url || metadata.imageUrl;
+          fileName = metadata.fileName || metadata.image?.fileName || 'image.jpg';
+        } else if (message.messageType === 'audio') {
+          mediaUrl = metadata.mediaUrl || metadata.audio?.audioUrl || metadata.audio?.url || metadata.audioUrl;
+          fileName = metadata.fileName || metadata.audio?.fileName || 'audio.mp3';
+        } else if (message.messageType === 'video') {
+          mediaUrl = metadata.mediaUrl || metadata.video?.videoUrl || metadata.video?.url || metadata.videoUrl;
+          fileName = metadata.fileName || metadata.video?.fileName || 'video.mp4';
+        } else if (message.messageType === 'document') {
+          mediaUrl = metadata.mediaUrl || metadata.document?.documentUrl || metadata.document?.url || metadata.documentUrl;
+          fileName = metadata.fileName || metadata.document?.fileName || 'document.pdf';
+        }
+      }
+
+      if (!mediaUrl) {
+        return res.status(404).json({ error: 'URL da mídia não encontrada' });
+      }
+
+      res.json({
+        content: mediaUrl,
+        fileName: fileName,
+        messageType: message.messageType,
+        metadata: message.metadata
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar mídia:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Endpoint para carregar conteúdo de mídia sob demanda
   app.get('/api/messages/:id/media', async (req, res) => {
     try {
