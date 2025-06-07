@@ -65,7 +65,7 @@ export function setupAuth(app: Express) {
       },
       async (email, password, done) => {
         try {
-          const user = await storage.getSystemUserByEmail(email);
+          const user = await storage.getUserByEmail(email);
           if (!user || !user.password) {
             return done(null, false, { message: "Credenciais inválidas" });
           }
@@ -110,7 +110,7 @@ export function setupAuth(app: Express) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await storage.getSystemUserById(id);
+      const user = await storage.getSystemUser(id);
       if (!user) {
         return done(null, false);
       }

@@ -24,7 +24,7 @@ export class PermissionService {
     teamId?: number;
   }): Promise<boolean> {
     try {
-      const user = await storage.getSystemUserById(userId);
+      const user = await storage.getSystemUser(userId);
       return user?.role === 'admin' || user?.role === 'manager';
     } catch (error) {
       console.error('Erro ao verificar permissão:', error);
@@ -52,7 +52,7 @@ export class PermissionService {
 
   static async checkResourceOwnership(userId: number, permissionName: string, resourceId: string): Promise<boolean> {
     try {
-      const user = await storage.getSystemUserById(userId);
+      const user = await storage.getSystemUser(userId);
       if (!user) return false;
       
       // Admin tem acesso total
@@ -67,7 +67,7 @@ export class PermissionService {
 
   static async checkTeamAccess(userId: number, resourceId?: string): Promise<boolean> {
     try {
-      const user = await storage.getSystemUserById(userId);
+      const user = await storage.getSystemUser(userId);
       if (!user) return false;
       
       // Admin tem acesso total
