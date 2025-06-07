@@ -52,17 +52,7 @@ export function ConversationList({
     return channelConfig?.icon || '💬';
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = STATUS_CONFIG[status as ConversationStatus] || STATUS_CONFIG.open;
-    return (
-      <Badge 
-        variant="secondary" 
-        className={`text-xs ${config.bgColor} ${config.color}`}
-      >
-        {config.label}
-      </Badge>
-    );
-  };
+
 
   const formatLastMessageTime = (date: Date | null) => {
     if (!date) return '';
@@ -126,8 +116,8 @@ export function ConversationList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {CHANNELS.map(channel => (
-                  <SelectItem key={channel.id} value={channel.id}>
+                {Object.entries(CHANNELS).map(([key, channel]) => (
+                  <SelectItem key={key} value={key}>
                     {channel.icon} {channel.name}
                   </SelectItem>
                 ))}
@@ -203,13 +193,12 @@ export function ConversationList({
                       </span>
                     </div>
 
-                    {/* Status e última mensagem */}
+                    {/* Contador de mensagens não lidas */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(conversation.status || 'open')}
-                        {(conversation.unreadCount || 0) > 0 && (
+                        {(conversation.unreadCount ?? 0) > 0 && (
                           <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                            {(conversation.unreadCount ?? 0) > 99 ? '99+' : (conversation.unreadCount ?? 0)}
                           </Badge>
                         )}
                       </div>
