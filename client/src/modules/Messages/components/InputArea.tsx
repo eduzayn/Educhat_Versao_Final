@@ -347,40 +347,7 @@ export function InputArea() {
     textareaRef.current?.focus();
   };
 
-  // Mutation para enviar reação rápida
-  const sendQuickReactionMutation = useMutation({
-    mutationFn: async (emoji: string) => {
-      if (!activeConversation?.contact.phone) {
-        throw new Error("Número do contato não disponível");
-      }
 
-      const response = await apiRequest("POST", "/api/zapi/send-reaction", {
-        phone: activeConversation.contact.phone,
-        emoji: emoji,
-      });
-
-      return response;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Reação enviada",
-        description: "Sua reação foi enviada com sucesso!",
-      });
-      setIsEmojiOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar reação:", error);
-      toast({
-        title: "Erro ao enviar reação",
-        description: "Não foi possível enviar a reação. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleQuickReaction = (emoji: string) => {
-    sendQuickReactionMutation.mutate(emoji);
-  };
 
   const insertEmoji = (emoji: string) => {
     setMessage((prev) => prev + emoji);
