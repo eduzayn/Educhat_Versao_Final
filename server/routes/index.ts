@@ -14,6 +14,9 @@ import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
 import { registerWebhookRoutes } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
+import { registerDealsRoutes } from "./deals/index";
+import { registerAnalyticsRoutes } from "./analytics/index";
+import { registerTeamsRoutes } from "./teams/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
@@ -32,6 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerChannelRoutes(app);
   registerWebhookRoutes(app);
+  registerDealsRoutes(app);
+  registerAnalyticsRoutes(app);
+  registerTeamsRoutes(app);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
