@@ -984,6 +984,14 @@ export function registerZApiRoutes(app: Express) {
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
       console.log('📨 Webhook Z-API recebido (handler principal):', JSON.stringify(req.body, null, 2));
+      console.log('📊 Dados do webhook processados:', {
+        type: req.body.type,
+        phone: req.body.phone,
+        hasText: !!(req.body.text && req.body.text.message),
+        hasImage: !!req.body.image,
+        hasAudio: !!req.body.audio,
+        timestamp: new Date().toISOString()
+      });
       
       const webhookData = req.body;
       
