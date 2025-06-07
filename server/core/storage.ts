@@ -58,7 +58,7 @@ import Anthropic from '@anthropic-ai/sdk';
 export interface IStorage {
   // User operations for auth
   getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<SystemUser | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   
@@ -268,24 +268,9 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<SystemUser | undefined> {
     const [systemUser] = await db.select().from(systemUsers).where(eq(systemUsers.email, email));
-    if (!systemUser) return undefined;
-    
-    // Convert SystemUser to User type for auth compatibility
-    return {
-      id: systemUser.id,
-      email: systemUser.email,
-      username: systemUser.username,
-      displayName: systemUser.displayName,
-      role: systemUser.role,
-      roleId: systemUser.roleId || 1,
-      dataKey: systemUser.dataKey || undefined,
-      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-      macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
-      teamId: systemUser.teamId || undefined,
-      team: systemUser.team || undefined
-    };
+    return systemUser;
   }
 
   async createUser(userData: UpsertUser): Promise<User> {

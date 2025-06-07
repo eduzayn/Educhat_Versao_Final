@@ -8,7 +8,7 @@ import {
   internalChatReactions,
   systemUsers 
 } from '../../../shared/schema';
-import { AuthenticatedRequest } from '../../permissions';
+import { AuthenticatedRequest, requirePermission } from '../../permissions';
 
 /**
  * Módulo Internal Chat - Sistema de Chat Interno

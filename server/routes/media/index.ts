@@ -2,7 +2,7 @@ import { Express, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { AuthenticatedRequest } from '../../permissions';
+import { AuthenticatedRequest, requirePermission } from '../../permissions';
 
 // Configuração do multer para upload de arquivos
 const storage = multer.diskStorage({

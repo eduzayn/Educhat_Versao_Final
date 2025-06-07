@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest } from '../../permissions';
+import { AuthenticatedRequest, requirePermission } from '../../permissions';
 import { requirePermission } from '../../permissions';
 import { storage } from '../../storage';
 

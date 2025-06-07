@@ -88,12 +88,12 @@ export function setupAuth(app: Express) {
             displayName: systemUser.displayName,
             role: systemUser.role,
             roleId: systemUser.roleId || 1,
-            dataKey: systemUser.dataKey,
+            dataKey: systemUser.dataKey || undefined,
             channels: systemUser.channels || [],
             macrosetores: systemUser.macrosetores || [],
-            teamId: systemUser.teamId,
-            team: teamInfo?.name || null,
-          };
+            teamId: systemUser.teamId || undefined,
+            team: teamInfo?.name || undefined,
+          } as User;
 
           return done(null, userWithTeam);
         } catch (error) {
