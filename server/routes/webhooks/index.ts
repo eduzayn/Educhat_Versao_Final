@@ -1,5 +1,25 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
+import multer from "multer";
+
+// Configurar multer para upload de áudio em memória
+const uploadAudio = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mpeg', 'audio/mp4'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de áudio não permitido'));
+    }
+  }
+});
 
 function validateZApiCredentials() {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
@@ -22,6 +42,117 @@ function validateZApiCredentials() {
 }
 
 export function registerWebhookRoutes(app: Express) {
+  
+  // Send audio via Z-API - REST: POST /api/zapi/send-audio
+  app.post('/api/zapi/send-audio', uploadAudio.single('audio'), async (req, res) => {
+    try {
+      console.log('🎵 Recebendo solicitação de envio de áudio:', {
+        hasPhone: !!req.body.phone,
+        hasFile: !!req.file,
+        contentType: req.headers['content-type']
+      });
+      
+      const phone = req.body.phone;
+      const conversationId = req.body.conversationId;
+      const duration = req.body.duration;
+      
+      if (!phone || !req.file) {
+        return res.status(400).json({ 
+          error: 'Phone e arquivo de áudio são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Converter arquivo para base64
+      const audioBase64 = req.file.buffer.toString('base64');
+      
+      const payload = {
+        phone: cleanPhone,
+        audio: audioBase64
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-audio`;
+      console.log('🎵 Enviando áudio para Z-API:', { 
+        url: url.replace(token, '****'), 
+        phone: cleanPhone,
+        audioSize: audioBase64.length,
+        mimeType: req.file.mimetype
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API (áudio):', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText.substring(0, 200) + '...'
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API (áudio):', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON (áudio):', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Áudio enviado com sucesso via Z-API:', data);
+      
+      // Salvar mensagem no banco de dados se conversationId foi fornecido
+      if (conversationId) {
+        try {
+          await storage.createMessage({
+            conversationId: parseInt(conversationId),
+            content: `Áudio (${duration ? Math.floor(parseFloat(duration)) + 's' : 'duração desconhecida'})`,
+            isFromContact: false,
+            messageType: 'audio',
+            sentAt: new Date(),
+            metadata: {
+              zaapId: data.messageId || data.id,
+              audioSent: true,
+              duration: duration ? parseFloat(duration) : 0,
+              mimeType: req.file.mimetype
+            }
+          });
+
+          // Broadcast para WebSocket
+          const { broadcast } = await import('../realtime');
+          broadcast(parseInt(conversationId), {
+            type: 'message_sent',
+            conversationId: parseInt(conversationId)
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem de áudio no banco:', dbError);
+        }
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar áudio via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
   
   // Import Z-API contacts - REST: POST /api/zapi/import-contacts
   app.post('/api/zapi/import-contacts', async (req, res) => {

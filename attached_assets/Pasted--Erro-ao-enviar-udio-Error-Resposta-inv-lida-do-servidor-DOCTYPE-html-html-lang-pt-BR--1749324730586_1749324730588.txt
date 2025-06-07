@@ -1,0 +1,48 @@
+💥 Erro ao enviar áudio: Error: Resposta inválida do servidor: <!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#7C3AED" />
+    <title>EduChat - Comunicação Omnichannel</title>
+    <meta name="description" content="Sistema avançado de comunicação multi-canal com integração WhatsApp e gestão inteligente de mensagens" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx?v=8FAHj_V4dzbj59CoyYaMR"></script>
+
+  </body>
+</html>
+    at Object.mutationFn (useAudioMessage.ts:49:17)
+Mt.forEach.n.<computed> @ Console.js:61
+onError @ useAudioMessage.ts:78
+execute @ @tanstack_react-query.js?v=de256ee7:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=de256ee7:2630
+handleSendAudio @ InputArea.tsx:699
+handleSendAudio @ AudioRecorder.tsx:188
+callCallback2 @ chunk-RPCDYKBN.js?v=de256ee7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=de256ee7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=de256ee7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=de256ee7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=de256ee7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=de256ee7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=de256ee7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=de256ee7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=de256ee7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=de256ee7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=de256ee7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=de256ee7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=de256ee7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=de256ee7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=de256ee7:5449Understand this error
