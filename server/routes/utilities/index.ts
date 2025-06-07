@@ -77,6 +77,74 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
+  // Send message via Z-API - REST: POST /api/zapi/send-message
+  app.post('/api/zapi/send-message', async (req, res) => {
+    try {
+      console.log('📤 Enviando mensagem via Z-API:', req.body);
+      
+      const { phone, message, conversationId } = req.body;
+      
+      if (!phone || !message) {
+        return res.status(400).json({ 
+          error: 'Phone e message são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        message: message.toString()
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+      console.log('📤 Enviando para Z-API:', { url: url.replace(token, '****'), payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // System Users endpoints - REST: CRUD operations
   app.get('/api/system-users', async (req: AuthenticatedRequest, res: Response) => {
     try {
