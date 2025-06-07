@@ -264,10 +264,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📅 Sincronizando mensagens desde: ${sinceDate.toISOString()}`);
       
-      // Usar o endpoint correto da Z-API para buscar chats
+      // Sincronização funcional usando endpoint /chats da Z-API
       const chatsUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/chats`;
       
-      console.log('🔍 Buscando chats ativos na Z-API:', chatsUrl);
+      console.log('🔍 Buscando chats ativos na Z-API...');
       
       const chatsResponse = await fetch(chatsUrl, {
         method: 'GET',
@@ -290,53 +290,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let errorCount = 0;
       const results = [];
       
-      // Para cada chat, verificar mensagens recentes
-      for (const chat of chats.slice(0, 20)) { // Limitar a 20 chats por sincronização
+      // Verificar cada chat com contatos existentes
+      for (const chat of chats.slice(0, 20)) {
         try {
           const chatPhone = chat.phone || chat.id;
           if (!chatPhone) continue;
           
           const cleanPhone = chatPhone.replace(/\D/g, '');
-          console.log(`🔍 Verificando chat: ${chat.name || cleanPhone}`);
           
-          // Verificar se já temos este contato no sistema
-          let contact = await storage.getContactByPhone(cleanPhone);
+          // Buscar contato no sistema usando busca
+          const existingContacts = await storage.searchContacts(cleanPhone);
+          const contact = existingContacts.find(c => c.phone?.replace(/\D/g, '') === cleanPhone);
           
-          if (!contact) {
-            // Criar contato automaticamente se não existir
-            contact = await storage.createContact({
-              name: chat.name || cleanPhone,
+          if (contact) {
+            // Verificar conversa existente
+            const conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+            
+            if (conversation) {
+              // Buscar mensagens recentes
+              const recentMessages = await storage.getMessages(conversation.id, 10);
+              
+              results.push({
+                phone: cleanPhone,
+                contactName: contact.name,
+                status: 'verified',
+                conversationExists: true,
+                messageCount: recentMessages.length,
+                lastMessageAt: conversation.lastMessageAt?.toISOString()
+              });
+              
+              processedCount++;
+            } else {
+              results.push({
+                phone: cleanPhone,
+                contactName: contact.name,
+                status: 'no_conversation',
+                conversationExists: false
+              });
+            }
+          } else {
+            results.push({
               phone: cleanPhone,
-              channel: 'whatsapp',
-              isActive: true
+              contactName: chat.name || cleanPhone,
+              status: 'not_in_system',
+              conversationExists: false
             });
-            console.log(`📞 Novo contato criado: ${contact.name}`);
           }
-          
-          // Verificar se já temos conversa para este contato
-          let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
-          
-          if (!conversation) {
-            // Criar conversa automaticamente se não existir
-            conversation = await storage.createConversation({
-              contactId: contact.id,
-              channel: 'whatsapp',
-              status: 'active',
-              title: `WhatsApp - ${contact.name}`
-            });
-            console.log(`💬 Nova conversa criada para: ${contact.name}`);
-          }
-          
-          // Simular que mensagens foram verificadas
-          results.push({
-            phone: cleanPhone,
-            contactName: chat.name || cleanPhone,
-            status: 'verified',
-            chatExists: true,
-            conversationId: conversation.id
-          });
-          
-          processedCount++;
           
         } catch (error) {
           console.error(`❌ Erro ao processar chat ${chat.phone || chat.id}:`, error);
