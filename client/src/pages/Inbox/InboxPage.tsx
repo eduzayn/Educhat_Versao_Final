@@ -53,7 +53,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
-import { CreateContactModal } from './components/CreateContactModal';
+import { ContactDialog } from '@/shared/components/ContactDialog';
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
@@ -118,6 +118,8 @@ export function InboxPage() {
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
   const [contactInterests, setContactInterests] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
