@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useFormSubmission, formatCoachingData } from '@/shared/lib/utils/formHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
@@ -112,19 +113,18 @@ export function SalesCoaching() {
     }
   });
 
+  const { handleFormSubmit } = useFormSubmission();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
-    const recordData = {
-      salespersonId: parseInt(formData.get('salespersonId') as string),
-      type: formData.get('type') as string,
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      status: formData.get('status') as string || 'pending'
-    };
+    const recordData = formatCoachingData(formData);
 
-    coachingMutation.mutate(recordData);
+    handleFormSubmit(coachingMutation, recordData, {
+      successMessage: "Registro de coaching salvo com sucesso",
+      errorMessage: "Erro ao salvar registro de coaching",
+      onSuccess: () => setIsDialogOpen(false)
+    });
   };
 
   const getStatusBadge = (status: string) => {

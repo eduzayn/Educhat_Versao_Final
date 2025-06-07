@@ -99,20 +99,18 @@ export function SalesTerritories() {
     }
   });
 
+  const { handleFormSubmit } = useFormSubmission();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
-    const territoryData = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      states: (formData.get('states') as string).split(',').map(s => s.trim()).filter(Boolean),
-      cities: (formData.get('cities') as string).split(',').map(c => c.trim()).filter(Boolean),
-      salespeople: Array.from(formData.getAll('salespeople')),
-      isActive: formData.get('isActive') === 'on'
-    };
+    const territoryData = formatTerritoryData(formData);
 
-    territoryMutation.mutate(territoryData);
+    handleFormSubmit(territoryMutation, territoryData, {
+      successMessage: "Território salvo com sucesso",
+      errorMessage: "Erro ao salvar território",
+      onSuccess: () => setIsDialogOpen(false)
+    });
   };
 
   if (isLoading) {

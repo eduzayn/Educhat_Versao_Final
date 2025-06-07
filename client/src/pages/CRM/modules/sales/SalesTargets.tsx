@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useFormSubmission, formatSalesData } from '@/shared/lib/utils/formHelpers';
+import { getProgressBadge } from '@/shared/lib/utils/badgeHelpers';
 
 interface SalesTarget {
   id: number;
