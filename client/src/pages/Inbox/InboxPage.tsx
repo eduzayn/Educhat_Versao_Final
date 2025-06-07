@@ -40,7 +40,7 @@ import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
-import { useChannels } from '@/shared/lib/hooks/useChannels';
+import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
@@ -49,6 +49,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
+import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
@@ -116,7 +117,7 @@ export function InboxPage() {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
 
   // Verificar se WhatsApp está disponível para comunicação
-  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
+  const isWhatsAppAvailable = Boolean(zapiStatus?.connected && zapiStatus?.smartphoneConnected);
 
   // Buscar negócios, tags e interesses do contato quando a conversa mudar
   useEffect(() => {
