@@ -81,7 +81,7 @@ export function InboxPage() {
         />
 
         {/* Área de Chat */}
-        <div className={`flex-1 ${showMobileChat ? 'mobile-show' : 'mobile-hide'}`}>
+        <div className={`flex-1 ${showMobileChat ? 'mobile-show' : 'mobile-hide md:flex'}`}>
           <ChatArea
             conversation={activeConversation}
             onBack={handleBackToList}
@@ -106,7 +106,8 @@ export function InboxPage() {
         @media (min-width: 769px) {
           .mobile-hide,
           .mobile-show {
-            display: flex;
+            display: flex !important;
+            flex-direction: column;
           }
           .mobile-full-width {
             width: 320px;

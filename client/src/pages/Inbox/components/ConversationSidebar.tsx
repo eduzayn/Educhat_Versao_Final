@@ -254,11 +254,11 @@ export function ConversationSidebar({
 
       {/* Modal simples para criar contato */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="contact-dialog-description">
           <DialogHeader>
             <DialogTitle>Novo Contato</DialogTitle>
           </DialogHeader>
-          <p className="text-gray-600">
+          <p id="contact-dialog-description" className="text-gray-600">
             Para criar novos contatos, acesse a seção Contatos no menu principal.
           </p>
         </DialogContent>
