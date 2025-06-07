@@ -1,6 +1,25 @@
 import type { Express } from "express";
 import { storage } from "../../storage";
-import { validateZApiCredentials } from "../shared/zapi-validation";
+
+function validateZApiCredentials() {
+  const instanceId = process.env.ZAPI_INSTANCE_ID;
+  const token = process.env.ZAPI_TOKEN;
+  const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+  if (!instanceId || !token || !clientToken) {
+    return {
+      valid: false,
+      error: 'Credenciais Z-API não configuradas'
+    };
+  }
+
+  return {
+    valid: true,
+    instanceId,
+    token,
+    clientToken
+  };
+}
 
 export function registerWebhookRoutes(app: Express) {
   

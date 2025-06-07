@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../../storage";
 import { insertMessageSchema } from "@shared/schema";
-import type { AuthenticatedRequest } from "../shared/authentication";
+import type { AuthenticatedRequest } from "../../permissions";
 
 export function registerMessageRoutes(app: Express) {
   
