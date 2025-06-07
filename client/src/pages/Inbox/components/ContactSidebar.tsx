@@ -169,15 +169,15 @@ export function ContactSidebar({
               
               return interestTags.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <h5 className="text-xs font-medium text-green-700 uppercase tracking-wide mb-2 flex items-center">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2 flex items-center">
                       <Target className="w-3 h-3 mr-1" />
                       Cursos de Interesse
                     </h5>
                     <div className="space-y-1">
                       {interestTags.map((tag: string, index: number) => (
-                        <div key={`interest-${index}`} className="bg-white border border-green-100 p-2 rounded-md">
-                          <p className="text-sm font-medium text-green-800">
+                        <div key={`interest-${index}`} className="bg-white border border-blue-100 p-2 rounded-md">
+                          <p className="text-sm font-medium text-blue-800">
                             {tag.replace('Interesse: ', '')}
                           </p>
                         </div>
