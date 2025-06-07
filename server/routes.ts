@@ -130,6 +130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Exportar storage para acesso global no webhook
+  (global as any).storage = storage;
+  
   // Inicializar módulo Z-API (sem webhook - já registrado em index.ts)
   const zapiModule = new ZApiModule(storage, broadcast);
   zapiModule.registerRoutes(app);

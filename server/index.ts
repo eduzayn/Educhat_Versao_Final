@@ -59,9 +59,12 @@ app.post('/api/zapi/webhook', async (req, res) => {
 
 async function processWebhookMessage(data: any) {
   try {
-    // Importar storage dinâmicamente para evitar dependências circulares
-    const { getStorage } = await import('./routes');
-    const storage = getStorage();
+    // Verificar se storage está disponível
+    const storage = (global as any).storage;
+    if (!storage) {
+      console.log('⏳ Storage não disponível ainda, webhook será processado depois');
+      return;
+    }
     
     const phone = data.phone;
     const messageContent = data.text?.message || '';

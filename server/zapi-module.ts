@@ -68,13 +68,10 @@ export class ZApiModule {
   }
 
   /**
-   * Registra todas as rotas Z-API no aplicativo Express
+   * Registra todas as rotas Z-API no aplicativo Express (exceto webhook que é registrado em index.ts)
    */
   registerRoutes(app: Express): void {
-    // Webhook Z-API
-    app.post('/api/zapi/webhook', this.handleWebhook.bind(this));
-    
-    // Configuração
+    // Configuração (webhook registrado em index.ts para evitar middleware de autenticação)
     app.put('/api/zapi/webhook', this.configureWebhook.bind(this));
     app.get('/api/zapi/status', this.getStatus.bind(this));
     app.delete('/api/zapi/connection', this.disconnect.bind(this));
