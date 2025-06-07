@@ -19,7 +19,7 @@ import {
   Calendar
 } from "lucide-react";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
-// Toast notifications will be handled inline
+import { useFormSubmission, formatSalesData } from '@/shared/lib/utils/formHelpers';
 
 interface SalesTarget {
   id: number;
@@ -92,19 +92,18 @@ export function SalesTargets() {
     }
   });
 
+  const { handleFormSubmit } = useFormSubmission();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
-    const targetData = {
-      salespersonId: parseInt(formData.get('salespersonId') as string),
-      targetValue: parseFloat(formData.get('targetValue') as string),
-      period: formData.get('period') as string,
-      startDate: formData.get('startDate') as string,
-      endDate: formData.get('endDate') as string
-    };
+    const targetData = formatSalesData(formData);
 
-    targetMutation.mutate(targetData);
+    handleFormSubmit(targetMutation, targetData, {
+      successMessage: "Meta de vendas salva com sucesso",
+      errorMessage: "Erro ao salvar meta de vendas",
+      onSuccess: () => setIsDialogOpen(false)
+    });
   };
 
   const getStatusBadge = (target: SalesTarget) => {
