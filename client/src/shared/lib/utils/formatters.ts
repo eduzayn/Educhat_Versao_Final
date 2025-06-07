@@ -1,85 +1,130 @@
-/**
- * Utilitários de formatação compartilhados
- * Centraliza funções de formatação para evitar duplicação de código
- */
+import { format } from 'date-fns';
 
 /**
- * Formata tempo em segundos para MM:SS
+ * Formatadores de dados consolidados para evitar duplicação de código
  */
-export function formatTime(time: number): string {
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+// Formatar tempo em minutos para horas e minutos (ex: 150 -> "2h30m")
+export function formatDurationMinutes(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h${mins.toString().padStart(2, '0')}m`;
 }
 
-/**
- * Formata data para exibição amigável
- */
-export function formatRelativeTime(date: Date): string {
+// Formatar tempo em segundos para MM:SS (ex: 90 -> "01:30")
+export function formatDurationSeconds(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+// Formatar timestamp para hora (ex: "14:30")
+export function formatTime(timestamp: Date | string | number): string {
+  return format(new Date(timestamp), "HH:mm");
+}
+
+// Formatar data completa (ex: "15/12/2023 14:30")
+export function formatDateTime(timestamp: Date | string | number): string {
+  return format(new Date(timestamp), "dd/MM/yyyy HH:mm");
+}
+
+// Formatar apenas data (ex: "15/12/2023")
+export function formatDate(timestamp: Date | string | number): string {
+  return format(new Date(timestamp), "dd/MM/yyyy");
+}
+
+// Formatar timestamp relativo (ex: "há 2 horas")
+export function formatRelativeTime(timestamp: Date | string | number): string {
   const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const date = new Date(timestamp);
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
   
-  if (diffInSeconds < 60) {
-    return "agora";
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}min`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h`;
-  } else {
-    const days = Math.floor(diffInSeconds / 86400);
-    return `${days}d`;
-  }
+  if (diffInMinutes < 1) return 'agora';
+  if (diffInMinutes < 60) return `há ${diffInMinutes}min`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `há ${diffInHours}h`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `há ${diffInDays}d`;
+  
+  return formatDate(timestamp);
 }
 
-/**
- * Formata tamanho de arquivo em bytes para formato legível
- */
+// Validar email
+export function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Validar telefone brasileiro
+export function validatePhoneNumber(phone: string): boolean {
+  const phoneRegex = /^(\+55\s?)?(\(?\d{2}\)?\s?)?\d{4,5}-?\d{4}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ''));
+}
+
+// Formatar telefone brasileiro
+export function formatPhoneNumber(phone: string): string {
+  const cleaned = phone.replace(/\D/g, '');
+  
+  if (cleaned.length === 11) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  } else if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+  }
+  
+  return phone;
+}
+
+// Formatar CPF
+export function formatCPF(cpf: string): string {
+  const cleaned = cpf.replace(/\D/g, '');
+  if (cleaned.length === 11) {
+    return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9)}`;
+  }
+  return cpf;
+}
+
+// Formatar CNPJ
+export function formatCNPJ(cnpj: string): string {
+  const cleaned = cnpj.replace(/\D/g, '');
+  if (cleaned.length === 14) {
+    return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5, 8)}/${cleaned.slice(8, 12)}-${cleaned.slice(12)}`;
+  }
+  return cnpj;
+}
+
+// Truncar texto com ellipsis
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+}
+
+// Formatar tamanho de arquivo
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
+  if (bytes === 0) return '0 B';
   
   const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
+  const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-/**
- * Formata duração em milissegundos para formato legível
- */
-export function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  
-  if (hours > 0) {
-    return `${hours}:${(minutes % 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
-  } else {
-    return `${minutes}:${(seconds % 60).toString().padStart(2, "0")}`;
-  }
+// Gerar ID único
+export function generateId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-/**
- * Formata número de telefone brasileiro
- */
-export function formatPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/\D/g, "");
-  
-  if (cleaned.length === 11 && cleaned.startsWith("55")) {
-    // Formato: +55 (XX) 9XXXX-XXXX
-    const ddd = cleaned.substring(2, 4);
-    const first = cleaned.substring(4, 9);
-    const second = cleaned.substring(9);
-    return `+55 (${ddd}) ${first}-${second}`;
-  } else if (cleaned.length === 13 && cleaned.startsWith("55")) {
-    // Formato internacional: +55 XX 9XXXX-XXXX
-    const ddd = cleaned.substring(2, 4);
-    const first = cleaned.substring(4, 9);
-    const second = cleaned.substring(9);
-    return `+55 ${ddd} ${first}-${second}`;
-  }
-  
-  return phone; // Retorna original se não conseguir formatar
+// Capitalizar primeira letra
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+}
+
+// Formatar moeda brasileira
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
 }

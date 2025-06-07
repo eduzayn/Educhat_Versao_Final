@@ -20,6 +20,7 @@ import {
   TrendingUp,
   AlertTriangle
 } from 'lucide-react';
+import { formatDurationMinutes } from '@/shared/lib/utils/formatters';
 
 export function ProductivityModule() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,11 +80,7 @@ export function ProductivityModule() {
     }
   };
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h${mins.toString().padStart(2, '0')}m`;
-  };
+
 
   return (
     <div className="space-y-6">
@@ -156,7 +153,7 @@ export function ProductivityModule() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {formatTime(defaultData.summary?.avgLoggedTime || 0)}
+              {formatDurationMinutes(defaultData.summary?.avgLoggedTime || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               por colaborador
@@ -229,13 +226,13 @@ export function ProductivityModule() {
                     <div>
                       <div className="text-muted-foreground">Tempo Logado</div>
                       <div className="font-medium">
-                        {formatTime(user.loggedTime || 0)}
+                        {formatDurationMinutes(user.loggedTime || 0)}
                       </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Tempo Efetivo</div>
                       <div className="font-medium">
-                        {formatTime(user.activeTime || 0)}
+                        {formatDurationMinutes(user.activeTime || 0)}
                       </div>
                     </div>
                     <div>
