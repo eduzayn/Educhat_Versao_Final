@@ -12,9 +12,10 @@ export function useConversations(limit = 1000, options = {}) {
       }
       return response.json();
     },
-    staleTime: 30000, // Cache por 30 segundos
-    gcTime: 300000, // Manter em cache por 5 minutos (cacheTime foi renomeado para gcTime na v5)
-    refetchOnWindowFocus: false, // Não recarregar ao focar na janela
+    staleTime: 0, // Dados sempre considerados obsoletos para permitir atualizações
+    gcTime: 60000, // Cache reduzido para 1 minuto
+    refetchOnWindowFocus: true, // Recarregar ao focar na janela
+    refetchInterval: 10000, // Atualizar a cada 10 segundos
     ...options, // Permitir sobrescrever opções
   });
 }
