@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/ui/button";
-import { Download, Play, FileText, Image, Loader2, Video } from "lucide-react";
+import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
 
 interface LazyMediaContentProps {
@@ -36,7 +36,12 @@ export function LazyMediaContent({
         const data = await response.json();
         setContent(data.content);
         setLoaded(true);
-        secureLog.debug(`${messageType} carregado com sucesso`, { messageId });
+
+        if (messageType === "video") {
+          secureLog.debug("Vídeo carregado com sucesso", { messageId });
+        } else if (messageType === "image") {
+          secureLog.image("Carregada com sucesso", messageId);
+        }
       } else {
         secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
       }
@@ -68,8 +73,13 @@ export function LazyMediaContent({
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Image className="w-5 h-5" />
             <span className="text-sm">Imagem: {fileName}</span>
-            <Button variant="outline" size="sm" onClick={loadMediaContent} disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ver imagem"}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMediaContent}
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Ver imagem"}
             </Button>
           </div>
         );
@@ -79,8 +89,8 @@ export function LazyMediaContent({
           return (
             <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <audio controls className="w-48">
-                <source src={content} type="audio/webm" />
                 <source src={content} type="audio/mpeg" />
+                <source src={content} type="audio/mp4" />
                 <source src={content} type="audio/wav" />
                 Seu navegador não suporta áudio.
               </audio>
@@ -90,9 +100,16 @@ export function LazyMediaContent({
         return (
           <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <Play className="w-5 h-5" />
-            <span className="text-sm">Áudio: {metadata?.duration || "Desconhecido"}</span>
-            <Button variant="outline" size="sm" onClick={loadMediaContent} disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Reproduzir"}
+            <span className="text-sm">
+              Áudio: {metadata?.duration || "Duração desconhecida"}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMediaContent}
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Reproduzir"}
             </Button>
           </div>
         );
@@ -106,8 +123,12 @@ export function LazyMediaContent({
                 className="rounded-lg w-full h-auto"
                 preload="metadata"
                 style={{ maxHeight: "400px", minWidth: "280px" }}
-                onError={() => secureLog.error("Erro ao carregar vídeo", { messageId })}
-                onLoadedData={() => secureLog.debug("Vídeo carregado", { messageId })}
+                onError={() =>
+                  secureLog.error("Erro ao carregar vídeo", { messageId })
+                }
+                onLoadedData={() =>
+                  secureLog.debug("Vídeo carregado", { messageId })
+                }
               >
                 <source src={content} type="video/mp4" />
                 <source src={content} type="video/webm" />
@@ -119,10 +140,15 @@ export function LazyMediaContent({
         }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Video className="w-5 h-5" />
+            <Play className="w-5 h-5" />
             <span className="text-sm">Vídeo: {fileName}</span>
-            <Button variant="outline" size="sm" onClick={loadMediaContent} disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Reproduzir"}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMediaContent}
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Reproduzir"}
             </Button>
           </div>
         );
@@ -133,5 +159,31 @@ export function LazyMediaContent({
             <FileText className="w-5 h-5" />
             <span className="text-sm">Documento: {fileName}</span>
             {content ? (
-              <Button variant="outline" size="sm" onClick={() => window.open(content!, "_blank")}> 
-                <Download className="w-4 h-4 mr-1"
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(content, "_blank")}
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Baixar
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadMediaContent}
+                disabled={loading}
+              >
+                {loading ? "Carregando..." : "Carregar"}
+              </Button>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return <div className="my-1">{renderMediaPreview()}</div>;
+}

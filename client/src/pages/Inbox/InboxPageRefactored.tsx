@@ -60,8 +60,6 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
-import { EmptyConversationState } from './components/EmptyConversationState';
-import { InputAreaWrapper } from './components/InputAreaWrapper';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -118,8 +116,6 @@ export function InboxPageRefactored() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contactNotes, setContactNotes] = useState<any[]>([]);
-  const [newNote, setNewNote] = useState('');
-  const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
   const [contactInterests, setContactInterests] = useState<any[]>([]);
 
@@ -295,7 +291,7 @@ export function InboxPageRefactored() {
 
   const getChannelInfo = (channel: string) => {
     const channelInfo = CHANNELS[channel as keyof typeof CHANNELS];
-    return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro', label: 'Outro' };
+    return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro' };
   };
 
   const getSpecificChannelName = (conversation: any) => {
@@ -453,7 +449,7 @@ export function InboxPageRefactored() {
         <ConversationListHeader
           activeTab={activeTab}
           searchTerm={searchTerm}
-          isWhatsAppAvailable={isWhatsAppAvailable || false}
+          isWhatsAppAvailable={isWhatsAppAvailable}
           onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
@@ -522,10 +518,18 @@ export function InboxPageRefactored() {
             />
 
             {/* Área de Input */}
-            <InputAreaWrapper />
+            <div className="bg-white border-t border-gray-200 p-4">
+              <InputArea />
+            </div>
           </>
         ) : (
-          <EmptyConversationState />
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="text-center">
+              <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium mb-2">Selecione uma conversa</h3>
+              <p>Escolha uma conversa da lista para começar a responder</p>
+            </div>
+          </div>
         )}
       </div>
 

@@ -12,12 +12,10 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 
 interface CreateContactModalProps {
   isOpen: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onClose?: () => void;
-  zapiStatus?: any;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }: CreateContactModalProps) {
+export function CreateContactModal({ isOpen, onOpenChange }: CreateContactModalProps) {
   const [createForm, setCreateForm] = useState({
     name: '',
     email: '',
@@ -33,10 +31,9 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
 
   const createContact = useCreateContact();
   const { toast } = useToast();
-  const { status: zapiStatusFromStore } = useZApiStore();
+  const { status: zapiStatus } = useZApiStore();
 
-  const activeZapiStatus = zapiStatus || zapiStatusFromStore;
-  const isWhatsAppAvailable = activeZapiStatus?.connected && activeZapiStatus?.smartphoneConnected;
+  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
 
   const handleAddTag = () => {
     if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
@@ -100,8 +97,7 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
           : "Contato criado no sistema."
       });
       
-      onOpenChange?.(false);
-      onClose?.();
+      onOpenChange(false);
       setCreateForm({ 
         name: '', 
         email: '', 
@@ -271,7 +267,7 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="outline" onClick={() => { onOpenChange?.(false); onClose?.(); }}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button 

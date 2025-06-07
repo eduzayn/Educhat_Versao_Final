@@ -126,8 +126,8 @@ export function ConversationList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(CHANNELS).map(([key, channel]) => (
-                  <SelectItem key={key} value={key}>
+                {CHANNELS.map(channel => (
+                  <SelectItem key={channel.id} value={channel.id}>
                     {channel.icon} {channel.name}
                   </SelectItem>
                 ))}
@@ -209,7 +209,7 @@ export function ConversationList({
                         {getStatusBadge(conversation.status || 'open')}
                         {(conversation.unreadCount || 0) > 0 && (
                           <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {(conversation.unreadCount || 0) > 99 ? '99+' : (conversation.unreadCount || 0)}
+                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                           </Badge>
                         )}
                       </div>
