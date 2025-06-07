@@ -1,8 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-// import { registerRoutes } from "./routes/index"; // New modular structure (coming soon)
-import { registerInternalChatRoutes } from "./internal-chat-routes";
-import { registerMediaRoutes } from "./media-routes";
+import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
@@ -70,8 +67,6 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
-  registerInternalChatRoutes(app);
-  registerMediaRoutes(app);
 
 
 
