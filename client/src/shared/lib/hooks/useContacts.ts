@@ -129,6 +129,31 @@ export function useImportZApiContacts() {
   });
 }
 
+// Hook para sincronizar mensagens perdidas da Z-API
+export function useSyncZApiMessages() {
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async ({ since, phone }: { since?: string; phone?: string } = {}) => {
+      const response = await apiRequest('POST', '/api/zapi/sync-messages', { since, phone });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Sincronização concluída",
+        description: `${data.summary.processed} mensagens sincronizadas`
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro na sincronização",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+}
+
 // Hook to get contact metadata from Z-API
 export function useZApiContactMetadata(phone: string | null) {
   return useQuery({

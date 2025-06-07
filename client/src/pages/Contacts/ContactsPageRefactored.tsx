@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
 import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Badge } from '@/shared/ui/ui/badge';
-import { useContacts, useUpdateContact, useCreateContact, useDeleteContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture } from '@/shared/lib/hooks/useContacts';
+import { useContacts, useUpdateContact, useCreateContact, useDeleteContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture, useSyncZApiMessages } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
@@ -43,6 +43,7 @@ export function ContactsPageRefactored() {
   const [selectedContactPhone, setSelectedContactPhone] = useState<string | null>(null);
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
   const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
+  const [syncingMessages, setSyncingMessages] = useState(false);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
@@ -57,6 +58,7 @@ export function ContactsPageRefactored() {
   const createContact = useCreateContact();
   const deleteContact = useDeleteContact();
   const importZApiContacts = useImportZApiContacts();
+  const syncZApiMessages = useSyncZApiMessages();
   
   // Hook para buscar metadados detalhados do contato via Z-API
   const { data: contactMetadata, isLoading: loadingMetadata, refetch: fetchMetadata } = useZApiContactMetadata(selectedContactPhone);
@@ -156,6 +158,26 @@ export function ContactsPageRefactored() {
       });
     } finally {
       setUpdatingAllPhotos(false);
+    }
+  };
+
+  const handleSyncMessages = async () => {
+    if (!isWhatsAppAvailable) {
+      toast({
+        title: "WhatsApp não conectado",
+        description: "Configure o WhatsApp nas Configurações → Canais para sincronizar mensagens.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSyncingMessages(true);
+    try {
+      await syncZApiMessages.mutateAsync({
+        since: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Últimas 24h
+      });
+    } finally {
+      setSyncingMessages(false);
     }
   };
 
@@ -757,6 +779,18 @@ export function ContactsPageRefactored() {
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     {updatingAllPhotos ? 'Atualizando...' : 'Atualizar Fotos'}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSyncMessages}
+                    disabled={syncingMessages || !isWhatsAppAvailable}
+                    title={!isWhatsAppAvailable ? 'WhatsApp não está conectado. Configure nas Configurações → Canais' : 'Sincronizar mensagens perdidas das últimas 24 horas'}
+                    className={isWhatsAppAvailable ? 'border-purple-200 text-purple-700 hover:bg-purple-50' : 'border-gray-200 text-gray-400'}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${syncingMessages ? 'animate-spin' : ''}`} />
+                    {syncingMessages ? 'Sincronizando...' : 'Sincronizar Mensagens'}
                   </Button>
                 </div>
               </div>
