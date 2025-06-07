@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../permissions';
-import { storage } from '../../storage';
+import { storage } from '../../core/storage';
 
 export function registerSalesRoutes(app: Express) {
   

@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../permissions';
-import { storage } from '../../storage';
+import { storage } from '../../core/storage';
 
 function validateZApiCredentials() {
   const instanceId = process.env.ZAPI_INSTANCE_ID;

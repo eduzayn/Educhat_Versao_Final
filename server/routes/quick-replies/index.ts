@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest, requirePermission } from '../../permissions';
-import { storage } from '../../storage';
+import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
+import { storage } from '../../core/storage';
 import multer from 'multer';
 
 const upload = multer({ storage: multer.memoryStorage() });
