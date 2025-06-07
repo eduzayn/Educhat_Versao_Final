@@ -54,6 +54,7 @@ import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/compone
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { CreateContactModal } from './components/CreateContactModal';
+import { ContactSidebar } from './components/ContactSidebar';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -109,8 +110,6 @@ export function InboxPageRefactored() {
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showNoteDialog, setShowNoteDialog] = useState(false);
-  const [newNote, setNewNote] = useState('');
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
   const [contactInterests, setContactInterests] = useState<any[]>([]);
@@ -798,48 +797,13 @@ export function InboxPageRefactored() {
         )}
       </div>
 
-      {/* Painel de Detalhes do Contato */}
-      {activeConversation && (
-        <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-          <div className="p-4 border-b border-gray-100">
-            {/* Header do contato */}
-            <div className="text-center mb-4">
-              <Avatar className="w-16 h-16 mx-auto mb-3">
-                <AvatarImage src={activeConversation?.contact?.profileImageUrl || ''} />
-                <AvatarFallback className="text-lg">
-                  {activeConversation?.contact?.name?.charAt(0).toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <h3 className="font-semibold text-base text-gray-900 mb-1">
-                {activeConversation?.contact?.name}
-              </h3>
-              
-              <div className="flex items-center justify-center text-sm mb-2">
-                <span className={`px-2 py-1 rounded-full text-xs ${getChannelStyle(activeConversation)}`}>
-                  {getSpecificChannelName(activeConversation)}
-                </span>
-              </div>
-              
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                ✓ Ativa
-              </Badge>
-            </div>
-
-            {/* Ações rápidas */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="text-xs">
-                <Phone className="w-3 h-3 mr-1" />
-                Ligar
-              </Button>
-              <Button variant="outline" size="sm" className="text-xs">
-                <Mail className="w-3 h-3 mr-1" />
-                Email
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-4 space-y-4 text-sm">
+      <ContactSidebar 
+        activeConversation={activeConversation}
+        contactNotes={contactNotes}
+        contactDeals={contactDeals}
+        contactInterests={contactInterests}
+        onAddNote={handleAddNote}
+      />
             {/* 👤 Identificação */}
             <div className="space-y-3">
               <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
