@@ -844,7 +844,7 @@ export function InboxPageRefactored() {
                           </span>
                         )}
                         {unreadCount > 0 && (
-                          <Badge className="bg-purple-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}

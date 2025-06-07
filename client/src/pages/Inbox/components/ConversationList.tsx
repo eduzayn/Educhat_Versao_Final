@@ -98,7 +98,7 @@ export function ConversationList({
             variant="outline"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className={showFilters ? 'bg-purple-50 border-purple-200' : ''}
+            className={showFilters ? 'bg-gray-50 border-gray-200' : ''}
           >
             <Filter className="w-4 h-4" />
           </Button>
@@ -156,7 +156,7 @@ export function ConversationList({
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Carregando conversas...</p>
           </div>
         ) : filteredConversations.length === 0 ? (
@@ -181,7 +181,7 @@ export function ConversationList({
                         src={conversation.contact?.profileImageUrl || ''} 
                         alt={conversation.contact?.name || 'Contato'} 
                       />
-                      <AvatarFallback className="bg-purple-100 text-purple-700 font-medium">
+                      <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">
                         {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
                       </AvatarFallback>
                     </Avatar>
@@ -208,8 +208,8 @@ export function ConversationList({
                       <div className="flex items-center gap-2">
                         {getStatusBadge(conversation.status || 'open')}
                         {(conversation.unreadCount || 0) > 0 && (
-                          <Badge variant="destructive" className="text-xs unread-badge">
-                            {conversation.unreadCount}
+                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                           </Badge>
                         )}
                       </div>
