@@ -19,6 +19,7 @@ import {
   BarChart3,
   Activity
 } from 'lucide-react';
+import { formatDurationMinutes } from '@/shared/lib/utils/formatters';
 
 export function TeamPerformanceModule() {
   const [period, setPeriod] = useState('30');
@@ -70,11 +71,7 @@ export function TeamPerformanceModule() {
     return <TrendingDown className="h-4 w-4 text-red-600" />;
   };
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h${mins.toString().padStart(2, '0')}m`;
-  };
+
 
   return (
     <div className="space-y-6">
@@ -215,7 +212,7 @@ export function TeamPerformanceModule() {
                   <div>
                     <div className="text-sm text-muted-foreground">Tempo Médio</div>
                     <div className="text-lg font-semibold">
-                      {formatTime(team.avgResponseTime || 0)}
+                      {formatDurationMinutes(team.avgResponseTime || 0)}
                     </div>
                   </div>
                   <div>

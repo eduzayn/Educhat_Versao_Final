@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/shared/ui/ui/button";
 import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDurationSeconds } from "@/shared/lib/utils/formatters";
 
 interface AudioRecorderProps {
   onSendAudio: (audioBlob: Blob, duration: number) => void;
@@ -54,11 +55,7 @@ export function AudioRecorder({
     };
   }, [audioUrl]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+
 
   const startRecording = async () => {
     try {
@@ -264,7 +261,7 @@ export function AudioRecorder({
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
           </div>
           <span className="text-sm font-mono text-red-700 dark:text-red-300">
-            {formatTime(duration)}
+            {formatDurationSeconds(duration)}
           </span>
         </div>
 
@@ -332,7 +329,7 @@ export function AudioRecorder({
 
           <div className="flex flex-col">
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              Áudio ({formatTime(realDuration > 0 ? realDuration : duration)})
+              Áudio ({formatDurationSeconds(realDuration > 0 ? realDuration : duration)})
             </span>
             <div className="w-20 h-1 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
               <div
