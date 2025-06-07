@@ -260,7 +260,7 @@ export function registerWebhookRoutes(app: Express) {
         try {
           await storage.createMessage({
             conversationId: parseInt(conversationId),
-            content: `Áudio (${duration ? Math.floor(parseFloat(duration)) + 's' : 'duração desconhecida'})`,
+            content: dataUrl, // Salvar o áudio base64 completo para reprodução
             isFromContact: false,
             messageType: 'audio',
             sentAt: new Date(),
@@ -268,7 +268,8 @@ export function registerWebhookRoutes(app: Express) {
               zaapId: data.messageId || data.id,
               audioSent: true,
               duration: duration ? parseFloat(duration) : 0,
-              mimeType: req.file.mimetype
+              mimeType: req.file.mimetype,
+              originalContent: `Áudio (${duration ? Math.floor(parseFloat(duration)) + 's' : 'duração desconhecida'})`
             }
           });
 

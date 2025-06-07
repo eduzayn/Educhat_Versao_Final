@@ -495,37 +495,38 @@ export function MessageBubble({
         audioUrl = (message.metadata as any).audio.audioUrl;
       }
 
-      // Se não temos URL válida, tentar buscar usando messageId dos metadados
-      if (!audioUrl) {
-        const messageIdFromMetadata = (message.metadata as any)?.messageId;
-        if (messageIdFromMetadata) {
-          const duration = (message.metadata as any)?.duration || 0;
-          return (
-            <AudioMessage
-              audioUrl={null}
-              duration={duration}
-              isFromContact={isFromContact}
-              messageIdForFetch={messageIdFromMetadata}
-            />
-          );
-        }
-        
-        // Se não tem messageId, mostrar fallback
+      const duration = (message.metadata as any)?.duration || 0;
+      
+      // Se temos URL válida, renderizar o player
+      if (audioUrl) {
         return (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
-            <Volume2 className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-600">Áudio indisponível</span>
-          </div>
+          <AudioMessage
+            audioUrl={audioUrl}
+            duration={duration}
+            isFromContact={isFromContact}
+          />
         );
       }
 
-      const duration = (message.metadata as any)?.duration || 0;
+      // Se não temos URL mas temos messageId, tentar buscar
+      const messageIdFromMetadata = (message.metadata as any)?.messageId;
+      if (messageIdFromMetadata) {
+        return (
+          <AudioMessage
+            audioUrl={null}
+            duration={duration}
+            isFromContact={isFromContact}
+            messageIdForFetch={messageIdFromMetadata}
+          />
+        );
+      }
+      
+      // Fallback para áudio indisponível
       return (
-        <AudioMessage
-          audioUrl={audioUrl}
-          duration={duration}
-          isFromContact={isFromContact}
-        />
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+          <Volume2 className="w-4 h-4 text-red-500" />
+          <span className="text-sm text-red-600">Áudio indisponível</span>
+        </div>
       );
     }
 
