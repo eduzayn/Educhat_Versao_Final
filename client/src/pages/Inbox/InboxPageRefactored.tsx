@@ -55,6 +55,9 @@ import { ConversationActionsDropdown } from './components/ConversationActionsDro
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { CreateContactModal } from './components/CreateContactModal';
 import { ContactSidebar } from './components/ContactSidebar';
+import { ConversationList } from './components/ConversationList';
+import { ChatHeader } from './components/ChatHeader';
+import { MessagesList } from './components/MessagesList';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -510,203 +513,41 @@ export function InboxPageRefactored() {
           </div>
         </div>
 
-        {/* Lista de Conversas */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation, index) => {
-            const channelInfo = getChannelInfo(conversation.channel);
-            const lastMessage = conversation.messages[0];
-            const isActive = activeConversation?.id === conversation.id;
-            
-            // Usar contador de mensagens não lidas do banco de dados
-            // Mostrar indicador mesmo para conversa ativa se foi marcada manualmente como não lida
-            const unreadCount = conversation.unreadCount || 0;
-            
-            return (
-              <div
-                key={`conversation-${conversation.id}-${index}`}
-                className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                }`}
-                onClick={() => handleSelectConversation(conversation)}
-              >
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={conversation.contact.profileImageUrl || ''} />
-                    <AvatarFallback className="text-sm font-medium">
-                      {conversation.contact.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {conversation.contact.name}
-                      </h3>
-                      <div className="flex items-center space-x-1">
-                        {lastMessage && lastMessage.sentAt && (
-                          <span className="text-xs text-gray-400">
-                            {formatTime(lastMessage.sentAt)}
-                          </span>
-                        )}
-                        {unreadCount > 0 && (
-                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                        <ConversationActionsDropdown 
-                          conversationId={conversation.id}
-                          contactId={conversation.contactId}
-                          currentStatus={conversation.status || 'open'}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm text-gray-600 truncate flex-1">
-                        {lastMessage ? (
-                          lastMessage.messageType === 'image' ? (
-                            lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
-                          ) : lastMessage.messageType === 'audio' ? (
-                            lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
-                          ) : lastMessage.messageType === 'video' ? (
-                            lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado'
-                          ) : (
-                            lastMessage.content || 'Mensagem sem texto'
-                          )
-                        ) : 'Sem mensagens'}
-                      </p>
-                      <span className={`text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0 ${
-                        getChannelStyle(conversation)
-                      }`}>
-                        {getSpecificChannelName(conversation)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          
-          {filteredConversations.length === 0 && !isLoading && (
-            <div className="p-6 text-center text-gray-500">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div>
-          )}
-          
-          {/* Loading inicial */}
-          {isLoading && (
-            <div className="p-6 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
-              <p className="text-sm">Carregando contatos...</p>
-            </div>
-          )}
-        </div>
+        {/* Lista de Conversas usando componente existente */}
+        <ConversationList
+          conversations={filteredConversations}
+          isLoading={isLoading}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          channelFilter={channelFilter}
+          setChannelFilter={setChannelFilter}
+          activeConversation={activeConversation}
+          onSelectConversation={handleSelectConversation}
+        />
       </div>
 
       {/* Área de Mensagens */}
       <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
-            {/* Header da Conversa */}
-            <div className="bg-white border-b border-gray-200 px-4 py-3 mobile-sticky mobile-p-reduced">
-              <div className="flex items-center justify-between">
-                {/* Mobile back button */}
-                <div className="md:hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowMobileChat(false)}
-                    className="mr-2 touch-target"
-                  >
-                    ← Voltar
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-9 h-9">
-                    <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
-                    <AvatarFallback className="text-sm">
-                      {activeConversation.contact.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h2 className="font-semibold text-gray-900 text-base">
-                        {activeConversation.contact.name}
-                      </h2>
-                      <span className={`text-sm ${getChannelInfo(activeConversation.channel).color}`}>
-                        {getChannelInfo(activeConversation.channel).icon}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-0.5">
-                      <Select 
-                        value={activeConversation.status || 'open'} 
-                        onValueChange={(newStatus) => handleStatusChange(activeConversation.id, newStatus)}
-                      >
-                        <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
-                          <SelectValue>
-                            <Badge 
-                              variant="secondary" 
-                              className={`${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.color} text-xs`}
-                            >
-                              {STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.label || activeConversation.status}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
-                              Ativa
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="pending">
-                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
-                              Aguardando
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="in_progress">
-                            <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
-                              Em Andamento
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="resolved">
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
-                              Resolvida
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="closed">
-                            <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-xs">
-                              Encerrada
-                            </Badge>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <Phone className="w-4 h-4" />
-                  </Button>
-                  <ConversationActionsDropdown 
-                    conversationId={activeConversation.id}
-                    contactId={activeConversation.contactId}
-                    currentStatus={activeConversation.status || 'open'}
-                  />
-                </div>
-              </div>
+            {/* Header da Conversa usando componente existente */}
+            <ChatHeader 
+              conversation={activeConversation}
+              onBack={() => setShowMobileChat(false)}
+              showBackButton={true}
+              isOnline={isWhatsAppAvailable}
+            />
 
-              {/* Interface de Atribuição Manual */}
-              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                <ConversationAssignmentDropdown
-                  conversationId={activeConversation.id}
-                  currentTeamId={activeConversation.assignedTeamId}
-                  currentUserId={activeConversation.assignedUserId}
-                  currentMacrosetor={activeConversation.macrosetor}
-                />
-              </div>
+            {/* Interface de Atribuição Manual */}
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <ConversationAssignmentDropdown
+                conversationId={activeConversation.id}
+                currentTeamId={activeConversation.assignedTeamId}
+                currentUserId={activeConversation.assignedUserId}
+                currentMacrosetor={activeConversation.macrosetor}
+              />
             </div>
 
             {/* Mensagens */}
