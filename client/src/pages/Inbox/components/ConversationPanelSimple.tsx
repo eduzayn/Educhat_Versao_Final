@@ -138,8 +138,8 @@ export function ConversationPanelSimple({
                       </p>
                       <span className="text-xs text-muted-foreground">
                         {conversation.lastMessageAt 
-                          ? formatTime(new Date(conversation.lastMessageAt).getTime())
-                          : conversation.createdAt ? formatTime(new Date(conversation.createdAt).getTime()) : ''
+                          ? new Date(conversation.lastMessageAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                          : conversation.createdAt ? new Date(conversation.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''
                         }
                       </span>
                     </div>

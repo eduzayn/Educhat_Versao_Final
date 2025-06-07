@@ -108,3 +108,10 @@ export const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + '...';
 };
+
+// Formatação de tempo (HH:MM)
+export const formatTime = (hours: number, minutes: number = 0) => {
+  const h = hours.toString().padStart(2, '0');
+  const m = minutes.toString().padStart(2, '0');
+  return `${h}:${m}`;
+};
