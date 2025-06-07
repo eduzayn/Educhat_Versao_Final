@@ -346,7 +346,10 @@ export class ZApiModule {
       }
 
       // Salvar mensagem no banco de dados se conversationId foi fornecido
-      if (conversationId && data.messageId) {
+      // Mesmo sem messageId da Z-API, salvamos a mensagem para aparecer na interface
+      if (conversationId) {
+        const messageId = data.messageId || `zapi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
         const newMessage = await this.storage.createMessage({
           conversationId: parseInt(conversationId),
           content: message,
@@ -354,14 +357,21 @@ export class ZApiModule {
           isFromContact: false,
           sentAt: new Date(),
           metadata: {
-            messageId: data.messageId,
-            zaapId: data.messageId
+            messageId: messageId,
+            zaapId: messageId,
+            zapiResponse: data
           }
         });
 
         this.broadcast(parseInt(conversationId), {
           type: 'new_message',
           message: newMessage
+        });
+        
+        console.log('💾 Mensagem salva no banco de dados:', {
+          id: newMessage.id,
+          conversationId: parseInt(conversationId),
+          content: message
         });
       }
 

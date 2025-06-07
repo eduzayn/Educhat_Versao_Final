@@ -631,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               conversationId
             });
             
-            const response = await fetch('http://localhost:5000/api/zapi/send-message', {
+            const response = await fetch('http://localhost:5000/api/zapi/messages', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -2447,122 +2447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para enviar mensagens via Z-API - REST: POST /api/zapi/messages
-  app.post('/api/zapi/messages', async (req, res) => {
-    try {
-      console.log('📤 Recebendo solicitação de envio de mensagem:', req.body);
-      
-      const { phone, message, conversationId } = req.body;
-      
-      if (!phone || !message) {
-        console.log('❌ Dados ausentes:', { phone: !!phone, message: !!message });
-        return res.status(400).json({ 
-          error: 'Telefone e mensagem são obrigatórios' 
-        });
-      }
-
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
-        return res.status(400).json({ error: credentials.error });
-      }
-
-      // Limpar credenciais removendo espaços e caracteres especiais
-      const cleanInstanceId = credentials.instanceId!.trim();
-      const cleanToken = credentials.token!.trim();
-      const cleanClientToken = credentials.clientToken!.trim();
-
-      console.log('🔑 Credenciais Z-API (verificadas):', {
-        instanceId: `${cleanInstanceId.substring(0, 4)}...`,
-        token: `${cleanToken.substring(0, 4)}...`,
-        clientToken: `${cleanClientToken.substring(0, 4)}...`
-      });
-
-      // Criar payload conforme documentação Z-API
-      const payload = {
-        phone: phone.replace(/\D/g, ''), // Remover caracteres não numéricos
-        message: message,
-        delayMessage: 1
-      };
-
-      const url = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/send-text`;
-      console.log('📤 Enviando para Z-API:', { url: url.replace(cleanToken, '***'), payload });
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Client-Token': cleanClientToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      console.log('📥 Resposta Z-API:', {
-        status: response.status,
-        statusText: response.statusText
-      });
-
-      const responseText = await response.text();
-      console.log('📄 Conteúdo da resposta Z-API:', responseText);
-
-      if (!response.ok) {
-        console.error('❌ Erro detalhado da Z-API:', responseText);
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${responseText}`);
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
-        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
-      }
-
-      console.log('✅ Sucesso no envio de mensagem:', data);
-
-      // Se tiver conversationId, salvar no banco de dados local
-      if (conversationId) {
-        const textMessage = await storage.createMessage({
-          conversationId: parseInt(conversationId),
-          content: message,
-          isFromContact: false,
-          messageType: 'text',
-          metadata: {
-            zaapId: data.zaapId || data.id,
-            messageId: data.messageId || data.id
-          },
-          // Campos adicionais da Z-API
-          whatsappMessageId: data.messageId || data.id,
-          zapiStatus: 'SENT',
-          isGroup: false,
-          referenceMessageId: null
-        });
-
-        // Broadcast para outros clientes conectados
-        broadcast(parseInt(conversationId), {
-          type: 'new_message',
-          conversationId: parseInt(conversationId),
-          message: textMessage
-        });
-
-        res.json({
-          success: true,
-          ...data,
-          localMessage: textMessage
-        });
-      } else {
-        res.json({
-          success: true,
-          ...data
-        });
-      }
-    } catch (error) {
-      console.error('💥 Erro ao enviar mensagem via Z-API:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
+  // ROTA REMOVIDA: /api/zapi/messages agora é gerenciada pelo módulo Z-API consolidado (zapi-module.ts)
 
   // Endpoint para enviar áudio via Z-API - REST: POST /api/zapi/media/audio
   app.post('/api/zapi/media/audio', upload.single('audio'), async (req, res) => {
