@@ -9,7 +9,7 @@ import { Search, Filter, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
-import { CreateContactDialog } from './CreateContactDialog';
+// import { CreateContactDialog } from './CreateContactDialog';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationSidebarProps {

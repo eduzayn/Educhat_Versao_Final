@@ -148,11 +148,7 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
           </div>
 
           {/* Input de Mensagem */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="text-sm text-gray-500 text-center">
-              Área de input de mensagem - será integrada com componente existente
-            </div>
-          </div>
+          <InputArea />
         </div>
 
         {/* Sidebar de Informações do Contato */}
