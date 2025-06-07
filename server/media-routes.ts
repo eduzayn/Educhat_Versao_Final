@@ -139,7 +139,22 @@ export function registerMediaRoutes(app: Express) {
         })
       });
 
-      const data = await response.json();
+      console.log(`📥 Status da resposta Z-API: ${response.status}`);
+      
+      const responseText = await response.text();
+      console.log(`📄 Resposta bruta Z-API:`, responseText.substring(0, 200));
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear JSON:', parseError);
+        console.error('📄 Resposta completa:', responseText);
+        return res.status(500).json({ 
+          error: 'Resposta inválida da Z-API',
+          rawResponse: responseText.substring(0, 500)
+        });
+      }
 
       if (response.ok) {
         console.log(`✅ Reação enviada com sucesso: ${reaction}`);
