@@ -169,8 +169,8 @@ export function InboxPageRefactored() {
 
 
 
-  const handleAddNote = async () => {
-    if (!newNote.trim() || !activeConversation) return;
+  const handleAddNote = async (noteContent: string) => {
+    if (!noteContent.trim() || !activeConversation) return;
 
     try {
       const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`, {
@@ -179,7 +179,7 @@ export function InboxPageRefactored() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: newNote.trim(),
+          content: noteContent.trim(),
           authorName: 'Atendente Atual' // Em produção, pegar do usuário logado
         })
       });
@@ -192,12 +192,9 @@ export function InboxPageRefactored() {
         title: "Nota adicionada",
         description: "A nota interna foi salva com sucesso."
       });
-
-      setNewNote('');
-      setShowNoteDialog(false);
       
       // Recarregar as notas do contato
-      loadContactNotes();
+      fetchContactNotes(activeConversation.contactId);
 
     } catch (error) {
       console.error('Erro ao adicionar nota:', error);
@@ -209,25 +206,7 @@ export function InboxPageRefactored() {
     }
   };
 
-  // Função para carregar notas do contato
-  const loadContactNotes = async () => {
-    if (!activeConversation?.contactId) return;
 
-    try {
-      const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`);
-      if (response.ok) {
-        const notes = await response.json();
-        setContactNotes(notes);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar notas:', error);
-    }
-  };
-
-  // Carregar notas quando a conversa ativa mudar
-  useEffect(() => {
-    loadContactNotes();
-  }, [activeConversation?.contactId]);
 
 
 
