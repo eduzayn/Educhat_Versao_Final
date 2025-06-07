@@ -69,7 +69,7 @@ export function registerAuthRoutes(app: Express) {
         displayName: newUser.displayName,
         role: newUser.role,
         roleId: newUser.roleId || 1,
-        dataKey: newUser.dataKey,
+        dataKey: newUser.dataKey || undefined,
         channels: [],
         macrosetores: [],
         teamId: newUser.teamId,
@@ -77,7 +77,7 @@ export function registerAuthRoutes(app: Express) {
       };
 
       // Log the user in automatically
-      req.login(userForLogin, (err) => {
+      req.login(userForLogin as any, (err) => {
         if (err) {
           return res.status(500).json({ message: "Erro ao fazer login automático" });
         }

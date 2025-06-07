@@ -93,7 +93,7 @@ export function setupAuth(app: Express) {
             macrosetores: systemUser.macrosetores || [],
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
-          } as User;
+          };
 
           return done(null, userWithTeam);
         } catch (error) {
@@ -128,14 +128,14 @@ export function setupAuth(app: Express) {
         displayName: user.displayName,
         role: user.role,
         roleId: user.roleId || 1,
-        dataKey: user.dataKey,
+        dataKey: user.dataKey || undefined,
         channels: user.channels || [],
         macrosetores: user.macrosetores || [],
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };
 
-      done(null, userWithTeam);
+      done(null, userWithTeam as any);
     } catch (error) {
       console.error("Erro ao deserializar usuário:", error);
       done(error);
