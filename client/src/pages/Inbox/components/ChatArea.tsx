@@ -121,12 +121,26 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
             ) : (
               <>
                 {uniqueMessages.map((message, index) => (
-                  <MessageBubble
+                  <div 
                     key={`${message.id}-${index}`}
-                    message={message}
-                    contact={conversation.contact}
-                    showAvatar={index === 0 || uniqueMessages[index - 1]?.isFromContact !== message.isFromContact}
-                  />
+                    className={`flex mb-4 ${message.isFromContact ? 'justify-start' : 'justify-end'}`}
+                  >
+                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      message.isFromContact 
+                        ? 'bg-gray-200 text-gray-800' 
+                        : 'bg-blue-500 text-white'
+                    }`}>
+                      <p className="text-sm">{message.content}</p>
+                      <p className={`text-xs mt-1 ${
+                        message.isFromContact ? 'text-gray-500' : 'text-blue-100'
+                      }`}>
+                        {message.sentAt ? new Date(message.sentAt).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : ''}
+                      </p>
+                    </div>
+                  </div>
                 ))}
                 <div ref={messagesEndRef} />
               </>
@@ -162,7 +176,7 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
                   </Avatar>
                   <div>
                     <h3 className="font-medium text-gray-900">{conversation.contact?.name}</h3>
-                    <p className="text-sm text-gray-500">{conversation.contact?.contactType || 'Contato'}</p>
+                    <p className="text-sm text-gray-500">Contato</p>
                   </div>
                 </div>
 
@@ -180,17 +194,10 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
                   </div>
                 )}
 
-                {conversation.contact?.address && (
+                {conversation.contact?.location && (
                   <div className="flex items-center space-x-2 text-sm">
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    <span>{conversation.contact.address}</span>
-                  </div>
-                )}
-
-                {conversation.contact?.company && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <span className="text-gray-400">🏢</span>
-                    <span>{conversation.contact.company}</span>
+                    <span>{conversation.contact.location}</span>
                   </div>
                 )}
 
@@ -202,14 +209,14 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
                 )}
 
                 {/* Tags do Contato */}
-                {conversation.contact?.tags && (
+                {conversation.contact?.tags && Array.isArray(conversation.contact.tags) && (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 text-sm">
                       <Tag className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Tags:</span>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {JSON.parse(conversation.contact.tags).map((tag: string, index: number) => (
+                      {conversation.contact.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {tag}
                         </Badge>
@@ -252,32 +259,8 @@ export function ChatArea({ conversation, onBack, showBackButton = false }: ChatA
                     <span className="text-sm">{formatDate(conversation.createdAt)}</span>
                   </div>
                 )}
-
-                {/* Atribuição da Conversa */}
-                <div className="pt-2 border-t">
-                  <ConversationAssignmentDropdown 
-                    conversationId={conversation.id}
-                    contactId={conversation.contactId}
-                    currentStatus={conversation.status || 'open'}
-                  />
-                </div>
               </CardContent>
             </Card>
-
-            {/* Detecção de Cursos */}
-            <CourseDetectionCard conversationId={conversation.id} />
-
-            {/* Observações do Contato */}
-            {conversation.contact?.notes && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Observações</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">{conversation.contact.notes}</p>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
