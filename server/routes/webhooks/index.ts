@@ -296,4 +296,787 @@ export function registerWebhookRoutes(app: Express) {
       });
     }
   });
+
+  // Instagram webhook endpoint for omnichannel integration
+  app.post('/api/instagram/webhook', async (req, res) => {
+    try {
+      console.log('📸 Webhook Instagram recebido:', JSON.stringify(req.body, null, 2));
+      
+      const webhookData = req.body;
+      
+      // Processar mensagens do Instagram
+      if (webhookData.object === 'instagram' && webhookData.entry) {
+        for (const entry of webhookData.entry) {
+          if (entry.messaging) {
+            for (const messagingEvent of entry.messaging) {
+              if (messagingEvent.message) {
+                await processInstagramMessage(messagingEvent);
+              }
+            }
+          }
+        }
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Instagram:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Email webhook endpoint for omnichannel integration
+  app.post('/api/email/webhook', async (req, res) => {
+    try {
+      console.log('📧 Webhook Email recebido:', JSON.stringify(req.body, null, 2));
+      
+      const emailData = req.body;
+      
+      // Processar email recebido
+      if (emailData.from && emailData.subject && emailData.text) {
+        await processEmailMessage(emailData);
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Email:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // SMS webhook endpoint for omnichannel integration  
+  app.post('/api/sms/webhook', async (req, res) => {
+    try {
+      console.log('📱 Webhook SMS recebido:', JSON.stringify(req.body, null, 2));
+      
+      const smsData = req.body;
+      
+      // Processar SMS recebido
+      if (smsData.from && smsData.body) {
+        await processSMSMessage(smsData);
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook SMS:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Test webhook endpoints
+  app.post('/api/test-webhook', async (req, res) => {
+    try {
+      console.log('🧪 Teste manual do webhook - forçando broadcast');
+      
+      const { broadcastToAll } = await import('../realtime');
+      
+      // Forçar broadcast de uma mensagem de teste
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: 305,
+        message: {
+          id: Date.now(),
+          conversationId: 305,
+          content: 'Mensagem de teste via webhook manual',
+          isFromContact: true,
+          messageType: 'text',
+          sentAt: new Date(),
+          metadata: null,
+          deliveredAt: null,
+          readAt: null
+        }
+      });
+      
+      res.json({ success: true, message: 'Broadcast enviado' });
+    } catch (error) {
+      console.error('Erro no teste do webhook:', error);
+      res.status(500).json({ error: 'Erro no teste' });
+    }
+  });
+
+  // Test macrosetor detection
+  app.post('/api/test-macrosetor', async (req, res) => {
+    try {
+      const { message, canal } = req.body;
+      console.log('🧪 Testando detecção de macrosetor:', message);
+      
+      const detectedMacrosetor = storage.detectMacrosetor(message, canal);
+      console.log('🎯 Macrosetor detectado:', detectedMacrosetor);
+      
+      res.json({ 
+        success: true, 
+        message,
+        canal,
+        detectedMacrosetor 
+      });
+    } catch (error) {
+      console.error('Erro no teste de macrosetor:', error);
+      res.status(500).json({ error: 'Erro no teste' });
+    }
+  });
+}
+
+// Process Instagram message function
+async function processInstagramMessage(messagingEvent: any) {
+  try {
+    const senderId = messagingEvent.sender.id;
+    const messageText = messagingEvent.message.text || 'Mensagem do Instagram';
+    
+    const canalOrigem = 'instagram';
+    const nomeCanal = 'Instagram Direct';
+    const idCanal = `instagram-${senderId}`;
+    const userIdentity = senderId;
+
+    const contact = await storage.findOrCreateContact(userIdentity, {
+      name: `Instagram User ${senderId}`,
+      phone: null,
+      email: null,
+      isOnline: true,
+      profileImageUrl: null,
+      canalOrigem: canalOrigem,
+      nomeCanal: nomeCanal,
+      idCanal: idCanal
+    });
+
+    await storage.updateContactOnlineStatus(contact.id, true);
+
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'instagram');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'instagram',
+        status: 'open',
+        lastMessageAt: new Date()
+      });
+    }
+
+    const message = await storage.createMessage({
+      conversationId: conversation.id,
+      content: messageText,
+      isFromContact: true,
+      messageType: 'text',
+      sentAt: new Date(),
+      metadata: messagingEvent
+    });
+
+    const { broadcast, broadcastToAll } = await import('../realtime');
+    broadcast(conversation.id, {
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    broadcastToAll({
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    // Criar negócio automaticamente
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const existingDeals = await storage.getDealsByContact(contact.id);
+      const hasActiveDeal = existingDeals.some(deal => 
+        deal.macrosetor === detectedMacrosetor && deal.isActive
+      );
+      
+      if (!hasActiveDeal) {
+        console.log(`💼 Criando negócio automático para contato do Instagram (${detectedMacrosetor}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      }
+    } catch (dealError) {
+      console.error('❌ Erro ao criar negócio automático para Instagram:', dealError);
+    }
+
+    // Atribuição automática de equipes
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+      
+      if (team) {
+        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+        
+        const availableUser = await storage.getAvailableUserFromTeam(team.id);
+        if (availableUser) {
+          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+        }
+      }
+    } catch (assignmentError) {
+      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+    }
+
+  } catch (error) {
+    console.error('❌ Erro ao processar mensagem do Instagram:', error);
+  }
+}
+
+// Process Email message function
+async function processEmailMessage(emailData: any) {
+  try {
+    const senderEmail = emailData.from;
+    const subject = emailData.subject || 'Email sem assunto';
+    const messageText = emailData.text || emailData.html || 'Email vazio';
+    
+    const canalOrigem = 'email';
+    const nomeCanal = 'Email';
+    const idCanal = `email-${senderEmail}`;
+    const userIdentity = senderEmail;
+
+    const contact = await storage.findOrCreateContact(userIdentity, {
+      name: emailData.senderName || senderEmail,
+      phone: null,
+      email: senderEmail,
+      isOnline: false,
+      profileImageUrl: null,
+      canalOrigem: canalOrigem,
+      nomeCanal: nomeCanal,
+      idCanal: idCanal
+    });
+
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'email');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'email',
+        status: 'open',
+        lastMessageAt: new Date()
+      });
+    }
+
+    const message = await storage.createMessage({
+      conversationId: conversation.id,
+      content: `${subject}\n\n${messageText}`,
+      isFromContact: true,
+      messageType: 'email',
+      sentAt: new Date(),
+      metadata: emailData
+    });
+
+    const { broadcast, broadcastToAll } = await import('../realtime');
+    broadcast(conversation.id, {
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    broadcastToAll({
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    // Criar negócio automaticamente
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const existingDeals = await storage.getDealsByContact(contact.id);
+      const hasActiveDeal = existingDeals.some(deal => 
+        deal.macrosetor === detectedMacrosetor && deal.isActive
+      );
+      
+      if (!hasActiveDeal) {
+        console.log(`💼 Criando negócio automático para contato de Email (${detectedMacrosetor}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      }
+    } catch (dealError) {
+      console.error('❌ Erro ao criar negócio automático para Email:', dealError);
+    }
+
+    // Atribuição automática de equipes
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+      
+      if (team) {
+        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+        
+        const availableUser = await storage.getAvailableUserFromTeam(team.id);
+        if (availableUser) {
+          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+        }
+      }
+    } catch (assignmentError) {
+      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+    }
+
+  } catch (error) {
+    console.error('❌ Erro ao processar mensagem de Email:', error);
+  }
+}
+
+// Process SMS message function
+async function processSMSMessage(smsData: any) {
+  try {
+    const senderPhone = smsData.from;
+    const messageText = smsData.body || 'SMS vazio';
+    
+    const canalOrigem = 'sms';
+    const nomeCanal = 'SMS';
+    const idCanal = `sms-${senderPhone}`;
+    const userIdentity = senderPhone;
+
+    const contact = await storage.findOrCreateContact(userIdentity, {
+      name: `SMS ${senderPhone}`,
+      phone: senderPhone,
+      email: null,
+      isOnline: false,
+      profileImageUrl: null,
+      canalOrigem: canalOrigem,
+      nomeCanal: nomeCanal,
+      idCanal: idCanal
+    });
+
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'sms');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'sms',
+        status: 'open',
+        lastMessageAt: new Date()
+      });
+    }
+
+    const message = await storage.createMessage({
+      conversationId: conversation.id,
+      content: messageText,
+      isFromContact: true,
+      messageType: 'text',
+      sentAt: new Date(),
+      metadata: smsData
+    });
+
+    const { broadcast, broadcastToAll } = await import('../realtime');
+    broadcast(conversation.id, {
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    broadcastToAll({
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    // Criar negócio automaticamente
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const existingDeals = await storage.getDealsByContact(contact.id);
+      const hasActiveDeal = existingDeals.some(deal => 
+        deal.macrosetor === detectedMacrosetor && deal.isActive
+      );
+      
+      if (!hasActiveDeal) {
+        console.log(`💼 Criando negócio automático para contato de SMS (${detectedMacrosetor}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      }
+    } catch (dealError) {
+      console.error('❌ Erro ao criar negócio automático para SMS:', dealError);
+    }
+
+    // Atribuição automática de equipes
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+      
+      if (team) {
+        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
+        
+        const availableUser = await storage.getAvailableUserFromTeam(team.id);
+        if (availableUser) {
+          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+        }
+      }
+    } catch (assignmentError) {
+      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+    }
+
+  } catch (error) {
+    console.error('❌ Erro ao processar mensagem de SMS:', error);
+  }
+}
+
+// Additional Z-API endpoints
+export function registerZApiRoutes(app: Express) {
+  
+  // Configure Z-API webhook - REST: PUT /api/zapi/webhook
+  app.put('/api/zapi/webhook', async (req, res) => {
+    try {
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const webhookUrl = 'https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/api/zapi/webhook';
+      
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/update-webhook-received`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          value: webhookUrl
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      res.json({ 
+        success: true, 
+        webhookUrl,
+        response: data 
+      });
+      
+    } catch (error) {
+      console.error('Erro ao configurar webhook:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Check WhatsApp number validity - REST: POST /api/zapi/validate-number
+  app.post('/api/zapi/validate-number', async (req, res) => {
+    try {
+      const { phone } = req.body;
+      
+      if (!phone) {
+        return res.status(400).json({ error: 'Número de telefone é obrigatório' });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/phone-exists`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao validar número:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Block contact via Z-API - REST: PATCH /api/zapi/contacts/:phone/block
+  app.patch('/api/zapi/contacts/:phone/block', async (req, res) => {
+    try {
+      const { phone } = req.params;
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/block`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Erro ao bloquear contato:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Send reaction via Z-API - REST: POST /api/zapi/reactions
+  app.post('/api/zapi/reactions', async (req, res) => {
+    try {
+      console.log('📤 Recebendo solicitação de envio de reação:', req.body);
+      
+      const { phone, messageId, reaction } = req.body;
+      
+      if (!phone || !messageId || !reaction) {
+        return res.status(400).json({ 
+          error: 'Phone, messageId e reaction são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        messageId: messageId.toString(),
+        reaction
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-reaction`;
+      console.log('📤 Enviando reação para Z-API:', { url, payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Reação enviada com sucesso:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao enviar reação:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Remove reaction via Z-API - REST: DELETE /api/zapi/reactions
+  app.delete('/api/zapi/reactions', async (req, res) => {
+    try {
+      console.log('📤 Recebendo solicitação de remoção de reação:', req.body);
+      
+      const { phone, messageId } = req.body;
+      
+      if (!phone || !messageId) {
+        return res.status(400).json({ 
+          error: 'Phone e messageId são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const payload = {
+        phone: cleanPhone,
+        messageId: messageId.toString()
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-remove-reaction`;
+      console.log('📤 Removendo reação via Z-API:', { url, payload });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Reação removida com sucesso:', data);
+      res.json(data);
+    } catch (error) {
+      console.error('❌ Erro ao remover reação:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Delete message via Z-API - REST: DELETE /api/zapi/messages/:messageId
+  app.delete('/api/zapi/messages/:messageId', async (req, res) => {
+    try {
+      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', req.body);
+      
+      const { phone, conversationId } = req.body;
+      const messageId = req.params.messageId;
+      
+      if (!phone || !messageId) {
+        return res.status(400).json({ 
+          error: 'Phone e messageId são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
+      
+      console.log('🗑️ Deletando mensagem via Z-API:', { 
+        url,
+        conversationId 
+      });
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Client-Token': clientToken || ''
+        }
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API exclusão de mensagem:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        body: responseText 
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        
+        let errorMessage = 'Erro ao deletar mensagem via Z-API';
+        if (response.status === 404) {
+          errorMessage = 'Mensagem não encontrada ou já foi deletada';
+        } else if (response.status === 400) {
+          errorMessage = 'Dados inválidos para deletar mensagem';
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = 'Credenciais Z-API inválidas ou sem permissão';
+        }
+        
+        return res.status(response.status).json({ 
+          error: errorMessage,
+          details: responseText
+        });
+      }
+
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : { success: true };
+      } catch (parseError) {
+        console.log('⚠️ Resposta não é JSON válido, tratando como sucesso:', responseText);
+        data = { success: true, rawResponse: responseText };
+      }
+
+      // Se a exclusão foi bem-sucedida, marcar mensagem como deletada no banco
+      if (conversationId) {
+        const messages = await storage.getMessages(parseInt(conversationId));
+        const messageToDelete = messages.find(msg => {
+          const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
+          const msgId = 'messageId' in metadata ? metadata.messageId : 
+                       'zaapId' in metadata ? metadata.zaapId : 
+                       'id' in metadata ? metadata.id : null;
+          return msgId === messageId.toString();
+        });
+
+        if (messageToDelete) {
+          await storage.markMessageAsDeleted(messageToDelete.id);
+        }
+
+        const { broadcast } = await import('../realtime');
+        broadcast(parseInt(conversationId), {
+          type: 'message_deleted',
+          messageId: messageId.toString(),
+          deletedAt: new Date().toISOString(),
+          conversationId: parseInt(conversationId)
+        });
+      }
+
+      console.log('✅ Mensagem deletada com sucesso via Z-API:', data);
+      
+      res.json({
+        success: true,
+        messageId: messageId.toString(),
+        deletedAt: new Date().toISOString(),
+        ...data
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao deletar mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
 }
