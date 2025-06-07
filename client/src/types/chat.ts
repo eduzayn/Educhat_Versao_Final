@@ -33,7 +33,7 @@ export interface ChannelInfo {
   type: 'whatsapp' | 'instagram' | 'facebook' | 'email';
   icon: string;
   color: string;
-  name: string;
+  label: string;
 }
 
 export const CHANNELS: Record<string, ChannelInfo> = {
@@ -41,25 +41,25 @@ export const CHANNELS: Record<string, ChannelInfo> = {
     type: 'whatsapp',
     icon: 'fab fa-whatsapp',
     color: 'text-green-500',
-    name: 'WhatsApp'
+    label: 'WhatsApp'
   },
   instagram: {
     type: 'instagram',
     icon: 'fab fa-instagram',
     color: 'text-pink-500',
-    name: 'Instagram'
+    label: 'Instagram'
   },
   facebook: {
     type: 'facebook',
     icon: 'fab fa-facebook-messenger',
     color: 'text-blue-600',
-    name: 'Facebook'
+    label: 'Facebook'
   },
   email: {
     type: 'email',
     icon: 'fas fa-envelope',
     color: 'text-gray-500',
-    name: 'Email'
+    label: 'Email'
   }
 };
 

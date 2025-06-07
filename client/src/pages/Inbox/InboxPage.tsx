@@ -288,7 +288,7 @@ export function InboxPage() {
 
   const getChannelInfo = (channel: string) => {
     const channelInfo = CHANNELS[channel as keyof typeof CHANNELS];
-    return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro' };
+    return channelInfo || { icon: '💬', color: 'text-gray-500', label: 'Outro' };
   };
 
   const getSpecificChannelName = (conversation: any) => {
@@ -343,7 +343,7 @@ export function InboxPage() {
       return whatsappChannels[0]?.name || 'WhatsApp';
     }
     
-    return getChannelInfo(channelType).name;
+    return getChannelInfo(channelType).label;
   };
 
   const getChannelStyle = (conversation: any) => {
