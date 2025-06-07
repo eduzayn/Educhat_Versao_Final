@@ -60,17 +60,17 @@ export function InputArea() {
   const queryClient = useQueryClient();
 
   // Query para buscar respostas rápidas personalizadas
-  const { data: customQuickReplies = [] } = useQuery({
+  const { data: customQuickReplies = [] } = useQuery<QuickReply[]>({
     queryKey: ["/api/quick-replies"],
     enabled: true,
   });
 
   // Combinar respostas rápidas padrão com personalizadas
-  const allQuickReplies = [...QUICK_REPLIES, ...customQuickReplies.map((qr: QuickReply) => qr.content)];
+  const allQuickReplies = [...QUICK_REPLIES, ...(customQuickReplies || []).map((qr: QuickReply) => qr.content)];
 
   // Filtrar respostas rápidas
   const filteredQuickReplies = allQuickReplies.filter((reply) =>
-    reply.toLowerCase().includes(quickReplyFilter.toLowerCase())
+    reply?.toLowerCase().includes(quickReplyFilter.toLowerCase())
   );
 
   // Mutation para enviar mensagem
@@ -80,10 +80,19 @@ export function InputArea() {
         throw new Error("Nenhuma conversa ativa");
       }
 
-      return apiRequest(`/api/conversations/${activeConversation.id}/messages`, {
+      const response = await fetch(`/api/conversations/${activeConversation.id}/messages`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar mensagem");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       setMessage("");
@@ -228,7 +237,10 @@ export function InputArea() {
       e.preventDefault();
       
       if (showQuickReplies && filteredQuickReplies.length > 0) {
-        selectQuickReply(filteredQuickReplies[selectedQuickReplyIndex]);
+        const selectedReply = filteredQuickReplies[selectedQuickReplyIndex];
+        if (selectedReply) {
+          selectQuickReply(selectedReply);
+        }
       } else {
         handleSendMessage();
       }
@@ -251,11 +263,13 @@ export function InputArea() {
     }
   };
 
-  const selectQuickReply = (quickReply: string) => {
-    setMessage(quickReply);
-    setShowQuickReplies(false);
-    setQuickReplyFilter("");
-    textareaRef.current?.focus();
+  const selectQuickReply = (quickReply: string | null) => {
+    if (quickReply) {
+      setMessage(quickReply);
+      setShowQuickReplies(false);
+      setQuickReplyFilter("");
+      textareaRef.current?.focus();
+    }
   };
 
   const handleSendMessage = () => {
@@ -503,7 +517,7 @@ export function InputArea() {
                 "w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0",
                 index === selectedQuickReplyIndex && "bg-educhat-primary/10"
               )}
-              onClick={() => selectQuickReply(reply)}
+              onClick={() => reply && selectQuickReply(reply)}
             >
               {reply}
             </button>
