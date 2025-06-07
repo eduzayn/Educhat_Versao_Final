@@ -59,6 +59,7 @@ import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
+import { MessagesArea } from './components/MessagesArea';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -509,57 +510,12 @@ export function InboxPageRefactored() {
             />
 
             {/* Mensagens */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {(messages || []).length === 0 && !isLoadingMessages ? (
-                <div className="flex items-center justify-center h-full text-gray-500">
-                  <div className="text-center">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p>Nenhuma mensagem ainda</p>
-                    <p className="text-sm">Envie uma mensagem para começar a conversa</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Loading inicial */}
-                  {isLoadingMessages && (
-                    <div className="p-6 text-center text-gray-500">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
-                      <p className="text-sm">Carregando mensagens...</p>
-                    </div>
-                  )}
-                  
-                  {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
-                  {(messages || []).map((message) => (
-                    <MessageBubble 
-                      key={message.id} 
-                      message={message} 
-                      contact={activeConversation?.contact}
-                      channelIcon={getChannelInfo(activeConversation?.channel || '').icon}
-                      channelColor={getChannelInfo(activeConversation?.channel || '').color}
-                      conversationId={activeConversation?.id || 0}
-                      onReply={(message) => {
-                        // Extrair messageId dos metadados da mensagem
-                        const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
-                        let messageId = null;
-                        
-                        if ("messageId" in metadata && metadata.messageId) {
-                          messageId = metadata.messageId;
-                        } else if ("zaapId" in metadata && metadata.zaapId) {
-                          messageId = metadata.zaapId;
-                        } else if ("id" in metadata && metadata.id) {
-                          messageId = metadata.id;
-                        }
-                        
-                        // Enviar evento para InputArea via custom event
-                        window.dispatchEvent(new CustomEvent('replyToMessage', {
-                          detail: { messageId, content: message.content }
-                        }));
-                      }}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
+            <MessagesArea
+              messages={messages || []}
+              isLoadingMessages={isLoadingMessages}
+              activeConversation={activeConversation}
+              getChannelInfo={getChannelInfo}
+            />
 
             {/* Área de Input */}
             <div className="bg-white border-t border-gray-200 p-4">

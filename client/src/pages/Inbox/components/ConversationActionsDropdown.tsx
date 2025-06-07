@@ -114,9 +114,17 @@ export function ConversationActionsDropdown({
       }
     },
     onSuccess: () => {
-      // Garantir sincronização com servidor
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+      // Atualização otimista para resposta instantânea
+      queryClient.setQueryData(['/api/conversations/unread-count'], (old: any) => {
+        if (!old) return { count: 1 };
+        return { count: old.count + 1 };
+      });
+      
+      // Invalidar apenas após sucesso para garantir sincronização
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+      }, 100);
       
       toast({
         title: "Marcado como não lida",
