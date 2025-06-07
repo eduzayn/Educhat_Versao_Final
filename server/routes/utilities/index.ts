@@ -1,9 +1,63 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../permissions';
 import { storage } from '../../storage';
+import { validateZApiCredentials } from '../shared/zapi-validation';
 
 export function registerUtilitiesRoutes(app: Express) {
   
+  // Z-API Status endpoint - REST: GET /api/zapi/status
+  app.get('/api/zapi/status', async (req, res) => {
+    try {
+      console.log('📊 Solicitação recebida em /api/zapi/status');
+      
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      
+      console.log('🔑 Variáveis Z-API:', {
+        instanceId: instanceId ? `${instanceId.substring(0, 4)}...` : 'não definido',
+        token: token ? `${token.substring(0, 4)}...` : 'não definido',
+        clientToken: clientToken ? `${clientToken.substring(0, 4)}...` : 'não definido'
+      });
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
+      console.log('🔍 URL da API Z-API:', url.replace(token!, '****').replace(instanceId!, '****'));
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('📥 Resposta Z-API:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erro da Z-API:', errorText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Status da Z-API obtido com sucesso:', data);
+      
+      res.json(data);
+      
+    } catch (error) {
+      console.error('Erro ao obter status Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // System Users endpoints - REST: CRUD operations
   app.get('/api/system-users', async (req: AuthenticatedRequest, res: Response) => {
     try {
