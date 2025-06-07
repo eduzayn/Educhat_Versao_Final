@@ -153,7 +153,118 @@ export class ZApiModule {
    */
   private async processReceivedMessage(data: any): Promise<void> {
     console.log('📥 Mensagem recebida via webhook:', data);
-    // Implementar lógica de processamento de mensagens recebidas
+    
+    try {
+      const { phone, message, instanceId, messageId, fromMe, chatId } = data;
+      
+      if (fromMe) {
+        console.log('📤 Mensagem enviada por mim, ignorando webhook');
+        return;
+      }
+
+      if (!phone || !message) {
+        console.log('❌ Dados incompletos no webhook:', { phone: !!phone, message: !!message });
+        return;
+      }
+
+      // Buscar ou criar contato
+      let contact = await this.storage.getContactByPhone(phone);
+      if (!contact) {
+        contact = await this.storage.createContact({
+          name: phone,
+          phone: phone,
+          isFromWhatsApp: true,
+          profileImageUrl: null,
+          channelId: 1 // WhatsApp padrão
+        });
+        console.log('👤 Novo contato criado:', contact.name);
+      }
+
+      // Buscar ou criar conversa
+      let conversation = await this.storage.getConversationByContactId(contact.id);
+      if (!conversation) {
+        conversation = await this.storage.createConversation({
+          contactId: contact.id,
+          channelId: 1,
+          status: 'ACTIVE',
+          lastMessageAt: new Date(),
+          assignedUserId: null,
+          assignedTeamId: null
+        });
+        console.log('💬 Nova conversa criada:', conversation.id);
+      }
+
+      // Determinar tipo de mensagem
+      let messageType = 'text';
+      let content = message.text || message.body || '';
+      let mediaUrl = null;
+
+      if (message.image) {
+        messageType = 'image';
+        content = message.image.caption || 'Imagem';
+        mediaUrl = message.image.url;
+      } else if (message.audio) {
+        messageType = 'audio';
+        content = 'Áudio';
+        mediaUrl = message.audio.url;
+      } else if (message.video) {
+        messageType = 'video';
+        content = message.video.caption || 'Vídeo';
+        mediaUrl = message.video.url;
+      } else if (message.document) {
+        messageType = 'document';
+        content = message.document.filename || 'Documento';
+        mediaUrl = message.document.url;
+      }
+
+      // Criar mensagem no banco
+      const newMessage = await this.storage.createMessage({
+        conversationId: conversation.id,
+        content: content,
+        messageType: messageType as any,
+        isFromContact: true,
+        sentAt: new Date(),
+        metadata: {
+          whatsappMessageId: messageId,
+          chatId: chatId,
+          zapiInstanceId: instanceId,
+          mediaUrl: mediaUrl
+        }
+      });
+
+      // Atualizar última mensagem da conversa
+      await this.storage.updateConversation(conversation.id, {
+        lastMessageAt: new Date(),
+        status: 'ACTIVE'
+      });
+
+      // Broadcast da nova mensagem
+      this.broadcast(conversation.id, {
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: newMessage
+      });
+
+      // Broadcast global para atualizar lista de conversas
+      this.broadcast(conversation.id, {
+        type: 'conversation_updated',
+        conversation: {
+          ...conversation,
+          lastMessageAt: new Date(),
+          contact: contact
+        }
+      });
+
+      console.log('✅ Mensagem processada com sucesso:', {
+        conversationId: conversation.id,
+        messageId: newMessage.id,
+        type: messageType,
+        from: phone
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao processar mensagem recebida:', error);
+    }
   }
 
   /**
@@ -170,7 +281,8 @@ export class ZApiModule {
       const { instanceId, token, clientToken } = credentials;
       const webhookUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://your-domain.com'}/api/zapi/webhook`;
 
-      const response = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/webhook/${webhookUrl}`, {
+      // Configurar webhook usando a API correta da Z-API
+      const response = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/webhook/${encodeURIComponent(webhookUrl)}`, {
         method: 'POST',
         headers: {
           'Client-Token': clientToken || '',
