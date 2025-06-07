@@ -16,7 +16,8 @@ import {
 import { format } from "date-fns";
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
-import { AudioMessage } from "./AudioMessage";
+import { AudioMessageSimple } from "./AudioMessageSimple";
+import { AudioMessageSimple as AudioMessage } from "./AudioMessageSimple";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Message, Contact } from "@shared/schema";

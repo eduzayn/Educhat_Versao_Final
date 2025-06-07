@@ -25,9 +25,10 @@ import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectio
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/ProfilePage";
 
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-
+  
   // Inicializar monitoramento global da Z-API
   useGlobalZApiMonitor();
 
@@ -54,21 +55,11 @@ function Router() {
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
           <Route path="/bi">
-            {() => (
-              <ProtectedRoute
-                requiredRole={["admin", "gerente"]}
-                component={BIPage}
-              />
-            )}
+            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={BIPage} />}
           </Route>
           <Route path="/reports" component={ReportsPage} />
           <Route path="/integrations">
-            {() => (
-              <ProtectedRoute
-                requiredRole={["admin", "gerente"]}
-                component={IntegrationsPage}
-              />
-            )}
+            {() => <ProtectedRoute requiredRole={['admin', 'gerente']} component={IntegrationsPage} />}
           </Route>
           <Route path="/settings">
             {() => <ProtectedRoute component={SettingsPage} />}
@@ -90,9 +81,8 @@ function Router() {
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
-          <Route path="/chat-interno" component={InternalChatPage} />
-          <Route path="/profile" component={ProfilePage} />
-          <Route component={() => <div className="min-h-screen bg-educhat-light flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-educhat-dark mb-4">Página não encontrada</h1><p className="text-educhat-medium">A página que você está procurando não existe.</p></div></div>} />
+          <Route path="/chat-interno" component={InboxPage} />
+          <Route component={NotFound} />
         </>
       )}
     </Switch>
