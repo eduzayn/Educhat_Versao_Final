@@ -60,9 +60,6 @@ export function ChatHeader({
             {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
           </h3>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {CHANNELS[conversation.channel]?.name || conversation.channel}
-            </Badge>
             <span className="text-xs text-gray-500">
               {isOnline ? 'Online' : 'Offline'}
             </span>
