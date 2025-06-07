@@ -636,6 +636,17 @@ export class DatabaseStorage implements IStorage {
       .offset(offset);
   }
 
+  // Get single message by ID
+  async getMessage(messageId: number): Promise<Message | null> {
+    const result = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, messageId))
+      .limit(1);
+    
+    return result[0] || null;
+  }
+
   // Novo método para carregar conteúdo de mídia sob demanda
   async getMessageMedia(messageId: number): Promise<string | null> {
     const result = await db
@@ -3955,7 +3966,7 @@ export class DatabaseStorage implements IStorage {
   async getQuickReplyCategories(): Promise<string[]> {
     try {
       const result = await db.select({ category: quickReplies.category }).from(quickReplies).groupBy(quickReplies.category);
-      return result.map(r => r.category).filter(Boolean);
+      return result.map(r => r.category).filter((cat): cat is string => Boolean(cat));
     } catch (error) {
       return [];
     }
