@@ -810,21 +810,25 @@ export function registerZApiRoutes(app: Express) {
         console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
 
         // Fazer broadcast via Socket.IO para atualizar a interface em tempo real
-        const { broadcast, broadcastToAll } = await import('../realtime');
-        
-        broadcast(conversation.id, {
-          type: 'new_message',
-          conversationId: conversation.id,
-          message: message
-        });
+        try {
+          const { broadcast, broadcastToAll } = await import('../realtime');
+          
+          broadcast(conversation.id, {
+            type: 'new_message',
+            conversationId: conversation.id,
+            message: message
+          });
 
-        broadcastToAll({
-          type: 'new_message',
-          conversationId: conversation.id,
-          message: message
-        });
-
-        console.log(`🔄 Broadcast enviado para conversa ${conversation.id}`);
+          broadcastToAll({
+            type: 'new_message',
+            conversationId: conversation.id,
+            message: message
+          });
+          
+          console.log(`🔄 Broadcast enviado com sucesso para conversa ${conversation.id}`);
+        } catch (broadcastError) {
+          console.error('❌ Erro no broadcast:', broadcastError);
+        }
 
         // Criar negócio automático se necessário
         try {
