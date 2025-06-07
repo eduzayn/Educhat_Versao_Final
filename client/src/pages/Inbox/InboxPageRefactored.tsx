@@ -55,9 +55,7 @@ import { ConversationActionsDropdown } from './components/ConversationActionsDro
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { CreateContactModal } from './components/CreateContactModal';
 import { ContactSidebar } from './components/ContactSidebar';
-import { ConversationFilters } from './components/ConversationFilters';
-import { ConversationListHeader } from './components/ConversationListHeader';
-import { ConversationItem } from './components/ConversationItem';
+import { ConversationPanel } from './components/ConversationPanel';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
 
