@@ -2,18 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/shared/ui/ui/button";
 import { Textarea } from "@/shared/ui/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/ui/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -22,14 +10,12 @@ import {
 import {
   Send,
   Mic,
-  ChevronDown,
   MessageCircle,
   StickyNote,
   Play,
   Pause,
   Square,
   Trash2,
-  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -37,6 +23,8 @@ import { apiRequest } from "@/lib/queryClient";
 import type { QuickReply } from "@shared/schema";
 import { EmojiReactionPicker } from "./EmojiReactionPicker";
 import { AttachmentDialog } from "./AttachmentDialog";
+import { useChatStore } from "@/shared/store/store/chatStore";
+import { useToast } from "@/shared/lib/hooks/use-toast";
 
 const QUICK_REPLIES = [
   "Obrigado pelo contato!",
@@ -45,9 +33,6 @@ const QUICK_REPLIES = [
   "Entendi sua situação, vamos resolver isso.",
   "Aguarde um momento, por favor.",
 ];
-
-import { useChatStore } from "@/shared/store/store/chatStore";
-import { useToast } from "@/shared/lib/hooks/use-toast";
 
 export function InputArea() {
   const [message, setMessage] = useState("");
