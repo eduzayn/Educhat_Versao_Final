@@ -37,9 +37,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerChannelRoutes(app);
   registerWebhookRoutes(app);
-  // Registrar rotas Z-API (incluindo webhook principal)
-  const { registerZApiRoutes } = await import('./webhooks/index');
-  registerZApiRoutes(app);
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
