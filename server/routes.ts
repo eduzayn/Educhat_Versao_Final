@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { insertContactSchema, insertConversationSchema, insertMessageSchema, insertContactTagSchema, insertQuickReplySchema, insertChannelSchema, insertContactNoteSchema, insertDealSchema, type User } from "@shared/schema";
 import { validateZApiCredentials, generateQRCode, getZApiStatus, getZApiQRCode } from "./zapi-connection";
 import { requirePermission, type AuthenticatedRequest } from "./permissions";
+import { ZApiModule } from "./zapi-module";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio
@@ -128,6 +129,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       io.emit('broadcast_message', message);
     }
   }
+
+  // Inicializar módulo Z-API
+  const zapiModule = new ZApiModule(storage, broadcast);
+  zapiModule.registerRoutes(app);
 
   // API Routes
 
