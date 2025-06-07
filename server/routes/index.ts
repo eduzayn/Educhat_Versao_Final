@@ -23,10 +23,10 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup do sistema de autenticação próprio
+  // Setup do sistema de autenticação próprio PRIMEIRO
   setupAuth(app);
   
-  // Registrar todos os módulos extraídos
+  // Registrar rotas de autenticação IMEDIATAMENTE após setup
   registerAuthRoutes(app);
   registerAdminRoutes(app);
   registerInternalChatRoutes(app);

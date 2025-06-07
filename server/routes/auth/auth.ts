@@ -127,7 +127,7 @@ export function setupAuth(app: Express) {
         username: user.username,
         displayName: user.displayName,
         role: user.role,
-        roleId: user.roleId,
+        roleId: user.roleId || 1,
         dataKey: user.dataKey,
         channels: user.channels || [],
         macrosetores: user.macrosetores || [],
