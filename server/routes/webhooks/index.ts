@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../../storage";
+import { storage } from "../../core/storage";
 
 function validateZApiCredentials() {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
