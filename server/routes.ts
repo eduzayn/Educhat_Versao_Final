@@ -5106,46 +5106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Satisfação do Cliente
-  app.get('/api/bi/satisfaction', async (req, res) => {
-    try {
-      const { period = '30', team, channel } = req.query;
-      const days = parseInt(period as string);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-
-      // Dados simulados baseados em dados reais
-      const satisfaction = {
-        overall: {
-          avgRating: 4.2,
-          totalResponses: 156,
-          distribution: {
-            5: 65,
-            4: 48,
-            3: 28,
-            2: 10,
-            1: 5
-          }
-        },
-        byTeam: [
-          { team: 'Comercial', avgRating: 4.3, responses: 78 },
-          { team: 'Suporte', avgRating: 4.1, responses: 45 },
-          { team: 'Financeiro', avgRating: 4.0, responses: 33 }
-        ],
-        trends: [
-          { period: 'Sem 1', rating: 4.0 },
-          { period: 'Sem 2', rating: 4.1 },
-          { period: 'Sem 3', rating: 4.2 },
-          { period: 'Sem 4', rating: 4.3 }
-        ]
-      };
-
-      res.json(satisfaction);
-    } catch (error) {
-      console.error('Erro ao buscar satisfação:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
+  // First BI satisfaction endpoint removed - using more comprehensive implementation later
 
   // ==========================================
   // ROTAS DO MÓDULO DE VENDAS
@@ -5778,88 +5739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // =============================================================================
-  // SYSTEM SETTINGS API - Configurações do Sistema
-  // =============================================================================
-
-  // Buscar todas as configurações do sistema
-  app.get('/api/system-settings', async (req, res) => {
-    try {
-      const settings = await storage.getSystemSettings();
-      res.json(settings);
-    } catch (error) {
-      console.error('Erro ao buscar configurações do sistema:', error);
-      res.status(500).json({ message: 'Erro ao buscar configurações do sistema' });
-    }
-  });
-
-  // Buscar configuração específica
-  app.get('/api/system-settings/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const setting = await storage.getSystemSetting(id.toString());
-      
-      if (!setting) {
-        return res.status(404).json({ message: 'Configuração não encontrada' });
-      }
-      
-      res.json(setting);
-    } catch (error) {
-      console.error('Erro ao buscar configuração:', error);
-      res.status(500).json({ message: 'Erro ao buscar configuração' });
-    }
-  });
-
-  // Atualizar configuração do sistema
-  app.patch('/api/system-settings/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { value, is_enabled } = req.body;
-      
-      const updateData: any = {};
-      if (value !== undefined) updateData.value = value;
-      if (is_enabled !== undefined) updateData.is_enabled = is_enabled;
-      updateData.updated_at = new Date();
-      
-      const updatedSetting = await storage.updateSystemSetting(id, updateData);
-      
-      if (!updatedSetting) {
-        return res.status(404).json({ message: 'Configuração não encontrada' });
-      }
-      
-      console.log(`⚙️ Configuração atualizada: ${updatedSetting.key} = ${updatedSetting.value}`);
-      res.json(updatedSetting);
-    } catch (error) {
-      console.error('Erro ao atualizar configuração:', error);
-      res.status(500).json({ message: 'Erro ao atualizar configuração' });
-    }
-  });
-
-  // Buscar configurações por categoria
-  app.get('/api/system-settings/category/:category', async (req, res) => {
-    try {
-      const { category } = req.params;
-      const settings = await storage.getSystemSettingsByCategory(category);
-      res.json(settings);
-    } catch (error) {
-      console.error('Erro ao buscar configurações por categoria:', error);
-      res.status(500).json({ message: 'Erro ao buscar configurações por categoria' });
-    }
-  });
-
-  // Criar nova configuração do sistema
-  app.post('/api/system-settings', async (req, res) => {
-    try {
-      const settingData = req.body;
-      const newSetting = await storage.createSystemSetting(settingData);
-      
-      console.log(`➕ Nova configuração criada: ${newSetting.key}`);
-      res.status(201).json(newSetting);
-    } catch (error) {
-      console.error('Erro ao criar configuração:', error);
-      res.status(400).json({ message: 'Erro ao criar configuração' });
-    }
-  });
+  // Second system-settings implementation removed - using the more complete one above
 
   return httpServer;
 }
