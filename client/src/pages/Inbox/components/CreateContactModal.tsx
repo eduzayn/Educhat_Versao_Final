@@ -12,10 +12,12 @@ import { useZApiStore } from '@/shared/store/zapiStore';
 
 interface CreateContactModalProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
+  zapiStatus?: any;
 }
 
-export function CreateContactModal({ isOpen, onOpenChange }: CreateContactModalProps) {
+export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }: CreateContactModalProps) {
   const [createForm, setCreateForm] = useState({
     name: '',
     email: '',

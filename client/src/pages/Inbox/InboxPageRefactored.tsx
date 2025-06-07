@@ -118,6 +118,8 @@ export function InboxPageRefactored() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contactNotes, setContactNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
   const [contactInterests, setContactInterests] = useState<any[]>([]);
 
@@ -293,7 +295,7 @@ export function InboxPageRefactored() {
 
   const getChannelInfo = (channel: string) => {
     const channelInfo = CHANNELS[channel as keyof typeof CHANNELS];
-    return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro' };
+    return channelInfo || { icon: '💬', color: 'text-gray-500', name: 'Outro', label: 'Outro' };
   };
 
   const getSpecificChannelName = (conversation: any) => {
@@ -451,7 +453,7 @@ export function InboxPageRefactored() {
         <ConversationListHeader
           activeTab={activeTab}
           searchTerm={searchTerm}
-          isWhatsAppAvailable={isWhatsAppAvailable}
+          isWhatsAppAvailable={isWhatsAppAvailable || false}
           onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
