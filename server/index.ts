@@ -32,18 +32,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Adicionar endpoint de healthcheck diretamente no nível raiz
-// para garantir que esteja disponível mesmo que outras rotas falhem
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    port: process.env.PORT || '5000',
-    version: '1.0.0'
-  });
-});
+// Health check endpoint is handled in routes.ts
 
 // Servir arquivos estáticos de upload
 app.use('/uploads', express.static('uploads'));
