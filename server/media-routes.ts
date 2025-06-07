@@ -108,22 +108,51 @@ export function registerMediaRoutes(app: Express) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
       }
 
-      const { phone, messageId, reaction } = req.body;
+      const { phone, reaction } = req.body;
 
-      if (!phone || !messageId || !reaction) {
+      if (!phone || !reaction) {
         return res.status(400).json({ error: 'Dados incompletos para enviar reação' });
       }
 
-      // Aqui você integraria com a API Z-API real
-      // Por enquanto, simulo uma resposta bem-sucedida
-      console.log(`🎭 Reação enviada: ${reaction} para mensagem ${messageId} no WhatsApp ${phone}`);
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+
+      if (!instanceId || !token || !clientToken) {
+        return res.status(500).json({ error: 'Configuração Z-API incompleta' });
+      }
+
+      console.log(`🎭 Enviando reação: ${reaction} para ${phone}`);
+
+      // Enviar reação via Z-API como mensagem de texto
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
       
-      res.json({
-        success: true,
-        messageId,
-        reaction,
-        timestamp: new Date().toISOString()
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: phone,
+          message: reaction
+        })
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(`✅ Reação enviada com sucesso: ${reaction}`);
+        res.json({
+          success: true,
+          reaction,
+          zaapId: data.zaapId || data.id,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        console.error('❌ Erro na resposta Z-API:', data);
+        res.status(400).json({ error: 'Falha ao enviar reação via Z-API' });
+      }
 
     } catch (error) {
       console.error('Erro ao enviar reação:', error);
