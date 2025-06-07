@@ -79,27 +79,7 @@ export function registerMediaRoutes(app: Express) {
     next();
   });
 
-  // Endpoint para buscar áudio de mensagem específica
-  app.get('/api/messages/:messageId/audio', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Usuário não autenticado' });
-      }
-
-      const { messageId } = req.params;
-      
-      // Aqui você implementaria a lógica para buscar o áudio da mensagem
-      // Por enquanto, retorno um exemplo
-      res.json({
-        audioUrl: `/uploads/media/audio_${messageId}.mp3`,
-        duration: 30 // duração em segundos
-      });
-
-    } catch (error) {
-      console.error('Erro ao buscar áudio:', error);
-      res.status(404).json({ error: 'Áudio não encontrado' });
-    }
-  });
+  // Audio endpoint moved to routes.ts for better database integration
 
   // Z-API reaction endpoints moved to routes.ts for better integration
 }

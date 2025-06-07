@@ -152,26 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contacts endpoints
-  app.get('/api/contacts', async (req, res) => {
-    try {
-      const { search } = req.query;
-      let contacts: any[] = [];
-      
-      if (search && typeof search === 'string') {
-        contacts = await storage.searchContacts(search);
-      } else {
-        // Se não há busca específica, retornar todos os contatos
-        contacts = await storage.searchContacts('');
-      }
-      
-      console.log('Returning contacts:', contacts.length);
-      res.json(contacts);
-    } catch (error) {
-      console.error('Error fetching contacts:', error);
-      res.status(500).json({ message: 'Failed to fetch contacts' });
-    }
-  });
+  // First contacts endpoint removed - using the more complete implementation below
 
   // Função helper para validar credenciais Z-API
   function validateZApiCredentials() {
@@ -2035,118 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reply to message via Z-API
-  app.post('/api/zapi/reply-message', async (req, res) => {
-    try {
-      console.log('↩️ Recebendo solicitação de resposta à mensagem:', req.body);
-      
-      const { phone, messageId, replyText, conversationId } = req.body;
-      
-      if (!phone || !messageId || !replyText) {
-        return res.status(400).json({ 
-          error: 'Phone, messageId e replyText são obrigatórios' 
-        });
-      }
-
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
-      }
-
-      const { instanceId, token, clientToken } = credentials;
-      const cleanPhone = phone.replace(/\D/g, '');
-      
-      // Construir payload conforme documentação Z-API para responder mensagens
-      const payload = {
-        phone: cleanPhone,
-        message: replyText,
-        quotedMessageId: messageId.toString()
-      };
-
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-      console.log('↩️ Respondendo mensagem via Z-API:', { 
-        url, 
-        payload,
-        conversationId 
-      });
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const responseText = await response.text();
-      console.log('📥 Resposta Z-API reply:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText
-      });
-
-      if (!response.ok) {
-        console.error('❌ Erro na Z-API:', responseText);
-        
-        let errorMessage = 'Erro ao responder mensagem';
-        if (response.status === 401) {
-          errorMessage = 'Credenciais Z-API inválidas ou sem permissão';
-        }
-        
-        return res.status(response.status).json({ 
-          error: errorMessage,
-          details: responseText
-        });
-      }
-
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : { success: true };
-      } catch (parseError) {
-        console.log('⚠️ Resposta não é JSON válido, tratando como sucesso:', responseText);
-        data = { success: true, rawResponse: responseText };
-      }
-
-      // Se a resposta foi bem-sucedida, salvar a mensagem no banco
-      if (conversationId && data.messageId) {
-        const replyMessage = await storage.createMessage({
-          conversationId: parseInt(conversationId),
-          content: replyText,
-          messageType: 'text',
-          isFromContact: false,
-          sentAt: new Date(),
-          metadata: {
-            messageId: data.messageId,
-            replyToMessageId: messageId.toString(),
-            zaapId: data.messageId
-          }
-        });
-
-        broadcast(parseInt(conversationId), {
-          type: 'new_message',
-          message: replyMessage
-        });
-      }
-
-      console.log('✅ Resposta enviada com sucesso via Z-API:', data);
-      
-      res.json({
-        success: true,
-        messageId: data.messageId,
-        replyToMessageId: messageId.toString(),
-        sentAt: new Date().toISOString(),
-        ...data
-      });
-      
-    } catch (error) {
-      console.error('❌ Erro ao responder mensagem:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor',
-        details: error instanceof Error ? error.stack : 'Erro desconhecido'
-      });
-    }
-  });
+  // First reply-message implementation removed - using the more complete one later
 
   // Z-API QR Code endpoint for specific channel
   app.get('/api/channels/:id/qrcode', async (req, res) => {
