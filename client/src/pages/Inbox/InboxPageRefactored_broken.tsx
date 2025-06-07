@@ -813,3 +813,384 @@ export function InboxPageRefactored() {
     </div>
   );
 }
+              </h4>
+              
+              {activeConversation.contact.phone && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-3 h-3 text-gray-400" />
+                    <span className="text-gray-600">
+                      {activeConversation.contact.phone}
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </Button>
+                </div>
+              )}
+              
+              {activeConversation.contact.email && (
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600 truncate">
+                    {activeConversation.contact.email}
+                  </span>
+                </div>
+              )}
+              
+              {activeConversation.contact.location && (
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-600">{activeConversation.contact.location}</span>
+                </div>
+              )}
+              
+              {/* Informações do Canal */}
+              {(activeConversation.contact.canalOrigem || activeConversation.channelId) && (
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="w-3 h-3 text-gray-400" />
+                  <span className={`text-xs px-2 py-1 rounded-md ${getChannelStyle(activeConversation)}`}>
+                    {getSpecificChannelName(activeConversation) || 
+                     activeConversation.contact.nomeCanal || 
+                     activeConversation.contact.canalOrigem ||
+                     'Canal não identificado'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 🎓 Informações Acadêmicas */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                🎓 Informações Acadêmicas
+              </h4>
+              
+              <div className="bg-blue-50 p-3 rounded-lg space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Canal:</span>
+                  <span className="font-medium text-blue-800">
+                    {activeConversation.contact.canalOrigem ? 
+                      activeConversation.contact.canalOrigem.charAt(0).toUpperCase() + 
+                      activeConversation.contact.canalOrigem.slice(1) : 
+                      'WhatsApp'
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium">
+                    {activeConversation.contact.isOnline ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Conversas:</span>
+                  <span className="font-medium">{activeConversation.channel}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Idade:</span>
+                  <span className="font-medium">
+                    {activeConversation.contact.age || 'Não informado'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 📝 Histórico */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                Histórico
+              </h4>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Primeira conversa:</span>
+                  <span className="font-medium text-xs">
+                    {new Intl.DateTimeFormat('pt-BR').format(new Date(activeConversation.contact.createdAt || new Date()))}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Último atendimento:</span>
+                  <span className="font-medium text-xs">
+                    {activeConversation.lastMessageAt ? 
+                      new Intl.DateTimeFormat('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).format(new Date(activeConversation.lastMessageAt)) :
+                      'Nunca'
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total de mensagens:</span>
+                  <span className="font-medium">{activeConversation.messages?.length || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium">{activeConversation.status || 'Ativo'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🔖 Tags */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </h4>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap gap-1">
+                {/* Tags do canal de origem */}
+                {activeConversation.contact.canalOrigem && (
+                  <Badge className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 hover:bg-purple-200">
+                    {activeConversation.contact.canalOrigem.charAt(0).toUpperCase() + activeConversation.contact.canalOrigem.slice(1)}
+                  </Badge>
+                )}
+                
+                {/* Tags dos negócios */}
+                {Array.isArray(contactDeals) && contactDeals.map((deal) => {
+                  if (deal.tags && Array.isArray(deal.tags)) {
+                    return deal.tags.map((tag: string, index: number) => (
+                      <Badge key={`${deal.id}-${index}`} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                        {tag}
+                      </Badge>
+                    ));
+                  }
+                  return null;
+                }).filter(Boolean)}
+                
+                {/* Tag de status online */}
+                {activeConversation.contact.isOnline && (
+                  <Badge className="text-xs px-2 py-0.5 bg-green-100 text-green-700 hover:bg-green-200">
+                    Online
+                  </Badge>
+                )}
+                
+                {/* Se não há tags, mostrar mensagem */}
+                {contactDeals.length === 0 && !activeConversation.contact.canalOrigem && (
+                  <span className="text-xs text-gray-500 italic">Nenhuma tag encontrada</span>
+                )}
+              </div>
+            </div>
+
+            {/* 🎓 Formação Acadêmica */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                🎓 Formação Acadêmica
+              </h4>
+              
+              {/* Cursos que já possui (Formado em) */}
+              {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && 
+               activeConversation.contact.tags.some((tag: string) => tag.startsWith('Formado:')) && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                    Já possui formação em:
+                  </h5>
+                  <div className="space-y-1">
+                    {activeConversation.contact.tags
+                      .filter((tag: string) => tag.startsWith('Formado:'))
+                      .map((tag: string, index: number) => (
+                        <div key={`formado-${index}`} className="bg-blue-50 border border-blue-200 p-2 rounded-md">
+                          <p className="text-sm font-medium text-blue-800">
+                            {tag.replace('Formado: ', '')}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cursos que deseja fazer (Interesse em) */}
+              {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && 
+               activeConversation.contact.tags.some((tag: string) => tag.startsWith('Interesse:')) && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-green-700 uppercase tracking-wide">
+                    Tem interesse em:
+                  </h5>
+                  <div className="space-y-1">
+                    {activeConversation.contact.tags
+                      .filter((tag: string) => tag.startsWith('Interesse:'))
+                      .map((tag: string, index: number) => (
+                        <div key={`interesse-${index}`} className="bg-green-50 border border-green-200 p-2 rounded-md">
+                          <p className="text-sm font-medium text-green-800">
+                            {tag.replace('Interesse: ', '')}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cursos detectados via API (fallback) */}
+              {contactInterests.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                    Detectados automaticamente:
+                  </h5>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {contactInterests.map((interest) => (
+                      <div key={interest.id} className="bg-gray-50 border border-gray-200 p-2 rounded-md">
+                        <p className="text-sm font-medium text-gray-800">
+                          {interest.courseName}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {new Date(interest.detectedAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mensagem quando não há cursos detectados */}
+              {(!activeConversation.contact.tags || 
+                !Array.isArray(activeConversation.contact.tags) || 
+                !activeConversation.contact.tags.some((tag: string) => 
+                  tag.startsWith('Formado:') || tag.startsWith('Interesse:')
+                )) && 
+               contactInterests.length === 0 && (
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhum curso detectado ainda
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 💬 Notas internas */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                💬 Notas internas
+              </h4>
+              
+              {contactNotes.length > 0 ? (
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {contactNotes.map((note) => (
+                    <div key={note.id} className="bg-gray-50 p-3 rounded-lg">
+                      <p className="text-xs text-gray-700 mb-2">
+                        "{note.content}"
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Por {note.authorName} • {new Date(note.createdAt).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <p className="text-xs text-gray-500">
+                    Nenhuma nota interna ainda
+                  </p>
+                </div>
+              )}
+              
+              <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Adicionar nota
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Nova Nota Interna</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Nota para: {activeConversation?.contact.name}
+                      </label>
+                      <Textarea
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                        placeholder="Digite sua anotação aqui... (Ex: Solicitou boleto dia 25/05 – retorno agendado para 28/05)"
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        💡 Esta nota será visível apenas para a equipe interna e ficará anexada ao perfil do contato.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowNoteDialog(false);
+                        setNewNote('');
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Salvar nota
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* 📦 Resumo Estatístico */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm text-gray-900">Resumo</h4>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-purple-50 p-2 rounded text-center">
+                  <div className="font-semibold text-purple-700">
+                    {activeConversation.messages?.length || 0}
+                  </div>
+                  <div className="text-purple-600">Mensagens</div>
+                </div>
+                <div className="bg-green-50 p-2 rounded text-center">
+                  <div className="font-semibold text-green-700">
+                    {contactDeals.length}
+                  </div>
+                  <div className="text-green-600">Negócios</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                <div className="bg-blue-50 p-2 rounded text-center">
+                  <div className="font-semibold text-blue-700">
+                    {contactNotes.length}
+                  </div>
+                  <div className="text-blue-600">Notas</div>
+                </div>
+                <div className="bg-orange-50 p-2 rounded text-center">
+                  <div className="font-semibold text-orange-700">
+                    {activeConversation.contact.isOnline ? 'On' : 'Off'}
+                  </div>
+                  <div className="text-orange-600">Status</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <CreateContactModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        zapiStatus={zapiStatus}
+      />
+    </div>
+  );
+}
