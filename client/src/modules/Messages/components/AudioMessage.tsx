@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
+import { formatTime } from "@/shared/lib/utils/formatters";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -23,11 +24,7 @@ export function AudioMessage({
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
+
 
   // Cache de falhas para evitar requisições repetidas
   const getCacheKey = (messageId: string) => `audio_failed_${messageId}`;
