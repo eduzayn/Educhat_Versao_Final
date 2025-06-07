@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 interface UseImageMessageProps {
   conversationId: number;

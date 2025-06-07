@@ -84,6 +84,16 @@ export function InputArea() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Hook para envio de imagens
+  const { sendImage: sendImageMessage, isLoading: isImageUploading } = useImageMessage({
+    conversationId: activeConversation?.id || 0,
+    contactPhone: activeConversation?.contact?.phone || '',
+    onMessageSent: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', activeConversation?.id, 'messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    }
+  });
+
   // Buscar respostas rápidas do servidor
   const { data: quickReplies = [] } = useQuery<QuickReply[]>({
     queryKey: ["/api/quick-replies"],
@@ -885,6 +895,12 @@ export function InputArea() {
         >
           <Mic className="w-5.5 h-5.5" />
         </Button>
+
+        {/* Componente de envio de imagens */}
+        <ImageUpload 
+          onSendImage={sendImageMessage}
+          disabled={isImageUploading || !activeConversation?.contact.phone}
+        />
 
         {/* Botão de Emojis/Reações movido para fora da textarea */}
         <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
