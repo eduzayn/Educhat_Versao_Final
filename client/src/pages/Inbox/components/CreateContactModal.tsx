@@ -33,9 +33,10 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
 
   const createContact = useCreateContact();
   const { toast } = useToast();
-  const { status: zapiStatus } = useZApiStore();
+  const { status: zapiStatusFromStore } = useZApiStore();
 
-  const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
+  const activeZapiStatus = zapiStatus || zapiStatusFromStore;
+  const isWhatsAppAvailable = activeZapiStatus?.connected && activeZapiStatus?.smartphoneConnected;
 
   const handleAddTag = () => {
     if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
@@ -99,7 +100,8 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
           : "Contato criado no sistema."
       });
       
-      onOpenChange(false);
+      onOpenChange?.(false);
+      onClose?.();
       setCreateForm({ 
         name: '', 
         email: '', 
@@ -269,7 +271,7 @@ export function CreateContactModal({ isOpen, onOpenChange, onClose, zapiStatus }
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => { onOpenChange?.(false); onClose?.(); }}>
             Cancelar
           </Button>
           <Button 
