@@ -48,8 +48,15 @@ const QUICK_REPLIES = [
   "Agende uma conversa",
 ];
 
-// Emojis populares para reações rápidas
-const QUICK_EMOJIS = ["👍", "❤️", "😊", "😂", "😢", "😮", "😡", "🎉"];
+// Emojis organizados por categoria
+const EMOJI_CATEGORIES = {
+  "Frequentes": ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "💯"],
+  "Pessoas": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
+  "Gestos": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "👊", "✊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏"],
+  "Objetos": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚡", "💥", "💫", "⭐", "🌟", "✨", "🔥", "💯", "💢", "💨", "💦", "💤"],
+  "Natureza": ["🌍", "🌎", "🌏", "🌐", "🗺️", "🗾", "🧭", "🏔️", "⛰️", "🌋", "🗻", "🏕️", "🏖️", "🏜️", "🏝️", "🏞️", "🏟️", "🏛️", "🏗️", "🧱", "🏘️", "🏚️", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽", "⛪", "🕌", "🛕", "🕍", "⛩️", "🕋"],
+  "Comida": ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕"]
+};
 
 export function InputArea() {
   const [message, setMessage] = useState("");
@@ -63,6 +70,7 @@ export function InputArea() {
   const [quickReplyFilter, setQuickReplyFilter] = useState("");
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
   const [isInternalNote, setIsInternalNote] = useState(false);
+  const [activeEmojiCategory, setActiveEmojiCategory] = useState("Frequentes");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -904,9 +912,27 @@ export function InputArea() {
                 )}
               </div>
 
-              {/* Emojis rápidos */}
-              <div className="grid grid-cols-8 gap-2">
-                {QUICK_EMOJIS.map((emoji, index) => (
+              {/* Navegação por categorias */}
+              <div className="flex gap-1 mb-3 border-b">
+                {Object.keys(EMOJI_CATEGORIES).map((category) => (
+                  <Button
+                    key={category}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveEmojiCategory(category)}
+                    className={cn(
+                      "text-xs px-2 py-1 h-7",
+                      activeEmojiCategory === category && "bg-educhat-primary text-white",
+                    )}
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Grid de emojis da categoria ativa */}
+              <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+                {EMOJI_CATEGORIES[activeEmojiCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
                   <div key={index} className="flex flex-col items-center">
                     <Button
                       variant="ghost"
