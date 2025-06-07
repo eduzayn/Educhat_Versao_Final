@@ -245,6 +245,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sync messages from Z-API - REST: POST /api/zapi/sync-messages
+  app.post('/api/zapi/sync-messages', async (req, res) => {
+    try {
+      console.log('🔄 Iniciando sincronização de mensagens...');
+      
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const { since, phone } = req.body; // 'since' em formato ISO ou timestamp, 'phone' opcional para filtrar
+      
+      // Definir período de sincronização (últimas 24h se não especificado)
+      const sinceDate = since ? new Date(since) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const sinceTimestamp = Math.floor(sinceDate.getTime() / 1000);
+      
+      console.log(`📅 Sincronizando mensagens desde: ${sinceDate.toISOString()}`);
+      
+      // Buscar mensagens na Z-API
+      let url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages`;
+      const params = new URLSearchParams({
+        page: '1',
+        pageSize: '100',
+        since: sinceTimestamp.toString()
+      });
+      
+      if (phone) {
+        params.append('phone', phone.replace(/\D/g, ''));
+      }
+      
+      url += `?${params.toString()}`;
+      
+      console.log('🔍 Buscando mensagens na Z-API:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const messages = data.messages || data || [];
+      
+      console.log(`📨 ${messages.length} mensagens encontradas para sincronização`);
+      
+      let processedCount = 0;
+      let errorCount = 0;
+      const results = [];
+      
+      for (const msg of messages) {
+        try {
+          // Verificar se a mensagem já existe no banco
+          const existingMessage = await storage.getMessageByZApiId(msg.messageId || msg.id);
+          
+          if (existingMessage) {
+            console.log(`⏭️ Mensagem já existe: ${msg.messageId || msg.id}`);
+            continue;
+          }
+          
+          // Processar mensagem como se fosse um webhook
+          const webhookData = {
+            type: 'ReceivedCallback',
+            phone: msg.phone || msg.from,
+            fromMe: msg.fromMe || false,
+            messageId: msg.messageId || msg.id,
+            momment: msg.timestamp || msg.momment || Date.now(),
+            chatName: msg.chatName || msg.senderName || msg.phone,
+            senderName: msg.senderName || msg.chatName || msg.phone,
+            photo: msg.photo || msg.senderPhoto || null,
+            text: msg.text || (msg.body ? { message: msg.body } : null),
+            image: msg.image || null,
+            audio: msg.audio || null,
+            video: msg.video || null,
+            document: msg.document || null,
+            status: 'RECEIVED'
+          };
+          
+          // Processar como webhook interno
+          await processZApiWebhook(webhookData);
+          processedCount++;
+          
+          results.push({
+            messageId: msg.messageId || msg.id,
+            phone: msg.phone || msg.from,
+            status: 'processed',
+            timestamp: new Date(msg.timestamp || msg.momment || Date.now())
+          });
+          
+        } catch (error) {
+          console.error(`❌ Erro ao processar mensagem ${msg.messageId || msg.id}:`, error);
+          errorCount++;
+          
+          results.push({
+            messageId: msg.messageId || msg.id,
+            phone: msg.phone || msg.from,
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Erro desconhecido'
+          });
+        }
+      }
+      
+      console.log(`✅ Sincronização concluída: ${processedCount} processadas, ${errorCount} erros`);
+      
+      res.json({
+        success: true,
+        summary: {
+          totalFound: messages.length,
+          processed: processedCount,
+          errors: errorCount,
+          since: sinceDate.toISOString()
+        },
+        results
+      });
+      
+    } catch (error) {
+      console.error('💥 Erro na sincronização:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
+    }
+  });
+
+  // Função auxiliar para processar webhooks da Z-API
+  async function processZApiWebhook(webhookData: any) {
+    if (webhookData.type !== 'ReceivedCallback' || !webhookData.phone) {
+      return;
+    }
+
+    const phone = webhookData.phone.replace(/\D/g, '');
+    let messageContent = '';
+    let messageType = 'text';
+    
+    // Determinar conteúdo da mensagem
+    if (webhookData.text && webhookData.text.message) {
+      messageContent = webhookData.text.message;
+      messageType = 'text';
+    } else if (webhookData.image) {
+      messageContent = webhookData.image.caption || 'Imagem enviada';
+      messageType = 'image';
+    } else if (webhookData.audio) {
+      messageContent = 'Áudio enviado';
+      messageType = 'audio';
+    } else if (webhookData.video) {
+      messageContent = webhookData.video.caption || 'Vídeo enviado';
+      messageType = 'video';
+    } else if (webhookData.document) {
+      messageContent = webhookData.document.fileName || 'Documento enviado';
+      messageType = 'document';
+    }
+
+    // Buscar ou criar contato
+    const contact = await storage.findOrCreateContact(phone, {
+      name: webhookData.senderName || webhookData.chatName || phone,
+      phone: phone,
+      email: null,
+      isOnline: true,
+      profileImageUrl: webhookData.photo || null,
+      canalOrigem: 'whatsapp',
+      nomeCanal: 'WhatsApp Principal',
+      idCanal: 'whatsapp-1'
+    });
+    
+    // Buscar ou criar conversa
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'whatsapp',
+        status: 'open',
+        lastMessageAt: new Date()
+      });
+    }
+    
+    // Criar mensagem
+    const sentAtDate = new Date(webhookData.momment || Date.now());
+    
+    const message = await storage.createMessage({
+      conversationId: conversation.id,
+      content: messageContent,
+      isFromContact: !webhookData.fromMe,
+      messageType: messageType as any,
+      sentAt: sentAtDate,
+      metadata: {
+        ...webhookData,
+        zapiMessageId: webhookData.messageId,
+        zapiStatus: webhookData.status || 'RECEIVED'
+      }
+    });
+
+    // Broadcast para clientes conectados
+    broadcast(conversation.id, {
+      type: 'new_message',
+      message: message
+    });
+
+    return message;
+  }
+
   app.post("/api/contacts/import-from-zapi", async (req, res) => {
     try {
       console.log('Iniciando importação de contatos da Z-API...');

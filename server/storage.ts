@@ -198,6 +198,9 @@ export interface IStorage {
   canUserRespondToOthersConversations(userId: number): Promise<boolean>;
   canUserRespondToOwnConversations(userId: number): Promise<boolean>;
   canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean>;
+
+  // Message sync operations
+  getMessageByZApiId(zapiMessageId: string): Promise<Message | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3682,6 +3685,21 @@ export class DatabaseStorage implements IStorage {
     const assignedId = conversation.assignedUserId;
     if (assignedId === null) return false;
     return assignedId === userId;
+  }
+
+  // Get message by Z-API message ID for sync operations
+  async getMessageByZApiId(zapiMessageId: string): Promise<Message | undefined> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(sql`${messages.metadata}->>'zapiMessageId' = ${zapiMessageId}`)
+        .limit(1);
+      
+      return result[0];
+    } catch (error) {
+      console.error('Erro ao buscar mensagem por Z-API ID:', error);
+      return undefined;
+    }
   }
 }
 
