@@ -709,6 +709,148 @@ async function processSMSMessage(smsData: any) {
 // Additional Z-API endpoints
 export function registerZApiRoutes(app: Express) {
   
+  // Main Z-API webhook endpoint for receiving messages - REST: POST /api/zapi/webhook
+  app.post('/api/zapi/webhook', async (req, res) => {
+    try {
+      console.log('📨 Webhook Z-API recebido:', JSON.stringify(req.body, null, 2));
+      
+      const webhookData = req.body;
+      
+      // Verificar se é um callback de status (não precisa processar como mensagem)
+      if (webhookData.type === 'MessageStatusCallback') {
+        console.log(`📋 Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
+        return res.status(200).json({ success: true, type: 'status_update' });
+      }
+      
+      // Verificar se é um callback de mensagem recebida (baseado na documentação)
+      if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
+        const phone = webhookData.phone.replace(/\D/g, '');
+        let messageContent = '';
+        let messageType = 'text';
+        
+        // Determinar o conteúdo da mensagem baseado no tipo
+        if (webhookData.text && webhookData.text.message) {
+          messageContent = webhookData.text.message;
+          messageType = 'text';
+        } else if (webhookData.image) {
+          messageContent = webhookData.image.caption || 'Imagem enviada';
+          messageType = 'image';
+        } else if (webhookData.audio) {
+          messageContent = 'Áudio enviado';
+          messageType = 'audio';
+        } else if (webhookData.video) {
+          messageContent = webhookData.video.caption || 'Vídeo enviado';
+          messageType = 'video';
+        } else if (webhookData.document) {
+          messageContent = webhookData.document.fileName || 'Documento enviado';
+          messageType = 'document';
+        } else if (webhookData.location) {
+          messageContent = 'Localização enviada';
+          messageType = 'location';
+        } else {
+          messageContent = 'Mensagem recebida';
+        }
+
+        console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
+
+        // Criar ou encontrar o contato
+        const contact = await storage.findOrCreateContact(phone, {
+          name: webhookData.senderName || `WhatsApp ${phone}`,
+          phone: phone,
+          email: null,
+          isOnline: true,
+          profileImageUrl: null,
+          canalOrigem: 'whatsapp',
+          nomeCanal: 'WhatsApp',
+          idCanal: `whatsapp-${phone}`
+        });
+
+        // Atualizar status online do contato
+        await storage.updateContactOnlineStatus(contact.id, true);
+
+        // Criar ou encontrar a conversa
+        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+        if (!conversation) {
+          conversation = await storage.createConversation({
+            contactId: contact.id,
+            channel: 'whatsapp',
+            status: 'open',
+            lastMessageAt: new Date()
+          });
+        }
+
+        // Criar a mensagem
+        const message = await storage.createMessage({
+          conversationId: conversation.id,
+          content: messageContent,
+          isFromContact: true,
+          messageType,
+          sentAt: new Date(),
+          metadata: webhookData
+        });
+
+        console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
+
+        // Fazer broadcast via Socket.IO para atualizar a interface em tempo real
+        const { broadcast, broadcastToAll } = await import('../realtime');
+        
+        broadcast(conversation.id, {
+          type: 'new_message',
+          conversationId: conversation.id,
+          message: message
+        });
+
+        broadcastToAll({
+          type: 'new_message',
+          conversationId: conversation.id,
+          message: message
+        });
+
+        console.log(`🔄 Broadcast enviado para conversa ${conversation.id}`);
+
+        // Criar negócio automático se necessário
+        try {
+          const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
+          const existingDeals = await storage.getDealsByContact(contact.id);
+          const hasActiveDeal = existingDeals.some(deal => 
+            deal.macrosetor === detectedMacrosetor && deal.isActive
+          );
+          
+          if (!hasActiveDeal) {
+            console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
+            await storage.createAutomaticDeal(contact.id, 'whatsapp', undefined, messageContent);
+          }
+        } catch (dealError) {
+          console.error('❌ Erro ao criar negócio automático:', dealError);
+        }
+
+        // Atribuição automática de equipes
+        try {
+          const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
+          const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+          
+          if (team) {
+            console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+            await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+            
+            const availableUser = await storage.getAvailableUserFromTeam(team.id);
+            if (availableUser) {
+              await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+              console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+            }
+          }
+        } catch (assignmentError) {
+          console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+        }
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Z-API:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+  
   // Configure Z-API webhook - REST: PUT /api/zapi/webhook
   app.put('/api/zapi/webhook', async (req, res) => {
     try {
