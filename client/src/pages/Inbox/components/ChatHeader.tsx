@@ -1,105 +1,127 @@
 import { Button } from '@/shared/ui/ui/button';
 import { Badge } from '@/shared/ui/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
-import { Phone, Video, Info, MoreVertical, ArrowLeft } from 'lucide-react';
-import { CHANNELS } from '@/types/chat';
-import type { ConversationWithContact } from '@shared/schema';
+import { Phone } from 'lucide-react';
+import { STATUS_CONFIG } from '@/types/chat';
+import { ConversationActionsDropdown } from './ConversationActionsDropdown';
+import { ConversationAssignmentDropdown } from './ConversationAssignmentDropdown';
 
 interface ChatHeaderProps {
-  conversation: ConversationWithContact;
-  onBack?: () => void;
-  showBackButton?: boolean;
-  isOnline?: boolean;
+  activeConversation: any;
+  showMobileChat: boolean;
+  onMobileBackClick: () => void;
+  onStatusChange: (conversationId: number, newStatus: string) => void;
+  getChannelInfo: (channel: string) => { icon: string; color: string };
 }
 
-export function ChatHeader({ 
-  conversation, 
-  onBack, 
-  showBackButton = false, 
-  isOnline = false 
+export function ChatHeader({
+  activeConversation,
+  showMobileChat,
+  onMobileBackClick,
+  onStatusChange,
+  getChannelInfo
 }: ChatHeaderProps) {
-  const getChannelIcon = (channel: string) => {
-    const channelConfig = CHANNELS[channel];
-    return channelConfig?.icon || '💬';
-  };
+  if (!activeConversation) return null;
 
   return (
-    <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        {showBackButton && (
+    <div className="bg-white border-b border-gray-200 px-4 py-3 mobile-sticky mobile-p-reduced">
+      <div className="flex items-center justify-between">
+        {/* Mobile back button */}
+        <div className="md:hidden">
           <Button
             variant="ghost"
             size="sm"
-            onClick={onBack}
-            className="mr-2"
-            aria-label="Voltar para lista de conversas"
+            onClick={onMobileBackClick}
+            className="mr-2 touch-target"
           >
-            <ArrowLeft className="w-4 h-4" />
+            ← Voltar
           </Button>
-        )}
-        
-        <div className="relative">
-          <Avatar className="w-10 h-10">
-            <AvatarImage 
-              src={conversation.contact?.profileImageUrl || ''} 
-              alt={`Avatar de ${conversation.contact?.name || 'Contato'}`} 
-            />
-            <AvatarFallback className="bg-purple-100 text-purple-700 font-medium">
-              {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
+        </div>
+        <div className="flex items-center space-x-3">
+          <Avatar className="w-9 h-9">
+            <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
+            <AvatarFallback className="text-sm">
+              {activeConversation.contact.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
-          {/* Indicador de canal */}
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-gray-200 text-xs">
-            {getChannelIcon(conversation.channel)}
+          <div>
+            <div className="flex items-center space-x-2">
+              <h2 className="font-semibold text-gray-900 text-base">
+                {activeConversation.contact.name}
+              </h2>
+              <span className={`text-sm ${getChannelInfo(activeConversation.channel).color}`}>
+                {getChannelInfo(activeConversation.channel).icon}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 mt-0.5">
+              <Select 
+                value={activeConversation.status || 'open'} 
+                onValueChange={(newStatus) => onStatusChange(activeConversation.id, newStatus)}
+              >
+                <SelectTrigger className="h-6 w-auto border-0 p-1 text-xs bg-transparent">
+                  <SelectValue>
+                    <Badge 
+                      variant="secondary" 
+                      className={`${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.color} text-xs`}
+                    >
+                      {STATUS_CONFIG[activeConversation.status as keyof typeof STATUS_CONFIG]?.label || activeConversation.status}
+                    </Badge>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                      Ativa
+                    </Badge>
+                  </SelectItem>
+                  <SelectItem value="pending">
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                      Aguardando
+                    </Badge>
+                  </SelectItem>
+                  <SelectItem value="in_progress">
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                      Em Andamento
+                    </Badge>
+                  </SelectItem>
+                  <SelectItem value="resolved">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                      Resolvida
+                    </Badge>
+                  </SelectItem>
+                  <SelectItem value="closed">
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-xs">
+                      Encerrada
+                    </Badge>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-
-        <div className="flex-1">
-          <h3 className="font-medium text-gray-900">
-            {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
-          </h3>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {CHANNELS[conversation.channel]?.name || conversation.channel}
-            </Badge>
-            <span className="text-xs text-gray-500">
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
-          </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Phone className="w-4 h-4" />
+          </Button>
+          <ConversationActionsDropdown 
+            conversationId={activeConversation.id}
+            contactId={activeConversation.contactId}
+            currentStatus={activeConversation.status || 'open'}
+          />
         </div>
       </div>
 
-      {/* Ações do header */}
-      <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          aria-label="Fazer chamada de voz"
-        >
-          <Phone className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          aria-label="Fazer chamada de vídeo"
-        >
-          <Video className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          aria-label="Informações do contato"
-        >
-          <Info className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          aria-label="Mais opções"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </Button>
+      {/* Interface de Atribuição Manual */}
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+        <ConversationAssignmentDropdown
+          conversationId={activeConversation.id}
+          currentTeamId={activeConversation.assignedTeamId}
+          currentUserId={activeConversation.assignedUserId}
+          currentMacrosetor={activeConversation.macrosetor}
+        />
       </div>
     </div>
   );

@@ -57,6 +57,7 @@ import { CreateContactModal } from './components/CreateContactModal';
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
+import { ConversationItem } from './components/ConversationItem';
 
 export function InboxPageRefactored() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -463,80 +464,18 @@ export function InboxPageRefactored() {
 
         {/* Lista de Conversas */}
         <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation, index) => {
-            const channelInfo = getChannelInfo(conversation.channel);
-            const lastMessage = conversation.messages[0];
-            const isActive = activeConversation?.id === conversation.id;
-            
-            // Usar contador de mensagens não lidas do banco de dados
-            // Mostrar indicador mesmo para conversa ativa se foi marcada manualmente como não lida
-            const unreadCount = conversation.unreadCount || 0;
-            
-            return (
-              <div
-                key={`conversation-${conversation.id}-${index}`}
-                className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                }`}
-                onClick={() => handleSelectConversation(conversation)}
-              >
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={conversation.contact.profileImageUrl || ''} />
-                    <AvatarFallback className="text-sm font-medium">
-                      {conversation.contact.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {conversation.contact.name}
-                      </h3>
-                      <div className="flex items-center space-x-1">
-                        {lastMessage && lastMessage.sentAt && (
-                          <span className="text-xs text-gray-400">
-                            {formatTime(lastMessage.sentAt)}
-                          </span>
-                        )}
-                        {unreadCount > 0 && (
-                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                        <ConversationActionsDropdown 
-                          conversationId={conversation.id}
-                          contactId={conversation.contactId}
-                          currentStatus={conversation.status || 'open'}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm text-gray-600 truncate flex-1">
-                        {lastMessage ? (
-                          lastMessage.messageType === 'image' ? (
-                            lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada'
-                          ) : lastMessage.messageType === 'audio' ? (
-                            lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado'
-                          ) : lastMessage.messageType === 'video' ? (
-                            lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado'
-                          ) : (
-                            lastMessage.content || 'Mensagem sem texto'
-                          )
-                        ) : 'Sem mensagens'}
-                      </p>
-                      <span className={`text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0 ${
-                        getChannelStyle(conversation)
-                      }`}>
-                        {getSpecificChannelName(conversation)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {filteredConversations.map((conversation, index) => (
+            <ConversationItem
+              key={`conversation-${conversation.id}-${index}`}
+              conversation={conversation}
+              index={index}
+              isActive={activeConversation?.id === conversation.id}
+              onSelect={handleSelectConversation}
+              formatTime={formatTime}
+              getChannelStyle={getChannelStyle}
+              getSpecificChannelName={getSpecificChannelName}
+            />
+          ))}
           
           {filteredConversations.length === 0 && !isLoading && (
             <div className="p-6 text-center text-gray-500">
