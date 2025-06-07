@@ -113,7 +113,6 @@ export class ZApiModule {
   private async handleWebhook(req: Request, res: Response): Promise<void> {
     try {
       console.log('📨 Webhook Z-API recebido:', req.body);
-      console.log('📨 Headers do webhook:', req.headers);
 
       const webhookData = req.body;
 
@@ -124,6 +123,9 @@ export class ZApiModule {
           break;
         case 'ReceivedCallback':
           await this.processReceivedMessage(webhookData);
+          break;
+        case 'PresenceChatCallback':
+          console.log('👥 Status de presença atualizado:', webhookData.phone, webhookData.status);
           break;
         default:
           console.log('📨 Tipo de webhook não reconhecido:', webhookData.type);
@@ -165,17 +167,40 @@ export class ZApiModule {
       // Extrair mensagem da estrutura correta do webhook Z-API
       const messageContent = text?.message || data.message?.text || data.text || '';
       
+      // Verificar se é uma mensagem de mídia (imagem, áudio, vídeo, documento)
+      const hasMedia = !!(data.image || data.audio || data.video || data.document);
+      const isValidMessage = messageContent || hasMedia;
+      
       console.log('🔍 Debug processamento webhook:', {
         phone: phone,
         messageContent: messageContent,
-        textStructure: text,
-        hasPhone: !!phone,
-        hasMessage: !!messageContent,
-        messageLength: messageContent?.length
+        hasMedia: hasMedia,
+        mediaType: data.image ? 'image' : data.audio ? 'audio' : data.video ? 'video' : data.document ? 'document' : 'none',
+        isValidMessage: isValidMessage,
+        fullData: data
       });
 
-      if (!phone || !messageContent) {
-        console.log('❌ Dados incompletos no webhook - parando processamento');
+      if (!phone) {
+        console.log('❌ Telefone não encontrado no webhook');
+        return;
+      }
+
+      // Para mensagens de mídia sem texto, usar descrição da mídia
+      let finalContent = messageContent;
+      if (!messageContent && hasMedia) {
+        if (data.image) {
+          finalContent = data.image.caption || 'Imagem';
+        } else if (data.audio) {
+          finalContent = 'Áudio';
+        } else if (data.video) {
+          finalContent = data.video.caption || 'Vídeo';
+        } else if (data.document) {
+          finalContent = data.document.filename || 'Documento';
+        }
+      }
+
+      if (!finalContent && !hasMedia) {
+        console.log('❌ Mensagem sem conteúdo ou mídia');
         return;
       }
 
@@ -216,26 +241,26 @@ export class ZApiModule {
 
       // Determinar tipo de mensagem
       let messageType = 'text';
-      let content = messageContent;
+      let content = finalContent;
       let mediaUrl = null;
 
       // Verificar se há mídia no webhook
       if (data.image) {
         messageType = 'image';
         content = data.image.caption || 'Imagem';
-        mediaUrl = data.image.url;
+        mediaUrl = data.image.imageUrl || data.image.url;
       } else if (data.audio) {
         messageType = 'audio';
         content = 'Áudio';
-        mediaUrl = data.audio.url;
+        mediaUrl = data.audio.audioUrl || data.audio.url;
       } else if (data.video) {
         messageType = 'video';
         content = data.video.caption || 'Vídeo';
-        mediaUrl = data.video.url;
+        mediaUrl = data.video.videoUrl || data.video.url;
       } else if (data.document) {
         messageType = 'document';
         content = data.document.filename || 'Documento';
-        mediaUrl = data.document.url;
+        mediaUrl = data.document.documentUrl || data.document.url;
       }
 
       // Criar mensagem no banco
