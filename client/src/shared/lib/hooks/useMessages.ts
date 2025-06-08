@@ -11,8 +11,8 @@ export function useMessages(conversationId: number | null, limit = 50) {
         throw new Error('Failed to fetch messages');
       }
       const messages = await response.json();
-      // Retornar em ordem cronológica (mais antigas primeiro)
-      return messages.reverse();
+      // Retornar em ordem cronológica (mais antigas primeiro para compatibilidade com scroll)
+      return messages;
     },
     enabled: !!conversationId,
     // Remover polling automático - usar apenas WebSocket para tempo real

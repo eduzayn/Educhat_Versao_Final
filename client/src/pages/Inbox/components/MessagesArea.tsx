@@ -34,7 +34,7 @@ export function MessagesArea({
             </div>
           )}
           
-          {/* Lista de mensagens em ordem cronológica (mais antigas primeiro) */}
+          {/* Lista de mensagens em ordem cronológica */}
           {(messages || []).map((message) => (
             <MessageBubble 
               key={message.id} 

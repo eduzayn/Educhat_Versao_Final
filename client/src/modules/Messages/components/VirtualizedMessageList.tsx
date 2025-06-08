@@ -1,6 +1,6 @@
 import { memo, useRef, useEffect, useState } from "react";
 import { FixedSizeList as List } from "react-window";
-import { MessageBubbleOptimized } from "./MessageBubbleOptimized";
+import { MessageBubble } from "./MessageBubble";
 import type { Message, Contact } from "@shared/schema";
 
 interface VirtualizedMessageListProps {
@@ -28,7 +28,7 @@ const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
 
   return (
     <div style={style}>
-      <MessageBubbleOptimized
+      <MessageBubble
         message={message}
         contact={contact}
         conversationId={conversationId}
@@ -48,13 +48,32 @@ export const VirtualizedMessageList = memo(
   }: VirtualizedMessageListProps) => {
     const listRef = useRef<List>(null);
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+    const prevConversationId = useRef<number | undefined>(conversationId);
 
-    // Scroll to bottom when new messages arrive
+    // Scroll to bottom when conversation changes or new messages arrive
     useEffect(() => {
-      if (shouldScrollToBottom && listRef.current && messages.length > 0) {
-        listRef.current.scrollToItem(messages.length - 1, "end");
+      if (listRef.current && messages.length > 0) {
+        // Always scroll to bottom when conversation changes
+        if (conversationId !== prevConversationId.current) {
+          listRef.current.scrollToItem(messages.length - 1, "end");
+          setShouldScrollToBottom(true);
+          prevConversationId.current = conversationId;
+        } 
+        // Scroll to bottom for new messages if user was at bottom
+        else if (shouldScrollToBottom) {
+          listRef.current.scrollToItem(messages.length - 1, "end");
+        }
       }
-    }, [messages.length, shouldScrollToBottom]);
+    }, [messages.length, shouldScrollToBottom, conversationId]);
+
+    // Initial scroll to bottom when messages first load
+    useEffect(() => {
+      if (listRef.current && messages.length > 0) {
+        setTimeout(() => {
+          listRef.current?.scrollToItem(messages.length - 1, "end");
+        }, 100);
+      }
+    }, [messages.length > 0]);
 
     const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }: any) => {
       if (!scrollUpdateWasRequested) {
