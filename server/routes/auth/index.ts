@@ -3,8 +3,46 @@ import passport from "passport";
 
 export function registerAuthRoutes(app: Express) {
   // Login endpoint
-  app.post("/api/login", passport.authenticate("local"), (req: Request, res: Response) => {
-    res.json(req.user);
+  app.post("/api/login", (req: Request, res: Response, next) => {
+    console.log("🔐 Tentativa de login recebida:", { 
+      email: req.body.email, 
+      hasPassword: !!req.body.password,
+      environment: process.env.NODE_ENV,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      headers: {
+        host: req.get('host'),
+        origin: req.get('origin'),
+        referer: req.get('referer')
+      }
+    });
+
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        console.error("❌ Erro na autenticação:", err);
+        return res.status(500).json({ message: "Erro interno no servidor" });
+      }
+      
+      if (!user) {
+        console.log("❌ Falha na autenticação:", info?.message || "Usuário não encontrado");
+        return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
+      }
+
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("❌ Erro ao estabelecer sessão:", loginErr);
+          return res.status(500).json({ message: "Erro ao estabelecer sessão" });
+        }
+        
+        console.log("✅ Login realizado com sucesso:", { 
+          userId: user.id, 
+          email: user.email,
+          sessionId: req.sessionID,
+          cookieSecure: 'session-store-active'
+        });
+        res.json(user);
+      });
+    })(req, res, next);
   });
 
   // Logout endpoint

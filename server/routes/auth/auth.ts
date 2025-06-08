@@ -47,9 +47,13 @@ export function setupAuth(app: Express) {
       saveUninitialized: false,
       rolling: true,
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && (
+          process.env.RENDER_EXTERNAL_URL?.startsWith('https://') ||
+          process.env.REPLIT_DOMAINS?.split(',').some(domain => domain.includes('replit.dev'))
+        ),
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       },
     }),
   );
@@ -90,7 +94,7 @@ export function setupAuth(app: Express) {
             teamInfo = await storage.getTeam(systemUser.teamId);
           }
 
-          const userWithTeam = {
+          const userWithTeam: Express.User = {
             id: systemUser.id,
             email: systemUser.email,
             username: systemUser.username,
@@ -98,8 +102,8 @@ export function setupAuth(app: Express) {
             role: systemUser.role,
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
-            channels: systemUser.channels || [],
-            macrosetores: systemUser.macrosetores || [],
+            channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
+            macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };
