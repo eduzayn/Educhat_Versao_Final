@@ -69,7 +69,7 @@ export const ChannelsSettingsModule = () => {
         const data = await response.json();
         
         // Atualizar o store global com o status real
-        const { setStatus, setConfigured } = await import('@/shared/store/zapiStore').then(m => m.useZApiStore.getState());
+        const { setStatus, setConfigured } = await import('@/shar../../store/zapiStore').then(m => m.useZApiStore.getState());
         
         setStatus({
           connected: data.connected || false,

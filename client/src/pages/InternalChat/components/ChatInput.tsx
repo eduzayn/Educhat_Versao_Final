@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Badge } from '@/shared/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useInternalChatStore } from '../../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder';

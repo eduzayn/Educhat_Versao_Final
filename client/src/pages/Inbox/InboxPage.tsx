@@ -33,8 +33,8 @@ import {
 } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
-import { useChatStore } from '@/shared/store/chatStore';
-import { useZApiStore } from '@/shared/store/zapiStore';
+import { useChatStore } from '@/shar../../store/chatStore';
+import { useZApiStore } from '@/shar../../store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';

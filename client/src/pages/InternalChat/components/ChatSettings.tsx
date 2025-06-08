@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Separator } from '@/shared/ui/separator';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useInternalChatStore } from '../../store/internalChatStore';
 
 // Sons disponíveis para notificações
 const NOTIFICATION_SOUNDS = [

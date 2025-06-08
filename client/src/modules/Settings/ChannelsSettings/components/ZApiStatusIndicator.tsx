@@ -1,4 +1,4 @@
-import { useZApiStore } from '@/shared/store/zapiStore';
+import { useZApiStore } from '@/shar../../store/zapiStore';
 import { CheckCircle, XCircle, Clock, Wifi } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
 

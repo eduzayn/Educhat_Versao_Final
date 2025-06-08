@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle, Play, Pause, Volume2, Download, FileText, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
-import { useInternalChatStore, type InternalChatMessage } from '../store/internalChatStore';
+import { useInternalChatStore, type InternalChatMessage } from '../../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 // Componente para exibir arquivos no chat interno

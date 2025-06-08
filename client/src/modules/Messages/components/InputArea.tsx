@@ -34,7 +34,7 @@ import { Badge } from "@/shared/ui/badge";
 import { useSendMessage } from "@/shared/lib/hooks/useMessages";
 import { useSendAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
-import { useChatStore } from "@/shared/store/chatStore";
+import { useChatStore } from "@/shar../../store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { AudioRecorder, AudioRecorderRef } from "./AudioRecorder";
 import { cn } from "@/lib/utils";

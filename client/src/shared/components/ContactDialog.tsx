@@ -8,7 +8,7 @@ import { Badge } from '@/shared/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { useZApiStore } from '@/shared/store/zapiStore';
+import { useZApiStore } from '@/shar../../store/zapiStore';
 
 interface ContactDialogProps {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useInternalChatStore } from '../../store/internalChatStore';
 
 export function SoundNotification() {
   const { soundEnabled } = useInternalChatStore();

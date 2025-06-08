@@ -8,7 +8,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/shared/ui/dropdown-menu';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useInternalChatStore } from '../../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder';
