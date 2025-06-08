@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/ui/button";
-import { formatTime } from "@/shared/lib/utils/formatters";
+import { formatAudioTime } from "@/shared/lib/utils/formatters";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -196,8 +196,8 @@ export function AudioMessage({
         </div>
 
         <div className="flex justify-between text-xs opacity-70 mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(audioDuration)}</span>
+          <span>{formatAudioTime(currentTime)}</span>
+          <span>{formatAudioTime(audioDuration)}</span>
         </div>
       </div>
     </div>

@@ -21,12 +21,6 @@ export function registerMessageRoutes(app: Express) {
 
   app.post('/api/conversations/:id/messages', async (req: AuthenticatedRequest, res) => {
     try {
-      console.log('💾 [DEBUG] Recebendo solicitação para criar mensagem:', {
-        conversationId: req.params.id,
-        userId: req.user?.id,
-        body: req.body
-      });
-
       const conversationId = parseInt(req.params.id);
       const userId = req.user?.id;
 
@@ -35,8 +29,6 @@ export function registerMessageRoutes(app: Express) {
         ...req.body,
         conversationId,
       });
-
-      console.log('💾 [DEBUG] Dados parseados:', parsedData);
 
       // For internal notes, only check basic authentication
       // For regular messages, check conversation permissions
@@ -49,13 +41,10 @@ export function registerMessageRoutes(app: Express) {
         }
       }
 
-      console.log('💾 [DEBUG] Criando mensagem no banco...');
       const message = await storage.createMessage(parsedData);
-      console.log('💾 [DEBUG] Mensagem criada com sucesso:', message);
       
       // Broadcast to WebSocket clients IMMEDIATELY
       const { broadcast, broadcastToAll } = await import('../realtime');
-      console.log('💾 [DEBUG] Enviando broadcast...');
       broadcast(conversationId, {
         type: 'new_message',
         conversationId,
@@ -68,43 +57,8 @@ export function registerMessageRoutes(app: Express) {
         conversationId,
         message
       });
-      console.log('💾 [DEBUG] Broadcast enviado');
       
-      // Se não for uma nota interna E for uma mensagem do agente, enviar via Z-API
-      if (!parsedData.isInternalNote && !parsedData.isFromContact) {
-        const conversation = await storage.getConversation(conversationId);
-        if (conversation && conversation.contact.phone) {
-          try {
-            console.log('📤 Enviando mensagem via Z-API:', {
-              phone: conversation.contact.phone,
-              message: parsedData.content,
-              conversationId
-            });
-            
-            const response = await fetch('http://localhost:5000/api/zapi/send-message', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                phone: conversation.contact.phone,
-                message: parsedData.content,
-                conversationId: conversationId.toString()
-              })
-            });
-            
-            if (response.ok) {
-              console.log('✅ Mensagem enviada via Z-API');
-            } else {
-              console.log('❌ Erro ao enviar via Z-API:', response.statusText);
-            }
-          } catch (error) {
-            console.error('❌ Erro ao chamar Z-API:', error);
-          }
-        }
-      } else if (parsedData.isInternalNote) {
-        console.log('📝 Nota interna criada - não enviada via Z-API');
-      }
+      // Nota: O envio via Z-API agora é feito pelo frontend após salvar a mensagem localmente
       
       res.status(201).json(message);
     } catch (error) {

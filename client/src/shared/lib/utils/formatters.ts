@@ -115,3 +115,13 @@ export const formatTime = (hours: number, minutes: number = 0) => {
   const m = minutes.toString().padStart(2, '0');
   return `${h}:${m}`;
 };
+
+// Formatação de duração de áudio em segundos (MM:SS)
+export const formatAudioTime = (seconds: number) => {
+  if (isNaN(seconds) || seconds < 0) return "00:00";
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
