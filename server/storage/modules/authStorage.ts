@@ -108,4 +108,32 @@ export class AuthStorage extends BaseStorage {
       return this.createUser(userData);
     }
   }
+
+  // System User operations
+  async getSystemUsers(): Promise<SystemUser[]> {
+    return this.db.select().from(systemUsers);
+  }
+
+  async getSystemUser(id: number): Promise<SystemUser | undefined> {
+    const [user] = await this.db.select().from(systemUsers).where(eq(systemUsers.id, id));
+    return user;
+  }
+
+  async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
+    const [newUser] = await this.db.insert(systemUsers).values(user).returning();
+    return newUser;
+  }
+
+  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
+    const [updatedUser] = await this.db
+      .update(systemUsers)
+      .set({ ...user, updatedAt: new Date() })
+      .where(eq(systemUsers.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async deleteSystemUser(id: number): Promise<void> {
+    await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
+  }
 }

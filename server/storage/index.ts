@@ -322,32 +322,49 @@ export class DatabaseStorage implements IStorage {
 
   // System Users, Teams, Roles, etc. também precisam ser implementados
   async getSystemUsers(): Promise<any[]> {
-    throw new Error("Método não implementado");
+    return this.auth.getSystemUsers();
   }
 
   async getSystemUser(id: number): Promise<any> {
-    throw new Error("Método não implementado");
+    return this.auth.getSystemUser(id);
   }
 
   async createSystemUser(user: any): Promise<any> {
-    throw new Error("Método não implementado");
+    return this.auth.createSystemUser(user);
   }
 
   async updateSystemUser(id: number, user: any): Promise<any> {
-    throw new Error("Método não implementado");
+    return this.auth.updateSystemUser(id, user);
   }
 
   async deleteSystemUser(id: number): Promise<void> {
-    throw new Error("Método não implementado");
+    return this.auth.deleteSystemUser(id);
   }
 
-  // Placeholder para outras operações não implementadas ainda
-  async getTeams(): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getAllTeams(): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getTeam(id: number): Promise<any> { throw new Error("Método não implementado"); }
-  async createTeam(team: any): Promise<any> { throw new Error("Método não implementado"); }
-  async updateTeam(id: number, team: any): Promise<any> { throw new Error("Método não implementado"); }
-  async deleteTeam(id: number): Promise<void> { throw new Error("Método não implementado"); }
+  // Team operations
+  async getTeams(): Promise<any[]> { 
+    return this.teamStorage.getTeams();
+  }
+  
+  async getAllTeams(): Promise<any[]> { 
+    return this.teamStorage.getTeams();
+  }
+  
+  async getTeam(id: number): Promise<any> { 
+    return this.teamStorage.getTeam(id);
+  }
+  
+  async createTeam(team: any): Promise<any> { 
+    return this.teamStorage.createTeam(team);
+  }
+  
+  async updateTeam(id: number, team: any): Promise<any> { 
+    return this.teamStorage.updateTeam(id, team);
+  }
+  
+  async deleteTeam(id: number): Promise<void> { 
+    return this.teamStorage.deleteTeam(id);
+  }
   async getTeamByMacrosetor(macrosetor: string): Promise<any> { throw new Error("Método não implementado"); }
   async getAvailableUserFromTeam(teamId: number): Promise<any> { throw new Error("Método não implementado"); }
   async getUserTeams(userId: number): Promise<any[]> { throw new Error("Método não implementado"); }
