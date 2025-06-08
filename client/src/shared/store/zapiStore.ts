@@ -32,10 +32,16 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
     const newStatus = { ...status, lastUpdated: new Date() };
     set({ status: newStatus });
     
-    // Salvar no localStorage para persistência
-    localStorage.setItem('zapi-status', JSON.stringify(newStatus));
+    // Salvar no localStorage para persistência (throttle para reduzir I/O)
+    const saveToStorage = () => {
+      localStorage.setItem('zapi-status', JSON.stringify(newStatus));
+    };
     
-    // Se conectado, marcar como configurado e salvar
+    // Debounce localStorage writes
+    clearTimeout((globalThis as any).zapiStorageTimeout);
+    (globalThis as any).zapiStorageTimeout = setTimeout(saveToStorage, 1000);
+    
+    // Se conectado, marcar como configurado
     if (status.connected) {
       const currentState = get();
       if (!currentState.isConfigured) {
@@ -75,10 +81,10 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
     // Verificar imediatamente
     checkConnection();
     
-    // Configurar novo monitor a cada 3 segundos
+    // Configurar novo monitor a cada 60 segundos para reduzir carga significativamente
     const interval = setInterval(() => {
       checkConnection();
-    }, 3000);
+    }, 60000);
     
     set({ 
       connectionMonitorActive: true,
@@ -104,14 +110,23 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
       const response = await fetch('/api/zapi/status');
       if (response.ok) {
         const status = await response.json();
-        get().setStatus(status);
-      } else {
-        console.warn('Status Z-API indisponível:', response.status);
+        const currentStatus = get().status;
+        
+        // Só atualizar se houver mudança significativa no status
+        if (!currentStatus || 
+            currentStatus.connected !== status.connected || 
+            currentStatus.session !== status.session ||
+            currentStatus.smartphoneConnected !== status.smartphoneConnected) {
+          get().setStatus(status);
+        }
       }
     } catch (error) {
-      console.warn('Erro de conectividade Z-API (será reativado automaticamente):', (error as Error)?.message || 'Network error');
-      // Não parar o monitoramento em caso de erro temporário de rede
-      // Silenciosamente continuar sem interromper a aplicação
+      // Silenciosamente lidar com erros de conectividade sem logs excessivos
+      const currentStatus = get().status;
+      if (currentStatus?.connected) {
+        // Só logar se estava conectado e agora falhou
+        console.warn('Erro de conectividade Z-API (será reativado automaticamente):', (error as Error)?.message || 'Network error');
+      }
     }
   },
 

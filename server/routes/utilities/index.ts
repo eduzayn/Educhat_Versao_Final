@@ -6,29 +6,26 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../cor
 
 export function registerUtilitiesRoutes(app: Express) {
   
+  // Cache para o status Z-API (5 segundos)
+  let statusCache: { data: any; timestamp: number } | null = null;
+  const CACHE_DURATION = 5000; // 5 segundos
+
   // Z-API Status endpoint - REST: GET /api/zapi/status
   app.get('/api/zapi/status', async (req, res) => {
     try {
-      console.log('📊 Solicitação recebida em /api/zapi/status');
-      
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-      
-      console.log('🔑 Variáveis Z-API:', {
-        instanceId: instanceId ? `${instanceId.substring(0, 4)}...` : 'não definido',
-        token: token ? `${token.substring(0, 4)}...` : 'não definido',
-        clientToken: clientToken ? `${clientToken.substring(0, 4)}...` : 'não definido'
-      });
-      
+      // Verificar cache primeiro
+      const now = Date.now();
+      if (statusCache && (now - statusCache.timestamp) < CACHE_DURATION) {
+        return res.json(statusCache.data);
+      }
+
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
-        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
         return res.status(400).json({ error: credentials.error });
       }
 
+      const { instanceId, token, clientToken } = credentials;
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
-      console.log('🔍 URL da API Z-API:', url.replace(token!, '****').replace(instanceId!, '****'));
       
       const response = await fetch(url, {
         method: 'GET',
@@ -38,16 +35,20 @@ export function registerUtilitiesRoutes(app: Express) {
         }
       });
 
-      console.log('📥 Resposta Z-API:', response.status, response.statusText);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Erro da Z-API:', errorText);
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('✅ Status da Z-API obtido com sucesso:', data);
+      
+      // Atualizar cache
+      statusCache = { data, timestamp: now };
+      
+      // Só logar se houver mudança de status ou erro real
+      if (data.error && data.error !== 'You are already connected.') {
+        console.log('⚠️ Z-API Status:', data);
+      }
       
       res.json(data);
       
@@ -86,7 +87,7 @@ export function registerUtilitiesRoutes(app: Express) {
       };
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-      console.log('📤 Enviando para Z-API:', { url: url.replace(token, '****'), payload });
+      console.log('📤 Enviando para Z-API:', { url: url.replace(token!, '****'), payload });
 
       const response = await fetch(url, {
         method: 'POST',
@@ -333,21 +334,20 @@ export function registerUtilitiesRoutes(app: Express) {
       }
 
       // Verificar senha atual
-      const { comparePasswords } = await import("../../auth");
+      const bcrypt = await import('bcryptjs');
       const user = await storage.getSystemUser(req.user.id);
       
       if (!user || !user.password) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
-      const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password);
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
       if (!isCurrentPasswordValid) {
         return res.status(400).json({ error: 'Senha atual incorreta' });
       }
 
       // Atualizar com nova senha
-      const { hashPassword } = await import("../../auth");
-      const hashedNewPassword = await hashPassword(newPassword);
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       
       await storage.updateSystemUser(req.user.id, { 
         password: hashedNewPassword 
