@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Users, Hash, Search, Crown, Shield } from 'lucide-react';
+import { Users, Hash, Search, Crown, Shield, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';
 import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 import { Separator } from '@/shared/ui/ui/separator';
+import { Button } from '@/shared/ui/ui/button';
 import { useInternalChatStore } from '../store/internalChatStore';
+import { PrivateMessageModal } from './PrivateMessageModal';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 export function InfoPanel() {
   const { channels, activeChannel, channelUsers, loadChannelUsers } = useInternalChatStore();
   const [memberSearch, setMemberSearch] = useState('');
+  const [selectedUserForPrivateChat, setSelectedUserForPrivateChat] = useState<any>(null);
+  const { user } = useAuth();
   
   const channel = channels.find(c => c.id === activeChannel);
   const members = activeChannel ? channelUsers[activeChannel] || [] : [];
@@ -115,7 +120,7 @@ export function InfoPanel() {
             <div className="space-y-3">
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
                     <div className="relative">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.avatar || ''} />
@@ -148,6 +153,19 @@ export function InfoPanel() {
                         )}
                       </div>
                     </div>
+
+                    {/* Botão de mensagem privada - aparece no hover */}
+                    {member.id !== (user as any)?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setSelectedUserForPrivateChat(member)}
+                        title={`Enviar mensagem privada para ${member.displayName}`}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 ))
               ) : (
@@ -195,6 +213,15 @@ export function InfoPanel() {
           )}
         </div>
       </ScrollArea>
+
+      {/* Modal de Mensagem Privada */}
+      {selectedUserForPrivateChat && (
+        <PrivateMessageModal
+          isOpen={!!selectedUserForPrivateChat}
+          onClose={() => setSelectedUserForPrivateChat(null)}
+          targetUser={selectedUserForPrivateChat}
+        />
+      )}
     </div>
   );
 }
