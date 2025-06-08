@@ -116,12 +116,12 @@ export const formatTime = (hours: number, minutes: number = 0) => {
   return `${h}:${m}`;
 };
 
-// Formatação de duração de áudio em segundos (MM:SS)
+// Formatação de duração de áudio em segundos (M:SS como no WhatsApp)
 export const formatAudioTime = (seconds: number) => {
-  if (isNaN(seconds) || seconds < 0) return "00:00";
+  if (isNaN(seconds) || seconds < 0) return "0:00";
   
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
   
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
