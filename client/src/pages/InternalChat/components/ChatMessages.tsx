@@ -5,9 +5,79 @@ import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Button } from '@/shared/ui/ui/button';
-import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle, Play, Pause, Volume2 } from 'lucide-react';
+import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle, Play, Pause, Volume2, Download, FileText, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { useInternalChatStore, type InternalChatMessage } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+
+// Componente para exibir arquivos no chat interno
+function InternalFileDisplay({ message }: { message: any }) {
+  const metadata = message.metadata;
+  if (!metadata) return null;
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = metadata.fileUrl;
+    link.download = metadata.fileName || 'arquivo';
+    link.click();
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Renderizar imagem
+  if (metadata.fileType === 'image') {
+    return (
+      <div className="max-w-xs">
+        <img 
+          src={metadata.fileUrl} 
+          alt={metadata.fileName} 
+          className="rounded-lg max-w-full h-auto cursor-pointer"
+          onClick={handleDownload}
+        />
+        <div className="text-xs opacity-75 mt-1">{metadata.fileName}</div>
+      </div>
+    );
+  }
+
+  // Renderizar vídeo
+  if (metadata.fileType === 'video') {
+    return (
+      <div className="max-w-xs">
+        <video 
+          src={metadata.fileUrl} 
+          controls 
+          className="rounded-lg max-w-full h-auto"
+        />
+        <div className="text-xs opacity-75 mt-1">{metadata.fileName}</div>
+      </div>
+    );
+  }
+
+  // Renderizar documento ou arquivo genérico
+  return (
+    <div className="flex items-center gap-3 p-3 bg-black bg-opacity-10 rounded-lg max-w-xs cursor-pointer" onClick={handleDownload}>
+      <div className="flex-shrink-0">
+        <FileText className="h-8 w-8 opacity-75" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">{metadata.fileName}</div>
+        <div className="text-xs opacity-75">{formatFileSize(metadata.fileSize)}</div>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 flex-shrink-0 hover:bg-white hover:bg-opacity-20"
+      >
+        <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 // Componente para reproduzir áudio no chat interno
 function InternalAudioPlayer({ audioUrl, duration }: { audioUrl: string; duration: number }) {
@@ -126,7 +196,7 @@ export function ChatMessages() {
     if (!activeChannel || !user?.id) return;
     
     const message = messages.find(m => m.id === messageId);
-    if (!message) return;
+    if (!message || !user.id) return;
     
     const userReacted = message.reactions[emoji]?.includes(user.id);
     
@@ -196,13 +266,17 @@ export function ChatMessages() {
                 </div>
               )}
               
-              {/* Renderizar mensagem de áudio */}
-              {message.messageType === 'file' && (message as any).metadata?.fileType === 'audio' ? (
+              {/* Renderizar arquivos */}
+              {message.messageType === 'file' ? (
                 <div className="mb-2">
-                  <InternalAudioPlayer 
-                    audioUrl={(message as any).metadata.audioUrl} 
-                    duration={(message as any).metadata.duration || 0} 
-                  />
+                  {(message as any).metadata?.fileType === 'audio' ? (
+                    <InternalAudioPlayer 
+                      audioUrl={(message as any).metadata.audioUrl} 
+                      duration={(message as any).metadata.duration || 0} 
+                    />
+                  ) : (
+                    <InternalFileDisplay message={message} />
+                  )}
                   <div className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
                     {message.content}
                   </div>

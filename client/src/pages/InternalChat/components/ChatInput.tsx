@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic } from 'lucide-react';
+import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic, Image, Video, FileText, Upload } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
@@ -32,8 +33,10 @@ export function ChatInput() {
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
   const { user } = useAuth();
@@ -139,6 +142,80 @@ export function ChatInput() {
       // Iniciar gravação diretamente - um único clique
       setShowAudioRecorder(true);
       setIsRecording(true);
+    }
+  };
+
+  const handleFileSelect = (type: 'image' | 'video' | 'document') => {
+    if (!fileInputRef.current) return;
+    
+    let acceptTypes = '';
+    switch (type) {
+      case 'image':
+        acceptTypes = 'image/*';
+        break;
+      case 'video':
+        acceptTypes = 'video/*';
+        break;
+      case 'document':
+        acceptTypes = '.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx';
+        break;
+    }
+    
+    fileInputRef.current.accept = acceptTypes;
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !activeChannel || !currentUser) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Criar URL para preview/download
+    const fileUrl = URL.createObjectURL(file);
+    
+    // Determinar tipo de arquivo
+    let fileType = 'document';
+    if (file.type.startsWith('image/')) fileType = 'image';
+    else if (file.type.startsWith('video/')) fileType = 'video';
+
+    const newMessage = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      channelId: activeChannel,
+      userId: currentUser.id,
+      userName: currentUser.displayName || currentUser.username || 'Usuário',
+      userAvatar: currentUser.avatar,
+      content: file.name,
+      messageType: 'file' as const,
+      timestamp: new Date(),
+      reactions: {},
+      metadata: {
+        fileType,
+        fileUrl,
+        fileName: file.name,
+        fileSize: file.size
+      }
+    };
+
+    addMessage(newMessage);
+    setIsAttachmentOpen(false);
+    
+    toast({
+      title: "Arquivo enviado",
+      description: `${file.name} foi compartilhado no chat.`,
+    });
+
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -301,11 +378,72 @@ export function ChatInput() {
         </div>
       )}
 
+      {/* Input de arquivo oculto */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       <div className="flex items-end gap-2">
         {/* Attachment Button */}
-        <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
-          <Paperclip className="h-4 w-4" />
-        </Button>
+        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 flex-shrink-0"
+              disabled={!currentUser || !activeChannel}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="w-96">
+            <DialogHeader>
+              <DialogTitle>Enviar Arquivo</DialogTitle>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {/* Botão para Imagem */}
+              <Button
+                onClick={() => handleFileSelect("image")}
+                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Image className="w-8 h-8 mb-2" />
+                <span className="text-sm">Imagem</span>
+              </Button>
+
+              {/* Botão para Vídeo */}
+              <Button
+                onClick={() => handleFileSelect("video")}
+                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
+              >
+                <Video className="w-8 h-8 mb-2" />
+                <span className="text-sm">Vídeo</span>
+              </Button>
+
+              {/* Botão para Documento */}
+              <Button
+                onClick={() => handleFileSelect("document")}
+                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
+              >
+                <FileText className="w-8 h-8 mb-2" />
+                <span className="text-sm">Documento</span>
+              </Button>
+
+              {/* Botão genérico */}
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                <Upload className="w-8 h-8 mb-2" />
+                <span className="text-sm">Qualquer arquivo</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Message Input */}
         <div className="flex-1 relative">
