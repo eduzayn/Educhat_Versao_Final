@@ -398,20 +398,9 @@ export function ChatInput() {
   };
 
   const insertEmoji = (emoji: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newMessage = message.slice(0, start) + emoji + message.slice(end);
-    
+    const newMessage = message + emoji;
     setMessage(newMessage);
-    
-    // Restaurar posição do cursor
-    setTimeout(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-      textarea.focus();
-    }, 0);
+    textareaRef.current?.focus();
   };
 
   if (!activeChannel) {
@@ -445,12 +434,9 @@ export function ChatInput() {
               }`}
               onClick={() => insertMention(user)}
             >
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="text-xs">
-                  {user.displayName.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                {user.displayName.slice(0, 2).toUpperCase()}
+              </div>
               <div className="flex-1">
                 <div className="text-sm font-medium">{user.displayName}</div>
                 <div className="text-xs opacity-75">@{user.username}</div>
@@ -596,7 +582,7 @@ export function ChatInput() {
               variant="ghost" 
               size="icon" 
               className="h-6 w-6"
-              onClick={() => insertEmoji('@')}
+              onClick={insertMentionButton}
             >
               <AtSign className="h-3 w-3" />
             </Button>
