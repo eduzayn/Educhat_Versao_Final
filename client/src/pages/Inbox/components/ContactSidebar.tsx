@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Button } from '../../button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../dialog';
-import { Textarea } from '../../textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
-import { Badge } from '../../badge';
+import { Button } from '@/shared/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Textarea } from '@/shared/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Badge } from '@/shared/ui/badge';
 import { 
   Phone, 
   Mail, 

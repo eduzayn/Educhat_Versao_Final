@@ -1,4 +1,4 @@
-import { Checkbox } from '../../checkbox';
+import { Checkbox } from '@/shared/ui/checkbox';
 import { ContactTableRow } from './ContactTableRow';
 import type { Contact } from '@shared/schema';
 

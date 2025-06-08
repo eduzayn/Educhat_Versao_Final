@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Badge } from '../../badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
 import { getStatusBadge } from '@/shared/lib/utils/badgeHelpers';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Textarea } from '../../textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Textarea } from '@/shared/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Star,

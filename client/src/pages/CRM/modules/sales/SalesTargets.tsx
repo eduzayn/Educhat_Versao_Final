@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Input } from '../../input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../dialog';
-import { Label } from '../../label';
-import { Progress } from '../../progress';
-import { Badge } from '../../badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Label } from '@/shared/ui/label';
+import { Progress } from '@/shared/ui/progress';
+import { Badge } from '@/shared/ui/badge';
 import { 
   Plus, 
   Edit, 

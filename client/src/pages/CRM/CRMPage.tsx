@@ -14,16 +14,16 @@ import {
   Mail,
   MessageSquare
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../tabs';
-import { Button } from '../../button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Button } from '@/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator
-} from '../../dropdown-menu';
+} from '@/shared/ui/dropdown-menu';
 import { Link } from "wouter";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Badge } from '../../badge';
-import { Switch } from '../../switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Label } from '../../label';
-import { Separator } from '../../separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Switch } from '@/shared/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Label } from '@/shared/ui/label';
+import { Separator } from '@/shared/ui/separator';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { Shield, RefreshCw, Save } from 'lucide-react';
 import { 

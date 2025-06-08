@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Button } from '../../button';
-import { Input } from '../../input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Textarea } from '../../textarea';
-import { Badge } from '../../badge';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Textarea } from '@/shared/ui/textarea';
+import { Badge } from '@/shared/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { useZApiStore } from '../../store/zapiStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
 
 interface ContactDialogProps {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useZApiStore } from '../../store/zapiStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
 
 export function useGlobalZApiMonitor() {
   const { 

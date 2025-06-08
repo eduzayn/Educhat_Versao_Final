@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Input } from '../../input';
-import { Label } from '../../label';
-import { Switch } from '../../switch';
-import { Badge } from '../../badge';
-import { Separator } from '../../separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Switch } from '@/shared/ui/switch';
+import { Badge } from '@/shared/ui/badge';
+import { Separator } from '@/shared/ui/separator';
 import { Zap, MessageSquare, Webhook, Smartphone, Mail, Calendar } from 'lucide-react';
 
 export const IntegrationsSettingsTab = () => {

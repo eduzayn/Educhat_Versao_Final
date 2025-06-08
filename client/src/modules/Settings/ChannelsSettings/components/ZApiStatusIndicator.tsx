@@ -1,6 +1,6 @@
-import { useZApiStore } from '../../store/zapiStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
 import { CheckCircle, XCircle, Clock, Wifi } from 'lucide-react';
-import { Badge } from '../../badge';
+import { Badge } from '@/shared/ui/badge';
 
 export function ZApiStatusIndicator() {
   const { status, isConfigured } = useZApiStore();

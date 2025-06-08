@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../../button';
-import { Badge } from '../../badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../tabs';
-import { Input } from '../../input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Card, CardContent, CardHeader, CardTitle } from '../../card';
-import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
-import { Separator } from '../../separator';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Separator } from '@/shared/ui/separator';
 import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Link } from 'wouter';
 import { 
   Search, 
@@ -33,15 +33,15 @@ import {
 } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
-import { useChatStore } from '../../store/chatStore';
-import { useZApiStore } from '../../store/zapiStore';
+import { useChatStore } from '@/shared/store/chatStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
-import { Textarea } from '../../textarea';
+import { Textarea } from '@/shared/ui/textarea';
 import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';

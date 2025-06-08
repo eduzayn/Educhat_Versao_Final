@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Badge } from '../../badge';
-import { Progress } from '../../progress';
-import { Input } from '../../input';
-import { Label } from '../../label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Badge } from '@/shared/ui/badge';
+import { Progress } from '@/shared/ui/progress';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { 
   DollarSign, 
   TrendingUp, 

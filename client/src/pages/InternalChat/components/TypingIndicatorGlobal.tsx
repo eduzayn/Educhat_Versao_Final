@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useInternalChatStore } from '../../store/internalChatStore';
+import { useInternalChatStore } from '@/shared/store/internalChatStore';
 
 export function TypingIndicatorGlobal() {
   const { typingUsers, activeChannel } = useInternalChatStore();

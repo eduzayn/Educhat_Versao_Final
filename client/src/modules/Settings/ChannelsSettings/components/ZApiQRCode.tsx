@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
 import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { useZApiStore } from '../../store/zapiStore';
+import { useZApiStore } from '@/shared/store/zapiStore';
 
 interface ZApiQRCodeProps {
   baseUrl: string;

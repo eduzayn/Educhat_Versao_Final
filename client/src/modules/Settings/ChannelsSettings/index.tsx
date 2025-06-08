@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '../../button';
-import { Card } from '../../card';
+import { Button } from '@/shared/ui/button';
+import { Card } from '@/shared/ui/card';
 import { RefreshCw, PlusCircle, MessageSquare, Instagram, Facebook, Mail, MessageSquareText, Phone } from 'lucide-react';
 import { UnifiedChannelWizard } from './components/UnifiedChannelWizard';
 import { ZApiStatusIndicator } from './components/ZApiStatusIndicator';

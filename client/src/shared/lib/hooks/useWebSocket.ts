@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useChatStore } from '../../store/chatStore';
+import { useChatStore } from '@/shared/store/chatStore';
 import type { WebSocketMessage } from '../../../types/chat';
 import type { Message } from '../../../types/chat';
 import { io, Socket } from 'socket.io-client';

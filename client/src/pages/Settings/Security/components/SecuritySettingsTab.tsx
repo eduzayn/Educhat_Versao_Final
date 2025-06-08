@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../card';
-import { Button } from '../../button';
-import { Input } from '../../input';
-import { Label } from '../../label';
-import { Switch } from '../../switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
-import { Separator } from '../../separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Switch } from '@/shared/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Separator } from '@/shared/ui/separator';
 import { Shield, Lock, Key, Users, AlertTriangle } from 'lucide-react';
 
 export const SecuritySettingsTab = () => {

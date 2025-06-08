@@ -1,9 +1,9 @@
 import { Hash, Users, Info, Settings, Phone, Video, MoreHorizontal, ArrowLeft } from 'lucide-react';
-import { Button } from '../../button';
-import { Badge } from '../../badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../tooltip';
-import { useInternalChatStore } from '../../store/internalChatStore';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
+import { useInternalChatStore } from '@/shared/store/internalChatStore';
 import { useLocation } from 'wouter';
 import { ChatSettings } from './ChatSettings';
 

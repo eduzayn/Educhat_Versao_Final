@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from '../../button';
-import { Badge } from '../../badge';
-import { Input } from '../../input';
-import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Input } from '@/shared/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, MessageSquare, User } from 'lucide-react';
 import type { ConversationWithContact } from '@shared/schema';
 import { formatTime } from '@/shared/lib/utils/formatters';
