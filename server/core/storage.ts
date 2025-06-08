@@ -429,13 +429,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           isNotNull(contacts.phone),
-          sql`length(${contacts.phone}) > 8`,
-          not(like(contacts.phone, '%000000%')),
-          not(like(contacts.phone, '%111111%')),
-          not(like(contacts.phone, '%123456%')),
-          not(ilike(contacts.name, '%test%')),
-          not(ilike(contacts.name, '%demo%')),
-          not(ilike(contacts.name, '%exemplo%'))
+          sql`length(${contacts.phone}) >= 10`
         )
       )
       .orderBy(desc(conversations.lastMessageAt))
