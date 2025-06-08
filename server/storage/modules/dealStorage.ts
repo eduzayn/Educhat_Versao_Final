@@ -20,10 +20,9 @@ export class DealStorage extends BaseStorage {
     if (stage) conditions.push(eq(deals.stage, stage));
     if (contactId) conditions.push(eq(deals.contactId, contactId));
     if (userId) conditions.push(eq(deals.assignedUserId, userId));
-    if (teamId) conditions.push(eq(deals.assignedTeamId, teamId));
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     const results = await query
@@ -86,26 +85,28 @@ export class DealStorage extends BaseStorage {
       throw new Error(`Contact with ID ${contactId} not found`);
     }
 
-    // Find appropriate team based on macrosetor
-    let assignedTeamId = null;
+    // Find appropriate user based on macrosetor
+    let assignedUserId = null;
     if (macrosetor) {
       const [team] = await this.db.select().from(teams).where(eq(teams.macrosetor, macrosetor));
       if (team) {
-        assignedTeamId = team.id;
+        // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
+        // assignedUserId = team.id;
       }
     }
 
     // Create automatic deal
     const dealData: InsertDeal = {
-      title: `Deal Automático - ${contact.name}`,
-      description: `Deal criado automaticamente via ${canalOrigem || 'sistema'}`,
+      name: `Deal Automático - ${contact.name}`,
       contactId: contactId,
-      stage: 'lead',
+      stage: 'prospecting',
       value: 0,
-      currency: 'BRL',
-      source: canalOrigem || 'automatic',
-      assignedTeamId,
-      metadata: {
+      probability: 50,
+      owner: 'Sistema',
+      canalOrigem: canalOrigem || 'automatic',
+      macrosetor: macrosetor || 'comercial',
+      notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'}`,
+      tags: {
         automatic: true,
         canalOrigem,
         macrosetor,

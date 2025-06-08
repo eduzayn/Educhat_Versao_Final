@@ -1,5 +1,4 @@
 import { db } from "../../core/db";
-import type { DrizzleD3Database } from "drizzle-orm/d3-adapter";
 
 /**
  * Classe base para todas as operações de storage

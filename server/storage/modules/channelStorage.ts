@@ -38,10 +38,10 @@ export class ChannelStorage extends BaseStorage {
     await this.db.delete(channels).where(eq(channels.id, id));
   }
 
-  async updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void> {
+  async updateChannelConnectionStatus(id: number, connectionStatus: string, isConnected: boolean): Promise<void> {
     await this.db.update(channels)
       .set({ 
-        status, 
+        connectionStatus, 
         isConnected,
         updatedAt: new Date()
       })
