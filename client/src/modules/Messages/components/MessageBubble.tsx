@@ -293,7 +293,13 @@ export function MessageBubble({
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
   const messageTime = useMemo(
-    () => formatTime(messageTimestamp instanceof Date ? messageTimestamp.getTime() : new Date(messageTimestamp).getTime()),
+    () => {
+      const date = messageTimestamp instanceof Date ? messageTimestamp : new Date(messageTimestamp);
+      return new Intl.DateTimeFormat('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    },
     [messageTimestamp],
   );
 
