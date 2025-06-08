@@ -288,7 +288,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(conversationId: number, limit?: number, offset?: number): Promise<any[]> {
-    throw new Error("Método não implementado");
+    return this.conversation.getMessages(conversationId, limit, offset);
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {
@@ -449,4 +449,8 @@ export class DatabaseStorage implements IStorage {
   async createAnalyticsAlert(alert: any): Promise<any> { throw new Error("Método não implementado"); }
   async updateAnalyticsAlert(alertId: string, alert: any): Promise<any> { throw new Error("Método não implementado"); }
   async deleteAnalyticsAlert(alertId: string): Promise<any> { throw new Error("Método não implementado"); }
+
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    return this.conversation.markConversationAsRead(conversationId);
+  }
 }
