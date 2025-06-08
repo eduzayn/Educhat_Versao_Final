@@ -112,18 +112,6 @@ export function ChannelSidebar() {
       {/* Channels List */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
-          {/* Quick Actions */}
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 h-9"
-              onClick={() => handleChannelSelect('general')}
-            >
-              <Plus className="h-4 w-4" />
-              Novo Canal
-            </Button>
-          </div>
-
           <Separator className="my-2" />
 
           {/* Channels */}

@@ -603,87 +603,8 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 
-// Internal Chat System Tables
-export const internalChatChannels = pgTable("internal_chat_channels", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 100 }).notNull(),
-  description: text("description"),
-  type: varchar("type", { length: 20 }).notNull(), // 'team', 'direct', 'general'
-  teamId: integer("team_id").references(() => teams.id),
-  isPrivate: boolean("is_private").default(false),
-  createdBy: integer("created_by").references(() => systemUsers.id).notNull(),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const internalChatMessages = pgTable("internal_chat_messages", {
-  id: serial("id").primaryKey(),
-  channelId: integer("channel_id").references(() => internalChatChannels.id).notNull(),
-  userId: integer("user_id").references(() => systemUsers.id).notNull(),
-  content: text("content").notNull(),
-  messageType: varchar("message_type", { length: 20 }).default("text"), // 'text', 'image', 'file', 'reminder'
-  replyToId: integer("reply_to_id").references(() => internalChatMessages.id),
-  isImportant: boolean("is_important").default(false),
-  isEdited: boolean("is_edited").default(false),
-  editedAt: timestamp("edited_at"),
-  reminderDate: timestamp("reminder_date"),
-  metadata: jsonb("metadata"), // for attachments, reactions, etc.
-  isDeleted: boolean("is_deleted").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const internalChatChannelMembers = pgTable("internal_chat_channel_members", {
-  id: serial("id").primaryKey(),
-  channelId: integer("channel_id").references(() => internalChatChannels.id).notNull(),
-  userId: integer("user_id").references(() => systemUsers.id).notNull(),
-  role: varchar("role", { length: 20 }).default("member"), // 'admin', 'moderator', 'member'
-  joinedAt: timestamp("joined_at").defaultNow(),
-  lastReadAt: timestamp("last_read_at"),
-  isActive: boolean("is_active").default(true),
-});
-
-export const internalChatReactions = pgTable("internal_chat_reactions", {
-  id: serial("id").primaryKey(),
-  messageId: integer("message_id").references(() => internalChatMessages.id).notNull(),
-  userId: integer("user_id").references(() => systemUsers.id).notNull(),
-  emoji: varchar("emoji", { length: 10 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Schemas for internal chat tables
-export const insertInternalChatChannelSchema = createInsertSchema(internalChatChannels).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertInternalChatMessageSchema = createInsertSchema(internalChatMessages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertInternalChatChannelMemberSchema = createInsertSchema(internalChatChannelMembers).omit({
-  id: true,
-  joinedAt: true,
-});
-
-export const insertInternalChatReactionSchema = createInsertSchema(internalChatReactions).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Types for internal chat
-export type InternalChatChannel = typeof internalChatChannels.$inferSelect;
-export type InsertInternalChatChannel = z.infer<typeof insertInternalChatChannelSchema>;
-export type InternalChatMessage = typeof internalChatMessages.$inferSelect;
-export type InsertInternalChatMessage = z.infer<typeof insertInternalChatMessageSchema>;
-export type InternalChatChannelMember = typeof internalChatChannelMembers.$inferSelect;
-export type InsertInternalChatChannelMember = z.infer<typeof insertInternalChatChannelMemberSchema>;
-export type InternalChatReaction = typeof internalChatReactions.$inferSelect;
-export type InsertInternalChatReaction = z.infer<typeof insertInternalChatReactionSchema>;
+// Internal Chat integrado com sistema de equipes e usuários existentes
+// Não necessita tabelas específicas - usa teams, systemUsers e userTeams
 
 // Relations for new permission tables
 export const permissionsRelations = relations(permissions, ({ many }) => ({
