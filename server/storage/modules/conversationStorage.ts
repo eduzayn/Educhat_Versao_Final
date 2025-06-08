@@ -274,4 +274,13 @@ export class ConversationStorage extends BaseStorage {
     
     return result?.total || 0;
   }
+
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    await this.db.update(conversations)
+      .set({ 
+        unreadCount: 0,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
 }

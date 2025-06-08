@@ -27,6 +27,7 @@ import { DealStorage } from './modules/dealStorage';
 import { NotesStorage } from './modules/notesStorage';
 import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { TeamStorage } from './modules/teamStorage';
+import { MessageStorage } from './modules/messageStorage';
 
 export class DatabaseStorage implements IStorage {
   private auth: AuthStorage;
@@ -37,6 +38,7 @@ export class DatabaseStorage implements IStorage {
   private notes: NotesStorage;
   private quickReply: QuickReplyStorage;
   private teamModule: TeamStorage;
+  private message: MessageStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -47,6 +49,7 @@ export class DatabaseStorage implements IStorage {
     this.notes = new NotesStorage();
     this.quickReply = new QuickReplyStorage();
     this.teamModule = new TeamStorage();
+    this.message = new MessageStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================
@@ -288,7 +291,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessages(conversationId: number, limit?: number, offset?: number): Promise<any[]> {
-    return this.conversation.getMessages(conversationId, limit, offset);
+    return this.message.getMessages(conversationId, limit, offset);
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {
