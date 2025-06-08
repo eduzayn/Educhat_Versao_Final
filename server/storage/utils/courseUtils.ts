@@ -164,7 +164,7 @@ export function detectCourses(text: string): string[] {
     }
   }
   
-  return [...new Set(detectedCourses)]; // Remove duplicatas
+  return Array.from(new Set(detectedCourses)); // Remove duplicatas
 }
 
 /**
