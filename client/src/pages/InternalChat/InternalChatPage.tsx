@@ -3,6 +3,7 @@ import { ChannelSidebar } from './components/ChannelSidebar';
 import { ChatHeader } from './components/ChatHeader';
 import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
+import { InfoPanel } from './components/InfoPanel';
 
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { TypingIndicatorGlobal } from './components/TypingIndicatorGlobal';
@@ -43,11 +44,7 @@ export default function InternalChatPage() {
       {/* Panel Lateral de Informações */}
       {showInfoPanel && (
         <div className="w-72 border-l bg-card hidden lg:flex">
-          <div className="flex-1 p-4">
-            <p className="text-muted-foreground text-sm">
-              Painel de informações em desenvolvimento
-            </p>
-          </div>
+          <InfoPanel />
         </div>
       )}
     </div>
