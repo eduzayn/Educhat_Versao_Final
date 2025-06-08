@@ -343,16 +343,20 @@ export function MessageBubble({
 
   // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
-    // Para mensagens recebidas: sempre permite exclusão na interface
-    if (isFromContact) return true;
-    
-    // Para mensagens enviadas: dentro de 7 minutos para WhatsApp
-    const messageDate = new Date(message.sentAt || new Date());
     const now = new Date();
-    const timeDifference = now.getTime() - messageDate.getTime();
     const sevenMinutesInMs = 7 * 60 * 1000; // 7 minutos em milissegundos
-
-    return timeDifference <= sevenMinutesInMs;
+    
+    if (isFromContact) {
+      // Para mensagens recebidas: apenas nos primeiros 7 minutos após o recebimento
+      const messageDate = new Date(message.sentAt || new Date());
+      const timeDifference = now.getTime() - messageDate.getTime();
+      return timeDifference <= sevenMinutesInMs;
+    } else {
+      // Para mensagens enviadas: dentro de 7 minutos para WhatsApp
+      const messageDate = new Date(message.sentAt || new Date());
+      const timeDifference = now.getTime() - messageDate.getTime();
+      return timeDifference <= sevenMinutesInMs;
+    }
   };
 
   const handleDeleteMessage = async () => {
