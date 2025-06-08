@@ -12,13 +12,13 @@ import { useInternalChatStore } from '../store/internalChatStore';
 
 // Sons disponíveis para notificações
 const NOTIFICATION_SOUNDS = [
-  { id: 'default', name: 'Padrão', file: 'notification-default.mp3' },
-  { id: 'pop', name: 'Pop', file: 'notification-pop.mp3' },
-  { id: 'ding', name: 'Ding', file: 'notification-ding.mp3' },
-  { id: 'chime', name: 'Chime', file: 'notification-chime.mp3' },
-  { id: 'swoosh', name: 'Swoosh', file: 'notification-swoosh.mp3' },
-  { id: 'bell', name: 'Sino', file: 'notification-bell.mp3' },
-  { id: 'bubble', name: 'Bolha', file: 'notification-bubble.mp3' },
+  { id: 'default', name: 'Padrão', file: 'notification-default.wav' },
+  { id: 'pop', name: 'Pop', file: 'notification-pop.wav' },
+  { id: 'ding', name: 'Ding', file: 'notification-ding.wav' },
+  { id: 'chime', name: 'Chime', file: 'notification-chime.wav' },
+  { id: 'swoosh', name: 'Swoosh', file: 'notification-swoosh.wav' },
+  { id: 'bell', name: 'Sino', file: 'notification-bell.wav' },
+  { id: 'bubble', name: 'Bolha', file: 'notification-bubble.wav' },
   { id: 'none', name: 'Sem som', file: '' }
 ];
 

@@ -93,8 +93,8 @@ interface InternalChatStore {
 const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   enabled: true,
   volume: 70,
-  sendSound: 'notification-pop.mp3',
-  receiveSound: 'notification-ding.mp3',
+  sendSound: 'notification-pop.wav',
+  receiveSound: 'notification-ding.wav',
   playOnTyping: false,
   onlyWhenInactive: true
 };
