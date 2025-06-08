@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../../alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";
