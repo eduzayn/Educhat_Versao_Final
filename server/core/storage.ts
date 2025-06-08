@@ -620,7 +620,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
       )
-      .orderBy(desc(messages.sentAt))
+      .orderBy(messages.sentAt)
       .limit(limit)
       .offset(offset);
   }

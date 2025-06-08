@@ -39,12 +39,7 @@ export function useSendMessage() {
         return response.json();
       }
 
-      // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
-      console.log('💾 Salvando mensagem no banco local primeiro');
-      const localResponse = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-      const savedMessage = await localResponse.json();
-
-      // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
+      // Se tiver telefone e NÃO for nota interna, enviar via Z-API
       if (contact?.phone) {
         console.log('📤 Enviando mensagem via Z-API:', {
           phone: contact.phone,
@@ -53,19 +48,22 @@ export function useSendMessage() {
         });
         
         try {
-          const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
+          const response = await apiRequest("POST", "/api/zapi/send-message", {
             phone: contact.phone,
             message: message.content,
             conversationId: conversationId
           });
-          console.log('✅ Mensagem enviada via Z-API:', zapiResponse);
+          console.log('✅ Mensagem enviada via Z-API:', response);
+          return response;
         } catch (error) {
           console.error('❌ Erro ao enviar via Z-API:', error);
-          // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
+          // Se falhar, continuar com o envio normal
         }
       }
 
-      return savedMessage;
+      // Salvar mensagem no banco de dados local (para canais que não são WhatsApp)
+      const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
+      return response.json();
     },
     onSuccess: (_, { conversationId }) => {
       // Invalidar cache específico das mensagens dessa conversa
