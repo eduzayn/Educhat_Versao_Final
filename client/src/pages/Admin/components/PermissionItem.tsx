@@ -1,6 +1,6 @@
-import { Checkbox } from '@/shared/ui/checkbox';
-import { Label } from '@/shared/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { Checkbox } from '../../checkbox';
+import { Label } from '../../label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../tooltip';
 import { HelpCircle } from 'lucide-react';
 
 interface Permission {

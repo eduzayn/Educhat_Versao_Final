@@ -1,5 +1,5 @@
 import { useAuth } from '@/shared/lib/hooks/useAuth';
-import { Card, CardContent } from '@/shared/ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Shield, AlertCircle } from 'lucide-react';
 import { useMemo } from 'react';
 

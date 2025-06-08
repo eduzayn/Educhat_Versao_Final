@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
-import { Button } from "@/shared/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../../avatar";
+import { Button } from "../../button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+} from "../../alert-dialog";
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";

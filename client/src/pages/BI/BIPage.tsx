@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '../../card';
+import { Button } from '../../button';
+import { Badge } from '../../badge';
 import { useLocation } from 'wouter';
 import { 
   BarChart3, 

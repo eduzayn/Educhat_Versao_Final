@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Button } from '../../button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../tabs';
 import { 
   BarChart3,
   PieChart,

@@ -1,4 +1,4 @@
-import { Button } from '@/shared/ui/button';
+import { Button } from '../../button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ContactPaginationProps {

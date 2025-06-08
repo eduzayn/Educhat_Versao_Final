@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button } from '@/shared/ui/button';
+import { Button } from '../../button';
 import { ImageIcon, X, Send } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 

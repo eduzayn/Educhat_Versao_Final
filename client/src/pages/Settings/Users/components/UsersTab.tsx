@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Textarea } from '@/shared/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { Badge } from '@/shared/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Checkbox } from '@/shared/ui/checkbox';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
-import { Label } from '@/shared/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../../card';
+import { Button } from '../../button';
+import { Input } from '../../input';
+import { Textarea } from '../../textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../table';
+import { Badge } from '../../badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
+import { Checkbox } from '../../checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../dialog';
+import { Label } from '../../label';
 import { 
   Search, 
   UserPlus, 

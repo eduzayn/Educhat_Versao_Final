@@ -1,8 +1,8 @@
 import { BarChart3, TrendingUp, Download, Calendar, Filter } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Button } from '../../button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
 
 export function ReportsPage() {
   return (

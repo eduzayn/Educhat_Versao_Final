@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Button } from '../../button';
+import { Input } from '../../input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
 import { Search, Filter, Download, RefreshCw, Camera } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 

@@ -1,7 +1,7 @@
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Button } from '../../button';
+import { Badge } from '../../badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../select';
+import { Avatar, AvatarFallback, AvatarImage } from '../../avatar';
 import { Phone } from 'lucide-react';
 import { STATUS_CONFIG } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';

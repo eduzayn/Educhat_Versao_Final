@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
+import { Button } from '../../button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/shared/ui/dropdown-menu';
+} from '../../dropdown-menu';
 import {
   MoreVertical,
   MailCheck,

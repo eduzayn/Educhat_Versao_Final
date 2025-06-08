@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useZApiStore } from '@/shar../../store/zapiStore';
+import { useZApiStore } from '../../store/zapiStore';
 
 export function useZApiPersistence() {
   const { 

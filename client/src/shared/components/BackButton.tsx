@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import { Button } from "@/shared/ui/button";
+import { Button } from "../../button";
 
 interface BackButtonProps {
   to?: string;

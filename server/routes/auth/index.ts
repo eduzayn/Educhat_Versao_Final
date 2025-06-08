@@ -81,25 +81,25 @@ export function registerAuthRoutes(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req: Request, res: Response) => {
-    console.log("🔍 Verificação de autenticação:", {
-      sessionID: req.sessionID,
-      isAuthenticated: req.isAuthenticated(),
-      hasSession: !!req.session,
-      sessionData: req.session ? Object.keys(req.session) : 'no session',
-      hasUser: !!req.user,
-      userAgent: req.get('User-Agent'),
-      cookies: req.headers.cookie,
-      environment: process.env.NODE_ENV,
-      host: req.get('host'),
-      protocol: req.protocol,
-      secure: req.secure
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log("🔍 Verificação de autenticação:", {
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated(),
+        hasSession: !!req.session,
+        sessionData: req.session ? Object.keys(req.session) : 'no session',
+        hasUser: !!req.user
+      });
+    }
 
     if (req.isAuthenticated()) {
-      console.log("✅ Usuário autenticado:", { userId: req.user?.id, email: req.user?.email });
+      if (process.env.NODE_ENV === 'development') {
+        console.log("✅ Usuário autenticado:", { userId: req.user?.id, email: req.user?.email });
+      }
       res.json(req.user);
     } else {
-      console.log("❌ Usuário não autenticado");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("❌ Usuário não autenticado");
+      }
       res.status(401).json({ message: "Não autenticado" });
     }
   });

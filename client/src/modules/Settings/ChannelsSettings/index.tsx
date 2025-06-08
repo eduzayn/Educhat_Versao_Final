@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
+import { Button } from '../../button';
+import { Card } from '../../card';
 import { RefreshCw, PlusCircle, MessageSquare, Instagram, Facebook, Mail, MessageSquareText, Phone } from 'lucide-react';
 import { UnifiedChannelWizard } from './components/UnifiedChannelWizard';
 import { ZApiStatusIndicator } from './components/ZApiStatusIndicator';
@@ -69,7 +69,7 @@ export const ChannelsSettingsModule = () => {
         const data = await response.json();
         
         // Atualizar o store global com o status real
-        const { setStatus, setConfigured } = await import('@/shar../../store/zapiStore').then(m => m.useZApiStore.getState());
+        const { setStatus, setConfigured } = await import('../../store/zapiStore').then(m => m.useZApiStore.getState());
         
         setStatus({
           connected: data.connected || false,
