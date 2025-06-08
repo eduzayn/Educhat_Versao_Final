@@ -211,7 +211,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-2xl h-[600px] p-0 ${isMinimized ? 'h-16' : ''}`}>
+      <DialogContent className={`max-w-4xl w-[750px] h-[700px] p-0 ${isMinimized ? 'h-16' : ''}`}>
         {/* Header */}
         <DialogHeader className="p-4 border-b bg-muted/30">
           <div className="flex items-center justify-between">
