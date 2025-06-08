@@ -44,12 +44,12 @@ function InternalAudioPlayer({ audioUrl, duration }: { audioUrl: string; duratio
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg max-w-xs">
+    <div className="flex items-center gap-3 p-2 rounded-lg max-w-xs bg-black bg-opacity-10">
       <Button
         variant="ghost"
         size="icon"
         onClick={togglePlayPause}
-        className="h-8 w-8 flex-shrink-0"
+        className="h-8 w-8 flex-shrink-0 hover:bg-white hover:bg-opacity-20"
       >
         {isPlaying ? (
           <Pause className="h-4 w-4" />
@@ -59,8 +59,8 @@ function InternalAudioPlayer({ audioUrl, duration }: { audioUrl: string; duratio
       </Button>
       
       <div className="flex items-center gap-2 flex-1">
-        <Volume2 className="h-4 w-4 text-gray-500" />
-        <span className="text-sm text-gray-600">
+        <Volume2 className="h-4 w-4 opacity-75" />
+        <span className="text-sm opacity-90">
           {formatTime(currentTime)} / {formatTime(duration)}
         </span>
       </div>
@@ -147,7 +147,7 @@ export function ChatMessages() {
         onMouseEnter={() => setHoveredMessage(message.id)}
         onMouseLeave={() => setHoveredMessage(null)}
       >
-        <div className="flex gap-3">
+        <div className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
           {!isConsecutive && (
             <Avatar className="h-10 w-10 mt-0.5">
               <AvatarImage src={message.userAvatar} />
@@ -158,7 +158,7 @@ export function ChatMessages() {
           )}
           {isConsecutive && <div className="w-10" />}
           
-          <div className="flex-1 min-w-0">
+          <div className={`flex-1 min-w-0 ${isOwnMessage ? 'flex flex-col items-end' : ''}`}>
             {!isConsecutive && (
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold text-sm text-foreground">
@@ -178,7 +178,11 @@ export function ChatMessages() {
               </div>
             )}
             
-            <div className="text-sm text-foreground leading-relaxed">
+            <div className={`inline-block max-w-lg p-3 rounded-lg text-sm leading-relaxed ${
+              isOwnMessage 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-100 text-gray-900'
+            }`}>
               {message.messageType === 'reminder' && (
                 <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md mb-2">
                   <AlertTriangle className="h-4 w-4 text-blue-600" />
@@ -187,19 +191,21 @@ export function ChatMessages() {
               )}
               
               {message.replyTo && (
-                <div className="border-l-2 border-muted pl-2 mb-2 text-xs text-muted-foreground">
+                <div className="border-l-2 border-muted pl-2 mb-2 text-xs opacity-75">
                   <div>Respondendo a mensagem anterior</div>
                 </div>
               )}
               
               {/* Renderizar mensagem de áudio */}
-              {message.messageType === 'file' && message.metadata?.fileType === 'audio' ? (
+              {message.messageType === 'file' && (message as any).metadata?.fileType === 'audio' ? (
                 <div className="mb-2">
                   <InternalAudioPlayer 
-                    audioUrl={message.metadata.audioUrl} 
-                    duration={message.metadata.duration || 0} 
+                    audioUrl={(message as any).metadata.audioUrl} 
+                    duration={(message as any).metadata.duration || 0} 
                   />
-                  <div className="text-xs text-gray-500 mt-1">{message.content}</div>
+                  <div className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                    {message.content}
+                  </div>
                 </div>
               ) : (
                 <div className="break-words">{message.content}</div>
