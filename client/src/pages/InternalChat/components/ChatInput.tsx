@@ -7,7 +7,8 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
+import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder';
+import { cn } from '@/lib/utils';
 
 // Interface para o usuário no contexto de chat interno
 interface ChatUser {
@@ -30,7 +31,9 @@ export function ChatInput() {
   const [showCommands, setShowCommands] = useState(false);
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const audioRecorderRef = useRef<AudioRecorderRef>(null);
   
   const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
   const { user } = useAuth();
@@ -81,34 +84,62 @@ export function ChatInput() {
     };
   }, [message, activeChannel, currentUser]);
 
-  const handleSendAudio = (audioBlob: Blob, duration: number) => {
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
     if (!activeChannel || !currentUser) return;
 
-    const audioUrl = URL.createObjectURL(audioBlob);
-
-    const newMessage = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      channelId: activeChannel,
-      userId: currentUser.id,
-      userName: currentUser.displayName || currentUser.username || 'Usuário',
-      userAvatar: currentUser.avatar,
-      content: `Áudio (${Math.floor(duration)}s)`,
-      messageType: 'file' as const,
-      timestamp: new Date(),
-      reactions: {},
-      metadata: {
-        fileType: 'audio',
-        audioUrl,
-        duration
-      }
-    };
-
-    addMessage(newMessage);
+    // Esconder o componente de gravação imediatamente
     setShowAudioRecorder(false);
+
+    try {
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const newMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        channelId: activeChannel,
+        userId: currentUser.id,
+        userName: currentUser.displayName || currentUser.username || 'Usuário',
+        userAvatar: currentUser.avatar,
+        content: `Áudio (${Math.floor(duration)}s)`,
+        messageType: 'file' as const,
+        timestamp: new Date(),
+        reactions: {},
+        metadata: {
+          fileType: 'audio',
+          audioUrl,
+          duration
+        }
+      };
+
+      addMessage(newMessage);
+      
+      toast({
+        title: "Áudio enviado",
+        description: "Sua mensagem de áudio foi enviada com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar áudio",
+        description: "Falha ao enviar mensagem de áudio. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelAudio = () => {
     setShowAudioRecorder(false);
+    setIsRecording(false);
+  };
+
+  const handleMicrophoneClick = () => {
+    if (showAudioRecorder) {
+      // Se já está exibindo o gravador, cancelar
+      setShowAudioRecorder(false);
+      setIsRecording(false);
+    } else {
+      // Iniciar gravação diretamente - um único clique
+      setShowAudioRecorder(true);
+      setIsRecording(true);
+    }
   };
 
 
@@ -231,6 +262,19 @@ export function ChatInput() {
 
   return (
     <div className="border-t bg-card p-4">
+      {/* Componente de gravação de áudio */}
+      {showAudioRecorder && (
+        <div className="mb-4 border rounded-lg p-3 bg-gray-50">
+          <AudioRecorder
+            ref={audioRecorderRef}
+            onSendAudio={handleSendAudio}
+            onCancel={handleCancelAudio}
+            onRecordingStateChange={setIsRecording}
+            autoStart={isRecording}
+          />
+        </div>
+      )}
+
       {/* Commands Popup */}
       {showCommands && filteredCommands.length > 0 && (
         <div className="mb-3 p-2 bg-accent rounded-md border">
@@ -313,24 +357,19 @@ export function ChatInput() {
           </div>
         </div>
 
-        {/* Voice Recording */}
-        {showAudioRecorder ? (
-          <AudioRecorder
-            onSendAudio={handleSendAudio}
-            onCancel={handleCancelAudio}
-            className="h-10 w-10 flex-shrink-0"
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 flex-shrink-0"
-            onClick={() => setShowAudioRecorder(true)}
-            disabled={!currentUser || !activeChannel}
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
-        )}
+        {/* Voice Recording Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleMicrophoneClick}
+          className={cn(
+            "h-10 w-10 flex-shrink-0",
+            (showAudioRecorder || isRecording) && "bg-red-500 text-white hover:bg-red-600"
+          )}
+          disabled={!currentUser || !activeChannel}
+        >
+          <Mic className="h-4 w-4" />
+        </Button>
 
         {/* Send Button */}
         <Button
