@@ -8,14 +8,7 @@ import {
   roles
 } from '../../../shared/schema';
 
-interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    username?: string;
-    roleId?: number;
-  };
-}
+// Usando interface padrão do Express sem extensão
 
 // Sistema de chat interno integrado com equipes e usuários existentes
 export function registerTeamsIntegratedChatRoutes(app: Express) {
@@ -53,7 +46,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   }
 
   // Endpoint para buscar canais baseados nas equipes do usuário
-  app.get('/api/internal-chat/channels', async (req: AuthRequest, res: Response) => {
+  app.get('/api/internal-chat/channels', async (req: Request, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -137,7 +130,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   });
 
   // Endpoint para buscar usuários da equipe/canal
-  app.get('/api/internal-chat/channels/:channelId/users', async (req: AuthRequest, res: Response) => {
+  app.get('/api/internal-chat/channels/:channelId/users', async (req: Request, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -193,7 +186,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   });
 
   // Endpoint para verificar permissões do usuário
-  app.get('/api/internal-chat/permissions', async (req: AuthRequest, res: Response) => {
+  app.get('/api/internal-chat/permissions', async (req: Request, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -208,7 +201,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   });
 
   // Endpoint para sincronizar dados (admin apenas)
-  app.post('/api/internal-chat/sync', async (req: AuthRequest, res: Response) => {
+  app.post('/api/internal-chat/sync', async (req: Request, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });

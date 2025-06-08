@@ -5,7 +5,7 @@ import { setupAuth } from "./auth/auth";
 // Import modular routes
 import { registerAuthRoutes } from "./auth/index";
 import { registerAdminRoutes } from "./admin/index";
-import { registerSimpleInternalChatRoutes } from "./internal-chat/simple";
+import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
 import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
@@ -33,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
   registerAdminRoutes(app);
-  registerSimpleInternalChatRoutes(app);
+  registerTeamsIntegratedChatRoutes(app);
   registerMediaRoutes(app);
   registerInboxRoutes(app);
   registerMessageRoutes(app);
