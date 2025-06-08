@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Hash, Users, Plus, Search, Bell, BellOff, Settings } from 'lucide-react';
+import { Hash, Users, Search, Bell, BellOff, Settings } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import { Badge } from '@/shared/ui/ui/badge';

@@ -6,13 +6,20 @@ import { Badge } from '@/shared/ui/ui/badge';
 import { Separator } from '@/shared/ui/ui/separator';
 import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 import { useInternalChatStore } from '../store/internalChatStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function InfoPanel() {
-  const { channels, activeChannel } = useInternalChatStore();
+  const { channels, activeChannel, channelUsers, loadChannelUsers } = useInternalChatStore();
   const [memberSearch, setMemberSearch] = useState('');
   
   const channel = channels.find(c => c.id === activeChannel);
+  const members = activeChannel ? channelUsers[activeChannel] || [] : [];
+
+  useEffect(() => {
+    if (activeChannel) {
+      loadChannelUsers(activeChannel);
+    }
+  }, [activeChannel, loadChannelUsers]);
 
   if (!channel) {
     return (
@@ -24,42 +31,10 @@ export function InfoPanel() {
     );
   }
 
-  // Dados simulados para demonstração
-  const channelMembers = [
-    { id: 1, name: 'Ana Silva', role: 'Gerente Comercial', avatar: '', isOnline: true },
-    { id: 2, name: 'Carlos Santos', role: 'Consultor de Vendas', avatar: '', isOnline: true },
-    { id: 3, name: 'Maria Oliveira', role: 'Analista Comercial', avatar: '', isOnline: false },
-    { id: 4, name: 'João Pedro', role: 'Coordenador', avatar: '', isOnline: true },
-    { id: 5, name: 'Fernanda Costa', role: 'Assistente Comercial', avatar: '', isOnline: false },
-  ];
-
-  const pinnedMessages = [
-    {
-      id: '1',
-      content: 'Lembrete: Reunião de vendas toda segunda às 9h',
-      author: 'Ana Silva',
-      date: new Date('2024-01-15')
-    },
-    {
-      id: '2', 
-      content: 'Metas do mês: 150% do target anterior',
-      author: 'Carlos Santos',
-      date: new Date('2024-01-10')
-    }
-  ];
-
-  const recentFiles = [
-    { name: 'Planilha_Vendas_Janeiro.xlsx', author: 'Ana Silva', date: new Date('2024-01-15') },
-    { name: 'Apresentacao_Produto.pdf', author: 'Carlos Santos', date: new Date('2024-01-12') },
-    { name: 'Relatorio_Mensal.docx', author: 'Maria Oliveira', date: new Date('2024-01-10') }
-  ];
-
-  const filteredMembers = channelMembers.filter(member =>
-    member.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-    member.role.toLowerCase().includes(memberSearch.toLowerCase())
+  const filteredMembers = members.filter(member =>
+    member.displayName.toLowerCase().includes(memberSearch.toLowerCase()) ||
+    (member.roleName && member.roleName.toLowerCase().includes(memberSearch.toLowerCase()))
   );
-
-  const onlineCount = channelMembers.filter(m => m.isOnline).length;
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -82,15 +57,11 @@ export function InfoPanel() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Membros total</span>
-                <span>{channelMembers.length}</span>
+                <span>{members.length}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Online agora</span>
-                <span className="text-green-600">{onlineCount}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Mensagens hoje</span>
-                <span>47</span>
+                <span className="text-muted-foreground">Tipo do canal</span>
+                <span className="capitalize">{channel.type}</span>
               </div>
             </div>
           </div>

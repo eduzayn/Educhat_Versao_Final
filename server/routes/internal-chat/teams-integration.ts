@@ -201,31 +201,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
     }
   });
 
-  // Endpoint para sincronizar dados (admin apenas)
-  app.post('/api/internal-chat/sync', async (req: Request, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Usuário não autenticado' });
-      }
 
-      const permissions = await getUserPermissions(req.user.id);
-      if (!permissions.isAdmin) {
-        return res.status(403).json({ error: 'Apenas administradores podem sincronizar' });
-      }
-
-      // Log da sincronização para auditoria
-      console.log(`🔄 Sincronização do chat interno solicitada pelo usuário ${req.user.id}`);
-      
-      res.json({ 
-        message: 'Chat interno integrado com equipes e usuários existentes',
-        totalTeams: await db.select().from(teams).then(t => t.length),
-        totalUsers: await db.select().from(systemUsers).where(eq(systemUsers.isActive, true)).then(u => u.length)
-      });
-    } catch (error) {
-      console.error('Erro na sincronização:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
 
   console.log('✅ Chat interno integrado com sistema de equipes e usuários');
 }
