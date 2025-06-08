@@ -2,6 +2,30 @@ import type { Express, Request, Response } from "express";
 import passport from "passport";
 
 export function registerAuthRoutes(app: Express) {
+  // Health check endpoint para sessões
+  app.get("/api/auth/health", (req: Request, res: Response) => {
+    const sessionHealth = {
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+      environment: process.env.NODE_ENV,
+      protocol: req.protocol,
+      secure: req.secure,
+      host: req.get('host'),
+      userAgent: req.get('User-Agent'),
+      cookies: {
+        hasCookieHeader: !!req.headers.cookie,
+        cookieCount: req.headers.cookie ? req.headers.cookie.split(';').length : 0
+      },
+      sessionStore: {
+        connected: !!req.sessionStore
+      }
+    };
+    
+    console.log("🏥 Health check de autenticação:", sessionHealth);
+    res.json(sessionHealth);
+  });
   // Login endpoint
   app.post("/api/login", (req: Request, res: Response, next) => {
     console.log("🔐 Tentativa de login recebida:", { 
@@ -57,9 +81,25 @@ export function registerAuthRoutes(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req: Request, res: Response) => {
+    console.log("🔍 Verificação de autenticação:", {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      hasSession: !!req.session,
+      sessionData: req.session ? Object.keys(req.session) : 'no session',
+      hasUser: !!req.user,
+      userAgent: req.get('User-Agent'),
+      cookies: req.headers.cookie,
+      environment: process.env.NODE_ENV,
+      host: req.get('host'),
+      protocol: req.protocol,
+      secure: req.secure
+    });
+
     if (req.isAuthenticated()) {
+      console.log("✅ Usuário autenticado:", { userId: req.user?.id, email: req.user?.email });
       res.json(req.user);
     } else {
+      console.log("❌ Usuário não autenticado");
       res.status(401).json({ message: "Não autenticado" });
     }
   });

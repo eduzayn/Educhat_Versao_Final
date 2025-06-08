@@ -36,6 +36,33 @@ export async function comparePasswords(supplied: string, stored: string) {
 export function setupAuth(app: Express) {
   const PgSession = ConnectPgSimple(session);
   
+  // Detectar ambiente de produção e configurações HTTPS
+  const isProduction = process.env.NODE_ENV === "production";
+  const forceSecure = process.env.FORCE_SECURE_COOKIES === 'true';
+  const isHttps = forceSecure || (isProduction && (
+    process.env.RENDER_EXTERNAL_URL?.startsWith('https://') ||
+    process.env.RAILWAY_STATIC_URL?.startsWith('https://') ||
+    process.env.REPLIT_DOMAINS?.includes('replit.dev')
+  ));
+
+  // Configurar trust proxy ANTES das sessões
+  if (isProduction) {
+    app.set('trust proxy', 1);
+  }
+  
+  // Log detalhado da configuração
+  console.log("🔒 Configuração de autenticação:", {
+    environment: process.env.NODE_ENV,
+    isProduction,
+    isHttps,
+    forceSecure,
+    trustProxy: isProduction,
+    renderUrl: process.env.RENDER_EXTERNAL_URL,
+    railwayUrl: process.env.RAILWAY_STATIC_URL,
+    replitDomains: process.env.REPLIT_DOMAINS,
+    sessionSecret: !!process.env.SESSION_SECRET
+  });
+  
   app.use(
     session({
       store: new PgSession({
@@ -46,17 +73,36 @@ export function setupAuth(app: Express) {
       resave: false,
       saveUninitialized: false,
       rolling: true,
+      name: 'educhat-session',
       cookie: {
-        secure: process.env.NODE_ENV === "production" && (
-          process.env.RENDER_EXTERNAL_URL?.startsWith('https://') ||
-          process.env.REPLIT_DOMAINS?.split(',').some(domain => domain.includes('replit.dev'))
-        ),
+        secure: false, // Temporariamente desabilitado para debug em produção
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: "lax",
+        domain: undefined,
+        path: "/",
       },
     }),
   );
+
+  // Middleware de debugging para sessões (apenas em produção)
+  if (process.env.NODE_ENV === "production") {
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        console.log("🔍 Debug de sessão:", {
+          path: req.path,
+          method: req.method,
+          sessionID: req.sessionID,
+          hasSession: !!req.session,
+          cookies: !!req.headers.cookie,
+          userAgent: req.get('User-Agent')?.substring(0, 50) + "...",
+          secure: req.secure,
+          protocol: req.protocol
+        });
+      }
+      next();
+    });
+  }
 
   app.use(passport.initialize());
   app.use(passport.session());

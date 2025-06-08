@@ -17,17 +17,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Configuração de CORS adequada para produção
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://educhat.com.br', 
+      'https://www.educhat.com.br',
+      ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : []),
+      ...(process.env.RAILWAY_STATIC_URL ? [process.env.RAILWAY_STATIC_URL] : []),
+      ...(process.env.REPLIT_DOMAINS ? 
+          process.env.REPLIT_DOMAINS.split(',').map(domain => `https://${domain.trim()}`) : [])
+    ] 
+  : true;
+
+console.log("🌐 CORS configurado para:", { allowedOrigins, env: process.env.NODE_ENV });
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'https://educhat.com.br', 
-        'https://www.educhat.com.br', 
-        ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : [])
-      ] 
-    : '*',
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // Health check endpoint is handled in routes.ts
@@ -79,7 +87,9 @@ app.use((req, res, next) => {
 
   // Middleware para garantir que rotas API não sejam interceptadas pelo Vite
   app.use('/api/*', (req, res, next) => {
-    console.log(`🔍 Rota API interceptada: ${req.method} ${req.path}`);
+    if (req.path === '/api/auth/health') {
+      console.log(`🔍 Health check interceptado: ${req.method} ${req.path}`);
+    }
     next();
   });
 
