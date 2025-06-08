@@ -7,89 +7,54 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Otimizar consulta usando uma subquery para buscar apenas a última mensagem
-    const conversationsWithLastMessage = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          userIdentity: contacts.userIdentity,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        },
-        channelInfo: channels,
-        lastMessage: {
-          id: messages.id,
-          conversationId: messages.conversationId,
-          content: messages.content,
-          type: messages.type,
-          direction: messages.direction,
-          sentAt: messages.sentAt,
-          isFromUser: messages.isFromUser,
-          messageId: messages.messageId,
-          metadata: messages.metadata
-        }
-      })
+    // Buscar conversas básicas primeiro
+    const conversationsData = await this.db
+      .select()
       .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .leftJoin(channels, eq(conversations.channelId, channels.id))
-      .leftJoin(
-        messages, 
-        and(
-          eq(messages.conversationId, conversations.id),
-          eq(messages.isDeleted, false),
-          // Subquery para pegar apenas a última mensagem
-          eq(messages.sentAt, 
-            sql`(SELECT MAX(sent_at) FROM messages m2 WHERE m2.conversation_id = ${conversations.id} AND m2.is_deleted = false)`
-          )
-        )
-      )
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
 
-    // Agrupar os resultados para criar a estrutura esperada
-    const groupedResults = new Map();
-    
-    for (const row of conversationsWithLastMessage) {
-      const convId = row.id;
-      
-      if (!groupedResults.has(convId)) {
-        groupedResults.set(convId, {
-          ...row,
-          messages: row.lastMessage.id ? [row.lastMessage] : [],
-          _count: { messages: 0 }
-        });
-      }
-    }
+    // Para cada conversa, buscar contato, canal e última mensagem
+    const conversationsWithDetails = await Promise.all(
+      conversationsData.map(async (conv) => {
+        // Buscar contato
+        const [contact] = await this.db
+          .select()
+          .from(contacts)
+          .where(eq(contacts.id, conv.contactId));
 
-    return Array.from(groupedResults.values()) as ConversationWithContact[];
+        // Buscar canal se houver
+        let channelInfo = null;
+        if (conv.channelId) {
+          [channelInfo] = await this.db
+            .select()
+            .from(channels)
+            .where(eq(channels.id, conv.channelId));
+        }
+
+        // Buscar última mensagem
+        const lastMessage = await this.db
+          .select()
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+
+        return {
+          ...conv,
+          contact: contact || null,
+          channelInfo: channelInfo || null,
+          messages: lastMessage,
+          _count: { messages: lastMessage.length }
+        };
+      })
+    );
+
+    return conversationsWithDetails as ConversationWithContact[];
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
