@@ -7,8 +7,8 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Primeiro buscar as conversas básicas
-    const conversationsResult = await this.db
+    // Otimizar consulta usando uma subquery para buscar apenas a última mensagem
+    const conversationsWithLastMessage = await this.db
       .select({
         id: conversations.id,
         contactId: conversations.contactId,
@@ -43,45 +43,53 @@ export class ConversationStorage extends BaseStorage {
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
         },
-        channelInfo: channels
+        channelInfo: channels,
+        lastMessage: {
+          id: messages.id,
+          conversationId: messages.conversationId,
+          content: messages.content,
+          type: messages.type,
+          direction: messages.direction,
+          sentAt: messages.sentAt,
+          isFromUser: messages.isFromUser,
+          messageId: messages.messageId,
+          metadata: messages.metadata
+        }
       })
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .leftJoin(channels, eq(conversations.channelId, channels.id))
+      .leftJoin(
+        messages, 
+        and(
+          eq(messages.conversationId, conversations.id),
+          eq(messages.isDeleted, false),
+          // Subquery para pegar apenas a última mensagem
+          eq(messages.sentAt, 
+            sql`(SELECT MAX(sent_at) FROM messages m2 WHERE m2.conversation_id = ${conversations.id} AND m2.is_deleted = false)`
+          )
+        )
+      )
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
 
-    // Para cada conversa, buscar a última mensagem
-    const conversationsWithMessages = await Promise.all(
-      conversationsResult.map(async (conv) => {
-        const lastMessage = await this.db
-          .select()
-          .from(messages)
-          .where(and(
-            eq(messages.conversationId, conv.id),
-            eq(messages.isDeleted, false)
-          ))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
+    // Agrupar os resultados para criar a estrutura esperada
+    const groupedResults = new Map();
+    
+    for (const row of conversationsWithLastMessage) {
+      const convId = row.id;
+      
+      if (!groupedResults.has(convId)) {
+        groupedResults.set(convId, {
+          ...row,
+          messages: row.lastMessage.id ? [row.lastMessage] : [],
+          _count: { messages: 0 }
+        });
+      }
+    }
 
-        const messageCount = await this.db
-          .select({ count: count(messages.id) })
-          .from(messages)
-          .where(and(
-            eq(messages.conversationId, conv.id),
-            eq(messages.isDeleted, false)
-          ));
-
-        return {
-          ...conv,
-          messages: lastMessage,
-          _count: { messages: messageCount[0]?.count || 0 }
-        };
-      })
-    );
-
-    return conversationsWithMessages as ConversationWithContact[];
+    return Array.from(groupedResults.values()) as ConversationWithContact[];
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
