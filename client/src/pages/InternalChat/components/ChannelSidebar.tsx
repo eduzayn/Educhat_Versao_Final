@@ -92,17 +92,17 @@ export function ChannelSidebar() {
       <div className="p-3 border-b">
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar} />
+            <AvatarImage src="" />
             <AvatarFallback>
-              {user?.displayName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+              {user?.username?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
-              {user?.displayName || user?.username}
+              {user?.username || 'Usuário'}
             </p>
             <p className="text-xs text-muted-foreground">
-              {user?.role}
+              Online
             </p>
           </div>
           <div className="h-2 w-2 bg-green-500 rounded-full" />
