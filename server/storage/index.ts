@@ -277,14 +277,14 @@ export class DatabaseStorage implements IStorage {
   async getChannels(): Promise<any[]> {
     const { db } = await import("../core/db");
     const { desc } = await import("drizzle-orm");
-    const { channels } = await import("../../shared/schema");
+    const { channels } = await import("@shared/schema");
     return db.select().from(channels).orderBy(desc(channels.createdAt));
   }
 
   async getChannel(id: number): Promise<any> {
     const { db } = await import("../core/db");
     const { eq } = await import("drizzle-orm");
-    const { channels } = await import("../../shared/schema");
+    const { channels } = await import("@shared/schema");
     const [channel] = await db.select().from(channels).where(eq(channels.id, id));
     return channel;
   }
