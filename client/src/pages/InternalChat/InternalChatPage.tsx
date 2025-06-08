@@ -23,7 +23,7 @@ export default function InternalChatPage() {
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar de Canais/Equipes */}
-      <div className="w-80 border-r bg-card flex flex-col">
+      <div className="w-[320px] border-r bg-card flex flex-col">
         <ChannelSidebar />
       </div>
 
@@ -43,7 +43,7 @@ export default function InternalChatPage() {
 
       {/* Panel Lateral de Informações */}
       {showInfoPanel && (
-        <div className="w-72 border-l bg-card hidden lg:flex">
+        <div className="w-[300px] border-l bg-card flex">
           <InfoPanel />
         </div>
       )}

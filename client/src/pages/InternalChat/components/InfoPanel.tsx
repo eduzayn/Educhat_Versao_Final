@@ -154,12 +154,12 @@ export function InfoPanel() {
                       </div>
                     </div>
 
-                    {/* Botão de mensagem privada - aparece no hover */}
+                    {/* Botão de mensagem privada - sempre visível */}
                     {member.id !== (user as any)?.id && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary transition-colors"
                         onClick={() => setSelectedUserForPrivateChat(member)}
                         title={`Enviar mensagem privada para ${member.displayName}`}
                       >

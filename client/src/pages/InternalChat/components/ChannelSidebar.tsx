@@ -148,7 +148,7 @@ export function ChannelSidebar() {
                           {channel.unreadCount > 99 ? '99+' : channel.unreadCount}
                         </Badge>
                       )}
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
                         {formatLastActivity(channel.lastActivity)}
                       </span>
                     </div>
