@@ -64,6 +64,11 @@ export const conversations = pgTable("conversations", {
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
   assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
   assignedAt: timestamp("assigned_at"),
+  // Campos adicionais para compatibilidade
+  isRead: boolean("is_read").default(false),
+  priority: varchar("priority", { length: 20 }).default("normal"), // low, normal, high, urgent
+  tags: text("tags").array(),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
