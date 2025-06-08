@@ -1,14 +1,25 @@
-import { Express } from 'express';
-import { eq, desc, and, or, sql } from 'drizzle-orm';
+import { Express, Request, Response } from 'express';
+import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
 import { db } from '../../core/db';
 import { 
   internalChatChannels, 
   internalChatMessages, 
   internalChatChannelMembers, 
   internalChatReactions,
-  systemUsers 
+  systemUsers,
+  teams,
+  userTeams,
+  roles
 } from '../../../shared/schema';
-import { AuthenticatedRequest, requirePermission } from '../../permissions';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+    roleId: number;
+  };
+}
 
 /**
  * Módulo Internal Chat - Sistema de Chat Interno
@@ -20,14 +31,127 @@ import { AuthenticatedRequest, requirePermission } from '../../permissions';
  * - Controle de leitura de mensagens
  * - Membership de canais
  */
+/**
+ * Função para sincronizar equipes com canais do chat interno
+ */
+async function syncTeamsWithChannels() {
+  try {
+    // Buscar todas as equipes
+    const allTeams = await db.select().from(teams);
+    
+    for (const team of allTeams) {
+      // Verificar se já existe canal para esta equipe
+      const existingChannel = await db
+        .select()
+        .from(internalChatChannels)
+        .where(and(
+          eq(internalChatChannels.teamId, team.id),
+          eq(internalChatChannels.type, 'team')
+        ))
+        .limit(1);
+      
+      if (!existingChannel[0]) {
+        // Criar canal para a equipe
+        const [newChannel] = await db
+          .insert(internalChatChannels)
+          .values({
+            name: team.name,
+            description: team.description || `Discussões da ${team.name}`,
+            type: 'team',
+            teamId: team.id,
+            isPrivate: false,
+            createdBy: 1 // Sistema
+          })
+          .returning();
+        
+        // Adicionar todos os membros da equipe ao canal
+        const teamMembers = await db
+          .select()
+          .from(userTeams)
+          .where(eq(userTeams.teamId, team.id));
+        
+        if (teamMembers.length > 0) {
+          await db
+            .insert(internalChatChannelMembers)
+            .values(
+              teamMembers.map(member => ({
+                channelId: newChannel.id,
+                userId: member.userId,
+                isActive: true,
+                role: 'member'
+              }))
+            );
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao sincronizar equipes:', error);
+  }
+}
+
+/**
+ * Função para verificar permissões de acesso ao chat
+ */
+async function checkChatPermissions(userId: number) {
+  const user = await db
+    .select({
+      id: systemUsers.id,
+      roleId: systemUsers.roleId,
+      roleName: roles.name
+    })
+    .from(systemUsers)
+    .leftJoin(roles, eq(systemUsers.roleId, roles.id))
+    .where(eq(systemUsers.id, userId))
+    .limit(1);
+  
+  if (!user[0]) return { canViewAll: false, canViewTeams: false, canViewPrivate: false };
+  
+  const isAdmin = user[0].roleName === 'Admin';
+  const isManager = user[0].roleName === 'Gestor';
+  
+  return {
+    canViewAll: isAdmin || isManager,
+    canViewTeams: true, // Todos podem ver equipes das quais fazem parte
+    canViewPrivate: isAdmin || isManager, // Apenas admin/gestor veem mensagens privadas de outros
+    isAdmin,
+    isManager
+  };
+}
+
 export function registerInternalChatRoutes(app: Express) {
   
-  // Get all channels for current user
+  // Sincronizar equipes automaticamente na inicialização
+  syncTeamsWithChannels();
+  
+  // Endpoint para sincronização manual
+  app.post('/api/internal-chat/sync-teams', async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
+      const permissions = await checkChatPermissions(req.user.id);
+      if (!permissions.isAdmin) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+      
+      await syncTeamsWithChannels();
+      res.json({ message: 'Equipes sincronizadas com sucesso' });
+    } catch (error) {
+      console.error('Erro ao sincronizar equipes:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+  
+  // Get all channels for current user with permissions
   app.get('/api/internal-chat/channels', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
       }
+      
+      const permissions = await checkChatPermissions(req.user.id);
+      let channels = [];
 
       const channels = await db
         .select({

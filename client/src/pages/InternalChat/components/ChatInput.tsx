@@ -49,14 +49,30 @@ export function ChatInput() {
   // Garantir que temos user tipado corretamente
   const currentUser = user as ChatUser | undefined;
 
-  // Lista de usuários mockados para menções (em produção seria uma API)
-  const availableUsers: ChatUser[] = [
-    { id: 1, username: 'admin', displayName: 'Administrador', avatar: '' },
-    { id: 2, username: 'comercial1', displayName: 'João Silva', avatar: '' },
-    { id: 3, username: 'suporte1', displayName: 'Maria Santos', avatar: '' },
-    { id: 4, username: 'gerente', displayName: 'Carlos Lima', avatar: '' },
-    { id: 5, username: 'atendente1', displayName: 'Ana Costa', avatar: '' },
-  ];
+  // Buscar usuários reais do sistema
+  const [availableUsers, setAvailableUsers] = useState<ChatUser[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/system-users');
+        if (response.ok) {
+          const users = await response.json();
+          const formattedUsers = users.map((user: any) => ({
+            id: user.id,
+            username: user.username || user.email.split('@')[0],
+            displayName: user.displayName || user.username || user.email,
+            avatar: user.avatar || ''
+          }));
+          setAvailableUsers(formattedUsers);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const filteredCommands = COMMANDS.filter(cmd => 
     message.startsWith('/') && cmd.command.toLowerCase().includes(message.toLowerCase())

@@ -5,7 +5,7 @@ import { setupAuth } from "./auth/auth";
 // Import modular routes
 import { registerAuthRoutes } from "./auth/index";
 import { registerAdminRoutes } from "./admin/index";
-import { registerInternalChatRoutes } from "./internal-chat/index";
+import { registerSimpleInternalChatRoutes } from "./internal-chat/simple";
 import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
