@@ -1,88 +1,26 @@
 import { Express, Request, Response } from 'express';
-import { eq, desc, and, or, sql } from 'drizzle-orm';
+import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
 import { db } from '../../core/db';
 import { 
-  internalChatChannels, 
-  internalChatMessages, 
-  internalChatChannelMembers, 
   systemUsers,
   teams,
   userTeams,
   roles
 } from '../../../shared/schema';
 
-interface ChatRequest extends Request {
-  user?: any;
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    username?: string;
+    roleId?: number;
+  };
 }
 
-/**
- * Sistema de Chat Interno Integrado com Equipes e Usuários
- */
+// Sistema de chat interno integrado com equipes e usuários existentes
 export function registerSimpleInternalChatRoutes(app: Express) {
-  
-  // Sincronizar equipes com canais de chat
-  async function syncTeamsWithChatChannels() {
-    try {
-      console.log('🔄 Sincronizando equipes com canais de chat...');
-      
-      // Buscar todas as equipes
-      const allTeams = await db.select().from(teams);
-      
-      for (const team of allTeams) {
-        // Verificar se já existe canal para esta equipe
-        const existingChannel = await db
-          .select()
-          .from(internalChatChannels)
-          .where(and(
-            eq(internalChatChannels.teamId, team.id),
-            eq(internalChatChannels.type, 'team')
-          ))
-          .limit(1);
-        
-        if (!existingChannel[0]) {
-          console.log(`📝 Criando canal para equipe: ${team.name}`);
-          
-          // Criar canal para a equipe
-          const [newChannel] = await db
-            .insert(internalChatChannels)
-            .values({
-              name: team.name,
-              description: team.description || `Discussões da ${team.name}`,
-              type: 'team',
-              teamId: team.id,
-              isPrivate: false,
-              createdBy: 1
-            })
-            .returning();
-          
-          // Adicionar membros da equipe ao canal
-          const teamMembers = await db
-            .select()
-            .from(userTeams)
-            .where(eq(userTeams.teamId, team.id));
-          
-          if (teamMembers.length > 0) {
-            await db
-              .insert(internalChatChannelMembers)
-              .values(
-                teamMembers.map(member => ({
-                  channelId: newChannel.id,
-                  userId: member.userId,
-                  isActive: true,
-                  role: 'member'
-                }))
-              );
-          }
-        }
-      }
-      
-      console.log('✅ Sincronização de equipes concluída');
-    } catch (error) {
-      console.error('❌ Erro ao sincronizar equipes:', error);
-    }
-  }
 
-  // Verificar permissões do usuário
+  // Verificar permissões do usuário baseado no sistema existente
   async function getUserPermissions(userId: number) {
     const userWithRole = await db
       .select({
@@ -98,7 +36,7 @@ export function registerSimpleInternalChatRoutes(app: Express) {
       .limit(1);
     
     if (!userWithRole[0]) {
-      return { canViewAll: false, canViewTeams: false, canViewPrivate: false };
+      return { canViewAll: false, canViewTeams: false, canViewPrivate: false, isAdmin: false, isManager: false };
     }
     
     const isAdmin = userWithRole[0].roleName === 'Admin';
@@ -114,9 +52,6 @@ export function registerSimpleInternalChatRoutes(app: Express) {
     };
   }
 
-  // Sincronizar na inicialização
-  syncTeamsWithChatChannels();
-
   // Endpoint para buscar canais do usuário
   app.get('/api/internal-chat/channels', async (req: ChatRequest, res: Response) => {
     try {
@@ -126,43 +61,69 @@ export function registerSimpleInternalChatRoutes(app: Express) {
 
       const permissions = await getUserPermissions(req.user.id);
       
-      let channelsQuery = db
-        .select({
-          id: internalChatChannels.id,
-          name: internalChatChannels.name,
-          description: internalChatChannels.description,
-          type: internalChatChannels.type,
-          teamId: internalChatChannels.teamId,
-          isPrivate: internalChatChannels.isPrivate,
-          createdAt: internalChatChannels.createdAt,
-        })
-        .from(internalChatChannels);
+      let channels;
 
-      if (!permissions.canViewAll) {
+      if (permissions.canViewAll) {
+        // Admin/Gestor vê todos os canais
+        channels = await db
+          .select({
+            id: internalChatChannels.id,
+            name: internalChatChannels.name,
+            description: internalChatChannels.description,
+            type: internalChatChannels.type,
+            teamId: internalChatChannels.teamId,
+            isPrivate: internalChatChannels.isPrivate,
+            createdAt: internalChatChannels.createdAt,
+          })
+          .from(internalChatChannels)
+          .orderBy(internalChatChannels.name);
+      } else {
         // Usuários comuns só veem canais das suas equipes
         const userTeamIds = await db
           .select({ teamId: userTeams.teamId })
           .from(userTeams)
           .where(eq(userTeams.userId, req.user.id));
         
-        const teamIds = userTeamIds.map(ut => ut.teamId);
+        const teamIds = userTeamIds.map(ut => ut.teamId).filter(Boolean);
         
         if (teamIds.length > 0) {
-          channelsQuery = channelsQuery.where(
-            or(
-              and(
-                eq(internalChatChannels.type, 'team'),
-                sql`${internalChatChannels.teamId} IN (${teamIds.join(',')})`
-              ),
-              eq(internalChatChannels.type, 'general')
+          channels = await db
+            .select({
+              id: internalChatChannels.id,
+              name: internalChatChannels.name,
+              description: internalChatChannels.description,
+              type: internalChatChannels.type,
+              teamId: internalChatChannels.teamId,
+              isPrivate: internalChatChannels.isPrivate,
+              createdAt: internalChatChannels.createdAt,
+            })
+            .from(internalChatChannels)
+            .where(
+              or(
+                and(
+                  eq(internalChatChannels.type, 'team'),
+                  inArray(internalChatChannels.teamId, teamIds)
+                ),
+                eq(internalChatChannels.type, 'general')
+              )
             )
-          );
+            .orderBy(internalChatChannels.name);
         } else {
-          channelsQuery = channelsQuery.where(eq(internalChatChannels.type, 'general'));
+          channels = await db
+            .select({
+              id: internalChatChannels.id,
+              name: internalChatChannels.name,
+              description: internalChatChannels.description,
+              type: internalChatChannels.type,
+              teamId: internalChatChannels.teamId,
+              isPrivate: internalChatChannels.isPrivate,
+              createdAt: internalChatChannels.createdAt,
+            })
+            .from(internalChatChannels)
+            .where(eq(internalChatChannels.type, 'general'))
+            .orderBy(internalChatChannels.name);
         }
       }
-
-      const channels = await channelsQuery.orderBy(internalChatChannels.name);
       
       res.json(channels);
     } catch (error) {

@@ -33,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
   registerAdminRoutes(app);
-  registerInternalChatRoutes(app);
+  registerSimpleInternalChatRoutes(app);
   registerMediaRoutes(app);
   registerInboxRoutes(app);
   registerMessageRoutes(app);
