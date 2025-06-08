@@ -66,10 +66,17 @@ Use o endpoint de saúde para verificar autenticação:
 curl https://seu-dominio.com/api/auth/health
 ```
 
+## Arquivos de Configuração
+
+- `render.yaml` - Configuração para deploy no Render
+- `AUTH_PRODUCTION_FIX.md` - Detalhes técnicos da correção de autenticação
+- `DEPLOYMENT_GUIDE.md` - Este guia consolidado
+
 ## Status do Sistema
 
 - ✅ Autenticação funcionando em produção
-- ✅ Sistema de sessões otimizado
+- ✅ Sistema de sessões otimizado  
 - ✅ Configuração automática por plataforma
 - ✅ Logs de debug implementados
 - ✅ Z-API otimizado para produção
+- ✅ Código limpo e organizado
