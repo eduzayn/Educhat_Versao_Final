@@ -6,9 +6,9 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../cor
 
 export function registerUtilitiesRoutes(app: Express) {
   
-  // Cache para o status Z-API (5 segundos)
+  // Cache para o status Z-API (10 segundos)
   let statusCache: { data: any; timestamp: number } | null = null;
-  const CACHE_DURATION = 5000; // 5 segundos
+  const CACHE_DURATION = 10000; // 10 segundos para reduzir ainda mais a carga
 
   // Z-API Status endpoint - REST: GET /api/zapi/status
   app.get('/api/zapi/status', async (req, res) => {

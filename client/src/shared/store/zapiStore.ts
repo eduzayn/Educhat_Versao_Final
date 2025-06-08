@@ -167,14 +167,14 @@ const initializeFromLocalStorage = () => {
         instanceId: config.instanceId 
       });
       
-      // Se configurado, iniciar monitoramento automaticamente
+      // Se configurado, iniciar monitoramento automaticamente com delay maior
       if (config.isConfigured) {
         setTimeout(() => {
           const store = useZApiStore.getState();
           if (!store.connectionMonitorActive) {
             store.startConnectionMonitor();
           }
-        }, 100);
+        }, 2000); // Delay maior para evitar conflitos de inicialização
       }
     }
   } catch (error) {
