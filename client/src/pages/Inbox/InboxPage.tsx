@@ -383,10 +383,12 @@ export function InboxPage() {
   };
 
   const formatTime = (date: string | Date) => {
+    const dateObj = new Date(date);
     return new Intl.DateTimeFormat('pt-BR', {
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
+      minute: '2-digit',
+      timeZone: 'America/Sao_Paulo'
+    }).format(dateObj);
   };
 
   // Função para alterar status da conversa
