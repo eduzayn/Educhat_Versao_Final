@@ -50,6 +50,26 @@ const AudioRecorderComponent = ({
 
   const MAX_DURATION = 300; // 5 minutos em segundos
 
+  // Expor métodos para controle externo
+  useImperativeHandle(ref, () => ({
+    startRecording,
+    stopRecording
+  }));
+
+  // Auto-iniciar se solicitado
+  useEffect(() => {
+    if (autoStart && state === "idle") {
+      startRecording();
+    }
+  }, [autoStart]);
+
+  // Notificar mudanças de estado
+  useEffect(() => {
+    if (onRecordingStateChange) {
+      onRecordingStateChange(state === "recording");
+    }
+  }, [state, onRecordingStateChange]);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -393,4 +413,6 @@ const AudioRecorderComponent = ({
   }
 
   return null;
-}
+};
+
+export const AudioRecorder = forwardRef<AudioRecorderRef, AudioRecorderProps>(AudioRecorderComponent);

@@ -37,7 +37,7 @@ import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
-import { AudioRecorder } from "./AudioRecorder";
+import { AudioRecorder, AudioRecorderRef } from "./AudioRecorder";
 import { ImageUpload } from "./ImageUpload";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -77,7 +77,7 @@ export function InputArea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRecorderRef = useRef<any>(null);
+  const audioRecorderRef = useRef<AudioRecorderRef>(null);
 
   const { activeConversation } = useChatStore();
   const { sendTypingIndicator } = useWebSocket();
@@ -735,21 +735,14 @@ export function InputArea() {
   };
 
   const handleMicrophoneClick = () => {
-    if (isRecording) {
-      // Se já está gravando, parar e mostrar preview
-      if (audioRecorderRef.current && audioRecorderRef.current.stopRecording) {
-        audioRecorderRef.current.stopRecording();
-      }
+    if (showAudioRecorder) {
+      // Se já está exibindo o gravador, cancelar
+      setShowAudioRecorder(false);
+      setIsRecording(false);
     } else {
-      // Iniciar gravação diretamente
+      // Iniciar gravação diretamente - um único clique
       setShowAudioRecorder(true);
       setIsRecording(true);
-      // Aguardar o componente renderizar e iniciar gravação automaticamente
-      setTimeout(() => {
-        if (audioRecorderRef.current && audioRecorderRef.current.startRecording) {
-          audioRecorderRef.current.startRecording();
-        }
-      }, 100);
     }
   };
 
@@ -763,8 +756,11 @@ export function InputArea() {
       {showAudioRecorder && (
         <div className="mb-4 border rounded-lg p-3 bg-gray-50">
           <AudioRecorder
+            ref={audioRecorderRef}
             onSendAudio={handleSendAudio}
             onCancel={handleCancelAudio}
+            onRecordingStateChange={setIsRecording}
+            autoStart={isRecording}
           />
         </div>
       )}
