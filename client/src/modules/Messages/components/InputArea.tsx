@@ -64,6 +64,7 @@ export function InputArea() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -76,6 +77,7 @@ export function InputArea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRecorderRef = useRef<any>(null);
 
   const { activeConversation } = useChatStore();
   const { sendTypingIndicator } = useWebSocket();
@@ -729,6 +731,26 @@ export function InputArea() {
 
   const handleCancelAudio = () => {
     setShowAudioRecorder(false);
+    setIsRecording(false);
+  };
+
+  const handleMicrophoneClick = () => {
+    if (isRecording) {
+      // Se já está gravando, parar e mostrar preview
+      if (audioRecorderRef.current && audioRecorderRef.current.stopRecording) {
+        audioRecorderRef.current.stopRecording();
+      }
+    } else {
+      // Iniciar gravação diretamente
+      setShowAudioRecorder(true);
+      setIsRecording(true);
+      // Aguardar o componente renderizar e iniciar gravação automaticamente
+      setTimeout(() => {
+        if (audioRecorderRef.current && audioRecorderRef.current.startRecording) {
+          audioRecorderRef.current.startRecording();
+        }
+      }, 100);
+    }
   };
 
   if (!activeConversation) {
@@ -887,10 +909,10 @@ export function InputArea() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowAudioRecorder(!showAudioRecorder)}
+          onClick={handleMicrophoneClick}
           className={cn(
             "p-2.5 text-educhat-medium hover:text-educhat-blue",
-            showAudioRecorder && "bg-educhat-primary text-white",
+            (showAudioRecorder || isRecording) && "bg-red-500 text-white hover:bg-red-600",
           )}
         >
           <Mic className="w-5.5 h-5.5" />

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import { Button } from "@/shared/ui/ui/button";
 import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,7 +7,14 @@ import { formatDurationSeconds } from "@/shared/lib/utils/formatters";
 interface AudioRecorderProps {
   onSendAudio: (audioBlob: Blob, duration: number) => void;
   onCancel: () => void;
+  onRecordingStateChange?: (isRecording: boolean) => void;
+  autoStart?: boolean;
   className?: string;
+}
+
+export interface AudioRecorderRef {
+  startRecording: () => void;
+  stopRecording: () => void;
 }
 
 type RecordingState =
@@ -17,11 +24,13 @@ type RecordingState =
   | "preview"
   | "sending";
 
-export function AudioRecorder({
+const AudioRecorderComponent = ({
   onSendAudio,
   onCancel,
+  onRecordingStateChange,
+  autoStart = false,
   className,
-}: AudioRecorderProps) {
+}: AudioRecorderProps, ref: React.Ref<AudioRecorderRef>) => {
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [realDuration, setRealDuration] = useState(0); // Duração real do áudio
