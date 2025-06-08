@@ -72,8 +72,8 @@ export function InfoPanel() {
           <h3 className="font-semibold text-lg">{channel.name}</h3>
         </div>
         
-        <p className="text-sm text-muted-foreground mb-3">
-          {channel.description || 'Canal de comunicação interna'}
+        <p className="text-xs text-muted-foreground mb-3">
+          {channel.description || 'Canal interno'}
         </p>
 
         {/* Estatísticas do Canal */}
