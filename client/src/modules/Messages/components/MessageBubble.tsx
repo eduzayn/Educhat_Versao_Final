@@ -471,32 +471,48 @@ export function MessageBubble({
   // Função para renderizar o conteúdo da mensagem baseado no tipo
   const renderMessageContent = () => {
     if (message.messageType === 'audio') {
+      console.log('🔍 Renderizando áudio:', { 
+        messageId: message.id, 
+        contentLength: message.content?.length,
+        contentPreview: message.content?.substring(0, 50),
+        metadata: message.metadata 
+      });
 
       // Verificar se temos uma URL válida para o áudio
       let audioUrl: string | null = null;
       
-      // 1. Verificar se content é uma data URL válida
+      // 1. Verificar se content é uma data URL válida (formato completo)
       if (message.content && message.content.startsWith('data:audio/')) {
         audioUrl = message.content;
+        console.log('✅ Áudio detectado como data URL completa');
       }
-      // 2. Verificar se é apenas base64 e construir data URL
+      // 2. Verificar se content já contém "data:" mas com outro formato de mídia
+      else if (message.content && message.content.startsWith('data:') && message.content.includes('base64,')) {
+        audioUrl = message.content;
+        console.log('✅ Áudio detectado como data URL (qualquer formato)');
+      }
+      // 3. Verificar se é apenas base64 e construir data URL
       else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
         const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
         audioUrl = `data:${mimeType};base64,${message.content}`;
+        console.log('✅ Áudio construído a partir de base64');
       }
-      // 3. Verificar se é uma URL HTTP/HTTPS válida
+      // 4. Verificar se é uma URL HTTP/HTTPS válida
       else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
         audioUrl = message.content;
+        console.log('✅ Áudio detectado como URL HTTP');
       }
-      // 4. Verificar se há audioUrl nos metadados (para mensagens recebidas)
+      // 5. Verificar se há audioUrl nos metadados (para mensagens recebidas)
       else if ((message.metadata as any)?.audio?.audioUrl) {
         audioUrl = (message.metadata as any).audio.audioUrl;
+        console.log('✅ Áudio detectado nos metadados');
       }
 
       const duration = (message.metadata as any)?.duration || 0;
       
       // Se temos URL válida, renderizar o player
       if (audioUrl) {
+        console.log('🎵 Renderizando player de áudio para mensagem', message.id);
         return (
           <AudioMessage
             audioUrl={audioUrl}
@@ -509,6 +525,7 @@ export function MessageBubble({
       // Se não temos URL mas temos messageId, tentar buscar
       const messageIdFromMetadata = (message.metadata as any)?.messageId;
       if (messageIdFromMetadata) {
+        console.log('🔍 Tentando buscar áudio via API para messageId:', messageIdFromMetadata);
         return (
           <AudioMessage
             audioUrl={null}
@@ -518,8 +535,22 @@ export function MessageBubble({
           />
         );
       }
+
+      // Se é um áudio enviado por nós (audioSent: true), usar o ID da mensagem para buscar
+      if ((message.metadata as any)?.audioSent && !isFromContact) {
+        console.log('🔍 Áudio enviado detectado, buscando via ID da mensagem:', message.id);
+        return (
+          <AudioMessage
+            audioUrl={null}
+            duration={duration}
+            isFromContact={isFromContact}
+            messageIdForFetch={message.id.toString()}
+          />
+        );
+      }
       
       // Fallback para áudio indisponível
+      console.log('❌ Áudio indisponível para mensagem', message.id);
       return (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
           <Volume2 className="w-4 h-4 text-red-500" />

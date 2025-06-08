@@ -101,6 +101,55 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
+  // Get audio content for a specific message - REST: GET /api/messages/:id/audio
+  app.get('/api/messages/:id/audio', async (req, res) => {
+    try {
+      const messageId = req.params.id;
+      console.log('🔍 Buscando áudio para messageId:', messageId);
+      
+      // Tentar buscar por ID interno da mensagem
+      if (!isNaN(parseInt(messageId))) {
+        const message = await storage.getMessage(parseInt(messageId));
+        console.log('📄 Mensagem encontrada:', { 
+          id: message?.id, 
+          type: message?.messageType,
+          hasContent: !!message?.content,
+          contentPreview: message?.content?.substring(0, 50)
+        });
+        
+        if (message && message.messageType === 'audio' && message.content) {
+          // Se o content já é uma data URL válida, retornar
+          if (message.content.startsWith('data:audio/') || message.content.startsWith('data:')) {
+            return res.json({ 
+              success: true, 
+              audioUrl: message.content 
+            });
+          }
+        }
+      }
+      
+      // Tentar buscar por messageId nos metadados (mensagens recebidas)
+      const messages = await storage.getMessagesByMetadata('messageId', messageId);
+      console.log('📄 Mensagens encontradas por messageId:', messages.length);
+      
+      for (const message of messages) {
+        if (message.messageType === 'audio' && message.content) {
+          console.log('🎵 Áudio encontrado nos metadados');
+          return res.json({ 
+            success: true, 
+            audioUrl: message.content 
+          });
+        }
+      }
+      
+      console.log('❌ Áudio não encontrado para messageId:', messageId);
+      return res.status(404).json({ error: 'Áudio não encontrado' });
+    } catch (error) {
+      console.error('❌ Erro ao buscar áudio:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {
     try {

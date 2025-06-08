@@ -24,6 +24,14 @@ export function AudioMessage({
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  console.log('🎵 AudioMessage rendered:', {
+    audioUrl: audioUrl ? `${audioUrl.substring(0, 50)}...` : null,
+    duration,
+    isFromContact,
+    messageIdForFetch,
+    fetchedAudioUrl: fetchedAudioUrl ? `${fetchedAudioUrl.substring(0, 50)}...` : null
+  });
+
 
 
   // Cache de falhas para evitar requisições repetidas

@@ -245,6 +245,7 @@ export interface IStorage {
 
   // Message sync operations
   getMessageByZApiId(zapiMessageId: string): Promise<Message | undefined>;
+  getMessagesByMetadata(key: string, value: string): Promise<Message[]>;
 }
 
 export class DatabaseStorage implements IStorage {
