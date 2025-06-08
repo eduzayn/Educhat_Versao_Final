@@ -7,24 +7,59 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 1000, offset = 0): Promise<ConversationWithContact[]> {
-    // Buscar conversas básicas primeiro
-    const conversationsData = await this.db
-      .select()
+    // Buscar conversas com contatos usando JOIN otimizado
+    const conversationsWithContacts = await this.db
+      .select({
+        // Conversation fields
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        macrosetor: conversations.macrosetor,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        assignmentMethod: conversations.assignmentMethod,
+        assignedAt: conversations.assignedAt,
+        isRead: conversations.isRead,
+        priority: conversations.priority,
+        tags: conversations.tags,
+        metadata: conversations.metadata,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        // Contact fields
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          location: contacts.location,
+          age: contacts.age,
+          isOnline: contacts.isOnline,
+          lastSeenAt: contacts.lastSeenAt,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          assignedUserId: contacts.assignedUserId,
+          tags: contacts.tags,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        }
+      })
       .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
       .limit(limit)
       .offset(offset);
 
-    // Para cada conversa, buscar contato e canal
-    const conversationsWithDetails = await Promise.all(
-      conversationsData.map(async (conv) => {
-        // Buscar contato
-        const [contact] = await this.db
-          .select()
-          .from(contacts)
-          .where(eq(contacts.id, conv.contactId));
-
-        // Buscar canal se houver
+    // Adicionar informações de canal quando necessário
+    const conversationsWithFullDetails = await Promise.all(
+      conversationsWithContacts.map(async (conv) => {
         let channelInfo = null;
         if (conv.channelId) {
           [channelInfo] = await this.db
@@ -35,15 +70,14 @@ export class ConversationStorage extends BaseStorage {
 
         return {
           ...conv,
-          contact: contact || null,
-          channelInfo: channelInfo || null,
+          channelInfo,
           messages: [],
           _count: { messages: conv.unreadCount || 0 }
         };
       })
     );
 
-    return conversationsWithDetails as ConversationWithContact[];
+    return conversationsWithFullDetails;
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
