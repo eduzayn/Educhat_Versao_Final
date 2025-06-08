@@ -57,7 +57,7 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Adicionar informações de canal quando necessário
+    // Adicionar informações de canal e última mensagem
     const conversationsWithFullDetails = await Promise.all(
       conversationsWithContacts.map(async (conv) => {
         let channelInfo = null;
@@ -68,10 +68,21 @@ export class ConversationStorage extends BaseStorage {
             .where(eq(channels.id, conv.channelId));
         }
 
+        // Buscar última mensagem para prévia
+        const lastMessage = await this.db
+          .select()
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+
         return {
           ...conv,
           channelInfo,
-          messages: [],
+          messages: lastMessage || [],
           _count: { messages: conv.unreadCount || 0 }
         };
       })

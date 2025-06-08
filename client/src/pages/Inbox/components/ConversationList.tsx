@@ -216,12 +216,16 @@ export function ConversationList({
                     </div>
 
                     {/* Preview da última mensagem */}
-                    {conversation.messages?.[0] && (
-                      <p className="text-sm text-gray-500 truncate mt-1">
-                        {conversation.messages[0].isFromContact ? '' : 'Você: '}
-                        {conversation.messages[0].content}
-                      </p>
-                    )}
+                    <p className="text-sm text-gray-500 truncate mt-1">
+                      {conversation.messages?.[0] ? (
+                        <>
+                          {conversation.messages[0].isFromContact ? '' : 'Você: '}
+                          {conversation.messages[0].content}
+                        </>
+                      ) : (
+                        'Sem mensagens'
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
