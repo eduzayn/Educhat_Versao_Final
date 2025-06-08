@@ -193,22 +193,26 @@ export function ChatMessages() {
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
-    if (!activeChannel || !user?.id) return;
+    if (!activeChannel || !user) return;
     
     const message = messages.find(m => m.id === messageId);
-    if (!message || !user.id) return;
+    if (!message) return;
     
-    const userReacted = message.reactions[emoji]?.includes(user.id);
+    const userId = (user as any).id || (user as any).userId;
+    if (!userId) return;
+    
+    const userReacted = message.reactions[emoji]?.includes(userId);
     
     if (userReacted) {
-      removeReaction(messageId, activeChannel, emoji, user.id);
+      removeReaction(messageId, activeChannel, emoji, userId);
     } else {
-      addReaction(messageId, activeChannel, emoji, user.id);
+      addReaction(messageId, activeChannel, emoji, userId);
     }
   };
 
   const renderMessage = (message: InternalChatMessage, isConsecutive: boolean) => {
-    const isOwnMessage = message.userId === user?.id;
+    const userId = (user as any)?.id || (user as any)?.userId;
+    const isOwnMessage = message.userId === userId;
     
     return (
       <div
@@ -399,10 +403,11 @@ export function ChatMessages() {
             {/* Messages */}
             {group.messages.map((message, messageIndex) => {
               const previousMessage = messageIndex > 0 ? group.messages[messageIndex - 1] : null;
-              const isConsecutive = 
+              const isConsecutive = Boolean(
                 previousMessage && 
                 previousMessage.userId === message.userId &&
-                message.timestamp.getTime() - previousMessage.timestamp.getTime() < 300000; // 5 minutos
+                message.timestamp.getTime() - previousMessage.timestamp.getTime() < 300000 // 5 minutos
+              );
               
               return renderMessage(message, isConsecutive);
             })}
