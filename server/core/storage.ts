@@ -3696,13 +3696,14 @@ export class DatabaseStorage implements IStorage {
   // Check if user can respond to conversations of other users
   async canUserRespondToOthersConversations(userId: number): Promise<boolean> {
     const userPermissions = await this.getUserPermissions(userId);
-    return userPermissions.some(p => p.permission === 'conversa:responder_outros');
+    // Check for specific permission or admin "all" permission
+    return userPermissions.some(p => p.permission === 'conversa:responder_outros' || p.permission === 'all');
   }
 
   // Check if user can respond to their own conversations only
   async canUserRespondToOwnConversations(userId: number): Promise<boolean> {
     const userPermissions = await this.getUserPermissions(userId);
-    return userPermissions.some(p => p.permission === 'conversa:responder_proprio');
+    return userPermissions.some(p => p.permission === 'conversa:responder_proprio' || p.permission === 'all');
   }
 
   // Check if user can respond to a specific conversation
