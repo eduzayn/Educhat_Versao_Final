@@ -5,6 +5,7 @@ import { Textarea } from '@/shared/ui/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
 import { Badge } from '@/shared/ui/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
@@ -34,6 +35,9 @@ export function ChatInput() {
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,16 +49,50 @@ export function ChatInput() {
   // Garantir que temos user tipado corretamente
   const currentUser = user as ChatUser | undefined;
 
+  // Lista de usuários mockados para menções (em produção seria uma API)
+  const availableUsers: ChatUser[] = [
+    { id: 1, username: 'admin', displayName: 'Administrador', avatar: '' },
+    { id: 2, username: 'comercial1', displayName: 'João Silva', avatar: '' },
+    { id: 3, username: 'suporte1', displayName: 'Maria Santos', avatar: '' },
+    { id: 4, username: 'gerente', displayName: 'Carlos Lima', avatar: '' },
+    { id: 5, username: 'atendente1', displayName: 'Ana Costa', avatar: '' },
+  ];
+
   const filteredCommands = COMMANDS.filter(cmd => 
     message.startsWith('/') && cmd.command.toLowerCase().includes(message.toLowerCase())
+  );
+
+  const filteredUsers = availableUsers.filter(user => 
+    user.displayName.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+    user.username.toLowerCase().includes(mentionQuery.toLowerCase())
   );
 
   useEffect(() => {
     if (message.startsWith('/') && message.length > 1) {
       setShowCommands(true);
       setSelectedCommandIndex(0);
+      setShowMentions(false);
     } else {
       setShowCommands(false);
+    }
+
+    // Detectar menções (@usuario)
+    const lastAtIndex = message.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const textAfterAt = message.slice(lastAtIndex + 1);
+      const spaceIndex = textAfterAt.indexOf(' ');
+      
+      if (spaceIndex === -1 || textAfterAt.length <= 20) {
+        const query = spaceIndex === -1 ? textAfterAt : textAfterAt.slice(0, spaceIndex);
+        setMentionQuery(query);
+        setShowMentions(true);
+        setSelectedMentionIndex(0);
+        setShowCommands(false);
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
     }
   }, [message]);
 
@@ -278,8 +316,51 @@ export function ChatInput() {
     }
   };
 
+  const insertMention = (user: ChatUser) => {
+    const lastAtIndex = message.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const beforeAt = message.slice(0, lastAtIndex);
+      const afterAt = message.slice(lastAtIndex + 1);
+      const spaceIndex = afterAt.indexOf(' ');
+      const afterMention = spaceIndex !== -1 ? afterAt.slice(spaceIndex) : '';
+      
+      const newMessage = `${beforeAt}@${user.username} ${afterMention}`;
+      setMessage(newMessage);
+      setShowMentions(false);
+      textareaRef.current?.focus();
+    }
+  };
+
+  const insertMentionButton = () => {
+    const newMessage = message + '@';
+    setMessage(newMessage);
+    textareaRef.current?.focus();
+  };
+
+
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (showCommands && filteredCommands.length > 0) {
+    if (showMentions && filteredUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => 
+          prev < filteredUsers.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => 
+          prev > 0 ? prev - 1 : filteredUsers.length - 1
+        );
+      } else if (e.key === 'Tab' || e.key === 'Enter') {
+        e.preventDefault();
+        const selectedUser = filteredUsers[selectedMentionIndex];
+        if (selectedUser) {
+          insertMention(selectedUser);
+        }
+      } else if (e.key === 'Escape') {
+        setShowMentions(false);
+      }
+    } else if (showCommands && filteredCommands.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedCommandIndex(prev => 
@@ -349,6 +430,33 @@ export function ChatInput() {
             onRecordingStateChange={setIsRecording}
             autoStart={isRecording}
           />
+        </div>
+      )}
+
+      {/* Mentions Popup */}
+      {showMentions && filteredUsers.length > 0 && (
+        <div className="mb-3 p-2 bg-accent rounded-md border">
+          <p className="text-xs text-muted-foreground mb-2">Mencionar usuário:</p>
+          {filteredUsers.map((user, index) => (
+            <div
+              key={user.id}
+              className={`p-2 rounded cursor-pointer flex items-center gap-3 ${
+                index === selectedMentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-background'
+              }`}
+              onClick={() => insertMention(user)}
+            >
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={user.avatar} />
+                <AvatarFallback className="text-xs">
+                  {user.displayName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="text-sm font-medium">{user.displayName}</div>
+                <div className="text-xs opacity-75">@{user.username}</div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
