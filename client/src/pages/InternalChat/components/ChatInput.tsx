@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Smile, AtSign, Calendar, AlertTriangle, Mic, Image, Video, FileText, Upload } from 'lucide-react';
-import { Button } from '@/shared/ui/ui/button';
-import { Textarea } from '@/shared/ui/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Button } from '@/shared/ui/button';
+import { Textarea } from '@/shared/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Badge } from '@/shared/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';

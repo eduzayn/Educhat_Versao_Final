@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/ui/dialog';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Label } from '@/shared/ui/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Card } from '@/shared/ui/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Card } from '@/shared/ui/card';
 import { MessageSquare, Instagram, Facebook, Mail, MessageSquareText, Phone, ChevronRight, ChevronLeft } from 'lucide-react';
 import { ZApiQRCode } from './ZApiQRCode';
 

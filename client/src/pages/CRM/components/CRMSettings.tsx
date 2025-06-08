@@ -6,14 +6,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/ui/dialog';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Label } from '@/shared/ui/ui/label';
-import { Switch } from '@/shared/ui/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Separator } from '@/shared/ui/ui/separator';
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Switch } from '@/shared/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Separator } from '@/shared/ui/separator';
 import { queryClient } from '@/lib/queryClient';
 import {
   Settings,

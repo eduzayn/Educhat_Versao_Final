@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
 import { Volume2, VolumeX, Play, Settings, Check } from 'lucide-react';
-import { Button } from '@/shared/ui/ui/button';
-import { Switch } from '@/shared/ui/ui/switch';
-import { Label } from '@/shared/ui/ui/label';
-import { Slider } from '@/shared/ui/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Separator } from '@/shared/ui/ui/separator';
+import { Button } from '@/shared/ui/button';
+import { Switch } from '@/shared/ui/switch';
+import { Label } from '@/shared/ui/label';
+import { Slider } from '@/shared/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Separator } from '@/shared/ui/separator';
 import { useInternalChatStore } from '../store/internalChatStore';
 
 // Sons disponíveis para notificações

@@ -1,0 +1,75 @@
+Refatoração Final: Limpeza e Organização do Código após Refatoração do storage
+🎯 Objetivo Geral
+Solicito uma revisão completa do projeto com foco em limpeza, organização e eliminação de código legado, especialmente após a refatoração do módulo storage (anteriormente com +4.000 linhas). O objetivo é garantir que o projeto mantenha apenas arquivos, componentes, rotas e funções que estejam em uso ativo, seguindo um padrão de arquitetura limpo, sustentável e preparado para escalar.
+
+🔍 Pontos que precisam ser verificados
+📂 1. Rotas e Páginas
+Verificar se todas as rotas registradas (incluindo as protegidas) estão sendo realmente utilizadas.
+
+Remover rotas obsoletas, duplicadas ou de testes que ficaram para trás.
+
+Consolidar definições de rotas espalhadas em um único arquivo ou estrutura clara.
+
+Garantir que páginas associadas a rotas removidas também sejam excluídas com segurança.
+
+🔗 2. Endpoints e API
+Identificar endpoints que não estão mais sendo utilizados (inclusive antigos de módulos removidos do storage).
+
+Detectar e remover chamadas de API duplicadas ou mal estruturadas.
+
+Verificar se ainda existem funções no backend que faziam parte do storage antigo e agora estão obsoletas.
+
+Documentar, mesmo que de forma leve (ex: comentários), os endpoints atualmente ativos.
+
+🧱 3. Componentes
+Remover componentes duplicados gerados antes ou durante a refatoração do storage.
+
+Identificar componentes internos e aninhados que agora podem ou devem ser reutilizados globalmente.
+
+Agrupar componentes reutilizáveis em pastas como /shared, /components/common, etc.
+
+Verificar se algum componente dependia do storage antigo e ficou quebrado, não utilizado ou órfão.
+
+🗂️ 4. Organização de Arquivos
+Consolidar a nova estrutura de store/modules após a divisão do storage.
+
+Verificar se existem resíduos do storage antigo (arquivos não conectados à nova arquitetura).
+
+Validar a existência de nomes duplicados ou parecidos com funções/variáveis antigas do storage.
+
+Separar logicamente:
+pages/ – Páginas de rotas
+store/ – Estados globais refatorados
+hooks/ – Hooks organizados por escopo
+lib/ – Funções utilitárias e serviços
+ui/ – Elementos de interface reutilizáveis
+api/ – Handlers de API ativos
+
+🧹 5. Limpeza de Código Morto
+Remover imports não utilizados (gerados durante o antigo storage).
+
+Eliminar variáveis, constantes e helpers antigos relacionados ao storage legacy.
+
+Excluir arquivos .ts, .tsx, .json que não são mais utilizados e ficaram para trás durante a refatoração.
+
+Validar se algum módulo de estado ainda referencia partes removidas do antigo storage.
+
+🧠 6. Consistência e Performance
+Padronizar nomes de estados, stores e funções criadas na nova estrutura (useXStore, setX, etc.).
+
+Verificar redundâncias de lógica entre páginas e componentes que podem agora usar o novo storage modular.
+
+Eliminar re-renderizações desnecessárias causadas por estados ou hooks duplicados.
+
+Garantir que a nova estrutura de store utilize boas práticas de escopo e atualização reativa.
+
+✅ Resultado Esperado
+Código limpo, organizado e enxuto.
+
+Nenhum vestígio do antigo storage remanescente.
+
+Componentes reaproveitáveis, estados modulares e APIs organizadas.
+
+Maior performance, clareza e facilidade de manutenção.
+
+Pronto para escalar novas funcionalidades com confiança.

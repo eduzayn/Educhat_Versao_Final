@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useUnreadCount } from '@/shared/lib/hooks/useUnreadCount';
 import { 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
-import { Input } from '@/shared/ui/ui/input';
+import { Button } from '@/shared/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Input } from '@/shared/ui/input';
 import { BackButton } from '@/shared/components/BackButton';
 import { 
   Search, 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Button } from '@/shared/ui/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
 import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { useZApiStore } from '@/shared/store/zapiStore';
 

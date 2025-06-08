@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Textarea } from '@/shared/ui/ui/textarea';
+import { Button } from '@/shared/ui/button';
+import { Textarea } from '@/shared/ui/textarea';
 import { Send, Mic } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';

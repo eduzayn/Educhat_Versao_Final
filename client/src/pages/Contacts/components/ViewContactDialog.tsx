@@ -1,7 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/ui/dialog';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Button } from '@/shared/ui/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
+import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
 import { Phone, Mail, MapPin, Building, User, Calendar, MessageSquare } from 'lucide-react';
 import type { Contact } from '@shared/schema';
 

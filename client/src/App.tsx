@@ -1,8 +1,8 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/shared/ui/ui/toaster";
-import { TooltipProvider } from "@/shared/ui/ui/tooltip";
+import { Toaster } from "@/shared/ui/toaster";
+import { TooltipProvider } from "@/shared/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";

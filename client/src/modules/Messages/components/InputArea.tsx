@@ -13,28 +13,28 @@ import {
   MessageSquare,
   StickyNote,
 } from "lucide-react";
-import { Button } from "@/shared/ui/ui/button";
-import { Textarea } from "@/shared/ui/ui/textarea";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/shared/ui/ui/popover";
+} from "@/shared/ui/popover";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
-import { Input } from "@/shared/ui/ui/input";
-import { Label } from "@/shared/ui/ui/label";
-import { Badge } from "@/shared/ui/ui/badge";
+} from "@/shared/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Badge } from "@/shared/ui/badge";
 import { useSendMessage } from "@/shared/lib/hooks/useMessages";
 import { useSendAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
-import { useChatStore } from "@/shared/store/store/chatStore";
+import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { AudioRecorder, AudioRecorderRef } from "./AudioRecorder";
 import { cn } from "@/lib/utils";

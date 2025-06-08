@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation } from 'wouter';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Badge } from '@/shared/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { 
   Calendar,
   Clock,

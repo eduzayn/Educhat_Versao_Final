@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Input } from '@/shared/ui/ui/input';
-import { Label } from '@/shared/ui/ui/label';
-import { Textarea } from '@/shared/ui/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Textarea } from '@/shared/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { Breadcrumbs } from '@/shared/components/Breadcrumbs';

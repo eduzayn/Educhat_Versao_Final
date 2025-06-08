@@ -2,16 +2,16 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useFormSubmission, formatCoachingData } from '@/shared/lib/utils/formHelpers';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
-import { Label } from '@/shared/ui/ui/label';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Textarea } from '@/shared/ui/ui/textarea';
-import { Progress } from '@/shared/ui/ui/progress';
-import { Avatar, AvatarFallback } from '@/shared/ui/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Label } from '@/shared/ui/label';
+import { Badge } from '@/shared/ui/badge';
+import { Textarea } from '@/shared/ui/textarea';
+import { Progress } from '@/shared/ui/progress';
+import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { 
   Plus, 
   Users, 

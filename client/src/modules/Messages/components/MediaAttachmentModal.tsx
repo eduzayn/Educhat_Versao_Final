@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/ui/dialog';
-import { Input } from '@/shared/ui/ui/input';
-import { Textarea } from '@/shared/ui/ui/textarea';
-import { Label } from '@/shared/ui/ui/label';
+import { Button } from '@/shared/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
+import { Label } from '@/shared/ui/label';
 import { 
   Paperclip, 
   Image, 

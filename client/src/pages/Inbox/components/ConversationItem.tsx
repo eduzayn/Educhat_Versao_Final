@@ -1,5 +1,5 @@
-import { Badge } from '@/shared/ui/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Badge } from '@/shared/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 
 interface ConversationItemProps {

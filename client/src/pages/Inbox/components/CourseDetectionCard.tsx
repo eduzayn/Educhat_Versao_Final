@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Badge } from '@/shared/ui/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Badge } from '@/shared/ui/badge';
 import { GraduationCap, BookOpen, Calendar } from 'lucide-react';
 
 interface CourseInfo {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
-import { Button } from "@/shared/ui/ui/button";
+import { Button } from "@/shared/ui/button";
 import { formatAudioTime } from "@/shared/lib/utils/formatters";
 
 interface AudioMessageProps {

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Switch } from '@/shared/ui/ui/switch';
-import { Button } from '@/shared/ui/ui/button';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Separator } from '@/shared/ui/ui/separator';
-import { Label } from '@/shared/ui/ui/label';
-import { Input } from '@/shared/ui/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Switch } from '@/shared/ui/switch';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Separator } from '@/shared/ui/separator';
+import { Label } from '@/shared/ui/label';
+import { Input } from '@/shared/ui/input';
 import { BackButton } from '@/shared/components/BackButton';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

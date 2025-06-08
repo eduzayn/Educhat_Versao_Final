@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Card, CardContent } from '@/shared/ui/ui/card';
-import { Input } from '@/shared/ui/ui/input';
-import { Label } from '@/shared/ui/ui/label';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent } from '@/shared/ui/card';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Eye, EyeOff } from 'lucide-react';

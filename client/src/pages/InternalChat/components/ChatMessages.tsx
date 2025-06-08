@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ScrollArea } from '@/shared/ui/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Button } from '@/shared/ui/ui/button';
+import { ScrollArea } from '@/shared/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
 import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle, Play, Pause, Volume2, Download, FileText, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { useInternalChatStore, type InternalChatMessage } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';

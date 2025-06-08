@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Textarea } from '@/shared/ui/ui/textarea';
-import { Badge } from '@/shared/ui/ui/badge';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Textarea } from '@/shared/ui/textarea';
+import { Badge } from '@/shared/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';

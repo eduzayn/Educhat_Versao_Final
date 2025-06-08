@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Input } from '@/shared/ui/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, Filter, X } from 'lucide-react';
 import { CHANNELS, STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';

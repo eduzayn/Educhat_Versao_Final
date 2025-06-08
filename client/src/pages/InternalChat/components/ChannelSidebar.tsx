@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Hash, Users, Search, Bell, BellOff, Settings } from 'lucide-react';
-import { Button } from '@/shared/ui/ui/button';
-import { Input } from '@/shared/ui/ui/input';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Separator } from '@/shared/ui/ui/separator';
-import { ScrollArea } from '@/shared/ui/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Badge } from '@/shared/ui/badge';
+import { Separator } from '@/shared/ui/separator';
+import { ScrollArea } from '@/shared/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
-import { Button } from '@/shared/ui/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Badge } from '@/shared/ui/ui/badge';
-import { Avatar, AvatarFallback } from '@/shared/ui/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Badge } from '@/shared/ui/badge';
+import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { 
   Trophy, 
   Medal, 

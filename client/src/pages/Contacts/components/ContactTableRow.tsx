@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from '@/shared/ui/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/ui/avatar';
-import { Checkbox } from '@/shared/ui/ui/checkbox';
-import { Badge } from '@/shared/ui/ui/badge';
+import { Button } from '@/shared/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { Badge } from '@/shared/ui/badge';
 import { Eye, Edit, Trash2, Phone, Camera } from 'lucide-react';
 import type { Contact } from '@shared/schema';
 

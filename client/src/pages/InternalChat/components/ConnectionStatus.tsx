@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Wifi, WifiOff, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/shared/ui/ui/alert';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { useInternalChatStore } from '../store/internalChatStore';
 
 export function ConnectionStatus() {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/shared/ui/ui/button";
+import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
 

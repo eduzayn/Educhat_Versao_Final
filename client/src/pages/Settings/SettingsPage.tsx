@@ -1,5 +1,5 @@
 import { SettingsModule } from '@/modules/Settings';
-import { Card } from '@/shared/ui/ui/card';
+import { Card } from '@/shared/ui/card';
 import { BackButton } from '@/shared/components/BackButton';
 
 const settingsCards = [

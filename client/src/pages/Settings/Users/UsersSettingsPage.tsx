@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Users, Shield, UserCheck, Settings } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
 import { UsersTab } from './components/UsersTab';

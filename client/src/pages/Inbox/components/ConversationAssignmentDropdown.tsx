@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/ui/select';
-import { Badge } from '@/shared/ui/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Badge } from '@/shared/ui/badge';
 import { Users, User } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team, SystemUser } from '@shared/schema';
