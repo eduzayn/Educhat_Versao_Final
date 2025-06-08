@@ -293,7 +293,7 @@ export function MessageBubble({
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
   const messageTime = useMemo(
-    () => formatTime(messageTimestamp),
+    () => formatTime(messageTimestamp instanceof Date ? messageTimestamp.getTime() : new Date(messageTimestamp).getTime()),
     [messageTimestamp],
   );
 
