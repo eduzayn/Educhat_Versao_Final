@@ -13,24 +13,24 @@ import {
   MessageSquare,
   StickyNote,
 } from "lucide-react";
-import { Button } from "../../button";
-import { Textarea } from "../../textarea";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../popover";
+} from "@/shared/ui/popover";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../dialog";
+} from "@/shared/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Input } from "../../input";
-import { Label } from "../../label";
-import { Badge } from "../../badge";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Badge } from "@/shared/ui/badge";
 import { useSendMessage } from "@/shared/lib/hooks/useMessages";
 import { useSendAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";

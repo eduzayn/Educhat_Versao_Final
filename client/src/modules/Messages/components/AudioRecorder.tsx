@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
-import { Button } from "../../button";
+import { Button } from "@/shared/ui/button";
 import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/shared/lib/utils/formatters";

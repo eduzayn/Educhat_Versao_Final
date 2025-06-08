@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Button } from "../../button";
+import { Button } from "@/shared/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../popover";
+} from "@/shared/ui/popover";
 import { Smile, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
