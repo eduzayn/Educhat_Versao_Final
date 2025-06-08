@@ -33,34 +33,58 @@ export async function comparePasswords(supplied: string, stored: string) {
   return await bcrypt.compare(supplied, stored);
 }
 
+function getOptimalAuthConfig() {
+  const isProduction = process.env.NODE_ENV === "production";
+  const renderUrl = process.env.RENDER_EXTERNAL_URL;
+  const railwayUrl = process.env.RAILWAY_STATIC_URL;
+  const replitDomains = process.env.REPLIT_DOMAINS;
+  
+  // Detectar plataforma de hospedagem
+  const isRender = !!renderUrl;
+  const isRailway = !!railwayUrl;
+  const isReplit = !!replitDomains;
+  
+  // Configurações otimizadas por plataforma
+  let cookieSecure = false;
+  let sameSite: 'strict' | 'lax' | 'none' = 'lax';
+  
+  if (isProduction) {
+    if (isRender || isRailway) {
+      cookieSecure = true;
+      sameSite = 'lax';
+    } else if (isReplit) {
+      cookieSecure = false; // Replit tem problemas com cookies seguros
+      sameSite = 'lax';
+    }
+  }
+  
+  return {
+    isProduction,
+    cookieSecure,
+    sameSite,
+    trustProxy: isProduction,
+    sessionSecret: process.env.SESSION_SECRET || "educhat-fallback-secret-2024",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias para melhor estabilidade
+    platform: isRender ? 'render' : isRailway ? 'railway' : isReplit ? 'replit' : 'unknown'
+  };
+}
+
 export function setupAuth(app: Express) {
   const PgSession = ConnectPgSimple(session);
+  const config = getOptimalAuthConfig();
   
-  // Detectar ambiente de produção e configurações HTTPS
-  const isProduction = process.env.NODE_ENV === "production";
-  const forceSecure = process.env.FORCE_SECURE_COOKIES === 'true';
-  const isHttps = forceSecure || (isProduction && (
-    process.env.RENDER_EXTERNAL_URL?.startsWith('https://') ||
-    process.env.RAILWAY_STATIC_URL?.startsWith('https://') ||
-    process.env.REPLIT_DOMAINS?.includes('replit.dev')
-  ));
-
   // Configurar trust proxy ANTES das sessões
-  if (isProduction) {
+  if (config.trustProxy) {
     app.set('trust proxy', 1);
   }
   
-  // Log detalhado da configuração
-  console.log("🔒 Configuração de autenticação:", {
+  console.log("🔒 Configuração de autenticação otimizada:", {
     environment: process.env.NODE_ENV,
-    isProduction,
-    isHttps,
-    forceSecure,
-    trustProxy: isProduction,
-    renderUrl: process.env.RENDER_EXTERNAL_URL,
-    railwayUrl: process.env.RAILWAY_STATIC_URL,
-    replitDomains: process.env.REPLIT_DOMAINS,
-    sessionSecret: !!process.env.SESSION_SECRET
+    platform: config.platform,
+    cookieSecure: config.cookieSecure,
+    sameSite: config.sameSite,
+    trustProxy: config.trustProxy,
+    maxAgeDays: config.maxAge / (1000 * 60 * 60 * 24)
   });
   
   app.use(
@@ -69,16 +93,16 @@ export function setupAuth(app: Express) {
         pool: pool,
         tableName: "user_sessions",
       }),
-      secret: process.env.SESSION_SECRET || "educhat-secret-key-2024",
+      secret: config.sessionSecret,
       resave: false,
       saveUninitialized: false,
       rolling: true,
       name: 'educhat-session',
       cookie: {
-        secure: false, // Temporariamente desabilitado para debug em produção
+        secure: config.cookieSecure,
         httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-        sameSite: "lax",
+        maxAge: config.maxAge,
+        sameSite: config.sameSite,
         domain: undefined,
         path: "/",
       },
