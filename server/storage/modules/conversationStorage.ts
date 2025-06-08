@@ -15,6 +15,18 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
+    console.log(`📋 Primeiras 3 conversas encontradas:`, 
+      conversationsData.slice(0, 3).map(c => ({ 
+        id: c.id, 
+        lastMessageAt: c.lastMessageAt 
+      }))
+    );
+
+    // Verificar se os dados estão corretos
+    if (conversationsData.length > 0) {
+      console.log(`🔍 Primeira conversa: ID ${conversationsData[0].id}, Last: ${conversationsData[0].lastMessageAt}`);
+    }
+
     // Para cada conversa, buscar contato, canal e última mensagem
     const conversationsWithDetails = await Promise.all(
       conversationsData.map(async (conv) => {
