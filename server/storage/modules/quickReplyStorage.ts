@@ -38,10 +38,14 @@ export class QuickReplyStorage extends BaseStorage {
   }
 
   async incrementQuickReplyUsage(id: number): Promise<void> {
+    // Get current usage count
+    const [current] = await this.db.select({ usageCount: quickReplies.usageCount })
+      .from(quickReplies)
+      .where(eq(quickReplies.id, id));
+    
     await this.db.update(quickReplies)
       .set({ 
-        usageCount: this.db.select().from(quickReplies).where(eq(quickReplies.id, id)),
-        lastUsed: new Date(),
+        usageCount: (current?.usageCount || 0) + 1,
         updatedAt: new Date()
       })
       .where(eq(quickReplies.id, id));
@@ -53,7 +57,7 @@ export class QuickReplyStorage extends BaseStorage {
   }
 
   async createQuickReplyUserShare(share: any): Promise<any> {
-    const [newShare] = await this.db.insert(quickReplyUserShares).values(share).returning();
+    const [newShare] = await this.db.insert(quickReplyShares).values(share).returning();
     return newShare;
   }
 
@@ -62,6 +66,6 @@ export class QuickReplyStorage extends BaseStorage {
   }
 
   async deleteQuickReplyUserShares(quickReplyId: number): Promise<void> {
-    await this.db.delete(quickReplyUserShares).where(eq(quickReplyUserShares.quickReplyId, quickReplyId));
+    await this.db.delete(quickReplyShares).where(eq(quickReplyShares.quickReplyId, quickReplyId));
   }
 }
