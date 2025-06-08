@@ -7,15 +7,6 @@ import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 import { Separator } from '@/shared/ui/ui/separator';
 import { useInternalChatStore } from '../store/internalChatStore';
 
-interface ChannelUser {
-  id: number;
-  username: string;
-  displayName: string;
-  roleName?: string;
-  avatar?: string;
-  isOnline?: boolean;
-}
-
 export function InfoPanel() {
   const { channels, activeChannel, channelUsers, loadChannelUsers } = useInternalChatStore();
   const [memberSearch, setMemberSearch] = useState('');
@@ -88,9 +79,9 @@ export function InfoPanel() {
           </div>
           <div className="bg-background rounded-lg p-2">
             <div className="text-lg font-bold text-green-600">
-              {members.filter(m => m.isOnline !== false).length}
+              {members.length}
             </div>
-            <div className="text-xs text-muted-foreground">Online</div>
+            <div className="text-xs text-muted-foreground">Ativos</div>
           </div>
         </div>
       </div>
@@ -133,9 +124,7 @@ export function InfoPanel() {
                         </AvatarFallback>
                       </Avatar>
                       {/* Indicador de status online */}
-                      <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${
-                        member.isOnline !== false ? 'bg-green-500' : 'bg-gray-400'
-                      }`} />
+                      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
                     </div>
                     
                     <div className="flex-1 min-w-0">
