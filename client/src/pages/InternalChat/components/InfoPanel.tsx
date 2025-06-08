@@ -120,8 +120,8 @@ export function InfoPanel() {
             <div className="space-y-3">
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                    <div className="relative">
+                  <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                    <div className="relative flex-shrink-0">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.avatar || ''} />
                         <AvatarFallback className="text-xs">
@@ -132,7 +132,7 @@ export function InfoPanel() {
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
                     </div>
                     
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-2">
                       <div className="flex items-center gap-1">
                         <p className="text-sm font-medium truncate">
                           {member.displayName}
@@ -146,7 +146,7 @@ export function InfoPanel() {
                         {member.roleName && (
                           <Badge 
                             variant={getRoleBadgeVariant(member.roleName)} 
-                            className="text-xs px-1 py-0"
+                            className="text-xs px-1 py-0 flex-shrink-0"
                           >
                             {member.roleName}
                           </Badge>
@@ -156,15 +156,17 @@ export function InfoPanel() {
 
                     {/* Botão de mensagem privada - sempre visível */}
                     {member.id !== (user as any)?.id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary transition-colors"
-                        onClick={() => setSelectedUserForPrivateChat(member)}
-                        title={`Enviar mensagem privada para ${member.displayName}`}
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
+                      <div className="flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary transition-colors"
+                          onClick={() => setSelectedUserForPrivateChat(member)}
+                          title={`Enviar mensagem privada para ${member.displayName}`}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))
