@@ -42,7 +42,7 @@ export function ChatInput() {
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { activeChannel, addMessage, setTyping, removeTyping } = useInternalChatStore();
+  const { activeChannel, addMessage, setTyping, removeTyping, playNotificationSound } = useInternalChatStore();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -168,6 +168,7 @@ export function ChatInput() {
       };
 
       addMessage(newMessage);
+      playNotificationSound('send');
       
       toast({
         title: "Áudio enviado",
@@ -260,6 +261,7 @@ export function ChatInput() {
     };
 
     addMessage(newMessage);
+    playNotificationSound('send');
     setIsAttachmentOpen(false);
     
     toast({
@@ -325,6 +327,7 @@ export function ChatInput() {
     };
 
     addMessage(newMessage);
+    playNotificationSound('send');
     setMessage('');
     
     if (textareaRef.current) {

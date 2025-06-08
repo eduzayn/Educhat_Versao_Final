@@ -130,15 +130,8 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
           </>
         )}
 
-        {/* Channel Settings */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Configurações do canal</TooltipContent>
-        </Tooltip>
+        {/* Chat Settings */}
+        <ChatSettings />
 
         {/* Info Panel Toggle */}
         <Tooltip>
