@@ -5,9 +5,76 @@ import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Badge } from '@/shared/ui/ui/badge';
 import { Button } from '@/shared/ui/ui/button';
-import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { Reply, Edit2, Trash2, MoreHorizontal, AlertTriangle, Play, Pause, Volume2 } from 'lucide-react';
 import { useInternalChatStore, type InternalChatMessage } from '../store/internalChatStore';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+
+// Componente para reproduzir áudio no chat interno
+function InternalAudioPlayer({ audioUrl, duration }: { audioUrl: string; duration: number }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlayPause = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg max-w-xs">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePlayPause}
+        className="h-8 w-8 flex-shrink-0"
+      >
+        {isPlaying ? (
+          <Pause className="h-4 w-4" />
+        ) : (
+          <Play className="h-4 w-4" />
+        )}
+      </Button>
+      
+      <div className="flex items-center gap-2 flex-1">
+        <Volume2 className="h-4 w-4 text-gray-500" />
+        <span className="text-sm text-gray-600">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </span>
+      </div>
+
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        preload="metadata"
+      />
+    </div>
+  );
+}
 
 export function ChatMessages() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -125,7 +192,18 @@ export function ChatMessages() {
                 </div>
               )}
               
-              <div className="break-words">{message.content}</div>
+              {/* Renderizar mensagem de áudio */}
+              {message.messageType === 'file' && message.metadata?.fileType === 'audio' ? (
+                <div className="mb-2">
+                  <InternalAudioPlayer 
+                    audioUrl={message.metadata.audioUrl} 
+                    duration={message.metadata.duration || 0} 
+                  />
+                  <div className="text-xs text-gray-500 mt-1">{message.content}</div>
+                </div>
+              ) : (
+                <div className="break-words">{message.content}</div>
+              )}
               
               {/* Reactions */}
               {Object.keys(message.reactions).length > 0 && (
