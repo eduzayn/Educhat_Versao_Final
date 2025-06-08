@@ -136,6 +136,15 @@ export function DealsModule() {
   const rawDeals = dealsResponse?.deals || [];
   const totalPages = dealsResponse?.totalPages || 1;
   const currentPage = dealsResponse?.currentPage || 1;
+  
+  // Debug logs para paginação
+  console.log('📊 Debug Paginação:', {
+    page,
+    totalPages,
+    currentPage,
+    dealsCount: rawDeals.length,
+    total: dealsResponse?.total
+  });
 
   // Get current macrosetor configuration
   const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];

@@ -4,45 +4,44 @@ import { storage } from '../../core/storage';
 
 export function registerDealsRoutes(app: Express) {
   
-  // Get all deals with filters - REST: GET /api/deals
+  // Get all deals with filters and pagination - REST: GET /api/deals
   app.get('/api/deals', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { status, assignedUserId, channel, startDate, endDate, stage, macrosetor } = req.query;
+      const { 
+        status, 
+        assignedUserId, 
+        channel, 
+        startDate, 
+        endDate, 
+        stage, 
+        macrosetor,
+        page = '1',
+        limit = '50',
+        search
+      } = req.query;
       
-      // Construir filtros baseados nos parâmetros da query
-      const filters: any = {};
+      // Parse pagination parameters
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
       
-      if (status && typeof status === 'string') {
-        filters.status = status;
+      if (isNaN(pageNum) || pageNum < 1) {
+        return res.status(400).json({ error: 'Página inválida' });
       }
       
-      if (assignedUserId && typeof assignedUserId === 'string') {
-        filters.assignedUserId = parseInt(assignedUserId);
+      if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({ error: 'Limite inválido (1-100)' });
       }
       
-      if (channel && typeof channel === 'string') {
-        filters.channel = channel;
-      }
+      // Use pagination method from storage
+      const result = await storage.getDealsWithPagination({
+        page: pageNum,
+        limit: limitNum,
+        macrosetor: macrosetor as string,
+        stage: stage as string,
+        search: search as string
+      });
       
-      if (stage && typeof stage === 'string') {
-        filters.stage = stage;
-      }
-      
-      if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
-      }
-      
-      if (startDate && typeof startDate === 'string') {
-        filters.startDate = new Date(startDate);
-      }
-      
-      if (endDate && typeof endDate === 'string') {
-        filters.endDate = new Date(endDate);
-      }
-      
-      const deals = await storage.getDeals(filters);
-      
-      res.json({ deals });
+      res.json(result);
     } catch (error) {
       console.error('Erro ao buscar negócios:', error);
       res.status(500).json({ 
