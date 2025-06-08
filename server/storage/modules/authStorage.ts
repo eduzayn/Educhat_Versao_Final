@@ -4,7 +4,7 @@ import {
   type User,
   type UpsertUser,
   type SystemUser,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * Authentication storage module

@@ -33,7 +33,7 @@ import {
   type ContactWithTags,
   type SystemSetting,
   type InsertSystemSetting,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 export interface IStorage {
   // User operations for auth

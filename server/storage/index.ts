@@ -624,7 +624,7 @@ export class DatabaseStorage implements IStorage {
 export const storage = new DatabaseStorage();
 
 // Also export the interface and modules for testing and future use
-export { IStorage } from "./interfaces/IStorage";
+export type { IStorage } from "./interfaces/IStorage";
 export { AuthStorage } from "./modules/authStorage";
 export { ContactStorage } from "./modules/contactStorage";
 export { ConversationStorage } from "./modules/conversationStorage";

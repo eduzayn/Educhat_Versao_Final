@@ -11,7 +11,7 @@ import {
   type Role,
   type InsertRole,
   type SystemUser,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * Team storage module

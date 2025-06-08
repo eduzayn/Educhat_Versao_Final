@@ -6,7 +6,7 @@ import {
   type InsertSystemUser,
   type SystemSetting,
   type InsertSystemSetting,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * System storage module

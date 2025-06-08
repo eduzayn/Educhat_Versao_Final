@@ -7,7 +7,7 @@ import {
   type Conversation,
   type InsertConversation,
   type ConversationWithContact,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * Conversation storage module

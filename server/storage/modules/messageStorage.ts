@@ -4,7 +4,7 @@ import {
   conversations,
   type Message,
   type InsertMessage,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * Message storage module

@@ -7,7 +7,7 @@ import {
   type ContactTag,
   type InsertContactTag,
   type ContactWithTags,
-} from "../../../shared/schema";
+} from "@shared/schema";
 
 /**
  * Contact storage module
