@@ -195,8 +195,7 @@ export function AudioMessage({
           </div>
         </div>
 
-        <div className="flex justify-between text-xs opacity-70 mt-1">
-          <span>{formatAudioTime(currentTime)}</span>
+        <div className="flex justify-end text-xs opacity-70 mt-1">
           <span>{formatAudioTime(audioDuration)}</span>
         </div>
       </div>
