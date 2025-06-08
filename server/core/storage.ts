@@ -614,7 +614,10 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(messages.conversationId, conversationId),
-          eq(messages.isHiddenForUser, false)
+          or(
+            eq(messages.isHiddenForUser, false),
+            isNull(messages.isHiddenForUser)
+          )
         )
       )
       .orderBy(desc(messages.sentAt))
