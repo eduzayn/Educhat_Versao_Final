@@ -10,13 +10,15 @@ export { ChannelStorage } from './modules/channelStorage';
 export { DealStorage } from './modules/dealStorage';
 export { NotesStorage } from './modules/notesStorage';
 export { QuickReplyStorage } from './modules/quickReplyStorage';
+export { TeamStorage } from './modules/teamStorage';
+export { MessageStorage } from './modules/messageStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
 
 /**
  * Classe principal do Storage que implementa a interface IStorage
- * Agrega todos os módulos especializados de storage
+ * Agrega todos os módulos especializados de storage usando delegação
  */
 import { IStorage } from './interfaces/IStorage';
 import { AuthStorage } from './modules/authStorage';
@@ -30,439 +32,199 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 
 export class DatabaseStorage implements IStorage {
-  private auth: AuthStorage;
-  private contact: ContactStorage;
-  private conversation: ConversationStorage;
-  private channel: ChannelStorage;
-  private deal: DealStorage;
-  private notes: NotesStorage;
-  private quickReply: QuickReplyStorage;
-  private teamModule: TeamStorage;
-  private message: MessageStorage;
+  private auth = new AuthStorage();
+  private contact = new ContactStorage();
+  private conversation = new ConversationStorage();
+  private channel = new ChannelStorage();
+  private deal = new DealStorage();
+  private notes = new NotesStorage();
+  private quickReply = new QuickReplyStorage();
+  private team = new TeamStorage();
+  private message = new MessageStorage();
 
-  constructor() {
-    this.auth = new AuthStorage();
-    this.contact = new ContactStorage();
-    this.conversation = new ConversationStorage();
-    this.channel = new ChannelStorage();
-    this.deal = new DealStorage();
-    this.notes = new NotesStorage();
-    this.quickReply = new QuickReplyStorage();
-    this.teamModule = new TeamStorage();
-    this.message = new MessageStorage();
-  }
+  // ========== AUTH ==========
+  getUser = this.auth.getUser;
+  getUserByEmail = this.auth.getUserByEmail;
+  createUser = this.auth.createUser;
+  upsertUser = this.auth.upsertUser;
+  getSystemUsers = this.auth.getSystemUsers;
+  getSystemUser = this.auth.getSystemUser;
+  createSystemUser = this.auth.createSystemUser;
+  updateSystemUser = this.auth.updateSystemUser;
+  deleteSystemUser = this.auth.deleteSystemUser;
 
-  // ==================== AUTH OPERATIONS ====================
-  async getUser(id: string) {
-    return this.auth.getUser(id);
-  }
+  // ========== CONTACT ==========
+  getContact = this.contact.getContact;
+  getContactWithTags = this.contact.getContactWithTags;
+  createContact = this.contact.createContact;
+  updateContact = this.contact.updateContact;
+  searchContacts = this.contact.searchContacts;
+  updateContactOnlineStatus = this.contact.updateContactOnlineStatus;
+  findOrCreateContact = this.contact.findOrCreateContact;
+  getContactInterests = this.contact.getContactInterests;
+  getContactTags = this.contact.getContactTags;
+  addContactTag = this.contact.addContactTag;
+  removeContactTag = this.contact.removeContactTag;
 
-  async getUserByEmail(email: string) {
-    return this.auth.getUserByEmail(email);
-  }
+  // ========== CONVERSATION ==========
+  getConversations = this.conversation.getConversations;
+  getConversation = this.conversation.getConversation;
+  createConversation = this.conversation.createConversation;
+  updateConversation = this.conversation.updateConversation;
+  getConversationByContactAndChannel = this.conversation.getConversationByContactAndChannel;
+  assignConversationToTeam = this.conversation.assignConversationToTeam;
+  assignConversationToUser = this.conversation.assignConversationToUser;
+  getConversationsByTeam = this.conversation.getConversationsByTeam;
+  getConversationsByUser = this.conversation.getConversationsByUser;
+  getTotalUnreadCount = this.conversation.getTotalUnreadCount;
+  markConversationAsRead = this.conversation.markConversationAsRead;
 
-  async createUser(user: any) {
-    return this.auth.createUser(user);
-  }
+  // ========== CHANNEL ==========
+  getChannels = this.channel.getChannels;
+  getChannel = this.channel.getChannel;
+  getChannelsByType = this.channel.getChannelsByType;
+  createChannel = this.channel.createChannel;
+  updateChannel = this.channel.updateChannel;
+  deleteChannel = this.channel.deleteChannel;
+  updateChannelConnectionStatus = this.channel.updateChannelConnectionStatus;
 
-  async upsertUser(user: any) {
-    return this.auth.upsertUser(user);
-  }
+  // ========== DEAL ==========
+  getDeals = this.deal.getDeals;
+  getDealsWithPagination = this.deal.getDealsWithPagination;
+  getDeal = this.deal.getDeal;
+  getDealsByContact = this.deal.getDealsByContact;
+  getDealsByStage = this.deal.getDealsByStage;
+  createDeal = this.deal.createDeal;
+  updateDeal = this.deal.updateDeal;
+  deleteDeal = this.deal.deleteDeal;
+  createAutomaticDeal = this.deal.createAutomaticDeal;
 
-  // ==================== CONTACT OPERATIONS ====================
-  async getContact(id: number) {
-    return this.contact.getContact(id);
-  }
+  // ========== NOTES ==========
+  getContactNotes = this.notes.getContactNotes;
+  createContactNote = this.notes.createContactNote;
+  updateContactNote = this.notes.updateContactNote;
+  deleteContactNote = this.notes.deleteContactNote;
 
-  async getContactWithTags(id: number) {
-    return this.contact.getContactWithTags(id);
-  }
+  // ========== QUICK REPLIES ==========
+  getQuickReplies = this.quickReply.getQuickReplies;
+  getQuickReply = this.quickReply.getQuickReply;
+  createQuickReply = this.quickReply.createQuickReply;
+  updateQuickReply = this.quickReply.updateQuickReply;
+  deleteQuickReply = this.quickReply.deleteQuickReply;
+  incrementQuickReplyUsage = this.quickReply.incrementQuickReplyUsage;
+  createQuickReplyTeamShare = this.quickReply.createQuickReplyTeamShare;
+  createQuickReplyUserShare = this.quickReply.createQuickReplyUserShare;
+  deleteQuickReplyTeamShares = this.quickReply.deleteQuickReplyTeamShares;
+  deleteQuickReplyUserShares = this.quickReply.deleteQuickReplyUserShares;
 
-  async createContact(contact: any) {
-    return this.contact.createContact(contact);
-  }
+  // ========== TEAM ==========
+  getTeams = this.team.getTeams;
+  getTeam = this.team.getTeam;
+  createTeam = this.team.createTeam;
+  updateTeam = this.team.updateTeam;
+  deleteTeam = this.team.deleteTeam;
+  getTeamByMacrosetor = this.team.getTeamByMacrosetor;
+  getAvailableUserFromTeam = this.team.getAvailableUserFromTeam;
+  getUserTeams = this.team.getUserTeams;
+  addUserToTeam = this.team.addUserToTeam;
+  removeUserFromTeam = this.team.removeUserFromTeam;
+  updateTeamMemberRole = this.team.updateTeamMemberRole;
+  getTeamMembers = this.team.getTeamMembers;
+  getTeamStatistics = this.team.getTeamStatistics;
 
-  async updateContact(id: number, contact: any) {
-    return this.contact.updateContact(id, contact);
-  }
+  // ========== MESSAGES ==========
+  getMessages = this.message.getMessages;
+  getMessageMedia = this.message.getMessageMedia;
+  createMessage = this.message.createMessage;
+  markMessageAsDeleted = this.message.markMessageAsDeleted;
+  getMessageByZApiId = this.message.getMessageByZApiId;
+  getMessagesByMetadata = this.message.getMessagesByMetadata;
 
-  async searchContacts(query: string) {
-    return this.contact.searchContacts(query);
-  }
+  // ========== PERMISSIONS (padrão TRUE, customizar depois) ==========
+  canUserRespondToOthersConversations = async () => true;
+  canUserRespondToOwnConversations = async () => true;
+  canUserRespondToConversation = async () => true;
 
-  async updateContactOnlineStatus(id: number, isOnline: boolean) {
-    return this.contact.updateContactOnlineStatus(id, isOnline);
-  }
+  // ========== MÉTODOS ADICIONAIS DE QUICK REPLIES ==========
+  getQuickRepliesByCategory = this.quickReply.getQuickRepliesByCategory;
+  searchQuickReplies = this.quickReply.searchQuickReplies;
+  getSharedQuickReplies = this.quickReply.getSharedQuickReplies;
+  getQuickRepliesByUser = this.quickReply.getQuickRepliesByUser;
+  getQuickRepliesByTeam = this.quickReply.getQuickRepliesByTeam;
 
-  async findOrCreateContact(userIdentity: string, contactData: any) {
-    return this.contact.findOrCreateContact(userIdentity, contactData);
-  }
+  // ========== MÉTODOS ADICIONAIS DE CONVERSAÇÃO ==========
+  getConversationMessages = this.conversation.getConversationMessages;
+  updateConversationStatus = this.conversation.updateConversationStatus;
+  getConversationsByStatus = this.conversation.getConversationsByStatus;
+  getConversationsByChannel = this.conversation.getConversationsByChannel;
+  getConversationsByDateRange = this.conversation.getConversationsByDateRange;
+  getConversationWithMessages = this.conversation.getConversationWithMessages;
+  getActiveConversations = this.conversation.getActiveConversations;
+  getArchivedConversations = this.conversation.getArchivedConversations;
+  archiveConversation = this.conversation.archiveConversation;
+  unarchiveConversation = this.conversation.unarchiveConversation;
 
-  async getContactInterests(contactId: number) {
-    return this.contact.getContactInterests(contactId);
-  }
+  // ========== MÉTODOS ADICIONAIS DE CONTATOS ==========
+  getContactsByStatus = this.contact.getContactsByStatus;
+  getContactsByDateRange = this.contact.getContactsByDateRange;
+  getContactsWithConversations = this.contact.getContactsWithConversations;
+  updateContactTags = this.contact.updateContactTags;
+  bulkUpdateContacts = this.contact.bulkUpdateContacts;
+  getContactStatistics = this.contact.getContactStatistics;
 
-  async getContactTags(contactId: number) {
-    return this.contact.getContactTags(contactId);
-  }
+  // ========== MÉTODOS ADICIONAIS DE MENSAGENS ==========
+  getMessagesByConversation = this.message.getMessagesByConversation;
+  getMessagesByDateRange = this.message.getMessagesByDateRange;
+  getMessagesByType = this.message.getMessagesByType;
+  updateMessage = this.message.updateMessage;
+  getMessageStatistics = this.message.getMessageStatistics;
+  searchMessages = this.message.searchMessages;
 
-  async addContactTag(tag: any) {
-    return this.contact.addContactTag(tag);
-  }
+  // ========== MÉTODOS ADICIONAIS DE CANAIS ==========
+  getActiveChannels = this.channel.getActiveChannels;
+  getInactiveChannels = this.channel.getInactiveChannels;
+  getChannelStatistics = this.channel.getChannelStatistics;
+  testChannelConnection = this.channel.testChannelConnection;
 
-  async removeContactTag(contactId: number, tag: string) {
-    return this.contact.removeContactTag(contactId, tag);
-  }
+  // ========== MÉTODOS ADICIONAIS DE DEALS ==========
+  getDealsByUser = this.deal.getDealsByUser;
+  getDealsByTeam = this.deal.getDealsByTeam;
+  getDealsByDateRange = this.deal.getDealsByDateRange;
+  getDealsByValue = this.deal.getDealsByValue;
+  updateDealStage = this.deal.updateDealStage;
+  getDealStatistics = this.deal.getDealStatistics;
+  getDealsReports = this.deal.getDealsReports;
 
-  // ==================== CONVERSATION OPERATIONS ====================
-  async getConversations(limit?: number, offset?: number) {
-    return this.conversation.getConversations(limit, offset);
-  }
+  // ========== MÉTODOS ADICIONAIS DE EQUIPES ==========
+  getTeamStatisticsByDateRange = this.team.getTeamStatisticsByDateRange;
+  getTeamPerformance = this.team.getTeamPerformance;
+  getTeamWorkload = this.team.getTeamWorkload;
+  updateTeamSettings = this.team.updateTeamSettings;
+  getTeamSettings = this.team.getTeamSettings;
 
-  async getConversation(id: number) {
-    return this.conversation.getConversation(id);
-  }
-
-  async createConversation(conversation: any) {
-    return this.conversation.createConversation(conversation);
-  }
-
-  async updateConversation(id: number, conversation: any) {
-    return this.conversation.updateConversation(id, conversation);
-  }
-
-  async getConversationByContactAndChannel(contactId: number, channel: string) {
-    return this.conversation.getConversationByContactAndChannel(contactId, channel);
-  }
-
-  async assignConversationToTeam(conversationId: number, teamId: number | null, method: 'automatic' | 'manual') {
-    return this.conversation.assignConversationToTeam(conversationId, teamId, method);
-  }
-
-  async assignConversationToUser(conversationId: number, userId: number | null, method: 'automatic' | 'manual') {
-    return this.conversation.assignConversationToUser(conversationId, userId, method);
-  }
-
-  async getConversationsByTeam(teamId: number) {
-    return this.conversation.getConversationsByTeam(teamId);
-  }
-
-  async getConversationsByUser(userId: number) {
-    return this.conversation.getConversationsByUser(userId);
-  }
-
-  async getTotalUnreadCount() {
-    return this.conversation.getTotalUnreadCount();
-  }
-
-  // ==================== CHANNEL OPERATIONS ====================
-  async getChannels() {
-    return this.channel.getChannels();
-  }
-
-  async getChannel(id: number) {
-    return this.channel.getChannel(id);
-  }
-
-  async getChannelsByType(type: string) {
-    return this.channel.getChannelsByType(type);
-  }
-
-  async createChannel(channel: any) {
-    return this.channel.createChannel(channel);
-  }
-
-  async updateChannel(id: number, channel: any) {
-    return this.channel.updateChannel(id, channel);
-  }
-
-  async deleteChannel(id: number) {
-    return this.channel.deleteChannel(id);
-  }
-
-  async updateChannelConnectionStatus(id: number, status: string, isConnected: boolean) {
-    return this.channel.updateChannelConnectionStatus(id, status, isConnected);
-  }
-
-  // ==================== DEAL OPERATIONS ====================
-  async getDeals() {
-    return this.deal.getDeals();
-  }
-
-  async getDealsWithPagination(params: any) {
-    return this.deal.getDealsWithPagination(params);
-  }
-
-  async getDeal(id: number) {
-    return this.deal.getDeal(id);
-  }
-
-  async getDealById(id: number) {
-    return this.deal.getDeal(id);
-  }
-
-  async getDealsByContact(contactId: number) {
-    return this.deal.getDealsByContact(contactId);
-  }
-
-  async getDealsByStage(stage: string) {
-    return this.deal.getDealsByStage(stage);
-  }
-
-  async createDeal(deal: any) {
-    return this.deal.createDeal(deal);
-  }
-
-  async updateDeal(id: number, deal: any) {
-    return this.deal.updateDeal(id, deal);
-  }
-
-  async deleteDeal(id: number) {
-    return this.deal.deleteDeal(id);
-  }
-
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string) {
-    return this.deal.createAutomaticDeal(contactId, canalOrigem, macrosetor);
-  }
-
-  // ==================== NOTES OPERATIONS ====================
-  async getContactNotes(contactId: number) {
-    return this.notes.getContactNotes(contactId);
-  }
-
-  async createContactNote(note: any) {
-    return this.notes.createContactNote(note);
-  }
-
-  async updateContactNote(id: number, note: any) {
-    return this.notes.updateContactNote(id, note);
-  }
-
-  async deleteContactNote(id: number) {
-    return this.notes.deleteContactNote(id);
-  }
-
-  // ==================== QUICK REPLY OPERATIONS ====================
-  async getQuickReplies() {
-    return this.quickReply.getQuickReplies();
-  }
-
-  async getQuickReply(id: number) {
-    return this.quickReply.getQuickReply(id);
-  }
-
-  async createQuickReply(quickReply: any) {
-    return this.quickReply.createQuickReply(quickReply);
-  }
-
-  async updateQuickReply(id: number, quickReply: any) {
-    return this.quickReply.updateQuickReply(id, quickReply);
-  }
-
-  async deleteQuickReply(id: number) {
-    return this.quickReply.deleteQuickReply(id);
-  }
-
-  async incrementQuickReplyUsage(id: number) {
-    return this.quickReply.incrementQuickReplyUsage(id);
-  }
-
-  async createQuickReplyTeamShare(share: any) {
-    return this.quickReply.createQuickReplyTeamShare(share);
-  }
-
-  async createQuickReplyUserShare(share: any) {
-    return this.quickReply.createQuickReplyUserShare(share);
-  }
-
-  async deleteQuickReplyTeamShares(quickReplyId: number) {
-    return this.quickReply.deleteQuickReplyTeamShares(quickReplyId);
-  }
-
-  async deleteQuickReplyUserShares(quickReplyId: number) {
-    return this.quickReply.deleteQuickReplyUserShares(quickReplyId);
-  }
-
-  // ==================== PLACEHOLDER METHODS ====================
-  // Métodos que ainda precisam ser implementados nos módulos específicos
-  
+  // ========== PLACEHOLDERS ==========
+  // implementar conforme necessário
   async getAllMessages(): Promise<any[]> {
-    throw new Error("Método não implementado");
+    throw new Error("Método getAllMessages não implementado");
   }
 
-  async getMessages(conversationId: number, limit?: number, offset?: number): Promise<any[]> {
-    return this.message.getMessages(conversationId, limit, offset);
+  async getRole(): Promise<any> {
+    throw new Error("Método getRole não implementado");
   }
 
-  async getMessageMedia(messageId: number): Promise<string | null> {
-    return this.message.getMessageMedia(messageId);
+  async getRoles(): Promise<any[]> {
+    throw new Error("Método getRoles não implementado");
   }
 
-  async createMessage(message: any): Promise<any> {
-    return this.message.createMessage(message);
+  async createRole(): Promise<any> {
+    throw new Error("Método createRole não implementado");
   }
 
-  async markMessageAsRead(id: number): Promise<void> {
-    throw new Error("Método não implementado");
+  async updateRole(): Promise<any> {
+    throw new Error("Método updateRole não implementado");
   }
 
-  async markMessageAsUnread(id: number): Promise<void> {
-    throw new Error("Método não implementado");
-  }
-
-  async markMessageAsDelivered(id: number): Promise<void> {
-    throw new Error("Método não implementado");
-  }
-
-  async markMessageAsDeleted(id: number): Promise<void> {
-    throw new Error("Método não implementado");
-  }
-
-  async getMessageByZApiId(zapiMessageId: string): Promise<any> {
-    throw new Error("Método não implementado");
-  }
-
-  async getMessagesByMetadata(key: string, value: string): Promise<any[]> {
-    throw new Error("Método não implementado");
-  }
-
-  // System Users, Teams, Roles, etc. também precisam ser implementados
-  async getSystemUsers(): Promise<any[]> {
-    return this.auth.getSystemUsers();
-  }
-
-  async getSystemUser(id: number): Promise<any> {
-    return this.auth.getSystemUser(id);
-  }
-
-  async createSystemUser(user: any): Promise<any> {
-    return this.auth.createSystemUser(user);
-  }
-
-  async updateSystemUser(id: number, user: any): Promise<any> {
-    return this.auth.updateSystemUser(id, user);
-  }
-
-  async deleteSystemUser(id: number): Promise<void> {
-    return this.auth.deleteSystemUser(id);
-  }
-
-  // Team operations
-  async getTeams(): Promise<any[]> { 
-    return this.teamModule.getTeams();
-  }
-  
-  async getAllTeams(): Promise<any[]> { 
-    return this.teamModule.getTeams();
-  }
-  
-  async getTeam(id: number): Promise<any> { 
-    return this.teamModule.getTeam(id);
-  }
-  
-  async createTeam(team: any): Promise<any> { 
-    return this.teamModule.createTeam(team);
-  }
-  
-  async updateTeam(id: number, team: any): Promise<any> { 
-    return this.teamModule.updateTeam(id, team);
-  }
-  
-  async deleteTeam(id: number): Promise<void> { 
-    return this.teamModule.deleteTeam(id);
-  }
-  
-  async getTeamByMacrosetor(macrosetor: string): Promise<any> { 
-    return this.teamModule.getTeamByMacrosetor(macrosetor);
-  }
-  
-  async getAvailableUserFromTeam(teamId: number): Promise<any> { 
-    return this.teamModule.getAvailableUserFromTeam(teamId);
-  }
-  
-  async getUserTeams(userId: number): Promise<any[]> { 
-    return this.teamModule.getUserTeams(userId);
-  }
-  
-  async addUserToTeam(userTeam: any): Promise<any> { 
-    return this.teamModule.addUserToTeam(userTeam);
-  }
-  async removeUserFromTeam(userId: number, teamId: number): Promise<void> { 
-    return this.teamModule.removeUserFromTeam(userId, teamId);
-  }
-  
-  async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> { 
-    return this.teamModule.updateTeamMemberRole(userId, teamId, role);
-  }
-  
-  async getTeamMembers(teamId: number): Promise<any[]> { 
-    return this.teamModule.getTeamMembers(teamId);
-  }
-  
-  async getTeamStatistics(teamId: number): Promise<any> { 
-    return this.teamModule.getTeamStatistics(teamId);
-  }
-  async getTeamWorkload(teamId: number): Promise<any> { throw new Error("Método não implementado"); }
-  async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number): Promise<any> { throw new Error("Método não implementado"); }
-
-  async getRoles(): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getRole(id: number): Promise<any> { throw new Error("Método não implementado"); }
-  async createRole(role: any): Promise<any> { throw new Error("Método não implementado"); }
-  async updateRole(id: number, role: any): Promise<any> { throw new Error("Método não implementado"); }
-  async deleteRole(id: number): Promise<void> { throw new Error("Método não implementado"); }
-
-  async getChannelStatus(channelId: number): Promise<any> { throw new Error("Método não implementado"); }
-  async addDealNote(dealId: number, note: string, userId: number): Promise<any> { throw new Error("Método não implementado"); }
-  async getDealNotes(dealId: number): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getDealStatistics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-
-  async getSystemSetting(key: string): Promise<any> { throw new Error("Método não implementado"); }
-  async getSystemSettings(category?: string): Promise<any[]> { throw new Error("Método não implementado"); }
-  async setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<any> { throw new Error("Método não implementado"); }
-  async toggleSystemSetting(key: string): Promise<any> { throw new Error("Método não implementado"); }
-  async deleteSystemSetting(key: string): Promise<void> { throw new Error("Método não implementado"); }
-
-  async canUserRespondToOthersConversations(userId: number): Promise<boolean> { 
-    // Por padrão, permitir resposta a outras conversas (pode ser configurado por role)
-    return true; 
-  }
-  async canUserRespondToOwnConversations(userId: number): Promise<boolean> { 
-    // Por padrão, sempre permitir resposta às próprias conversas
-    return true; 
-  }
-  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> { 
-    // Por padrão, permitir resposta a qualquer conversa (pode ser refinado depois)
-    return true; 
-  }
-
-  async getQuickRepliesByCategory(category: string): Promise<any[]> { throw new Error("Método não implementado"); }
-  async searchQuickReplies(query: string): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getMostUsedQuickReplies(limit?: number): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getUserQuickReplies(userId: number): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getQuickReplyCategories(): Promise<string[]> { throw new Error("Método não implementado"); }
-  async getQuickReplyStatistics(): Promise<any> { throw new Error("Método não implementado"); }
-
-  // Analytics placeholders
-  async getConversationAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getMessageAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getDealAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getResponseTimeAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getChannelAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getUserPerformanceAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getTeamPerformanceAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getDealConversionAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async getSalesFunnelAnalytics(filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async generateAnalyticsReport(reportType: string, filters?: any): Promise<any> { throw new Error("Método não implementado"); }
-  async sendAnalyticsReport(reportId: string, recipients: string[]): Promise<any> { throw new Error("Método não implementado"); }
-  async executeCustomAnalyticsQuery(query: string): Promise<any> { throw new Error("Método não implementado"); }
-  async getRealtimeAnalytics(): Promise<any> { throw new Error("Método não implementado"); }
-  async getAnalyticsTrends(metric: string, period: string): Promise<any> { throw new Error("Método não implementado"); }
-  async getAnalyticsAlerts(): Promise<any> { throw new Error("Método não implementado"); }
-  async createAnalyticsAlert(alert: any): Promise<any> { throw new Error("Método não implementado"); }
-  async updateAnalyticsAlert(alertId: string, alert: any): Promise<any> { throw new Error("Método não implementado"); }
-  async deleteAnalyticsAlert(alertId: string): Promise<any> { throw new Error("Método não implementado"); }
-
-  async markConversationAsRead(conversationId: number): Promise<void> {
-    return this.conversation.markConversationAsRead(conversationId);
+  async deleteRole(): Promise<any> {
+    throw new Error("Método deleteRole não implementado");
   }
 }
