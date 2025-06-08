@@ -384,10 +384,21 @@ export class DatabaseStorage implements IStorage {
   async addUserToTeam(userTeam: any): Promise<any> { 
     return this.teamModule.addUserToTeam(userTeam);
   }
-  async removeUserFromTeam(userId: number, teamId: number): Promise<void> { throw new Error("Método não implementado"); }
-  async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> { throw new Error("Método não implementado"); }
-  async getTeamMembers(teamId: number): Promise<any[]> { throw new Error("Método não implementado"); }
-  async getTeamStatistics(teamId: number): Promise<any> { throw new Error("Método não implementado"); }
+  async removeUserFromTeam(userId: number, teamId: number): Promise<void> { 
+    return this.teamModule.removeUserFromTeam(userId, teamId);
+  }
+  
+  async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> { 
+    return this.teamModule.updateTeamMemberRole(userId, teamId, role);
+  }
+  
+  async getTeamMembers(teamId: number): Promise<any[]> { 
+    return this.teamModule.getTeamMembers(teamId);
+  }
+  
+  async getTeamStatistics(teamId: number): Promise<any> { 
+    return this.teamModule.getTeamStatistics(teamId);
+  }
   async getTeamWorkload(teamId: number): Promise<any> { throw new Error("Método não implementado"); }
   async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number): Promise<any> { throw new Error("Método não implementado"); }
 

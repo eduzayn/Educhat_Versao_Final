@@ -119,7 +119,7 @@ export class TeamStorage extends BaseStorage {
   async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<UserTeam> {
     const [updatedUserTeam] = await this.db
       .update(userTeams)
-      .set({ role, updatedAt: new Date() })
+      .set({ role })
       .where(and(
         eq(userTeams.userId, userId),
         eq(userTeams.teamId, teamId)
