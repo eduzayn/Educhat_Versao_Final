@@ -7,7 +7,7 @@ export function registerTeamsRoutes(app: Express) {
   // Get all teams - REST: GET /api/teams
   app.get('/api/teams', requirePermission('teams:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const teams = await storage.getAllTeams();
+      const teams = await storage.getTeams();
       res.json(teams);
     } catch (error) {
       console.error('Erro ao buscar equipes:', error);

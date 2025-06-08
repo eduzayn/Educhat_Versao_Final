@@ -6,57 +6,80 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  * Conversation storage module - manages conversations and assignments
  */
 export class ConversationStorage extends BaseStorage {
-  async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Buscar conversas básicas primeiro
-    const conversationsData = await this.db
-      .select()
+  async getConversations(limit = 1000, offset = 0): Promise<ConversationWithContact[]> {
+    // Usar uma única query otimizada com JOIN para melhor performance
+    const conversationsWithDetails = await this.db
+      .select({
+        // Conversation fields
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        isRead: conversations.isRead,
+        lastMessageAt: conversations.lastMessageAt,
+        assignedUserId: conversations.assignedUserId,
+        assignedTeamId: conversations.assignedTeamId,
+        assignmentMethod: conversations.assignmentMethod,
+        priority: conversations.priority,
+        tags: conversations.tags,
+        metadata: conversations.metadata,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        // Contact fields (sempre incluído)
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          isOnline: contacts.isOnline,
+          lastSeen: contacts.lastSeen,
+          interests: contacts.interests,
+          metadata: contacts.metadata,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        },
+        
+        // Channel fields (opcional)
+        channelInfo: {
+          id: channels.id,
+          name: channels.name,
+          type: channels.type,
+          config: channels.config,
+          isActive: channels.isActive,
+          connectionStatus: channels.connectionStatus
+        }
+      })
       .from(conversations)
-      .orderBy(desc(conversations.lastMessageAt))
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(channels, eq(conversations.channelId, channels.id))
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
       .limit(limit)
       .offset(offset);
 
-
-
-    // Para cada conversa, buscar contato, canal e última mensagem
-    const conversationsWithDetails = await Promise.all(
-      conversationsData.map(async (conv) => {
-        // Buscar contato
-        const [contact] = await this.db
-          .select()
-          .from(contacts)
-          .where(eq(contacts.id, conv.contactId));
-
-        // Buscar canal se houver
-        let channelInfo = null;
-        if (conv.channelId) {
-          [channelInfo] = await this.db
-            .select()
-            .from(channels)
-            .where(eq(channels.id, conv.channelId));
-        }
-
-        // Buscar última mensagem
-        const lastMessage = await this.db
-          .select()
+    // Adicionar contagem de mensagens para cada conversa
+    const conversationsWithCounts = await Promise.all(
+      conversationsWithDetails.map(async (conv) => {
+        const [messageCount] = await this.db
+          .select({ count: count() })
           .from(messages)
           .where(and(
             eq(messages.conversationId, conv.id),
             eq(messages.isDeleted, false)
-          ))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
+          ));
 
         return {
           ...conv,
-          contact: contact || null,
-          channelInfo: channelInfo || null,
-          messages: lastMessage,
-          _count: { messages: lastMessage.length }
+          messages: [], // Array vazio por enquanto para compatibilidade
+          _count: { messages: messageCount?.count || 0 }
         };
       })
     );
 
-    return conversationsWithDetails as ConversationWithContact[];
+    return conversationsWithCounts as ConversationWithContact[];
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {

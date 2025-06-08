@@ -8,7 +8,7 @@ export function registerInboxRoutes(app: Express) {
   app.get('/api/conversations', async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
+      const limit = parseInt(req.query.limit as string) || 1000; // Aumentado para carregar mais conversas
       const offset = (page - 1) * limit;
       
       const conversations = await storage.getConversations(limit, offset);
