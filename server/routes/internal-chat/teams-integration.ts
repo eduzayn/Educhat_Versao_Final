@@ -32,8 +32,11 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
       return { canViewAll: false, canViewTeams: false, canViewPrivate: false, isAdmin: false, isManager: false };
     }
     
-    const isAdmin = userWithRole[0].roleName === 'Admin';
-    const isManager = userWithRole[0].roleName === 'Gestor';
+    const roleName = userWithRole[0].roleName || '';
+    console.log('🔍 Role detectado:', roleName);
+    const isAdmin = roleName === 'Administrador' || roleName === 'Admin';
+    const isManager = roleName === 'Gerente' || roleName === 'Gestor';
+    console.log('👑 É admin?', isAdmin, '📊 É manager?', isManager);
     
     return {
       canViewAll: isAdmin || isManager,
@@ -53,6 +56,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
       }
 
       const permissions = await getUserPermissions(req.user.id);
+      console.log('🔍 Permissões do usuário:', permissions);
       let channels = [];
 
       if (permissions.canViewAll) {
@@ -65,6 +69,8 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
           })
           .from(teams)
           .orderBy(teams.name);
+        
+        console.log('📋 Equipes encontradas:', allTeams);
         
         channels = [
           {
