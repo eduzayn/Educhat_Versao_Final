@@ -7,9 +7,9 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    const result = await this.db
+    // Primeiro buscar as conversas básicas
+    const conversationsResult = await this.db
       .select({
-        // Conversation fields
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
@@ -24,7 +24,6 @@ export class ConversationStorage extends BaseStorage {
         assignedAt: conversations.assignedAt,
         createdAt: conversations.createdAt,
         updatedAt: conversations.updatedAt,
-        // Contact fields
         contact: {
           id: contacts.id,
           name: contacts.name,
@@ -44,25 +43,45 @@ export class ConversationStorage extends BaseStorage {
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
         },
-        // Channel info
-        channelInfo: channels,
-        // Message count
-        messageCount: count(messages.id)
+        channelInfo: channels
       })
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .leftJoin(channels, eq(conversations.channelId, channels.id))
-      .leftJoin(messages, eq(conversations.id, messages.conversationId))
-      .groupBy(conversations.id, contacts.id, channels.id)
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
 
-    return result.map(row => ({
-      ...row,
-      messages: [], // Messages loaded separately when needed
-      _count: { messages: row.messageCount }
-    })) as ConversationWithContact[];
+    // Para cada conversa, buscar a última mensagem
+    const conversationsWithMessages = await Promise.all(
+      conversationsResult.map(async (conv) => {
+        const lastMessage = await this.db
+          .select()
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+
+        const messageCount = await this.db
+          .select({ count: count(messages.id) })
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ));
+
+        return {
+          ...conv,
+          messages: lastMessage,
+          _count: { messages: messageCount[0]?.count || 0 }
+        };
+      })
+    );
+
+    return conversationsWithMessages as ConversationWithContact[];
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {

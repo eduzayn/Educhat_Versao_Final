@@ -295,11 +295,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {
-    throw new Error("Método não implementado");
+    return this.message.getMessageMedia(messageId);
   }
 
   async createMessage(message: any): Promise<any> {
-    throw new Error("Método não implementado");
+    return this.message.createMessage(message);
   }
 
   async markMessageAsRead(id: number): Promise<void> {
@@ -422,9 +422,18 @@ export class DatabaseStorage implements IStorage {
   async toggleSystemSetting(key: string): Promise<any> { throw new Error("Método não implementado"); }
   async deleteSystemSetting(key: string): Promise<void> { throw new Error("Método não implementado"); }
 
-  async canUserRespondToOthersConversations(userId: number): Promise<boolean> { throw new Error("Método não implementado"); }
-  async canUserRespondToOwnConversations(userId: number): Promise<boolean> { throw new Error("Método não implementado"); }
-  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> { throw new Error("Método não implementado"); }
+  async canUserRespondToOthersConversations(userId: number): Promise<boolean> { 
+    // Por padrão, permitir resposta a outras conversas (pode ser configurado por role)
+    return true; 
+  }
+  async canUserRespondToOwnConversations(userId: number): Promise<boolean> { 
+    // Por padrão, sempre permitir resposta às próprias conversas
+    return true; 
+  }
+  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> { 
+    // Por padrão, permitir resposta a qualquer conversa (pode ser refinado depois)
+    return true; 
+  }
 
   async getQuickRepliesByCategory(category: string): Promise<any[]> { throw new Error("Método não implementado"); }
   async searchQuickReplies(query: string): Promise<any[]> { throw new Error("Método não implementado"); }
