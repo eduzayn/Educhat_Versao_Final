@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChannelSidebar } from './components/ChannelSidebar';
 import { ChatHeader } from './components/ChatHeader';
 import { ChatMessages } from './components/ChatMessages';
@@ -12,7 +12,12 @@ import { useInternalChatStore } from './store/internalChatStore';
 
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);
-  const { activeChannel } = useInternalChatStore();
+  const { activeChannel, loadChannels } = useInternalChatStore();
+
+  // Carregar canais baseados nas equipes do usuário na inicialização
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">

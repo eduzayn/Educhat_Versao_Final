@@ -38,6 +38,14 @@ export interface TypingUser {
   timestamp: Date;
 }
 
+export interface ChatUser {
+  id: number;
+  username: string;
+  displayName: string;
+  avatar?: string;
+  roleName?: string;
+}
+
 interface InternalChatStore {
   // Estado
   activeChannel: string | null;
@@ -46,6 +54,7 @@ interface InternalChatStore {
   typingUsers: TypingUser[];
   isConnected: boolean;
   soundEnabled: boolean;
+  channelUsers: Record<string, ChatUser[]>;
   
   // Ações
   setActiveChannel: (channelId: string | null) => void;
@@ -63,6 +72,9 @@ interface InternalChatStore {
   markChannelAsRead: (channelId: string) => void;
   getChannelMessages: (channelId: string) => InternalChatMessage[];
   getUnreadTotal: () => number;
+  loadChannels: () => Promise<void>;
+  loadChannelUsers: (channelId: string) => Promise<void>;
+  setChannelUsers: (channelId: string, users: ChatUser[]) => void;
 }
 
 export const useInternalChatStore = create<InternalChatStore>()(
@@ -74,6 +86,7 @@ export const useInternalChatStore = create<InternalChatStore>()(
     typingUsers: [],
     isConnected: true,
     soundEnabled: true,
+    channelUsers: {},
 
     // Ações
     setActiveChannel: (channelId) => set({ activeChannel: channelId }),
@@ -206,6 +219,49 @@ export const useInternalChatStore = create<InternalChatStore>()(
       const state = get();
       return state.channels.reduce((total, channel) => total + channel.unreadCount, 0);
     },
+
+    // Carregar canais baseados nas equipes do usuário
+    loadChannels: async () => {
+      try {
+        const response = await fetch('/api/internal-chat/channels');
+        if (response.ok) {
+          const channels = await response.json();
+          const formattedChannels = channels.map((channel: any) => ({
+            ...channel,
+            lastActivity: new Date()
+          }));
+          set({ channels: formattedChannels });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar canais:', error);
+      }
+    },
+
+    // Carregar usuários de um canal específico
+    loadChannelUsers: async (channelId: string) => {
+      try {
+        const response = await fetch(`/api/internal-chat/channels/${channelId}/users`);
+        if (response.ok) {
+          const users = await response.json();
+          set((state) => ({
+            channelUsers: {
+              ...state.channelUsers,
+              [channelId]: users
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuários do canal:', error);
+      }
+    },
+
+    // Definir usuários de um canal
+    setChannelUsers: (channelId: string, users: ChatUser[]) => set((state) => ({
+      channelUsers: {
+        ...state.channelUsers,
+        [channelId]: users
+      }
+    })),
   }))
 );
 
