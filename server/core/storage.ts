@@ -1,5 +1,5 @@
 // Nova implementação do storage usando a estrutura modular refatorada
-import { DatabaseStorage as ModularDatabaseStorage } from "../storage/DatabaseStorage";
+import { DatabaseStorage as ModularDatabaseStorage } from "../storage/index";
 import type { IStorage as ModularIStorage } from "../storage/interfaces/IStorage";
 
 // Re-export dos tipos para manter compatibilidade
