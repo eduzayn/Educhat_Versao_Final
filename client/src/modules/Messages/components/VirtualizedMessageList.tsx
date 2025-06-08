@@ -49,37 +49,54 @@ export const VirtualizedMessageList = memo(
     const listRef = useRef<List>(null);
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
     const prevConversationId = useRef<number | undefined>(conversationId);
+    const prevMessageCount = useRef<number>(0);
 
-    // Scroll to bottom when conversation changes or new messages arrive
-    useEffect(() => {
+    // Função para rolar para o final
+    const scrollToBottom = () => {
       if (listRef.current && messages.length > 0) {
-        // Always scroll to bottom when conversation changes
-        if (conversationId !== prevConversationId.current) {
-          listRef.current.scrollToItem(messages.length - 1, "end");
-          setShouldScrollToBottom(true);
-          prevConversationId.current = conversationId;
-        } 
-        // Scroll to bottom for new messages if user was at bottom
-        else if (shouldScrollToBottom) {
-          listRef.current.scrollToItem(messages.length - 1, "end");
-        }
+        listRef.current.scrollToItem(messages.length - 1, "end");
       }
-    }, [messages.length, shouldScrollToBottom, conversationId]);
+    };
 
-    // Initial scroll to bottom when messages first load
+    // Rolar para o final quando a conversa mudar
     useEffect(() => {
-      if (listRef.current && messages.length > 0) {
+      if (conversationId !== prevConversationId.current) {
+        setShouldScrollToBottom(true);
+        prevConversationId.current = conversationId;
+        prevMessageCount.current = messages.length;
+        
+        // Aguardar um pouco para garantir que as mensagens foram carregadas
         setTimeout(() => {
-          listRef.current?.scrollToItem(messages.length - 1, "end");
-        }, 100);
+          scrollToBottom();
+        }, 150);
+      }
+    }, [conversationId, messages.length]);
+
+    // Rolar para o final quando novas mensagens chegarem (se o usuário estava no final)
+    useEffect(() => {
+      if (messages.length > prevMessageCount.current && shouldScrollToBottom) {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 50);
+      }
+      prevMessageCount.current = messages.length;
+    }, [messages.length, shouldScrollToBottom]);
+
+    // Rolar para o final no carregamento inicial
+    useEffect(() => {
+      if (messages.length > 0 && listRef.current) {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 200);
       }
     }, [messages.length > 0]);
 
     const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }: any) => {
-      if (!scrollUpdateWasRequested) {
-        // User scrolled manually
-        const isAtBottom = scrollOffset + height >= messages.length * 120 - 50;
-        setShouldScrollToBottom(isAtBottom);
+      if (!scrollUpdateWasRequested && messages.length > 0) {
+        // Verificar se o usuário está próximo ao final da lista
+        const totalHeight = messages.length * 120;
+        const isNearBottom = scrollOffset + height >= totalHeight - 200; // 200px de tolerância
+        setShouldScrollToBottom(isNearBottom);
       }
     };
 
