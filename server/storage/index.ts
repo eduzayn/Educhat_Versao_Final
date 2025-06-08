@@ -26,6 +26,7 @@ import { ChannelStorage } from './modules/channelStorage';
 import { DealStorage } from './modules/dealStorage';
 import { NotesStorage } from './modules/notesStorage';
 import { QuickReplyStorage } from './modules/quickReplyStorage';
+import { TeamStorage } from './modules/teamStorage';
 
 export class DatabaseStorage implements IStorage {
   private auth: AuthStorage;
@@ -35,6 +36,7 @@ export class DatabaseStorage implements IStorage {
   private deal: DealStorage;
   private notes: NotesStorage;
   private quickReply: QuickReplyStorage;
+  private teamModule: TeamStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -44,6 +46,7 @@ export class DatabaseStorage implements IStorage {
     this.deal = new DealStorage();
     this.notes = new NotesStorage();
     this.quickReply = new QuickReplyStorage();
+    this.teamModule = new TeamStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================
@@ -343,32 +346,44 @@ export class DatabaseStorage implements IStorage {
 
   // Team operations
   async getTeams(): Promise<any[]> { 
-    return this.teamStorage.getTeams();
+    return this.teamModule.getTeams();
   }
   
   async getAllTeams(): Promise<any[]> { 
-    return this.teamStorage.getTeams();
+    return this.teamModule.getTeams();
   }
   
   async getTeam(id: number): Promise<any> { 
-    return this.teamStorage.getTeam(id);
+    return this.teamModule.getTeam(id);
   }
   
   async createTeam(team: any): Promise<any> { 
-    return this.teamStorage.createTeam(team);
+    return this.teamModule.createTeam(team);
   }
   
   async updateTeam(id: number, team: any): Promise<any> { 
-    return this.teamStorage.updateTeam(id, team);
+    return this.teamModule.updateTeam(id, team);
   }
   
   async deleteTeam(id: number): Promise<void> { 
-    return this.teamStorage.deleteTeam(id);
+    return this.teamModule.deleteTeam(id);
   }
-  async getTeamByMacrosetor(macrosetor: string): Promise<any> { throw new Error("Método não implementado"); }
-  async getAvailableUserFromTeam(teamId: number): Promise<any> { throw new Error("Método não implementado"); }
-  async getUserTeams(userId: number): Promise<any[]> { throw new Error("Método não implementado"); }
-  async addUserToTeam(userTeam: any): Promise<any> { throw new Error("Método não implementado"); }
+  
+  async getTeamByMacrosetor(macrosetor: string): Promise<any> { 
+    return this.teamModule.getTeamByMacrosetor(macrosetor);
+  }
+  
+  async getAvailableUserFromTeam(teamId: number): Promise<any> { 
+    return this.teamModule.getAvailableUserFromTeam(teamId);
+  }
+  
+  async getUserTeams(userId: number): Promise<any[]> { 
+    return this.teamModule.getUserTeams(userId);
+  }
+  
+  async addUserToTeam(userTeam: any): Promise<any> { 
+    return this.teamModule.addUserToTeam(userTeam);
+  }
   async removeUserFromTeam(userId: number, teamId: number): Promise<void> { throw new Error("Método não implementado"); }
   async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> { throw new Error("Método não implementado"); }
   async getTeamMembers(teamId: number): Promise<any[]> { throw new Error("Método não implementado"); }

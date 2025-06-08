@@ -1,198 +1,158 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { teams, systemUsers, userTeams, type Team, type InsertTeam, type SystemUser, type UserTeam, type InsertUserTeam } from "../../../shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { teams, userTeams, systemUsers, type Team, type InsertTeam, type UserTeam, type InsertUserTeam, type SystemUser } from "../../../shared/schema";
+import { eq, and } from "drizzle-orm";
 
 /**
- * Team storage module - manages teams and user assignments
+ * Team storage module - manages team operations
  */
 export class TeamStorage extends BaseStorage {
+  /**
+   * Get all teams
+   */
   async getTeams(): Promise<Team[]> {
-    return this.db.select().from(teams).orderBy(desc(teams.createdAt));
+    return this.db.select().from(teams);
   }
 
-  async getAllTeams(): Promise<Team[]> {
-    return this.getTeams();
-  }
-
+  /**
+   * Get team by ID
+   */
   async getTeam(id: number): Promise<Team | undefined> {
     const [team] = await this.db.select().from(teams).where(eq(teams.id, id));
     return team;
   }
 
+  /**
+   * Create new team
+   */
   async createTeam(team: InsertTeam): Promise<Team> {
     const [newTeam] = await this.db.insert(teams).values(team).returning();
     return newTeam;
   }
 
-  async updateTeam(id: number, teamData: Partial<InsertTeam>): Promise<Team> {
-    const [updated] = await this.db.update(teams)
-      .set({ ...teamData, updatedAt: new Date() })
+  /**
+   * Update team
+   */
+  async updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team> {
+    const [updatedTeam] = await this.db
+      .update(teams)
+      .set({ ...team, updatedAt: new Date() })
       .where(eq(teams.id, id))
       .returning();
-    return updated;
+    return updatedTeam;
   }
 
+  /**
+   * Delete team
+   */
   async deleteTeam(id: number): Promise<void> {
-    // First remove all user assignments
-    await this.db.delete(userTeams).where(eq(userTeams.teamId, id));
-    
-    // Then delete the team
     await this.db.delete(teams).where(eq(teams.id, id));
   }
 
+  /**
+   * Get team by macrosetor
+   */
   async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
-    const [team] = await this.db.select().from(teams)
-      .where(and(
-        eq(teams.macrosetor, macrosetor),
-        eq(teams.isActive, true)
-      ));
+    const [team] = await this.db
+      .select()
+      .from(teams)
+      .where(eq(teams.macrosetor, macrosetor));
     return team;
   }
 
+  /**
+   * Get available user from team
+   */
   async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
-    // Get the first available user from the team
-    const [userTeam] = await this.db
+    const userTeam = await this.db
       .select({
         user: systemUsers
       })
       .from(userTeams)
-      .leftJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
+      .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
       .where(and(
         eq(userTeams.teamId, teamId),
-        eq(userTeams.isActive, true),
-        eq(systemUsers.isActive, true),
         eq(systemUsers.isOnline, true)
       ))
       .limit(1);
 
-    return userTeam?.user || undefined;
+    return userTeam[0]?.user || undefined;
   }
 
+  /**
+   * Get user teams
+   */
   async getUserTeams(userId: number): Promise<Team[]> {
     const result = await this.db
       .select({
         team: teams
       })
       .from(userTeams)
-      .leftJoin(teams, eq(userTeams.teamId, teams.id))
-      .where(and(
-        eq(userTeams.userId, userId),
-        eq(userTeams.isActive, true)
-      ));
+      .innerJoin(teams, eq(userTeams.teamId, teams.id))
+      .where(eq(userTeams.userId, userId));
 
-    return result.map(r => r.team).filter(Boolean) as Team[];
+    return result.map(r => r.team);
   }
 
+  /**
+   * Add user to team
+   */
   async addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam> {
-    // Check if user is already in the team
-    const [existing] = await this.db.select().from(userTeams)
-      .where(and(
-        eq(userTeams.userId, userTeam.userId),
-        eq(userTeams.teamId, userTeam.teamId)
-      ));
-
-    if (existing) {
-      // Reactivate if exists but inactive
-      const [updated] = await this.db.update(userTeams)
-        .set({ 
-          isActive: true, 
-          role: userTeam.role || existing.role,
-          joinedAt: new Date()
-        })
-        .where(eq(userTeams.id, existing.id))
-        .returning();
-      return updated;
-    }
-
     const [newUserTeam] = await this.db.insert(userTeams).values(userTeam).returning();
     return newUserTeam;
   }
 
+  /**
+   * Remove user from team
+   */
   async removeUserFromTeam(userId: number, teamId: number): Promise<void> {
-    await this.db.update(userTeams)
-      .set({ isActive: false })
+    await this.db
+      .delete(userTeams)
       .where(and(
         eq(userTeams.userId, userId),
         eq(userTeams.teamId, teamId)
       ));
   }
 
+  /**
+   * Update team member role
+   */
   async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<UserTeam> {
-    const [updated] = await this.db.update(userTeams)
-      .set({ role })
+    const [updatedUserTeam] = await this.db
+      .update(userTeams)
+      .set({ role, updatedAt: new Date() })
       .where(and(
         eq(userTeams.userId, userId),
         eq(userTeams.teamId, teamId)
       ))
       .returning();
-    return updated;
+    return updatedUserTeam;
   }
 
-  async getTeamMembers(teamId: number): Promise<any[]> {
+  /**
+   * Get team members
+   */
+  async getTeamMembers(teamId: number): Promise<SystemUser[]> {
     const result = await this.db
       .select({
-        id: userTeams.id,
-        role: userTeams.role,
-        isActive: userTeams.isActive,
-        joinedAt: userTeams.joinedAt,
-        user: {
-          id: systemUsers.id,
-          username: systemUsers.username,
-          displayName: systemUsers.displayName,
-          email: systemUsers.email,
-          isOnline: systemUsers.isOnline,
-          lastLoginAt: systemUsers.lastLoginAt
-        }
+        user: systemUsers
       })
       .from(userTeams)
-      .leftJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
-      .where(eq(userTeams.teamId, teamId))
-      .orderBy(desc(userTeams.joinedAt));
-
-    return result;
-  }
-
-  async getTeamStatistics(teamId: number): Promise<any> {
-    // Basic team statistics - can be expanded
-    const [stats] = await this.db
-      .select({
-        totalMembers: systemUsers.id,
-        activeMembers: systemUsers.isActive,
-        onlineMembers: systemUsers.isOnline
-      })
-      .from(userTeams)
-      .leftJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
+      .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
       .where(eq(userTeams.teamId, teamId));
 
-    return {
-      teamId,
-      totalMembers: 0, // Would need proper aggregation
-      activeMembers: 0,
-      onlineMembers: 0,
-      // Add more statistics as needed
-    };
+    return result.map(r => r.user);
   }
 
-  async getTeamWorkload(teamId: number): Promise<any> {
-    // Team workload analysis - placeholder implementation
+  /**
+   * Get team statistics
+   */
+  async getTeamStatistics(teamId: number): Promise<any> {
+    // Implementar estatísticas específicas do time
+    const members = await this.getTeamMembers(teamId);
     return {
-      teamId,
-      activeConversations: 0,
-      pendingTasks: 0,
-      averageResponseTime: 0,
-      // Add more workload metrics
-    };
-  }
-
-  async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number): Promise<any> {
-    // This would integrate with conversation storage
-    // Placeholder implementation
-    return {
-      conversationId,
-      fromTeamId,
-      toTeamId,
-      transferredAt: new Date(),
-      success: true
+      totalMembers: members.length,
+      activeMembers: members.filter(m => m.isOnline).length,
+      teamId
     };
   }
 }
