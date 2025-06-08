@@ -6,7 +6,8 @@ import { BackButton } from '@/shared/components/BackButton';
 import { 
   Search, 
   Plus,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
@@ -17,6 +18,7 @@ interface ConversationListHeaderProps {
   onTabChange: (value: string) => void;
   onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
+  onRefresh?: () => void;
 }
 
 export function ConversationListHeader({
@@ -25,7 +27,8 @@ export function ConversationListHeader({
   isWhatsAppAvailable,
   onTabChange,
   onSearchChange,
-  onNewContactClick
+  onNewContactClick,
+  onRefresh
 }: ConversationListHeaderProps) {
   return (
     <div className="p-4 border-b border-gray-200">
@@ -36,6 +39,16 @@ export function ConversationListHeader({
         <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
         <div className="flex items-center gap-2">
           <ZApiStatusIndicator />
+          {onRefresh && (
+            <Button 
+              size="sm" 
+              variant="outline"
+              title="Atualizar conversas"
+              onClick={onRefresh}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          )}
           <Button 
             size="sm" 
             variant="outline"

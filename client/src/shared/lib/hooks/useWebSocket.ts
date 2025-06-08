@@ -71,10 +71,13 @@ export function useWebSocket() {
         addMessage(data.conversationId, data.message);
         updateConversationLastMessage(data.conversationId, data.message);
         
+        // Force immediate cache invalidation for conversations
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
           queryKey: [`/api/conversations/${data.conversationId}/messages`] 
         });
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
         return;
       }
 

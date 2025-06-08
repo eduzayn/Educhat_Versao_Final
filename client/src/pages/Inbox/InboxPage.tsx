@@ -450,6 +450,7 @@ export function InboxPage() {
           onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
+          onRefresh={() => refetch()}
         />
 
         {/* Filtros compactos */}
