@@ -65,7 +65,7 @@ export class TeamStorage extends BaseStorage {
       ))
       .limit(1);
 
-    return userTeam?.user;
+    return userTeam?.user || undefined;
   }
 
   async getUserTeams(userId: number): Promise<Team[]> {

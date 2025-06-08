@@ -1,5 +1,5 @@
 // Barrel exports para todos os módulos de storage
-export { IStorage } from './interfaces/IStorage';
+export type { IStorage } from './interfaces/IStorage';
 export { BaseStorage } from './base/BaseStorage';
 
 // Módulos de storage

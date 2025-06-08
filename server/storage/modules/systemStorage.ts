@@ -98,7 +98,7 @@ export class SystemStorage extends BaseStorage {
     }
 
     const newValue = setting.value === "true" ? "false" : "true";
-    return this.setSystemSetting(key, newValue, "boolean", setting.description, setting.category);
+    return this.setSystemSetting(key, newValue, "boolean", setting.description ?? undefined, setting.category ?? undefined);
   }
 
   async deleteSystemSetting(key: string): Promise<void> {
