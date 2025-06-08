@@ -16,7 +16,7 @@ export class MessageStorage extends BaseStorage {
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt))
+      .orderBy(messages.sentAt) // Ordem cronológica: mensagens mais antigas primeiro
       .limit(limit)
       .offset(offset);
   }
@@ -37,6 +37,12 @@ export class MessageStorage extends BaseStorage {
   async createMessage(message: InsertMessage): Promise<Message> {
     const [newMessage] = await this.db.insert(messages).values(message).returning();
     return newMessage;
+  }
+
+  async getMessage(id: number): Promise<Message | undefined> {
+    const [message] = await this.db.select().from(messages)
+      .where(eq(messages.id, id));
+    return message;
   }
 
   async markMessageAsRead(id: number): Promise<void> {

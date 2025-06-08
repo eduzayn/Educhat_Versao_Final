@@ -145,62 +145,12 @@ export class DatabaseStorage implements IStorage {
   canUserRespondToOwnConversations = async () => true;
   canUserRespondToConversation = async () => true;
 
-  // ========== MÉTODOS ADICIONAIS DE QUICK REPLIES ==========
-  getQuickRepliesByCategory = this.quickReply.getQuickRepliesByCategory;
-  searchQuickReplies = this.quickReply.searchQuickReplies;
-  getSharedQuickReplies = this.quickReply.getSharedQuickReplies;
-  getQuickRepliesByUser = this.quickReply.getQuickRepliesByUser;
-  getQuickRepliesByTeam = this.quickReply.getQuickRepliesByTeam;
-
-  // ========== MÉTODOS ADICIONAIS DE CONVERSAÇÃO ==========
-  getConversationMessages = this.conversation.getConversationMessages;
-  updateConversationStatus = this.conversation.updateConversationStatus;
-  getConversationsByStatus = this.conversation.getConversationsByStatus;
-  getConversationsByChannel = this.conversation.getConversationsByChannel;
-  getConversationsByDateRange = this.conversation.getConversationsByDateRange;
-  getConversationWithMessages = this.conversation.getConversationWithMessages;
-  getActiveConversations = this.conversation.getActiveConversations;
-  getArchivedConversations = this.conversation.getArchivedConversations;
-  archiveConversation = this.conversation.archiveConversation;
-  unarchiveConversation = this.conversation.unarchiveConversation;
-
-  // ========== MÉTODOS ADICIONAIS DE CONTATOS ==========
-  getContactsByStatus = this.contact.getContactsByStatus;
-  getContactsByDateRange = this.contact.getContactsByDateRange;
-  getContactsWithConversations = this.contact.getContactsWithConversations;
-  updateContactTags = this.contact.updateContactTags;
-  bulkUpdateContacts = this.contact.bulkUpdateContacts;
-  getContactStatistics = this.contact.getContactStatistics;
-
   // ========== MÉTODOS ADICIONAIS DE MENSAGENS ==========
-  getMessagesByConversation = this.message.getMessagesByConversation;
-  getMessagesByDateRange = this.message.getMessagesByDateRange;
-  getMessagesByType = this.message.getMessagesByType;
-  updateMessage = this.message.updateMessage;
-  getMessageStatistics = this.message.getMessageStatistics;
-  searchMessages = this.message.searchMessages;
-
-  // ========== MÉTODOS ADICIONAIS DE CANAIS ==========
-  getActiveChannels = this.channel.getActiveChannels;
-  getInactiveChannels = this.channel.getInactiveChannels;
-  getChannelStatistics = this.channel.getChannelStatistics;
-  testChannelConnection = this.channel.testChannelConnection;
-
-  // ========== MÉTODOS ADICIONAIS DE DEALS ==========
-  getDealsByUser = this.deal.getDealsByUser;
-  getDealsByTeam = this.deal.getDealsByTeam;
-  getDealsByDateRange = this.deal.getDealsByDateRange;
-  getDealsByValue = this.deal.getDealsByValue;
-  updateDealStage = this.deal.updateDealStage;
-  getDealStatistics = this.deal.getDealStatistics;
-  getDealsReports = this.deal.getDealsReports;
-
-  // ========== MÉTODOS ADICIONAIS DE EQUIPES ==========
-  getTeamStatisticsByDateRange = this.team.getTeamStatisticsByDateRange;
-  getTeamPerformance = this.team.getTeamPerformance;
-  getTeamWorkload = this.team.getTeamWorkload;
-  updateTeamSettings = this.team.updateTeamSettings;
-  getTeamSettings = this.team.getTeamSettings;
+  markMessageAsRead = this.message.markMessageAsRead;
+  markMessageAsUnread = this.message.markMessageAsUnread;
+  markMessageAsDelivered = this.message.markMessageAsDelivered;
+  getMessage = this.message.getMessage;
+  updateMessageZApiStatus = this.message.updateMessageZApiStatus;
 
   // ========== PLACEHOLDERS ==========
   // implementar conforme necessário
