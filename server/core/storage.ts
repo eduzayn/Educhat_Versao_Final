@@ -3743,6 +3743,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getMessagesByMetadata(key: string, value: string): Promise<Message[]> {
+    try {
+      const result = await db.select()
+        .from(messages)
+        .where(sql`${messages.metadata}->>'${sql.raw(key)}' = ${value}`);
+      
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar mensagens por metadados:', error);
+      return [];
+    }
+  }
+
   // Deal-specific operations
   async getDealById(id: number): Promise<Deal | undefined> {
     try {
