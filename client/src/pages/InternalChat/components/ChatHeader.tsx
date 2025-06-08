@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/ui/tooltip';
 import { useInternalChatStore } from '../store/internalChatStore';
 import { useLocation } from 'wouter';
+import { ChatSettings } from './ChatSettings';
 
 interface ChatHeaderProps {
   onToggleInfo: () => void;

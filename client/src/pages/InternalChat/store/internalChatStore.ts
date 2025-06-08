@@ -46,6 +46,15 @@ export interface ChatUser {
   roleName?: string;
 }
 
+interface AudioSettings {
+  enabled: boolean;
+  volume: number;
+  sendSound: string;
+  receiveSound: string;
+  playOnTyping: boolean;
+  onlyWhenInactive: boolean;
+}
+
 interface InternalChatStore {
   // Estado
   activeChannel: string | null;
@@ -54,6 +63,7 @@ interface InternalChatStore {
   typingUsers: TypingUser[];
   isConnected: boolean;
   soundEnabled: boolean;
+  audioSettings: AudioSettings;
   channelUsers: Record<string, ChatUser[]>;
   
   // Ações
@@ -69,6 +79,8 @@ interface InternalChatStore {
   removeTyping: (userId: number, channelId: string) => void;
   setConnected: (connected: boolean) => void;
   toggleSound: () => void;
+  updateAudioSettings: (settings: Partial<AudioSettings>) => void;
+  playNotificationSound: (type: 'send' | 'receive') => void;
   markChannelAsRead: (channelId: string) => void;
   getChannelMessages: (channelId: string) => InternalChatMessage[];
   getUnreadTotal: () => number;
@@ -76,6 +88,16 @@ interface InternalChatStore {
   loadChannelUsers: (channelId: string) => Promise<void>;
   setChannelUsers: (channelId: string, users: ChatUser[]) => void;
 }
+
+// Configurações padrão de áudio
+const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
+  enabled: true,
+  volume: 70,
+  sendSound: 'notification-pop.mp3',
+  receiveSound: 'notification-ding.mp3',
+  playOnTyping: false,
+  onlyWhenInactive: true
+};
 
 export const useInternalChatStore = create<InternalChatStore>()(
   subscribeWithSelector((set, get) => ({
@@ -86,6 +108,7 @@ export const useInternalChatStore = create<InternalChatStore>()(
     typingUsers: [],
     isConnected: true,
     soundEnabled: true,
+    audioSettings: DEFAULT_AUDIO_SETTINGS,
     channelUsers: {},
 
     // Ações
@@ -203,6 +226,41 @@ export const useInternalChatStore = create<InternalChatStore>()(
     setConnected: (connected) => set({ isConnected: connected }),
     
     toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+    
+    // Atualizar configurações de áudio
+    updateAudioSettings: (newSettings) => {
+      const updatedSettings = { ...get().audioSettings, ...newSettings };
+      set({ audioSettings: updatedSettings });
+      
+      // Salvar no localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('internal-chat-audio-settings', JSON.stringify(updatedSettings));
+      }
+    },
+
+    // Reproduzir som de notificação
+    playNotificationSound: (type: 'send' | 'receive') => {
+      const { audioSettings } = get();
+      
+      if (!audioSettings.enabled) return;
+      
+      // Verificar se deve tocar apenas quando inativo
+      if (audioSettings.onlyWhenInactive && !document.hidden) return;
+      
+      const soundFile = type === 'send' ? audioSettings.sendSound : audioSettings.receiveSound;
+      
+      if (!soundFile) return;
+      
+      try {
+        const audio = new Audio(`/sounds/${soundFile}`);
+        audio.volume = audioSettings.volume / 100;
+        audio.play().catch(error => {
+          console.warn('Erro ao reproduzir som:', error);
+        });
+      } catch (error) {
+        console.warn('Erro ao criar áudio:', error);
+      }
+    },
     
     markChannelAsRead: (channelId) => set((state) => ({
       channels: state.channels.map(channel =>
