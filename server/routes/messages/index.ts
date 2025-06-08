@@ -21,6 +21,12 @@ export function registerMessageRoutes(app: Express) {
 
   app.post('/api/conversations/:id/messages', async (req: AuthenticatedRequest, res) => {
     try {
+      console.log('💾 [DEBUG] Recebendo solicitação para criar mensagem:', {
+        conversationId: req.params.id,
+        userId: req.user?.id,
+        body: req.body
+      });
+
       const conversationId = parseInt(req.params.id);
       const userId = req.user?.id;
 
@@ -29,6 +35,8 @@ export function registerMessageRoutes(app: Express) {
         ...req.body,
         conversationId,
       });
+
+      console.log('💾 [DEBUG] Dados parseados:', parsedData);
 
       // For internal notes, only check basic authentication
       // For regular messages, check conversation permissions
@@ -41,10 +49,13 @@ export function registerMessageRoutes(app: Express) {
         }
       }
 
+      console.log('💾 [DEBUG] Criando mensagem no banco...');
       const message = await storage.createMessage(parsedData);
+      console.log('💾 [DEBUG] Mensagem criada com sucesso:', message);
       
       // Broadcast to WebSocket clients IMMEDIATELY
       const { broadcast, broadcastToAll } = await import('../realtime');
+      console.log('💾 [DEBUG] Enviando broadcast...');
       broadcast(conversationId, {
         type: 'new_message',
         conversationId,
@@ -57,6 +68,7 @@ export function registerMessageRoutes(app: Express) {
         conversationId,
         message
       });
+      console.log('💾 [DEBUG] Broadcast enviado');
       
       // Se não for uma nota interna E for uma mensagem do agente, enviar via Z-API
       if (!parsedData.isInternalNote && !parsedData.isFromContact) {
