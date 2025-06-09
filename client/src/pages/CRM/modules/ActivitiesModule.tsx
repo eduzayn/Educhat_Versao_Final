@@ -79,6 +79,17 @@ export function ActivitiesModule() {
       priority: "high",
       status: "scheduled",
       description: "Acompanhamento da proposta enviada"
+    },
+    {
+      id: "2",
+      title: "Reunião com cliente",
+      type: "meeting",
+      date: new Date().toISOString().split('T')[0], // Today
+      time: new Date(Date.now() + 10 * 60000).toTimeString().slice(0, 5), // 10 minutes from now
+      contact: "Maria Santos",
+      priority: "medium",
+      status: "scheduled",
+      description: "Apresentação da nova proposta"
     }
   ];
 
