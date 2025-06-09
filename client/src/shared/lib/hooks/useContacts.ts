@@ -109,7 +109,7 @@ export function useImportZApiContacts() {
   
   return useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/contacts/import-from-zapi');
+      const response = await apiRequest('POST', '/api/zapi/import-contacts');
       return response.json();
     },
     onSuccess: (data) => {

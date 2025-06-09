@@ -127,7 +127,7 @@ export function ContactsPage() {
 
     setUpdatingAllPhotos(true);
     try {
-      const response = await fetch('/api/contacts/update-profile-pictures', {
+      const response = await fetch('/api/zapi/update-all-profile-pictures', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
