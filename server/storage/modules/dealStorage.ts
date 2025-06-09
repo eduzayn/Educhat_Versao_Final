@@ -96,7 +96,7 @@ export class DealStorage extends BaseStorage {
 
     // Create automatic deal
     const dealData: InsertDeal = {
-      name: `Deal Automático - ${contact.name}`,
+      name: contact.name,
       contactId: contactId,
       stage: 'prospecting',
       value: 0,

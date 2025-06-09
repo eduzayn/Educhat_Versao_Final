@@ -145,7 +145,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const existingDeal = await storage.getDealById(dealId);
+      const existingDeal = await storage.getDeal(dealId);
       if (!existingDeal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
