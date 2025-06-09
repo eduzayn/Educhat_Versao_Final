@@ -8,7 +8,21 @@ import {
   roles
 } from '../../../shared/schema';
 
-// Usando interface padrão do Express sem extensão
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+    displayName: string;
+    role: string;
+    roleId: number;
+    dataKey?: string;
+    channels: string[];
+    macrosetores: string[];
+    teamId?: number;
+    team?: string;
+  };
+}
 
 // Sistema de chat interno integrado com equipes e usuários existentes
 export function registerTeamsIntegratedChatRoutes(app: Express) {
@@ -47,7 +61,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   }
 
   // Endpoint para buscar canais baseados nas equipes do usuário
-  app.get('/api/internal-chat/channels', async (req: Request, res: Response) => {
+  app.get('/api/internal-chat/channels', async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -131,7 +145,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   });
 
   // Endpoint para buscar usuários da equipe/canal
-  app.get('/api/internal-chat/channels/:channelId/users', async (req: Request, res: Response) => {
+  app.get('/api/internal-chat/channels/:channelId/users', async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
