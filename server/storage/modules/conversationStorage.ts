@@ -1,5 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
+import { deals } from "../../../shared/schema";
 import { eq, desc, and, count, sql } from "drizzle-orm";
 
 /**
@@ -87,11 +88,22 @@ export class ConversationStorage extends BaseStorage {
 
         const tagsArray = contactTagsResult.map(t => t.tag);
 
+        // Buscar deals do contato
+        const contactDeals = await this.db
+          .select()
+          .from(deals)
+          .where(and(
+            eq(deals.contactId, conv.contact.id),
+            eq(deals.isActive, true)
+          ))
+          .orderBy(desc(deals.createdAt));
+
         return {
           ...conv,
           contact: {
             ...conv.contact,
-            tags: tagsArray
+            tags: tagsArray,
+            deals: contactDeals
           },
           channelInfo: channelInfo || undefined,
           messages: lastMessage || [],

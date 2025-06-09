@@ -91,6 +91,62 @@ export function ContactSidebar({
     setNewNote('');
   };
 
+  const handleCreateDeal = () => {
+    if (!dealFormData.name.trim()) return;
+    
+    const value = dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0;
+    
+    createDealMutation.mutate({
+      name: dealFormData.name,
+      contactId: activeConversation.contact.id,
+      value,
+      macrosetor: dealFormData.macrosetor || 'comercial',
+      stage: dealFormData.stage || 'prospecting'
+    });
+  };
+
+  const handleUpdateDeal = (deal: any, updates: any) => {
+    if (updates.value) {
+      updates.value = Math.round(parseFloat(updates.value) * 100);
+    }
+    
+    updateDealMutation.mutate({
+      id: deal.id,
+      data: updates
+    });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value / 100);
+  };
+
+  const getStageColor = (stage: string) => {
+    const stageColors: { [key: string]: string } = {
+      'prospecting': 'bg-blue-100 text-blue-800',
+      'qualified': 'bg-yellow-100 text-yellow-800',
+      'proposal': 'bg-orange-100 text-orange-800',
+      'negotiation': 'bg-purple-100 text-purple-800',
+      'closed_won': 'bg-green-100 text-green-800',
+      'closed_lost': 'bg-red-100 text-red-800'
+    };
+    return stageColors[stage] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getStageLabel = (stage: string) => {
+    const stageLabels: { [key: string]: string } = {
+      'prospecting': 'Prospecção',
+      'qualified': 'Qualificado',
+      'proposal': 'Proposta',
+      'negotiation': 'Negociação',
+      'closed_won': 'Ganho',
+      'closed_lost': 'Perdido'
+    };
+    return stageLabels[stage] || stage;
+  };
+
   if (!activeConversation) return null;
 
   return (
@@ -247,6 +303,218 @@ export function ContactSidebar({
             </div>
           )}
         </div>
+
+        {/* 💼 Negócios */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm text-gray-900 flex items-center">
+              <Briefcase className="w-4 h-4 mr-2" />
+              Negócios
+            </h4>
+            
+            <Dialog open={showDealDialog} onOpenChange={setShowDealDialog}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setEditingDeal(null);
+                    setDealFormData({ name: '', value: '', macrosetor: '', stage: '' });
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Criar negociação</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="deal-name">Nome da negociação *</Label>
+                    <Input
+                      id="deal-name"
+                      placeholder="Digite o nome da negociação"
+                      value={dealFormData.name}
+                      onChange={(e) => setDealFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="deal-value">Valor</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                      <Input
+                        id="deal-value"
+                        type="number"
+                        step="0.01"
+                        placeholder="0,00"
+                        className="pl-8"
+                        value={dealFormData.value}
+                        onChange={(e) => setDealFormData(prev => ({ ...prev, value: e.target.value }))}
+                      />
+                    </div>
+                    <div className="flex items-center mt-2">
+                      <span className="text-sm text-blue-600 mr-2">🎓</span>
+                      <span className="text-sm text-blue-600">Curso</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="deal-macrosetor">Funil de vendas *</Label>
+                    <Select value={dealFormData.macrosetor} onValueChange={(value) => setDealFormData(prev => ({ ...prev, macrosetor: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o funil" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="comercial">COMERCIAL</SelectItem>
+                        <SelectItem value="tutoria">TUTORIA</SelectItem>
+                        <SelectItem value="secretaria">SECRETARIA</SelectItem>
+                        <SelectItem value="financeiro">FINANCEIRO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="deal-stage">Etapa do funil *</Label>
+                    <Select value={dealFormData.stage} onValueChange={(value) => setDealFormData(prev => ({ ...prev, stage: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a etapa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="prospecting">PROSPECÇÃO</SelectItem>
+                        <SelectItem value="qualified">QUALIFICADO</SelectItem>
+                        <SelectItem value="proposal">PROPOSTA</SelectItem>
+                        <SelectItem value="negotiation">NEGOCIAÇÃO</SelectItem>
+                        <SelectItem value="closed_won">GANHO</SelectItem>
+                        <SelectItem value="closed_lost">PERDIDO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <h5 className="font-medium text-sm mb-2">Contato</h5>
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-sm">
+                          {activeConversation.contact.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{activeConversation.contact.name}</p>
+                        <p className="text-xs text-gray-500">{activeConversation.contact.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowDealDialog(false)}>
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleCreateDeal}
+                      disabled={!dealFormData.name.trim() || createDealMutation.isPending}
+                    >
+                      {createDealMutation.isPending ? 'Criando...' : 'Criar'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          {contactDeals && contactDeals.length > 0 ? (
+            <div className="space-y-2">
+              {contactDeals.map((deal: any) => (
+                <Card key={deal.id} className="border border-gray-200">
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <h5 className="font-medium text-sm text-gray-900 truncate flex-1">
+                        {deal.name}
+                      </h5>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 ml-2"
+                        onClick={() => setEditingDeal(deal)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-green-600">
+                        {formatCurrency(deal.value || 0)}
+                      </span>
+                      <Badge className={`text-xs ${getStageColor(deal.stage)}`}>
+                        {getStageLabel(deal.stage)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500">
+                      {deal.macrosetor?.toUpperCase()} • Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500">Nenhum negócio encontrado</p>
+            </div>
+          )}
+        </div>
+
+        {/* Modal de Edição de Deal */}
+        {editingDeal && (
+          <Dialog open={!!editingDeal} onOpenChange={() => setEditingDeal(null)}>
+            <DialogContent className="sm:max-w-[400px]">
+              <DialogHeader>
+                <DialogTitle>Editar Negócio</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label>Valor</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="pl-8"
+                      defaultValue={(editingDeal.value / 100).toFixed(2)}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        handleUpdateDeal(editingDeal, { value: newValue });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Etapa do Negócio</Label>
+                  <Select 
+                    defaultValue={editingDeal.stage} 
+                    onValueChange={(value) => handleUpdateDeal(editingDeal, { stage: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="prospecting">PROSPECÇÃO</SelectItem>
+                      <SelectItem value="qualified">QUALIFICADO</SelectItem>
+                      <SelectItem value="proposal">PROPOSTA</SelectItem>
+                      <SelectItem value="negotiation">NEGOCIAÇÃO</SelectItem>
+                      <SelectItem value="closed_won">GANHO</SelectItem>
+                      <SelectItem value="closed_lost">PERDIDO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* 🏷️ Outras Tags */}
         {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && (
