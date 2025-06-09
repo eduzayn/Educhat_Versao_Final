@@ -37,11 +37,27 @@ export class MessageStorage extends BaseStorage {
   async createMessage(message: InsertMessage): Promise<Message> {
     const [newMessage] = await this.db.insert(messages).values(message).returning();
     
-    // Atualizar o last_message_at da conversa para ordenação correta
+    // Calcular novo unread_count se a mensagem é do contato
+    let unreadCountUpdate = {};
+    if (newMessage.isFromContact) {
+      const unreadCount = await this.db.select()
+        .from(messages)
+        .where(and(
+          eq(messages.conversationId, newMessage.conversationId),
+          eq(messages.isFromContact, true),
+          isNull(messages.readAt),
+          eq(messages.isDeleted, false)
+        ));
+      
+      unreadCountUpdate = { unreadCount: unreadCount.length };
+    }
+    
+    // Atualizar a conversa com last_message_at e unread_count
     await this.db.update(conversations)
       .set({ 
         lastMessageAt: newMessage.sentAt,
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        ...unreadCountUpdate
       })
       .where(eq(conversations.id, newMessage.conversationId));
     
@@ -135,6 +151,14 @@ export class MessageStorage extends BaseStorage {
         eq(messages.isFromContact, true),
         isNull(messages.readAt)
       ));
+    
+    // Atualizar unread_count da conversa para 0
+    await this.db.update(conversations)
+      .set({ 
+        unreadCount: 0,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
   }
 
   async getInternalNotes(conversationId: number): Promise<Message[]> {
