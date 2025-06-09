@@ -71,13 +71,31 @@ export function useWebSocket() {
         addMessage(data.conversationId, data.message);
         updateConversationLastMessage(data.conversationId, data.message);
         
-        // Force immediate cache invalidation for conversations
+        // Invalidação imediata para atualização em tempo real
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
           queryKey: [`/api/conversations/${data.conversationId}/messages`] 
         });
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+        
+        // Force refetch prioritário
+        Promise.all([
+          queryClient.refetchQueries({ 
+            queryKey: ['/api/conversations'], 
+            type: 'active'
+          }),
+          queryClient.refetchQueries({ 
+            queryKey: [`/api/conversations/${data.conversationId}/messages`],
+            type: 'active'
+          }),
+          queryClient.refetchQueries({ 
+            queryKey: ['/api/conversations/unread-count'],
+            type: 'active'
+          })
+        ]).catch(error => {
+          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
+        });
+        
         return;
       }
 

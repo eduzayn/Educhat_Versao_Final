@@ -88,8 +88,8 @@ export function InboxPage() {
     isLoading, 
     refetch 
   } = useConversations(1000, { 
-    refetchInterval: false, // Desabilitar polling - usar WebSocket para tempo real
-    staleTime: 30000 // Cache por 30 segundos para melhor performance
+    refetchInterval: 5000, // Polling a cada 5 segundos como backup do WebSocket
+    staleTime: 1000 // Cache por apenas 1 segundo para forçar atualizações
   }); // Carregar 1000 contatos
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
