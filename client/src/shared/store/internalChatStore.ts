@@ -46,6 +46,13 @@ export interface TypingUser {
   timestamp: Date;
 }
 
+interface AudioSettings {
+  enabled: boolean;
+  volume: number;
+  sendSound: string;
+  receiveSound: string;
+}
+
 interface InternalChatState {
   activeChannel: string | null;
   channels: InternalChatChannel[];
@@ -54,6 +61,7 @@ interface InternalChatState {
   typingUsers: TypingUser[];
   isConnected: boolean;
   isLoading: boolean;
+  audioSettings: AudioSettings;
   
   setActiveChannel: (channel: string | null) => void;
   setConnected: (connected: boolean) => void;
@@ -63,6 +71,10 @@ interface InternalChatState {
   setChannelUsers: (channelId: string, users: ChatUser[]) => void;
   addMessage: (message: InternalChatMessage) => void;
   clearMessages: () => void;
+  getChannelMessages: (channelId: string) => InternalChatMessage[];
+  addReaction: (messageId: string, emoji: string) => void;
+  removeReaction: (messageId: string, emoji: string) => void;
+  updateAudioSettings: (settings: Partial<AudioSettings>) => void;
   playNotificationSound: (type?: 'receive' | 'send' | 'join' | 'leave') => void;
 }
 
@@ -75,6 +87,12 @@ export const useInternalChatStore = create<InternalChatState>()(
     typingUsers: [],
     isConnected: false,
     isLoading: false,
+    audioSettings: {
+      enabled: true,
+      volume: 50,
+      sendSound: 'notification.wav',
+      receiveSound: 'notification.wav'
+    },
 
     setActiveChannel: (channel) => {
       set({ activeChannel: channel });
@@ -155,6 +173,76 @@ export const useInternalChatStore = create<InternalChatState>()(
 
     clearMessages: () => {
       set({ messages: {} });
+    },
+
+    getChannelMessages: (channelId: string) => {
+      const state = get();
+      return state.messages[channelId] || [];
+    },
+
+    addReaction: (messageId: string, emoji: string) => {
+      const { user } = (window as any).__auth || {};
+      if (!user) return;
+
+      set((state) => {
+        const newMessages = { ...state.messages };
+        
+        // Encontrar e atualizar a mensagem em todos os canais
+        Object.keys(newMessages).forEach(channelId => {
+          newMessages[channelId] = newMessages[channelId].map(message => {
+            if (message.id === messageId) {
+              const reactions = { ...message.reactions };
+              if (!reactions[emoji]) {
+                reactions[emoji] = [];
+              }
+              if (!reactions[emoji].includes(user.id)) {
+                reactions[emoji].push(user.id);
+              }
+              return { ...message, reactions };
+            }
+            return message;
+          });
+        });
+
+        return { messages: newMessages };
+      });
+    },
+
+    removeReaction: (messageId: string, emoji: string) => {
+      const { user } = (window as any).__auth || {};
+      if (!user) return;
+
+      set((state) => {
+        const newMessages = { ...state.messages };
+        
+        // Encontrar e atualizar a mensagem em todos os canais
+        Object.keys(newMessages).forEach(channelId => {
+          newMessages[channelId] = newMessages[channelId].map(message => {
+            if (message.id === messageId) {
+              const reactions = { ...message.reactions };
+              if (reactions[emoji]) {
+                reactions[emoji] = reactions[emoji].filter(id => id !== user.id);
+                if (reactions[emoji].length === 0) {
+                  delete reactions[emoji];
+                }
+              }
+              return { ...message, reactions };
+            }
+            return message;
+          });
+        });
+
+        return { messages: newMessages };
+      });
+    },
+
+    updateAudioSettings: (settings: Partial<AudioSettings>) => {
+      set((state) => ({
+        audioSettings: {
+          ...state.audioSettings,
+          ...settings
+        }
+      }));
     },
 
     // Funcionalidades de notificação sonora
