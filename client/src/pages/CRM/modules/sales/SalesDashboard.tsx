@@ -29,6 +29,9 @@ export function SalesDashboard() {
   const [customDateStart, setCustomDateStart] = useState('');
   const [customDateEnd, setCustomDateEnd] = useState('');
   const [isCustomDateOpen, setIsCustomDateOpen] = useState(false);
+  const [showGoalsDialog, setShowGoalsDialog] = useState(false);
+  const [showTeamsDialog, setShowTeamsDialog] = useState(false);
+  const [showMeetingDialog, setShowMeetingDialog] = useState(false);
 
   // Buscar dados do dashboard
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
@@ -427,15 +430,30 @@ export function SalesDashboard() {
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-3">Ações Rápidas</h4>
               <div className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => setShowGoalsDialog(true)}
+                >
                   <Target className="h-4 w-4 mr-2" />
                   Definir Metas
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => setShowTeamsDialog(true)}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Gerenciar Equipe
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => setShowMeetingDialog(true)}
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   Agendar Reunião
                 </Button>
@@ -444,6 +462,135 @@ export function SalesDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Diálogo de Definir Metas */}
+      <Dialog open={showGoalsDialog} onOpenChange={setShowGoalsDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Definir Metas de Vendas
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="monthly-goal">Meta Mensal (R$)</Label>
+              <Input id="monthly-goal" placeholder="Ex: 50.000" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quarterly-goal">Meta Trimestral (R$)</Label>
+              <Input id="quarterly-goal" placeholder="Ex: 150.000" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="team-goal">Meta da Equipe (%)</Label>
+              <Input id="team-goal" placeholder="Ex: 120" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowGoalsDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setShowGoalsDialog(false)}>
+              Salvar Metas
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Gerenciar Equipe */}
+      <Dialog open={showTeamsDialog} onOpenChange={setShowTeamsDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-600" />
+              Gerenciar Equipe de Vendas
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">Vendedores Ativos</h4>
+                <div className="text-2xl font-bold text-green-600">
+                  {defaultCharts.salesByPerson?.length || 0}
+                </div>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">Performance Média</h4>
+                <div className="text-2xl font-bold text-blue-600">85%</div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Ações da Equipe</Label>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Users className="h-4 w-4 mr-2" />
+                  Ver Performance Individual
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Target className="h-4 w-4 mr-2" />
+                  Definir Metas por Vendedor
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Relatório de Produtividade
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowTeamsDialog(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Agendar Reunião */}
+      <Dialog open={showMeetingDialog} onOpenChange={setShowMeetingDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-600" />
+              Agendar Reunião
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="meeting-title">Título da Reunião</Label>
+              <Input id="meeting-title" placeholder="Ex: Revisão de Metas Mensais" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meeting-date">Data</Label>
+              <Input id="meeting-date" type="date" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meeting-time">Horário</Label>
+              <Input id="meeting-time" type="time" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meeting-participants">Participantes</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar equipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toda equipe de vendas</SelectItem>
+                  <SelectItem value="managers">Apenas gerentes</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowMeetingDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setShowMeetingDialog(false)}>
+              Agendar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
