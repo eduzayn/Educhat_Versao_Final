@@ -59,7 +59,6 @@ export class ConversationStorage extends BaseStorage {
       .offset(offset);
 
     // OTIMIZAÇÃO: Retornar apenas dados essenciais para carregamento rápido
-    // Tags, deals e detalhes extras serão carregados sob demanda
     const optimizedConversations = conversationsWithContacts.map((conv) => {
       return {
         ...conv,
@@ -70,7 +69,12 @@ export class ConversationStorage extends BaseStorage {
         },
         channelInfo: undefined, // Carregado sob demanda
         messages: [], // Carregado sob demanda
-        _count: { messages: conv.unreadCount || 0 }
+        _count: { messages: conv.unreadCount || 0 },
+        // Campos obrigatórios para ConversationWithContact
+        priority: conv.priority || null,
+        tags: conv.tags || [],
+        isRead: conv.isRead || false,
+        metadata: conv.metadata || {}
       } as ConversationWithContact;
     });
 
