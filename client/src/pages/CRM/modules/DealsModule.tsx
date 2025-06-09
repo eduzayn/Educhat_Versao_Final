@@ -146,7 +146,7 @@ export function DealsModule() {
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
   // Get current macrosetor configuration
-  const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];
+  const currentMacrosetor = teamMacrosetores[selectedMacrosetor as keyof typeof teamMacrosetores];
   
   // Reset page when macrosetor changes
   useEffect(() => {
