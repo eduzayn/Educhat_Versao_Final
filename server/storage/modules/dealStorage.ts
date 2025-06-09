@@ -124,7 +124,7 @@ export class DealStorage extends BaseStorage {
       probability: 50,
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'automatic',
-      macrosetor: macrosetor || 'comercial',
+      macrosetor: macrosetor || 'geral',
       notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'}`,
       tags: {
         automatic: true,

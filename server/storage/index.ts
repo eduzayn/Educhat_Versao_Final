@@ -487,27 +487,43 @@ export class DatabaseStorage implements IStorage {
       // Import usando caminho relativo correto
       const { detectMacrosetor } = require('./utils/macrosetorUtils');
       const detection = detectMacrosetor(content);
+      
+      console.log('🔍 Detecção de macrosetor:', {
+        content: content.substring(0, 100) + '...',
+        detected: detection?.macrosetor || 'nenhum',
+        confidence: detection?.confidence || 0,
+        keywords: detection?.keywords || []
+      });
+      
       return detection ? detection.macrosetor : 'geral';
     } catch (error) {
+      console.error('❌ Erro na detecção de macrosetor, usando fallback:', error);
+      
       // Fallback simplificado se o import falhar
       const contentLower = content.toLowerCase();
       
       if (contentLower.includes('suporte') || contentLower.includes('problema') || contentLower.includes('ajuda')) {
+        console.log('📋 Fallback detectou: suporte');
         return 'suporte';
       }
       if (contentLower.includes('comercial') || contentLower.includes('venda') || contentLower.includes('curso')) {
+        console.log('📋 Fallback detectou: comercial');
         return 'comercial';
       }
       if (contentLower.includes('cobranca') || contentLower.includes('pagamento') || contentLower.includes('boleto')) {
+        console.log('📋 Fallback detectou: cobranca');
         return 'cobranca';
       }
       if (contentLower.includes('tutoria') || contentLower.includes('professor') || contentLower.includes('aula')) {
+        console.log('📋 Fallback detectou: tutoria');
         return 'tutoria';
       }
       if (contentLower.includes('secretaria') || contentLower.includes('documento') || contentLower.includes('certificado')) {
+        console.log('📋 Fallback detectou: secretaria');
         return 'secretaria';
       }
       
+      console.log('📋 Fallback detectou: geral');
       return 'geral';
     }
   }

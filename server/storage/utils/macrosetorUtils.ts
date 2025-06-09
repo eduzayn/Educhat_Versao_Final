@@ -11,6 +11,37 @@ export interface MacrosetorDetection {
 
 // Educational field keywords mapping
 const MACROSETOR_KEYWORDS = {
+  'comercial': [
+    'curso', 'matricula', 'inscrição', 'valor', 'preço', 'pagamento', 'mensalidade',
+    'desconto', 'promoção', 'oferta', 'venda', 'comprar', 'adquirir',
+    'investimento', 'custo', 'quanto custa', 'informações sobre curso',
+    'quero saber mais', 'tenho interesse', 'gostaria de', 'comercial',
+    'vendas', 'negócio', 'proposta', 'orçamento'
+  ],
+  'suporte': [
+    'problema', 'erro', 'não funciona', 'bug', 'falha', 'dificuldade',
+    'ajuda', 'socorro', 'suporte', 'técnico', 'não consigo', 'travou',
+    'lento', 'não carrega', 'senha', 'login', 'acesso', 'recuperar',
+    'resetar', 'configurar', 'instalação', 'tutorial', 'como fazer'
+  ],
+  'cobranca': [
+    'pagamento', 'boleto', 'fatura', 'cobrança', 'débito', 'vencimento',
+    'atraso', 'multa', 'juros', 'parcelamento', 'renegociação', 'acordo',
+    'quitação', 'financeiro', 'conta em atraso', 'inadimplência',
+    'segunda via', 'extrato', 'comprovante', 'recibo', 'nota fiscal'
+  ],
+  'tutoria': [
+    'dúvida', 'exercício', 'questão', 'matéria', 'conteúdo', 'disciplina',
+    'professor', 'tutor', 'explicação', 'esclarecimento', 'aula',
+    'videoaula', 'material', 'apostila', 'livro', 'bibliografia',
+    'cronograma', 'horário', 'agenda', 'revisão', 'prova', 'exame'
+  ],
+  'secretaria': [
+    'certificado', 'diploma', 'declaração', 'histórico', 'documento',
+    'carteirinha', 'identidade estudantil', 'rematrícula', 'transferência',
+    'trancamento', 'cancelamento', 'secretaria', 'acadêmico',
+    'coordenação', 'diretoria', 'protocolo', 'solicitação', 'requerimento'
+  ],
   'tecnologia': [
     'programação', 'desenvolvimento', 'software', 'javascript', 'python', 'java',
     'web design', 'front-end', 'back-end', 'fullstack', 'mobile', 'app',
