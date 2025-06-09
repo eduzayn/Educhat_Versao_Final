@@ -181,6 +181,8 @@ export function ContactSidebar({
       value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
       macrosetor: dealFormData.macrosetor,
       stage: dealFormData.stage,
+      category: dealFormData.category || null,
+      course: dealFormData.course || null,
       probability: 50,
       owner: 'Sistema'
     };
