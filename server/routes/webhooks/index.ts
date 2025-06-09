@@ -1038,13 +1038,12 @@ export function registerZApiRoutes(app: Express) {
           messageContent = 'Localização enviada';
           messageType = 'location';
         } else if (webhookData.waitingMessage) {
-          // Para mensagens em fila (waitingMessage: true), usar fallback até receber conteúdo real
-          console.log('⏳ Mensagem em fila detectada, aguardando conteúdo real...');
-          messageContent = webhookData.chatName || 'Mensagem em processamento';
-          messageType = 'text';
+          // Para mensagens em fila, aguardar próximo webhook com conteúdo
+          console.log('⏳ Mensagem em fila detectada, ignorando até receber conteúdo...');
+          return res.status(200).json({ success: true, type: 'waiting_message' });
         } else {
-          // Log detalhado para debug do fallback
-          console.log('⚠️ Fallback ativado - webhook não reconhecido:', {
+          // Log detalhado para debug - não salvar mensagens sem conteúdo identificável
+          console.log('⚠️ Webhook sem conteúdo reconhecido - ignorando:', {
             hasText: !!webhookData.text,
             hasImage: !!webhookData.image,
             hasAudio: !!webhookData.audio,
@@ -1055,7 +1054,7 @@ export function registerZApiRoutes(app: Express) {
             messageId: webhookData.messageId,
             keys: Object.keys(webhookData)
           });
-          messageContent = 'Mensagem não identificada';
+          return res.status(200).json({ success: true, type: 'no_content' });
         }
 
         console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
@@ -1133,7 +1132,7 @@ export function registerZApiRoutes(app: Express) {
           console.error('❌ Erro no broadcast imediato:', broadcastError);
         }
 
-        // PRIORIDADE 2: Salvar no banco de dados em background
+        // PRIORIDADE 2: Salvar mensagem no banco de dados
         setImmediate(async () => {
           try {
             const message = await storage.createMessage({
