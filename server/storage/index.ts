@@ -488,7 +488,7 @@ export class DatabaseStorage implements IStorage {
     if (!macrosetor) return null;
     
     try {
-      const result = await this.databaseStorage.getTeamByMacrosetor(macrosetor);
+      const result = await this.team.getTeamByMacrosetor(macrosetor);
       return result;
     } catch (error) {
       console.error('Erro ao buscar equipe por macrosetor:', error);
@@ -514,7 +514,7 @@ export class DatabaseStorage implements IStorage {
       const config = teamConfigs[macrosetor as keyof typeof teamConfigs] || teamConfigs.geral;
       
       try {
-        team = await this.databaseStorage.createTeam({
+        team = await this.team.createTeam({
           name: config.name,
           description: config.description,
           color: config.color,
@@ -537,7 +537,7 @@ export class DatabaseStorage implements IStorage {
   // Assign conversation to team/macrosetor
   async assignConversationToTeam(conversationId: number, teamId: number, assignmentType: string = 'manual'): Promise<void> {
     try {
-      await this.databaseStorage.assignConversationToTeam(conversationId, teamId);
+      await this.conversation.assignConversationToTeam(conversationId, teamId, assignmentType);
       console.log(`✅ Conversa ${conversationId} atribuída à equipe ${teamId} (${assignmentType})`);
     } catch (error) {
       console.error('Erro ao atribuir conversa à equipe:', error);
@@ -547,12 +547,12 @@ export class DatabaseStorage implements IStorage {
   // Get available user from team
   async getAvailableUserFromTeam(teamId: number): Promise<any> {
     try {
-      const teamUsers = await this.databaseStorage.getUsersByTeam(teamId);
-      if (teamUsers.length === 0) {
+      const teamMembers = await this.team.getTeamMembers(teamId);
+      if (teamMembers.length === 0) {
         return null;
       }
       // Return first available user for now
-      return teamUsers[0];
+      return teamMembers[0];
     } catch (error) {
       console.error('Erro ao buscar usuário disponível da equipe:', error);
       return null;
@@ -562,7 +562,7 @@ export class DatabaseStorage implements IStorage {
   // Assign conversation to user
   async assignConversationToUser(conversationId: number, userId: number, assignmentType: string = 'manual'): Promise<void> {
     try {
-      await this.databaseStorage.assignConversationToUser(conversationId, userId);
+      await this.conversation.assignConversationToUser(conversationId, userId, assignmentType);
       console.log(`✅ Conversa ${conversationId} atribuída ao usuário ${userId} (${assignmentType})`);
     } catch (error) {
       console.error('Erro ao atribuir conversa ao usuário:', error);

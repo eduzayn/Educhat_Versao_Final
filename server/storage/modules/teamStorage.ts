@@ -49,6 +49,19 @@ export class TeamStorage extends BaseStorage {
   }
 
   /**
+   * Get team by macrosetor (unification method)
+   */
+  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
+    const [team] = await this.db.select()
+      .from(teams)
+      .where(and(
+        eq(teams.macrosetor, macrosetor),
+        eq(teams.isActive, true)
+      ));
+    return team;
+  }
+
+  /**
    * Get team by macrosetor
    */
   async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
