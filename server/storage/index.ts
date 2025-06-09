@@ -483,48 +483,78 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
-    try {
-      // Import usando caminho relativo correto
-      const { detectMacrosetor } = require('./utils/macrosetorUtils');
-      const detection = detectMacrosetor(content);
-      
-      console.log('🔍 Detecção de macrosetor:', {
-        content: content.substring(0, 100) + '...',
-        detected: detection?.macrosetor || 'nenhum',
-        confidence: detection?.confidence || 0,
-        keywords: detection?.keywords || []
-      });
-      
-      return detection ? detection.macrosetor : 'geral';
-    } catch (error) {
-      console.error('❌ Erro na detecção de macrosetor, usando fallback:', error);
-      
-      // Fallback simplificado se o import falhar
-      const contentLower = content.toLowerCase();
-      
-      if (contentLower.includes('suporte') || contentLower.includes('problema') || contentLower.includes('ajuda')) {
-        console.log('📋 Fallback detectou: suporte');
-        return 'suporte';
-      }
-      if (contentLower.includes('comercial') || contentLower.includes('venda') || contentLower.includes('curso')) {
-        console.log('📋 Fallback detectou: comercial');
-        return 'comercial';
-      }
-      if (contentLower.includes('cobranca') || contentLower.includes('pagamento') || contentLower.includes('boleto')) {
-        console.log('📋 Fallback detectou: cobranca');
-        return 'cobranca';
-      }
-      if (contentLower.includes('tutoria') || contentLower.includes('professor') || contentLower.includes('aula')) {
-        console.log('📋 Fallback detectou: tutoria');
-        return 'tutoria';
-      }
-      if (contentLower.includes('secretaria') || contentLower.includes('documento') || contentLower.includes('certificado')) {
-        console.log('📋 Fallback detectou: secretaria');
-        return 'secretaria';
-      }
-      
-      console.log('📋 Fallback detectou: geral');
+    // Implementação direta da detecção de macrosetor
+    if (!content || content.trim().length < 3) {
       return 'geral';
     }
+
+    const contentLower = content.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // Remove accents
+
+    // Definir palavras-chave por macrosetor
+    const macrosetorKeywords = {
+      'comercial': [
+        'curso', 'matricula', 'inscrição', 'valor', 'preço', 'pagamento', 'mensalidade',
+        'desconto', 'promoção', 'oferta', 'venda', 'comprar', 'adquirir',
+        'investimento', 'custo', 'quanto custa', 'informações sobre curso',
+        'quero saber mais', 'tenho interesse', 'gostaria de', 'comercial',
+        'vendas', 'negócio', 'proposta', 'orçamento'
+      ],
+      'cobranca': [
+        'pagamento', 'boleto', 'fatura', 'cobrança', 'débito', 'vencimento',
+        'atraso', 'multa', 'juros', 'parcelamento', 'renegociação', 'acordo',
+        'quitação', 'financeiro', 'conta em atraso', 'inadimplência',
+        'segunda via', 'extrato', 'comprovante', 'recibo', 'nota fiscal',
+        'mensalidades', 'em atraso'
+      ],
+      'suporte': [
+        'problema', 'erro', 'não funciona', 'bug', 'falha', 'dificuldade',
+        'ajuda', 'socorro', 'suporte', 'técnico', 'não consigo', 'travou',
+        'lento', 'não carrega', 'senha', 'login', 'acesso', 'recuperar',
+        'resetar', 'configurar', 'instalação', 'tutorial', 'como fazer'
+      ],
+      'tutoria': [
+        'dúvida', 'exercício', 'questão', 'matéria', 'conteúdo', 'disciplina',
+        'professor', 'tutor', 'explicação', 'esclarecimento', 'aula',
+        'videoaula', 'material', 'apostila', 'livro', 'bibliografia',
+        'cronograma', 'horário', 'agenda', 'revisão', 'prova', 'exame'
+      ],
+      'secretaria': [
+        'certificado', 'diploma', 'declaração', 'histórico', 'documento',
+        'carteirinha', 'identidade estudantil', 'rematrícula', 'transferência',
+        'trancamento', 'cancelamento', 'secretaria', 'acadêmico',
+        'coordenação', 'diretoria', 'protocolo', 'solicitação', 'requerimento'
+      ]
+    };
+
+    // Detectar macrosetor com maior número de matches
+    let bestMatch = { macrosetor: 'geral', score: 0 };
+
+    for (const [macrosetor, keywords] of Object.entries(macrosetorKeywords)) {
+      let score = 0;
+      
+      for (const keyword of keywords) {
+        const keywordNormalized = keyword.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        
+        if (contentLower.includes(keywordNormalized)) {
+          score += 1;
+        }
+      }
+      
+      if (score > bestMatch.score) {
+        bestMatch = { macrosetor, score };
+      }
+    }
+
+    console.log('🔍 Detecção de macrosetor:', {
+      content: content.substring(0, 100) + '...',
+      detected: bestMatch.macrosetor,
+      score: bestMatch.score
+    });
+
+    return bestMatch.score > 0 ? bestMatch.macrosetor : 'geral';
   }
 }
