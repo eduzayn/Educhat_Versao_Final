@@ -437,7 +437,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRoles(): Promise<any[]> {
-    throw new Error("Método getRoles não implementado");
+    return this.system.getRoles();
   }
 
   async createRole(): Promise<any> {

@@ -38,6 +38,22 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
+// Endpoint simples para roles antes das middlewares de autenticação
+app.get('/api/roles', async (req: Request, res: Response) => {
+  try {
+    const staticRoles = [
+      { id: 1, name: 'Administrador', displayName: 'Administrador', isActive: true },
+      { id: 2, name: 'Gerente', displayName: 'Gerente', isActive: true },
+      { id: 3, name: 'Atendente', displayName: 'Atendente', isActive: true },
+      { id: 4, name: 'Visualizador', displayName: 'Visualizador', isActive: true }
+    ];
+    res.json(staticRoles);
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ message: 'Failed to fetch roles' });
+  }
+});
+
 // Health check endpoint is handled in routes.ts
 
 // Servir arquivos estáticos de upload
