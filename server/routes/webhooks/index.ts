@@ -798,25 +798,8 @@ async function processInstagramMessage(messagingEvent: any) {
       console.error('❌ Erro ao criar negócio automático para Instagram:', dealError);
     }
 
-    // Atribuição automática de equipes
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
-      
-      if (team) {
-        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
-        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
-        
-        const availableUser = await storage.getAvailableUserFromTeam(team.id);
-        if (availableUser) {
-          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
-        }
-      }
-    } catch (assignmentError) {
-      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
-    }
+    // Atribuição automática de equipes com reavaliação inteligente
+    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem do Instagram:', error);
@@ -903,25 +886,8 @@ async function processEmailMessage(emailData: any) {
       console.error('❌ Erro ao criar negócio automático para Email:', dealError);
     }
 
-    // Atribuição automática de equipes
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
-      
-      if (team) {
-        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
-        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
-        
-        const availableUser = await storage.getAvailableUserFromTeam(team.id);
-        if (availableUser) {
-          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
-        }
-      }
-    } catch (assignmentError) {
-      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
-    }
+    // Atribuição automática de equipes com reavaliação inteligente
+    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem de Email:', error);
@@ -1007,25 +973,8 @@ async function processSMSMessage(smsData: any) {
       console.error('❌ Erro ao criar negócio automático para SMS:', dealError);
     }
 
-    // Atribuição automática de equipes
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
-      
-      if (team) {
-        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-        await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
-        console.log(`✅ Conversa ID ${conversation.id} atribuída automaticamente à equipe ${team.name}`);
-        
-        const availableUser = await storage.getAvailableUserFromTeam(team.id);
-        if (availableUser) {
-          await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-          console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
-        }
-      }
-    } catch (assignmentError) {
-      console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
-    }
+    // Atribuição automática de equipes com reavaliação inteligente
+    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem de SMS:', error);
@@ -1387,35 +1336,10 @@ export function registerZApiRoutes(app: Express) {
               console.error('❌ Erro ao criar negócio automático:', dealError);
             }
 
-            // Atribuição automática de equipes com reclassificação dinâmica
+            // Atribuição automática de equipes com reavaliação inteligente
             try {
-              if (detectedMacrosetor) {
-                const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
-                
-                if (team) {
-                  // Verificar se precisa reclassificar conversa existente
-                  const currentTeamId = conversation.assignedTeamId;
-                  if (currentTeamId && currentTeamId !== team.id) {
-                    console.log(`🔄 Reclassificando conversa ${conversation.id}: equipe ${currentTeamId} → ${team.id} (${detectedMacrosetor})`);
-                    await storage.updateConversation(conversation.id, {
-                      assignedTeamId: team.id,
-                      macrosetor: detectedMacrosetor
-                    });
-                    conversationUpdated = true;
-                    console.log(`✅ Conversa reclassificada para equipe: ${team.name}`);
-                  } else if (!currentTeamId) {
-                    console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-                    await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
-                    conversationUpdated = true;
-                  }
-                  
-                  const availableUser = await storage.getAvailableUserFromTeam(team.id);
-                  if (availableUser) {
-                    await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-                    console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
-                  }
-                }
-              }
+              await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+              conversationUpdated = true;
             } catch (assignmentError) {
               console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
             }
