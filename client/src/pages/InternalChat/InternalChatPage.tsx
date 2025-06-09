@@ -9,7 +9,7 @@ import { ConnectionStatus } from './components/ConnectionStatus';
 import { TypingIndicatorGlobal } from './components/TypingIndicatorGlobal';
 import { SoundNotification } from './components/SoundNotification';
 import { EmojiReactionToast } from './components/EmojiReactionToast';
-import { useInternalChatStore } from '@/shared/store/internalChatStore';
+import { useInternalChatStore } from './store/internalChatStore';
 
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);

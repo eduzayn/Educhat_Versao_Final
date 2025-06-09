@@ -6,7 +6,7 @@ import { Badge } from '@/shared/ui/badge';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Separator } from '@/shared/ui/separator';
 import { Button } from '@/shared/ui/button';
-import { useInternalChatStore } from '@/shared/store/internalChatStore';
+import { useInternalChatStore } from '../store/internalChatStore';
 import { PrivateMessageModal } from './PrivateMessageModal';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 
