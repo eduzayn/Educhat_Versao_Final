@@ -38,9 +38,8 @@ export class DealStorage extends BaseStorage {
     return {
       deals: results,
       total: totalResult.count,
-      page,
-      limit,
-      totalPages: Math.ceil(totalResult.count / limit)
+      totalPages: Math.ceil(totalResult.count / limit),
+      currentPage: page
     };
   }
 

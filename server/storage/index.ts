@@ -15,6 +15,7 @@ export { MessageStorage } from './modules/messageStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
+import { detectMacrosetor as macrosetorDetector } from './utils/macrosetorUtils';
 
 /**
  * Classe principal do Storage que implementa a interface IStorage
@@ -288,8 +289,8 @@ export class DatabaseStorage implements IStorage {
     return this.deal.deleteDeal(id);
   }
 
-  async createAutomaticDeal(contactId: number, dealData: any) {
-    return this.deal.createAutomaticDeal(contactId, dealData);
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string) {
+    return this.deal.createAutomaticDeal(contactId, canalOrigem, macrosetor);
   }
 
   // ==================== NOTES OPERATIONS ====================
@@ -472,8 +473,7 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
-    const { detectMacrosetor } = require('./utils/macrosetorUtils');
-    const detection = detectMacrosetor(content);
+    const detection = macrosetorDetector(content);
     return detection ? detection.macrosetor : null;
   }
 }

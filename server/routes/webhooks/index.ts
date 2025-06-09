@@ -1128,16 +1128,18 @@ export function registerZApiRoutes(app: Express) {
         // Atribuição automática de equipes
         try {
           const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
-          const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
-          
-          if (team) {
-            console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-            await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+          if (detectedMacrosetor) {
+            const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
             
-            const availableUser = await storage.getAvailableUserFromTeam(team.id);
-            if (availableUser) {
-              await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-              console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+            if (team) {
+              console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+              await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+              
+              const availableUser = await storage.getAvailableUserFromTeam(team.id);
+              if (availableUser) {
+                await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+                console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+              }
             }
           }
         } catch (assignmentError) {
