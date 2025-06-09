@@ -5,7 +5,7 @@ export function registerChannelRoutes(app: Express) {
   // Get all channels - REST: GET /api/channels
   app.get('/api/channels', async (req, res) => {
     try {
-      const channels = await storage.getAllChannels();
+      const channels = await storage.getChannels();
       res.json(channels);
     } catch (error) {
       console.error('❌ Erro ao buscar canais:', error);
@@ -19,7 +19,7 @@ export function registerChannelRoutes(app: Express) {
   app.get('/api/channels/:id', async (req, res) => {
     try {
       const channelId = parseInt(req.params.id);
-      const channel = await storage.getChannelById(channelId);
+      const channel = await storage.getChannel(channelId);
       
       if (!channel) {
         return res.status(404).json({ error: 'Canal não encontrado' });
@@ -87,7 +87,7 @@ export function registerChannelRoutes(app: Express) {
   app.post('/api/channels/:id/test', async (req, res) => {
     try {
       const channelId = parseInt(req.params.id);
-      const channel = await storage.getChannelById(channelId);
+      const channel = await storage.getChannel(channelId);
       
       if (!channel) {
         return res.status(404).json({ error: 'Canal não encontrado' });

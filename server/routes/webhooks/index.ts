@@ -1040,7 +1040,7 @@ export function registerZApiRoutes(app: Express) {
       const channelId = parseInt(req.params.id);
       
       // Buscar canal específico no banco
-      const channel = await storage.getChannelById(channelId);
+      const channel = await storage.getChannel(channelId);
       if (!channel) {
         return res.status(404).json({ error: 'Canal não encontrado' });
       }
