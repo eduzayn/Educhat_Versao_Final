@@ -2,6 +2,37 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import multer from "multer";
 
+// Função helper para atribuição inteligente de equipes
+async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
+  try {
+    const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+    const newTeam = await storage.getTeamByMacrosetor(detectedMacrosetor);
+    
+    if (newTeam) {
+      // Verificar se a conversa já está atribuída a uma equipe diferente
+      const currentConversation = await storage.getConversation(conversationId);
+      const shouldReassign = !currentConversation?.assignedTeamId || 
+                            currentConversation.assignedTeamId !== newTeam.id;
+      
+      if (shouldReassign) {
+        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, newTeam.name);
+        await storage.assignConversationToTeam(conversationId, newTeam.id, 'automatic');
+        console.log(`✅ Conversa ID ${conversationId} reatribuída automaticamente à equipe ${newTeam.name}`);
+        
+        const availableUser = await storage.getAvailableUserFromTeam(newTeam.id);
+        if (availableUser) {
+          await storage.assignConversationToUser(conversationId, availableUser.id, 'automatic');
+          console.log(`👤 Conversa reatribuída automaticamente ao usuário ${availableUser.displayName}`);
+        }
+      } else {
+        console.log(`⚡ Conversa já está na equipe correta: ${newTeam.name}`);
+      }
+    }
+  } catch (assignmentError) {
+    console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+  }
+}
+
 // Configurar multer para upload de áudio em memória
 const uploadAudio = multer({
   storage: multer.memoryStorage(),
