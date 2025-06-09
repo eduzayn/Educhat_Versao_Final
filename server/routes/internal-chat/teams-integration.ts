@@ -10,6 +10,14 @@ import {
 
 // Usar interface existente do sistema de autenticação
 
+// Middleware de autenticação para chat interno
+function requireAuth(req: any, res: Response, next: any) {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Usuário não autenticado' });
+  }
+  next();
+}
+
 // Sistema de chat interno integrado com equipes e usuários existentes
 export function registerTeamsIntegratedChatRoutes(app: Express) {
 
@@ -47,8 +55,16 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   }
 
   // Endpoint para buscar canais baseados nas equipes do usuário
-  app.get('/api/internal-chat/channels', async (req: Request, res: Response) => {
+  app.get('/api/internal-chat/channels', requireAuth, async (req: any, res: Response) => {
     try {
+      // Debug da sessão
+      console.log('🔍 Debug session chat interno:', {
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        sessionId: req.sessionID,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
+      });
+
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
       }
@@ -131,7 +147,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   });
 
   // Endpoint para buscar usuários da equipe/canal
-  app.get('/api/internal-chat/channels/:channelId/users', async (req: Request, res: Response) => {
+  app.get('/api/internal-chat/channels/:channelId/users', requireAuth, async (req: Request, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Usuário não autenticado' });
