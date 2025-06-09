@@ -29,6 +29,38 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
+// Helper functions
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value / 100);
+};
+
+const getStageColor = (stage: string) => {
+  const colors = {
+    prospecting: 'bg-blue-100 text-blue-800',
+    qualified: 'bg-yellow-100 text-yellow-800',
+    proposal: 'bg-orange-100 text-orange-800',
+    negotiation: 'bg-purple-100 text-purple-800',
+    closed_won: 'bg-green-100 text-green-800',
+    closed_lost: 'bg-red-100 text-red-800'
+  };
+  return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+};
+
+const getStageLabel = (stage: string) => {
+  const labels = {
+    prospecting: 'PROSPECÇÃO',
+    qualified: 'QUALIFICADO',
+    proposal: 'PROPOSTA',
+    negotiation: 'NEGOCIAÇÃO',
+    closed_won: 'GANHO',
+    closed_lost: 'PERDIDO'
+  };
+  return labels[stage as keyof typeof labels] || stage.toUpperCase();
+};
+
 interface ContactSidebarProps {
   activeConversation: any;
   contactNotes: any[];
@@ -83,68 +115,42 @@ export function ContactSidebar({
     }
   });
 
+  const handleCreateDeal = () => {
+    if (!dealFormData.name.trim()) return;
+
+    const data = {
+      name: dealFormData.name,
+      contactId: activeConversation.contact.id,
+      value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
+      macrosetor: dealFormData.macrosetor,
+      stage: dealFormData.stage,
+      probability: 50,
+      owner: 'Sistema'
+    };
+
+    createDealMutation.mutate(data);
+  };
+
+  const handleUpdateDeal = (deal: any, updates: any) => {
+    const data: any = {};
+    
+    if (updates.value !== undefined) {
+      data.value = Math.round(parseFloat(updates.value) * 100);
+    }
+    
+    if (updates.stage !== undefined) {
+      data.stage = updates.stage;
+    }
+
+    updateDealMutation.mutate({ id: deal.id, data });
+  };
+
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     
     await onAddNote(newNote.trim());
     setShowNoteDialog(false);
     setNewNote('');
-  };
-
-  const handleCreateDeal = () => {
-    if (!dealFormData.name.trim()) return;
-    
-    const value = dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0;
-    
-    createDealMutation.mutate({
-      name: dealFormData.name,
-      contactId: activeConversation.contact.id,
-      value,
-      macrosetor: dealFormData.macrosetor || 'comercial',
-      stage: dealFormData.stage || 'prospecting'
-    });
-  };
-
-  const handleUpdateDeal = (deal: any, updates: any) => {
-    if (updates.value) {
-      updates.value = Math.round(parseFloat(updates.value) * 100);
-    }
-    
-    updateDealMutation.mutate({
-      id: deal.id,
-      data: updates
-    });
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value / 100);
-  };
-
-  const getStageColor = (stage: string) => {
-    const stageColors: { [key: string]: string } = {
-      'prospecting': 'bg-blue-100 text-blue-800',
-      'qualified': 'bg-yellow-100 text-yellow-800',
-      'proposal': 'bg-orange-100 text-orange-800',
-      'negotiation': 'bg-purple-100 text-purple-800',
-      'closed_won': 'bg-green-100 text-green-800',
-      'closed_lost': 'bg-red-100 text-red-800'
-    };
-    return stageColors[stage] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getStageLabel = (stage: string) => {
-    const stageLabels: { [key: string]: string } = {
-      'prospecting': 'Prospecção',
-      'qualified': 'Qualificado',
-      'proposal': 'Proposta',
-      'negotiation': 'Negociação',
-      'closed_won': 'Ganho',
-      'closed_lost': 'Perdido'
-    };
-    return stageLabels[stage] || stage;
   };
 
   if (!activeConversation) return null;
