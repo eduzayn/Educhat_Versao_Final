@@ -4,7 +4,7 @@ import { useInternalChatStore } from '@/shared/store/internalChatStore';
 export function TypingIndicatorGlobal() {
   const { typingUsers, activeChannel } = useInternalChatStore();
   
-  const activeTypingUsers = typingUsers.filter(user => 
+  const activeTypingUsers = (typingUsers || []).filter(user => 
     user.channelId === activeChannel
   );
 

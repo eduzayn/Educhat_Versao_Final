@@ -39,11 +39,19 @@ export interface ChatUser {
   roleName?: string;
 }
 
+export interface TypingUser {
+  userId: number;
+  userName: string;
+  channelId: string;
+  timestamp: Date;
+}
+
 interface InternalChatState {
   activeChannel: string | null;
   channels: InternalChatChannel[];
   messages: Record<string, InternalChatMessage[]>;
   channelUsers: Record<string, ChatUser[]>;
+  typingUsers: TypingUser[];
   isConnected: boolean;
   isLoading: boolean;
   
@@ -63,6 +71,7 @@ export const useInternalChatStore = create<InternalChatState>()(
     channels: [],
     messages: {},
     channelUsers: {},
+    typingUsers: [],
     isConnected: false,
     isLoading: false,
 
