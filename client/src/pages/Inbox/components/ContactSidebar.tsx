@@ -84,8 +84,13 @@ export function ContactSidebar({
     name: '',
     value: '',
     macrosetor: '',
-    stage: ''
+    stage: '',
+    category: '',
+    course: ''
   });
+  const [categories, setCategories] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<string[]>([]);
   
   const queryClient = useQueryClient();
 

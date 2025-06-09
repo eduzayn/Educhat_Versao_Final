@@ -21,6 +21,7 @@ import { registerQuickRepliesRoutes } from "./quick-replies/index";
 import { registerUtilitiesRoutes } from "./utilities/index";
 import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
+import { registerCourseRoutes } from "./courses/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -47,6 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUtilitiesRoutes(app);
   registerBIRoutes(app);
   registerSalesRoutes(app);
+  registerCourseRoutes(app);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);

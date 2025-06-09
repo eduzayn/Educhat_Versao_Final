@@ -168,6 +168,48 @@ export function detectCourses(text: string): string[] {
 }
 
 /**
+ * Obtém todas as categorias de cursos disponíveis
+ */
+export function getCourseCategories(): string[] {
+  const categories = new Set<string>();
+  for (const courseData of Object.values(COURSE_DICTIONARY)) {
+    categories.add(courseData.courseType);
+  }
+  return Array.from(categories).sort();
+}
+
+/**
+ * Obtém todos os cursos de uma categoria específica
+ */
+export function getCoursesByCategory(category: string): string[] {
+  return Object.values(COURSE_DICTIONARY)
+    .filter(courseData => courseData.courseType === category)
+    .map(courseData => courseData.courseName)
+    .sort();
+}
+
+/**
+ * Obtém todos os cursos organizados por categoria
+ */
+export function getAllCoursesGrouped(): Record<string, string[]> {
+  const grouped: Record<string, string[]> = {};
+  
+  for (const courseData of Object.values(COURSE_DICTIONARY)) {
+    if (!grouped[courseData.courseType]) {
+      grouped[courseData.courseType] = [];
+    }
+    grouped[courseData.courseType].push(courseData.courseName);
+  }
+  
+  // Ordenar cursos dentro de cada categoria
+  for (const category in grouped) {
+    grouped[category].sort();
+  }
+  
+  return grouped;
+}
+
+/**
  * Obtém informações completas do curso
  */
 export function getCourseInfo(courseName: string) {
