@@ -126,9 +126,9 @@ export function ConversationList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {CHANNELS.map(channel => (
-                  <SelectItem key={channel.id} value={channel.id}>
-                    {channel.icon} {channel.name}
+                {channels.map((channel: any) => (
+                  <SelectItem key={channel.id} value={channel.id.toString()}>
+                    📱 {channel.name}
                   </SelectItem>
                 ))}
               </SelectContent>

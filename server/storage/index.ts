@@ -473,24 +473,30 @@ export class DatabaseStorage implements IStorage {
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
     try {
-      // Detecção básica por palavras-chave enquanto utils não está disponível
-      const keywords = {
-        'educacao': ['curso', 'faculdade', 'universidade', 'graduacao', 'pos', 'mestrado', 'doutorado', 'educacao'],
-        'saude': ['saude', 'medicina', 'enfermagem', 'fisioterapia', 'psicologia'],
-        'tecnologia': ['programacao', 'tecnologia', 'computacao', 'sistemas', 'desenvolvimento'],
-        'negocios': ['administracao', 'gestao', 'marketing', 'vendas', 'empreendedorismo']
-      };
-
+      // Import usando caminho relativo correto
+      const { detectMacrosetor } = require('./utils/macrosetorUtils');
+      const detection = detectMacrosetor(content);
+      return detection ? detection.macrosetor : 'geral';
+    } catch (error) {
+      // Fallback simplificado se o import falhar
       const contentLower = content.toLowerCase();
-      for (const [macrosetor, words] of Object.entries(keywords)) {
-        if (words.some(word => contentLower.includes(word))) {
-          return macrosetor;
-        }
+      
+      if (contentLower.includes('suporte') || contentLower.includes('problema') || contentLower.includes('ajuda')) {
+        return 'suporte';
+      }
+      if (contentLower.includes('comercial') || contentLower.includes('venda') || contentLower.includes('curso')) {
+        return 'comercial';
+      }
+      if (contentLower.includes('cobranca') || contentLower.includes('pagamento') || contentLower.includes('boleto')) {
+        return 'cobranca';
+      }
+      if (contentLower.includes('tutoria') || contentLower.includes('professor') || contentLower.includes('aula')) {
+        return 'tutoria';
+      }
+      if (contentLower.includes('secretaria') || contentLower.includes('documento') || contentLower.includes('certificado')) {
+        return 'secretaria';
       }
       
-      return 'geral'; // Default para casos não identificados
-    } catch (error) {
-      console.error('Erro na detecção de macrosetor:', error);
       return 'geral';
     }
   }
