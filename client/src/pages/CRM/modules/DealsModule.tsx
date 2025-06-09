@@ -214,10 +214,17 @@ export function DealsModule() {
       }
       console.error('Erro ao atualizar estágio do negócio:', err);
     },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+    onSuccess: (data, variables) => {
+      // Instead of invalidating, update the cache with the server response
+      queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], (old: any) => {
+        if (!old?.data) return old;
+        
+        return {
+          ...old,
+          data: old.data.map((deal: any) => 
+            deal.id === variables.dealId ? { ...deal, stage: variables.stage } : deal
+          )
+        };
       });
     }
   });
