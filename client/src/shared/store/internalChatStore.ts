@@ -1,43 +1,150 @@
 import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+
+export interface InternalChatMessage {
+  id: string;
+  channelId: string;
+  userId: number;
+  userName: string;
+  userAvatar?: string;
+  content: string;
+  messageType: 'text' | 'image' | 'file' | 'reminder';
+  timestamp: Date;
+  edited?: boolean;
+  editedAt?: Date;
+  replyTo?: string;
+  reactions: Record<string, number[]>;
+  isImportant?: boolean;
+  reminderDate?: Date;
+}
+
+export interface InternalChatChannel {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'team' | 'direct' | 'general';
+  teamId?: number;
+  participants: number[];
+  isPrivate: boolean;
+  unreadCount: number;
+  lastMessage?: InternalChatMessage;
+  lastActivity: Date;
+}
+
+export interface ChatUser {
+  id: number;
+  username: string;
+  displayName: string;
+  avatar?: string;
+  roleName?: string;
+}
 
 interface InternalChatState {
   activeChannel: string | null;
-  channels: any[];
-  messages: any[];
+  channels: InternalChatChannel[];
+  messages: Record<string, InternalChatMessage[]>;
+  channelUsers: Record<string, ChatUser[]>;
+  isConnected: boolean;
   isLoading: boolean;
+  
   setActiveChannel: (channel: string | null) => void;
+  setConnected: (connected: boolean) => void;
   loadChannels: () => Promise<void>;
-  addMessage: (message: any) => void;
+  loadChannelMessages: (channelId: string) => Promise<void>;
+  loadChannelUsers: (channelId: string) => Promise<void>;
+  setChannelUsers: (channelId: string, users: ChatUser[]) => void;
+  addMessage: (message: InternalChatMessage) => void;
   clearMessages: () => void;
 }
 
-export const useInternalChatStore = create<InternalChatState>((set, get) => ({
-  activeChannel: null,
-  channels: [],
-  messages: [],
-  isLoading: false,
+export const useInternalChatStore = create<InternalChatState>()(
+  subscribeWithSelector((set, get) => ({
+    activeChannel: null,
+    channels: [],
+    messages: {},
+    channelUsers: {},
+    isConnected: false,
+    isLoading: false,
 
-  setActiveChannel: (channel) => {
-    set({ activeChannel: channel });
-  },
+    setActiveChannel: (channel) => {
+      set({ activeChannel: channel });
+    },
 
-  loadChannels: async () => {
-    set({ isLoading: true });
-    try {
-      // Implementação para carregar canais
-      set({ isLoading: false });
-    } catch (error) {
-      set({ isLoading: false });
+    setConnected: (connected) => {
+      set({ isConnected: connected });
+    },
+
+    loadChannels: async () => {
+      set({ isLoading: true });
+      try {
+        const response = await fetch('/api/internal-chat/channels');
+        if (response.ok) {
+          const channels = await response.json();
+          const formattedChannels = channels.map((channel: any) => ({
+            ...channel,
+            lastActivity: new Date()
+          }));
+          set({ channels: formattedChannels });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar canais:', error);
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    loadChannelMessages: async (channelId: string) => {
+      try {
+        const response = await fetch(`/api/internal-chat/channels/${channelId}/messages`);
+        if (response.ok) {
+          const messages = await response.json();
+          set((state) => ({
+            messages: {
+              ...state.messages,
+              [channelId]: messages
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar mensagens:', error);
+      }
+    },
+
+    loadChannelUsers: async (channelId: string) => {
+      try {
+        const response = await fetch(`/api/internal-chat/channels/${channelId}/users`);
+        if (response.ok) {
+          const users = await response.json();
+          set((state) => ({
+            channelUsers: {
+              ...state.channelUsers,
+              [channelId]: users
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuários do canal:', error);
+      }
+    },
+
+    setChannelUsers: (channelId: string, users: ChatUser[]) => set((state) => ({
+      channelUsers: {
+        ...state.channelUsers,
+        [channelId]: users
+      }
+    })),
+
+    addMessage: (message) => {
+      set((state) => ({
+        messages: {
+          ...state.messages,
+          [message.channelId]: [...(state.messages[message.channelId] || []), message]
+        }
+      }));
+    },
+
+    clearMessages: () => {
+      set({ messages: {} });
     }
-  },
-
-  addMessage: (message) => {
-    set(state => ({
-      messages: [...state.messages, message]
-    }));
-  },
-
-  clearMessages: () => {
-    set({ messages: [] });
-  }
-}));
+  }))
+);

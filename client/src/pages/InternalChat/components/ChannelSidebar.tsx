@@ -14,9 +14,7 @@ export function ChannelSidebar() {
   const { 
     channels, 
     activeChannel, 
-    setActiveChannel, 
-    getUnreadTotal,
-    markChannelAsRead 
+    setActiveChannel
   } = useInternalChatStore();
   const { user } = useAuth();
 
