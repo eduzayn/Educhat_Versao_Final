@@ -1076,38 +1076,63 @@ export function registerZApiRoutes(app: Express) {
           enhancedMetadata.fileName = fileName;
         }
 
-        // Criar a mensagem
-        const message = await storage.createMessage({
+        // PRIORIDADE 1: Broadcast IMEDIATO (antes mesmo de salvar no banco)
+        const tempMessage = {
+          id: Date.now(), // ID temporário
           conversationId: conversation.id,
-          content: mediaUrl || messageContent, // Para mídia, salvar a URL no content
+          content: mediaUrl || messageContent,
           isFromContact: true,
           messageType,
           sentAt: new Date(),
-          metadata: enhancedMetadata
-        });
+          metadata: enhancedMetadata,
+          isDeleted: false,
+          deliveredAt: null,
+          readAt: null,
+          whatsappMessageId: null,
+          zapiStatus: null,
+          isGroup: false,
+          referenceMessageId: null,
+          isInternalNote: false,
+          attachmentUrl: null
+        };
 
-        console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
-
-        // PRIORIDADE 1: Broadcast IMEDIATO da mensagem (sem aguardar operações secundárias)
         try {
           const { broadcast, broadcastToAll } = await import('../realtime');
           
           broadcast(conversation.id, {
             type: 'new_message',
             conversationId: conversation.id,
-            message: message
+            message: tempMessage
           });
 
           broadcastToAll({
             type: 'new_message',
             conversationId: conversation.id,
-            message: message
+            message: tempMessage
           });
           
-          console.log(`🔄 Broadcast enviado com sucesso para conversa ${conversation.id}`);
+          console.log(`🔄 Broadcast IMEDIATO enviado para conversa ${conversation.id}`);
         } catch (broadcastError) {
-          console.error('❌ Erro no broadcast:', broadcastError);
+          console.error('❌ Erro no broadcast imediato:', broadcastError);
         }
+
+        // PRIORIDADE 2: Salvar no banco de dados em background
+        setImmediate(async () => {
+          try {
+            const message = await storage.createMessage({
+              conversationId: conversation.id,
+              content: mediaUrl || messageContent,
+              isFromContact: true,
+              messageType,
+              sentAt: new Date(),
+              metadata: enhancedMetadata
+            });
+
+            console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
+          } catch (saveError) {
+            console.error('❌ Erro ao salvar mensagem:', saveError);
+          }
+        });
 
         // PRIORIDADE 2: Processar operações secundárias em background (não bloqueiam resposta do webhook)
         setImmediate(async () => {
