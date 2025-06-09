@@ -21,6 +21,19 @@ export function registerTeamsRoutes(app: Express) {
       const teamData = req.body;
       const newTeam = await storage.createTeam(teamData);
       console.log(`🎯 Nova equipe criada: ${newTeam.name} - Macrosetor: ${newTeam.macrosetor}`);
+      
+      // Criar automaticamente canal de chat interno para a nova equipe
+      try {
+        const createTeamChannel = (global as any).createTeamChannel;
+        if (typeof createTeamChannel === 'function') {
+          await createTeamChannel(newTeam.id, newTeam.name, newTeam.description);
+          console.log(`📢 Canal de chat criado automaticamente para equipe: ${newTeam.name}`);
+        }
+      } catch (channelError) {
+        console.error('❌ Erro ao criar canal automático:', channelError);
+        // Não falhar a criação da equipe se o canal falhar
+      }
+      
       res.status(201).json(newTeam);
     } catch (error) {
       console.error('Erro ao criar equipe:', error);

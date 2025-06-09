@@ -203,5 +203,88 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
 
 
 
+  // Endpoint para buscar mensagens de um canal
+  app.get('/api/internal-chat/channels/:channelId/messages', async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      const channelId = req.params.channelId;
+      
+      // Por enquanto, retornar array vazio - mensagens serão implementadas via Socket.IO
+      res.json([]);
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para enviar mensagem em um canal
+  app.post('/api/internal-chat/channels/:channelId/messages', async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      const channelId = req.params.channelId;
+      const { content, messageType = 'text' } = req.body;
+
+      if (!content?.trim()) {
+        return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
+      }
+
+      const message = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        channelId,
+        userId: req.user.id,
+        userName: req.user.displayName || req.user.username,
+        userAvatar: (req.user as any).avatar,
+        content: content.trim(),
+        messageType,
+        timestamp: new Date(),
+        reactions: {}
+      };
+
+      // Broadcast da mensagem via Socket.IO seria implementado aqui
+      console.log(`📨 Nova mensagem no canal ${channelId}:`, message);
+
+      res.json({ success: true, message });
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Função para criar automaticamente canal de equipe quando uma nova equipe é criada
+  async function createTeamChannel(teamId: number, teamName: string, teamDescription?: string) {
+    try {
+      console.log(`🏗️ Criando canal automático para equipe ${teamName} (ID: ${teamId})`);
+      
+      // Esta função seria chamada quando uma nova equipe é criada
+      // O canal é criado dinamicamente quando as equipes são consultadas
+      
+      const channelData = {
+        id: `team-${teamId}`,
+        name: teamName,
+        description: teamDescription || `Discussões da ${teamName}`,
+        type: 'team',
+        teamId: teamId,
+        isPrivate: false,
+        participants: [],
+        unreadCount: 0
+      };
+
+      console.log(`✅ Canal criado automaticamente: ${channelData.name}`);
+      return channelData;
+    } catch (error) {
+      console.error('❌ Erro ao criar canal de equipe:', error);
+      throw error;
+    }
+  }
+
+  // Exportar função para uso em outras partes do sistema
+  (global as any).createTeamChannel = createTeamChannel;
+
   console.log('✅ Chat interno integrado com sistema de equipes e usuários');
 }

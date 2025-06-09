@@ -63,6 +63,7 @@ interface InternalChatState {
   setChannelUsers: (channelId: string, users: ChatUser[]) => void;
   addMessage: (message: InternalChatMessage) => void;
   clearMessages: () => void;
+  playNotificationSound: (type?: 'receive' | 'send' | 'join' | 'leave') => void;
 }
 
 export const useInternalChatStore = create<InternalChatState>()(
@@ -154,6 +155,33 @@ export const useInternalChatStore = create<InternalChatState>()(
 
     clearMessages: () => {
       set({ messages: {} });
+    },
+
+    // Funcionalidades de notificação sonora
+    playNotificationSound: (type: 'receive' | 'send' | 'join' | 'leave' = 'receive') => {
+      try {
+        const audio = new Audio();
+        switch (type) {
+          case 'receive':
+            audio.src = '/sounds/notification.wav';
+            break;
+          case 'send':
+            audio.src = '/sounds/send.wav';
+            break;
+          case 'join':
+            audio.src = '/sounds/join.wav';
+            break;
+          case 'leave':
+            audio.src = '/sounds/leave.wav';
+            break;
+        }
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+          // Falha silenciosa se o som não puder ser reproduzido
+        });
+      } catch (error) {
+        // Falha silenciosa
+      }
     }
   }))
 );

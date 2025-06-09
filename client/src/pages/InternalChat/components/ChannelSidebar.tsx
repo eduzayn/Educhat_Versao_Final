@@ -91,12 +91,12 @@ export function ChannelSidebar() {
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
             <AvatarFallback>
-              {user?.displayName?.charAt(0)?.toUpperCase() || 'U'}
+              {(user as any)?.displayName?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
-              {user?.displayName || 'Usuário'}
+              {(user as any)?.displayName || 'Usuário'}
             </p>
             <p className="text-xs text-muted-foreground">
               Online
