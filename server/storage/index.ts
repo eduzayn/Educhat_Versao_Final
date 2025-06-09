@@ -601,10 +601,11 @@ export class DatabaseStorage implements IStorage {
         'mensalidades', 'em atraso'
       ],
       'suporte': [
-        'problema', 'erro', 'não funciona', 'bug', 'falha', 'dificuldade',
-        'ajuda', 'socorro', 'suporte', 'técnico', 'não consigo', 'travou',
-        'lento', 'não carrega', 'senha', 'login', 'acesso', 'recuperar',
-        'resetar', 'configurar', 'instalação', 'tutorial', 'como fazer'
+        'problema', 'erro', 'nao funciona', 'bug', 'falha', 'dificuldade',
+        'ajuda', 'socorro', 'suporte', 'tecnico', 'nao consigo', 'travou',
+        'lento', 'nao carrega', 'senha', 'login', 'acesso', 'recuperar',
+        'resetar', 'configurar', 'instalacao', 'tutorial', 'como fazer',
+        'falar no suporte', 'gostaria de falar', 'zayn', 'atendimento'
       ],
       'tutoria': [
         'dúvida', 'exercício', 'questão', 'matéria', 'conteúdo', 'disciplina',
@@ -613,10 +614,12 @@ export class DatabaseStorage implements IStorage {
         'cronograma', 'horário', 'agenda', 'revisão', 'prova', 'exame'
       ],
       'secretaria': [
-        'certificado', 'diploma', 'declaração', 'histórico', 'documento',
-        'carteirinha', 'identidade estudantil', 'rematrícula', 'transferência',
-        'trancamento', 'cancelamento', 'secretaria', 'acadêmico',
-        'coordenação', 'diretoria', 'protocolo', 'solicitação', 'requerimento'
+        'certificado', 'diploma', 'declaracao', 'historico', 'documento',
+        'carteirinha', 'identidade estudantil', 'rematricula', 'transferencia',
+        'trancamento', 'cancelamento', 'secretaria', 'academico',
+        'coordenacao', 'diretoria', 'protocolo', 'solicitacao', 'requerimento',
+        'gostaria de solicitar', 'solicitar certificado', 'segunda graduacao',
+        'curso concluido', 'letras ingles', 'formacao', 'graduacao'
       ]
     };
 
