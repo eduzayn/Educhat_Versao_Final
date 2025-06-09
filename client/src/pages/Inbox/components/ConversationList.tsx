@@ -209,7 +209,7 @@ export function ConversationList({
                         {getStatusBadge(conversation.status || 'open')}
                         {(conversation.unreadCount || 0) > 0 && (
                           <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                            {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
                           </Badge>
                         )}
                       </div>
@@ -220,7 +220,49 @@ export function ConversationList({
                       {conversation.messages?.[0] ? (
                         <>
                           {conversation.messages[0].isFromContact ? '' : 'Você: '}
-                          {conversation.messages[0].content}
+                          {(() => {
+                            const lastMessage = conversation.messages[0];
+                            
+                            // Para mensagens de texto, sempre mostrar o conteúdo real
+                            if (lastMessage.messageType === 'text' && lastMessage.content) {
+                              return lastMessage.content;
+                            }
+                            
+                            // Para imagens, mostrar caption se existir
+                            if (lastMessage.messageType === 'image') {
+                              const caption = (lastMessage.metadata as any)?.image?.caption;
+                              if (caption && caption.trim()) {
+                                return caption;
+                              }
+                              return '📷 Imagem';
+                            }
+                            
+                            // Para áudios
+                            if (lastMessage.messageType === 'audio') {
+                              return '🎵 Áudio';
+                            }
+                            
+                            // Para vídeos, mostrar caption se existir
+                            if (lastMessage.messageType === 'video') {
+                              const caption = (lastMessage.metadata as any)?.video?.caption;
+                              if (caption && caption.trim()) {
+                                return caption;
+                              }
+                              return '🎥 Vídeo';
+                            }
+                            
+                            // Para documentos
+                            if (lastMessage.messageType === 'document') {
+                              const fileName = (lastMessage.metadata as any)?.document?.fileName;
+                              if (fileName) {
+                                return `📄 ${fileName}`;
+                              }
+                              return '📄 Documento';
+                            }
+                            
+                            // Fallback
+                            return lastMessage.content || 'Mensagem';
+                          })()}
                         </>
                       ) : (
                         'Sem mensagens'

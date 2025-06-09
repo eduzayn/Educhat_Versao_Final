@@ -473,8 +473,9 @@ export class DatabaseStorage implements IStorage {
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
     try {
-      const { detectMacrosetor } = require('./utils/macrosetorUtils');
-      const detection = detectMacrosetor(content);
+      // Import dinâmico para evitar problemas de ES modules
+      const macrosetorUtils = eval('require')('./utils/macrosetorUtils');
+      const detection = macrosetorUtils.detectMacrosetor(content);
       return detection ? detection.macrosetor : null;
     } catch (error) {
       console.error('Erro na detecção de macrosetor:', error);
