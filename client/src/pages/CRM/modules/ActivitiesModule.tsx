@@ -6,6 +6,9 @@ import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Label } from '@/shared/ui/label';
+import { Textarea } from '@/shared/ui/textarea';
 import { 
   Calendar,
   Clock,
@@ -44,10 +47,37 @@ export function ActivitiesModule() {
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [activeTab, setActiveTab] = useState("list");
+  const [isNewActivityDialogOpen, setIsNewActivityDialogOpen] = useState(false);
   const [, setLocation] = useLocation();
+
+  // Form states for new activity
+  const [activityForm, setActivityForm] = useState({
+    title: "",
+    type: "",
+    description: "",
+    date: "",
+    time: "",
+    contact: "",
+    priority: "medium"
+  });
 
   // Replace with real activities data when available
   const filtered: any[] = [];
+
+  const handleCreateActivity = () => {
+    console.log("Creating activity:", activityForm);
+    // TODO: Implement activity creation API call
+    setIsNewActivityDialogOpen(false);
+    setActivityForm({
+      title: "",
+      type: "",
+      description: "",
+      date: "",
+      time: "",
+      contact: "",
+      priority: "medium"
+    });
+  };
 
   const getActivityIcon = (type: string) => {
     const ActivityIcon = activityTypes[type as keyof typeof activityTypes]?.icon || CheckCircle;
@@ -74,7 +104,7 @@ export function ActivitiesModule() {
             </p>
           </div>
         </div>
-        <Button>
+        <Button onClick={() => setIsNewActivityDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" /> Nova Atividade
         </Button>
       </div>
@@ -267,6 +297,115 @@ export function ActivitiesModule() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* New Activity Dialog */}
+      <Dialog open={isNewActivityDialogOpen} onOpenChange={setIsNewActivityDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Atividade</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                value={activityForm.title}
+                onChange={(e) => setActivityForm({...activityForm, title: e.target.value})}
+                placeholder="Digite o título da atividade"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="type">Tipo</Label>
+              <Select value={activityForm.type} onValueChange={(value) => setActivityForm({...activityForm, type: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="call">Ligação</SelectItem>
+                  <SelectItem value="meeting">Reunião</SelectItem>
+                  <SelectItem value="email">E-mail</SelectItem>
+                  <SelectItem value="task">Tarefa</SelectItem>
+                  <SelectItem value="message">Mensagem</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="contact">Contato</Label>
+              <Input
+                id="contact"
+                value={activityForm.contact}
+                onChange={(e) => setActivityForm({...activityForm, contact: e.target.value})}
+                placeholder="Nome do contato"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="date">Data</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={activityForm.date}
+                  onChange={(e) => setActivityForm({...activityForm, date: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="time">Horário</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={activityForm.time}
+                  onChange={(e) => setActivityForm({...activityForm, time: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="priority">Prioridade</Label>
+              <Select value={activityForm.priority} onValueChange={(value) => setActivityForm({...activityForm, priority: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={activityForm.description}
+                onChange={(e) => setActivityForm({...activityForm, description: e.target.value})}
+                placeholder="Descreva a atividade..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsNewActivityDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateActivity}
+                disabled={!activityForm.title || !activityForm.type}
+                className="flex-1"
+              >
+                Criar Atividade
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

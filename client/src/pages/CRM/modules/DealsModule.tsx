@@ -199,7 +199,7 @@ export function DealsModule() {
         return {
           ...old,
           data: old.data.map((deal: any) => 
-            deal.id.toString() === dealId.toString() ? { ...deal, stage } : deal
+            deal.id === dealId ? { ...deal, stage } : deal
           )
         };
       });
@@ -214,17 +214,10 @@ export function DealsModule() {
       }
       console.error('Erro ao atualizar estágio do negócio:', err);
     },
-    onSuccess: (data, variables) => {
-      // Instead of invalidating, update the cache with the server response
-      queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], (old: any) => {
-        if (!old?.data) return old;
-        
-        return {
-          ...old,
-          data: old.data.map((deal: any) => 
-            deal.id.toString() === variables.dealId.toString() ? { ...deal, stage: variables.stage } : deal
-          )
-        };
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
       });
     }
   });
@@ -277,7 +270,7 @@ export function DealsModule() {
       return;
     }
 
-    const deal = deals.find(d => d.id.toString() === draggableId);
+    const deal = deals.find(d => d.id === draggableId);
     if (!deal) return;
 
     // Update deal stage in database
