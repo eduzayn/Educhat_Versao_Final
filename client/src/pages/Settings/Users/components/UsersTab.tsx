@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Label } from '@/shared/ui/label';
 import { 
   Search, 
@@ -113,7 +114,9 @@ export const UsersTab = () => {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
   const [importData, setImportData] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -323,9 +326,16 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
     });
   };
 
-  const handleDeleteUser = (userId: number) => {
-    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
-      deleteUserMutation.mutate(userId);
+  const handleDeleteUser = (user: any) => {
+    setUserToDelete(user);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete.id);
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
     }
   };
 
@@ -560,7 +570,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                             {user.isActive ? 'Desativar' : 'Ativar'}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(user.id)}>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(user)}>
                             <Trash className="h-4 w-4 mr-2" />
                             Excluir usuário
                           </DropdownMenuItem>
@@ -862,6 +872,59 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de Confirmação de Exclusão */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash className="h-5 w-5" />
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              Tem certeza que deseja excluir o usuário <strong className="text-foreground">{userToDelete?.displayName || userToDelete?.name}</strong>?
+              <br /><br />
+              <div className="bg-muted p-3 rounded-md border-l-4 border-destructive">
+                <div className="flex items-start gap-2">
+                  <div className="text-destructive mt-0.5">⚠️</div>
+                  <div className="text-sm">
+                    <strong>Esta ação não pode ser desfeita.</strong><br />
+                    Todos os dados relacionados a este usuário serão permanentemente removidos do sistema.
+                  </div>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setUserToDelete(null);
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteUserMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground flex-1"
+            >
+              {deleteUserMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Excluindo...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Trash className="h-4 w-4" />
+                  Excluir Usuário
+                </div>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
