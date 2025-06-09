@@ -115,6 +115,20 @@ export function useWebSocket() {
             });
           }
           break;
+        case 'crm_update':
+          if (data.action === 'deal_created' || data.action === 'conversation_updated') {
+            console.log('📊 Atualização CRM:', {
+              action: data.action,
+              contactId: data.contactId,
+              conversationId: data.conversationId,
+              macrosetor: data.macrosetor
+            });
+            
+            // Invalidar queries do CRM para forçar recarregamento
+            queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+          }
+          break;
         case 'conversation_assigned':
           if (data.conversationId) {
             console.log('👥 Conversa atribuída:', {

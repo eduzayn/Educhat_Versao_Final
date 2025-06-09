@@ -1139,6 +1139,8 @@ export function registerZApiRoutes(app: Express) {
           try {
             // Detectar macrosetor uma vez
             const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
+            let dealCreated = false;
+            let conversationUpdated = false;
             
             // Criar negócio automático se necessário
             try {
@@ -1150,6 +1152,7 @@ export function registerZApiRoutes(app: Express) {
               if (!hasActiveDeal && detectedMacrosetor) {
                 console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
                 await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
+                dealCreated = true;
               }
             } catch (dealError) {
               console.error('❌ Erro ao criar negócio automático:', dealError);
@@ -1169,10 +1172,12 @@ export function registerZApiRoutes(app: Express) {
                       assignedTeamId: team.id,
                       macrosetor: detectedMacrosetor
                     });
+                    conversationUpdated = true;
                     console.log(`✅ Conversa reclassificada para equipe: ${team.name}`);
                   } else if (!currentTeamId) {
                     console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
                     await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+                    conversationUpdated = true;
                   }
                   
                   const availableUser = await storage.getAvailableUserFromTeam(team.id);
@@ -1184,6 +1189,23 @@ export function registerZApiRoutes(app: Express) {
               }
             } catch (assignmentError) {
               console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+            }
+
+            // Broadcast para atualização do CRM se houve mudanças
+            if (dealCreated || conversationUpdated) {
+              try {
+                const { broadcastToAll } = await import('../realtime');
+                broadcastToAll({
+                  type: 'crm_update',
+                  action: dealCreated ? 'deal_created' : 'conversation_updated',
+                  contactId: contact.id,
+                  conversationId: conversation.id,
+                  macrosetor: detectedMacrosetor
+                });
+                console.log(`📢 Broadcast CRM enviado: ${dealCreated ? 'deal_created' : 'conversation_updated'}`);
+              } catch (broadcastError) {
+                console.error('❌ Erro no broadcast CRM:', broadcastError);
+              }
             }
           } catch (backgroundError) {
             console.error('❌ Erro no processamento em background:', backgroundError);

@@ -137,14 +137,7 @@ export function DealsModule() {
   const totalPages = dealsResponse?.totalPages || 1;
   const currentPage = dealsResponse?.currentPage || 1;
   
-  // Debug logs para paginação
-  console.log('📊 Debug Paginação:', {
-    page,
-    totalPages,
-    currentPage,
-    dealsCount: rawDeals.length,
-    total: dealsResponse?.total
-  });
+  // Debug logs para paginação removidos para evitar erro de JSON parsing
 
   // Get current macrosetor configuration
   const currentMacrosetor = macrosetores[selectedMacrosetor as keyof typeof macrosetores];
@@ -159,7 +152,7 @@ export function DealsModule() {
       ...deal,
       id: deal.id.toString(),
       stage: deal.stage,
-      tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : JSON.parse(deal.tags as string || '[]')) : [],
+      tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : (typeof deal.tags === 'string' ? JSON.parse(deal.tags || '[]') : [])) : [],
       closeDate: deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toISOString().split('T')[0] : '',
       company: 'Empresa não definida',
       owner: deal.owner || 'Sistema',
