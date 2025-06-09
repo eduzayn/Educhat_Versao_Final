@@ -481,6 +481,94 @@ export class DatabaseStorage implements IStorage {
     throw new Error("Método não implementado");
   }
 
+  // ==================== TEAM-MACROSETOR UNIFICATION ====================
+  
+  // Get team by macrosetor (treating them as identical)
+  async getTeamByMacrosetor(macrosetor: string): Promise<any> {
+    if (!macrosetor) return null;
+    
+    try {
+      const result = await this.databaseStorage.getTeamByMacrosetor(macrosetor);
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar equipe por macrosetor:', error);
+      return null;
+    }
+  }
+
+  // Get or create team for macrosetor
+  async getOrCreateTeamForMacrosetor(macrosetor: string): Promise<any> {
+    let team = await this.getTeamByMacrosetor(macrosetor);
+    
+    if (!team) {
+      // Team configuration mapping
+      const teamConfigs = {
+        comercial: { name: 'Equipe Comercial', description: 'Vendas e matrículas', color: 'green', priority: 1, maxCapacity: 50 },
+        suporte: { name: 'Equipe Suporte', description: 'Problemas técnicos', color: 'blue', priority: 2, maxCapacity: 30 },
+        cobranca: { name: 'Equipe Cobrança', description: 'Questões financeiras', color: 'orange', priority: 1, maxCapacity: 25 },
+        tutoria: { name: 'Equipe Tutoria', description: 'Dúvidas acadêmicas', color: 'purple', priority: 2, maxCapacity: 40 },
+        secretaria: { name: 'Equipe Secretaria', description: 'Documentos e certificados', color: 'indigo', priority: 2, maxCapacity: 20 },
+        geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: 'gray', priority: 3, maxCapacity: 100 }
+      };
+      
+      const config = teamConfigs[macrosetor as keyof typeof teamConfigs] || teamConfigs.geral;
+      
+      try {
+        team = await this.databaseStorage.createTeam({
+          name: config.name,
+          description: config.description,
+          color: config.color,
+          macrosetor: macrosetor,
+          isActive: true,
+          maxCapacity: config.maxCapacity,
+          priority: config.priority,
+          autoAssignment: true
+        });
+        
+        console.log(`✅ Equipe criada automaticamente: ${config.name} (${macrosetor})`);
+      } catch (createError) {
+        console.error('Erro ao criar equipe automaticamente:', createError);
+      }
+    }
+    
+    return team;
+  }
+
+  // Assign conversation to team/macrosetor
+  async assignConversationToTeam(conversationId: number, teamId: number, assignmentType: string = 'manual'): Promise<void> {
+    try {
+      await this.databaseStorage.assignConversationToTeam(conversationId, teamId);
+      console.log(`✅ Conversa ${conversationId} atribuída à equipe ${teamId} (${assignmentType})`);
+    } catch (error) {
+      console.error('Erro ao atribuir conversa à equipe:', error);
+    }
+  }
+
+  // Get available user from team
+  async getAvailableUserFromTeam(teamId: number): Promise<any> {
+    try {
+      const teamUsers = await this.databaseStorage.getUsersByTeam(teamId);
+      if (teamUsers.length === 0) {
+        return null;
+      }
+      // Return first available user for now
+      return teamUsers[0];
+    } catch (error) {
+      console.error('Erro ao buscar usuário disponível da equipe:', error);
+      return null;
+    }
+  }
+
+  // Assign conversation to user
+  async assignConversationToUser(conversationId: number, userId: number, assignmentType: string = 'manual'): Promise<void> {
+    try {
+      await this.databaseStorage.assignConversationToUser(conversationId, userId);
+      console.log(`✅ Conversa ${conversationId} atribuída ao usuário ${userId} (${assignmentType})`);
+    } catch (error) {
+      console.error('Erro ao atribuir conversa ao usuário:', error);
+    }
+  }
+
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
     // Implementação direta da detecção de macrosetor

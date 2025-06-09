@@ -149,14 +149,18 @@ export const quickReplyTeamShares = pgTable("quick_reply_team_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Teams table
+// Teams table (unified with macrosetores)
 export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   color: varchar("color", { length: 20 }).default("blue"),
-  macrosetor: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  macrosetor: varchar("macrosetor", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   isActive: boolean("is_active").default(true),
+  maxCapacity: integer("max_capacity").default(100), // Maximum concurrent conversations
+  priority: integer("priority").default(1), // For distribution priority
+  workingHours: jsonb("working_hours"), // Working hours configuration
+  autoAssignment: boolean("auto_assignment").default(true), // Enable automatic assignment
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

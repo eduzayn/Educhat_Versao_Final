@@ -28,10 +28,12 @@ import {
   ArrowLeft
 } from "lucide-react";
 
-// Configuração dos funis por macrosetor
-const macrosetores = {
+// Configuração unificada dos funis por equipe/macrosetor
+const teamMacrosetores = {
   comercial: {
-    name: 'Comercial',
+    name: 'Equipe Comercial',
+    description: 'Vendas, matrículas e informações sobre cursos',
+    color: 'green',
     stages: [
       { id: 'prospecting', name: 'Prospecção', color: 'bg-gray-500' },
       { id: 'qualified', name: 'Qualificado', color: 'bg-blue-500' },
@@ -41,7 +43,9 @@ const macrosetores = {
     ]
   },
   suporte: {
-    name: 'Suporte',
+    name: 'Equipe Suporte',
+    description: 'Problemas técnicos e dificuldades de acesso',
+    color: 'blue',
     stages: [
       { id: 'novo', name: 'Novo', color: 'bg-red-500' },
       { id: 'em_andamento', name: 'Em Andamento', color: 'bg-orange-500' },
@@ -50,7 +54,9 @@ const macrosetores = {
     ]
   },
   cobranca: {
-    name: 'Cobrança',
+    name: 'Equipe Cobrança',
+    description: 'Questões financeiras e pagamentos',
+    color: 'orange',
     stages: [
       { id: 'debito_detectado', name: 'Débito Detectado', color: 'bg-red-500' },
       { id: 'tentativa_contato', name: 'Tentativa de Contato', color: 'bg-orange-500' },
