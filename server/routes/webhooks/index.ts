@@ -742,18 +742,26 @@ async function processInstagramMessage(messagingEvent: any) {
       message: message
     });
 
-    // Criar negócio automaticamente
+    // Criar negócio automaticamente - verificação aprimorada
     try {
       const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
-      const hasActiveDeal = existingDeals.some(deal => 
-        deal.macrosetor === detectedMacrosetor && deal.isActive
+      
+      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
+      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
+      
+      // Verificar deals recentes (últimas 24 horas)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const hasRecentDeal = existingDeals.some(deal => 
+        new Date(deal.createdAt) > twentyFourHoursAgo
       );
       
-      if (!hasActiveDeal) {
+      if (!hasAnyActiveDeal && !hasRecentDeal) {
         console.log(`💼 Criando negócio automático para contato do Instagram (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
         console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      } else {
+        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
     } catch (dealError) {
       console.error('❌ Erro ao criar negócio automático para Instagram:', dealError);
@@ -839,18 +847,26 @@ async function processEmailMessage(emailData: any) {
       message: message
     });
 
-    // Criar negócio automaticamente
+    // Criar negócio automaticamente - verificação aprimorada
     try {
       const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
-      const hasActiveDeal = existingDeals.some(deal => 
-        deal.macrosetor === detectedMacrosetor && deal.isActive
+      
+      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
+      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
+      
+      // Verificar deals recentes (últimas 24 horas)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const hasRecentDeal = existingDeals.some(deal => 
+        new Date(deal.createdAt) > twentyFourHoursAgo
       );
       
-      if (!hasActiveDeal) {
+      if (!hasAnyActiveDeal && !hasRecentDeal) {
         console.log(`💼 Criando negócio automático para contato de Email (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
         console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      } else {
+        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
     } catch (dealError) {
       console.error('❌ Erro ao criar negócio automático para Email:', dealError);
@@ -935,18 +951,26 @@ async function processSMSMessage(smsData: any) {
       message: message
     });
 
-    // Criar negócio automaticamente
+    // Criar negócio automaticamente - verificação aprimorada
     try {
       const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
-      const hasActiveDeal = existingDeals.some(deal => 
-        deal.macrosetor === detectedMacrosetor && deal.isActive
+      
+      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
+      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
+      
+      // Verificar deals recentes (últimas 24 horas)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const hasRecentDeal = existingDeals.some(deal => 
+        new Date(deal.createdAt) > twentyFourHoursAgo
       );
       
-      if (!hasActiveDeal) {
+      if (!hasAnyActiveDeal && !hasRecentDeal) {
         console.log(`💼 Criando negócio automático para contato de SMS (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, undefined, messageText);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
         console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      } else {
+        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
     } catch (dealError) {
       console.error('❌ Erro ao criar negócio automático para SMS:', dealError);
