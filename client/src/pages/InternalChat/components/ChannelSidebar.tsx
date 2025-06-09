@@ -1,26 +1,23 @@
-import { useState } from 'react';
-import { Hash, Users, Search, Bell, BellOff, Settings } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
-import { Separator } from '@/shared/ui/separator';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { useInternalChatStore } from '../store/internalChatStore';
-import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useState } from "react";
+import { Hash, Users, Search, Bell, BellOff, Settings } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Badge } from "@/shared/ui/badge";
+import { Separator } from "@/shared/ui/separator";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { useInternalChatStore } from "../store/internalChatStore";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 export function ChannelSidebar() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const { 
-    channels, 
-    activeChannel, 
-    setActiveChannel
-  } = useInternalChatStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { channels, activeChannel, setActiveChannel } = useInternalChatStore();
   const { user } = useAuth();
 
-  const filteredChannels = channels.filter(channel =>
-    channel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    channel.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredChannels = channels.filter(
+    (channel) =>
+      channel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      channel.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleChannelSelect = (channelId: string) => {
@@ -29,11 +26,11 @@ export function ChannelSidebar() {
 
   const getChannelIcon = (type: string) => {
     switch (type) {
-      case 'general':
+      case "general":
         return <Hash className="h-4 w-4" />;
-      case 'team':
+      case "team":
         return <Users className="h-4 w-4" />;
-      case 'direct':
+      case "direct":
         return <div className="h-2 w-2 bg-green-500 rounded-full" />;
       default:
         return <Hash className="h-4 w-4" />;
@@ -47,13 +44,16 @@ export function ChannelSidebar() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'agora';
+    if (minutes < 1) return "agora";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     return `${days}d`;
   };
 
-  const totalUnread = channels.reduce((total, channel) => total + (channel.unreadCount || 0), 0);
+  const totalUnread = channels.reduce(
+    (total, channel) => total + (channel.unreadCount || 0),
+    0,
+  );
 
   return (
     <div className="flex flex-col h-full bg-card">
@@ -91,16 +91,14 @@ export function ChannelSidebar() {
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
             <AvatarFallback>
-              {(user as any)?.displayName?.charAt(0)?.toUpperCase() || 'U'}
+              {(user as any)?.displayName?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
-              {(user as any)?.displayName || 'Usuário'}
+              {(user as any)?.displayName || "Usuário"}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Online
-            </p>
+            <p className="text-xs text-muted-foreground">Online</p>
           </div>
           <div className="h-2 w-2 bg-green-500 rounded-full" />
         </div>
@@ -122,9 +120,10 @@ export function ChannelSidebar() {
                 onClick={() => handleChannelSelect(channel.id)}
                 className={`
                   w-full flex items-center gap-3 p-2 rounded-md text-left transition-colors
-                  ${activeChannel === channel.id 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-accent text-foreground'
+                  ${
+                    activeChannel === channel.id
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent text-foreground"
                   }
                 `}
               >
@@ -138,11 +137,13 @@ export function ChannelSidebar() {
                     </span>
                     <div className="flex items-center gap-1">
                       {channel.unreadCount > 0 && (
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="text-xs h-5 min-w-5 px-1"
                         >
-                          {channel.unreadCount > 99 ? '99+' : channel.unreadCount}
+                          {channel.unreadCount > 99
+                            ? "99+"
+                            : channel.unreadCount}
                         </Badge>
                       )}
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -154,7 +155,7 @@ export function ChannelSidebar() {
                     <p className="text-xs text-muted-foreground truncate mt-1">
                       <span className="font-medium">
                         {channel.lastMessage.userName}:
-                      </span>{' '}
+                      </span>{" "}
                       {channel.lastMessage.content}
                     </p>
                   )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Wifi, WifiOff, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
-import { useInternalChatStore } from '@/shared/store/internalChatStore';
+import { useInternalChatStore } from '../store/internalChatStore';
 
 export function ConnectionStatus() {
   const { isConnected, setConnected } = useInternalChatStore();

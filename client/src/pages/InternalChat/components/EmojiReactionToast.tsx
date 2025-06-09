@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useInternalChatStore } from '@/shared/store/internalChatStore';
+import { useInternalChatStore } from '../store/internalChatStore';
 
 interface ReactionToast {
   id: string;
