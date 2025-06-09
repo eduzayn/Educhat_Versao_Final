@@ -190,6 +190,14 @@ export class DatabaseStorage implements IStorage {
     return this.channel.getChannel(id);
   }
 
+  async getChannelById(id: number) {
+    return this.channel.getChannel(id);
+  }
+
+  async getAllChannels() {
+    return this.channel.getChannels();
+  }
+
   async getChannelsByType(type: string) {
     return this.channel.getChannelsByType(type);
   }

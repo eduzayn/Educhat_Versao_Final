@@ -980,6 +980,124 @@ async function processSMSMessage(smsData: any) {
 // Additional Z-API endpoints
 export function registerZApiRoutes(app: Express) {
   
+  // Get QR Code for WhatsApp connection - REST: GET /api/zapi/qrcode
+  app.get('/api/zapi/qrcode', async (req, res) => {
+    try {
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Verificar se já está conectado
+      if (data.connected === true) {
+        return res.json({ 
+          connected: true, 
+          message: 'WhatsApp já está conectado' 
+        });
+      }
+      
+      // Retornar QR Code se disponível
+      if (data.value) {
+        return res.json({ 
+          qrCode: data.value,
+          connected: false 
+        });
+      }
+      
+      // Se não há QR Code nem conexão
+      res.status(400).json({ 
+        error: 'QR Code não disponível. Verifique as credenciais da Z-API.' 
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao obter QR Code:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Get QR Code for specific channel - REST: GET /api/channels/:id/qrcode
+  app.get('/api/channels/:id/qrcode', async (req, res) => {
+    try {
+      const channelId = parseInt(req.params.id);
+      
+      // Buscar canal específico no banco
+      const channel = await storage.getChannelById(channelId);
+      if (!channel) {
+        return res.status(404).json({ error: 'Canal não encontrado' });
+      }
+
+      // Usar credenciais do canal específico
+      const { instanceId, token, clientToken } = channel;
+      
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          error: 'Canal não possui credenciais Z-API configuradas' 
+        });
+      }
+      
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Client-Token': clientToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Verificar se já está conectado
+      if (data.connected === true) {
+        return res.json({ 
+          connected: true, 
+          message: 'WhatsApp já está conectado' 
+        });
+      }
+      
+      // Retornar QR Code se disponível
+      if (data.value) {
+        return res.json({ 
+          qrCode: data.value,
+          connected: false 
+        });
+      }
+      
+      // Se não há QR Code nem conexão
+      res.status(400).json({ 
+        error: 'QR Code não disponível. Verifique as credenciais da Z-API.' 
+      });
+      
+    } catch (error) {
+      console.error(`❌ Erro ao obter QR Code do canal ${req.params.id}:`, error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+  
   // Main Z-API webhook endpoint for receiving messages - REST: POST /api/zapi/webhook
   app.post('/api/zapi/webhook', async (req, res) => {
     try {
