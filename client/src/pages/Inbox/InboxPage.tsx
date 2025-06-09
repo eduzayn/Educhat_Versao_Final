@@ -42,7 +42,7 @@ import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/textarea';
-import { CHANNELS, STATUS_CONFIG } from '@/types/chat';
+import { STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
@@ -287,8 +287,8 @@ export function InboxPage() {
   };
 
   const getChannelInfo = (channel: string) => {
-    const channelInfo = CHANNELS[channel as keyof typeof CHANNELS];
-    return channelInfo || { icon: '💬', color: 'text-gray-500', label: 'Outro' };
+    // Channel info now handled by backend data
+    return { icon: '💬', color: 'text-gray-500', label: 'Canal' };
   };
 
   const getSpecificChannelName = (conversation: any) => {

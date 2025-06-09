@@ -36,32 +36,7 @@ export interface ChannelInfo {
   label: string;
 }
 
-export const CHANNELS: Record<string, ChannelInfo> = {
-  whatsapp: {
-    type: 'whatsapp',
-    icon: 'fab fa-whatsapp',
-    color: 'text-green-500',
-    label: 'WhatsApp'
-  },
-  instagram: {
-    type: 'instagram',
-    icon: 'fab fa-instagram',
-    color: 'text-pink-500',
-    label: 'Instagram'
-  },
-  facebook: {
-    type: 'facebook',
-    icon: 'fab fa-facebook-messenger',
-    color: 'text-blue-600',
-    label: 'Facebook'
-  },
-  email: {
-    type: 'email',
-    icon: 'fas fa-envelope',
-    color: 'text-gray-500',
-    label: 'Email'
-  }
-};
+// CHANNELS removido - agora usamos dados dinâmicos do backend via API
 
 export type ConversationStatus = 'open' | 'pending' | 'resolved' | 'closed' | 'new' | 'in_progress';
 

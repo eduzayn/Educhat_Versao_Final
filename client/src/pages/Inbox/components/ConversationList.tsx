@@ -5,7 +5,7 @@ import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, Filter, X } from 'lucide-react';
-import { CHANNELS, STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
+import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationListProps {
@@ -48,8 +48,8 @@ export function ConversationList({
   }) || [];
 
   const getChannelIcon = (channel: string) => {
-    const channelConfig = CHANNELS[channel];
-    return channelConfig?.icon || '💬';
+    // Channel icons now handled by backend data
+    return '💬';
   };
 
   const getStatusBadge = (status: string) => {
@@ -126,11 +126,7 @@ export function ConversationList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {data?.channels?.map((channel: any) => (
-                  <SelectItem key={channel.id} value={channel.id.toString()}>
-                    📱 {channel.name}
-                  </SelectItem>
-                )) || []}
+                {/* Channels loaded dynamically from API */}
               </SelectContent>
             </Select>
 
