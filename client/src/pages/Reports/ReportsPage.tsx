@@ -10,7 +10,7 @@ export function ReportsPage() {
       <div className="p-6">
         <BackButton to="/" label="Voltar ao Dashboard" />
         
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
