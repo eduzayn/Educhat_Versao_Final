@@ -58,17 +58,48 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // OTIMIZAÇÃO: Retornar apenas dados essenciais para carregamento rápido
+    // OTIMIZAÇÃO: Buscar apenas as últimas mensagens em uma consulta otimizada
+    const conversationIds = conversationsWithContacts.map(c => c.id);
+    
+    // Buscar todas as últimas mensagens de uma vez (otimizado)
+    const latestMessages = await this.db
+      .select({
+        conversationId: messages.conversationId,
+        id: messages.id,
+        content: messages.content,
+        sentAt: messages.sentAt,
+        isFromContact: messages.isFromContact,
+        messageType: messages.messageType,
+        metadata: messages.metadata
+      })
+      .from(messages)
+      .where(and(
+        inArray(messages.conversationId, conversationIds),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(desc(messages.sentAt));
+
+    // Agrupar mensagens por conversa e pegar apenas a mais recente
+    const messagesByConversation = latestMessages.reduce((acc, msg) => {
+      if (!acc[msg.conversationId] || msg.sentAt > acc[msg.conversationId].sentAt) {
+        acc[msg.conversationId] = msg;
+      }
+      return acc;
+    }, {} as Record<number, any>);
+
+    // Construir resultado final com mensagens
     const optimizedConversations = conversationsWithContacts.map((conv) => {
+      const lastMessage = messagesByConversation[conv.id];
+      
       return {
         ...conv,
         contact: {
           ...conv.contact,
-          tags: [], // Carregado sob demanda
-          deals: [] // Carregado sob demanda
+          tags: [], // Carregado sob demanda para performance
+          deals: [] // Carregado sob demanda para performance
         },
         channelInfo: undefined, // Carregado sob demanda
-        messages: [], // Carregado sob demanda
+        messages: lastMessage ? [lastMessage] : [],
         _count: { messages: conv.unreadCount || 0 },
         // Campos obrigatórios para ConversationWithContact
         priority: conv.priority || null,
