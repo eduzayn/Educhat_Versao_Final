@@ -1276,6 +1276,28 @@ export function registerZApiRoutes(app: Express) {
             let dealCreated = false;
             let conversationUpdated = false;
             
+            // Detectar e atualizar informações educacionais do contato
+            try {
+              const { detectCourses } = await import('../../storage/utils/courseUtils');
+              const detectedCourses = detectCourses(messageContent);
+              
+              if (detectedCourses.length > 0) {
+                console.log(`📚 Cursos detectados na mensagem:`, detectedCourses);
+                
+                // Adicionar tags de interesse para os cursos detectados
+                for (const course of detectedCourses) {
+                  await storage.addContactTag({
+                    contactId: contact.id,
+                    tag: `Interesse: ${course}`
+                  });
+                }
+                
+                console.log(`✅ Informações educacionais atualizadas para contato ${contact.id} (${contact.name})`);
+              }
+            } catch (courseDetectionError) {
+              console.error('❌ Erro na detecção de cursos:', courseDetectionError);
+            }
+            
             // Criar negócio automático se necessário
             try {
               const existingDeals = await storage.getDealsByContact(contact.id);
