@@ -185,18 +185,40 @@ export function DealsModule() {
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
       return await apiRequest('PATCH', `/api/deals/${dealId}`, { stage });
     },
-    onSuccess: () => {
-      // Invalidate the specific query with all parameters
+    onMutate: async ({ dealId, stage }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedMacrosetor, page, limit] });
+      
+      // Snapshot the previous value
+      const previousDeals = queryClient.getQueryData(['/api/deals', selectedMacrosetor, page, limit]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], (old: any) => {
+        if (!old?.data) return old;
+        
+        return {
+          ...old,
+          data: old.data.map((deal: any) => 
+            deal.id === dealId ? { ...deal, stage } : deal
+          )
+        };
+      });
+      
+      // Return a context object with the snapshotted value
+      return { previousDeals };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousDeals) {
+        queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], context.previousDeals);
+      }
+      console.error('Erro ao atualizar estágio do negócio:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
       queryClient.invalidateQueries({ 
         queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
       });
-      // Also invalidate the base query
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals'] 
-      });
-    },
-    onError: (error) => {
-      console.error('Erro ao atualizar estágio do negócio:', error);
     }
   });
 

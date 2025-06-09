@@ -59,7 +59,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
@@ -194,7 +194,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const existingDeal = await storage.getDealById(dealId);
+      const existingDeal = await storage.getDeal(dealId);
       if (!existingDeal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -247,7 +247,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -307,7 +307,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'Conteúdo da nota é obrigatório' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -345,7 +345,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -409,7 +409,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do usuário é obrigatório' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -445,7 +445,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
@@ -493,7 +493,7 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do negócio inválido' });
       }
       
-      const deal = await storage.getDealById(dealId);
+      const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ error: 'Negócio não encontrado' });
       }
