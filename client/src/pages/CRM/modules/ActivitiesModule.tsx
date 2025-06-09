@@ -54,6 +54,8 @@ export function ActivitiesModule() {
   const [activeTab, setActiveTab] = useState("list");
   const [isNewActivityDialogOpen, setIsNewActivityDialogOpen] = useState(false);
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
+  const [isEditActivityDialogOpen, setIsEditActivityDialogOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<any>(null);
   const [, setLocation] = useLocation();
 
   // Form states for new activity
@@ -116,6 +118,41 @@ export function ActivitiesModule() {
       contact: "",
       priority: "medium"
     });
+  };
+
+  const handleEditActivity = (activity: any) => {
+    setEditingActivity(activity);
+    setActivityForm({
+      title: activity.title,
+      type: activity.type,
+      description: activity.description,
+      date: activity.date,
+      time: activity.time,
+      contact: activity.contact,
+      priority: activity.priority
+    });
+    setIsEditActivityDialogOpen(true);
+  };
+
+  const handleUpdateActivity = () => {
+    console.log("Updating activity:", editingActivity?.id, activityForm);
+    // TODO: Implement activity update API call
+    setIsEditActivityDialogOpen(false);
+    setEditingActivity(null);
+    setActivityForm({
+      title: "",
+      type: "",
+      description: "",
+      date: "",
+      time: "",
+      contact: "",
+      priority: "medium"
+    });
+  };
+
+  const handleCompleteActivity = (activityId: string) => {
+    console.log("Marking activity as completed:", activityId);
+    // TODO: Implement activity completion API call
   };
 
   const getActivityIcon = (type: string) => {
@@ -294,11 +331,18 @@ export function ActivitiesModule() {
                             <span>{activity.owner}</span>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditActivity(activity)}
+                            >
                               Editar
                             </Button>
                             {activity.status === 'pending' && (
-                              <Button size="sm">
+                              <Button 
+                                size="sm"
+                                onClick={() => handleCompleteActivity(activity.id)}
+                              >
                                 Marcar como Concluída
                               </Button>
                             )}
@@ -450,6 +494,105 @@ export function ActivitiesModule() {
                 className="flex-1"
               >
                 Criar Atividade
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Editar Atividade */}
+      <Dialog open={isEditActivityDialogOpen} onOpenChange={setIsEditActivityDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Atividade</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">Título</Label>
+              <Input
+                id="edit-title"
+                value={activityForm.title}
+                onChange={(e) => setActivityForm({...activityForm, title: e.target.value})}
+                placeholder="Digite o título da atividade"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-type">Tipo</Label>
+              <Select value={activityForm.type} onValueChange={(value) => setActivityForm({...activityForm, type: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="call">Ligação</SelectItem>
+                  <SelectItem value="meeting">Reunião</SelectItem>
+                  <SelectItem value="email">E-mail</SelectItem>
+                  <SelectItem value="task">Tarefa</SelectItem>
+                  <SelectItem value="message">Mensagem</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Descrição</Label>
+              <Textarea
+                id="edit-description"
+                value={activityForm.description}
+                onChange={(e) => setActivityForm({...activityForm, description: e.target.value})}
+                placeholder="Descreva a atividade"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-date">Data</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={activityForm.date}
+                  onChange={(e) => setActivityForm({...activityForm, date: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-time">Hora</Label>
+                <Input
+                  id="edit-time"
+                  type="time"
+                  value={activityForm.time}
+                  onChange={(e) => setActivityForm({...activityForm, time: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-contact">Contato</Label>
+              <Input
+                id="edit-contact"
+                value={activityForm.contact}
+                onChange={(e) => setActivityForm({...activityForm, contact: e.target.value})}
+                placeholder="Nome do contato"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-priority">Prioridade</Label>
+              <Select value={activityForm.priority} onValueChange={(value) => setActivityForm({...activityForm, priority: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditActivityDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateActivity} className="flex-1">
+                Atualizar Atividade
               </Button>
             </div>
           </div>
