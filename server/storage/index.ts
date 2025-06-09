@@ -473,13 +473,25 @@ export class DatabaseStorage implements IStorage {
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
     try {
-      // Import dinâmico para evitar problemas de ES modules
-      const macrosetorUtils = eval('require')('./utils/macrosetorUtils');
-      const detection = macrosetorUtils.detectMacrosetor(content);
-      return detection ? detection.macrosetor : null;
+      // Detecção básica por palavras-chave enquanto utils não está disponível
+      const keywords = {
+        'educacao': ['curso', 'faculdade', 'universidade', 'graduacao', 'pos', 'mestrado', 'doutorado', 'educacao'],
+        'saude': ['saude', 'medicina', 'enfermagem', 'fisioterapia', 'psicologia'],
+        'tecnologia': ['programacao', 'tecnologia', 'computacao', 'sistemas', 'desenvolvimento'],
+        'negocios': ['administracao', 'gestao', 'marketing', 'vendas', 'empreendedorismo']
+      };
+
+      const contentLower = content.toLowerCase();
+      for (const [macrosetor, words] of Object.entries(keywords)) {
+        if (words.some(word => contentLower.includes(word))) {
+          return macrosetor;
+        }
+      }
+      
+      return 'geral'; // Default para casos não identificados
     } catch (error) {
       console.error('Erro na detecção de macrosetor:', error);
-      return null;
+      return 'geral';
     }
   }
 }

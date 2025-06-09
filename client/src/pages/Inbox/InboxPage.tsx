@@ -347,24 +347,7 @@ export function InboxPage() {
   };
 
   const getChannelStyle = (conversation: any) => {
-    if (conversation.channelId) {
-      const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel?.type === 'whatsapp') {
-        // Cores dinâmicas baseadas no hash do nome do canal para consistência
-        const hash = channel.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-        const colors = [
-          'bg-green-100 text-green-700',
-          'bg-blue-100 text-blue-700', 
-          'bg-purple-100 text-purple-700',
-          'bg-orange-100 text-orange-700',
-          'bg-pink-100 text-pink-700',
-          'bg-indigo-100 text-indigo-700'
-        ];
-        return colors[hash % colors.length];
-      }
-    }
-    
-    // Se há equipe atribuída, usa cores baseadas no macrosetor
+    // PRIORIDADE 1: Se há equipe atribuída, sempre usa cores baseadas no macrosetor
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
       if (team) {
@@ -376,6 +359,37 @@ export function InboxPage() {
           'tutoria': 'bg-green-100 text-green-700'
         };
         return macrosetorColors[team.macrosetor as keyof typeof macrosetorColors] || 'bg-indigo-100 text-indigo-700';
+      }
+    }
+    
+    // PRIORIDADE 2: Se há channelId mas sem equipe, usa cores baseadas no canal
+    if (conversation.channelId) {
+      const channel = channels.find(c => c.id === conversation.channelId);
+      if (channel?.type === 'whatsapp') {
+        // Para canais sem equipe atribuída, usa mapeamento fixo baseado no nome
+        const channelToMacrosetor = {
+          'suporte': 'bg-pink-100 text-pink-700',
+          'comercial': 'bg-blue-100 text-blue-700',
+          'cobranca': 'bg-orange-100 text-orange-700',
+          'secretaria': 'bg-purple-100 text-purple-700',
+          'tutoria': 'bg-green-100 text-green-700'
+        };
+        
+        const channelLower = channel.name.toLowerCase();
+        for (const [keyword, color] of Object.entries(channelToMacrosetor)) {
+          if (channelLower.includes(keyword)) {
+            return color;
+          }
+        }
+        
+        // Fallback: cor baseada em hash para canais não mapeados
+        const hash = channel.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+        const colors = [
+          'bg-indigo-100 text-indigo-700',
+          'bg-cyan-100 text-cyan-700',
+          'bg-teal-100 text-teal-700'
+        ];
+        return colors[hash % colors.length];
       }
     }
     
