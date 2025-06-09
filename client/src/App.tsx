@@ -13,7 +13,7 @@ import { ContactsPage } from "@/pages/Contacts/ContactsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 import IntegrationsPage from "@/pages/Settings/Integrations/IntegrationsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
-import ChannelsPage from "@/pages/Settings/ChannelsPage";
+import ChannelsPage from "@/pages/Settings/Channels";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
