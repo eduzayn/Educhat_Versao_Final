@@ -30,6 +30,7 @@ import { NotesStorage } from './modules/notesStorage';
 import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
+import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
   private auth: AuthStorage;
@@ -41,6 +42,7 @@ export class DatabaseStorage implements IStorage {
   private quickReply: QuickReplyStorage;
   private team: TeamStorage;
   private message: MessageStorage;
+  private system: SystemStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -52,6 +54,7 @@ export class DatabaseStorage implements IStorage {
     this.quickReply = new QuickReplyStorage();
     this.team = new TeamStorage();
     this.message = new MessageStorage();
+    this.system = new SystemStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================

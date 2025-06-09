@@ -403,8 +403,8 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
-  // Roles API endpoints - REST: CRUD operations
-  app.get('/api/roles', async (req: AuthenticatedRequest, res: Response) => {
+  // Roles API endpoints - REST: CRUD operations  
+  app.get('/api/roles', async (req: Request, res: Response) => {
     try {
       const roles = await storage.getRoles();
       res.json(roles);
