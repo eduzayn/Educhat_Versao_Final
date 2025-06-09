@@ -6,6 +6,8 @@ import multer from "multer";
 async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
   try {
     const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+    if (!detectedMacrosetor) return;
+    
     const newTeam = await storage.getTeamByMacrosetor(detectedMacrosetor);
     
     if (newTeam) {
@@ -1338,7 +1340,7 @@ export function registerZApiRoutes(app: Express) {
 
             // Atribuição automática de equipes com reavaliação inteligente
             try {
-              await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+              await assignTeamIntelligently(conversation.id, messageContent, 'whatsapp');
               conversationUpdated = true;
             } catch (assignmentError) {
               console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
