@@ -4,6 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/shared/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { 
   Phone, 
   Mail, 
@@ -16,8 +20,14 @@ import {
   GraduationCap,
   BookOpen,
   Target,
-  Users
+  Users,
+  DollarSign,
+  TrendingUp,
+  Edit,
+  Briefcase
 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ContactSidebarProps {
   activeConversation: any;
@@ -36,6 +46,42 @@ export function ContactSidebar({
 }: ContactSidebarProps) {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [showDealDialog, setShowDealDialog] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<any>(null);
+  const [dealFormData, setDealFormData] = useState({
+    name: '',
+    value: '',
+    macrosetor: '',
+    stage: ''
+  });
+  
+  const queryClient = useQueryClient();
+
+  // Mutation para criar deal
+  const createDealMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/deals', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      setShowDealDialog(false);
+      setDealFormData({ name: '', value: '', macrosetor: '', stage: '' });
+    },
+    onError: (error: any) => {
+      console.error('Erro ao criar negócio:', error);
+    }
+  });
+
+  // Mutation para atualizar deal
+  const updateDealMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest('PUT', `/api/deals/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      setEditingDeal(null);
+    },
+    onError: (error: any) => {
+      console.error('Erro ao atualizar negócio:', error);
+    }
+  });
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
