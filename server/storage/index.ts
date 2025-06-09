@@ -303,6 +303,10 @@ export class DatabaseStorage implements IStorage {
     return this.deal.createAutomaticDeal(contactId, canalOrigem, macrosetor);
   }
 
+  async cleanupDuplicateDeals() {
+    return this.deal.cleanupDuplicateDeals();
+  }
+
   // ==================== NOTES OPERATIONS ====================
   async getContactNotes(contactId: number) {
     return this.notes.getContactNotes(contactId);

@@ -1301,14 +1301,32 @@ export function registerZApiRoutes(app: Express) {
             // Criar negócio automático se necessário
             try {
               const existingDeals = await storage.getDealsByContact(contact.id);
-              const hasActiveDeal = existingDeals.some(deal => 
-                deal.macrosetor === detectedMacrosetor && deal.isActive
-              );
               
-              if (!hasActiveDeal && detectedMacrosetor) {
+              // Verificar se já existe um deal ativo para este macrosetor e contato
+              const hasActiveDeal = existingDeals.some(deal => {
+                const isActive = deal.stage !== 'closed' && deal.stage !== 'lost';
+                const sameChannel = deal.canalOrigem === 'whatsapp';
+                const sameMacrosetor = deal.macrosetor === detectedMacrosetor;
+                
+                return isActive && sameChannel && sameMacrosetor;
+              });
+              
+              // Também verificar deals recentes (últimas 24 horas) para evitar duplicação por webhook duplicado
+              const recentDeals = existingDeals.filter(deal => {
+                const dealDate = new Date(deal.createdAt);
+                const now = new Date();
+                const hoursDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60 * 60);
+                return hoursDiff < 24 && deal.canalOrigem === 'whatsapp' && deal.macrosetor === detectedMacrosetor;
+              });
+              
+              if (!hasActiveDeal && recentDeals.length === 0 && detectedMacrosetor) {
                 console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
                 await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
                 dealCreated = true;
+              } else if (hasActiveDeal) {
+                console.log(`⚠️ Deal ativo já existe para ${contact.name} no macrosetor ${detectedMacrosetor}`);
+              } else if (recentDeals.length > 0) {
+                console.log(`⚠️ Deal recente já criado para ${contact.name} no macrosetor ${detectedMacrosetor}`);
               }
             } catch (dealError) {
               console.error('❌ Erro ao criar negócio automático:', dealError);

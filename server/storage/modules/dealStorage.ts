@@ -99,6 +99,24 @@ export class DealStorage extends BaseStorage {
   }
 
   async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
+    // Verificação adicional para evitar duplicação durante criação
+    const existingDeals = await this.getDealsByContact(contactId);
+    
+    // Verificar se já existe um deal muito recente (últimos 5 minutos) para este contato/canal/macrosetor
+    const veryRecentDeals = existingDeals.filter(deal => {
+      const dealDate = new Date(deal.createdAt);
+      const now = new Date();
+      const minutesDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60);
+      return minutesDiff < 5 && 
+             deal.canalOrigem === canalOrigem && 
+             deal.macrosetor === macrosetor;
+    });
+
+    if (veryRecentDeals.length > 0) {
+      console.log(`⚠️ Deal muito recente encontrado para contato ${contactId}, evitando duplicação`);
+      return veryRecentDeals[0];
+    }
+
     // Get contact information
     const [contact] = await this.db.select().from(contacts).where(eq(contacts.id, contactId));
     if (!contact) {
@@ -115,9 +133,13 @@ export class DealStorage extends BaseStorage {
       }
     }
 
+    // Gerar nome único para o deal baseado no timestamp
+    const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const dealName = `${contact.name} - ${macrosetor || 'Geral'}`;
+
     // Create automatic deal
     const dealData: InsertDeal = {
-      name: contact.name,
+      name: dealName,
       contactId: contactId,
       stage: 'prospecting',
       value: 0,
@@ -125,15 +147,69 @@ export class DealStorage extends BaseStorage {
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'automatic',
       macrosetor: macrosetor || 'geral',
-      notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'}`,
+      notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'} em ${timestamp}`,
       tags: {
         automatic: true,
         canalOrigem,
         macrosetor,
-        createdBy: 'system'
+        createdBy: 'system',
+        timestamp: timestamp
       }
     };
 
+    console.log(`💼 Criando deal automático: ${dealName} para ${contact.name}`);
     return this.createDeal(dealData);
+  }
+
+  async cleanupDuplicateDeals(): Promise<{ removed: number; details: any[] }> {
+    console.log('🧹 Iniciando limpeza de deals duplicados...');
+    
+    // Buscar todos os deals ativos
+    const allDeals = await this.db.select().from(deals).orderBy(deals.contactId, deals.createdAt);
+    
+    // Agrupar deals por contato e macrosetor
+    const dealGroups = new Map();
+    
+    for (const deal of allDeals) {
+      const key = `${deal.contactId}-${deal.macrosetor}-${deal.canalOrigem}`;
+      if (!dealGroups.has(key)) {
+        dealGroups.set(key, []);
+      }
+      dealGroups.get(key).push(deal);
+    }
+    
+    // Identificar e remover duplicatas
+    const toRemove = [];
+    const details = [];
+    
+    for (const [key, deals] of dealGroups) {
+      if (deals.length > 1) {
+        // Manter apenas o deal mais recente
+        const sortedDeals = deals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const keepDeal = sortedDeals[0];
+        const duplicates = sortedDeals.slice(1);
+        
+        for (const duplicate of duplicates) {
+          toRemove.push(duplicate.id);
+          details.push({
+            removed: duplicate,
+            kept: keepDeal,
+            reason: 'Duplicate deal for same contact/macrosetor/channel'
+          });
+        }
+      }
+    }
+    
+    // Executar remoção
+    for (const dealId of toRemove) {
+      await this.db.delete(deals).where(eq(deals.id, dealId));
+    }
+    
+    console.log(`🧹 Limpeza concluída: ${toRemove.length} deals duplicados removidos`);
+    
+    return {
+      removed: toRemove.length,
+      details
+    };
   }
 }
