@@ -1117,9 +1117,9 @@ export function registerZApiRoutes(app: Express) {
             deal.macrosetor === detectedMacrosetor && deal.isActive
           );
           
-          if (!hasActiveDeal) {
+          if (!hasActiveDeal && detectedMacrosetor) {
             console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
-            await storage.createAutomaticDeal(contact.id, 'whatsapp', undefined, messageContent);
+            await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
           }
         } catch (dealError) {
           console.error('❌ Erro ao criar negócio automático:', dealError);

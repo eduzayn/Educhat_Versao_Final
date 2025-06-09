@@ -260,8 +260,8 @@ export class DatabaseStorage implements IStorage {
     return this.deal.getDeals();
   }
 
-  async getDealsWithPagination(limit?: number, offset?: number) {
-    return this.deal.getDealsWithPagination(limit, offset);
+  async getDealsWithPagination(params: { page: number; limit: number; macrosetor?: string; stage?: string; search?: string; }) {
+    return this.deal.getDealsWithPagination(params);
   }
 
   async getDeal(id: number) {
@@ -383,8 +383,8 @@ export class DatabaseStorage implements IStorage {
     return this.team.getUserTeams(userId);
   }
 
-  async addUserToTeam(userId: number, teamId: number, role?: string) {
-    return this.team.addUserToTeam(userId, teamId, role);
+  async addUserToTeam(userTeam: { teamId: number; userId: number; isActive?: boolean | null; role?: string | null; }) {
+    return this.team.addUserToTeam(userTeam);
   }
 
   async removeUserFromTeam(userId: number, teamId: number) {
@@ -468,5 +468,12 @@ export class DatabaseStorage implements IStorage {
 
   async getQuickRepliesByTeam(): Promise<any[]> {
     throw new Error("Método não implementado");
+  }
+
+  // ==================== MACROSETOR DETECTION ====================
+  detectMacrosetor(content: string, channel?: string): string | null {
+    const { detectMacrosetor } = require('./utils/macrosetorUtils');
+    const detection = detectMacrosetor(content);
+    return detection ? detection.macrosetor : null;
   }
 }

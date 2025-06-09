@@ -205,4 +205,7 @@ export interface IStorage {
   createAnalyticsAlert(alert: any): Promise<any>;
   updateAnalyticsAlert(alertId: string, alert: any): Promise<any>;
   deleteAnalyticsAlert(alertId: string): Promise<any>;
+
+  // ==================== MACROSETOR DETECTION ====================
+  detectMacrosetor(content: string, channel?: string): string | null;
 }
