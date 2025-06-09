@@ -66,8 +66,9 @@ restore_files() {
     echo "✅ zapi-utils restaurado"
     
     # Restaurar interface frontend
-    cp "backups/channels-system/ChannelsPage.tsx" "client/src/pages/Settings/ChannelsPage.tsx"
-    echo "✅ ChannelsPage restaurada"
+    mkdir -p "client/src/pages/Settings/Channels"
+    cp -r "backups/channels-system/Channels-folder/"* "client/src/pages/Settings/Channels/"
+    echo "✅ Channels folder restaurada"
 }
 
 # Função para verificar dependências

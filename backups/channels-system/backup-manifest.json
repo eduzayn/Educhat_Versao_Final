@@ -8,8 +8,13 @@
   },
   "files": {
     "frontend": {
-      "ChannelsPage.tsx": {
-        "description": "Interface completa de gerenciamento de canais",
+      "Channels-folder/": {
+        "description": "Pasta organizada com estrutura padrão",
+        "path": "client/src/pages/Settings/Channels/",
+        "files": {
+          "ChannelsPage.tsx": "Interface completa de gerenciamento de canais",
+          "index.ts": "Export padrão da página"
+        },
         "features": ["CRUD de canais", "Geração QR Code", "Teste de conectividade"],
         "dependencies": ["qrcode.react", "shadcn/ui", "tanstack/react-query"],
         "integrity": "VERIFIED"
