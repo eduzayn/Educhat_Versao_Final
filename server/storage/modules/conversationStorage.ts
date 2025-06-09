@@ -473,6 +473,30 @@ export class ConversationStorage extends BaseStorage {
     await this.resetUnreadCount(conversationId);
   }
 
+  async assignConversationToTeam(conversationId: number, teamId: number, method: string = 'manual'): Promise<void> {
+    await this.db
+      .update(conversations)
+      .set({
+        assignedTeamId: teamId,
+        assignmentMethod: method,
+        assignedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
+  async assignConversationToUser(conversationId: number, userId: number, method: string = 'manual'): Promise<void> {
+    await this.db
+      .update(conversations)
+      .set({
+        assignedUserId: userId,
+        assignmentMethod: method,
+        assignedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
   async getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]> {
     const conversationsWithContacts = await this.db
       .select({
@@ -591,5 +615,70 @@ export class ConversationStorage extends BaseStorage {
       messages: [],
       _count: { messages: conv.unreadCount || 0 }
     } as ConversationWithContact));
+  }
+
+  async getConversationByContactAndChannel(contactId: number, channel: string): Promise<ConversationWithContact | undefined> {
+    const [result] = await this.db
+      .select({
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        macrosetor: conversations.macrosetor,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        assignmentMethod: conversations.assignmentMethod,
+        assignedAt: conversations.assignedAt,
+        isRead: conversations.isRead,
+        priority: conversations.priority,
+        tags: conversations.tags,
+        metadata: conversations.metadata,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          location: contacts.location,
+          age: contacts.age,
+          isOnline: contacts.isOnline,
+          lastSeenAt: contacts.lastSeenAt,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          assignedUserId: contacts.assignedUserId,
+          tags: contacts.tags,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(and(
+        eq(conversations.contactId, contactId),
+        eq(conversations.channel, channel)
+      ))
+      .limit(1);
+
+    if (!result) return undefined;
+
+    return {
+      ...result,
+      contact: {
+        ...result.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: [],
+      _count: { messages: result.unreadCount || 0 }
+    } as ConversationWithContact;
   }
 }
