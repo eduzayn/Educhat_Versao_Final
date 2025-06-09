@@ -11,6 +11,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { ArrowLeft, Plus, Settings, Trash2, Edit, CheckCircle, XCircle, AlertCircle, Copy, Check } from "lucide-react";
 import { useLocation } from "wouter";
+import { QRCodeCanvas } from "qrcode.react";
 import type { Channel } from "@shared/schema";
 
 interface ChannelFormData {
@@ -568,10 +569,12 @@ export default function ChannelsPage() {
             <div className="flex flex-col items-center space-y-4">
               {qrCodeData && (
                 <div className="p-4 bg-white rounded-lg border">
-                  <img 
-                    src={qrCodeData} 
-                    alt="QR Code WhatsApp" 
-                    className="w-64 h-64 object-contain"
+                  <QRCodeCanvas 
+                    value={qrCodeData}
+                    size={256}
+                    level="M"
+                    includeMargin={true}
+                    className="border rounded"
                   />
                 </div>
               )}
