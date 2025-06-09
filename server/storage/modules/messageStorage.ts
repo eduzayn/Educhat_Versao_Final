@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { messages, type Message, type InsertMessage } from "../../../shared/schema";
+import { messages, conversations, type Message, type InsertMessage } from "../../../shared/schema";
 import { eq, desc, and, isNull } from "drizzle-orm";
 
 /**
@@ -36,6 +36,15 @@ export class MessageStorage extends BaseStorage {
 
   async createMessage(message: InsertMessage): Promise<Message> {
     const [newMessage] = await this.db.insert(messages).values(message).returning();
+    
+    // Atualizar o last_message_at da conversa para ordenação correta
+    await this.db.update(conversations)
+      .set({ 
+        lastMessageAt: newMessage.sentAt,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, newMessage.conversationId));
+    
     return newMessage;
   }
 
