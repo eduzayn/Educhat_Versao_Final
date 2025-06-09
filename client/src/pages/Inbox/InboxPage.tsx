@@ -292,44 +292,45 @@ export function InboxPage() {
   };
 
   const getSpecificChannelName = (conversation: any) => {
-    // Prioriza busca por channelId específico (escalável para qualquer número de canais)
+    // Mapeamento padronizado de macrosetores para nomes de canal
+    const standardChannelNames = {
+      'comercial': 'Comercial',
+      'suporte': 'Suporte',
+      'cobranca': 'Cobrança',
+      'secretaria': 'Secretaria',
+      'tutoria': 'Tutoria'
+    };
+
+    // PRIORIDADE 1: Busca por channelId específico
     if (conversation.channelId) {
       const channel = channels.find(c => c.id === conversation.channelId);
       if (channel) {
-        // Para WhatsApp, mostra apenas o nome do canal
-        // Para outros tipos, mostra "Tipo - Nome"
         return channel.type === 'whatsapp' 
           ? channel.name 
           : `${channel.type.charAt(0).toUpperCase() + channel.type.slice(1)} - ${channel.name}`;
       }
     }
     
-    // Se há equipe atribuída, usa o macrosetor para inferir o canal
+    // PRIORIDADE 2: Se há equipe atribuída, usa o macrosetor padronizado
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
+      if (team && team.macrosetor && standardChannelNames[team.macrosetor as keyof typeof standardChannelNames]) {
+        return standardChannelNames[team.macrosetor as keyof typeof standardChannelNames];
+      }
+      // Fallback para equipes sem macrosetor definido
       if (team) {
-        // Mapeia macrosetor para nome de canal correspondente
-        const macrosetorToChannel = {
-          'comercial': 'Comercial',
-          'suporte': 'Suporte',
-          'cobranca': 'Cobrança',
-          'secretaria': 'Secretaria',
-          'tutoria': 'Tutoria'
-        };
-        return macrosetorToChannel[team.macrosetor as keyof typeof macrosetorToChannel] || team.name;
+        return team.name;
       }
     }
     
-    // Fallback para conversas sem channelId específico
+    // PRIORIDADE 3: Fallback para conversas sem channelId específico
     const channelType = conversation.channel || 'unknown';
     if (channelType === 'whatsapp') {
-      // Se há múltiplos canais WhatsApp, tenta identificar por outros critérios
       const whatsappChannels = channels.filter(c => c.type === 'whatsapp' && c.isActive);
       if (whatsappChannels.length > 1) {
-        // Usa critérios como phone number pattern ou outros identificadores
         const phoneNumber = conversation.contact?.phoneNumber || '';
         
-        // Lógica extensível: identifica canal baseado em padrões configuráveis
+        // Tenta identificar canal baseado em padrões configuráveis
         for (const channel of whatsappChannels) {
           const config = channel.configuration as any;
           if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
@@ -347,49 +348,49 @@ export function InboxPage() {
   };
 
   const getChannelStyle = (conversation: any) => {
+    // Definir cores padronizadas uma única vez
+    const standardColors = {
+      'comercial': 'bg-blue-100 text-blue-700',
+      'suporte': 'bg-pink-100 text-pink-700', 
+      'cobranca': 'bg-orange-100 text-orange-700',
+      'secretaria': 'bg-purple-100 text-purple-700',
+      'tutoria': 'bg-green-100 text-green-700'
+    };
+
     // PRIORIDADE 1: Se há equipe atribuída, sempre usa cores baseadas no macrosetor
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team) {
-        const macrosetorColors = {
-          'comercial': 'bg-blue-100 text-blue-700',
-          'suporte': 'bg-pink-100 text-pink-700', 
-          'cobranca': 'bg-orange-100 text-orange-700',
-          'secretaria': 'bg-purple-100 text-purple-700',
-          'tutoria': 'bg-green-100 text-green-700'
-        };
-        return macrosetorColors[team.macrosetor as keyof typeof macrosetorColors] || 'bg-indigo-100 text-indigo-700';
+      if (team && team.macrosetor && standardColors[team.macrosetor as keyof typeof standardColors]) {
+        return standardColors[team.macrosetor as keyof typeof standardColors];
       }
     }
     
-    // PRIORIDADE 2: Se há channelId mas sem equipe, usa cores baseadas no canal
+    // PRIORIDADE 2: Se há channelId, usa cores baseadas no nome do canal
     if (conversation.channelId) {
       const channel = channels.find(c => c.id === conversation.channelId);
       if (channel?.type === 'whatsapp') {
-        // Para canais sem equipe atribuída, usa mapeamento fixo baseado no nome
-        const channelToMacrosetor = {
-          'suporte': 'bg-pink-100 text-pink-700',
-          'comercial': 'bg-blue-100 text-blue-700',
-          'cobranca': 'bg-orange-100 text-orange-700',
-          'secretaria': 'bg-purple-100 text-purple-700',
-          'tutoria': 'bg-green-100 text-green-700'
-        };
-        
         const channelLower = channel.name.toLowerCase();
-        for (const [keyword, color] of Object.entries(channelToMacrosetor)) {
+        
+        // Usar mesmas cores padronizadas para manter consistência
+        for (const [keyword, color] of Object.entries(standardColors)) {
           if (channelLower.includes(keyword)) {
             return color;
           }
         }
         
-        // Fallback: cor baseada em hash para canais não mapeados
-        const hash = channel.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-        const colors = [
-          'bg-indigo-100 text-indigo-700',
-          'bg-cyan-100 text-cyan-700',
-          'bg-teal-100 text-teal-700'
-        ];
-        return colors[hash % colors.length];
+        // Fallback: cor neutra para canais não mapeados
+        return 'bg-gray-100 text-gray-600';
+      }
+    }
+    
+    // PRIORIDADE 3: Fallback baseado no nome específico do canal para conversas antigas
+    const channelName = getSpecificChannelName(conversation);
+    if (channelName) {
+      const channelNameLower = channelName.toLowerCase();
+      for (const [keyword, color] of Object.entries(standardColors)) {
+        if (channelNameLower.includes(keyword)) {
+          return color;
+        }
       }
     }
     
