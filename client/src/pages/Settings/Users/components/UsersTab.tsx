@@ -577,7 +577,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
       {/* Modal de Criação de Usuário */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Usuário</DialogTitle>
             <DialogDescription>
@@ -628,7 +628,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="password" className="text-right">
-                Senha
+                Nova Senha
               </Label>
               <Input
                 id="password"
@@ -637,6 +637,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
                 className="col-span-3"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
+                required
               />
             </div>
             
@@ -691,7 +692,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
       {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>
