@@ -58,61 +58,23 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Adicionar informações de canal, última mensagem e tags do contato
-    const conversationsWithFullDetails = await Promise.all(
-      conversationsWithContacts.map(async (conv) => {
-        let channelInfo = null;
-        if (conv.channelId) {
-          [channelInfo] = await this.db
-            .select()
-            .from(channels)
-            .where(eq(channels.id, conv.channelId));
-        }
+    // OTIMIZAÇÃO: Retornar apenas dados essenciais para carregamento rápido
+    // Tags, deals e detalhes extras serão carregados sob demanda
+    const optimizedConversations = conversationsWithContacts.map((conv) => {
+      return {
+        ...conv,
+        contact: {
+          ...conv.contact,
+          tags: [], // Carregado sob demanda
+          deals: [] // Carregado sob demanda
+        },
+        channelInfo: undefined, // Carregado sob demanda
+        messages: [], // Carregado sob demanda
+        _count: { messages: conv.unreadCount || 0 }
+      } as ConversationWithContact;
+    });
 
-        // Buscar última mensagem para prévia
-        const lastMessage = await this.db
-          .select()
-          .from(messages)
-          .where(and(
-            eq(messages.conversationId, conv.id),
-            eq(messages.isDeleted, false)
-          ))
-          .orderBy(desc(messages.sentAt))
-          .limit(1);
-
-        // Buscar tags do contato
-        const contactTagsResult = await this.db
-          .select({ tag: contactTags.tag })
-          .from(contactTags)
-          .where(eq(contactTags.contactId, conv.contact.id));
-
-        const tagsArray = contactTagsResult.map(t => t.tag);
-
-        // Buscar deals do contato
-        const contactDeals = await this.db
-          .select()
-          .from(deals)
-          .where(and(
-            eq(deals.contactId, conv.contact.id),
-            eq(deals.isActive, true)
-          ))
-          .orderBy(desc(deals.createdAt));
-
-        return {
-          ...conv,
-          contact: {
-            ...conv.contact,
-            tags: tagsArray,
-            deals: contactDeals
-          },
-          channelInfo: channelInfo || undefined,
-          messages: lastMessage || [],
-          _count: { messages: conv.unreadCount || 0 }
-        } as ConversationWithContact;
-      })
-    );
-
-    return conversationsWithFullDetails;
+    return optimizedConversations;
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
