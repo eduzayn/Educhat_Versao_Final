@@ -199,7 +199,7 @@ export function DealsModule() {
         return {
           ...old,
           data: old.data.map((deal: any) => 
-            deal.id === dealId ? { ...deal, stage } : deal
+            deal.id.toString() === dealId.toString() ? { ...deal, stage } : deal
           )
         };
       });
@@ -222,7 +222,7 @@ export function DealsModule() {
         return {
           ...old,
           data: old.data.map((deal: any) => 
-            deal.id === variables.dealId ? { ...deal, stage: variables.stage } : deal
+            deal.id.toString() === variables.dealId.toString() ? { ...deal, stage: variables.stage } : deal
           )
         };
       });
@@ -277,7 +277,7 @@ export function DealsModule() {
       return;
     }
 
-    const deal = deals.find(d => d.id === draggableId);
+    const deal = deals.find(d => d.id.toString() === draggableId);
     if (!deal) return;
 
     // Update deal stage in database
