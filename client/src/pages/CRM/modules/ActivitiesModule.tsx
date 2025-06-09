@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from 'wouter';
+import { useActivityNotifications } from '@/shared/lib/hooks/useActivityNotifications';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
@@ -61,8 +62,30 @@ export function ActivitiesModule() {
     priority: "medium"
   });
 
+  // Sample activities for demonstration - replace with real data from API
+  const sampleActivities = [
+    {
+      id: "1",
+      title: "Ligação de follow-up",
+      type: "call",
+      date: new Date().toISOString().split('T')[0], // Today
+      time: new Date(Date.now() + 3 * 60000).toTimeString().slice(0, 5), // 3 minutes from now
+      contact: "João Silva",
+      priority: "high",
+      status: "scheduled",
+      description: "Acompanhamento da proposta enviada"
+    }
+  ];
+
   // Replace with real activities data when available
-  const filtered: any[] = [];
+  const filtered: any[] = sampleActivities;
+
+  // Initialize activity notifications
+  const { 
+    settings: notificationSettings, 
+    setSettings: setNotificationSettings,
+    playNotificationSound 
+  } = useActivityNotifications(filtered);
 
   const handleCreateActivity = () => {
     console.log("Creating activity:", activityForm);
