@@ -432,24 +432,24 @@ export class DatabaseStorage implements IStorage {
     throw new Error("Método getAllMessages não implementado");
   }
 
-  async getRole(): Promise<any> {
-    throw new Error("Método getRole não implementado");
-  }
-
   async getRoles(): Promise<any[]> {
     return this.system.getRoles();
   }
 
-  async createRole(): Promise<any> {
-    throw new Error("Método createRole não implementado");
+  async getRole(id: number): Promise<any> {
+    return this.system.getRole(id);
   }
 
-  async updateRole(): Promise<any> {
-    throw new Error("Método updateRole não implementado");
+  async createRole(role: any): Promise<any> {
+    return this.system.createRole(role);
   }
 
-  async deleteRole(): Promise<any> {
-    throw new Error("Método deleteRole não implementado");
+  async updateRole(id: number, roleData: any): Promise<any> {
+    return this.system.updateRole(id, roleData);
+  }
+
+  async deleteRole(id: number): Promise<any> {
+    return this.system.deleteRole(id);
   }
 
   // Placeholder methods for missing interface requirements
