@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, contacts, channels, messages, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
+import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
 import { eq, desc, and, count, sql } from "drizzle-orm";
 
 /**
@@ -57,7 +57,7 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Adicionar informações de canal e última mensagem
+    // Adicionar informações de canal, última mensagem e tags do contato
     const conversationsWithFullDetails = await Promise.all(
       conversationsWithContacts.map(async (conv) => {
         let channelInfo = null;
@@ -79,12 +79,24 @@ export class ConversationStorage extends BaseStorage {
           .orderBy(desc(messages.sentAt))
           .limit(1);
 
+        // Buscar tags do contato
+        const contactTagsResult = await this.db
+          .select({ tag: contactTags.tag })
+          .from(contactTags)
+          .where(eq(contactTags.contactId, conv.contact.id));
+
+        const tagsArray = contactTagsResult.map(t => t.tag);
+
         return {
           ...conv,
-          channelInfo,
+          contact: {
+            ...conv.contact,
+            tags: tagsArray
+          },
+          channelInfo: channelInfo || undefined,
           messages: lastMessage || [],
           _count: { messages: conv.unreadCount || 0 }
-        };
+        } as ConversationWithContact;
       })
     );
 
