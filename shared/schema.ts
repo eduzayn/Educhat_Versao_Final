@@ -259,6 +259,8 @@ export const deals = pgTable("deals", {
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id),
   createdByUserId: integer("created_by_user_id").references(() => systemUsers.id),
   canalOrigem: varchar("canal_origem", { length: 50 }), // whatsapp, instagram, etc
+  category: varchar("category", { length: 100 }), // categoria do curso (Graduação, Pós-graduação, etc)
+  course: varchar("course", { length: 200 }), // curso de interesse específico
   tags: jsonb("tags").default([]), // array de strings
   notes: text("notes"),
   isActive: boolean("is_active").default(true),

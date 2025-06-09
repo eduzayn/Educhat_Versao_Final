@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Textarea } from '@/shared/ui/textarea';
@@ -94,13 +94,65 @@ export function ContactSidebar({
   
   const queryClient = useQueryClient();
 
+  // Buscar categorias e cursos quando o componente monta
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/courses/categories');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+      }
+    };
+
+    const fetchAllCourses = async () => {
+      try {
+        const response = await fetch('/api/courses');
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data);
+          setFilteredCourses(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar cursos:', error);
+      }
+    };
+
+    fetchCategories();
+    fetchAllCourses();
+  }, []);
+
+  // Filtrar cursos por categoria selecionada
+  useEffect(() => {
+    if (dealFormData.category && dealFormData.category !== '') {
+      const fetchCoursesByCategory = async () => {
+        try {
+          const response = await fetch(`/api/courses/by-category/${encodeURIComponent(dealFormData.category)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setFilteredCourses(data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar cursos por categoria:', error);
+          setFilteredCourses(courses);
+        }
+      };
+      fetchCoursesByCategory();
+    } else {
+      setFilteredCourses(courses);
+    }
+  }, [dealFormData.category, courses]);
+
   // Mutation para criar deal
   const createDealMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/deals', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       setShowDealDialog(false);
-      setDealFormData({ name: '', value: '', macrosetor: '', stage: '' });
+      setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
     },
     onError: (error: any) => {
       console.error('Erro ao criar negócio:', error);
@@ -330,7 +382,7 @@ export function ContactSidebar({
                   size="sm"
                   onClick={() => {
                     setEditingDeal(null);
-                    setDealFormData({ name: '', value: '', macrosetor: '', stage: '' });
+                    setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
                   }}
                 >
                   <Plus className="w-4 h-4" />
@@ -400,6 +452,54 @@ export function ContactSidebar({
                         <SelectItem value="negotiation">NEGOCIAÇÃO</SelectItem>
                         <SelectItem value="closed_won">GANHO</SelectItem>
                         <SelectItem value="closed_lost">PERDIDO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Categoria do Curso */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      Categoria do Curso
+                    </label>
+                    <Select 
+                      value={dealFormData.category} 
+                      onValueChange={(value) => {
+                        setDealFormData({...dealFormData, category: value, course: ''});
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Todas as categorias</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Curso de Interesse */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      Curso de Interesse
+                    </label>
+                    <Select 
+                      value={dealFormData.course} 
+                      onValueChange={(value) => setDealFormData({...dealFormData, course: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o curso" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum curso específico</SelectItem>
+                        {filteredCourses.map((course) => (
+                          <SelectItem key={course} value={course}>
+                            {course}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
