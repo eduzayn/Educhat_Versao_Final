@@ -130,10 +130,10 @@ export function InboxPage() {
 
   const fetchContactDeals = async (contactId: number) => {
     try {
-      const response = await fetch(`/api/deals?contactId=${contactId}`);
+      const response = await fetch(`/api/contacts/${contactId}/deals`);
       if (response.ok) {
-        const deals = await response.json();
-        setContactDeals(Array.isArray(deals) ? deals : []);
+        const data = await response.json();
+        setContactDeals(Array.isArray(data.deals) ? data.deals : []);
       }
     } catch (error) {
       console.error('Erro ao buscar negócios do contato:', error);
