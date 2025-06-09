@@ -1125,15 +1125,26 @@ export function registerZApiRoutes(app: Express) {
           console.error('❌ Erro ao criar negócio automático:', dealError);
         }
 
-        // Atribuição automática de equipes
+        // Atribuição automática de equipes com reclassificação dinâmica
         try {
           const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
           if (detectedMacrosetor) {
             const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
             
             if (team) {
-              console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-              await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+              // Verificar se precisa reclassificar conversa existente
+              const currentTeamId = conversation.assignedTeamId;
+              if (currentTeamId && currentTeamId !== team.id) {
+                console.log(`🔄 Reclassificando conversa ${conversation.id}: equipe ${currentTeamId} → ${team.id} (${detectedMacrosetor})`);
+                await storage.updateConversation(conversation.id, {
+                  assignedTeamId: team.id,
+                  macrosetor: detectedMacrosetor
+                });
+                console.log(`✅ Conversa reclassificada para equipe: ${team.name}`);
+              } else if (!currentTeamId) {
+                console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+                await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+              }
               
               const availableUser = await storage.getAvailableUserFromTeam(team.id);
               if (availableUser) {
