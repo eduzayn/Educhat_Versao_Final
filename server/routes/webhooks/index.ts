@@ -1088,7 +1088,7 @@ export function registerZApiRoutes(app: Express) {
 
         console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
 
-        // Fazer broadcast via Socket.IO para atualizar a interface em tempo real
+        // PRIORIDADE 1: Broadcast IMEDIATO da mensagem (sem aguardar operações secundárias)
         try {
           const { broadcast, broadcastToAll } = await import('../realtime');
           
@@ -1109,53 +1109,61 @@ export function registerZApiRoutes(app: Express) {
           console.error('❌ Erro no broadcast:', broadcastError);
         }
 
-        // Criar negócio automático se necessário
-        try {
-          const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
-          const existingDeals = await storage.getDealsByContact(contact.id);
-          const hasActiveDeal = existingDeals.some(deal => 
-            deal.macrosetor === detectedMacrosetor && deal.isActive
-          );
-          
-          if (!hasActiveDeal && detectedMacrosetor) {
-            console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
-            await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
-          }
-        } catch (dealError) {
-          console.error('❌ Erro ao criar negócio automático:', dealError);
-        }
-
-        // Atribuição automática de equipes com reclassificação dinâmica
-        try {
-          const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
-          if (detectedMacrosetor) {
-            const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+        // PRIORIDADE 2: Processar operações secundárias em background (não bloqueiam resposta do webhook)
+        setImmediate(async () => {
+          try {
+            // Detectar macrosetor uma vez
+            const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
             
-            if (team) {
-              // Verificar se precisa reclassificar conversa existente
-              const currentTeamId = conversation.assignedTeamId;
-              if (currentTeamId && currentTeamId !== team.id) {
-                console.log(`🔄 Reclassificando conversa ${conversation.id}: equipe ${currentTeamId} → ${team.id} (${detectedMacrosetor})`);
-                await storage.updateConversation(conversation.id, {
-                  assignedTeamId: team.id,
-                  macrosetor: detectedMacrosetor
-                });
-                console.log(`✅ Conversa reclassificada para equipe: ${team.name}`);
-              } else if (!currentTeamId) {
-                console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
-                await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
-              }
+            // Criar negócio automático se necessário
+            try {
+              const existingDeals = await storage.getDealsByContact(contact.id);
+              const hasActiveDeal = existingDeals.some(deal => 
+                deal.macrosetor === detectedMacrosetor && deal.isActive
+              );
               
-              const availableUser = await storage.getAvailableUserFromTeam(team.id);
-              if (availableUser) {
-                await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
-                console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+              if (!hasActiveDeal && detectedMacrosetor) {
+                console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
+                await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
               }
+            } catch (dealError) {
+              console.error('❌ Erro ao criar negócio automático:', dealError);
             }
+
+            // Atribuição automática de equipes com reclassificação dinâmica
+            try {
+              if (detectedMacrosetor) {
+                const team = await storage.getTeamByMacrosetor(detectedMacrosetor);
+                
+                if (team) {
+                  // Verificar se precisa reclassificar conversa existente
+                  const currentTeamId = conversation.assignedTeamId;
+                  if (currentTeamId && currentTeamId !== team.id) {
+                    console.log(`🔄 Reclassificando conversa ${conversation.id}: equipe ${currentTeamId} → ${team.id} (${detectedMacrosetor})`);
+                    await storage.updateConversation(conversation.id, {
+                      assignedTeamId: team.id,
+                      macrosetor: detectedMacrosetor
+                    });
+                    console.log(`✅ Conversa reclassificada para equipe: ${team.name}`);
+                  } else if (!currentTeamId) {
+                    console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, team.name);
+                    await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+                  }
+                  
+                  const availableUser = await storage.getAvailableUserFromTeam(team.id);
+                  if (availableUser) {
+                    await storage.assignConversationToUser(conversation.id, availableUser.id, 'automatic');
+                    console.log(`👤 Conversa atribuída automaticamente ao usuário ${availableUser.displayName}`);
+                  }
+                }
+              }
+            } catch (assignmentError) {
+              console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+            }
+          } catch (backgroundError) {
+            console.error('❌ Erro no processamento em background:', backgroundError);
           }
-        } catch (assignmentError) {
-          console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
-        }
+        });
       }
       
       res.status(200).json({ success: true });
