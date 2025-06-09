@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useEffect, useState } from "react";
+import { useInternalChatStore } from "../store/internalChatStore";
 
 interface ReactionToast {
   id: string;
@@ -19,39 +19,43 @@ export function EmojiReactionToast() {
         // Detectar novas reações comparando com estado anterior
         Object.entries(messages).forEach(([channelId, channelMessages]) => {
           const previousChannelMessages = previousMessages?.[channelId] || [];
-          
+
           channelMessages.forEach((message, index) => {
             const previousMessage = previousChannelMessages[index];
-            
+
             if (previousMessage) {
               Object.entries(message.reactions).forEach(([emoji, userIds]) => {
                 const previousUserIds = previousMessage.reactions[emoji] || [];
-                const newUserIds = userIds.filter(id => !previousUserIds.includes(id));
-                
-                newUserIds.forEach(userId => {
+                const newUserIds = userIds.filter(
+                  (id) => !previousUserIds.includes(id),
+                );
+
+                newUserIds.forEach((userId) => {
                   // Simular nome do usuário (em um cenário real, buscar do sistema)
                   const userName = `Usuário ${userId}`;
-                  
+
                   const newToast: ReactionToast = {
                     id: `${message.id}-${emoji}-${userId}-${Date.now()}`,
                     emoji,
                     userName,
                     messageId: message.id,
-                    timestamp: new Date()
+                    timestamp: new Date(),
                   };
-                  
-                  setToasts(prev => [...prev, newToast]);
-                  
+
+                  setToasts((prev) => [...prev, newToast]);
+
                   // Auto remover após 3 segundos
                   setTimeout(() => {
-                    setToasts(prev => prev.filter(t => t.id !== newToast.id));
+                    setToasts((prev) =>
+                      prev.filter((t) => t.id !== newToast.id),
+                    );
                   }, 3000);
                 });
               });
             }
           });
         });
-      }
+      },
     );
 
     return unsubscribe;

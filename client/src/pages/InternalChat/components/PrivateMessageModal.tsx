@@ -1,19 +1,50 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, X, Phone, Video, Minimize2, Paperclip, Smile, Mic, MoreHorizontal, Reply, Heart, ThumbsUp, Laugh } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Textarea } from '@/shared/ui/textarea';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Badge } from '@/shared/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/shared/ui/dropdown-menu';
-import { useInternalChatStore } from '../store/internalChatStore';
-import { useAuth } from '@/shared/lib/hooks/useAuth';
-import { useToast } from '@/shared/lib/hooks/use-toast';
-import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useState, useEffect, useRef } from "react";
+import {
+  Send,
+  X,
+  Phone,
+  Video,
+  Minimize2,
+  Paperclip,
+  Smile,
+  Mic,
+  MoreHorizontal,
+  Reply,
+  Heart,
+  ThumbsUp,
+  Laugh,
+} from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { Textarea } from "@/shared/ui/textarea";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Badge } from "@/shared/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/shared/ui/dropdown-menu";
+import { useInternalChatStore } from "../store/internalChatStore";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { useToast } from "@/shared/lib/hooks/use-toast";
+import {
+  AudioRecorder,
+  AudioRecorderRef,
+} from "@/modules/Messages/components/AudioRecorder";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface PrivateMessageModalProps {
   isOpen: boolean;
@@ -27,8 +58,12 @@ interface PrivateMessageModalProps {
   };
 }
 
-export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMessageModalProps) {
-  const [message, setMessage] = useState('');
+export function PrivateMessageModal({
+  isOpen,
+  onClose,
+  targetUser,
+}: PrivateMessageModalProps) {
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
@@ -45,11 +80,11 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
   const currentUser = user as any;
   const privateChannelId = `direct-${Math.min(currentUser?.id || 0, targetUser.id)}-${Math.max(currentUser?.id || 0, targetUser.id)}`;
 
-  const FREQUENT_EMOJIS = ['👍', '❤️', '😊', '😂', '👏', '🎉', '💯', '🔥'];
+  const FREQUENT_EMOJIS = ["👍", "❤️", "😊", "😂", "👏", "🎉", "💯", "🔥"];
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
 
@@ -63,24 +98,24 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         channelId: privateChannelId,
         userId: currentUser.id,
-        userName: currentUser.displayName || currentUser.username || 'Usuário',
+        userName: currentUser.displayName || currentUser.username || "Usuário",
         userAvatar: currentUser.avatar,
         content: `Áudio (${Math.floor(duration)}s)`,
-        messageType: 'file' as const,
+        messageType: "file" as const,
         timestamp: new Date(),
         reactions: {},
         metadata: {
-          fileType: 'audio',
+          fileType: "audio",
           audioUrl,
-          duration
-        }
+          duration,
+        },
       };
 
-      setMessages(prev => [...prev, newMessage]);
-      playNotificationSound('send');
+      setMessages((prev) => [...prev, newMessage]);
+      playNotificationSound("send");
       setShowAudioRecorder(false);
       setIsRecording(false);
-      
+
       toast({
         title: "Áudio enviado",
         description: "Sua mensagem de áudio foi enviada.",
@@ -99,63 +134,65 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
     if (!file || !currentUser) return;
 
     const fileUrl = URL.createObjectURL(file);
-    let fileType = 'document';
-    if (file.type.startsWith('image/')) fileType = 'image';
-    else if (file.type.startsWith('video/')) fileType = 'video';
+    let fileType = "document";
+    if (file.type.startsWith("image/")) fileType = "image";
+    else if (file.type.startsWith("video/")) fileType = "video";
 
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       channelId: privateChannelId,
       userId: currentUser.id,
-      userName: currentUser.displayName || currentUser.username || 'Usuário',
+      userName: currentUser.displayName || currentUser.username || "Usuário",
       userAvatar: currentUser.avatar,
       content: file.name,
-      messageType: 'file' as const,
+      messageType: "file" as const,
       timestamp: new Date(),
       reactions: {},
       metadata: {
         fileType,
         fileUrl,
         fileName: file.name,
-        fileSize: file.size
-      }
+        fileSize: file.size,
+      },
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    playNotificationSound('send');
-    
+    setMessages((prev) => [...prev, newMessage]);
+    playNotificationSound("send");
+
     toast({
       title: "Arquivo enviado",
       description: `${file.name} foi compartilhado.`,
     });
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const addReaction = (messageId: string, emoji: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const reactions = { ...msg.reactions };
-        const userId = currentUser?.id;
-        
-        if (!reactions[emoji]) {
-          reactions[emoji] = [];
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const reactions = { ...msg.reactions };
+          const userId = currentUser?.id;
+
+          if (!reactions[emoji]) {
+            reactions[emoji] = [];
+          }
+
+          if (!reactions[emoji].includes(userId)) {
+            reactions[emoji].push(userId);
+          }
+
+          return { ...msg, reactions };
         }
-        
-        if (!reactions[emoji].includes(userId)) {
-          reactions[emoji].push(userId);
-        }
-        
-        return { ...msg, reactions };
-      }
-      return msg;
-    }));
+        return msg;
+      }),
+    );
   };
 
   const insertEmoji = (emoji: string) => {
-    setMessage(prev => prev + emoji);
+    setMessage((prev) => prev + emoji);
     setShowEmojiPicker(false);
     textareaRef.current?.focus();
   };
@@ -167,21 +204,21 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       channelId: privateChannelId,
       userId: currentUser.id,
-      userName: currentUser.displayName || currentUser.username || 'Usuário',
+      userName: currentUser.displayName || currentUser.username || "Usuário",
       userAvatar: currentUser.avatar,
       content: message.trim(),
-      messageType: 'text' as const,
+      messageType: "text" as const,
       timestamp: new Date(),
-      reactions: {}
+      reactions: {},
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    playNotificationSound('send');
-    setMessage('');
-    
+    setMessages((prev) => [...prev, newMessage]);
+    playNotificationSound("send");
+    setMessage("");
+
     // Reset textarea height
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
     }
 
     toast({
@@ -191,43 +228,57 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
   const formatMessageTime = (timestamp: Date) => {
-    return format(new Date(timestamp), 'HH:mm', { locale: ptBR });
+    return format(new Date(timestamp), "HH:mm", { locale: ptBR });
   };
 
   const getRoleColor = (roleName?: string) => {
-    if (roleName === 'Administrador' || roleName === 'Admin') return 'text-yellow-600';
-    if (roleName === 'Gerente' || roleName === 'Gestor') return 'text-blue-600';
-    return 'text-muted-foreground';
+    if (roleName === "Administrador" || roleName === "Admin")
+      return "text-yellow-600";
+    if (roleName === "Gerente" || roleName === "Gestor") return "text-blue-600";
+    return "text-muted-foreground";
   };
 
   if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-4xl w-[750px] h-[700px] p-0 ${isMinimized ? 'h-16' : ''}`}>
+      <DialogContent
+        className={`max-w-4xl w-[750px] h-[700px] p-0 ${isMinimized ? "h-16" : ""}`}
+      >
         {/* Header */}
         <DialogHeader className="p-4 border-b bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={targetUser.avatar || ''} />
+                <AvatarImage src={targetUser.avatar || ""} />
                 <AvatarFallback className="text-xs">
-                  {targetUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {targetUser.displayName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <DialogTitle className="text-base">{targetUser.displayName}</DialogTitle>
+                <DialogTitle className="text-base">
+                  {targetUser.displayName}
+                </DialogTitle>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">@{targetUser.username}</span>
+                  <span className="text-xs text-muted-foreground">
+                    @{targetUser.username}
+                  </span>
                   {targetUser.roleName && (
-                    <Badge variant="outline" className={`text-xs ${getRoleColor(targetUser.roleName)}`}>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${getRoleColor(targetUser.roleName)}`}
+                    >
                       {targetUser.roleName}
                     </Badge>
                   )}
@@ -235,7 +286,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <Phone className="h-4 w-4" />
@@ -243,17 +294,17 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <Video className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-8 w-8 p-0"
                 onClick={() => setIsMinimized(!isMinimized)}
               >
                 <Minimize2 className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-8 w-8 p-0"
                 onClick={onClose}
               >
@@ -271,43 +322,64 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     <Avatar className="h-16 w-16 mx-auto mb-3">
-                      <AvatarImage src={targetUser.avatar || ''} />
+                      <AvatarImage src={targetUser.avatar || ""} />
                       <AvatarFallback>
-                        {targetUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        {targetUser.displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="font-medium mb-2">Conversa com {targetUser.displayName}</h3>
+                    <h3 className="font-medium mb-2">
+                      Conversa com {targetUser.displayName}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Esta é uma conversa privada. Apenas vocês dois podem ver essas mensagens.
+                      Esta é uma conversa privada. Apenas vocês dois podem ver
+                      essas mensagens.
                     </p>
                   </div>
                 ) : (
                   messages.map((msg) => {
                     const isOwnMessage = msg.userId === currentUser?.id;
                     return (
-                      <div key={msg.id} className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''} group`}>
+                      <div
+                        key={msg.id}
+                        className={`flex gap-3 ${isOwnMessage ? "flex-row-reverse" : ""} group`}
+                      >
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={msg.userAvatar || ''} />
+                          <AvatarImage src={msg.userAvatar || ""} />
                           <AvatarFallback className="text-xs">
-                            {msg.userName.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                            {msg.userName
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        
-                        <div className={`flex-1 max-w-[70%] ${isOwnMessage ? 'text-right' : ''}`}>
-                          <div className={`inline-block p-3 rounded-lg relative ${
-                            isOwnMessage 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted'
-                          }`}>
+
+                        <div
+                          className={`flex-1 max-w-[70%] ${isOwnMessage ? "text-right" : ""}`}
+                        >
+                          <div
+                            className={`inline-block p-3 rounded-lg relative ${
+                              isOwnMessage
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            }`}
+                          >
                             {/* Conteúdo da mensagem */}
-                            {msg.messageType === 'file' && msg.metadata?.fileType === 'audio' ? (
+                            {msg.messageType === "file" &&
+                            msg.metadata?.fileType === "audio" ? (
                               <div className="flex items-center gap-2">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0"
                                   onClick={() => {
-                                    const audio = new Audio(msg.metadata.audioUrl);
+                                    const audio = new Audio(
+                                      msg.metadata.audioUrl,
+                                    );
                                     audio.play();
                                   }}
                                 >
@@ -317,21 +389,28 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                                 </Button>
                                 <span className="text-sm">{msg.content}</span>
                               </div>
-                            ) : msg.messageType === 'file' && msg.metadata?.fileType === 'image' ? (
+                            ) : msg.messageType === "file" &&
+                              msg.metadata?.fileType === "image" ? (
                               <div>
-                                <img 
-                                  src={msg.metadata.fileUrl} 
+                                <img
+                                  src={msg.metadata.fileUrl}
                                   alt={msg.content}
                                   className="max-w-64 max-h-64 rounded object-cover cursor-pointer"
-                                  onClick={() => window.open(msg.metadata.fileUrl, '_blank')}
+                                  onClick={() =>
+                                    window.open(msg.metadata.fileUrl, "_blank")
+                                  }
                                 />
                                 <p className="text-xs mt-1">{msg.content}</p>
                               </div>
-                            ) : msg.messageType === 'file' ? (
+                            ) : msg.messageType === "file" ? (
                               <div className="flex items-center gap-2">
                                 <Paperclip className="h-4 w-4" />
-                                <span className="text-sm underline cursor-pointer" 
-                                      onClick={() => window.open(msg.metadata.fileUrl, '_blank')}>
+                                <span
+                                  className="text-sm underline cursor-pointer"
+                                  onClick={() =>
+                                    window.open(msg.metadata.fileUrl, "_blank")
+                                  }
+                                >
                                   {msg.content}
                                 </span>
                               </div>
@@ -346,7 +425,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => addReaction(msg.id, '👍')}
+                                  onClick={() => addReaction(msg.id, "👍")}
                                 >
                                   👍
                                 </Button>
@@ -354,7 +433,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => addReaction(msg.id, '❤️')}
+                                  onClick={() => addReaction(msg.id, "❤️")}
                                 >
                                   ❤️
                                 </Button>
@@ -362,7 +441,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => addReaction(msg.id, '😂')}
+                                  onClick={() => addReaction(msg.id, "😂")}
                                 >
                                   😂
                                 </Button>
@@ -373,20 +452,28 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                           {/* Reações */}
                           {Object.keys(msg.reactions || {}).length > 0 && (
                             <div className="flex gap-1 mt-1 flex-wrap">
-                              {Object.entries(msg.reactions).map(([emoji, users]) => {
-                                const userList = Array.isArray(users) ? users : [];
-                                return userList.length > 0 && (
-                                  <Button
-                                    key={emoji}
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() => addReaction(msg.id, emoji)}
-                                  >
-                                    {emoji} {userList.length}
-                                  </Button>
-                                );
-                              })}
+                              {Object.entries(msg.reactions).map(
+                                ([emoji, users]) => {
+                                  const userList = Array.isArray(users)
+                                    ? users
+                                    : [];
+                                  return (
+                                    userList.length > 0 && (
+                                      <Button
+                                        key={emoji}
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() =>
+                                          addReaction(msg.id, emoji)
+                                        }
+                                      >
+                                        {emoji} {userList.length}
+                                      </Button>
+                                    )
+                                  );
+                                },
+                              )}
                             </div>
                           )}
 
@@ -442,7 +529,10 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                   </Button>
 
                   {/* Emojis */}
-                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                  <Popover
+                    open={showEmojiPicker}
+                    onOpenChange={setShowEmojiPicker}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="ghost"
@@ -474,7 +564,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-10 w-10 p-0 ${isRecording ? 'bg-red-100 text-red-600' : ''}`}
+                    className={`h-10 w-10 p-0 ${isRecording ? "bg-red-100 text-red-600" : ""}`}
                     onClick={() => {
                       if (showAudioRecorder) {
                         setShowAudioRecorder(false);
@@ -502,7 +592,7 @@ export function PrivateMessageModal({ isOpen, onClose, targetUser }: PrivateMess
                 />
 
                 {/* Botão Enviar */}
-                <Button 
+                <Button
                   onClick={handleSendMessage}
                   disabled={!message.trim()}
                   size="sm"

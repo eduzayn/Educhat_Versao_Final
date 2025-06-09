@@ -1,22 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Users, Hash, Search, Crown, Shield, MessageCircle } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Separator } from '@/shared/ui/separator';
-import { Button } from '@/shared/ui/button';
-import { useInternalChatStore } from '../store/internalChatStore';
-import { PrivateMessageModal } from './PrivateMessageModal';
-import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useState, useEffect } from "react";
+import {
+  Users,
+  Hash,
+  Search,
+  Crown,
+  Shield,
+  MessageCircle,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { Input } from "@/shared/ui/input";
+import { Badge } from "@/shared/ui/badge";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Separator } from "@/shared/ui/separator";
+import { Button } from "@/shared/ui/button";
+import { useInternalChatStore } from "../store/internalChatStore";
+import { PrivateMessageModal } from "./PrivateMessageModal";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 export function InfoPanel() {
-  const { channels, activeChannel, channelUsers, loadChannelUsers } = useInternalChatStore();
-  const [memberSearch, setMemberSearch] = useState('');
-  const [selectedUserForPrivateChat, setSelectedUserForPrivateChat] = useState<any>(null);
+  const { channels, activeChannel, channelUsers, loadChannelUsers } =
+    useInternalChatStore();
+  const [memberSearch, setMemberSearch] = useState("");
+  const [selectedUserForPrivateChat, setSelectedUserForPrivateChat] =
+    useState<any>(null);
   const { user } = useAuth();
-  
-  const channel = channels.find(c => c.id === activeChannel);
+
+  const channel = channels.find((c) => c.id === activeChannel);
   const members = activeChannel ? channelUsers[activeChannel] || [] : [];
 
   useEffect(() => {
@@ -31,32 +40,36 @@ export function InfoPanel() {
         <div className="text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <h3 className="text-lg font-medium mb-2">Nenhum canal selecionado</h3>
-          <p className="text-sm">Selecione um canal para ver informações e membros</p>
+          <p className="text-sm">
+            Selecione um canal para ver informações e membros
+          </p>
         </div>
       </div>
     );
   }
 
-  const filteredMembers = members.filter(member =>
-    member.displayName.toLowerCase().includes(memberSearch.toLowerCase()) ||
-    member.username.toLowerCase().includes(memberSearch.toLowerCase()) ||
-    (member.roleName && member.roleName.toLowerCase().includes(memberSearch.toLowerCase()))
+  const filteredMembers = members.filter(
+    (member) =>
+      member.displayName.toLowerCase().includes(memberSearch.toLowerCase()) ||
+      member.username.toLowerCase().includes(memberSearch.toLowerCase()) ||
+      (member.roleName &&
+        member.roleName.toLowerCase().includes(memberSearch.toLowerCase())),
   );
 
   const getRoleIcon = (roleName?: string) => {
-    if (roleName === 'Administrador' || roleName === 'Admin') {
+    if (roleName === "Administrador" || roleName === "Admin") {
       return <Crown className="h-3 w-3 text-yellow-500" />;
     }
-    if (roleName === 'Gerente' || roleName === 'Gestor') {
+    if (roleName === "Gerente" || roleName === "Gestor") {
       return <Shield className="h-3 w-3 text-blue-500" />;
     }
     return null;
   };
 
   const getRoleBadgeVariant = (roleName?: string) => {
-    if (roleName === 'Administrador' || roleName === 'Admin') return 'default';
-    if (roleName === 'Gerente' || roleName === 'Gestor') return 'secondary';
-    return 'outline';
+    if (roleName === "Administrador" || roleName === "Admin") return "default";
+    if (roleName === "Gerente" || roleName === "Gestor") return "secondary";
+    return "outline";
   };
 
   return (
@@ -64,22 +77,24 @@ export function InfoPanel() {
       {/* Header do Canal */}
       <div className="p-4 border-b bg-muted/30">
         <div className="flex items-center gap-2 mb-3">
-          {channel.type === 'team' ? (
+          {channel.type === "team" ? (
             <Users className="h-5 w-5 text-blue-600" />
           ) : (
             <Hash className="h-5 w-5 text-green-600" />
           )}
           <h3 className="font-semibold text-lg">{channel.name}</h3>
         </div>
-        
+
         <p className="text-xs text-muted-foreground mb-3">
-          {channel.description || 'Canal interno'}
+          {channel.description || "Canal interno"}
         </p>
 
         {/* Estatísticas do Canal */}
         <div className="grid grid-cols-2 gap-3 text-center">
           <div className="bg-background rounded-lg p-2">
-            <div className="text-lg font-bold text-blue-600">{members.length}</div>
+            <div className="text-lg font-bold text-blue-600">
+              {members.length}
+            </div>
             <div className="text-xs text-muted-foreground">Membros</div>
           </div>
           <div className="bg-background rounded-lg p-2">
@@ -116,22 +131,29 @@ export function InfoPanel() {
                 {filteredMembers.length}
               </Badge>
             </div>
-            
+
             <div className="space-y-3">
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((member) => (
-                  <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                  <div
+                    key={member.id}
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                  >
                     <div className="relative flex-shrink-0">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar || ''} />
+                        <AvatarImage src={member.avatar || ""} />
                         <AvatarFallback className="text-xs">
-                          {member.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          {member.displayName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       {/* Indicador de status online */}
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0 pr-2">
                       <div className="flex items-center gap-1">
                         <p className="text-sm font-medium truncate">
@@ -144,8 +166,8 @@ export function InfoPanel() {
                           @{member.username}
                         </p>
                         {member.roleName && (
-                          <Badge 
-                            variant={getRoleBadgeVariant(member.roleName)} 
+                          <Badge
+                            variant={getRoleBadgeVariant(member.roleName)}
                             className="text-xs px-1 py-0 flex-shrink-0"
                           >
                             {member.roleName}
@@ -189,13 +211,15 @@ export function InfoPanel() {
             </div>
           </div>
 
-          {channel.type === 'team' && (
+          {channel.type === "team" && (
             <>
               <Separator />
-              
+
               {/* Informações da Equipe */}
               <div>
-                <h4 className="font-medium text-sm mb-3">Informações da equipe</h4>
+                <h4 className="font-medium text-sm mb-3">
+                  Informações da equipe
+                </h4>
                 <div className="space-y-2 text-xs text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Tipo:</span>
@@ -207,7 +231,7 @@ export function InfoPanel() {
                   </div>
                   <div className="flex justify-between">
                     <span>Privacidade:</span>
-                    <span>{channel.isPrivate ? 'Privado' : 'Público'}</span>
+                    <span>{channel.isPrivate ? "Privado" : "Público"}</span>
                   </div>
                 </div>
               </div>

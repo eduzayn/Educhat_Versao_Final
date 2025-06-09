@@ -1,11 +1,24 @@
-import { Hash, Users, Info, Settings, Phone, Video, MoreHorizontal, ArrowLeft } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
-import { useInternalChatStore } from '../store/internalChatStore';
-import { useLocation } from 'wouter';
-import { ChatSettings } from './ChatSettings';
+import {
+  Hash,
+  Users,
+  Info,
+  Settings,
+  Phone,
+  Video,
+  MoreHorizontal,
+  ArrowLeft,
+} from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
+import { useInternalChatStore } from "../store/internalChatStore";
+import { useLocation } from "wouter";
+import { ChatSettings } from "./ChatSettings";
 
 interface ChatHeaderProps {
   onToggleInfo: () => void;
@@ -15,11 +28,11 @@ interface ChatHeaderProps {
 export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
   const { channels, activeChannel } = useInternalChatStore();
   const [, setLocation] = useLocation();
-  
-  const channel = channels.find(c => c.id === activeChannel);
+
+  const channel = channels.find((c) => c.id === activeChannel);
 
   const handleBackToDashboard = () => {
-    setLocation('/');
+    setLocation("/");
   };
 
   if (!channel) {
@@ -32,14 +45,16 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
 
   const getChannelIcon = (type: string) => {
     switch (type) {
-      case 'general':
+      case "general":
         return <Hash className="h-5 w-5" />;
-      case 'team':
+      case "team":
         return <Users className="h-5 w-5" />;
-      case 'direct':
-        return <Avatar className="h-6 w-6">
-          <AvatarFallback className="text-xs">DM</AvatarFallback>
-        </Avatar>;
+      case "direct":
+        return (
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="text-xs">DM</AvatarFallback>
+          </Avatar>
+        );
       default:
         return <Hash className="h-5 w-5" />;
     }
@@ -69,16 +84,14 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
             <p>Voltar ao Dashboard</p>
           </TooltipContent>
         </Tooltip>
-        
+
         <div className="flex items-center gap-2">
           {getChannelIcon(channel.type)}
           <div>
             <h3 className="font-semibold text-foreground">{channel.name}</h3>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {channel.description && (
-                <span>{channel.description}</span>
-              )}
-              {channel.type === 'team' && (
+              {channel.description && <span>{channel.description}</span>}
+              {channel.type === "team" && (
                 <>
                   <span>•</span>
                   <div className="flex items-center gap-1">
@@ -96,11 +109,14 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
             </div>
           </div>
         </div>
-        
-        {channel.type === 'team' && (
+
+        {channel.type === "team" && (
           <Badge variant="secondary" className="text-xs">
-            {channel.teamId === 5 ? 'Comercial' : 
-             channel.teamId === 6 ? 'Suporte' : 'Equipe'}
+            {channel.teamId === 5
+              ? "Comercial"
+              : channel.teamId === 6
+                ? "Suporte"
+                : "Equipe"}
           </Badge>
         )}
       </div>
@@ -108,7 +124,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
       {/* Actions */}
       <div className="flex items-center gap-1">
         {/* Call Actions for Direct Messages */}
-        {channel.type === 'direct' && (
+        {channel.type === "direct" && (
           <>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -118,7 +134,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
               </TooltipTrigger>
               <TooltipContent>Ligar</TooltipContent>
             </Tooltip>
-            
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -136,9 +152,9 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
         {/* Info Panel Toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button 
+            <Button
               variant={showInfoPanel ? "default" : "ghost"}
-              size="icon" 
+              size="icon"
               className="h-8 w-8"
               onClick={onToggleInfo}
             >
@@ -146,7 +162,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {showInfoPanel ? 'Ocultar informações' : 'Mostrar informações'}
+            {showInfoPanel ? "Ocultar informações" : "Mostrar informações"}
           </TooltipContent>
         </Tooltip>
 

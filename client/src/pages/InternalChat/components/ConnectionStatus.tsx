@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/shared/ui/alert';
-import { useInternalChatStore } from '../store/internalChatStore';
+import { useEffect, useState } from "react";
+import { Wifi, WifiOff, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { useInternalChatStore } from "../store/internalChatStore";
 
 export function ConnectionStatus() {
   const { isConnected, setConnected } = useInternalChatStore();
@@ -45,10 +45,9 @@ export function ConnectionStatus() {
             <WifiOff className="h-4 w-4" />
           )}
           <AlertDescription className="text-sm">
-            {isConnected 
-              ? 'Conectado ao chat interno' 
-              : 'Conexão perdida. Tentando reconectar...'
-            }
+            {isConnected
+              ? "Conectado ao chat interno"
+              : "Conexão perdida. Tentando reconectar..."}
           </AlertDescription>
         </div>
       </Alert>
