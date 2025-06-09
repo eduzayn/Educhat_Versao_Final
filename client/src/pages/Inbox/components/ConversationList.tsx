@@ -219,8 +219,45 @@ export function ConversationList({
                           {(() => {
                             const lastMessage = conversation.messages[0];
                             
-                            // Para mensagens de texto, sempre mostrar o conteúdo real
-                            if (lastMessage.messageType === 'text' && lastMessage.content) {
+                            // Filtrar mensagens genéricas inadequadas primeiro
+                            const isGenericMessage = lastMessage.content && (
+                              lastMessage.content === 'Mensagem recebida' ||
+                              lastMessage.content === 'Mensagem não identificada' ||
+                              lastMessage.content === 'Mensagem em processamento'
+                            );
+                            
+                            // Se for mensagem genérica, tentar extrair conteúdo real dos metadados
+                            if (isGenericMessage && lastMessage.metadata) {
+                              const metadata = lastMessage.metadata as any;
+                              
+                              // Tentar extrair texto real dos metadados
+                              if (metadata.text && metadata.text.message) {
+                                return metadata.text.message;
+                              }
+                              
+                              // Para outros tipos de mídia, mostrar descrição apropriada
+                              if (metadata.image) {
+                                const caption = metadata.image.caption;
+                                return caption && caption.trim() ? caption : '📷 Imagem';
+                              }
+                              
+                              if (metadata.audio) {
+                                return '🎵 Áudio';
+                              }
+                              
+                              if (metadata.video) {
+                                const caption = metadata.video.caption;
+                                return caption && caption.trim() ? caption : '🎥 Vídeo';
+                              }
+                              
+                              if (metadata.document) {
+                                const fileName = metadata.document.fileName || metadata.fileName;
+                                return fileName ? `📄 ${fileName}` : '📄 Documento';
+                              }
+                            }
+                            
+                            // Para mensagens de texto válidas, sempre mostrar o conteúdo real
+                            if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
                               return lastMessage.content;
                             }
                             
@@ -249,15 +286,19 @@ export function ConversationList({
                             
                             // Para documentos
                             if (lastMessage.messageType === 'document') {
-                              const fileName = (lastMessage.metadata as any)?.document?.fileName;
+                              const fileName = (lastMessage.metadata as any)?.document?.fileName || (lastMessage.metadata as any)?.fileName;
                               if (fileName) {
                                 return `📄 ${fileName}`;
                               }
                               return '📄 Documento';
                             }
                             
-                            // Fallback
-                            return lastMessage.content || 'Mensagem';
+                            // Fallback final - só usar se realmente não tiver conteúdo
+                            if (lastMessage.content && !isGenericMessage) {
+                              return lastMessage.content;
+                            }
+                            
+                            return 'Nova mensagem';
                           })()}
                         </>
                       ) : (

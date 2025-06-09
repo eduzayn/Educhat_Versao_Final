@@ -1037,8 +1037,25 @@ export function registerZApiRoutes(app: Express) {
         } else if (webhookData.location) {
           messageContent = 'Localização enviada';
           messageType = 'location';
+        } else if (webhookData.waitingMessage) {
+          // Para mensagens em fila (waitingMessage: true), usar fallback até receber conteúdo real
+          console.log('⏳ Mensagem em fila detectada, aguardando conteúdo real...');
+          messageContent = webhookData.chatName || 'Mensagem em processamento';
+          messageType = 'text';
         } else {
-          messageContent = 'Mensagem recebida';
+          // Log detalhado para debug do fallback
+          console.log('⚠️ Fallback ativado - webhook não reconhecido:', {
+            hasText: !!webhookData.text,
+            hasImage: !!webhookData.image,
+            hasAudio: !!webhookData.audio,
+            hasVideo: !!webhookData.video,
+            hasDocument: !!webhookData.document,
+            hasLocation: !!webhookData.location,
+            waitingMessage: webhookData.waitingMessage,
+            messageId: webhookData.messageId,
+            keys: Object.keys(webhookData)
+          });
+          messageContent = 'Mensagem não identificada';
         }
 
         console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
