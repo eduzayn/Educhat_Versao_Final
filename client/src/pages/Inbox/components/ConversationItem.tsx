@@ -27,17 +27,45 @@ export function ConversationItem({
   const getLastMessageText = () => {
     if (!lastMessage) return 'Sem mensagens';
     
-    if (lastMessage.messageType === 'image') {
-      return lastMessage.isFromContact ? 'Imagem recebida' : 'Imagem enviada';
-    }
-    if (lastMessage.messageType === 'audio') {
-      return lastMessage.isFromContact ? 'Áudio recebido' : 'Áudio enviado';
-    }
-    if (lastMessage.messageType === 'video') {
-      return lastMessage.isFromContact ? 'Vídeo recebido' : 'Vídeo enviado';
+    // Para mensagens de texto, sempre mostrar o conteúdo real
+    if (lastMessage.messageType === 'text' && lastMessage.content) {
+      return lastMessage.content;
     }
     
-    return lastMessage.content || 'Mensagem sem texto';
+    // Para imagens, mostrar caption se existir, senão mostrar indicador
+    if (lastMessage.messageType === 'image') {
+      const caption = lastMessage.metadata?.image?.caption;
+      if (caption && caption.trim()) {
+        return caption;
+      }
+      return lastMessage.isFromContact ? '📷 Imagem recebida' : '📷 Imagem enviada';
+    }
+    
+    // Para áudios, sempre mostrar indicador (não há texto)
+    if (lastMessage.messageType === 'audio') {
+      return lastMessage.isFromContact ? '🎵 Áudio recebido' : '🎵 Áudio enviado';
+    }
+    
+    // Para vídeos, mostrar caption se existir, senão mostrar indicador
+    if (lastMessage.messageType === 'video') {
+      const caption = lastMessage.metadata?.video?.caption;
+      if (caption && caption.trim()) {
+        return caption;
+      }
+      return lastMessage.isFromContact ? '🎥 Vídeo recebido' : '🎥 Vídeo enviado';
+    }
+    
+    // Para documentos, mostrar nome do arquivo se disponível
+    if (lastMessage.messageType === 'document') {
+      const fileName = lastMessage.metadata?.document?.fileName;
+      if (fileName) {
+        return `📄 ${fileName}`;
+      }
+      return lastMessage.isFromContact ? '📄 Documento recebido' : '📄 Documento enviado';
+    }
+    
+    // Fallback: tentar mostrar o conteúdo se disponível
+    return lastMessage.content || 'Mensagem sem conteúdo';
   };
 
   return (

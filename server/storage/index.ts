@@ -15,7 +15,6 @@ export { MessageStorage } from './modules/messageStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
-import { detectMacrosetor as macrosetorDetector } from './utils/macrosetorUtils';
 
 /**
  * Classe principal do Storage que implementa a interface IStorage
@@ -207,8 +206,8 @@ export class DatabaseStorage implements IStorage {
     return this.channel.deleteChannel(id);
   }
 
-  async updateChannelConnectionStatus(id: number, status: any) {
-    return this.channel.updateChannelConnectionStatus(id, status);
+  async updateChannelConnectionStatus(id: number, connectionStatus: string, isConnected: boolean) {
+    return this.channel.updateChannelConnectionStatus(id, connectionStatus, isConnected);
   }
 
   // ==================== MESSAGE OPERATIONS ====================
@@ -473,7 +472,13 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== MACROSETOR DETECTION ====================
   detectMacrosetor(content: string, channel?: string): string | null {
-    const detection = macrosetorDetector(content);
-    return detection ? detection.macrosetor : null;
+    try {
+      const { detectMacrosetor } = require('./utils/macrosetorUtils');
+      const detection = detectMacrosetor(content);
+      return detection ? detection.macrosetor : null;
+    } catch (error) {
+      console.error('Erro na detecção de macrosetor:', error);
+      return null;
+    }
   }
 }
