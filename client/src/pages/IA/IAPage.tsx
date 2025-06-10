@@ -12,6 +12,7 @@ import { DocumentsSection } from './components/DocumentsSection';
 import { TestSection } from './components/TestSection';
 import { ContextsSection } from './components/ContextsSection';
 import { LogsSection } from './components/LogsSection';
+import { ConfigPage } from './ConfigPage';
 
 interface AIStats {
   totalInteractions: number;
@@ -160,13 +161,14 @@ export default function IAPage() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="memory">Memória Contextual</TabsTrigger>
             <TabsTrigger value="documents">Documentos PDF/DOCX</TabsTrigger>
             <TabsTrigger value="test">Teste da IA</TabsTrigger>
             <TabsTrigger value="contexts">Contextos</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="config">Configurações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -214,6 +216,10 @@ export default function IAPage() {
               logs={logs}
               logsLoading={logsLoading}
             />
+          </TabsContent>
+
+          <TabsContent value="config" className="space-y-4">
+            <ConfigPage />
           </TabsContent>
         </Tabs>
       </div>
