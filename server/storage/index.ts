@@ -14,6 +14,7 @@ export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
+export { MacrosetorStorage } from './modules/macrosetorStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
@@ -34,6 +35,7 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
+import { MacrosetorStorage } from './modules/macrosetorStorage';
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
@@ -49,6 +51,7 @@ export class DatabaseStorage implements IStorage {
   private system: SystemStorage;
   public manychat: ManychatStorage;
   public facebook: FacebookStorage;
+  public macrosetor: MacrosetorStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -63,6 +66,7 @@ export class DatabaseStorage implements IStorage {
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
+    this.macrosetor = new MacrosetorStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================
