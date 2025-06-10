@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
-import { Users, User, Zap, ArrowRight } from 'lucide-react';
+import { Users, User, ArrowRight } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team, SystemUser } from '@shared/schema';
 
@@ -23,7 +23,7 @@ export function ConversationAssignmentDropdown({
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [aiHandoffLoading, setAiHandoffLoading] = useState(false);
+
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -110,115 +110,7 @@ export function ConversationAssignmentDropdown({
     }
   };
 
-  // Função para handoff inteligente com IA
-  const handleAiHandoff = async () => {
-    setAiHandoffLoading(true);
-    try {
-      // Buscar as últimas mensagens para análise
-      const messagesResponse = await fetch(`/api/conversations/${conversationId}/messages?limit=10`);
-      const messagesData = await messagesResponse.json();
-      
-      if (!messagesResponse.ok || !messagesData.messages?.length) {
-        throw new Error('Não foi possível obter mensagens para análise');
-      }
 
-      // Criar classificação simplificada da IA baseada nas mensagens
-      const lastMessages = messagesData.messages.slice(-5);
-      const messageTexts = lastMessages
-        .filter(msg => msg.content && msg.content.trim())
-        .map(msg => msg.content)
-        .join(' ');
-
-      // Análise básica para determinar urgência e intenção
-      const urgencyKeywords = ['urgente', 'emergência', 'problema', 'erro', 'não funciona', 'quebrado'];
-      const supportKeywords = ['técnico', 'suporte', 'problema', 'erro', 'bug', 'não consegue'];
-      const salesKeywords = ['comprar', 'preço', 'valor', 'curso', 'matrícula', 'inscrição'];
-      const billingKeywords = ['cobrança', 'pagamento', 'fatura', 'boleto', 'cartão'];
-
-      const textLower = messageTexts.toLowerCase();
-      const hasUrgency = urgencyKeywords.some(keyword => textLower.includes(keyword));
-      const hasSupport = supportKeywords.some(keyword => textLower.includes(keyword));
-      const hasSales = salesKeywords.some(keyword => textLower.includes(keyword));
-      const hasBilling = billingKeywords.some(keyword => textLower.includes(keyword));
-
-      let intent = 'general_inquiry';
-      if (hasSupport) intent = 'technical_support';
-      else if (hasSales) intent = 'sales_inquiry';
-      else if (hasBilling) intent = 'billing_issue';
-
-      const aiClassification = {
-        confidence: 75,
-        urgency: hasUrgency ? 'high' : 'normal',
-        frustrationLevel: hasUrgency ? 8 : 4,
-        intent
-      };
-
-      // Avaliar necessidade de handoff
-      const evaluationResponse = await fetch('/api/handoffs/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationId,
-          aiClassification
-        })
-      });
-
-      const evaluationData = await evaluationResponse.json();
-
-      if (!evaluationResponse.ok) {
-        throw new Error(evaluationData.error || 'Erro na avaliação de handoff');
-      }
-
-      if (!evaluationData.shouldHandoff) {
-        toast({
-          title: "Análise IA",
-          description: "A IA determinou que esta conversa não precisa de transferência no momento"
-        });
-        return;
-      }
-
-      // Criar handoff automático
-      const handoffResponse = await fetch('/api/handoffs/auto-create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationId,
-          aiClassification
-        })
-      });
-
-      const handoffData = await handoffResponse.json();
-
-      if (!handoffResponse.ok) {
-        throw new Error(handoffData.error || 'Erro ao criar handoff');
-      }
-
-      if (handoffData.handoffCreated) {
-        toast({
-          title: "Transferência IA Realizada",
-          description: `${handoffData.suggestion.reason}`,
-          duration: 5000
-        });
-        // Refresh da página para atualizar os dados
-        window.location.reload();
-      } else {
-        toast({
-          title: "Análise IA",
-          description: handoffData.message || "Handoff não necessário"
-        });
-      }
-
-    } catch (error) {
-      console.error('Erro no handoff inteligente:', error);
-      toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Erro no handoff inteligente",
-        variant: "destructive"
-      });
-    } finally {
-      setAiHandoffLoading(false);
-    }
-  };
 
   const currentTeam = teams.find(team => team.id === currentTeamId);
   const currentUser = users.find(user => user.id === currentUserId);
@@ -312,26 +204,7 @@ export function ConversationAssignmentDropdown({
         </Select>
       </div>
 
-      {/* Botão de Handoff Inteligente */}
-      <Button
-        onClick={handleAiHandoff}
-        disabled={aiHandoffLoading}
-        size="sm"
-        variant="outline"
-        className="h-7 px-2 text-xs border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-      >
-        {aiHandoffLoading ? (
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
-            <span>Analisando...</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1">
-            <Zap className="h-3 w-3 text-purple-600" />
-            <span className="text-purple-700">Transferir IA</span>
-          </div>
-        )}
-      </Button>
+
 
       {/* Indicador de macrosetor detectado automaticamente */}
       {currentMacrosetor && (
