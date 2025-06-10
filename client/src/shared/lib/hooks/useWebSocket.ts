@@ -180,6 +180,36 @@ export function useWebSocket() {
             });
           }
           break;
+        case 'conversation_updated':
+          if (data.conversationId && data.conversation) {
+            console.log('🔄 Conversa atualizada em tempo real:', {
+              conversationId: data.conversationId,
+              assignedUserId: data.conversation.assignedUserId,
+              assignedTeamId: data.conversation.assignedTeamId,
+              status: data.conversation.status
+            });
+            
+            // Invalidar e recarregar queries relacionadas à conversa
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            queryClient.invalidateQueries({ 
+              queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch imediato para atualizar o cabeçalho
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após atualização da conversa:', error);
+            });
+          }
+          break;
         default:
           console.log('📨 Evento Socket.IO não mapeado:', data.type);
       }

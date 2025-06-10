@@ -122,10 +122,40 @@ export class AutoHandoffService {
 
       if (result.handoffCreated) {
         console.log(`✅ Handoff automático criado para conversa ${conversationId}: ${result.suggestion?.reason}`);
+        
+        // Broadcast atualização da conversa para atualizar o cabeçalho
+        await this.broadcastConversationUpdate(conversationId);
       }
 
     } catch (error) {
       console.error(`❌ Erro no handoff automático para conversa ${conversationId}:`, error);
+    }
+  }
+
+  /**
+   * Faz broadcast da atualização da conversa para o frontend
+   */
+  private async broadcastConversationUpdate(conversationId: number) {
+    try {
+      // Buscar dados atualizados da conversa usando o método correto
+      const conversation = await storage.getConversation(conversationId);
+      
+      if (!conversation) {
+        console.log(`❌ Conversa ${conversationId} não encontrada para broadcast`);
+        return;
+      }
+
+      // Broadcast para todos os clientes conectados
+      const { broadcastToAll } = await import('../routes/realtime');
+      broadcastToAll({
+        type: 'conversation_updated',
+        conversationId: conversationId,
+        conversation: conversation
+      });
+
+      console.log(`🔄 Broadcast enviado: conversa ${conversationId} atualizada`);
+    } catch (error) {
+      console.error(`❌ Erro ao enviar broadcast da conversa ${conversationId}:`, error);
     }
   }
 
