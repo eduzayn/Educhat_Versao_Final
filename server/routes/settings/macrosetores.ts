@@ -133,13 +133,12 @@ export function registerMacrosetorRoutes(app: any, storage: DatabaseStorage) {
         return res.status(400).json({ error: 'Texto é obrigatório' });
       }
 
-      // Usar o sistema de detecção existente
-      const detected = storage.detectMacrosetor(text);
-      
+      // Sistema de detecção automática removido
       res.json({
-        detected: detected || 'geral',
-        score: detected !== 'geral' ? 1 : 0,
-        keywords: []
+        detected: 'geral',
+        score: 0,
+        keywords: [],
+        message: 'Sistema de detecção automática foi removido'
       });
     } catch (error) {
       console.error('Erro ao testar detecção:', error);

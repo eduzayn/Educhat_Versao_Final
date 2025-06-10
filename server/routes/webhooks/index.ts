@@ -721,26 +721,7 @@ export function registerWebhookRoutes(app: Express) {
     }
   });
 
-  // Test macrosetor detection
-  app.post('/api/test-macrosetor', async (req, res) => {
-    try {
-      const { message, canal } = req.body;
-      console.log('🧪 Testando detecção de macrosetor:', message);
-      
-      const detectedMacrosetor = storage.detectMacrosetor(message, canal);
-      console.log('🎯 Macrosetor detectado:', detectedMacrosetor);
-      
-      res.json({ 
-        success: true, 
-        message,
-        canal,
-        detectedMacrosetor 
-      });
-    } catch (error) {
-      console.error('Erro no teste de macrosetor:', error);
-      res.status(500).json({ error: 'Erro no teste' });
-    }
-  });
+  // Sistema de teste de macrosetor removido
 }
 
 // Process Instagram message function
@@ -1725,30 +1706,9 @@ async function processManychatMessage(webhookData: any) {
       message: message
     });
 
-    // Criar negócio automaticamente se necessário
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const existingDeals = await storage.getDealsByContact(contact.id);
-      
-      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const hasRecentDeal = existingDeals.some(deal => 
-        new Date(deal.createdAt) > twentyFourHoursAgo
-      );
-      
-      if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato do Manychat (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
-      } else {
-        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
-      }
-    } catch (dealError) {
-      console.error('❌ Erro ao criar negócio automático para Manychat:', dealError);
-    }
+    // Sistema de criação automática de negócios removido
 
-    // Atribuição inteligente de equipes
-    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+    // Sistema de atribuição automática removido
 
     console.log(`✅ Mensagem Manychat processada com sucesso para ${contact.name}`);
   } catch (error) {
