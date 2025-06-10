@@ -90,7 +90,11 @@ export function IAPage() {
   // Query para buscar personalidades (Faces Inteligentes)
   const { data: personalitiesData, isLoading: personalitiesLoading } = useQuery({
     queryKey: ["/api/ia/personalities"],
-    queryFn: () => apiRequest("GET", "/api/ia/personalities")
+    queryFn: async () => {
+      const result = await apiRequest("GET", "/api/ia/personalities");
+      console.log('🔍 Dados das personalidades recebidos:', result);
+      return result;
+    }
   });
 
   // Query para personalidade atual
@@ -677,7 +681,7 @@ export function IAPage() {
                 <div className="col-span-full text-center py-8 text-educhat-medium">
                   Carregando personalidades...
                 </div>
-              ) : personalitiesData?.personalities ? (
+              ) : personalitiesData?.personalities && personalitiesData.personalities.length > 0 ? (
                 personalitiesData.personalities.map((personality: any, index: number) => (
                   <Card key={personality.id} className={`transition-all duration-200 ${
                     currentPersonalityData?.personality?.id === personality.id 
