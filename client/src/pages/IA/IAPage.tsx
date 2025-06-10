@@ -52,10 +52,13 @@ export function IAPage() {
   const [editingContext, setEditingContext] = useState<any>(null);
 
   // Query para buscar contextos de IA
-  const { data: contexts = [], isLoading: contextsLoading } = useQuery({
+  const { data: contextsData, isLoading: contextsLoading } = useQuery({
     queryKey: ["/api/ia/context"],
     queryFn: () => apiRequest("GET", "/api/ia/context")
   });
+  
+  // Garantir que contexts seja sempre um array válido
+  const contexts = Array.isArray(contextsData) ? contextsData : [];
 
   // Query para buscar estatísticas
   const { data: stats, isLoading: statsLoading } = useQuery({
