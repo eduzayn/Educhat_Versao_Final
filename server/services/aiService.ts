@@ -444,14 +444,12 @@ export class AIService {
       await db.insert(aiLogs).values({
         conversationId: data.conversationId,
         contactId: data.contactId,
-        userMessage: data.userMessage,
-        aiResponse: data.aiResponse,
         classification: data.classification,
         sentiment: data.sentiment,
-        confidenceScore: data.confidenceScore,
+        confidence: data.confidenceScore,
+        aiResponse: data.aiResponse,
         processingTime: data.processingTime,
-        handoffReason: data.handoffReason,
-        createdAt: new Date()
+        handoffReason: data.handoffReason
       });
     } catch (error) {
       console.error('❌ Erro ao registrar log de interação:', error);
