@@ -1,0 +1,303 @@
+import { Express, Request, Response } from 'express';
+import { z } from 'zod';
+import { db } from '../storage/db';
+import { aiContext, aiLogs, aiSessions, insertAiContextSchema, insertAiLogSchema, insertAiSessionSchema } from '../../shared/schema';
+import { eq, desc, and, gte } from 'drizzle-orm';
+
+export function registerIARoutes(app: Express) {
+  
+  // Get AI context items
+  app.get('/api/ia/context', async (req: Request, res: Response) => {
+    try {
+      const contexts = await db.select().from(aiContext).where(eq(aiContext.isActive, true)).orderBy(desc(aiContext.createdAt));
+      res.json(contexts);
+    } catch (error) {
+      console.error('❌ Erro ao buscar contextos de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Add AI context
+  app.post('/api/ia/context', async (req: Request, res: Response) => {
+    try {
+      const contextData = insertAiContextSchema.parse(req.body);
+      
+      const [newContext] = await db.insert(aiContext).values({
+        ...contextData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      console.log('✅ Novo contexto de IA criado:', newContext.id);
+      res.status(201).json(newContext);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+      }
+      console.error('❌ Erro ao criar contexto de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Update AI context
+  app.put('/api/ia/context/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const contextData = insertAiContextSchema.partial().parse(req.body);
+      
+      const [updatedContext] = await db.update(aiContext)
+        .set({ ...contextData, updatedAt: new Date() })
+        .where(eq(aiContext.id, id))
+        .returning();
+
+      if (!updatedContext) {
+        return res.status(404).json({ error: 'Contexto não encontrado' });
+      }
+
+      console.log('✅ Contexto de IA atualizado:', id);
+      res.json(updatedContext);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+      }
+      console.error('❌ Erro ao atualizar contexto de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Delete AI context
+  app.delete('/api/ia/context/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      await db.update(aiContext)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(aiContext.id, id));
+
+      console.log('✅ Contexto de IA removido:', id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao remover contexto de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get AI logs with pagination
+  app.get('/api/ia/logs', async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = (page - 1) * limit;
+
+      const logs = await db.select().from(aiLogs)
+        .orderBy(desc(aiLogs.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      res.json(logs);
+    } catch (error) {
+      console.error('❌ Erro ao buscar logs de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Create AI log
+  app.post('/api/ia/logs', async (req: Request, res: Response) => {
+    try {
+      const logData = insertAiLogSchema.parse(req.body);
+      
+      const [newLog] = await db.insert(aiLogs).values({
+        ...logData,
+        createdAt: new Date()
+      }).returning();
+
+      console.log('📊 Log de IA criado:', newLog.id);
+      res.status(201).json(newLog);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+      }
+      console.error('❌ Erro ao criar log de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get AI session
+  app.get('/api/ia/sessions/:conversationId', async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      
+      const [session] = await db.select().from(aiSessions)
+        .where(and(
+          eq(aiSessions.conversationId, conversationId),
+          eq(aiSessions.isActive, true)
+        ))
+        .orderBy(desc(aiSessions.lastInteraction))
+        .limit(1);
+
+      res.json(session || null);
+    } catch (error) {
+      console.error('❌ Erro ao buscar sessão de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Create or update AI session
+  app.post('/api/ia/sessions', async (req: Request, res: Response) => {
+    try {
+      const sessionData = insertAiSessionSchema.parse(req.body);
+      
+      // Check if session already exists
+      const [existingSession] = await db.select().from(aiSessions)
+        .where(and(
+          eq(aiSessions.conversationId, sessionData.conversationId!),
+          eq(aiSessions.isActive, true)
+        ))
+        .limit(1);
+
+      let session;
+      if (existingSession) {
+        // Update existing session
+        [session] = await db.update(aiSessions)
+          .set({
+            sessionData: sessionData.sessionData,
+            lastInteraction: new Date(),
+            expiresAt: sessionData.expiresAt
+          })
+          .where(eq(aiSessions.id, existingSession.id))
+          .returning();
+      } else {
+        // Create new session
+        [session] = await db.insert(aiSessions).values({
+          ...sessionData,
+          lastInteraction: new Date(),
+          createdAt: new Date()
+        }).returning();
+      }
+
+      console.log('🧠 Sessão de IA atualizada:', session.id);
+      res.json(session);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+      }
+      console.error('❌ Erro ao gerenciar sessão de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // End AI session
+  app.delete('/api/ia/sessions/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      await db.update(aiSessions)
+        .set({ isActive: false })
+        .where(eq(aiSessions.id, id));
+
+      console.log('✅ Sessão de IA encerrada:', id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao encerrar sessão de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get AI statistics
+  app.get('/api/ia/stats', async (req: Request, res: Response) => {
+    try {
+      // Get total interactions from last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const totalLogs = await db.select().from(aiLogs)
+        .where(gte(aiLogs.createdAt, thirtyDaysAgo));
+
+      const totalInteractions = totalLogs.length;
+      const leadsConverted = totalLogs.filter(log => log.classification === 'lead' && log.handoffReason === null).length;
+      const avgProcessingTime = totalLogs.length > 0 
+        ? Math.round(totalLogs.reduce((sum, log) => sum + (log.processingTime || 0), 0) / totalLogs.length)
+        : 0;
+
+      // Calculate satisfaction based on sentiment analysis
+      const satisfactionLogs = totalLogs.filter(log => log.sentiment);
+      const positiveCount = satisfactionLogs.filter(log => log.sentiment === 'positive').length;
+      const satisfactionRate = satisfactionLogs.length > 0 
+        ? Math.round((positiveCount / satisfactionLogs.length) * 100)
+        : 0;
+
+      const stats = {
+        totalInteractions,
+        leadsConverted,
+        avgResponseTime: avgProcessingTime / 1000, // Convert to seconds
+        satisfactionRate,
+        period: '30 dias'
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('❌ Erro ao calcular estatísticas de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Classify message intent (placeholder for AI integration)
+  app.post('/api/ia/classify', async (req: Request, res: Response) => {
+    try {
+      const { message, contactId, conversationId } = req.body;
+
+      if (!message || !contactId || !conversationId) {
+        return res.status(400).json({ error: 'Dados obrigatórios: message, contactId, conversationId' });
+      }
+
+      // Placeholder classification logic
+      // In production, this would integrate with OpenAI API
+      const classification = {
+        intent: 'general',
+        sentiment: 'neutral',
+        confidence: 75,
+        aiMode: 'mentor',
+        suggestedResponse: 'Olá! Como posso ajudar você hoje?',
+        contextUsed: [],
+        processingTime: 150
+      };
+
+      console.log('🤖 Mensagem classificada pela IA para contato:', contactId);
+      res.json(classification);
+    } catch (error) {
+      console.error('❌ Erro na classificação de IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Train AI with new content
+  app.post('/api/ia/train', async (req: Request, res: Response) => {
+    try {
+      const { name, type, content, metadata } = req.body;
+
+      if (!name || !type || !content) {
+        return res.status(400).json({ error: 'Dados obrigatórios: name, type, content' });
+      }
+
+      // In production, this would generate embeddings using OpenAI
+      const embedding = JSON.stringify([/* vector embeddings would go here */]);
+
+      const [newContext] = await db.insert(aiContext).values({
+        name,
+        type,
+        content,
+        embedding,
+        metadata: metadata || {},
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      console.log('🎓 IA treinada com novo conteúdo:', newContext.id);
+      res.status(201).json(newContext);
+    } catch (error) {
+      console.error('❌ Erro no treinamento da IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+}

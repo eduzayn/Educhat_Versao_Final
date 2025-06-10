@@ -19,6 +19,7 @@ import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
 import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
+import { IAPage } from "@/pages/IA/IAPage";
 
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
@@ -55,6 +56,7 @@ function Router() {
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
+          <Route path="/ia" component={IAPage} />
           <Route path="/bi">
             {() => (
               <ProtectedRoute
