@@ -8,6 +8,7 @@ import { Switch } from '../../shared/ui/switch';
 import { Separator } from '../../shared/ui/separator';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryClient } from '../../lib/queryClient';
+import { useLocation } from 'wouter';
 // Temporarily simplified without toast for now
 import { 
   Settings, 
@@ -20,7 +21,8 @@ import {
   TestTube,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 
 interface AIConfig {
@@ -45,6 +47,7 @@ interface AIConfig {
 
 export function ConfigPage() {
   const [testingKey, setTestingKey] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
   
   const { data: config, isLoading } = useQuery({
     queryKey: ['/api/ia/config'],
@@ -159,14 +162,24 @@ export function ConfigPage() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Settings className="h-8 w-8 text-purple-600" />
-            Configurações da Prof. Ana
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Configure as integrações e comportamento da assistente IA educacional
-          </p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setLocation('/ia')}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <Settings className="h-8 w-8 text-purple-600" />
+              Configurações da Prof. Ana
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Configure as integrações e comportamento da assistente IA educacional
+            </p>
+          </div>
         </div>
         <Badge variant={formData.isActive ? "default" : "secondary"} className="text-sm">
           {formData.isActive ? "Ativa" : "Inativa"}
