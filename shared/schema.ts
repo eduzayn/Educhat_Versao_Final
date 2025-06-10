@@ -822,3 +822,69 @@ export const facebookWebhookLogsRelations = relations(facebookWebhookLogs, ({ on
     references: [conversations.id],
   }),
 }));
+
+// Sistema de Detecção de Macrosetores
+export const macrosetorDetection = pgTable("macrosetor_detection", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  priority: integer("priority").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const macrosetorKeywords = pgTable("macrosetor_keywords", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  macrosetorId: integer("macrosetor_id").notNull().references(() => macrosetorDetection.id, { onDelete: "cascade" }),
+  keyword: text("keyword").notNull(),
+  weight: integer("weight").default(1).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const detectionLogs = pgTable("detection_logs", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  content: text("content").notNull(),
+  detectedMacrosetor: text("detected_macrosetor"),
+  confidence: integer("confidence"),
+  matchedKeywords: text("matched_keywords").array(),
+  channel: text("channel"),
+  contactId: integer("contact_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMacrosetorDetectionSchema = createInsertSchema(macrosetorDetection).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMacrosetorKeywordSchema = createInsertSchema(macrosetorKeywords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDetectionLogSchema = createInsertSchema(detectionLogs);
+
+export type MacrosetorDetection = typeof macrosetorDetection.$inferSelect;
+export type InsertMacrosetorDetection = z.infer<typeof insertMacrosetorDetectionSchema>;
+export type MacrosetorKeyword = typeof macrosetorKeywords.$inferSelect;
+export type InsertMacrosetorKeyword = z.infer<typeof insertMacrosetorKeywordSchema>;
+export type DetectionLog = typeof detectionLogs.$inferSelect;
+export type InsertDetectionLog = z.infer<typeof insertDetectionLogSchema>;
+
+export const macrosetorDetectionRelations = relations(macrosetorDetection, ({ many }) => ({
+  keywords: many(macrosetorKeywords),
+}));
+
+export const macrosetorKeywordsRelations = relations(macrosetorKeywords, ({ one }) => ({
+  macrosetor: one(macrosetorDetection, {
+    fields: [macrosetorKeywords.macrosetorId],
+    references: [macrosetorDetection.id],
+  }),
+}));
+
+export type MacrosetorWithKeywords = MacrosetorDetection & {
+  keywords: MacrosetorKeyword[];
+};
