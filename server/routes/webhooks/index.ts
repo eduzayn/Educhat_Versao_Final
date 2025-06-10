@@ -3,36 +3,27 @@ import { storage } from "../../core/storage";
 import multer from "multer";
 import { facebookWebhookRoutes } from './facebook';
 
-// Função helper para atribuição inteligente de equipes
-async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
+// Função helper para atribuição manual de equipes (removida detecção automática)
+async function assignTeamManually(conversationId: number, teamId?: number) {
   try {
-    const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-    if (!detectedMacrosetor) return;
+    if (!teamId) return;
     
-    const newTeam = await storage.getTeamByMacrosetor(detectedMacrosetor);
+    const currentConversation = await storage.getConversation(conversationId);
+    const shouldReassign = !currentConversation?.assignedTeamId || 
+                          currentConversation.assignedTeamId !== teamId;
     
-    if (newTeam) {
-      // Verificar se a conversa já está atribuída a uma equipe diferente
-      const currentConversation = await storage.getConversation(conversationId);
-      const shouldReassign = !currentConversation?.assignedTeamId || 
-                            currentConversation.assignedTeamId !== newTeam.id;
+    if (shouldReassign) {
+      await storage.assignConversationToTeam(conversationId, teamId, 'manual');
+      console.log(`✅ Conversa ID ${conversationId} atribuída manualmente à equipe`);
       
-      if (shouldReassign) {
-        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, newTeam.name);
-        await storage.assignConversationToTeam(conversationId, newTeam.id, 'automatic');
-        console.log(`✅ Conversa ID ${conversationId} reatribuída automaticamente à equipe ${newTeam.name}`);
-        
-        const availableUser = await storage.getAvailableUserFromTeam(newTeam.id);
-        if (availableUser) {
-          await storage.assignConversationToUser(conversationId, availableUser.id, 'automatic');
-          console.log(`👤 Conversa reatribuída automaticamente ao usuário ${availableUser.displayName}`);
-        }
-      } else {
-        console.log(`⚡ Conversa já está na equipe correta: ${newTeam.name}`);
+      const availableUser = await storage.getAvailableUserFromTeam(teamId);
+      if (availableUser) {
+        await storage.assignConversationToUser(conversationId, availableUser.id, 'manual');
+        console.log(`👤 Conversa atribuída manualmente ao usuário ${availableUser.displayName}`);
       }
     }
   } catch (assignmentError) {
-    console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
+    console.error('❌ Erro na atribuição manual de equipes:', assignmentError);
   }
 }
 
@@ -808,33 +799,8 @@ async function processInstagramMessage(messagingEvent: any) {
       message: message
     });
 
-    // Criar negócio automaticamente - verificação aprimorada
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const existingDeals = await storage.getDealsByContact(contact.id);
-      
-      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
-      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
-      
-      // Verificar deals recentes (últimas 24 horas)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const hasRecentDeal = existingDeals.some(deal => 
-        new Date(deal.createdAt) > twentyFourHoursAgo
-      );
-      
-      if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato do Instagram (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
-      } else {
-        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
-      }
-    } catch (dealError) {
-      console.error('❌ Erro ao criar negócio automático para Instagram:', dealError);
-    }
-
-    // Atribuição automática de equipes com reavaliação inteligente
-    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+    // Criação automática de deals removida - apenas processar mensagem
+    console.log(`📝 Mensagem Instagram processada para contato:`, contact.name);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem do Instagram:', error);
@@ -896,33 +862,8 @@ async function processEmailMessage(emailData: any) {
       message: message
     });
 
-    // Criar negócio automaticamente - verificação aprimorada
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const existingDeals = await storage.getDealsByContact(contact.id);
-      
-      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
-      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
-      
-      // Verificar deals recentes (últimas 24 horas)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const hasRecentDeal = existingDeals.some(deal => 
-        new Date(deal.createdAt) > twentyFourHoursAgo
-      );
-      
-      if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato de Email (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
-      } else {
-        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
-      }
-    } catch (dealError) {
-      console.error('❌ Erro ao criar negócio automático para Email:', dealError);
-    }
-
-    // Atribuição automática de equipes com reavaliação inteligente
-    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+    // Criação automática de deals removida - apenas processar mensagem
+    console.log(`📧 Mensagem Email processada para contato:`, contact.name);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem de Email:', error);
@@ -983,33 +924,8 @@ async function processSMSMessage(smsData: any) {
       message: message
     });
 
-    // Criar negócio automaticamente - verificação aprimorada
-    try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-      const existingDeals = await storage.getDealsByContact(contact.id);
-      
-      // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
-      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
-      
-      // Verificar deals recentes (últimas 24 horas)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const hasRecentDeal = existingDeals.some(deal => 
-        new Date(deal.createdAt) > twentyFourHoursAgo
-      );
-      
-      if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato de SMS (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
-      } else {
-        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
-      }
-    } catch (dealError) {
-      console.error('❌ Erro ao criar negócio automático para SMS:', dealError);
-    }
-
-    // Atribuição automática de equipes com reavaliação inteligente
-    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+    // Criação automática de deals removida - apenas processar mensagem
+    console.log(`📱 Mensagem SMS processada para contato:`, contact.name);
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem de SMS:', error);
@@ -1330,129 +1246,8 @@ export function registerZApiRoutes(app: Express) {
           }
         });
 
-        // PRIORIDADE 2: Processar operações secundárias em background (não bloqueiam resposta do webhook)
-        setImmediate(async () => {
-          try {
-            // Detectar macrosetor uma vez
-            const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
-            let dealCreated = false;
-            let conversationUpdated = false;
-            
-            // Detectar e atualizar informações educacionais do contato usando detecção avançada
-            try {
-              const { detectEducationalInfo } = await import('../../storage/utils/courseUtils');
-              const educationalInfo = detectEducationalInfo(messageContent);
-              
-              console.log(`🎓 Informações educacionais detectadas:`, {
-                interests: educationalInfo.interests,
-                background: educationalInfo.background,
-                allCourses: educationalInfo.allCourses
-              });
-              
-              // Adicionar tags de interesse (cursos que o contato quer fazer)
-              for (const course of educationalInfo.interests) {
-                await storage.addContactTag({
-                  contactId: contact.id,
-                  tag: `Interesse: ${course}`
-                });
-                console.log(`📌 Tag de interesse adicionada: ${course}`);
-              }
-              
-              // Adicionar tags de formação (cursos que o contato já fez/está fazendo)
-              for (const course of educationalInfo.background) {
-                await storage.addContactTag({
-                  contactId: contact.id,
-                  tag: `Formação: ${course}`
-                });
-                console.log(`🎓 Tag de formação adicionada: ${course}`);
-              }
-              
-              // Atualizar campos específicos do contato se informações foram detectadas
-              if (educationalInfo.interests.length > 0 || educationalInfo.background.length > 0) {
-                const currentTags = contact.tags || [];
-                const newTags = [...currentTags];
-                
-                // Adicionar informações ao array de tags do contato
-                educationalInfo.interests.forEach(course => {
-                  if (!newTags.includes(`Interesse: ${course}`)) {
-                    newTags.push(`Interesse: ${course}`);
-                  }
-                });
-                
-                educationalInfo.background.forEach(course => {
-                  if (!newTags.includes(`Formação: ${course}`)) {
-                    newTags.push(`Formação: ${course}`);
-                  }
-                });
-                
-                await storage.updateContact(contact.id, { tags: newTags });
-                console.log(`✅ Informações educacionais atualizadas para contato ${contact.id} (${contact.name})`);
-              }
-            } catch (courseDetectionError) {
-              console.error('❌ Erro na detecção de informações educacionais:', courseDetectionError);
-            }
-            
-            // Criar negócio automático se necessário - com proteção aprimorada contra duplicação
-            try {
-              const existingDeals = await storage.getDealsByContact(contact.id);
-              
-              // Verificar se já existe qualquer deal ativo para este contato no WhatsApp
-              const hasAnyActiveDealWhatsApp = existingDeals.some(deal => {
-                const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
-                const sameChannel = deal.canalOrigem === 'whatsapp';
-                return isActive && sameChannel;
-              });
-              
-              // Verificar deals muito recentes (últimas 2 horas) para qualquer macrosetor
-              const veryRecentDeals = existingDeals.filter(deal => {
-                if (!deal.createdAt) return false;
-                const dealDate = new Date(deal.createdAt);
-                const now = new Date();
-                const hoursDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60 * 60);
-                return hoursDiff < 2 && deal.canalOrigem === 'whatsapp';
-              });
-              
-              if (!hasAnyActiveDealWhatsApp && veryRecentDeals.length === 0 && detectedMacrosetor) {
-                console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
-                await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
-                dealCreated = true;
-              } else if (hasAnyActiveDealWhatsApp) {
-                console.log(`⚠️ Deal ativo já existe para ${contact.name} no WhatsApp - evitando duplicação`);
-              } else if (veryRecentDeals.length > 0) {
-                console.log(`⚠️ Deal muito recente já criado para ${contact.name} no WhatsApp - evitando duplicação`);
-              }
-            } catch (dealError) {
-              console.error('❌ Erro ao criar negócio automático:', dealError);
-            }
-
-            // Atribuição automática de equipes com reavaliação inteligente
-            try {
-              await assignTeamIntelligently(conversation.id, messageContent, 'whatsapp');
-              conversationUpdated = true;
-            } catch (assignmentError) {
-              console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
-            }
-
-            // Broadcast para atualização do CRM se houve mudanças
-            if (dealCreated || conversationUpdated) {
-              try {
-                const { broadcastToAll } = await import('../realtime');
-                broadcastToAll({
-                  type: 'crm_update',
-                  action: dealCreated ? 'deal_created' : 'conversation_updated',
-                  contactId: contact.id,
-                  conversationId: conversation.id,
-                  macrosetor: detectedMacrosetor
-                });
-                console.log(`📢 Broadcast CRM enviado: ${dealCreated ? 'deal_created' : 'conversation_updated'}`);
-              } catch (broadcastError) {
-                console.error('❌ Erro no broadcast CRM:', broadcastError);
-              }
-            }
-          } catch (backgroundError) {
-            console.error('❌ Erro no processamento em background:', backgroundError);
-          }
-        });
+        // Sistema de detecção automática removido - apenas processamento básico da mensagem
+        console.log(`📱 Mensagem WhatsApp processada para contato: ${contact.name}`);
       }
       
       res.status(200).json({ success: true });
