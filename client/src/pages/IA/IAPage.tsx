@@ -52,25 +52,28 @@ export function IAPage() {
   const [editingContext, setEditingContext] = useState<any>(null);
 
   // Query para buscar contextos de IA
-  const { data: contextsData, isLoading: contextsLoading } = useQuery({
-    queryKey: ["/api/ia/context"],
-    queryFn: () => apiRequest("GET", "/api/ia/context")
+  const { data: contexts = [], isLoading: contextsLoading } = useQuery({
+    queryKey: ["/api/ia/context"]
   });
-  
-  // Garantir que contexts seja sempre um array válido
-  const contexts = Array.isArray(contextsData) ? contextsData : [];
 
   // Query para buscar estatísticas
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/ia/stats"],
-    queryFn: () => apiRequest("GET", "/api/ia/stats")
+  const { data: stats = {
+    totalInteractions: 0,
+    leadsConverted: 0,
+    avgResponseTime: 0,
+    satisfactionRate: 0
+  }, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/ia/stats"]
   });
 
   // Query para buscar logs
-  const { data: logs = [], isLoading: logsLoading } = useQuery({
+  const { data: logsData, isLoading: logsLoading } = useQuery({
     queryKey: ["/api/ia/logs"],
     queryFn: () => apiRequest("GET", "/api/ia/logs")
   });
+  
+  // Garantir que logs seja sempre um array válido
+  const logs = Array.isArray(logsData) ? logsData : [];
 
   // Form para contexto
   const contextForm = useForm<ContextFormData>({
