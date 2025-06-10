@@ -54,7 +54,7 @@ export function IAPage() {
   // Query para buscar contextos de IA
   const { data: contexts = [], isLoading: contextsLoading } = useQuery({
     queryKey: ["/api/ia/context"]
-  });
+  }) as { data: any[], isLoading: boolean };
 
   // Query para buscar estatísticas
   const { data: stats = {
@@ -64,16 +64,12 @@ export function IAPage() {
     satisfactionRate: 0
   }, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/ia/stats"]
-  });
+  }) as { data: any, isLoading: boolean };
 
   // Query para buscar logs
-  const { data: logsData, isLoading: logsLoading } = useQuery({
-    queryKey: ["/api/ia/logs"],
-    queryFn: () => apiRequest("GET", "/api/ia/logs")
-  });
-  
-  // Garantir que logs seja sempre um array válido
-  const logs = Array.isArray(logsData) ? logsData : [];
+  const { data: logs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ["/api/ia/logs"]
+  }) as { data: any[], isLoading: boolean };
 
   // Form para contexto
   const contextForm = useForm<ContextFormData>({
