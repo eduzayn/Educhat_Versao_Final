@@ -49,12 +49,17 @@ router.get('/config', async (req, res) => {
 // Update AI configuration
 router.post('/config', async (req, res) => {
   try {
+    console.log('📝 Recebendo dados para salvar configuração da IA:', JSON.stringify(req.body, null, 2));
+    
     const validatedData = insertAiConfigSchema.parse(req.body);
+    console.log('✅ Dados validados pelo schema:', JSON.stringify(validatedData, null, 2));
     
     let [config] = await db.select().from(aiConfig).limit(1);
+    console.log('📊 Configuração existente encontrada:', !!config);
     
     if (config) {
       // Update existing config
+      console.log('🔄 Atualizando configuração existente ID:', config.id);
       [config] = await db
         .update(aiConfig)
         .set({
@@ -63,12 +68,15 @@ router.post('/config', async (req, res) => {
         })
         .where(eq(aiConfig.id, config.id))
         .returning();
+      console.log('✅ Configuração atualizada com sucesso');
     } else {
       // Create new config
+      console.log('🆕 Criando nova configuração');
       [config] = await db
         .insert(aiConfig)
         .values(validatedData)
         .returning();
+      console.log('✅ Nova configuração criada com sucesso');
     }
 
     // Don't send API keys in response
@@ -80,10 +88,18 @@ router.post('/config', async (req, res) => {
       anthropicApiKey: config.anthropicApiKey ? '***CONFIGURED***' : ''
     };
 
+    console.log('📤 Enviando resposta segura (sem chaves)');
     res.json(safeConfig);
   } catch (error) {
-    console.error('Erro ao salvar configurações da IA:', error);
+    console.error('❌ Erro detalhado ao salvar configurações da IA:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      requestBody: req.body
+    });
+    
     if (error instanceof z.ZodError) {
+      console.error('❌ Erros de validação Zod:', error.errors);
       res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
     } else {
       res.status(500).json({ message: 'Erro interno do servidor' });
