@@ -24,7 +24,8 @@ import {
   Mail,
   MessageCircle,
   UserCheck,
-  Bot
+  Bot,
+  ArrowRightLeft
 } from 'lucide-react';
 // Logo removido durante limpeza - usando texto simples
 import { useLocation } from 'wouter';
@@ -111,6 +112,13 @@ export function Dashboard() {
       icon: BarChart3,
       description: 'Analytics e métricas',
       route: '/reports'
+    },
+    {
+      id: 'handoffs',
+      label: 'Transferências',
+      icon: ArrowRightLeft,
+      description: 'Sistema de handoff inteligente',
+      route: '/handoffs'
     },
     {
       id: 'settings',
