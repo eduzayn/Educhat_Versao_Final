@@ -5,6 +5,44 @@ import { z } from 'zod';
 
 const router = Router();
 
+// GET /api/handoffs - Buscar todos os handoffs
+router.get('/', async (req, res) => {
+  try {
+    const handoffs = await db
+      .select({
+        id: handoffs.id,
+        conversationId: handoffs.conversationId,
+        fromUserId: handoffs.fromUserId,
+        toUserId: handoffs.toUserId,
+        fromTeamId: handoffs.fromTeamId,
+        toTeamId: handoffs.toTeamId,
+        type: handoffs.type,
+        reason: handoffs.reason,
+        priority: handoffs.priority,
+        status: handoffs.status,
+        aiClassification: handoffs.aiClassification,
+        metadata: handoffs.metadata,
+        acceptedAt: handoffs.acceptedAt,
+        completedAt: handoffs.completedAt,
+        createdAt: handoffs.createdAt,
+        updatedAt: handoffs.updatedAt
+      })
+      .from(handoffs)
+      .orderBy(desc(handoffs.createdAt))
+      .limit(50);
+
+    res.json({
+      success: true,
+      handoffs
+    });
+  } catch (error) {
+    console.error('Erro ao buscar handoffs:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
 // Schema de validação para criar handoff
 const createHandoffSchema = z.object({
   conversationId: z.number(),
