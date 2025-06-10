@@ -559,7 +559,7 @@ export function IntegrationsPage() {
                   {/* Ações */}
                   <div className="flex gap-4 pt-4 border-t">
                     <Button 
-                      onClick={() => window.open('/settings/integrations/facebook', '_blank')}
+                      onClick={() => window.location.href = '/settings/integrations/facebook'}
                       className="flex items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
