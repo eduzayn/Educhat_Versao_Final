@@ -218,26 +218,27 @@ export default function FacebookIntegrationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Facebook className="h-6 w-6 text-blue-600" />
-          <Instagram className="h-6 w-6 text-pink-600" />
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Facebook className="h-6 w-6 text-blue-600" />
+            <Instagram className="h-6 w-6 text-pink-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Integração Facebook & Instagram</h1>
+            <p className="text-muted-foreground">
+              Configure a integração com Facebook Messenger e Instagram Direct
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Integração Facebook & Instagram</h1>
-          <p className="text-muted-foreground">
-            Configure a integração com Facebook Messenger e Instagram Direct
-          </p>
-        </div>
-      </div>
 
-      <Tabs defaultValue="integrations" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="integrations">Integrações</TabsTrigger>
-          <TabsTrigger value="configuration">Configuração</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="integrations" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="integrations">Integrações</TabsTrigger>
+            <TabsTrigger value="configuration">Configuração</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="integrations" className="space-y-4">
           {/* Lista de integrações existentes */}
@@ -428,7 +429,8 @@ export default function FacebookIntegrationPage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
