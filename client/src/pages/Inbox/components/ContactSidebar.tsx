@@ -92,6 +92,7 @@ export function ContactSidebar({
   const [newNote, setNewNote] = useState('');
   const [showDealDialog, setShowDealDialog] = useState(false);
   const [editingDeal, setEditingDeal] = useState<any>(null);
+  const [editingDealData, setEditingDealData] = useState<any>({});
   const [dealFormData, setDealFormData] = useState({
     name: '',
     value: '',
@@ -596,7 +597,10 @@ export function ContactSidebar({
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 ml-2"
-                        onClick={() => setEditingDeal(deal)}
+                        onClick={() => {
+                          setEditingDeal(deal);
+                          setEditingDealData({});
+                        }}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -657,8 +661,14 @@ export function ContactSidebar({
                 <div>
                   <Label>Funil de vendas</Label>
                   <Select 
-                    defaultValue={editingDeal.macrosetor} 
-                    onValueChange={(value) => handleUpdateDeal(editingDeal, { macrosetor: value, stage: getStagesForMacrosetor(value)[0]?.id || '' })}
+                    value={editingDealData.macrosetor || editingDeal.macrosetor} 
+                    onValueChange={(value) => {
+                      setEditingDealData((prev: any) => ({ 
+                        ...prev, 
+                        macrosetor: value,
+                        stage: getStagesForMacrosetor(value)[0]?.id || ''
+                      }));
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -676,21 +686,42 @@ export function ContactSidebar({
                 <div>
                   <Label>Etapa do Negócio</Label>
                   <Select 
-                    defaultValue={editingDeal.stage} 
-                    onValueChange={(value) => handleUpdateDeal(editingDeal, { stage: value })}
-                    disabled={!editingDeal.macrosetor}
+                    value={editingDealData.stage || editingDeal.stage} 
+                    onValueChange={(value) => {
+                      setEditingDealData((prev: any) => ({ ...prev, stage: value }));
+                    }}
+                    disabled={!(editingDealData.macrosetor || editingDeal.macrosetor)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {editingDeal.macrosetor && getStagesForMacrosetor(editingDeal.macrosetor).map((stage) => (
-                        <SelectItem key={stage.id} value={stage.id}>
-                          {stage.name.toUpperCase()}
-                        </SelectItem>
-                      ))}
+                      {(editingDealData.macrosetor || editingDeal.macrosetor) && 
+                        getStagesForMacrosetor(editingDealData.macrosetor || editingDeal.macrosetor).map((stage) => (
+                          <SelectItem key={stage.id} value={stage.id}>
+                            {stage.name.toUpperCase()}
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => setEditingDeal(null)}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      const updates = { ...editingDealData };
+                      if (Object.keys(updates).length > 0) {
+                        handleUpdateDeal(editingDeal, updates);
+                      }
+                    }}
+                    disabled={updateDealMutation.isPending}
+                  >
+                    {updateDealMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
