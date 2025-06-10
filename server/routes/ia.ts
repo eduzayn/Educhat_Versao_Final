@@ -260,6 +260,44 @@ router.post('/respond', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/ia/perplexity-test - Testar integração com Perplexity AI
+ */
+router.post('/perplexity-test', async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query é obrigatória' });
+    }
+
+    const startTime = Date.now();
+    
+    // Importar o serviço Perplexity
+    const { perplexityService } = await import('../services/perplexityService');
+    
+    // Testar busca externa
+    const result = await perplexityService.searchExternal(query, 'Contexto de teste');
+    const processingTime = Date.now() - startTime;
+
+    res.json({
+      success: true,
+      query,
+      result,
+      processingTime,
+      hasResult: !!result,
+      isValidResult: result ? perplexityService.validateExternalResponse(result) : false
+    });
+
+  } catch (error) {
+    console.error('❌ Erro no teste Perplexity:', error);
+    res.status(500).json({ 
+      error: 'Erro no teste da integração Perplexity',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+/**
  * DELETE /api/ia/context/:id - Remover contexto
  */
 router.delete('/context/:id', async (req: Request, res: Response) => {

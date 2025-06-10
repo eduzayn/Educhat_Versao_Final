@@ -255,10 +255,23 @@ export class AIService {
    */
   private async searchExternalKnowledge(message: string, internalContext: string, confidence: number): Promise<string | null> {
     try {
-      if (perplexityService.shouldSearchExternal(confidence, internalContext.length > 0)) {
-        console.log('🔍 Buscando conhecimento externo via Perplexity...');
-        return await perplexityService.searchExternal(message, internalContext);
+      const hasRelevantContext = internalContext.length > 100; // Contexto mínimo significativo
+      
+      if (perplexityService.shouldSearchExternal(confidence, hasRelevantContext)) {
+        console.log(`🔍 Buscando conhecimento externo - Confiança: ${confidence}%, Contexto: ${hasRelevantContext ? 'Sim' : 'Não'}`);
+        
+        const externalResponse = await perplexityService.searchExternal(message, internalContext);
+        
+        if (externalResponse && perplexityService.validateExternalResponse(externalResponse)) {
+          console.log('✅ Conhecimento externo validado e aprovado');
+          return externalResponse;
+        } else {
+          console.log('⚠️ Conhecimento externo rejeitado por baixa qualidade');
+          return null;
+        }
       }
+      
+      console.log(`📊 Busca externa não necessária - Confiança: ${confidence}%`);
       return null;
     } catch (error) {
       console.error('❌ Erro na busca externa:', error);
