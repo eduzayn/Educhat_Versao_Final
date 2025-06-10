@@ -53,6 +53,13 @@ export function IAPage() {
   const [selectedTab, setSelectedTab] = useState("dashboard");
   const [contextDialogOpen, setContextDialogOpen] = useState(false);
   const [editingContext, setEditingContext] = useState<any>(null);
+  const [aiSettings, setAiSettings] = useState({
+    aiActive: true,
+    learningMode: true,
+    autoHandoff: true,
+    operationMode: "mentor",
+    confidenceThreshold: 75
+  });
 
   // Query para buscar contextos de IA
   const { data: contextsData, isLoading: contextsLoading } = useQuery({
@@ -88,6 +95,24 @@ export function IAPage() {
       toast({
         title: "Status atualizado",
         description: "Atendimento automático da Prof. Ana atualizado com sucesso"
+      });
+    }
+  });
+
+  // Mutation para salvar configurações da IA
+  const saveSettingsMutation = useMutation({
+    mutationFn: (settings: typeof aiSettings) => apiRequest("POST", "/api/ia/settings", settings),
+    onSuccess: () => {
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações da Prof. Ana foram atualizadas com sucesso"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações. Tente novamente.",
+        variant: "destructive"
       });
     }
   });
@@ -575,7 +600,10 @@ export function IAPage() {
                     <h3 className="font-medium">IA Ativa</h3>
                     <p className="text-sm text-educhat-medium">Ativar ou desativar o assistente de IA</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={aiSettings.aiActive}
+                    onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, aiActive: checked }))}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -583,7 +611,10 @@ export function IAPage() {
                     <h3 className="font-medium">Modo Aprendizado</h3>
                     <p className="text-sm text-educhat-medium">Permite que a IA aprenda com novas interações</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={aiSettings.learningMode}
+                    onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, learningMode: checked }))}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -591,12 +622,18 @@ export function IAPage() {
                     <h3 className="font-medium">Handoff Automático</h3>
                     <p className="text-sm text-educhat-medium">Transferir automaticamente para humanos quando necessário</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={aiSettings.autoHandoff}
+                    onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, autoHandoff: checked }))}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <h3 className="font-medium">Modo de Operação</h3>
-                  <Select defaultValue="mentor">
+                  <Select 
+                    value={aiSettings.operationMode} 
+                    onValueChange={(value) => setAiSettings(prev => ({ ...prev, operationMode: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -611,14 +648,24 @@ export function IAPage() {
 
                 <div className="space-y-2">
                   <h3 className="font-medium">Nível de Confiança Mínimo</h3>
-                  <Input type="number" defaultValue="75" min="0" max="100" />
+                  <Input 
+                    type="number" 
+                    value={aiSettings.confidenceThreshold} 
+                    onChange={(e) => setAiSettings(prev => ({ ...prev, confidenceThreshold: parseInt(e.target.value) || 75 }))}
+                    min="0" 
+                    max="100" 
+                  />
                   <p className="text-xs text-educhat-medium">
                     Confiança mínima para respostas automáticas (0-100%)
                   </p>
                 </div>
 
-                <Button className="w-full">
-                  Salvar Configurações
+                <Button 
+                  className="w-full"
+                  onClick={() => saveSettingsMutation.mutate(aiSettings)}
+                  disabled={saveSettingsMutation.isPending}
+                >
+                  {saveSettingsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
                 </Button>
               </CardContent>
             </Card>
