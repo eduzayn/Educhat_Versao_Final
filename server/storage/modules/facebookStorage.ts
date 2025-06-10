@@ -163,7 +163,13 @@ export class FacebookStorage extends BaseStorage {
         .limit(limit);
       
       if (integrationId) {
-        query = query.where(eq(facebookWebhookLogs.integrationId, integrationId));
+        const result = await this.db
+          .select()
+          .from(facebookWebhookLogs)
+          .where(eq(facebookWebhookLogs.integrationId, integrationId))
+          .orderBy(desc(facebookWebhookLogs.createdAt))
+          .limit(limit);
+        return result;
       }
       
       const result = await query;
@@ -191,18 +197,20 @@ export class FacebookStorage extends BaseStorage {
 
   async getUnprocessedWebhooks(integrationId?: number): Promise<FacebookWebhookLog[]> {
     try {
-      let query = this.db
-        .select()
-        .from(facebookWebhookLogs)
-        .where(eq(facebookWebhookLogs.processed, false))
-        .orderBy(facebookWebhookLogs.createdAt);
+      let whereCondition = eq(facebookWebhookLogs.processed, false);
       
       if (integrationId) {
-        query = query.where(and(
+        whereCondition = and(
           eq(facebookWebhookLogs.processed, false),
           eq(facebookWebhookLogs.integrationId, integrationId)
-        ));
+        );
       }
+      
+      const query = this.db
+        .select()
+        .from(facebookWebhookLogs)
+        .where(whereCondition)
+        .orderBy(facebookWebhookLogs.createdAt);
       
       const result = await query;
       console.log(`📋 ${result.length} webhooks Facebook não processados encontrados`);

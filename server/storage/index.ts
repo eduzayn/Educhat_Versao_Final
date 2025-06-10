@@ -48,6 +48,7 @@ export class DatabaseStorage implements IStorage {
   private message: MessageStorage;
   private system: SystemStorage;
   public manychat: ManychatStorage;
+  public facebook: FacebookStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -61,6 +62,7 @@ export class DatabaseStorage implements IStorage {
     this.message = new MessageStorage();
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
+    this.facebook = new FacebookStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================
