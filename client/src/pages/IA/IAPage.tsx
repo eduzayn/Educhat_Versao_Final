@@ -84,28 +84,19 @@ export function IAPage() {
   // Query para status do atendimento automático
   const { data: autoResponseStatus, isLoading: statusLoading } = useQuery({
     queryKey: ["/api/ia/auto-response/status"],
-    queryFn: async () => {
-      const response = await fetch("/api/ia/auto-response/status");
-      return response.json();
-    }
+    queryFn: () => apiRequest("GET", "/api/ia/auto-response/status")
   });
 
   // Query para buscar personalidades (Faces Inteligentes)
   const { data: personalitiesData, isLoading: personalitiesLoading } = useQuery({
     queryKey: ["/api/ia/personalities"],
-    queryFn: async () => {
-      const response = await fetch("/api/ia/personalities");
-      return response.json();
-    }
+    queryFn: () => apiRequest("GET", "/api/ia/personalities")
   });
 
   // Query para personalidade atual
   const { data: currentPersonalityData, isLoading: currentPersonalityLoading } = useQuery({
     queryKey: ["/api/ia/current-personality"],
-    queryFn: async () => {
-      const response = await fetch("/api/ia/current-personality");
-      return response.json();
-    },
+    queryFn: () => apiRequest("GET", "/api/ia/current-personality"),
     refetchInterval: 30000 // Atualizar a cada 30 segundos
   });
 
@@ -612,6 +603,170 @@ export function IAPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Personalities Tab - Faces Inteligentes */}
+          <TabsContent value="personalities" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-semibold">Faces Inteligentes da Prof. Ana</h2>
+                <p className="text-educhat-medium">Sistema de personalidades que se adapta automaticamente ao contexto da conversa</p>
+              </div>
+              <Badge variant="outline" className="px-3 py-1">
+                {personalitiesLoading ? "Carregando..." : "Sistema Ativo"}
+              </Badge>
+            </div>
+
+            {/* Status da Personalidade Atual */}
+            <Card className="border-2 border-educhat-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-educhat-primary" />
+                  Personalidade Atual
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {currentPersonalityLoading ? (
+                  <div className="text-center py-4 text-educhat-medium">
+                    Verificando personalidade ativa...
+                  </div>
+                ) : currentPersonalityData?.personality ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-educhat-primary">
+                          {currentPersonalityData.personality.name}
+                        </h3>
+                        <p className="text-sm text-educhat-medium">
+                          {currentPersonalityData.personality.role}
+                        </p>
+                      </div>
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                        Ativa
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-educhat-dark">
+                      {currentPersonalityData.personality.description}
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Tom:</span> {currentPersonalityData.personality.tone}
+                      </div>
+                      <div>
+                        <span className="font-medium">Empatia:</span> {currentPersonalityData.personality.responsePatterns.empathetic ? "Alta" : "Moderada"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Formalidade:</span> {currentPersonalityData.personality.responsePatterns.formal ? "Formal" : "Calorosa"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Objetividade:</span> {currentPersonalityData.personality.responsePatterns.directness}/5
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-educhat-medium">
+                    Personalidade não detectada
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Lista de Todas as Personalidades */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {personalitiesLoading ? (
+                <div className="col-span-full text-center py-8 text-educhat-medium">
+                  Carregando personalidades...
+                </div>
+              ) : personalitiesData?.personalities ? (
+                personalitiesData.personalities.map((personality: any, index: number) => (
+                  <Card key={personality.id} className={`transition-all duration-200 ${
+                    currentPersonalityData?.personality?.id === personality.id 
+                      ? "border-2 border-educhat-primary bg-educhat-primary/5" 
+                      : "hover:shadow-lg"
+                  }`}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5 text-educhat-primary" />
+                          {personality.name}
+                        </CardTitle>
+                        {currentPersonalityData?.personality?.id === personality.id && (
+                          <Badge variant="default" className="bg-educhat-primary text-white">
+                            Ativa
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-educhat-primary">{personality.role}</p>
+                        <p className="text-sm text-educhat-medium mt-1">{personality.description}</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Especialidades:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {personality.expertise.map((skill: string, idx: number) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Palavras-chave ativadoras:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {personality.contextTriggers.map((trigger: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {trigger}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-3">
+                          <h4 className="text-sm font-medium mb-2">Abordagem de comunicação:</h4>
+                          <p className="text-xs text-educhat-medium">
+                            {personality.communicationStyle.supportApproach}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="font-medium">Objetividade</div>
+                            <div className="text-educhat-primary">{personality.responsePatterns.directness}/5</div>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="font-medium">Profundidade</div>
+                            <div className="text-educhat-primary">{personality.responsePatterns.technicalDepth}/5</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-educhat-medium">
+                  Nenhuma personalidade encontrada
+                </div>
+              )}
+            </div>
+
+            {/* Informações do Sistema */}
+            {personalitiesData?.systemInfo && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-blue-800">Sobre o Sistema</CardTitle>
+                </CardHeader>
+                <CardContent className="text-blue-700">
+                  <p className="mb-2"><strong>{personalitiesData.systemInfo.name}</strong></p>
+                  <p className="text-sm">{personalitiesData.systemInfo.description}</p>
+                  <p className="text-xs mt-2 text-blue-600">Versão {personalitiesData.systemInfo.version}</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Settings Tab */}
