@@ -99,21 +99,36 @@ export class DealStorage extends BaseStorage {
   }
 
   async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
-    // Verificação adicional para evitar duplicação durante criação
+    // Verificação robusta para evitar duplicação durante criação
     const existingDeals = await this.getDealsByContact(contactId);
     
-    // Verificar se já existe um deal muito recente (últimos 5 minutos) para este contato/canal/macrosetor
+    // Verificar se já existe qualquer deal ativo para este contato no mesmo canal
+    const hasActiveDealSameChannel = existingDeals.some(deal => {
+      const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
+      const sameChannel = deal.canalOrigem === canalOrigem;
+      return isActive && sameChannel;
+    });
+
+    if (hasActiveDealSameChannel) {
+      console.log(`⚠️ Deal ativo já existe para contato ${contactId} no canal ${canalOrigem}, evitando duplicação`);
+      const activeDeal = existingDeals.find(deal => {
+        const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
+        return isActive && deal.canalOrigem === canalOrigem;
+      });
+      return activeDeal!;
+    }
+
+    // Verificar se já existe um deal muito recente (últimas 2 horas) para este contato/canal
     const veryRecentDeals = existingDeals.filter(deal => {
-      const dealDate = new Date(deal.createdAt);
+      if (!deal.createdAt) return false;
+      const dealDate = new Date(deal.createdAt!);
       const now = new Date();
-      const minutesDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60);
-      return minutesDiff < 5 && 
-             deal.canalOrigem === canalOrigem && 
-             deal.macrosetor === macrosetor;
+      const hoursDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60 * 60);
+      return hoursDiff < 2 && deal.canalOrigem === canalOrigem;
     });
 
     if (veryRecentDeals.length > 0) {
-      console.log(`⚠️ Deal muito recente encontrado para contato ${contactId}, evitando duplicação`);
+      console.log(`⚠️ Deal muito recente encontrado para contato ${contactId} no canal ${canalOrigem}, evitando duplicação`);
       return veryRecentDeals[0];
     }
 
@@ -136,6 +151,18 @@ export class DealStorage extends BaseStorage {
     // Gerar nome único para o deal baseado no timestamp
     const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
     const dealName = `${contact.name} - ${macrosetor || 'Geral'}`;
+
+    // Verificação final antes da criação para evitar condições de corrida
+    const finalCheck = await this.getDealsByContact(contactId);
+    const lastMinuteActiveDeal = finalCheck.find(deal => {
+      const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
+      return isActive && deal.canalOrigem === canalOrigem;
+    });
+
+    if (lastMinuteActiveDeal) {
+      console.log(`⚠️ Deal ativo detectado na verificação final para contato ${contactId}, retornando deal existente`);
+      return lastMinuteActiveDeal;
+    }
 
     // Create automatic deal
     const dealData: InsertDeal = {
