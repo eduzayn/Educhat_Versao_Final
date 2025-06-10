@@ -75,9 +75,21 @@ export function IAPage() {
   const logs = Array.isArray(logsData) ? logsData : [];
 
   // Query para status do atendimento automático
-  const { data: autoResponseStatus, isLoading: statusLoading } = useQuery({
+  const { data: autoResponseStatus, isLoading: statusLoading } = useQuery<{enabled: boolean, message: string}>({
     queryKey: ["/api/ia/auto-response/status"],
     queryFn: () => apiRequest("GET", "/api/ia/auto-response/status")
+  });
+
+  // Mutation para controlar atendimento automático
+  const toggleAutoResponseMutation = useMutation({
+    mutationFn: (enabled: boolean) => apiRequest("POST", "/api/ia/auto-response", { enabled }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ia/auto-response/status"] });
+      toast({
+        title: "Status atualizado",
+        description: "Atendimento automático da Prof. Ana atualizado com sucesso"
+      });
+    }
   });
 
   // Form para contexto
@@ -181,12 +193,43 @@ export function IAPage() {
   return (
     <div className="min-h-screen bg-educhat-light p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with return button and auto-response control */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Bot className="h-8 w-8 text-educhat-primary" />
-            <h1 className="text-3xl font-bold text-educhat-dark">Prof. Ana</h1>
-            <Badge variant="secondary" className="ml-2">Assistente de IA</Badge>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => window.location.href = "/"}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Dashboard
+              </Button>
+              <div className="h-4 w-px bg-gray-300" />
+              <Bot className="h-8 w-8 text-educhat-primary" />
+              <h1 className="text-3xl font-bold text-educhat-dark">Prof. Ana</h1>
+              <Badge variant="secondary" className="ml-2">Assistente de IA</Badge>
+            </div>
+            
+            {/* Auto-response control */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {autoResponseStatus?.enabled ? (
+                  <Power className="h-4 w-4 text-green-600" />
+                ) : (
+                  <PowerOff className="h-4 w-4 text-gray-400" />
+                )}
+                <span className="text-sm font-medium">
+                  Atendimento Automático
+                </span>
+                <Switch
+                  checked={autoResponseStatus?.enabled || false}
+                  onCheckedChange={(checked) => toggleAutoResponseMutation.mutate(checked)}
+                  disabled={toggleAutoResponseMutation.isPending || statusLoading}
+                />
+              </div>
+            </div>
           </div>
           <p className="text-educhat-medium">
             Sistema inteligente de atendimento educacional com IA avançada
