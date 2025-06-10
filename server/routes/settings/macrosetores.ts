@@ -13,7 +13,7 @@ export function registerMacrosetorRoutes(app: any, storage: DatabaseStorage) {
   // GET /api/settings/macrosetores - Listar todos os macrosetores com suas palavras-chave
   app.get('/api/settings/macrosetores', async (req: any, res: any) => {
     try {
-      const macrosetores = await storage.macrosetor.getMacrosetores();
+      const macrosetores = await storage.getMacrosetores();
       res.json(macrosetores);
     } catch (error) {
       console.error('Erro ao buscar macrosetores:', error);

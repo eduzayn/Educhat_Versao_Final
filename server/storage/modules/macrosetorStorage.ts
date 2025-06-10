@@ -102,6 +102,10 @@ export class MacrosetorStorage extends BaseStorage {
       .orderBy(macrosetorKeywords.keyword);
   }
 
+  async getMacrosetorKeywords(macrosetorId: number): Promise<MacrosetorKeyword[]> {
+    return this.getKeywords(macrosetorId);
+  }
+
   async createKeyword(data: InsertMacrosetorKeyword): Promise<MacrosetorKeyword> {
     const [keyword] = await this.db
       .insert(macrosetorKeywords)
@@ -109,6 +113,10 @@ export class MacrosetorStorage extends BaseStorage {
       .returning();
     
     return keyword;
+  }
+
+  async createMacrosetorKeyword(macrosetorId: number, data: Omit<InsertMacrosetorKeyword, 'macrosetorId'>): Promise<MacrosetorKeyword> {
+    return this.createKeyword({ ...data, macrosetorId });
   }
 
   async updateKeyword(id: number, data: Partial<InsertMacrosetorKeyword>): Promise<MacrosetorKeyword> {
@@ -131,6 +139,15 @@ export class MacrosetorStorage extends BaseStorage {
     await this.db
       .delete(macrosetorKeywords)
       .where(eq(macrosetorKeywords.macrosetorId, macrosetorId));
+  }
+
+  async deleteMacrosetorKeyword(macrosetorId: number, keywordId: number): Promise<void> {
+    await this.db
+      .delete(macrosetorKeywords)
+      .where(and(
+        eq(macrosetorKeywords.id, keywordId),
+        eq(macrosetorKeywords.macrosetorId, macrosetorId)
+      ));
   }
 
   // Métodos para Logs de Detecção
@@ -228,6 +245,29 @@ export class MacrosetorStorage extends BaseStorage {
     }
 
     return bestMatch;
+  }
+
+  // Método para teste de detecção via API
+  async testMacrosetorDetection(text: string): Promise<{
+    detected: string;
+    score: number;
+    keywords: Array<{
+      keyword: string;
+      weight: number;
+      macrosetor: string;
+    }>;
+  }> {
+    const result = await this.detectMacrosetorAdvanced(text);
+    
+    return {
+      detected: result.macrosetor,
+      score: Math.round(result.confidence * 100),
+      keywords: result.matchedKeywords.map(keyword => ({
+        keyword,
+        weight: 1,
+        macrosetor: result.macrosetor
+      }))
+    };
   }
 
   // Método para inicializar macrosetores padrão
