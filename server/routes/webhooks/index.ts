@@ -1372,6 +1372,7 @@ export function registerZApiRoutes(app: Express) {
               
               // Verificar deals muito recentes (últimas 2 horas) para qualquer macrosetor
               const veryRecentDeals = existingDeals.filter(deal => {
+                if (!deal.createdAt) return false;
                 const dealDate = new Date(deal.createdAt);
                 const now = new Date();
                 const hoursDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60 * 60);

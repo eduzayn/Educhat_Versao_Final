@@ -99,23 +99,25 @@ export class DealStorage extends BaseStorage {
   }
 
   async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
+    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
+    
     // Verificação robusta para evitar duplicação durante criação
     const existingDeals = await this.getDealsByContact(contactId);
+    console.log(`📊 Deals existentes para contato ${contactId}: ${existingDeals.length} deals encontrados`);
     
     // Verificar se já existe qualquer deal ativo para este contato no mesmo canal
-    const hasActiveDealSameChannel = existingDeals.some(deal => {
+    const activeDealsSameChannel = existingDeals.filter(deal => {
       const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
       const sameChannel = deal.canalOrigem === canalOrigem;
       return isActive && sameChannel;
     });
 
-    if (hasActiveDealSameChannel) {
-      console.log(`⚠️ Deal ativo já existe para contato ${contactId} no canal ${canalOrigem}, evitando duplicação`);
-      const activeDeal = existingDeals.find(deal => {
-        const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
-        return isActive && deal.canalOrigem === canalOrigem;
+    if (activeDealsSameChannel.length > 0) {
+      console.log(`⚠️ BLOQUEIO: ${activeDealsSameChannel.length} deal(s) ativo(s) já existe(m) para contato ${contactId} no canal ${canalOrigem}`);
+      activeDealsSameChannel.forEach(deal => {
+        console.log(`   - Deal ID ${deal.id}: ${deal.name} (${deal.stage}) - criado em ${deal.createdAt}`);
       });
-      return activeDeal!;
+      return activeDealsSameChannel[0];
     }
 
     // Verificar se já existe um deal muito recente (últimas 2 horas) para este contato/canal
@@ -128,7 +130,11 @@ export class DealStorage extends BaseStorage {
     });
 
     if (veryRecentDeals.length > 0) {
-      console.log(`⚠️ Deal muito recente encontrado para contato ${contactId} no canal ${canalOrigem}, evitando duplicação`);
+      console.log(`⚠️ BLOQUEIO: ${veryRecentDeals.length} deal(s) muito recente(s) encontrado(s) para contato ${contactId} no canal ${canalOrigem}`);
+      veryRecentDeals.forEach(deal => {
+        const hoursAgo = Math.round(((new Date().getTime() - new Date(deal.createdAt!).getTime()) / (1000 * 60 * 60)) * 100) / 100;
+        console.log(`   - Deal ID ${deal.id}: ${deal.name} - criado há ${hoursAgo} horas`);
+      });
       return veryRecentDeals[0];
     }
 
@@ -185,7 +191,29 @@ export class DealStorage extends BaseStorage {
     };
 
     console.log(`💼 Criando deal automático: ${dealName} para ${contact.name}`);
-    return this.createDeal(dealData);
+    
+    try {
+      const newDeal = await this.createDeal(dealData);
+      console.log(`✅ Deal criado com sucesso: ID ${newDeal.id} para contato ${contactId}`);
+      return newDeal;
+    } catch (error) {
+      console.error(`❌ Erro ao criar deal para contato ${contactId}:`, error);
+      
+      // Em caso de erro (possível duplicação por condição de corrida), 
+      // tentar retornar um deal existente
+      const fallbackDeals = await this.getDealsByContact(contactId);
+      const fallbackDeal = fallbackDeals.find(deal => {
+        const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
+        return isActive && deal.canalOrigem === canalOrigem;
+      });
+      
+      if (fallbackDeal) {
+        console.log(`🔄 Retornando deal existente como fallback: ID ${fallbackDeal.id}`);
+        return fallbackDeal;
+      }
+      
+      throw error;
+    }
   }
 
   async cleanupDuplicateDeals(): Promise<{ removed: number; details: any[] }> {
