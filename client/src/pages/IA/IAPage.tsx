@@ -152,6 +152,25 @@ export default function IAPage() {
     }
   });
 
+  // Consultas para documentos
+  const { data: recentDocuments, isLoading: documentsLoading } = useQuery<ProcessedDocument[]>({
+    queryKey: ['/api/documents/recent'],
+    queryFn: async () => {
+      const response = await fetch('/api/documents/recent?limit=20');
+      if (!response.ok) throw new Error('Falha ao carregar documentos');
+      return response.json();
+    }
+  });
+
+  const { data: documentStats, isLoading: documentStatsLoading } = useQuery({
+    queryKey: ['/api/documents/stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/documents/stats');
+      if (!response.ok) throw new Error('Falha ao carregar estatísticas de documentos');
+      return response.json();
+    }
+  });
+
   // Mutações
   const testAIMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -181,6 +200,27 @@ export default function IAPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ia/contexts'] });
       setNewContext({ title: '', content: '', category: '' });
+    }
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('Falha no upload do documento');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/documents/recent'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents/stats'] });
+      setSelectedFile(null);
+      setUploadProgress(0);
     }
   });
 
@@ -515,6 +555,211 @@ export default function IAPage() {
                   <h3 className="text-lg font-medium">Nenhuma memória encontrada</h3>
                   <p className="text-muted-foreground">
                     A Prof. Ana ainda não salvou memórias com os filtros selecionados
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {documentStatsLoading ? (
+              [...Array(4)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-8 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total de Documentos</CardTitle>
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{documentStats?.totalDocuments || 0}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Processados Hoje</CardTitle>
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{documentStats?.processedToday || 0}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Conhecimento Adicionado</CardTitle>
+                    <Brain className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{documentStats?.knowledgeItems || 0}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{documentStats?.successRate || 0}%</div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload de Documento</CardTitle>
+              <CardDescription>
+                Faça upload de arquivos PDF ou DOCX para expandir o conhecimento da Prof. Ana
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-center w-full">
+                <label 
+                  htmlFor="document-upload" 
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 mb-4 text-gray-500" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
+                    </p>
+                    <p className="text-xs text-gray-500">PDF ou DOCX (MAX. 10MB)</p>
+                  </div>
+                  <input 
+                    id="document-upload" 
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.docx,.doc"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setSelectedFile(file);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {selectedFile && (
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-sm font-medium">{selectedFile.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => uploadDocumentMutation.mutate(selectedFile)}
+                      disabled={uploadDocumentMutation.isPending}
+                    >
+                      {uploadDocumentMutation.isPending ? 'Processando...' : 'Processar'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedFile(null)}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Documentos Processados</CardTitle>
+                  <CardDescription>Histórico de documentos processados pela Prof. Ana</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar documentos..."
+                    value={documentSearch}
+                    onChange={(e) => setDocumentSearch(e.target.value)}
+                    className="w-64"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {documentsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+                      <div className="h-10 w-10 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+                      </div>
+                      <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentDocuments && recentDocuments.length > 0 ? (
+                <div className="space-y-4">
+                  {recentDocuments
+                    .filter(doc => 
+                      !documentSearch || 
+                      doc.name.toLowerCase().includes(documentSearch.toLowerCase()) ||
+                      doc.content.toLowerCase().includes(documentSearch.toLowerCase())
+                    )
+                    .map((doc) => (
+                    <div key={doc.id} className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50">
+                      <div className="flex-shrink-0">
+                        <FileText className="h-10 w-10 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {doc.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {doc.type.toUpperCase()} • {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate max-w-md">
+                          {doc.content.substring(0, 100)}...
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Badge variant="secondary">
+                          {doc.metadata?.category || 'Geral'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium">Nenhum documento processado</h3>
+                  <p className="text-muted-foreground">
+                    Faça upload de documentos PDF ou DOCX para começar
                   </p>
                 </div>
               )}
