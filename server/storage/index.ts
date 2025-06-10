@@ -12,6 +12,7 @@ export { NotesStorage } from './modules/notesStorage';
 export { QuickReplyStorage } from './modules/quickReplyStorage';
 export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
+export { ManychatStorage } from './modules/manychatStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
@@ -30,6 +31,7 @@ import { NotesStorage } from './modules/notesStorage';
 import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
+import { ManychatStorage } from './modules/manychatStorage';
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
@@ -43,6 +45,7 @@ export class DatabaseStorage implements IStorage {
   private team: TeamStorage;
   private message: MessageStorage;
   private system: SystemStorage;
+  public manychat: ManychatStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -55,6 +58,7 @@ export class DatabaseStorage implements IStorage {
     this.team = new TeamStorage();
     this.message = new MessageStorage();
     this.system = new SystemStorage();
+    this.manychat = new ManychatStorage();
   }
 
   // ==================== AUTH OPERATIONS ====================

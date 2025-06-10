@@ -2,6 +2,9 @@ import { BaseStorage } from '../base/BaseStorage';
 import { 
   manychatIntegrations, 
   manychatWebhookLogs,
+  contacts,
+  conversations,
+  messages,
   type ManychatIntegration, 
   type InsertManychatIntegration,
   type ManychatWebhookLog,
@@ -243,8 +246,8 @@ export class ManychatStorage extends BaseStorage {
       // Check if contact already exists by searching for user identity
       const existingContacts = await this.db
         .select()
-        .from(this.schema.contacts)
-        .where(eq(this.schema.contacts.userIdentity, contactData.userIdentity))
+        .from(contacts)
+        .where(eq(contacts.userIdentity, contactData.userIdentity))
         .limit(1);
       
       let contact = existingContacts[0];
@@ -252,7 +255,7 @@ export class ManychatStorage extends BaseStorage {
       if (!contact) {
         // Create new contact
         const newContacts = await this.db
-          .insert(this.schema.contacts)
+          .insert(contacts)
           .values(contactData)
           .returning();
         contact = newContacts[0];
@@ -261,11 +264,11 @@ export class ManychatStorage extends BaseStorage {
       // Find or create conversation
       const existingConversations = await this.db
         .select()
-        .from(this.schema.conversations)
+        .from(conversations)
         .where(and(
-          eq(this.schema.conversations.contactId, contact.id),
-          eq(this.schema.conversations.channel, 'manychat'),
-          eq(this.schema.conversations.status, 'open')
+          eq(conversations.contactId, contact.id),
+          eq(conversations.channel, 'manychat'),
+          eq(conversations.status, 'open')
         ))
         .limit(1);
       
@@ -273,7 +276,7 @@ export class ManychatStorage extends BaseStorage {
       
       if (!conversation) {
         const newConversations = await this.db
-          .insert(this.schema.conversations)
+          .insert(conversations)
           .values({
             contactId: contact.id,
             channel: 'manychat',
@@ -288,7 +291,7 @@ export class ManychatStorage extends BaseStorage {
       // Create message in conversation
       const messageContent = webhookData.text || 'Novo lead capturado via Manychat';
       await this.db
-        .insert(this.schema.messages)
+        .insert(messages)
         .values({
           conversationId: conversation.id,
           content: messageContent,

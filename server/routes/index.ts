@@ -22,6 +22,7 @@ import { registerUtilitiesRoutes } from "./utilities/index";
 import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
+import { registerIntegrationRoutes } from "./integrations/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -49,6 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerBIRoutes(app);
   registerSalesRoutes(app);
   registerCourseRoutes(app);
+  registerIntegrationRoutes(app);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
