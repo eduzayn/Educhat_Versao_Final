@@ -118,7 +118,8 @@ export function Dashboard() {
       label: 'Transferências',
       icon: ArrowRightLeft,
       description: 'Sistema de handoff inteligente',
-      route: '/handoffs'
+      route: '/handoffs',
+      managerOrAdminOnly: true
     },
     {
       id: 'settings',
