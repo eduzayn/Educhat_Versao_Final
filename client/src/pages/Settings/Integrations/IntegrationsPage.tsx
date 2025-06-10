@@ -114,7 +114,7 @@ export function IntegrationsPage() {
 
   // Mutation para salvar configurações
   const saveConfigMutation = useMutation({
-    mutationFn: (data: ManychatIntegration) => 
+    mutationFn: (data: any) => 
       apiRequest('POST', '/api/integrations/manychat', data),
     onSuccess: () => {
       toast({
