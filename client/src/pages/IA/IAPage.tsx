@@ -1,363 +1,573 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Badge } from '@/shared/ui/badge';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
+import { Badge } from "@/shared/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { 
   Bot, 
   Brain, 
-  BarChart3, 
-  FileText, 
   MessageSquare, 
-  Settings,
-  Upload,
-  Zap,
+  TrendingUp, 
+  Settings, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Play, 
+  Pause,
+  BarChart3,
   Users,
-  TrendingUp,
   Clock,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
+  Star
+} from "lucide-react";
+import { Switch } from "@/shared/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
+import { useToast } from "@/shared/lib/hooks/use-toast";
+
+// Schema for AI context form
+const contextSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.enum(["educational", "support", "sales", "general"]),
+  content: z.string().min(10, "Conteúdo deve ter pelo menos 10 caracteres"),
+  metadata: z.object({
+    tags: z.array(z.string()).default([]),
+    priority: z.enum(["low", "medium", "high"]).default("medium")
+  }).default({})
+});
+
+type ContextFormData = z.infer<typeof contextSchema>;
 
 export function IAPage() {
-  const [location, setLocation] = useLocation();
-  
-  // Mock data para demonstração
-  const stats = {
-    totalInteractions: 1247,
-    leadsConverted: 89,
-    avgResponseTime: 1.2,
-    satisfactionRate: 94
+  const { toast } = useToast();
+  const [selectedTab, setSelectedTab] = useState("dashboard");
+  const [contextDialogOpen, setContextDialogOpen] = useState(false);
+  const [editingContext, setEditingContext] = useState<any>(null);
+
+  // Query para buscar contextos de IA
+  const { data: contexts = [], isLoading: contextsLoading } = useQuery({
+    queryKey: ["/api/ia/context"],
+    queryFn: () => apiRequest("GET", "/api/ia/context")
+  });
+
+  // Query para buscar estatísticas
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/ia/stats"],
+    queryFn: () => apiRequest("GET", "/api/ia/stats")
+  });
+
+  // Query para buscar logs
+  const { data: logs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ["/api/ia/logs"],
+    queryFn: () => apiRequest("GET", "/api/ia/logs")
+  });
+
+  // Form para contexto
+  const contextForm = useForm<ContextFormData>({
+    resolver: zodResolver(contextSchema),
+    defaultValues: {
+      name: "",
+      type: "educational",
+      content: "",
+      metadata: {
+        tags: [],
+        priority: "medium"
+      }
+    }
+  });
+
+  // Mutations
+  const createContextMutation = useMutation({
+    mutationFn: (data: ContextFormData) => apiRequest("POST", "/api/ia/context", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ia/context"] });
+      setContextDialogOpen(false);
+      contextForm.reset();
+      toast({ title: "Contexto criado com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar contexto", variant: "destructive" });
+    }
+  });
+
+  const updateContextMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<ContextFormData> }) => 
+      apiRequest("PUT", `/api/ia/context/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ia/context"] });
+      setContextDialogOpen(false);
+      setEditingContext(null);
+      contextForm.reset();
+      toast({ title: "Contexto atualizado com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao atualizar contexto", variant: "destructive" });
+    }
+  });
+
+  const deleteContextMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/ia/context/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ia/context"] });
+      toast({ title: "Contexto removido com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao remover contexto", variant: "destructive" });
+    }
+  });
+
+  const handleSubmitContext = (data: ContextFormData) => {
+    if (editingContext) {
+      updateContextMutation.mutate({ id: editingContext.id, data });
+    } else {
+      createContextMutation.mutate(data);
+    }
   };
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'conversion',
-      contact: 'Maria Silva',
-      course: 'Administração',
-      timestamp: '10 min atrás',
-      mode: 'consultant'
-    },
-    {
-      id: 2,
-      type: 'support',
-      contact: 'João Santos',
-      action: 'Certificado enviado',
-      timestamp: '25 min atrás',
-      mode: 'mentor'
-    },
-    {
-      id: 3,
-      type: 'handoff',
-      contact: 'Ana Costa',
-      reason: 'Questão complexa - Financeiro',
-      timestamp: '1h atrás',
-      mode: 'consultant'
-    }
-  ];
+  const handleEditContext = (context: any) => {
+    setEditingContext(context);
+    contextForm.reset({
+      name: context.name,
+      type: context.type,
+      content: context.content,
+      metadata: context.metadata || { tags: [], priority: "medium" }
+    });
+    setContextDialogOpen(true);
+  };
 
-  const aiModes = [
-    {
-      title: 'Prof. Ana - Mentora Acadêmica',
-      description: 'Apoio a alunos matriculados com foco em orientação e suporte',
-      icon: Brain,
-      color: 'bg-blue-100 text-blue-800',
-      stats: { interactions: 678, satisfaction: 96 }
-    },
-    {
-      title: 'Prof. Ana - Consultora Educacional', 
-      description: 'Conversão de leads com abordagem persuasiva e orientada a vendas',
-      icon: Zap,
-      color: 'bg-green-100 text-green-800',
-      stats: { interactions: 569, conversions: 89 }
+  const handleDeleteContext = (id: number) => {
+    if (confirm("Tem certeza que deseja remover este contexto?")) {
+      deleteContextMutation.mutate(id);
     }
-  ];
+  };
+
+  const getTypeLabel = (type: string) => {
+    const types = {
+      educational: "Educacional",
+      support: "Suporte",
+      sales: "Vendas",
+      general: "Geral"
+    };
+    return types[type as keyof typeof types] || type;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors = {
+      low: "bg-green-100 text-green-800",
+      medium: "bg-yellow-100 text-yellow-800",
+      high: "bg-red-100 text-red-800"
+    };
+    return colors[priority as keyof typeof colors] || colors.medium;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-educhat-light p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-educhat-dark flex items-center gap-3">
-              <Bot className="w-8 h-8 text-educhat-primary" />
-              Prof. Ana
-            </h1>
-            <p className="text-educhat-medium mt-2">
-              Assistente de Relacionamento Inteligente - Sistema de IA Educacional
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Bot className="h-8 w-8 text-educhat-primary" />
+            <h1 className="text-3xl font-bold text-educhat-dark">Prof. Ana</h1>
+            <Badge variant="secondary" className="ml-2">Assistente de IA</Badge>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setLocation('/ia/train')}>
-              <Upload className="w-4 h-4 mr-2" />
-              Treinar IA
-            </Button>
-            <Button variant="outline" onClick={() => setLocation('/ia/settings')}>
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-          </div>
+          <p className="text-educhat-medium">
+            Sistema inteligente de atendimento educacional com IA avançada
+          </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-l-4 border-l-educhat-primary">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-educhat-medium">
-                Interações Totais
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-educhat-dark">
-                {stats.totalInteractions.toLocaleString()}
-              </div>
-              <div className="flex items-center mt-2 text-sm text-green-600">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +23% este mês
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-green-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-educhat-medium">
-                Leads Convertidos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-educhat-dark">
-                {stats.leadsConverted}
-              </div>
-              <div className="flex items-center mt-2 text-sm text-green-600">
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Taxa: 15.6%
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-educhat-medium">
-                Tempo Médio de Resposta
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-educhat-dark">
-                {stats.avgResponseTime}s
-              </div>
-              <div className="flex items-center mt-2 text-sm text-blue-600">
-                <Clock className="w-4 h-4 mr-1" />
-                Excelente performance
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-purple-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-educhat-medium">
-                Satisfação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-educhat-dark">
-                {stats.satisfactionRate}%
-              </div>
-              <div className="flex items-center mt-2 text-sm text-purple-600">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                +2% este mês
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        {/* Tabs Navigation */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="modes">Modos de IA</TabsTrigger>
-            <TabsTrigger value="activity">Atividades</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="context" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Contexto
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Logs
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configurações
+            </TabsTrigger>
           </TabsList>
 
+          {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* AI Modes Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
-                    Modos da Prof. Ana
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Interações Totais</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {aiModes.map((mode, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${mode.color}`}>
-                            <mode.icon className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-sm">{mode.title}</h3>
-                            <p className="text-xs text-educhat-medium">{mode.description}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-4 text-xs text-educhat-medium">
-                        <span>Interações: {mode.stats.interactions}</span>
-                        {mode.stats.satisfaction && (
-                          <span>Satisfação: {mode.stats.satisfaction}%</span>
-                        )}
-                        {mode.stats.conversions && (
-                          <span>Conversões: {mode.stats.conversions}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statsLoading ? "..." : stats?.totalInteractions || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
                 </CardContent>
               </Card>
 
-              {/* Recent Activity */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    Atividades Recentes
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Leads Convertidos</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-educhat-primary"></div>
-                        <div>
-                          <p className="text-sm font-medium">{activity.contact}</p>
-                          <p className="text-xs text-educhat-medium">
-                            {activity.course || activity.action || activity.reason}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="secondary" className="text-xs">
-                          {activity.mode === 'mentor' ? 'Mentora' : 'Consultora'}
-                        </Badge>
-                        <p className="text-xs text-educhat-medium mt-1">{activity.timestamp}</p>
-                      </div>
-                    </div>
-                  ))}
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statsLoading ? "..." : stats?.leadsConverted || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Conversões da IA</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Tempo Médio</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statsLoading ? "..." : `${stats?.avgResponseTime || 0}s`}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Resposta da IA</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Satisfação</CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statsLoading ? "..." : `${stats?.satisfactionRate || 0}%`}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Taxa de satisfação</p>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
 
-          <TabsContent value="modes" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {aiModes.map((mode, index) => (
-                <Card key={index} className="relative">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                      <div className={`p-3 rounded-lg ${mode.color}`}>
-                        <mode.icon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg">{mode.title}</h3>
-                        <p className="text-sm text-educhat-medium font-normal">
-                          {mode.description}
-                        </p>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xl font-bold text-educhat-dark">
-                          {mode.stats.interactions}
-                        </div>
-                        <div className="text-xs text-educhat-medium">Interações</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xl font-bold text-educhat-dark">
-                          {mode.stats.satisfaction || mode.stats.conversions}
-                        </div>
-                        <div className="text-xs text-educhat-medium">
-                          {mode.stats.satisfaction ? 'Satisfação %' : 'Conversões'}
-                        </div>
-                      </div>
-                    </div>
-                    <Button className="w-full" variant="outline">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Configurar Modo
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="activity" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Log de Atividades da IA</CardTitle>
+                <CardTitle>Atividade Recente</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="border-l-4 border-l-educhat-primary pl-4 py-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{activity.contact}</p>
-                          <p className="text-sm text-educhat-medium">
-                            {activity.course || activity.action || activity.reason}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant="secondary">
-                            {activity.mode === 'mentor' ? 'Mentora' : 'Consultora'}
-                          </Badge>
-                          <p className="text-xs text-educhat-medium mt-1">{activity.timestamp}</p>
-                        </div>
-                      </div>
+                  {logsLoading ? (
+                    <div className="text-center py-8 text-educhat-medium">
+                      Carregando atividades...
                     </div>
-                  ))}
+                  ) : logs.length === 0 ? (
+                    <div className="text-center py-8 text-educhat-medium">
+                      Nenhuma atividade encontrada
+                    </div>
+                  ) : (
+                    logs.slice(0, 5).map((log: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Bot className="h-5 w-5 text-educhat-primary" />
+                          <div>
+                            <p className="font-medium">{log.userMessage || "Interação da IA"}</p>
+                            <p className="text-sm text-educhat-medium">
+                              {log.createdAt ? new Date(log.createdAt).toLocaleString() : "Agora"}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant={log.classification === 'lead' ? 'default' : 'secondary'}>
+                          {log.classification || 'geral'}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    Performance por Período
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-educhat-medium">
-                    <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Gráficos de performance em desenvolvimento</p>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Context Tab */}
+          <TabsContent value="context" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold">Contextos de IA</h2>
+              <Dialog open={contextDialogOpen} onOpenChange={setContextDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Novo Contexto
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingContext ? "Editar Contexto" : "Novo Contexto"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Form {...contextForm}>
+                    <form onSubmit={contextForm.handleSubmit(handleSubmitContext)} className="space-y-4">
+                      <FormField
+                        control={contextForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome do contexto" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Distribuição por Funil
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-educhat-medium">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Análise de funis em desenvolvimento</p>
-                  </div>
-                </CardContent>
-              </Card>
+                      <FormField
+                        control={contextForm.control}
+                        name="type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="educational">Educacional</SelectItem>
+                                <SelectItem value="support">Suporte</SelectItem>
+                                <SelectItem value="sales">Vendas</SelectItem>
+                                <SelectItem value="general">Geral</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={contextForm.control}
+                        name="content"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Conteúdo</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Conteúdo do contexto para treinar a IA..."
+                                rows={6}
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setContextDialogOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={createContextMutation.isPending || updateContextMutation.isPending}
+                        >
+                          {editingContext ? "Atualizar" : "Criar"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {contextsLoading ? (
+                <div className="col-span-full text-center py-8 text-educhat-medium">
+                  Carregando contextos...
+                </div>
+              ) : contexts.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-educhat-medium">
+                  Nenhum contexto encontrado. Crie seu primeiro contexto para treinar a Prof. Ana.
+                </div>
+              ) : (
+                contexts.map((context: any) => (
+                  <Card key={context.id} className="relative">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{context.name}</CardTitle>
+                          <div className="flex gap-2 mt-2">
+                            <Badge variant="outline">{getTypeLabel(context.type)}</Badge>
+                            <Badge className={getPriorityColor(context.metadata?.priority || 'medium')}>
+                              {context.metadata?.priority || 'medium'}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditContext(context)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteContext(context.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-educhat-medium line-clamp-3">
+                        {context.content}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between text-xs text-educhat-medium">
+                        <span>
+                          {context.createdAt ? new Date(context.createdAt).toLocaleDateString() : ""}
+                        </span>
+                        <Badge variant={context.isActive ? "default" : "secondary"}>
+                          {context.isActive ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Logs Tab */}
+          <TabsContent value="logs" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Logs de Atividade da IA</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {logsLoading ? (
+                    <div className="text-center py-8 text-educhat-medium">
+                      Carregando logs...
+                    </div>
+                  ) : logs.length === 0 ? (
+                    <div className="text-center py-8 text-educhat-medium">
+                      Nenhum log encontrado
+                    </div>
+                  ) : (
+                    logs.map((log: any, index: number) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Bot className="h-5 w-5 text-educhat-primary" />
+                            <span className="font-medium">Interação #{log.id || index + 1}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant={log.classification === 'lead' ? 'default' : 'secondary'}>
+                              {log.classification || 'geral'}
+                            </Badge>
+                            {log.sentiment && (
+                              <Badge variant={log.sentiment === 'positive' ? 'default' : 'outline'}>
+                                {log.sentiment}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-educhat-medium mb-2">
+                          <strong>Usuário:</strong> {log.userMessage || "Mensagem não disponível"}
+                        </p>
+                        <p className="text-sm text-educhat-medium mb-2">
+                          <strong>IA:</strong> {log.aiResponse || "Resposta não disponível"}
+                        </p>
+                        <div className="flex justify-between text-xs text-educhat-medium">
+                          <span>
+                            {log.createdAt ? new Date(log.createdAt).toLocaleString() : "Data não disponível"}
+                          </span>
+                          {log.processingTime && (
+                            <span>Processamento: {log.processingTime}ms</span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações da Prof. Ana</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">IA Ativa</h3>
+                    <p className="text-sm text-educhat-medium">Ativar ou desativar o assistente de IA</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">Modo Aprendizado</h3>
+                    <p className="text-sm text-educhat-medium">Permite que a IA aprenda com novas interações</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">Handoff Automático</h3>
+                    <p className="text-sm text-educhat-medium">Transferir automaticamente para humanos quando necessário</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-medium">Modo de Operação</h3>
+                  <Select defaultValue="mentor">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mentor">Mentor Educacional</SelectItem>
+                      <SelectItem value="support">Suporte Técnico</SelectItem>
+                      <SelectItem value="sales">Assistente de Vendas</SelectItem>
+                      <SelectItem value="hybrid">Híbrido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-medium">Nível de Confiança Mínimo</h3>
+                  <Input type="number" defaultValue="75" min="0" max="100" />
+                  <p className="text-xs text-educhat-medium">
+                    Confiança mínima para respostas automáticas (0-100%)
+                  </p>
+                </div>
+
+                <Button className="w-full">
+                  Salvar Configurações
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

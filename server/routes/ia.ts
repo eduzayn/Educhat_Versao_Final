@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
 import { z } from 'zod';
-import { db } from '../storage/db';
+import { db } from '../core/db';
 import { aiContext, aiLogs, aiSessions, insertAiContextSchema, insertAiLogSchema, insertAiSessionSchema } from '../../shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 
@@ -214,14 +214,14 @@ export function registerIARoutes(app: Express) {
         .where(gte(aiLogs.createdAt, thirtyDaysAgo));
 
       const totalInteractions = totalLogs.length;
-      const leadsConverted = totalLogs.filter(log => log.classification === 'lead' && log.handoffReason === null).length;
+      const leadsConverted = totalLogs.filter((log: any) => log.classification === 'lead' && log.handoffReason === null).length;
       const avgProcessingTime = totalLogs.length > 0 
-        ? Math.round(totalLogs.reduce((sum, log) => sum + (log.processingTime || 0), 0) / totalLogs.length)
+        ? Math.round(totalLogs.reduce((sum: number, log: any) => sum + (log.processingTime || 0), 0) / totalLogs.length)
         : 0;
 
       // Calculate satisfaction based on sentiment analysis
-      const satisfactionLogs = totalLogs.filter(log => log.sentiment);
-      const positiveCount = satisfactionLogs.filter(log => log.sentiment === 'positive').length;
+      const satisfactionLogs = totalLogs.filter((log: any) => log.sentiment);
+      const positiveCount = satisfactionLogs.filter((log: any) => log.sentiment === 'positive').length;
       const satisfactionRate = satisfactionLogs.length > 0 
         ? Math.round((positiveCount / satisfactionLogs.length) * 100)
         : 0;
