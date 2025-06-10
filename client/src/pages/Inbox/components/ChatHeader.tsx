@@ -103,6 +103,13 @@ export function ChatHeader({
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* Componentes de Atribuição */}
+          <ConversationAssignmentDropdown
+            conversationId={activeConversation.id}
+            currentTeamId={activeConversation.assignedTeamId}
+            currentUserId={activeConversation.assignedUserId}
+            currentMacrosetor={activeConversation.macrosetor}
+          />
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
             <Phone className="w-4 h-4" />
           </Button>
@@ -112,16 +119,6 @@ export function ChatHeader({
             currentStatus={activeConversation.status || 'open'}
           />
         </div>
-      </div>
-
-      {/* Interface de Atribuição Manual */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <ConversationAssignmentDropdown
-          conversationId={activeConversation.id}
-          currentTeamId={activeConversation.assignedTeamId}
-          currentUserId={activeConversation.assignedUserId}
-          currentMacrosetor={activeConversation.macrosetor}
-        />
       </div>
     </div>
   );
