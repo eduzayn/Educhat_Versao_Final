@@ -26,7 +26,10 @@ import {
   BarChart3,
   Users,
   Clock,
-  Star
+  Star,
+  ArrowLeft,
+  Power,
+  PowerOff
 } from "lucide-react";
 import { Switch } from "@/shared/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
@@ -70,6 +73,12 @@ export function IAPage() {
     queryFn: () => apiRequest("GET", "/api/ia/logs")
   });
   const logs = Array.isArray(logsData) ? logsData : [];
+
+  // Query para status do atendimento automático
+  const { data: autoResponseStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ["/api/ia/auto-response/status"],
+    queryFn: () => apiRequest("GET", "/api/ia/auto-response/status")
+  });
 
   // Form para contexto
   const contextForm = useForm<ContextFormData>({

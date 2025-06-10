@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '../core/db';
 import { aiContext, aiLogs, aiSessions, insertAiContextSchema, insertAiLogSchema, insertAiSessionSchema } from '../../shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
+import { aiService } from '../services/aiService';
 
 export function registerIARoutes(app: Express) {
   
@@ -342,6 +343,34 @@ export function registerIARoutes(app: Express) {
       res.status(201).json(newContext);
     } catch (error) {
       console.error('❌ Erro no treinamento da IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Control auto-response status
+  app.post('/api/ia/auto-response', async (req: Request, res: Response) => {
+    try {
+      const { enabled } = req.body;
+      aiService.setAutoResponse(enabled);
+      res.json({ 
+        enabled: aiService.isAutoResponseActive(),
+        message: enabled ? 'Auto-resposta ativada' : 'Auto-resposta desativada'
+      });
+    } catch (error) {
+      console.error('❌ Erro ao alterar auto-resposta:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get auto-response status
+  app.get('/api/ia/auto-response/status', async (req: Request, res: Response) => {
+    try {
+      res.json({ 
+        enabled: aiService.isAutoResponseActive(),
+        message: aiService.isAutoResponseActive() ? 'Auto-resposta ativa' : 'Auto-resposta desativada'
+      });
+    } catch (error) {
+      console.error('❌ Erro ao verificar status auto-resposta:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

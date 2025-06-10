@@ -90,6 +90,16 @@ export interface AIResponse {
 }
 
 export class AIService {
+  private isAutoResponseEnabled: boolean = false; // Desativado por padrão
+  
+  setAutoResponse(enabled: boolean) {
+    this.isAutoResponseEnabled = enabled;
+    console.log(`🤖 Auto-resposta da Prof. Ana: ${enabled ? 'ATIVADA' : 'DESATIVADA'}`);
+  }
+
+  isAutoResponseActive(): boolean {
+    return this.isAutoResponseEnabled;
+  }
   
   /**
    * Classifica intenção e sentimento de uma mensagem
