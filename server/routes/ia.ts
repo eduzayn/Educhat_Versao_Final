@@ -322,8 +322,10 @@ export function registerIARoutes(app: Express) {
         return res.status(400).json({ error: 'Dados obrigatórios: name, type, content' });
       }
 
-      // In production, this would generate embeddings using OpenAI
-      const embedding = JSON.stringify([/* vector embeddings would go here */]);
+      // Gerar embeddings reais usando OpenAI
+      const { aiService } = await import('../services/aiService');
+      const embeddingVector = await aiService.generateEmbedding(content);
+      const embedding = JSON.stringify(embeddingVector);
 
       const [newContext] = await db.insert(aiContext).values({
         name,
