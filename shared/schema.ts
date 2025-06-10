@@ -661,7 +661,6 @@ export const manychatIntegrations = pgTable("manychat_integrations", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   apiKey: varchar("api_key", { length: 255 }).notNull(),
-  pageAccessToken: varchar("page_access_token", { length: 255 }).notNull(),
   webhookUrl: text("webhook_url"),
   isActive: boolean("is_active").default(false),
   syncEnabled: boolean("sync_enabled").default(true),

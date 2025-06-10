@@ -4,8 +4,7 @@ import { z } from "zod";
 import { insertManychatIntegrationSchema } from "@shared/schema";
 
 const manychatTestSchema = z.object({
-  apiKey: z.string().min(1, "API Key é obrigatória"),
-  pageAccessToken: z.string().min(1, "Page Access Token é obrigatório")
+  apiKey: z.string().min(1, "API Key é obrigatória")
 });
 
 export function registerIntegrationRoutes(app: Express) {

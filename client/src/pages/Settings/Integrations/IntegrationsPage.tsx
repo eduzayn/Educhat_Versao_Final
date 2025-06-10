@@ -59,7 +59,7 @@ export function IntegrationsPage() {
   const [manychatConfig, setManychatConfig] = useState<ManychatIntegration>({
     name: 'Manychat Principal',
     apiKey: '',
-    pageAccessToken: '',
+
     webhookUrl: '',
     isActive: false,
     syncEnabled: true,
@@ -138,8 +138,7 @@ export function IntegrationsPage() {
   const testConnectionMutation = useMutation({
     mutationFn: () => 
       apiRequest('POST', '/api/integrations/manychat/test', {
-        apiKey: manychatConfig.apiKey,
-        pageAccessToken: manychatConfig.pageAccessToken
+        apiKey: manychatConfig.apiKey
       }),
     onSuccess: (data) => {
       setTestResult(data);
@@ -269,22 +268,7 @@ export function IntegrationsPage() {
                         </p>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="manychat-token">
-                          Page Access Token
-                          <span className="text-red-500 ml-1">*</span>
-                        </Label>
-                        <Input
-                          id="manychat-token"
-                          type="password"
-                          value={manychatConfig.pageAccessToken}
-                          onChange={(e) => setManychatConfig(prev => ({ ...prev, pageAccessToken: e.target.value }))}
-                          placeholder="Insira seu Page Access Token"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Token de acesso da sua página do Facebook conectada ao Manychat
-                        </p>
-                      </div>
+
                     </div>
 
                     <div className="space-y-4">
