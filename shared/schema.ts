@@ -933,6 +933,23 @@ export const aiSessions = pgTable("ai_sessions", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// AI Memory table for contextual memory per session
+export const aiMemory = pgTable("ai_memory", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => aiSessions.id, { onDelete: 'cascade' }),
+  conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'cascade' }),
+  memoryType: varchar("memory_type", { length: 50 }).notNull(), // 'user_info', 'preferences', 'context', 'history'
+  key: varchar("key", { length: 100 }).notNull(), // Chave da memória (ex: 'nome', 'curso_interesse', 'problema_anterior')
+  value: text("value").notNull(), // Valor da memória
+  confidence: integer("confidence").default(100), // Confiança da informação (0-100)
+  source: varchar("source", { length: 50 }).default('ai'), // 'ai', 'user', 'system'
+  expiresAt: timestamp("expires_at"), // Opcional: quando a memória expira
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas for AI tables
 export const insertAiContextSchema = createInsertSchema(aiContext).omit({
   id: true,
@@ -950,6 +967,12 @@ export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({
   createdAt: true,
 });
 
+export const insertAiMemorySchema = createInsertSchema(aiMemory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types for AI tables
 export type ProfAnaContext = typeof aiContext.$inferSelect;
 export type InsertProfAnaContext = z.infer<typeof insertAiContextSchema>;
@@ -957,6 +980,8 @@ export type ProfAnaLog = typeof aiLogs.$inferSelect;
 export type InsertProfAnaLog = z.infer<typeof insertAiLogSchema>;
 export type ProfAnaSession = typeof aiSessions.$inferSelect;
 export type InsertProfAnaSession = z.infer<typeof insertAiSessionSchema>;
+export type ProfAnaMemory = typeof aiMemory.$inferSelect;
+export type InsertProfAnaMemory = z.infer<typeof insertAiMemorySchema>;
 
 // Relations for AI tables
 export const aiLogsRelations = relations(aiLogs, ({ one }) => ({
@@ -974,13 +999,29 @@ export const aiLogsRelations = relations(aiLogs, ({ one }) => ({
   }),
 }));
 
-export const aiSessionsRelations = relations(aiSessions, ({ one }) => ({
+export const aiSessionsRelations = relations(aiSessions, ({ one, many }) => ({
   conversation: one(conversations, {
     fields: [aiSessions.conversationId],
     references: [conversations.id],
   }),
   contact: one(contacts, {
     fields: [aiSessions.contactId],
+    references: [contacts.id],
+  }),
+  memories: many(aiMemory),
+}));
+
+export const aiMemoryRelations = relations(aiMemory, ({ one }) => ({
+  session: one(aiSessions, {
+    fields: [aiMemory.sessionId],
+    references: [aiSessions.id],
+  }),
+  conversation: one(conversations, {
+    fields: [aiMemory.conversationId],
+    references: [conversations.id],
+  }),
+  contact: one(contacts, {
+    fields: [aiMemory.contactId],
     references: [contacts.id],
   }),
 }));
