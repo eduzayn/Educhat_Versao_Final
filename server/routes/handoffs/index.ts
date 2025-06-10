@@ -45,6 +45,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/handoffs/stats - Estatísticas dos handoffs
+router.get('/stats', async (req, res) => {
+  try {
+    const stats = await handoffService.getHandoffStats();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
 // Schema de validação para criar handoff
 const createHandoffSchema = z.object({
   conversationId: z.number(),
