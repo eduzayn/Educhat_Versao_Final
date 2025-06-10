@@ -25,6 +25,7 @@ import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerMacrosetorRoutes } from "./settings/macrosetores";
 import iaRouter from "./ia";
+import iaMemoryRouter from "./ia-memory";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -56,6 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerIntegrationRoutes(app);
   registerMacrosetorRoutes(app, {} as any);
   app.use('/api/ia', iaRouter);
+  app.use('/api/ia', iaMemoryRouter);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
