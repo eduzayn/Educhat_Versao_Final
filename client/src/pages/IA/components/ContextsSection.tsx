@@ -4,9 +4,10 @@ import { Button } from '../../../shared/ui/button';
 import { Input } from '../../../shared/ui/input';
 import { Textarea } from '../../../shared/ui/textarea';
 import { Badge } from '../../../shared/ui/badge';
-import { Plus, BookOpen, MessageSquare } from 'lucide-react';
+import { Plus, BookOpen, MessageSquare, Globe } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
+import { WebContextCapture } from './WebContextCapture';
 
 interface TrainingContext {
   id: number;
@@ -23,7 +24,7 @@ interface ContextsSectionProps {
 }
 
 export function ContextsSection({ contexts, contextsLoading }: ContextsSectionProps) {
-  const [contextMode, setContextMode] = useState<'content' | 'qa'>('content');
+  const [contextMode, setContextMode] = useState<'content' | 'qa' | 'web'>('content');
   const [newContext, setNewContext] = useState({
     title: '',
     content: '',
@@ -147,6 +148,16 @@ export function ContextsSection({ contexts, contextsLoading }: ContextsSectionPr
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Pergunta & Resposta
               </Button>
+              <Button
+                type="button"
+                variant={contextMode === 'web' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setContextMode('web')}
+                className="flex-1"
+              >
+                <Globe className="h-4 w-4 mr-2" />
+                Captura Web
+              </Button>
             </div>
 
             <form onSubmit={handleContextSubmit} className="space-y-4">
@@ -186,7 +197,7 @@ export function ContextsSection({ contexts, contextsLoading }: ContextsSectionPr
                     />
                   </div>
                 </>
-              ) : (
+              ) : contextMode === 'qa' ? (
                 <>
                   <div>
                     <label className="text-sm font-medium">Categoria</label>
@@ -220,15 +231,23 @@ export function ContextsSection({ contexts, contextsLoading }: ContextsSectionPr
                     />
                   </div>
                 </>
-              )}
+              ) : contextMode === 'web' ? (
+                <WebContextCapture 
+                  onContextAdded={() => {
+                    queryClient.invalidateQueries({ queryKey: ['/api/ia/contexts'] });
+                  }}
+                />
+              ) : null}
 
-              <Button 
-                type="submit" 
-                disabled={addContextMutation.isPending}
-                className="w-full"
-              >
-                {addContextMutation.isPending ? 'Adicionando...' : 'Adicionar Contexto'}
-              </Button>
+              {contextMode !== 'web' && (
+                <Button 
+                  type="submit" 
+                  disabled={addContextMutation.isPending}
+                  className="w-full"
+                >
+                  {addContextMutation.isPending ? 'Adicionando...' : 'Adicionar Contexto'}
+                </Button>
+              )}
             </form>
           </div>
         </CardContent>
