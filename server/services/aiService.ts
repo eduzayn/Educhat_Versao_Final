@@ -151,7 +151,7 @@ export class AIService {
       const externalKnowledge = await this.searchExternalKnowledge(message, internalContext, classification.confidence);
       
       // Preparar prompt baseado no modo da Prof. Ana incluindo memória contextual
-      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, externalKnowledge, conversationContext.contextualInfo);
+      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, externalKnowledge, conversationContext.contextualInfo || '');
       
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -308,11 +308,16 @@ export class AIService {
   /**
    * Constrói prompt para resposta baseado no modo
    */
-  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[], externalKnowledge?: string | null): string {
+  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[], externalKnowledge?: string | null, contextualMemory?: string): string {
     let prompt = `Mensagem do usuário: "${message}"\n`;
     prompt += `Intenção detectada: ${classification.intent}\n`;
     prompt += `Sentimento: ${classification.sentiment}\n`;
     prompt += `Perfil: ${classification.userProfile.type}\n\n`;
+    
+    // Incluir memória contextual se disponível
+    if (contextualMemory) {
+      prompt += contextualMemory + '\n';
+    }
     
     if (contexts.length > 0) {
       prompt += `Contextos relevantes da base de conhecimento:\n`;
@@ -327,7 +332,7 @@ export class AIService {
     }
     
     prompt += `Responda como Prof. Ana no modo ${classification.aiMode}.\n`;
-    prompt += `IMPORTANTE: Seja concisa, empática e sempre ofereça próximos passos claros.`;
+    prompt += `IMPORTANTE: Use as informações da memória contextual para personalizar sua resposta. Seja concisa, empática e sempre ofereça próximos passos claros.`;
     
     return prompt;
   }

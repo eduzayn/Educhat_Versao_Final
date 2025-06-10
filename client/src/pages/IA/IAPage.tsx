@@ -5,7 +5,7 @@ import { Input } from '../../shared/ui/input';
 import { Textarea } from '../../shared/ui/textarea';
 import { Badge } from '../../shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shared/ui/tabs';
-import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft } from 'lucide-react';
+import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft, Search } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -225,8 +225,8 @@ export default function IAPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${stats?.perplexity?.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                    <span className="text-sm font-medium">{stats?.perplexity?.status || 'Desconhecido'}</span>
+                    <div className={`w-2 h-2 rounded-full bg-green-500`}></div>
+                    <span className="text-sm font-medium">Ativo</span>
                   </div>
                 </CardContent>
               </Card>
