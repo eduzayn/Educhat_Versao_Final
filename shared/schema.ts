@@ -741,3 +741,84 @@ export type UserWithPermissions = SystemUser & {
     permission: Permission;
   })[];
 };
+
+// Facebook/Instagram Integration Tables
+export const facebookIntegrations = pgTable("facebook_integrations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  appId: text("app_id").notNull(),
+  appSecret: text("app_secret").notNull(),
+  accessToken: text("access_token"),
+  pageId: text("page_id"),
+  pageName: text("page_name"),
+  instagramAccountId: text("instagram_account_id"),
+  instagramUsername: text("instagram_username"),
+  webhookVerifyToken: text("webhook_verify_token").notNull(),
+  isActive: boolean("is_active").default(false),
+  messengerEnabled: boolean("messenger_enabled").default(true),
+  instagramEnabled: boolean("instagram_enabled").default(true),
+  commentsEnabled: boolean("comments_enabled").default(true),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  lastSync: timestamp("last_sync"),
+  configuration: jsonb("configuration").default('{}'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const facebookWebhookLogs = pgTable("facebook_webhook_logs", {
+  id: serial("id").primaryKey(),
+  integrationId: integer("integration_id").references(() => facebookIntegrations.id, { onDelete: 'cascade' }),
+  webhookType: text("webhook_type").notNull(), // 'message', 'comment', 'mention'
+  platform: text("platform").notNull(), // 'facebook', 'instagram'
+  senderId: text("sender_id"),
+  recipientId: text("recipient_id"),
+  messageId: text("message_id"),
+  conversationId: text("conversation_id"),
+  content: text("content"),
+  messageType: text("message_type"), // 'text', 'image', 'video', 'sticker'
+  attachments: jsonb("attachments").default('[]'),
+  processed: boolean("processed").default(false),
+  contactId: integer("contact_id"),
+  conversationContactId: integer("conversation_contact_id"),
+  rawData: jsonb("raw_data").notNull(),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Insert schemas for Facebook integration
+export const insertFacebookIntegrationSchema = createInsertSchema(facebookIntegrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFacebookWebhookLogSchema = createInsertSchema(facebookWebhookLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for Facebook integration
+export type FacebookIntegration = typeof facebookIntegrations.$inferSelect;
+export type InsertFacebookIntegration = z.infer<typeof insertFacebookIntegrationSchema>;
+export type FacebookWebhookLog = typeof facebookWebhookLogs.$inferSelect;
+export type InsertFacebookWebhookLog = z.infer<typeof insertFacebookWebhookLogSchema>;
+
+// Relations for Facebook integration
+export const facebookIntegrationsRelations = relations(facebookIntegrations, ({ many }) => ({
+  webhookLogs: many(facebookWebhookLogs),
+}));
+
+export const facebookWebhookLogsRelations = relations(facebookWebhookLogs, ({ one }) => ({
+  integration: one(facebookIntegrations, {
+    fields: [facebookWebhookLogs.integrationId],
+    references: [facebookIntegrations.id],
+  }),
+  contact: one(contacts, {
+    fields: [facebookWebhookLogs.contactId],
+    references: [contacts.id],
+  }),
+  conversation: one(conversations, {
+    fields: [facebookWebhookLogs.conversationContactId],
+    references: [conversations.id],
+  }),
+}));

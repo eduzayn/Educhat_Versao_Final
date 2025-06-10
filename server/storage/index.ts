@@ -13,6 +13,7 @@ export { QuickReplyStorage } from './modules/quickReplyStorage';
 export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
+export { FacebookStorage } from './modules/facebookStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
@@ -32,6 +33,7 @@ import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
+import { FacebookStorage } from './modules/facebookStorage';
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
