@@ -82,19 +82,39 @@ function Router() {
             {() => <ProtectedRoute component={SettingsPage} />}
           </Route>
           <Route path="/settings/channels">
-            {() => <ProtectedRoute component={ChannelsPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={ChannelsPage}
+              />
+            )}
           </Route>
           <Route path="/settings/users">
-            {() => <ProtectedRoute component={UsersSettingsPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={UsersSettingsPage}
+              />
+            )}
           </Route>
           <Route path="/settings/quick-replies">
             {() => <ProtectedRoute component={QuickRepliesSettingsPage} />}
           </Route>
           <Route path="/settings/webhooks">
-            {() => <ProtectedRoute component={WebhookConfigPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={WebhookConfigPage}
+              />
+            )}
           </Route>
           <Route path="/settings/ai-detection">
-            {() => <ProtectedRoute component={AIDetectionSettingsPage} />}
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={AIDetectionSettingsPage}
+              />
+            )}
           </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
