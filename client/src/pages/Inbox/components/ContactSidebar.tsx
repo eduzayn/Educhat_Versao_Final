@@ -612,7 +612,10 @@ export function ContactSidebar({
                     </div>
                     
                     <div className="text-xs text-gray-500">
-                      {deal.macrosetor?.toUpperCase()} • Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
+                      {deal.macrosetor && getMacrosetorInfo(deal.macrosetor) 
+                        ? `${getMacrosetorInfo(deal.macrosetor)?.name}` 
+                        : deal.macrosetor?.toUpperCase()
+                      } • Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
                     </div>
                   </CardContent>
                 </Card>
