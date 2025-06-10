@@ -46,7 +46,6 @@ export class WebCaptureService {
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
         },
-        timeout: 30000,
       });
 
       if (!response.ok) {
@@ -93,7 +92,7 @@ export class WebCaptureService {
     improvedTitle: string;
   }> {
     try {
-      const prompt = `Analise o seguinte conteúdo de site e forneça:
+      const prompt: string = `Analise o seguinte conteúdo de site e forneça:
 
 1. Um resumo conciso (2-3 parágrafos) do conteúdo principal
 2. Lista de 8-12 palavras-chave relevantes em português
@@ -116,7 +115,11 @@ Responda em JSON com as chaves: "summary", "keywords" (array), "improvedTitle"`;
         ]
       });
 
-      const result = JSON.parse(response.content[0].text);
+      const responseContent = response.content[0];
+      if (responseContent.type !== 'text') {
+        throw new Error('Resposta inesperada da IA');
+      }
+      const result = JSON.parse(responseContent.text);
       
       return {
         summary: result.summary || 'Resumo não disponível',
@@ -128,7 +131,7 @@ Responda em JSON com as chaves: "summary", "keywords" (array), "improvedTitle"`;
       
       // Fallback analysis
       const words = content.toLowerCase().split(/\s+/);
-      const wordCount = {};
+      const wordCount: Record<string, number> = {};
       
       words.forEach(word => {
         if (word.length > 4) {
@@ -137,7 +140,7 @@ Responda em JSON com as chaves: "summary", "keywords" (array), "improvedTitle"`;
       });
       
       const keywords = Object.entries(wordCount)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 8)
         .map(([word]) => word);
 
