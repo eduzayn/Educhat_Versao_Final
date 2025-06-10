@@ -656,6 +656,79 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   }),
 }));
 
+// Manychat Integrations table
+export const manychatIntegrations = pgTable("manychat_integrations", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  apiKey: varchar("api_key", { length: 255 }).notNull(),
+  pageAccessToken: varchar("page_access_token", { length: 255 }).notNull(),
+  webhookUrl: text("webhook_url"),
+  isActive: boolean("is_active").default(false),
+  syncEnabled: boolean("sync_enabled").default(true),
+  leadSyncEnabled: boolean("lead_sync_enabled").default(true),
+  enrollmentSyncEnabled: boolean("enrollment_sync_enabled").default(true),
+  notificationSyncEnabled: boolean("notification_sync_enabled").default(false),
+  configuration: jsonb("configuration").default('{}'), // stores additional settings
+  lastTestAt: timestamp("last_test_at"),
+  lastSyncAt: timestamp("last_sync_at"),
+  errorCount: integer("error_count").default(0),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Manychat Webhook Logs table for debugging
+export const manychatWebhookLogs = pgTable("manychat_webhook_logs", {
+  id: serial("id").primaryKey(),
+  integrationId: integer("integration_id").references(() => manychatIntegrations.id),
+  webhookType: varchar("webhook_type", { length: 50 }), // lead_capture, enrollment_notification, etc
+  payload: jsonb("payload").notNull(),
+  processed: boolean("processed").default(false),
+  processedAt: timestamp("processed_at"),
+  error: text("error"),
+  contactId: integer("contact_id").references(() => contacts.id),
+  conversationId: integer("conversation_id").references(() => conversations.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas for Manychat integration
+export const insertManychatIntegrationSchema = createInsertSchema(manychatIntegrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertManychatWebhookLogSchema = createInsertSchema(manychatWebhookLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for Manychat integration
+export type ManychatIntegration = typeof manychatIntegrations.$inferSelect;
+export type InsertManychatIntegration = z.infer<typeof insertManychatIntegrationSchema>;
+export type ManychatWebhookLog = typeof manychatWebhookLogs.$inferSelect;
+export type InsertManychatWebhookLog = z.infer<typeof insertManychatWebhookLogSchema>;
+
+// Relations for Manychat integration
+export const manychatIntegrationsRelations = relations(manychatIntegrations, ({ many }) => ({
+  webhookLogs: many(manychatWebhookLogs),
+}));
+
+export const manychatWebhookLogsRelations = relations(manychatWebhookLogs, ({ one }) => ({
+  integration: one(manychatIntegrations, {
+    fields: [manychatWebhookLogs.integrationId],
+    references: [manychatIntegrations.id],
+  }),
+  contact: one(contacts, {
+    fields: [manychatWebhookLogs.contactId],
+    references: [contacts.id],
+  }),
+  conversation: one(conversations, {
+    fields: [manychatWebhookLogs.conversationId],
+    references: [conversations.id],
+  }),
+}));
+
 // Extended types for complex queries
 export type RoleWithPermissions = Role & {
   rolePermissions: (RolePermission & {

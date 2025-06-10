@@ -265,7 +265,7 @@ export function IntegrationsPage() {
                           placeholder="Insira sua API Key do Manychat"
                         />
                         <p className="text-xs text-gray-500">
-                          Encontre sua API Key no painel do Manychat &gt; Settings &gt; API
+                          Encontre sua API Key no painel do Manychat {'>'} Settings {'>'} API
                         </p>
                       </div>
 
@@ -460,7 +460,7 @@ export function IntegrationsPage() {
                       <h4 className="font-semibold">1. Obter Credenciais do Manychat</h4>
                       <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                         <li>Acesse o painel do Manychat</li>
-                        <li>Vá em Settings &gt; API</li>
+                        <li>Vá em Settings {'>'} API</li>
                         <li>Copie a API Key</li>
                         <li>Obtenha o Page Access Token da sua página do Facebook</li>
                       </ul>
@@ -470,7 +470,7 @@ export function IntegrationsPage() {
                       <h4 className="font-semibold">2. Configurar Webhook no Manychat</h4>
                       <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                         <li>Copie a URL do webhook acima</li>
-                        <li>No Manychat, vá em Settings &gt; Webhooks</li>
+                        <li>No Manychat, vá em Settings {'>'} Webhooks</li>
                         <li>Cole a URL e configure os eventos</li>
                         <li>Teste a conexão usando o botão "Testar Conexão"</li>
                       </ul>
