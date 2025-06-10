@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { getAllFunnels, getFunnelStages, getStage, type Funnel } from '@/lib/crmFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {
