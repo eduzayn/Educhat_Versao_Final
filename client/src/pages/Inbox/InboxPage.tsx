@@ -233,16 +233,24 @@ export function InboxPage() {
 
   // Filtrar conversas baseado na aba ativa e filtros
   const filteredConversations = (conversations || []).filter(conversation => {
-    // Filtro por aba
-    if (activeTab === 'inbox' && conversation.status === 'resolved') return false;
-    if (activeTab === 'resolved' && conversation.status !== 'resolved') return false;
+    // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
+    if (activeTab === 'inbox') {
+      // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
+      const activeStatuses = ['open', 'pending', 'unread'];
+      if (!activeStatuses.includes(conversation.status)) return false;
+    }
+    if (activeTab === 'resolved') {
+      // Mostrar apenas conversas resolvidas/fechadas
+      const resolvedStatuses = ['resolved', 'closed'];
+      if (!resolvedStatuses.includes(conversation.status)) return false;
+    }
     
     // Filtro por busca - pesquisar em nome e telefone do contato
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const nameMatch = conversation.contact.name.toLowerCase().includes(searchLower);
-      const phoneMatch = conversation.contact.phone?.toLowerCase().includes(searchLower) || false;
-      const emailMatch = conversation.contact.email?.toLowerCase().includes(searchLower) || false;
+      const nameMatch = conversation.contact.name?.toLowerCase().includes(searchLower) || false;
+      const phoneMatch = conversation.contact.phone?.toLowerCase()?.includes(searchLower) || false;
+      const emailMatch = conversation.contact.email?.toLowerCase()?.includes(searchLower) || false;
       
       if (!nameMatch && !phoneMatch && !emailMatch) {
         return false;
