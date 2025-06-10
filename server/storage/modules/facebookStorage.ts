@@ -352,11 +352,11 @@ export class FacebookStorage extends BaseStorage {
       const senderId = sender.id;
       const senderName = sender.name || sender.username || `User ${senderId}`;
       
-      // Buscar ou criar contato
+      // Buscar ou criar contato usando phone como identificador único para Facebook/Instagram
       let contact = await this.db
         .select()
         .from(contacts)
-        .where(eq(contacts.externalId, senderId))
+        .where(eq(contacts.phone, senderId))
         .limit(1);
       
       let contactId: number;
@@ -364,18 +364,9 @@ export class FacebookStorage extends BaseStorage {
       if (contact.length === 0) {
         const newContact: InsertContact = {
           name: senderName,
-          externalId: senderId,
-          source: platform,
-          phone: null,
+          phone: senderId, // Usar senderId como phone para identificação única
           email: null,
-          profileImageUrl: sender.profile_pic || null,
-          isActive: true,
-          metadata: {
-            platform,
-            senderId,
-            integrationId,
-            originalData: sender
-          }
+          profileImageUrl: sender.profile_pic || null
         };
         
         const createdContact = await this.db
@@ -395,7 +386,7 @@ export class FacebookStorage extends BaseStorage {
         .from(conversations)
         .where(and(
           eq(conversations.contactId, contactId),
-          eq(conversations.source, platform)
+          eq(conversations.channel, platform === 'facebook' ? 'facebook-messenger' : 'instagram-direct')
         ))
         .limit(1);
       
@@ -404,7 +395,7 @@ export class FacebookStorage extends BaseStorage {
       if (conversation.length === 0) {
         const newConversation: InsertConversation = {
           contactId,
-          source: platform,
+          channel: platform === 'facebook' ? 'facebook-messenger' : 'instagram-direct',
           status: 'open',
           priority: 'medium',
           isRead: false,

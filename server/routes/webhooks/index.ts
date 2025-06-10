@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
 import multer from "multer";
+import { facebookWebhookRoutes } from './facebook';
 
 // Função helper para atribuição inteligente de equipes
 async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
@@ -2022,4 +2023,9 @@ async function processManychatSubscriberAdded(webhookData: any) {
   } catch (error) {
     console.error('❌ Erro ao processar novo subscriber do Manychat:', error);
   }
+}
+
+// Registrar webhook routes do Facebook/Instagram
+export function registerFacebookWebhookRoutes(app: Express) {
+  app.use('/api/webhooks/facebook', facebookWebhookRoutes);
 }
