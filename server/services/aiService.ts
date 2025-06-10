@@ -8,6 +8,59 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Perplexity API integration for factual research
+class PerplexityService {
+  private apiKey: string | undefined;
+  
+  constructor() {
+    this.apiKey = process.env.PERPLEXITY_API_KEY;
+  }
+
+  async searchFactualInfo(query: string): Promise<string | null> {
+    if (!this.apiKey) {
+      console.log('⚠️ Perplexity API key não configurada, usando apenas OpenAI');
+      return null;
+    }
+
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um assistente de pesquisa especializado em educação. Forneça informações factuais e atualizadas.'
+            },
+            {
+              role: 'user',
+              content: `Pesquise informações atualizadas sobre: ${query}`
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.2
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Perplexity API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || null;
+    } catch (error) {
+      console.error('❌ Erro na pesquisa Perplexity:', error);
+      return null;
+    }
+  }
+}
+
+const perplexityService = new PerplexityService();
+
 export interface MessageClassification {
   intent: 'lead_generation' | 'student_support' | 'complaint' | 'general_info' | 'spam' | 'course_inquiry' | 'technical_support' | 'financial';
   sentiment: 'positive' | 'neutral' | 'negative' | 'frustrated' | 'excited';
@@ -138,8 +191,20 @@ export class AIService {
       // Buscar contextos relevantes
       const relevantContexts = await this.searchRelevantContext(message, classification.contextKeywords);
       
+      // Para perguntas factuais, usar Perplexity se disponível
+      let perplexityInfo = null;
+      if (classification.intent === 'general_info' || classification.intent === 'course_inquiry') {
+        const shouldUsePerplexity = classification.contextKeywords.some(keyword => 
+          ['tendências', 'mercado', 'profissão', 'carreira', 'salário', 'atualizações'].includes(keyword.toLowerCase())
+        );
+        
+        if (shouldUsePerplexity) {
+          perplexityInfo = await perplexityService.searchFactualInfo(message);
+        }
+      }
+      
       // Preparar prompt baseado no modo da Prof. Ana
-      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts);
+      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, perplexityInfo);
       
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -267,7 +332,7 @@ export class AIService {
   /**
    * Constrói prompt para resposta baseado no modo
    */
-  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[]): string {
+  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[], perplexityInfo?: string | null): string {
     let prompt = `Mensagem do usuário: "${message}"\n`;
     prompt += `Intenção detectada: ${classification.intent}\n`;
     prompt += `Sentimento: ${classification.sentiment}\n`;
@@ -279,6 +344,10 @@ export class AIService {
         prompt += `${i + 1}. ${ctx.name}: ${ctx.content.substring(0, 200)}...\n`;
       });
       prompt += '\n';
+    }
+
+    if (perplexityInfo) {
+      prompt += `Informações atualizadas (Perplexity):\n${perplexityInfo}\n\n`;
     }
     
     prompt += `Responda como Prof. Ana no modo ${classification.aiMode}.`;
