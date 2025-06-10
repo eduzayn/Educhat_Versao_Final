@@ -344,7 +344,7 @@ export function HandoffsPage() {
                             </div>
 
                             <div className="ml-auto">
-                              {new Date(handoff.createdAt).toLocaleString('pt-BR')}
+                              {handoff.createdAt ? new Date(handoff.createdAt).toLocaleString('pt-BR') : '-'}
                             </div>
                           </div>
 

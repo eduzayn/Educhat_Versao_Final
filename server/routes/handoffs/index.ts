@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { handoffService } from '../../services/handoffService';
-import { insertHandoffSchema } from '@shared/schema';
+import { insertHandoffSchema, handoffs as handoffsTable } from '@shared/schema';
+import { db } from '../../db';
+import { desc } from 'drizzle-orm';
 import { z } from 'zod';
 
 const router = Router();
@@ -8,32 +10,32 @@ const router = Router();
 // GET /api/handoffs - Buscar todos os handoffs
 router.get('/', async (req, res) => {
   try {
-    const handoffs = await db
+    const handoffsList = await db
       .select({
-        id: handoffs.id,
-        conversationId: handoffs.conversationId,
-        fromUserId: handoffs.fromUserId,
-        toUserId: handoffs.toUserId,
-        fromTeamId: handoffs.fromTeamId,
-        toTeamId: handoffs.toTeamId,
-        type: handoffs.type,
-        reason: handoffs.reason,
-        priority: handoffs.priority,
-        status: handoffs.status,
-        aiClassification: handoffs.aiClassification,
-        metadata: handoffs.metadata,
-        acceptedAt: handoffs.acceptedAt,
-        completedAt: handoffs.completedAt,
-        createdAt: handoffs.createdAt,
-        updatedAt: handoffs.updatedAt
+        id: handoffsTable.id,
+        conversationId: handoffsTable.conversationId,
+        fromUserId: handoffsTable.fromUserId,
+        toUserId: handoffsTable.toUserId,
+        fromTeamId: handoffsTable.fromTeamId,
+        toTeamId: handoffsTable.toTeamId,
+        type: handoffsTable.type,
+        reason: handoffsTable.reason,
+        priority: handoffsTable.priority,
+        status: handoffsTable.status,
+        aiClassification: handoffsTable.aiClassification,
+        metadata: handoffsTable.metadata,
+        acceptedAt: handoffsTable.acceptedAt,
+        completedAt: handoffsTable.completedAt,
+        createdAt: handoffsTable.createdAt,
+        updatedAt: handoffsTable.updatedAt
       })
-      .from(handoffs)
-      .orderBy(desc(handoffs.createdAt))
+      .from(handoffsTable)
+      .orderBy(desc(handoffsTable.createdAt))
       .limit(50);
 
     res.json({
       success: true,
-      handoffs
+      handoffs: handoffsList
     });
   } catch (error) {
     console.error('Erro ao buscar handoffs:', error);
