@@ -105,11 +105,11 @@ export class CRMService {
         .limit(1);
 
       let dealData = {
+        name: `Lead: ${contact.name} - ${courseInterest}`,
         contactId: contact.id,
-        title: `Lead: ${contact.name} - ${courseInterest}`,
         value: this.estimateDealValue(courseInterest),
         stage: stage,
-        status: 'open',
+        status: 'active',
         source: 'whatsapp_ai',
         priority: classification.urgency === 'high' ? 'high' : 'medium',
         metadata: {
@@ -198,7 +198,7 @@ export class CRMService {
       if (newTags.length > 0) {
         // Combinar com tags existentes
         const currentTags = contact.tags || [];
-        const uniqueTags = [...new Set([...currentTags, ...newTags])];
+        const uniqueTags = Array.from(new Set([...currentTags, ...newTags]));
 
         await db
           .update(contacts)
@@ -301,9 +301,9 @@ export class CRMService {
       await db
         .update(conversations)
         .set({
-          assignedTeam: team,
           priority: 'high',
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          metadata: { assignedTeam: team }
         })
         .where(eq(conversations.id, conversationId));
 
@@ -334,7 +334,7 @@ export class CRMService {
 
     const messageLower = message.toLowerCase();
     for (const course of courses) {
-      if (messageLower.includes(course) || keywords.some(k => k.includes(course))) {
+      if (messageLower.includes(course) || keywords.some((k: string) => k.includes(course))) {
         return course;
       }
     }

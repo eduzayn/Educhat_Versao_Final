@@ -185,7 +185,7 @@ router.post('/train', upload.single('file'), async (req: Request, res: Response)
     console.error('❌ Erro ao treinar IA:', error);
     res.status(500).json({ 
       error: 'Erro ao processar treinamento',
-      details: error.message 
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
 });
