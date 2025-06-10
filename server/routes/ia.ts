@@ -404,4 +404,40 @@ export function registerIARoutes(app: Express) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
+
+  // Get personalidades disponíveis (Faces Inteligentes)
+  app.get('/api/ia/personalities', async (req: Request, res: Response) => {
+    try {
+      const personalities = aiService.getAvailablePersonalities();
+      const currentPersonality = aiService.getCurrentPersonality();
+      
+      res.json({
+        personalities,
+        current: currentPersonality,
+        systemInfo: {
+          name: "Sistema de Faces Inteligentes",
+          description: "A Prof. Ana adapta automaticamente sua personalidade baseada no contexto da conversa",
+          version: "1.0"
+        }
+      });
+    } catch (error) {
+      console.error('❌ Erro ao buscar personalidades:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get personalidade atual
+  app.get('/api/ia/current-personality', async (req: Request, res: Response) => {
+    try {
+      const currentPersonality = aiService.getCurrentPersonality();
+      
+      res.json({
+        personality: currentPersonality,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Erro ao buscar personalidade atual:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
 }

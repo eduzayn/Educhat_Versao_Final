@@ -604,7 +604,7 @@ Responda de acordo com sua personalidade, mantendo consistência com seu papel e
   /**
    * Personaliza a resposta com elementos da personalidade
    */
-  private personalizeResponse(message: string, personality: AIPersonality, classification: MessageClassification): string {
+  private personalizeResponseWithPersonality(message: string, personality: AIPersonality, classification: MessageClassification): string {
     // Selecionar saudação aleatória se for início de conversa
     const needsGreeting = classification.userProfile.stage === 'inicial' || 
                          classification.intent === 'general_info';

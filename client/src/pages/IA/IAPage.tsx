@@ -82,9 +82,31 @@ export function IAPage() {
   const logs = Array.isArray(logsData) ? logsData : [];
 
   // Query para status do atendimento automático
-  const { data: autoResponseStatus, isLoading: statusLoading } = useQuery<{enabled: boolean, message: string}>({
+  const { data: autoResponseStatus, isLoading: statusLoading } = useQuery({
     queryKey: ["/api/ia/auto-response/status"],
-    queryFn: () => apiRequest("GET", "/api/ia/auto-response/status")
+    queryFn: async () => {
+      const response = await fetch("/api/ia/auto-response/status");
+      return response.json();
+    }
+  });
+
+  // Query para buscar personalidades (Faces Inteligentes)
+  const { data: personalitiesData, isLoading: personalitiesLoading } = useQuery({
+    queryKey: ["/api/ia/personalities"],
+    queryFn: async () => {
+      const response = await fetch("/api/ia/personalities");
+      return response.json();
+    }
+  });
+
+  // Query para personalidade atual
+  const { data: currentPersonalityData, isLoading: currentPersonalityLoading } = useQuery({
+    queryKey: ["/api/ia/current-personality"],
+    queryFn: async () => {
+      const response = await fetch("/api/ia/current-personality");
+      return response.json();
+    },
+    refetchInterval: 30000 // Atualizar a cada 30 segundos
   });
 
   // Mutation para controlar atendimento automático
@@ -271,6 +293,10 @@ export function IAPage() {
             <TabsTrigger value="context" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               Contexto
+            </TabsTrigger>
+            <TabsTrigger value="personalities" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Faces Inteligentes
             </TabsTrigger>
             <TabsTrigger value="logs" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
