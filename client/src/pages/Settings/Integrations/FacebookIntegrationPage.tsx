@@ -358,7 +358,7 @@ export default function FacebookIntegrationPage() {
                     type="password"
                     placeholder="Chave secreta do app"
                     value={formData.appSecret}
-                    onChange={(e) => setFormData(prev => ({ ...prev, appSecret: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, appSecret: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -367,7 +367,7 @@ export default function FacebookIntegrationPage() {
                     id="verifyToken"
                     placeholder="Token para verificação do webhook"
                     value={formData.verifyToken}
-                    onChange={(e) => setFormData(prev => ({ ...prev, verifyToken: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, verifyToken: e.target.value }))}
                   />
                 </div>
               </div>
