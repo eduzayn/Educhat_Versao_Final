@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { 
   ArrowRight, 
+  ArrowLeft,
   Clock, 
   CheckCircle, 
   XCircle, 
@@ -199,9 +200,20 @@ export function HandoffsPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sistema de Handoffs</h1>
-          <p className="text-gray-600">Gerencie transferências de conversas inteligentes</p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Sistema de Handoffs</h1>
+            <p className="text-gray-600">Gerencie transferências de conversas inteligentes</p>
+          </div>
         </div>
       </div>
 
