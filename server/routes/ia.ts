@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { db } from '../core/db';
 import { aiContext, aiLogs, aiSessions, insertAiContextSchema, insertAiLogSchema, insertAiSessionSchema } from '../../shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
-import { aiService } from '../services/aiService';
 
 export function registerIARoutes(app: Express) {
   
@@ -343,100 +342,6 @@ export function registerIARoutes(app: Express) {
       res.status(201).json(newContext);
     } catch (error) {
       console.error('❌ Erro no treinamento da IA:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Control auto-response status
-  app.post('/api/ia/auto-response', async (req: Request, res: Response) => {
-    try {
-      const { enabled } = req.body;
-      aiService.setAutoResponse(enabled);
-      res.json({ 
-        enabled: aiService.isAutoResponseActive(),
-        message: enabled ? 'Auto-resposta ativada' : 'Auto-resposta desativada'
-      });
-    } catch (error) {
-      console.error('❌ Erro ao alterar auto-resposta:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Get auto-response status
-  app.get('/api/ia/auto-response/status', async (req: Request, res: Response) => {
-    try {
-      res.json({ 
-        enabled: aiService.isAutoResponseActive(),
-        message: aiService.isAutoResponseActive() ? 'Auto-resposta ativa' : 'Auto-resposta desativada'
-      });
-    } catch (error) {
-      console.error('❌ Erro ao verificar status auto-resposta:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Save AI settings
-  app.post('/api/ia/settings', async (req: Request, res: Response) => {
-    try {
-      const settingsSchema = z.object({
-        aiActive: z.boolean(),
-        learningMode: z.boolean(), 
-        autoHandoff: z.boolean(),
-        operationMode: z.string(),
-        confidenceThreshold: z.number().min(0).max(100)
-      });
-      
-      const settings = settingsSchema.parse(req.body);
-      
-      // Store settings (for now, just log them - in production you'd save to database)
-      console.log('⚙️ Configurações da Prof. Ana atualizadas:', settings);
-      
-      res.json({ 
-        success: true, 
-        message: 'Configurações salvas com sucesso',
-        settings 
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
-      }
-      console.error('❌ Erro ao salvar configurações da IA:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Get personalidades disponíveis (Faces Inteligentes)
-  app.get('/api/ia/personalities', async (req: Request, res: Response) => {
-    try {
-      const personalities = aiService.getAvailablePersonalities();
-      const currentPersonality = aiService.getCurrentPersonality();
-      
-      res.json({
-        personalities,
-        current: currentPersonality,
-        systemInfo: {
-          name: "Sistema de Faces Inteligentes",
-          description: "A Prof. Ana adapta automaticamente sua personalidade baseada no contexto da conversa",
-          version: "1.0"
-        }
-      });
-    } catch (error) {
-      console.error('❌ Erro ao buscar personalidades:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Get personalidade atual
-  app.get('/api/ia/current-personality', async (req: Request, res: Response) => {
-    try {
-      const currentPersonality = aiService.getCurrentPersonality();
-      
-      res.json({
-        personality: currentPersonality,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('❌ Erro ao buscar personalidade atual:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

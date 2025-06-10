@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import multer from "multer";
 import { facebookWebhookRoutes } from './facebook';
-import { aiService } from '../../services/aiService';
 
 // Função helper para atribuição manual de equipes (removida detecção automática)
 async function assignTeamManually(conversationId: number, teamId?: number) {
