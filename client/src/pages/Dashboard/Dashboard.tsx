@@ -23,7 +23,8 @@ import {
   Facebook,
   Mail,
   MessageCircle,
-  UserCheck
+  UserCheck,
+  Bot
 } from 'lucide-react';
 // Logo removido durante limpeza - usando texto simples
 import { useLocation } from 'wouter';
@@ -80,6 +81,13 @@ export function Dashboard() {
       icon: Users,
       description: 'Gestão de leads e contatos',
       route: '/crm'
+    },
+    {
+      id: 'prof-ana',
+      label: 'Prof. Ana',
+      icon: Bot,
+      description: 'Assistente de Relacionamento Inteligente',
+      route: '/ia'
     },
     {
       id: 'bi',

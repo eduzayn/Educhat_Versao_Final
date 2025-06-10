@@ -888,3 +888,97 @@ export const macrosetorKeywordsRelations = relations(macrosetorKeywords, ({ one 
 export type MacrosetorWithKeywords = MacrosetorDetection & {
   keywords: MacrosetorKeyword[];
 };
+
+// Prof. Ana - AI Assistant Tables
+export const aiContext = pgTable("ai_context", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'document', 'faq', 'youtube', 'text'
+  content: text("content").notNull(),
+  embedding: text("embedding"), // JSON string for vector embeddings
+  metadata: jsonb("metadata").default('{}'),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const aiLogs = pgTable("ai_logs", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'cascade' }),
+  messageId: integer("message_id").references(() => messages.id, { onDelete: 'cascade' }),
+  classification: text("classification"), // 'lead', 'student', 'complaint', 'spam'
+  sentiment: text("sentiment"), // 'positive', 'neutral', 'frustrated'
+  confidence: integer("confidence"), // 0-100
+  aiMode: text("ai_mode"), // 'mentor', 'consultant'
+  aiResponse: text("ai_response"),
+  contextUsed: jsonb("context_used").default('[]'),
+  handoffReason: text("handoff_reason"),
+  handoffTeam: text("handoff_team"),
+  sessionData: jsonb("session_data").default('{}'),
+  processingTime: integer("processing_time"), // milliseconds
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const aiSessions = pgTable("ai_sessions", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'cascade' }),
+  sessionData: jsonb("session_data").default('{}'),
+  lastInteraction: timestamp("last_interaction").defaultNow(),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Insert schemas for AI tables
+export const insertAiContextSchema = createInsertSchema(aiContext).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiLogSchema = createInsertSchema(aiLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for AI tables
+export type AiContext = typeof aiContext.$inferSelect;
+export type InsertAiContext = z.infer<typeof insertAiContextSchema>;
+export type AiLog = typeof aiLogs.$inferSelect;
+export type InsertAiLog = z.infer<typeof insertAiLogSchema>;
+export type AiSession = typeof aiSessions.$inferSelect;
+export type InsertAiSession = z.infer<typeof insertAiSessionSchema>;
+
+// Relations for AI tables
+export const aiLogsRelations = relations(aiLogs, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [aiLogs.conversationId],
+    references: [conversations.id],
+  }),
+  contact: one(contacts, {
+    fields: [aiLogs.contactId],
+    references: [contacts.id],
+  }),
+  message: one(messages, {
+    fields: [aiLogs.messageId],
+    references: [messages.id],
+  }),
+}));
+
+export const aiSessionsRelations = relations(aiSessions, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [aiSessions.conversationId],
+    references: [conversations.id],
+  }),
+  contact: one(contacts, {
+    fields: [aiSessions.contactId],
+    references: [contacts.id],
+  }),
+}));
