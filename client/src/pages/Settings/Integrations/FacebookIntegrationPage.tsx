@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { AlertCircle, CheckCircle, Facebook, Instagram, MessageSquare, Settings, Webhook } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { BackButton } from '@/shared/components/BackButton';
 
 interface FacebookIntegration {
   id: number;
@@ -218,15 +219,17 @@ export default function FacebookIntegrationPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="space-y-6">
+    <div className="min-h-screen bg-educhat-light">
+      <div className="p-6 space-y-6">
+        <BackButton to="/settings" label="Voltar às Configurações" />
+        
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Facebook className="h-6 w-6 text-blue-600" />
             <Instagram className="h-6 w-6 text-pink-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Integração Facebook & Instagram</h1>
+            <h2 className="text-2xl font-bold">Integração Facebook & Instagram</h2>
             <p className="text-muted-foreground">
               Configure a integração com Facebook Messenger e Instagram Direct
             </p>
@@ -234,10 +237,19 @@ export default function FacebookIntegrationPage() {
         </div>
 
         <Tabs defaultValue="integrations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
-            <TabsTrigger value="integrations">Integrações</TabsTrigger>
-            <TabsTrigger value="configuration">Configuração</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Integrações
+            </TabsTrigger>
+            <TabsTrigger value="configuration" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configuração
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" className="flex items-center gap-2">
+              <Webhook className="h-4 w-4" />
+              Webhooks
+            </TabsTrigger>
           </TabsList>
 
         <TabsContent value="integrations" className="space-y-4">
