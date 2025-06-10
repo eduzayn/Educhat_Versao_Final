@@ -781,6 +781,15 @@ async function processInstagramMessage(messagingEvent: any) {
       message: message
     });
 
+    // Análise automática de handoff para Instagram
+    setImmediate(async () => {
+      try {
+        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
+      } catch (handoffError) {
+        console.error('❌ Erro na análise automática de handoff (Instagram):', handoffError);
+      }
+    });
+
     // Criação automática de deals removida - apenas processar mensagem
     console.log(`📝 Mensagem Instagram processada para contato:`, contact.name);
 
@@ -844,6 +853,15 @@ async function processEmailMessage(emailData: any) {
       message: message
     });
 
+    // Análise automática de handoff para Email
+    setImmediate(async () => {
+      try {
+        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
+      } catch (handoffError) {
+        console.error('❌ Erro na análise automática de handoff (Email):', handoffError);
+      }
+    });
+
     // Criação automática de deals removida - apenas processar mensagem
     console.log(`📧 Mensagem Email processada para contato:`, contact.name);
 
@@ -904,6 +922,15 @@ async function processSMSMessage(smsData: any) {
       type: 'new_message',
       conversationId: conversation.id,
       message: message
+    });
+
+    // Análise automática de handoff para SMS
+    setImmediate(async () => {
+      try {
+        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
+      } catch (handoffError) {
+        console.error('❌ Erro na análise automática de handoff (SMS):', handoffError);
+      }
     });
 
     // Criação automática de deals removida - apenas processar mensagem
@@ -1223,6 +1250,16 @@ export function registerZApiRoutes(app: Express) {
             });
 
             console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
+
+            // PRIORIDADE 3: Análise automática de handoff (não bloquear processamento principal)
+            setImmediate(async () => {
+              try {
+                await autoHandoffService.analyzeAndHandoff(conversation.id, messageContent);
+              } catch (handoffError) {
+                console.error('❌ Erro na análise automática de handoff:', handoffError);
+              }
+            });
+
           } catch (saveError) {
             console.error('❌ Erro ao salvar mensagem:', saveError);
           }
@@ -1705,6 +1742,15 @@ async function processManychatMessage(webhookData: any) {
       type: 'new_message',
       conversationId: conversation.id,
       message: message
+    });
+
+    // Análise automática de handoff para Manychat
+    setImmediate(async () => {
+      try {
+        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
+      } catch (handoffError) {
+        console.error('❌ Erro na análise automática de handoff (Manychat):', handoffError);
+      }
     });
 
     // Sistema de criação automática de negócios removido
