@@ -16,6 +16,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useLocation } from 'wouter';
 import type { Handoff } from '@shared/schema';
 
 interface HandoffWithDetails extends Handoff {
@@ -55,6 +56,7 @@ interface HandoffStats {
 
 export function HandoffsPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [handoffs, setHandoffs] = useState<HandoffWithDetails[]>([]);
   const [stats, setStats] = useState<HandoffStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -204,7 +206,7 @@ export function HandoffsPage() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => window.history.back()}
+            onClick={() => setLocation('/')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
