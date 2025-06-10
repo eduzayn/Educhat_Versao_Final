@@ -655,21 +655,40 @@ export function ContactSidebar({
                 </div>
 
                 <div>
-                  <Label>Etapa do Negócio</Label>
+                  <Label>Funil de vendas</Label>
                   <Select 
-                    defaultValue={editingDeal.stage} 
-                    onValueChange={(value) => handleUpdateDeal(editingDeal, { stage: value })}
+                    defaultValue={editingDeal.macrosetor} 
+                    onValueChange={(value) => handleUpdateDeal(editingDeal, { macrosetor: value, stage: getStagesForMacrosetor(value)[0]?.id || '' })}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="prospecting">PROSPECÇÃO</SelectItem>
-                      <SelectItem value="qualified">QUALIFICADO</SelectItem>
-                      <SelectItem value="proposal">PROPOSTA</SelectItem>
-                      <SelectItem value="negotiation">NEGOCIAÇÃO</SelectItem>
-                      <SelectItem value="closed_won">GANHO</SelectItem>
-                      <SelectItem value="closed_lost">PERDIDO</SelectItem>
+                      {getAllMacrosetores().map(({ id, info }) => (
+                        <SelectItem key={id} value={id}>
+                          {info.name.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Etapa do Negócio</Label>
+                  <Select 
+                    defaultValue={editingDeal.stage} 
+                    onValueChange={(value) => handleUpdateDeal(editingDeal, { stage: value })}
+                    disabled={!editingDeal.macrosetor}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {editingDeal.macrosetor && getStagesForMacrosetor(editingDeal.macrosetor).map((stage) => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          {stage.name.toUpperCase()}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
