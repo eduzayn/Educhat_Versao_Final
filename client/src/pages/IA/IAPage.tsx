@@ -257,7 +257,7 @@ export function IAPage() {
             {/* Auto-response control */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                {autoResponseStatus?.enabled ? (
+                {(autoResponseStatus as any)?.enabled ? (
                   <Power className="h-4 w-4 text-green-600" />
                 ) : (
                   <PowerOff className="h-4 w-4 text-gray-400" />
@@ -266,7 +266,7 @@ export function IAPage() {
                   Atendimento Automático
                 </span>
                 <Switch
-                  checked={autoResponseStatus?.enabled || false}
+                  checked={(autoResponseStatus as any)?.enabled || false}
                   onCheckedChange={(checked) => toggleAutoResponseMutation.mutate(checked)}
                   disabled={toggleAutoResponseMutation.isPending || statusLoading}
                 />
@@ -634,15 +634,15 @@ export function IAPage() {
                   <div className="text-center py-4 text-educhat-medium">
                     Verificando personalidade ativa...
                   </div>
-                ) : currentPersonalityData?.personality ? (
+                ) : (currentPersonalityData as any)?.personality ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-semibold text-educhat-primary">
-                          {currentPersonalityData.personality.name}
+                          {(currentPersonalityData as any).personality.name}
                         </h3>
                         <p className="text-sm text-educhat-medium">
-                          {currentPersonalityData.personality.role}
+                          {(currentPersonalityData as any).personality.role}
                         </p>
                       </div>
                       <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
@@ -650,20 +650,20 @@ export function IAPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-educhat-dark">
-                      {currentPersonalityData.personality.description}
+                      {(currentPersonalityData as any).personality.description}
                     </p>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-medium">Tom:</span> {currentPersonalityData.personality.tone}
+                        <span className="font-medium">Tom:</span> {(currentPersonalityData as any).personality.tone}
                       </div>
                       <div>
-                        <span className="font-medium">Empatia:</span> {currentPersonalityData.personality.responsePatterns.empathetic ? "Alta" : "Moderada"}
+                        <span className="font-medium">Empatia:</span> {(currentPersonalityData as any).personality.responsePatterns.empathetic ? "Alta" : "Moderada"}
                       </div>
                       <div>
-                        <span className="font-medium">Formalidade:</span> {currentPersonalityData.personality.responsePatterns.formal ? "Formal" : "Calorosa"}
+                        <span className="font-medium">Formalidade:</span> {(currentPersonalityData as any).personality.responsePatterns.formal ? "Formal" : "Calorosa"}
                       </div>
                       <div>
-                        <span className="font-medium">Objetividade:</span> {currentPersonalityData.personality.responsePatterns.directness}/5
+                        <span className="font-medium">Objetividade:</span> {(currentPersonalityData as any).personality.responsePatterns.directness}/5
                       </div>
                     </div>
                   </div>
@@ -681,10 +681,10 @@ export function IAPage() {
                 <div className="col-span-full text-center py-8 text-educhat-medium">
                   Carregando personalidades...
                 </div>
-              ) : personalitiesData?.personalities && personalitiesData.personalities.length > 0 ? (
-                personalitiesData.personalities.map((personality: any, index: number) => (
+              ) : (personalitiesData as any)?.personalities && (personalitiesData as any).personalities.length > 0 ? (
+                (personalitiesData as any).personalities.map((personality: any, index: number) => (
                   <Card key={personality.id} className={`transition-all duration-200 ${
-                    currentPersonalityData?.personality?.id === personality.id 
+                    (currentPersonalityData as any)?.personality?.id === personality.id 
                       ? "border-2 border-educhat-primary bg-educhat-primary/5" 
                       : "hover:shadow-lg"
                   }`}>
@@ -759,15 +759,15 @@ export function IAPage() {
             </div>
 
             {/* Informações do Sistema */}
-            {personalitiesData?.systemInfo && (
+            {(personalitiesData as any)?.systemInfo && (
               <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
                   <CardTitle className="text-blue-800">Sobre o Sistema</CardTitle>
                 </CardHeader>
                 <CardContent className="text-blue-700">
-                  <p className="mb-2"><strong>{personalitiesData.systemInfo.name}</strong></p>
-                  <p className="text-sm">{personalitiesData.systemInfo.description}</p>
-                  <p className="text-xs mt-2 text-blue-600">Versão {personalitiesData.systemInfo.version}</p>
+                  <p className="mb-2"><strong>{(personalitiesData as any).systemInfo.name}</strong></p>
+                  <p className="text-sm">{(personalitiesData as any).systemInfo.description}</p>
+                  <p className="text-xs mt-2 text-blue-600">Versão {(personalitiesData as any).systemInfo.version}</p>
                 </CardContent>
               </Card>
             )}
