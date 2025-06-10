@@ -38,6 +38,41 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
+// Endpoints para cursos e categorias
+app.get('/api/courses/categories', async (req: Request, res: Response) => {
+  try {
+    const { getCourseCategories } = await import('./storage/utils/courseUtils');
+    const categories = getCourseCategories();
+    res.json(categories);
+  } catch (error) {
+    console.error('Erro ao buscar categorias de cursos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+app.get('/api/courses', async (req: Request, res: Response) => {
+  try {
+    const { COURSE_DICTIONARY } = await import('./storage/utils/courseUtils');
+    const courses = Object.values(COURSE_DICTIONARY).map(course => course.courseName).sort();
+    res.json(courses);
+  } catch (error) {
+    console.error('Erro ao buscar cursos:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+app.get('/api/courses/by-category/:category', async (req: Request, res: Response) => {
+  try {
+    const { getCoursesByCategory } = await import('./storage/utils/courseUtils');
+    const category = decodeURIComponent(req.params.category);
+    const courses = getCoursesByCategory(category);
+    res.json(courses);
+  } catch (error) {
+    console.error('Erro ao buscar cursos por categoria:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Endpoint simples para roles antes das middlewares de autenticação
 app.get('/api/roles', async (req: Request, res: Response) => {
   try {
