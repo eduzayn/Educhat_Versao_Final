@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { getAllFunnels, getFunnelStages, getStage, type Funnel } from '@/lib/crmFunnels';
+import { getAllMacrosetores, getStagesForMacrosetor, getMacrosetorInfo } from '@/shared/lib/crmFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {
@@ -38,28 +38,39 @@ const formatCurrency = (value: number) => {
   }).format(value / 100);
 };
 
-const getStageColor = (stage: string) => {
-  const colors = {
-    prospecting: 'bg-blue-100 text-blue-800',
-    qualified: 'bg-yellow-100 text-yellow-800',
-    proposal: 'bg-orange-100 text-orange-800',
-    negotiation: 'bg-purple-100 text-purple-800',
-    closed_won: 'bg-green-100 text-green-800',
-    closed_lost: 'bg-red-100 text-red-800'
-  };
-  return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+const getStageColor = (stage: string, macrosetor?: string) => {
+  if (macrosetor) {
+    const stages = getStagesForMacrosetor(macrosetor);
+    const stageInfo = stages.find(s => s.id === stage);
+    if (stageInfo) {
+      // Convert bg-color to badge color
+      const colorMap: Record<string, string> = {
+        'bg-gray-500': 'bg-gray-100 text-gray-800',
+        'bg-blue-500': 'bg-blue-100 text-blue-800',
+        'bg-yellow-500': 'bg-yellow-100 text-yellow-800',
+        'bg-orange-500': 'bg-orange-100 text-orange-800',
+        'bg-green-500': 'bg-green-100 text-green-800',
+        'bg-red-500': 'bg-red-100 text-red-800',
+        'bg-purple-500': 'bg-purple-100 text-purple-800',
+        'bg-indigo-500': 'bg-indigo-100 text-indigo-800',
+        'bg-emerald-500': 'bg-emerald-100 text-emerald-800',
+        'bg-violet-500': 'bg-violet-100 text-violet-800'
+      };
+      return colorMap[stageInfo.color] || 'bg-gray-100 text-gray-800';
+    }
+  }
+  return 'bg-gray-100 text-gray-800';
 };
 
-const getStageLabel = (stage: string) => {
-  const labels = {
-    prospecting: 'PROSPECÇÃO',
-    qualified: 'QUALIFICADO',
-    proposal: 'PROPOSTA',
-    negotiation: 'NEGOCIAÇÃO',
-    closed_won: 'GANHO',
-    closed_lost: 'PERDIDO'
-  };
-  return labels[stage as keyof typeof labels] || stage.toUpperCase();
+const getStageLabel = (stage: string, macrosetor?: string) => {
+  if (macrosetor) {
+    const stages = getStagesForMacrosetor(macrosetor);
+    const stageInfo = stages.find(s => s.id === stage);
+    if (stageInfo) {
+      return stageInfo.name.toUpperCase();
+    }
+  }
+  return stage.toUpperCase();
 };
 
 interface ContactSidebarProps {
@@ -439,32 +450,50 @@ export function ContactSidebar({
 
                   <div>
                     <Label htmlFor="deal-macrosetor">Funil de vendas *</Label>
-                    <Select value={dealFormData.macrosetor} onValueChange={(value) => setDealFormData(prev => ({ ...prev, macrosetor: value }))}>
+                    <Select 
+                      value={dealFormData.macrosetor} 
+                      onValueChange={(value) => {
+                        setDealFormData(prev => ({ 
+                          ...prev, 
+                          macrosetor: value,
+                          stage: '' // Reset stage when funnel changes
+                        }));
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o funil" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="comercial">COMERCIAL</SelectItem>
-                        <SelectItem value="tutoria">TUTORIA</SelectItem>
-                        <SelectItem value="secretaria">SECRETARIA</SelectItem>
-                        <SelectItem value="financeiro">FINANCEIRO</SelectItem>
+                        {getAllMacrosetores().map(({ id, info }) => (
+                          <SelectItem key={id} value={id}>
+                            {info.name.toUpperCase()}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                    {dealFormData.macrosetor && (
+                      <div className="mt-2 text-sm text-gray-600">
+                        {getMacrosetorInfo(dealFormData.macrosetor)?.description}
+                      </div>
+                    )}
                   </div>
 
                   <div>
                     <Label htmlFor="deal-stage">Etapa do funil *</Label>
-                    <Select value={dealFormData.stage} onValueChange={(value) => setDealFormData(prev => ({ ...prev, stage: value }))}>
+                    <Select 
+                      value={dealFormData.stage} 
+                      onValueChange={(value) => setDealFormData(prev => ({ ...prev, stage: value }))}
+                      disabled={!dealFormData.macrosetor}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione a etapa" />
+                        <SelectValue placeholder={dealFormData.macrosetor ? "Selecione a etapa" : "Primeiro selecione o funil"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="prospecting">PROSPECÇÃO</SelectItem>
-                        <SelectItem value="qualified">QUALIFICADO</SelectItem>
-                        <SelectItem value="proposal">PROPOSTA</SelectItem>
-                        <SelectItem value="negotiation">NEGOCIAÇÃO</SelectItem>
-                        <SelectItem value="closed_won">GANHO</SelectItem>
-                        <SelectItem value="closed_lost">PERDIDO</SelectItem>
+                        {dealFormData.macrosetor && getStagesForMacrosetor(dealFormData.macrosetor).map((stage) => (
+                          <SelectItem key={stage.id} value={stage.id}>
+                            {stage.name.toUpperCase()}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -577,8 +606,8 @@ export function ContactSidebar({
                       <span className="text-sm font-bold text-green-600">
                         {formatCurrency(deal.value || 0)}
                       </span>
-                      <Badge className={`text-xs ${getStageColor(deal.stage)}`}>
-                        {getStageLabel(deal.stage)}
+                      <Badge className={`text-xs ${getStageColor(deal.stage, deal.macrosetor)}`}>
+                        {getStageLabel(deal.stage, deal.macrosetor)}
                       </Badge>
                     </div>
                     
