@@ -262,7 +262,10 @@ export function IntegrationsPage() {
                           placeholder="Insira sua API Key do Manychat"
                         />
                         <p className="text-xs text-gray-500">
-                          Encontre sua API Key no painel do Manychat {'>'} Settings {'>'} API
+                          Encontre sua API Key no painel do Manychat: Settings {'>'} API {'>'} Generate API Key
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">
+                          ⚠️ Se receber erro 401, gere uma nova API Key no Manychat (tokens podem expirar)
                         </p>
                       </div>
 

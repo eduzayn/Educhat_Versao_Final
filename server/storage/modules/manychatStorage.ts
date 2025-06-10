@@ -238,8 +238,8 @@ export class ManychatStorage extends BaseStorage {
       if (response.status === 401) {
         return {
           success: false,
-          error: 'Invalid API Key - please verify your Manychat API key is correct',
-          message: 'Authentication failed',
+          error: 'API Key inválida ou expirada. Verifique no painel do Manychat: Settings > API > Gerar nova chave se necessário',
+          message: 'Falha na autenticação',
           status: response.status
         };
       }
