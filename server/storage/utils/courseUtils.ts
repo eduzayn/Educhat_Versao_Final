@@ -145,6 +145,31 @@ export const COURSE_DICTIONARY = {
     variations: ['design gráfico', 'design grafico', 'designer gráfico'],
     courseType: 'Graduação',
     courseName: 'Design Gráfico'
+  },
+  'historia': {
+    variations: ['história', 'historia', 'historiador', 'historica', 'curso de história'],
+    courseType: 'Graduação',
+    courseName: 'História'
+  },
+  'letras': {
+    variations: ['letras', 'língua portuguesa', 'lingua portuguesa', 'português', 'portugues'],
+    courseType: 'Graduação',
+    courseName: 'Letras'
+  },
+  'matematica': {
+    variations: ['matemática', 'matematica', 'matemático', 'matematico'],
+    courseType: 'Graduação',
+    courseName: 'Matemática'
+  },
+  'geografia': {
+    variations: ['geografia', 'geógrafo', 'geografo'],
+    courseType: 'Graduação',
+    courseName: 'Geografia'
+  },
+  'filosofia': {
+    variations: ['filosofia', 'filósofo', 'filosofo'],
+    courseType: 'Graduação',
+    courseName: 'Filosofia'
   }
 };
 
@@ -165,6 +190,88 @@ export function detectCourses(text: string): string[] {
   }
   
   return Array.from(new Set(detectedCourses)); // Remove duplicatas
+}
+
+/**
+ * Detecta informações educacionais completas (interesse e formação)
+ */
+export function detectEducationalInfo(text: string): {
+  interests: string[];
+  background: string[];
+  allCourses: string[];
+} {
+  const lowerText = text.toLowerCase();
+  const interests: string[] = [];
+  const background: string[] = [];
+  const allCourses: string[] = [];
+  
+  // Padrões para detectar interesse
+  const interestPatterns = [
+    /quero\s+(?:fazer|estudar|cursar)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
+    /interesse\s+(?:em|no|na)\s+(?:curso\s+(?:de\s+)?)?([^.!?]+)/gi,
+    /pretendo\s+(?:fazer|estudar|cursar)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
+    /gostaria\s+de\s+(?:fazer|estudar|cursar)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
+    /tenho\s+interesse\s+(?:em|no|na)\s+(?:curso\s+(?:de\s+)?)?([^.!?]+)/gi
+  ];
+  
+  // Padrões para detectar formação atual/passada
+  const backgroundPatterns = [
+    /sou\s+(?:formad[oa]|graduad[oa])\s+em\s+([^.!?]+)/gi,
+    /tenho\s+(?:graduação|formação)\s+em\s+([^.!?]+)/gi,
+    /me\s+form[eai]+\s+em\s+([^.!?]+)/gi,
+    /formad[oa]\s+em\s+([^.!?]+)/gi,
+    /graduad[oa]\s+em\s+([^.!?]+)/gi,
+    /bacharel\s+em\s+([^.!?]+)/gi,
+    /licenciad[oa]\s+em\s+([^.!?]+)/gi
+  ];
+  
+  // Detectar interesses
+  for (const pattern of interestPatterns) {
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+      const courseText = match[1].trim();
+      const detectedCourses = detectCoursesInText(courseText);
+      interests.push(...detectedCourses);
+    }
+  }
+  
+  // Detectar formação
+  for (const pattern of backgroundPatterns) {
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+      const courseText = match[1].trim();
+      const detectedCourses = detectCoursesInText(courseText);
+      background.push(...detectedCourses);
+    }
+  }
+  
+  // Detectar todos os cursos mencionados (para compatibilidade)
+  allCourses.push(...detectCourses(text));
+  
+  return {
+    interests: Array.from(new Set(interests)),
+    background: Array.from(new Set(background)),
+    allCourses: Array.from(new Set([...interests, ...background, ...allCourses]))
+  };
+}
+
+/**
+ * Função auxiliar para detectar cursos em um texto específico
+ */
+function detectCoursesInText(text: string): string[] {
+  const lowerText = text.toLowerCase();
+  const detectedCourses: string[] = [];
+  
+  for (const [courseId, courseData] of Object.entries(COURSE_DICTIONARY)) {
+    for (const variation of courseData.variations) {
+      if (lowerText.includes(variation.toLowerCase())) {
+        detectedCourses.push(courseData.courseName);
+        break;
+      }
+    }
+  }
+  
+  return detectedCourses;
 }
 
 /**

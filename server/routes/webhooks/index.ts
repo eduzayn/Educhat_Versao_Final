@@ -1207,6 +1207,29 @@ export function registerZApiRoutes(app: Express) {
             status: 'open',
             lastMessageAt: new Date()
           });
+        } else {
+          // IMPORTANTE: Reabrir automaticamente conversas resolvidas quando nova mensagem chega
+          if (conversation.status === 'resolved' || conversation.status === 'closed') {
+            console.log(`🔄 Reabrindo conversa ${conversation.id} (status: ${conversation.status}) para nova mensagem`);
+            
+            await storage.updateConversation(conversation.id, {
+              status: 'open',
+              lastMessageAt: new Date(),
+              unreadCount: (conversation.unreadCount || 0) + 1
+            });
+            
+            // Atualizar o objeto local
+            conversation.status = 'open';
+            conversation.lastMessageAt = new Date();
+            
+            console.log(`✅ Conversa ${conversation.id} reaberta automaticamente`);
+          } else {
+            // Atualizar timestamp da última mensagem mesmo se já estiver aberta
+            await storage.updateConversation(conversation.id, {
+              lastMessageAt: new Date(),
+              unreadCount: (conversation.unreadCount || 0) + 1
+            });
+          }
         }
 
         // Criar metadados enriquecidos para mensagens de mídia
@@ -1282,26 +1305,58 @@ export function registerZApiRoutes(app: Express) {
             let dealCreated = false;
             let conversationUpdated = false;
             
-            // Detectar e atualizar informações educacionais do contato
+            // Detectar e atualizar informações educacionais do contato usando detecção avançada
             try {
-              const { detectCourses } = await import('../../storage/utils/courseUtils');
-              const detectedCourses = detectCourses(messageContent);
+              const { detectEducationalInfo } = await import('../../storage/utils/courseUtils');
+              const educationalInfo = detectEducationalInfo(messageContent);
               
-              if (detectedCourses.length > 0) {
-                console.log(`📚 Cursos detectados na mensagem:`, detectedCourses);
+              console.log(`🎓 Informações educacionais detectadas:`, {
+                interests: educationalInfo.interests,
+                background: educationalInfo.background,
+                allCourses: educationalInfo.allCourses
+              });
+              
+              // Adicionar tags de interesse (cursos que o contato quer fazer)
+              for (const course of educationalInfo.interests) {
+                await storage.addContactTag({
+                  contactId: contact.id,
+                  tag: `Interesse: ${course}`
+                });
+                console.log(`📌 Tag de interesse adicionada: ${course}`);
+              }
+              
+              // Adicionar tags de formação (cursos que o contato já fez/está fazendo)
+              for (const course of educationalInfo.background) {
+                await storage.addContactTag({
+                  contactId: contact.id,
+                  tag: `Formação: ${course}`
+                });
+                console.log(`🎓 Tag de formação adicionada: ${course}`);
+              }
+              
+              // Atualizar campos específicos do contato se informações foram detectadas
+              if (educationalInfo.interests.length > 0 || educationalInfo.background.length > 0) {
+                const currentTags = contact.tags || [];
+                const newTags = [...currentTags];
                 
-                // Adicionar tags de interesse para os cursos detectados
-                for (const course of detectedCourses) {
-                  await storage.addContactTag({
-                    contactId: contact.id,
-                    tag: `Interesse: ${course}`
-                  });
-                }
+                // Adicionar informações ao array de tags do contato
+                educationalInfo.interests.forEach(course => {
+                  if (!newTags.includes(`Interesse: ${course}`)) {
+                    newTags.push(`Interesse: ${course}`);
+                  }
+                });
                 
+                educationalInfo.background.forEach(course => {
+                  if (!newTags.includes(`Formação: ${course}`)) {
+                    newTags.push(`Formação: ${course}`);
+                  }
+                });
+                
+                await storage.updateContact(contact.id, { tags: newTags });
                 console.log(`✅ Informações educacionais atualizadas para contato ${contact.id} (${contact.name})`);
               }
             } catch (courseDetectionError) {
-              console.error('❌ Erro na detecção de cursos:', courseDetectionError);
+              console.error('❌ Erro na detecção de informações educacionais:', courseDetectionError);
             }
             
             // Criar negócio automático se necessário
