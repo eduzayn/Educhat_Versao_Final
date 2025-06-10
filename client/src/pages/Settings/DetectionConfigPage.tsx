@@ -1,26 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { Badge } from '@/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
-import { Textarea } from '@/shared/ui/textarea';
-import { Switch } from '@/shared/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { useToast } from '@/shared/lib/hooks/useToast';
 import { apiRequest } from '@/lib/queryClient';
 import { Plus, Edit2, Trash2, TestTube, Settings, Brain, FileText, Play } from 'lucide-react';
 
 interface Macrosetor {
   id: number;
   name: string;
-  description?: string;
+  description: string;
   isActive: boolean;
   priority: number;
-  keywords: Keyword[];
   createdAt: string;
   updatedAt: string;
 }
@@ -32,29 +20,38 @@ interface Keyword {
   weight: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
-interface DetectionLog {
-  id: number;
-  content: string;
-  detectedMacrosetor?: string;
-  confidence?: number;
-  matchedKeywords?: string[];
-  channel?: string;
-  createdAt: string;
+interface TestResult {
+  detected: string;
+  score: number;
+  keywords: Array<{
+    keyword: string;
+    weight: number;
+    macrosetor: string;
+  }>;
 }
 
 export default function DetectionConfigPage() {
+  const [activeTab, setActiveTab] = useState('macrosetores');
   const [selectedMacrosetor, setSelectedMacrosetor] = useState<Macrosetor | null>(null);
-  const [showMacrosetorDialog, setShowMacrosetorDialog] = useState(false);
-  const [showKeywordDialog, setShowKeywordDialog] = useState(false);
-  const [showTestDialog, setShowTestDialog] = useState(false);
-  const [editingMacrosetor, setEditingMacrosetor] = useState<Macrosetor | null>(null);
-  const [editingKeyword, setEditingKeyword] = useState<Keyword | null>(null);
-  const [testContent, setTestContent] = useState('');
-  const [testResult, setTestResult] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'create' | 'edit'>('create');
+  const [testText, setTestText] = useState('');
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    priority: 1,
+    isActive: true
+  });
+  const [keywordForm, setKeywordForm] = useState({
+    keyword: '',
+    weight: 1,
+    isActive: true
+  });
 
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Queries
@@ -63,588 +60,467 @@ export default function DetectionConfigPage() {
     queryFn: () => apiRequest('GET', '/api/settings/macrosetores')
   });
 
-  const { data: detectionLogs = [], isLoading: loadingLogs } = useQuery({
-    queryKey: ['/api/settings/macrosetores/detection-logs'],
-    queryFn: () => apiRequest('GET', '/api/settings/macrosetores/detection-logs?limit=50')
+  const { data: keywords = [], isLoading: loadingKeywords } = useQuery({
+    queryKey: ['/api/settings/macrosetores/keywords', selectedMacrosetor?.id],
+    queryFn: () => selectedMacrosetor ? apiRequest('GET', `/api/settings/macrosetores/${selectedMacrosetor.id}/keywords`) : Promise.resolve([]),
+    enabled: !!selectedMacrosetor
   });
 
   // Mutations
-  const createMacrosetorMutation = useMutation({
+  const createMacrosetor = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/settings/macrosetores', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      setShowMacrosetorDialog(false);
-      setEditingMacrosetor(null);
-      toast({ title: 'Macrosetor criado com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao criar macrosetor', variant: 'destructive' });
+      setIsModalOpen(false);
+      resetForm();
     }
   });
 
-  const updateMacrosetorMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest('PUT', `/api/settings/macrosetores/${id}`, data),
+  const updateMacrosetor = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest('PUT', `/api/settings/macrosetores/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      setShowMacrosetorDialog(false);
-      setEditingMacrosetor(null);
-      toast({ title: 'Macrosetor atualizado com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao atualizar macrosetor', variant: 'destructive' });
+      setIsModalOpen(false);
+      resetForm();
     }
   });
 
-  const deleteMacrosetorMutation = useMutation({
+  const deleteMacrosetor = useMutation({
     mutationFn: (id: number) => apiRequest('DELETE', `/api/settings/macrosetores/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      toast({ title: 'Macrosetor removido com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao remover macrosetor', variant: 'destructive' });
     }
   });
 
-  const createKeywordMutation = useMutation({
+  const createKeyword = useMutation({
     mutationFn: ({ macrosetorId, data }: { macrosetorId: number; data: any }) => 
       apiRequest('POST', `/api/settings/macrosetores/${macrosetorId}/keywords`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      setShowKeywordDialog(false);
-      setEditingKeyword(null);
-      toast({ title: 'Palavra-chave adicionada com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao adicionar palavra-chave', variant: 'destructive' });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores/keywords', selectedMacrosetor?.id] });
+      setKeywordForm({ keyword: '', weight: 1, isActive: true });
     }
   });
 
-  const updateKeywordMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest('PUT', `/api/settings/keywords/${id}`, data),
+  const deleteKeyword = useMutation({
+    mutationFn: ({ macrosetorId, keywordId }: { macrosetorId: number; keywordId: number }) => 
+      apiRequest('DELETE', `/api/settings/macrosetores/${macrosetorId}/keywords/${keywordId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      setShowKeywordDialog(false);
-      setEditingKeyword(null);
-      toast({ title: 'Palavra-chave atualizada com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao atualizar palavra-chave', variant: 'destructive' });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores/keywords', selectedMacrosetor?.id] });
     }
   });
 
-  const deleteKeywordMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/settings/keywords/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      toast({ title: 'Palavra-chave removida com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao remover palavra-chave', variant: 'destructive' });
+  const testDetection = useMutation({
+    mutationFn: (text: string) => apiRequest('POST', '/api/settings/macrosetores/test', { text }),
+    onSuccess: (data) => {
+      setTestResult(data);
     }
   });
 
-  const testDetectionMutation = useMutation({
-    mutationFn: (data: { content: string; channel?: string }) => 
-      apiRequest('POST', '/api/settings/macrosetores/test-detection', data),
-    onSuccess: (result) => {
-      setTestResult(result);
-    },
-    onError: () => {
-      toast({ title: 'Erro ao testar detecção', variant: 'destructive' });
-    }
-  });
-
-  const initializeMacrosetoresMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/settings/macrosetores/initialize'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/macrosetores'] });
-      toast({ title: 'Macrosetores padrão inicializados com sucesso!' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao inicializar macrosetores', variant: 'destructive' });
-    }
-  });
-
-  const handleCreateMacrosetor = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      priority: parseInt(formData.get('priority') as string),
-      isActive: formData.get('isActive') === 'on'
-    };
-
-    if (editingMacrosetor) {
-      updateMacrosetorMutation.mutate({ id: editingMacrosetor.id, data });
-    } else {
-      createMacrosetorMutation.mutate(data);
-    }
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      priority: 1,
+      isActive: true
+    });
   };
 
-  const handleCreateKeyword = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      keyword: formData.get('keyword') as string,
-      weight: parseInt(formData.get('weight') as string),
-      isActive: formData.get('isActive') === 'on'
-    };
+  const handleCreateMacrosetor = () => {
+    setModalType('create');
+    resetForm();
+    setIsModalOpen(true);
+  };
 
-    if (editingKeyword) {
-      updateKeywordMutation.mutate({ id: editingKeyword.id, data });
+  const handleEditMacrosetor = (macrosetor: Macrosetor) => {
+    setModalType('edit');
+    setFormData({
+      name: macrosetor.name,
+      description: macrosetor.description,
+      priority: macrosetor.priority,
+      isActive: macrosetor.isActive
+    });
+    setSelectedMacrosetor(macrosetor);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitMacrosetor = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (modalType === 'create') {
+      createMacrosetor.mutate(formData);
     } else if (selectedMacrosetor) {
-      createKeywordMutation.mutate({ macrosetorId: selectedMacrosetor.id, data });
+      updateMacrosetor.mutate({ id: selectedMacrosetor.id, data: formData });
     }
   };
 
-  const handleTestDetection = () => {
-    if (testContent.trim()) {
-      testDetectionMutation.mutate({ content: testContent });
+  const handleAddKeyword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedMacrosetor) {
+      createKeyword.mutate({ 
+        macrosetorId: selectedMacrosetor.id, 
+        data: keywordForm 
+      });
     }
   };
 
-  const formatConfidence = (confidence?: number) => {
-    if (confidence === undefined || confidence === null) return '0%';
-    return `${confidence}%`;
-  };
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Sistema de Detecção de Macrosetores</h1>
-          <p className="text-muted-foreground">
-            Configure expressões e palavras-chave para classificação automática de mensagens
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          {macrosetores.length === 0 && (
-            <Button 
-              onClick={() => initializeMacrosetoresMutation.mutate()}
-              disabled={initializeMacrosetoresMutation.isPending}
-              variant="outline"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configuração Inicial
-            </Button>
-          )}
-          
-          <Button onClick={() => setShowTestDialog(true)} variant="outline">
-            <TestTube className="w-4 h-4 mr-2" />
-            Testar Detecção
-          </Button>
-          
-          <Button onClick={() => setShowMacrosetorDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Macrosetor
-          </Button>
+  if (loadingMacrosetores) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-64 bg-gray-200 rounded"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      <Tabs defaultValue="macrosetores" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="macrosetores">
-            <Brain className="w-4 h-4 mr-2" />
-            Macrosetores
-          </TabsTrigger>
-          <TabsTrigger value="logs">
-            <FileText className="w-4 h-4 mr-2" />
-            Logs de Detecção
-          </TabsTrigger>
-        </TabsList>
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Detecção Inteligente</h1>
+          <p className="text-gray-600">Configure expressões e macrosetores para classificação automática de mensagens</p>
+        </div>
 
-        <TabsContent value="macrosetores" className="space-y-4">
-          {loadingMacrosetores ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Carregando macrosetores...</p>
-            </div>
-          ) : macrosetores.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Brain className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum macrosetor configurado</h3>
-                <p className="text-muted-foreground mb-4">
-                  Configure os macrosetores para classificação automática de mensagens
-                </p>
-                <Button onClick={() => initializeMacrosetoresMutation.mutate()}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurar Macrosetores Padrão
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {macrosetores.map((macrosetor: Macrosetor) => (
-                <Card key={macrosetor.id} className="relative">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {macrosetor.name}
-                          <Badge variant={macrosetor.isActive ? "default" : "secondary"}>
-                            {macrosetor.isActive ? "Ativo" : "Inativo"}
-                          </Badge>
-                          <Badge variant="outline">
-                            Prioridade {macrosetor.priority}
-                          </Badge>
-                        </CardTitle>
-                        {macrosetor.description && (
-                          <CardDescription className="mt-1">
-                            {macrosetor.description}
-                          </CardDescription>
-                        )}
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('macrosetores')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'macrosetores'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Brain className="w-5 h-5 inline mr-2" />
+                Macrosetores
+              </button>
+              <button
+                onClick={() => setActiveTab('test')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'test'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <TestTube className="w-5 h-5 inline mr-2" />
+                Teste de Detecção
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'macrosetores' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Macrosetores List */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Macrosetores</h2>
+                <button
+                  onClick={handleCreateMacrosetor}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Macrosetor
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {Array.isArray(macrosetores) && macrosetores.map((macrosetor: Macrosetor) => (
+                  <div
+                    key={macrosetor.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedMacrosetor?.id === macrosetor.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedMacrosetor(macrosetor)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{macrosetor.name}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{macrosetor.description}</p>
+                        <div className="flex items-center mt-2 space-x-2">
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            macrosetor.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {macrosetor.isActive ? 'Ativo' : 'Inativo'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Prioridade: {macrosetor.priority}
+                          </span>
+                        </div>
                       </div>
-                      
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedMacrosetor(macrosetor);
-                            setShowKeywordDialog(true);
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditMacrosetor(macrosetor);
                           }}
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Palavra-chave
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingMacrosetor(macrosetor);
-                            setShowMacrosetorDialog(true);
-                          }}
+                          className="text-gray-400 hover:text-blue-600"
                         >
                           <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteMacrosetorMutation.mutate(macrosetor.id)}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteMacrosetor.mutate(macrosetor.id);
+                          }}
+                          className="text-gray-400 hover:text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </Button>
+                        </button>
                       </div>
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-medium text-sm mb-2">
-                          Palavras-chave ({macrosetor.keywords?.length || 0})
-                        </h4>
-                        {macrosetor.keywords?.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {macrosetor.keywords.map((keyword) => (
-                              <Badge
-                                key={keyword.id}
-                                variant={keyword.isActive ? "secondary" : "outline"}
-                                className="text-xs"
-                              >
-                                {keyword.keyword}
-                                <span className="ml-1 text-muted-foreground">
-                                  ({keyword.weight})
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-auto p-0 ml-1"
-                                  onClick={() => {
-                                    setEditingKeyword(keyword);
-                                    setSelectedMacrosetor(macrosetor);
-                                    setShowKeywordDialog(true);
-                                  }}
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-auto p-0 ml-1"
-                                  onClick={() => deleteKeywordMutation.mutate(keyword.id)}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm">
-                            Nenhuma palavra-chave configurada
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="logs" className="space-y-4">
-          {loadingLogs ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Carregando logs...</p>
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Logs de Detecção Recentes</CardTitle>
-                <CardDescription>
-                  Histórico das últimas 50 detecções de macrosetores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {detectionLogs.map((log: DetectionLog) => (
-                    <div key={log.id} className="border rounded-lg p-3 space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{log.detectedMacrosetor || 'geral'}</Badge>
-                          <Badge variant="secondary">
-                            {formatConfidence(log.confidence)}
-                          </Badge>
-                          {log.channel && (
-                            <Badge variant="outline">{log.channel}</Badge>
-                          )}
-                        </div>
-                        <span className="text-muted-foreground">
-                          {new Date(log.createdAt).toLocaleString('pt-BR')}
-                        </span>
-                      </div>
-                      <p className="text-sm">{log.content}</p>
-                      {log.matchedKeywords && log.matchedKeywords.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {log.matchedKeywords.map((keyword, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {keyword}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog de Macrosetor */}
-      <Dialog open={showMacrosetorDialog} onOpenChange={setShowMacrosetorDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingMacrosetor ? 'Editar Macrosetor' : 'Novo Macrosetor'}
-            </DialogTitle>
-            <DialogDescription>
-              Configure as informações básicas do macrosetor
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleCreateMacrosetor} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={editingMacrosetor?.name || ''}
-                placeholder="Ex: comercial, suporte, cobrança"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={editingMacrosetor?.description || ''}
-                placeholder="Descreva o propósito deste macrosetor"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="priority">Prioridade</Label>
-                <Input
-                  id="priority"
-                  name="priority"
-                  type="number"
-                  min="1"
-                  max="10"
-                  defaultValue={editingMacrosetor?.priority || 1}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    name="isActive"
-                    defaultChecked={editingMacrosetor?.isActive ?? true}
-                  />
-                  <Label>Ativo</Label>
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowMacrosetorDialog(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                type="submit"
-                disabled={createMacrosetorMutation.isPending || updateMacrosetorMutation.isPending}
-              >
-                {editingMacrosetor ? 'Atualizar' : 'Criar'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de Palavra-chave */}
-      <Dialog open={showKeywordDialog} onOpenChange={setShowKeywordDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingKeyword ? 'Editar Palavra-chave' : 'Nova Palavra-chave'}
-            </DialogTitle>
-            <DialogDescription>
-              Adicione uma palavra-chave para o macrosetor "{selectedMacrosetor?.name}"
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleCreateKeyword} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="keyword">Palavra-chave</Label>
-              <Input
-                id="keyword"
-                name="keyword"
-                defaultValue={editingKeyword?.keyword || ''}
-                placeholder="Ex: boleto, pagamento, suporte"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight">Peso</Label>
-                <Input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  min="1"
-                  max="10"
-                  defaultValue={editingKeyword?.weight || 1}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    name="isActive"
-                    defaultChecked={editingKeyword?.isActive ?? true}
-                  />
-                  <Label>Ativa</Label>
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowKeywordDialog(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                type="submit"
-                disabled={createKeywordMutation.isPending || updateKeywordMutation.isPending}
-              >
-                {editingKeyword ? 'Atualizar' : 'Adicionar'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de Teste */}
-      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Testar Detecção de Macrosetor</DialogTitle>
-            <DialogDescription>
-              Digite uma mensagem para testar o sistema de detecção
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="testContent">Mensagem de Teste</Label>
-              <Textarea
-                id="testContent"
-                value={testContent}
-                onChange={(e) => setTestContent(e.target.value)}
-                placeholder="Digite uma mensagem para testar..."
-                rows={4}
-              />
-            </div>
-            
-            <Button 
-              onClick={handleTestDetection}
-              disabled={!testContent.trim() || testDetectionMutation.isPending}
-              className="w-full"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Executar Teste
-            </Button>
-            
-            {testResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Resultado da Detecção</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex gap-2">
-                    <Badge variant="default">{testResult.macrosetor}</Badge>
-                    <Badge variant="secondary">
-                      {formatConfidence(testResult.confidence * 100)}
-                    </Badge>
                   </div>
-                  {testResult.matchedKeywords?.length > 0 && (
+                ))}
+              </div>
+            </div>
+
+            {/* Keywords Management */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">
+                {selectedMacrosetor ? `Palavras-chave: ${selectedMacrosetor.name}` : 'Selecione um Macrosetor'}
+              </h2>
+
+              {selectedMacrosetor && (
+                <>
+                  {/* Add Keyword Form */}
+                  <form onSubmit={handleAddKeyword} className="mb-6">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Palavra-chave
+                        </label>
+                        <input
+                          type="text"
+                          value={keywordForm.keyword}
+                          onChange={(e) => setKeywordForm(prev => ({ ...prev, keyword: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Digite a palavra-chave..."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Peso (1-10)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={keywordForm.weight}
+                          onChange={(e) => setKeywordForm(prev => ({ ...prev, weight: parseInt(e.target.value) }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={createKeyword.isPending}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {createKeyword.isPending ? 'Adicionando...' : 'Adicionar Palavra-chave'}
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Keywords List */}
+                  <div className="space-y-2">
+                    {Array.isArray(keywords) && keywords.map((keyword: Keyword) => (
+                      <div key={keyword.id} className="flex justify-between items-center p-3 border rounded-lg">
+                        <div>
+                          <span className="font-medium">{keyword.keyword}</span>
+                          <span className="ml-2 text-sm text-gray-500">
+                            Peso: {keyword.weight}
+                          </span>
+                          <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                            keyword.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {keyword.isActive ? 'Ativo' : 'Inativo'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => deleteKeyword.mutate({ 
+                            macrosetorId: selectedMacrosetor.id, 
+                            keywordId: keyword.id 
+                          })}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'test' && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Teste de Detecção</h2>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              testDetection.mutate(testText);
+            }} className="mb-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Texto para Teste
+                </label>
+                <textarea
+                  value={testText}
+                  onChange={(e) => setTestText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                  placeholder="Digite uma mensagem para testar a detecção..."
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={testDetection.isPending}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                {testDetection.isPending ? 'Testando...' : 'Testar Detecção'}
+              </button>
+            </form>
+
+            {testResult && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold text-lg mb-3">Resultado da Detecção</h3>
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-medium">Macrosetor Detectado:</span>
+                    <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {testResult.detected}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Pontuação:</span>
+                    <span className="ml-2 text-lg font-bold text-green-600">
+                      {testResult.score}
+                    </span>
+                  </div>
+                  {testResult.keywords && testResult.keywords.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium mb-1">Palavras-chave encontradas:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {testResult.matchedKeywords.map((keyword: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {keyword}
-                          </Badge>
+                      <span className="font-medium block mb-2">Palavras-chave Encontradas:</span>
+                      <div className="space-y-1">
+                        {testResult.keywords.map((kw, index) => (
+                          <div key={index} className="flex justify-between items-center bg-white p-2 rounded border">
+                            <span>"{kw.keyword}" ({kw.macrosetor})</span>
+                            <span className="font-medium text-green-600">+{kw.weight}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTestDialog(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+
+        {/* Modal for Create/Edit Macrosetor */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">
+                {modalType === 'create' ? 'Novo Macrosetor' : 'Editar Macrosetor'}
+              </h3>
+              
+              <form onSubmit={handleSubmitMacrosetor}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nome
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Descrição
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prioridade (1-10)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={formData.priority}
+                      onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                      className="mr-2"
+                    />
+                    <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                      Ativo
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createMacrosetor.isPending || updateMacrosetor.isPending}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {createMacrosetor.isPending || updateMacrosetor.isPending ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
