@@ -191,6 +191,37 @@ export class ManychatStorage extends BaseStorage {
       .orderBy(manychatWebhookLogs.createdAt);
   }
 
+  /**
+   * Log webhook data for debugging and monitoring
+   */
+  async logWebhook(webhookData: Partial<InsertManychatWebhookLog>): Promise<ManychatWebhookLog> {
+    const logData = {
+      integrationId: webhookData.integrationId || null,
+      webhookType: webhookData.webhookType || 'message',
+      payload: webhookData.payload || {},
+      processed: webhookData.processed || false,
+      contactId: webhookData.contactId || null,
+      conversationId: webhookData.conversationId || null
+    };
+
+    const result = await this.db
+      .insert(manychatWebhookLogs)
+      .values(logData)
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateWebhookLogStatus(webhookId: number, processed: boolean): Promise<void> {
+    await this.db
+      .update(manychatWebhookLogs)
+      .set({ 
+        processed,
+        processedAt: processed ? new Date() : null 
+      })
+      .where(eq(manychatWebhookLogs.id, webhookId));
+  }
+
   // Helper methods for testing Manychat API
   async testManychatConnection(apiKey: string, pageAccessToken: string): Promise<any> {
     try {

@@ -666,6 +666,38 @@ export function registerWebhookRoutes(app: Express) {
     }
   });
 
+  // Manychat webhook endpoint for omnichannel integration
+  app.post('/api/integrations/manychat/webhook', async (req, res) => {
+    try {
+      console.log('🤖 Webhook Manychat recebido:', JSON.stringify(req.body, null, 2));
+      
+      const webhookData = req.body;
+      
+      // Log webhook no banco de dados
+      try {
+        await storage.manychat.logWebhook({
+          webhookType: webhookData.type || 'message',
+          payload: webhookData,
+          processed: false
+        });
+      } catch (logError) {
+        console.error('❌ Erro ao salvar log do webhook:', logError);
+      }
+      
+      // Processar diferentes tipos de evento do Manychat
+      if (webhookData.user && (webhookData.text || webhookData.message)) {
+        await processManychatMessage(webhookData);
+      } else if (webhookData.type === 'subscriber_added') {
+        await processManychatSubscriberAdded(webhookData);
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('❌ Erro ao processar webhook Manychat:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Test webhook endpoints
   app.post('/api/test-webhook', async (req, res) => {
     try {
@@ -1799,6 +1831,195 @@ export function registerZApiRoutes(app: Express) {
       });
     }
   });
+}
 
+// Process Manychat message function
+async function processManychatMessage(webhookData: any) {
+  try {
+    const user = webhookData.user;
+    const messageText = webhookData.text || webhookData.message?.text || 'Mensagem do Manychat';
+    
+    const canalOrigem = 'manychat';
+    const nomeCanal = 'Manychat';
+    const userIdentity = user.id || user.user_id || user.psid;
+    const idCanal = `manychat-${userIdentity}`;
 
+    // Extrair informações do usuário
+    const userName = user.name || user.first_name || user.last_name || 
+                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
+                    `Manychat User ${userIdentity}`;
+    
+    const userEmail = user.email || null;
+    const userPhone = user.phone || null;
+
+    console.log(`🤖 Processando mensagem Manychat de ${userName}: ${messageText.substring(0, 100)}...`);
+
+    const contact = await storage.findOrCreateContact(userIdentity, {
+      name: userName,
+      phone: userPhone,
+      email: userEmail,
+      isOnline: true,
+      profileImageUrl: user.profile_pic || null,
+      canalOrigem: canalOrigem,
+      nomeCanal: nomeCanal,
+      idCanal: idCanal,
+      tags: ['manychat', 'bot-interaction']
+    });
+
+    await storage.updateContactOnlineStatus(contact.id, true);
+
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'manychat');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'manychat',
+        status: 'open',
+        macrosetor: 'comercial',
+        assignmentMethod: 'automatic',
+        lastMessageAt: new Date()
+      });
+    }
+
+    // Determinar tipo de mensagem
+    let messageType = 'text';
+    let content = messageText;
+    
+    if (webhookData.message) {
+      if (webhookData.message.type === 'image') {
+        messageType = 'image';
+        content = webhookData.message.image_url || messageText;
+      } else if (webhookData.message.type === 'audio') {
+        messageType = 'audio';
+        content = webhookData.message.audio_url || messageText;
+      } else if (webhookData.message.type === 'video') {
+        messageType = 'video';
+        content = webhookData.message.video_url || messageText;
+      } else if (webhookData.message.type === 'file') {
+        messageType = 'document';
+        content = webhookData.message.file_url || messageText;
+      }
+    }
+
+    const message = await storage.createMessage({
+      conversationId: conversation.id,
+      content: content,
+      isFromContact: true,
+      messageType: messageType,
+      sentAt: new Date(),
+      metadata: {
+        source: 'manychat',
+        manychatData: webhookData,
+        userId: userIdentity,
+        flow: webhookData.flow_name || null,
+        step: webhookData.step_name || null
+      }
+    });
+
+    // Broadcast em tempo real
+    const { broadcast, broadcastToAll } = await import('../realtime');
+    broadcast(conversation.id, {
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    broadcastToAll({
+      type: 'new_message',
+      conversationId: conversation.id,
+      message: message
+    });
+
+    // Criar negócio automaticamente se necessário
+    try {
+      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const existingDeals = await storage.getDealsByContact(contact.id);
+      
+      const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const hasRecentDeal = existingDeals.some(deal => 
+        new Date(deal.createdAt) > twentyFourHoursAgo
+      );
+      
+      if (!hasAnyActiveDeal && !hasRecentDeal) {
+        console.log(`💼 Criando negócio automático para contato do Manychat (${detectedMacrosetor}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+      } else {
+        console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
+      }
+    } catch (dealError) {
+      console.error('❌ Erro ao criar negócio automático para Manychat:', dealError);
+    }
+
+    // Atribuição inteligente de equipes
+    await assignTeamIntelligently(conversation.id, messageText, canalOrigem);
+
+    console.log(`✅ Mensagem Manychat processada com sucesso para ${contact.name}`);
+  } catch (error) {
+    console.error('❌ Erro ao processar mensagem do Manychat:', error);
+  }
+}
+
+// Process Manychat subscriber added event
+async function processManychatSubscriberAdded(webhookData: any) {
+  try {
+    const user = webhookData.user;
+    const userIdentity = user.id || user.user_id || user.psid;
+    const userName = user.name || user.first_name || user.last_name || 
+                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
+                    `Manychat User ${userIdentity}`;
+
+    console.log(`🤖 Novo subscriber Manychat adicionado: ${userName}`);
+
+    const contact = await storage.findOrCreateContact(userIdentity, {
+      name: userName,
+      phone: user.phone || null,
+      email: user.email || null,
+      isOnline: true,
+      profileImageUrl: user.profile_pic || null,
+      canalOrigem: 'manychat',
+      nomeCanal: 'Manychat',
+      idCanal: `manychat-${userIdentity}`,
+      tags: ['manychat', 'subscriber', 'new-lead']
+    });
+
+    // Criar conversa automaticamente para novos subscribers
+    let conversation = await storage.getConversationByContactAndChannel(contact.id, 'manychat');
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        contactId: contact.id,
+        channel: 'manychat',
+        status: 'open',
+        macrosetor: 'comercial',
+        assignmentMethod: 'automatic',
+        lastMessageAt: new Date()
+      });
+
+      // Mensagem automática de boas-vindas
+      const welcomeMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: `Novo subscriber adicionado via Manychat: ${userName}`,
+        isFromContact: true,
+        messageType: 'text',
+        sentAt: new Date(),
+        metadata: {
+          source: 'manychat',
+          type: 'subscriber_added',
+          manychatData: webhookData
+        }
+      });
+
+      // Broadcast da nova conversa
+      const { broadcastToAll } = await import('../realtime');
+      broadcastToAll({
+        type: 'new_message',
+        conversationId: conversation.id,
+        message: welcomeMessage
+      });
+    }
+
+    console.log(`✅ Novo subscriber Manychat processado: ${contact.name}`);
+  } catch (error) {
+    console.error('❌ Erro ao processar novo subscriber do Manychat:', error);
+  }
 }
