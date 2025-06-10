@@ -220,6 +220,19 @@ export default function IAPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Perplexity AI</CardTitle>
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${stats?.perplexity?.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                    <span className="text-sm font-medium">{stats?.perplexity?.status || 'Desconhecido'}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Leads Gerados</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>

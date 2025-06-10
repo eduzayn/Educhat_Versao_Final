@@ -54,6 +54,10 @@ router.get('/stats', async (req: Request, res: Response) => {
         sql`${aiSessions.lastInteraction} >= ${today}`
       ));
 
+    // Verificar status do Perplexity
+    const { perplexityService } = await import('../services/perplexityService');
+    const perplexityEnabled = !!process.env.PERPLEXITY_API_KEY;
+
     res.json({
       totalInteractions: totalInteractionsResult.count || 0,
       leadsConverted: leadsConvertedResult.count || 0,
@@ -64,6 +68,10 @@ router.get('/stats', async (req: Request, res: Response) => {
         responseTime: 1.2, // segundos médios
         satisfaction: 4.6, // nota média
         automationRate: 78 // % de casos resolvidos automaticamente
+      },
+      perplexity: {
+        enabled: perplexityEnabled,
+        status: perplexityEnabled ? 'Ativo' : 'Desabilitado'
       }
     });
   } catch (error) {
