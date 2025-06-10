@@ -273,6 +273,46 @@ export function registerIARoutes(app: Express) {
     }
   });
 
+  // Generate intelligent response from Prof. Ana
+  app.post('/api/ia/generate', async (req: Request, res: Response) => {
+    try {
+      const { message, contactId, conversationId, contactHistory } = req.body;
+
+      if (!message || !contactId || !conversationId) {
+        return res.status(400).json({ error: 'Dados obrigatórios: message, contactId, conversationId' });
+      }
+
+      const { aiService } = await import('../services/aiService');
+      
+      // Primeiro classifica a mensagem
+      const classification = await aiService.classifyMessage(
+        message, 
+        contactId, 
+        conversationId, 
+        contactHistory
+      );
+
+      // Depois gera resposta inteligente
+      const aiResponse = await aiService.generateResponse(
+        message,
+        classification,
+        contactId,
+        conversationId
+      );
+
+      console.log('🤖 Prof. Ana gerou resposta:', {
+        mode: classification.aiMode,
+        shouldHandoff: aiResponse.shouldHandoff,
+        processingTime: aiResponse.processingTime
+      });
+
+      res.json(aiResponse);
+    } catch (error) {
+      console.error('❌ Erro na geração de resposta da IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Train AI with new content
   app.post('/api/ia/train', async (req: Request, res: Response) => {
     try {

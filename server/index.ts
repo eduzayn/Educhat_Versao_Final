@@ -141,6 +141,10 @@ app.use((req, res, next) => {
     if (req.path === '/api/auth/health') {
       console.log(`🔍 Health check interceptado: ${req.method} ${req.path}`);
     }
+    // Garantir que responses da API sejam JSON
+    if (req.path.startsWith('/api/ia/')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
     next();
   });
 
