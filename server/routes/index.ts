@@ -24,9 +24,9 @@ import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerMacrosetorRoutes } from "./settings/macrosetores";
-import iaRouter from "./ia";
-import iaMemoryRouter from "./ia-memory";
-import documentsRouter from "./documents";
+import iaRouter from "./ia/index";
+import iaMemoryRouter from "./ia/memory";
+import documentsRouter from "./documents/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
