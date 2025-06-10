@@ -44,48 +44,53 @@ export default function SettingsPage() {
   // Buscar status das secrets
   const { data: secretsStatus, isLoading } = useQuery({
     queryKey: ['/api/settings/secrets/status'],
-    queryFn: () => apiRequest('/api/settings/secrets/status'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/settings/secrets/status');
+      return response;
+    },
   });
 
   // Mutation para salvar secrets
   const saveSecretsMutation = useMutation({
-    mutationFn: (data: SecretsForm) =>
-      apiRequest('/api/settings/secrets', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: async (data: SecretsForm) => {
+      return await apiRequest('POST', '/api/settings/secrets', data);
+    },
     onSuccess: () => {
       toast({
-        title: 'Configurações salvas',
-        description: 'As chaves de API foram configuradas com sucesso.',
+        title: "Configurações salvas",
+        description: "As chaves de API foram configuradas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/settings/secrets/status'] });
-      form.reset();
     },
     onError: (error) => {
       toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar as configurações.',
-        variant: 'destructive',
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações.",
+        variant: "destructive",
       });
     },
   });
 
-  // Mutation para testar secrets
-  const testSecretsMutation = useMutation({
-    mutationFn: () => apiRequest('/api/settings/secrets/test', { method: 'POST' }),
-    onSuccess: (data) => {
+  // Mutation para testar APIs
+  const testApisMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/settings/secrets/test');
+    },
+    onSuccess: (data: any) => {
+      const workingCount = data.working || 0;
+      const totalCount = data.total || 0;
+      
       toast({
-        title: 'Teste concluído',
-        description: `${data.working} de ${data.total} APIs funcionando corretamente.`,
+        title: "Teste concluído",
+        description: `${workingCount}/${totalCount} APIs funcionando corretamente.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/settings/secrets/status'] });
     },
     onError: () => {
       toast({
-        title: 'Erro no teste',
-        description: 'Não foi possível testar as configurações.',
-        variant: 'destructive',
+        title: "Erro no teste",
+        description: "Não foi possível testar as APIs.",
+        variant: "destructive",
       });
     },
   });
@@ -94,41 +99,75 @@ export default function SettingsPage() {
     saveSecretsMutation.mutate(data);
   };
 
-  const handleTestSecrets = () => {
-    testSecretsMutation.mutate();
+  const toggleShowKey = (key: string) => {
+    setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const toggleShowKey = (keyName: string) => {
-    setShowKeys(prev => ({ ...prev, [keyName]: !prev[keyName] }));
-  };
+  const renderSecretField = (
+    name: keyof SecretsForm,
+    label: string,
+    description: string,
+    icon: React.ReactNode,
+    placeholder: string
+  ) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="flex items-center gap-2">
+            {icon}
+            {label}
+          </FormLabel>
+          <FormDescription>{description}</FormDescription>
+          <FormControl>
+            <div className="relative">
+              <Input
+                {...field}
+                type={showKeys[name] ? 'text' : 'password'}
+                placeholder={placeholder}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggleShowKey(name)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showKeys[name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
 
-  const getStatusIcon = (status: SecretStatus) => {
-    if (!status.isConfigured) return <X className="h-4 w-4 text-red-500" />;
-    if (status.isWorking) return <Check className="h-4 w-4 text-green-500" />;
-    return <X className="h-4 w-4 text-red-500" />;
-  };
-
-  const getStatusBadge = (status: SecretStatus) => {
-    if (!status.isConfigured) return <Badge variant="destructive">Não configurada</Badge>;
-    if (status.isWorking) return <Badge variant="default">Funcionando</Badge>;
-    return <Badge variant="destructive">Com problemas</Badge>;
-  };
+  // Mapear status das secrets
+  const secrets = Array.isArray(secretsStatus) ? secretsStatus.map((secret: any) => ({
+    name: secret.name,
+    isConfigured: secret.isConfigured,
+    isWorking: secret.isWorking,
+    lastTested: secret.lastTested
+  })) : [];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Configurações</h1>
-          <p className="text-muted-foreground">
-            Configure as integrações de IA para a Prof. Ana
-          </p>
-        </div>
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
+        <p className="text-gray-600 mt-2">Configure as integrações de IA para a Prof. Ana</p>
       </div>
 
-      <Tabs defaultValue="apis" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="apis">APIs & Integrações</TabsTrigger>
-          <TabsTrigger value="ia">Configurações da IA</TabsTrigger>
+      <Tabs defaultValue="apis" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="apis" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            APIs & Integrações
+          </TabsTrigger>
+          <TabsTrigger value="ai-config" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Configurações da IA
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="apis" className="space-y-6">
@@ -145,47 +184,59 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Button 
-                    onClick={handleTestSecrets}
-                    disabled={testSecretsMutation.isPending}
-                    variant="outline"
-                  >
-                    {testSecretsMutation.isPending ? 'Testando...' : 'Testar todas as APIs'}
-                  </Button>
-                </div>
-
-                {isLoading ? (
-                  <div className="text-center py-4">Carregando status...</div>
-                ) : (
-                  <div className="grid gap-4">
-                    {secretsStatus?.map((status: SecretStatus) => (
-                      <div key={status.name} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          {status.name === 'OpenAI' && <Bot className="h-5 w-5" />}
-                          {status.name === 'Perplexity' && <Search className="h-5 w-5" />}
-                          <div>
-                            <h3 className="font-medium">{status.name}</h3>
-                            {status.lastTested && (
-                              <p className="text-sm text-muted-foreground">
-                                Último teste: {new Date(status.lastTested).toLocaleString()}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(status)}
-                          {getStatusBadge(status)}
+                {secrets.length > 0 ? (
+                  secrets.map((secret: SecretStatus) => (
+                    <div key={secret.name} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {secret.name === 'OpenAI API Key' ? (
+                          <Bot className="h-5 w-5 text-blue-500" />
+                        ) : (
+                          <Search className="h-5 w-5 text-purple-500" />
+                        )}
+                        <div>
+                          <h4 className="font-medium">{secret.name}</h4>
+                          {secret.lastTested && (
+                            <p className="text-sm text-gray-500">
+                              Último teste: {new Date(secret.lastTested).toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={secret.isConfigured ? "default" : "secondary"}>
+                          {secret.isConfigured ? "Configurada" : "Não configurada"}
+                        </Badge>
+                        {secret.isConfigured && (
+                          <Badge variant={secret.isWorking ? "default" : "destructive"}>
+                            {secret.isWorking ? (
+                              <Check className="h-3 w-3 mr-1" />
+                            ) : (
+                              <X className="h-3 w-3 mr-1" />
+                            )}
+                            {secret.isWorking ? "Funcionando" : "Com problemas"}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">
+                    {isLoading ? "Carregando status..." : "Nenhuma API configurada"}
+                  </p>
                 )}
+                
+                <Button 
+                  onClick={() => testApisMutation.mutate()}
+                  disabled={testApisMutation.isPending || secrets.length === 0}
+                  className="w-full"
+                >
+                  {testApisMutation.isPending ? "Testando..." : "Testar todas as APIs"}
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Configuração de APIs */}
+          {/* Configuração de Chaves de API */}
           <Card>
             <CardHeader>
               <CardTitle>Chaves de API</CardTitle>
@@ -196,90 +247,28 @@ export default function SettingsPage() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="openaiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Bot className="h-4 w-4" />
-                          OpenAI API Key
-                        </FormLabel>
-                        <FormDescription>
-                          Chave de API do OpenAI para processamento de linguagem natural
-                        </FormDescription>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showKeys.openai ? 'text' : 'password'}
-                              placeholder="sk-..."
-                              {...field}
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full px-3"
-                              onClick={() => toggleShowKey('openai')}
-                            >
-                              {showKeys.openai ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {renderSecretField(
+                    'openaiKey',
+                    'OpenAI API Key',
+                    'Chave de API do OpenAI para processamento de linguagem natural',
+                    <Bot className="h-4 w-4" />,
+                    'sk-...'
+                  )}
 
-                  <FormField
-                    control={form.control}
-                    name="perplexityKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Search className="h-4 w-4" />
-                          Perplexity API Key (Opcional)
-                        </FormLabel>
-                        <FormDescription>
-                          Chave de API do Perplexity para pesquisas em tempo real
-                        </FormDescription>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showKeys.perplexity ? 'text' : 'password'}
-                              placeholder="pplx-..."
-                              {...field}
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full px-3"
-                              onClick={() => toggleShowKey('perplexity')}
-                            >
-                              {showKeys.perplexity ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {renderSecretField(
+                    'perplexityKey',
+                    'Perplexity API Key (Opcional)',
+                    'Chave de API do Perplexity para pesquisas em tempo real',
+                    <Search className="h-4 w-4" />,
+                    'pplx-...'
+                  )}
 
                   <Button 
                     type="submit" 
                     disabled={saveSecretsMutation.isPending}
                     className="w-full"
                   >
-                    {saveSecretsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                    {saveSecretsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
                   </Button>
                 </form>
               </Form>
@@ -287,21 +276,18 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="ia" className="space-y-6">
+        <TabsContent value="ai-config" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Configurações da Prof. Ana</CardTitle>
               <CardDescription>
-                Configurações avançadas do motor de IA
+                Configure o comportamento e as funcionalidades da assistente de IA
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  As configurações da IA são gerenciadas automaticamente pelo sistema.
-                  Para ajustes avançados, entre em contato com o suporte.
-                </div>
-              </div>
+              <p className="text-gray-500 text-center py-8">
+                As configurações avançadas da Prof. Ana estão disponíveis na seção "IA" do menu principal.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
