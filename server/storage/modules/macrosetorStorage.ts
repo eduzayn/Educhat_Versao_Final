@@ -178,76 +178,18 @@ export class MacrosetorStorage extends BaseStorage {
       .limit(limit);
   }
 
-  // Método para detecção inteligente usando dados do banco
+  // Sistema antigo de detecção removido - agora usa IA para classificação
   async detectMacrosetorAdvanced(content: string, channel?: string): Promise<{
     macrosetor: string;
     confidence: number;
     matchedKeywords: string[];
   }> {
-    if (!content || content.trim().length < 3) {
-      return { macrosetor: 'geral', confidence: 0, matchedKeywords: [] };
-    }
-
-    const contentLower = content.toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-
-    // Buscar todos os macrosetores ativos
-    const macrosetores = await this.getMacrosetores();
-    const activeMacrosetores = macrosetores.filter(m => m.isActive);
-
-    let bestMatch = { 
-      macrosetor: 'geral', 
-      confidence: 0, 
-      matchedKeywords: [] as string[] 
-    };
-
-    for (const macrosetor of activeMacrosetores) {
-      const activeKeywords = macrosetor.keywords.filter(k => k.isActive);
-      let totalScore = 0;
-      let matchedKeywords: string[] = [];
-
-      for (const keywordObj of activeKeywords) {
-        const keywordNormalized = keywordObj.keyword.toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
-
-        if (contentLower.includes(keywordNormalized)) {
-          totalScore += keywordObj.weight;
-          matchedKeywords.push(keywordObj.keyword);
-        }
-      }
-
-      const confidence = activeKeywords.length > 0 
-        ? Math.min((totalScore / activeKeywords.length) * 0.8, 1.0)
-        : 0;
-
-      if (confidence > bestMatch.confidence) {
-        bestMatch = {
-          macrosetor: macrosetor.name,
-          confidence,
-          matchedKeywords
-        };
-      }
-    }
-
-    // Registrar log da detecção
-    try {
-      await this.createDetectionLog({
-        content: content.substring(0, 500), // Limitar tamanho
-        detectedMacrosetor: bestMatch.macrosetor,
-        confidence: Math.round(bestMatch.confidence * 100),
-        matchedKeywords: bestMatch.matchedKeywords,
-        channel: channel || 'unknown'
-      });
-    } catch (error) {
-      console.error('Erro ao salvar log de detecção:', error);
-    }
-
-    return bestMatch;
+    // Sistema antigo de detecção por palavras-chave removido
+    // O novo sistema de IA faz a classificação automaticamente
+    return { macrosetor: 'geral', confidence: 0, matchedKeywords: [] };
   }
 
-  // Método para teste de detecção via API
+  // Sistema antigo de teste removido - agora usa IA para classificação
   async testMacrosetorDetection(text: string): Promise<{
     detected: string;
     score: number;
@@ -257,16 +199,11 @@ export class MacrosetorStorage extends BaseStorage {
       macrosetor: string;
     }>;
   }> {
-    const result = await this.detectMacrosetorAdvanced(text);
-    
+    // Sistema antigo de detecção por palavras-chave removido
     return {
-      detected: result.macrosetor,
-      score: Math.round(result.confidence * 100),
-      keywords: result.matchedKeywords.map(keyword => ({
-        keyword,
-        weight: 1,
-        macrosetor: result.macrosetor
-      }))
+      detected: 'geral',
+      score: 0,
+      keywords: []
     };
   }
 

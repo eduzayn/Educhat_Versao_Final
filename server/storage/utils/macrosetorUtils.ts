@@ -83,52 +83,12 @@ const MACROSETOR_KEYWORDS = {
 };
 
 /**
- * Detects the macrosetor based on message content
+ * Sistema antigo de detecção removido - agora utiliza IA para classificação
+ * Função mantida apenas para compatibilidade com código existente
  */
 export function detectMacrosetor(content: string): MacrosetorDetection | null {
-  if (!content || content.trim().length < 10) {
-    return null;
-  }
-
-  const normalizedContent = content.toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, ''); // Remove accents
-
-  const detections: MacrosetorDetection[] = [];
-
-  for (const [macrosetor, keywords] of Object.entries(MACROSETOR_KEYWORDS)) {
-    const foundKeywords: string[] = [];
-    let totalMatches = 0;
-
-    for (const keyword of keywords) {
-      const regex = new RegExp(`\\b${keyword.replace(/[\u0300-\u036f]/g, '')}\\b`, 'gi');
-      const matches = normalizedContent.match(regex);
-      if (matches) {
-        foundKeywords.push(keyword);
-        totalMatches += matches.length;
-      }
-    }
-
-    if (foundKeywords.length > 0) {
-      const confidence = Math.min(
-        (foundKeywords.length / keywords.length) * 0.7 + 
-        (totalMatches / content.split(' ').length) * 0.3,
-        1.0
-      );
-
-      detections.push({
-        macrosetor,
-        confidence,
-        keywords: foundKeywords
-      });
-    }
-  }
-
-  // Return the detection with highest confidence
-  if (detections.length > 0) {
-    return detections.sort((a, b) => b.confidence - a.confidence)[0];
-  }
-
+  // Sistema antigo de detecção por palavras-chave removido
+  // O novo sistema de IA faz a classificação automaticamente
   return null;
 }
 
