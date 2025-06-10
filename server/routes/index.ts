@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
-  registerMacrosetorRoutes(app);
+  registerMacrosetorRoutes(app, {} as any);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);

@@ -40,6 +40,12 @@ const settingsCards = [
     icon: "🔌"
   },
   {
+    title: "Sistema de Detecção",
+    description: "Configure expressões e macrosetores para classificação automática",
+    href: "/settings/detection",
+    icon: "🧠"
+  },
+  {
     title: "Notificações",
     description: "Configurações de alertas e notificações",
     href: "/settings/notifications",
