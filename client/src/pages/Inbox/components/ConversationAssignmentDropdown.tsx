@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
-import { Users, User } from 'lucide-react';
+import { Button } from '@/shared/ui/button';
+import { Users, User, Zap, ArrowRight } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team, SystemUser } from '@shared/schema';
 
@@ -22,6 +23,7 @@ export function ConversationAssignmentDropdown({
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiHandoffLoading, setAiHandoffLoading] = useState(false);
 
   // Carregar dados iniciais
   useEffect(() => {
