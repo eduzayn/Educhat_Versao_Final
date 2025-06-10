@@ -268,6 +268,37 @@ export const deals = pgTable("deals", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para logs de handoffs/transferências
+export const handoffs = pgTable("handoffs", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  fromUserId: integer("from_user_id").references(() => systemUsers.id),
+  toUserId: integer("to_user_id").references(() => systemUsers.id),
+  fromTeamId: integer("from_team_id").references(() => teams.id),
+  toTeamId: integer("to_team_id").references(() => teams.id),
+  type: varchar("type", { length: 20 }).notNull(), // manual, automatic, escalation
+  reason: text("reason"),
+  priority: varchar("priority", { length: 10 }).default("normal"), // low, normal, high, urgent
+  status: varchar("status", { length: 20 }).default("pending"), // pending, accepted, rejected, completed
+  aiClassification: jsonb("ai_classification").$type<{
+    confidence: number;
+    suggestedTeam?: string;
+    urgency: string;
+    frustrationLevel: number;
+    intent: string;
+  }>(),
+  metadata: jsonb("metadata").$type<{
+    triggerEvent?: string;
+    escalationReason?: string;
+    customerSentiment?: string;
+    previousHandoffs?: number;
+  }>(),
+  acceptedAt: timestamp("accepted_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
@@ -280,6 +311,29 @@ export const dealsRelations = relations(deals, ({ one }) => ({
   contact: one(contacts, {
     fields: [deals.contactId],
     references: [contacts.id],
+  }),
+}));
+
+export const handoffsRelations = relations(handoffs, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [handoffs.conversationId],
+    references: [conversations.id],
+  }),
+  fromUser: one(systemUsers, {
+    fields: [handoffs.fromUserId],
+    references: [systemUsers.id],
+  }),
+  toUser: one(systemUsers, {
+    fields: [handoffs.toUserId],
+    references: [systemUsers.id],
+  }),
+  fromTeam: one(teams, {
+    fields: [handoffs.fromTeamId],
+    references: [teams.id],
+  }),
+  toTeam: one(teams, {
+    fields: [handoffs.toTeamId],
+    references: [teams.id],
   }),
 }));
 
@@ -453,6 +507,17 @@ export type ContactNote = typeof contactNotes.$inferSelect;
 export type InsertContactNote = z.infer<typeof insertContactNoteSchema>;
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
+
+export const insertHandoffSchema = createInsertSchema(handoffs).omit({
+  id: true,
+  acceptedAt: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Handoff = typeof handoffs.$inferSelect;
+export type InsertHandoff = z.infer<typeof insertHandoffSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
