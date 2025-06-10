@@ -661,3 +661,6 @@ export class DatabaseStorage implements IStorage {
     return bestMatch.score > 0 ? bestMatch.macrosetor : 'geral';
   }
 }
+
+// Export storage instance
+export const storage = new DatabaseStorage();

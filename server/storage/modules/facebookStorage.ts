@@ -203,7 +203,7 @@ export class FacebookStorage extends BaseStorage {
         whereCondition = and(
           eq(facebookWebhookLogs.processed, false),
           eq(facebookWebhookLogs.integrationId, integrationId)
-        );
+        )!;
       }
       
       const query = this.db

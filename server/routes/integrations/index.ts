@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { z } from "zod";
 import { insertManychatIntegrationSchema } from "@shared/schema";
+import { facebookRoutes } from './facebook';
 
 const manychatTestSchema = z.object({
   apiKey: z.string().min(1, "API Key é obrigatória")
@@ -255,4 +256,7 @@ export function registerIntegrationRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to update integration status' });
     }
   });
+
+  // Facebook/Instagram integration routes
+  app.use('/api/integrations/facebook', facebookRoutes);
 }
