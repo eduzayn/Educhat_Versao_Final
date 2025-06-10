@@ -650,7 +650,7 @@ export function IAPage() {
                   <h3 className="font-medium">Nível de Confiança Mínimo</h3>
                   <Input 
                     type="number" 
-                    value={aiSettings.confidenceThreshold} 
+                    value={aiSettings.confidenceThreshold.toString()} 
                     onChange={(e) => setAiSettings(prev => ({ ...prev, confidenceThreshold: parseInt(e.target.value) || 75 }))}
                     min="0" 
                     max="100" 

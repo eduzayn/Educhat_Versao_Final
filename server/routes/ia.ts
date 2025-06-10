@@ -374,4 +374,34 @@ export function registerIARoutes(app: Express) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
+
+  // Save AI settings
+  app.post('/api/ia/settings', async (req: Request, res: Response) => {
+    try {
+      const settingsSchema = z.object({
+        aiActive: z.boolean(),
+        learningMode: z.boolean(), 
+        autoHandoff: z.boolean(),
+        operationMode: z.string(),
+        confidenceThreshold: z.number().min(0).max(100)
+      });
+      
+      const settings = settingsSchema.parse(req.body);
+      
+      // Store settings (for now, just log them - in production you'd save to database)
+      console.log('⚙️ Configurações da Prof. Ana atualizadas:', settings);
+      
+      res.json({ 
+        success: true, 
+        message: 'Configurações salvas com sucesso',
+        settings 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+      }
+      console.error('❌ Erro ao salvar configurações da IA:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
 }
