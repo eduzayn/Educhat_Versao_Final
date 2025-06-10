@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import multer from "multer";
 import { facebookWebhookRoutes } from './facebook';
-import { autoHandoffService } from '../../services/autoHandoffService.js';
+
 
 // Função helper para atribuição manual de equipes (removida detecção automática)
 async function assignTeamManually(conversationId: number, teamId?: number) {
@@ -781,14 +781,7 @@ async function processInstagramMessage(messagingEvent: any) {
       message: message
     });
 
-    // Análise automática de handoff para Instagram
-    setImmediate(async () => {
-      try {
-        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
-      } catch (handoffError) {
-        console.error('❌ Erro na análise automática de handoff (Instagram):', handoffError);
-      }
-    });
+    // Análise de handoff removida - usaremos apenas o sistema do webhook Z-API
 
     // Criação automática de deals removida - apenas processar mensagem
     console.log(`📝 Mensagem Instagram processada para contato:`, contact.name);
@@ -853,14 +846,7 @@ async function processEmailMessage(emailData: any) {
       message: message
     });
 
-    // Análise automática de handoff para Email
-    setImmediate(async () => {
-      try {
-        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
-      } catch (handoffError) {
-        console.error('❌ Erro na análise automática de handoff (Email):', handoffError);
-      }
-    });
+    // Análise de handoff removida - usaremos apenas o sistema do webhook Z-API
 
     // Criação automática de deals removida - apenas processar mensagem
     console.log(`📧 Mensagem Email processada para contato:`, contact.name);
@@ -924,14 +910,7 @@ async function processSMSMessage(smsData: any) {
       message: message
     });
 
-    // Análise automática de handoff para SMS
-    setImmediate(async () => {
-      try {
-        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
-      } catch (handoffError) {
-        console.error('❌ Erro na análise automática de handoff (SMS):', handoffError);
-      }
-    });
+    // Análise de handoff removida - usaremos apenas o sistema do webhook Z-API
 
     // Criação automática de deals removida - apenas processar mensagem
     console.log(`📱 Mensagem SMS processada para contato:`, contact.name);
@@ -1251,10 +1230,47 @@ export function registerZApiRoutes(app: Express) {
 
             console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
 
-            // PRIORIDADE 3: Análise automática de handoff (não bloquear processamento principal)
+            // PRIORIDADE 3: Análise automática de handoff integrada
             setImmediate(async () => {
               try {
-                await autoHandoffService.analyzeAndHandoff(conversation.id, messageContent);
+                // Usar endpoint direto para avaliação automática
+                const response = await fetch(`http://localhost:5000/api/handoffs/evaluate`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    conversationId: conversation.id,
+                    aiClassification: {
+                      intent: messageContent.toLowerCase().includes('problema') || messageContent.toLowerCase().includes('erro') ? 'technical_support' :
+                             messageContent.toLowerCase().includes('cancelar') || messageContent.toLowerCase().includes('reembolso') ? 'billing_issue' :
+                             messageContent.toLowerCase().includes('comprar') || messageContent.toLowerCase().includes('curso') ? 'sales_inquiry' : 'general_inquiry',
+                      urgency: messageContent.toLowerCase().includes('urgente') || messageContent.toLowerCase().includes('crítico') ? 'high' : 'normal',
+                      confidence: 85,
+                      frustrationLevel: messageContent.toLowerCase().includes('irritado') || messageContent.toLowerCase().includes('péssimo') ? 8 : 3
+                    }
+                  })
+                });
+
+                if (response.ok) {
+                  const evaluation = await response.json();
+                  if (evaluation.shouldHandoff) {
+                    // Criar handoff automático
+                    await fetch(`http://localhost:5000/api/handoffs/auto-create`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        conversationId: conversation.id,
+                        aiClassification: {
+                          intent: messageContent.toLowerCase().includes('problema') || messageContent.toLowerCase().includes('erro') ? 'technical_support' :
+                                 messageContent.toLowerCase().includes('cancelar') || messageContent.toLowerCase().includes('reembolso') ? 'billing_issue' :
+                                 messageContent.toLowerCase().includes('comprar') || messageContent.toLowerCase().includes('curso') ? 'sales_inquiry' : 'general_inquiry',
+                          urgency: messageContent.toLowerCase().includes('urgente') || messageContent.toLowerCase().includes('crítico') ? 'high' : 'normal',
+                          confidence: 85,
+                          frustrationLevel: messageContent.toLowerCase().includes('irritado') || messageContent.toLowerCase().includes('péssimo') ? 8 : 3
+                        }
+                      })
+                    });
+                  }
+                }
               } catch (handoffError) {
                 console.error('❌ Erro na análise automática de handoff:', handoffError);
               }
@@ -1744,14 +1760,7 @@ async function processManychatMessage(webhookData: any) {
       message: message
     });
 
-    // Análise automática de handoff para Manychat
-    setImmediate(async () => {
-      try {
-        await autoHandoffService.analyzeAndHandoff(conversation.id, messageText);
-      } catch (handoffError) {
-        console.error('❌ Erro na análise automática de handoff (Manychat):', handoffError);
-      }
-    });
+    // Análise de handoff removida - usaremos apenas o sistema do webhook Z-API
 
     // Sistema de criação automática de negócios removido
 
