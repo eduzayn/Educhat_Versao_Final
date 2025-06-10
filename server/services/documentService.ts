@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { db } from '../db';
 import { aiContext } from '../../shared/schema';
@@ -105,13 +104,20 @@ export class DocumentService {
    * Processa arquivo PDF
    */
   private async processPDF(filePath: string): Promise<{ text: string; pages: number }> {
-    const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(dataBuffer);
-    
-    return {
-      text: data.text,
-      pages: data.numpages
-    };
+    try {
+      // Importação dinâmica para evitar erro na inicialização
+      const pdfParse = (await import('pdf-parse')).default;
+      const dataBuffer = fs.readFileSync(filePath);
+      const data = await pdfParse(dataBuffer);
+      
+      return {
+        text: data.text,
+        pages: data.numpages
+      };
+    } catch (error) {
+      console.error('❌ Erro ao processar PDF:', error);
+      throw new Error('Falha ao processar arquivo PDF');
+    }
   }
 
   /**

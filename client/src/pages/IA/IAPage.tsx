@@ -5,7 +5,7 @@ import { Input } from '../../shared/ui/input';
 import { Textarea } from '../../shared/ui/textarea';
 import { Badge } from '../../shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shared/ui/tabs';
-import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft, Search } from 'lucide-react';
+import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft, Search, Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -61,6 +61,31 @@ interface MemoryStats {
   total: number;
 }
 
+interface DocumentProcessingResult {
+  success: boolean;
+  text?: string;
+  summary?: string;
+  keywords?: string[];
+  category?: string;
+  metadata?: {
+    fileName: string;
+    fileSize: number;
+    pages?: number;
+    wordCount: number;
+    processedAt: Date;
+  };
+  error?: string;
+}
+
+interface ProcessedDocument {
+  id: number;
+  name: string;
+  type: string;
+  content: string;
+  metadata: any;
+  createdAt: string;
+}
+
 export default function IAPage() {
   const [, setLocation] = useLocation();
   const [testMessage, setTestMessage] = useState('');
@@ -71,6 +96,9 @@ export default function IAPage() {
     content: '',
     category: ''
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [documentSearch, setDocumentSearch] = useState('');
 
   // Consultas principais
   const { data: stats, isLoading: statsLoading } = useQuery<AIStats>({
@@ -210,9 +238,10 @@ export default function IAPage() {
         </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="memory">Memória Contextual</TabsTrigger>
+          <TabsTrigger value="documents">Documentos PDF/DOCX</TabsTrigger>
           <TabsTrigger value="test">Teste da IA</TabsTrigger>
           <TabsTrigger value="contexts">Contextos</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
