@@ -241,28 +241,31 @@ export function registerIARoutes(app: Express) {
     }
   });
 
-  // Classify message intent (placeholder for AI integration)
+  // Classify message intent with OpenAI integration
   app.post('/api/ia/classify', async (req: Request, res: Response) => {
     try {
-      const { message, contactId, conversationId } = req.body;
+      const { message, contactId, conversationId, contactHistory } = req.body;
 
       if (!message || !contactId || !conversationId) {
         return res.status(400).json({ error: 'Dados obrigatórios: message, contactId, conversationId' });
       }
 
-      // Placeholder classification logic
-      // In production, this would integrate with OpenAI API
-      const classification = {
-        intent: 'general',
-        sentiment: 'neutral',
-        confidence: 75,
-        aiMode: 'mentor',
-        suggestedResponse: 'Olá! Como posso ajudar você hoje?',
-        contextUsed: [],
-        processingTime: 150
-      };
+      const { aiService } = await import('../services/aiService');
+      
+      const classification = await aiService.classifyMessage(
+        message, 
+        contactId, 
+        conversationId, 
+        contactHistory
+      );
 
-      console.log('🤖 Mensagem classificada pela IA para contato:', contactId);
+      console.log('🤖 Mensagem classificada pela IA:', {
+        intent: classification.intent,
+        sentiment: classification.sentiment,
+        confidence: classification.confidence,
+        aiMode: classification.aiMode
+      });
+
       res.json(classification);
     } catch (error) {
       console.error('❌ Erro na classificação de IA:', error);
