@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { db } from '../core/db';
-import { aiLogs, aiContext, aiSessions } from '../../shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { aiLogs, aiContext, aiSessions, aiMemory } from '../../shared/schema';
+import { eq, desc, and, or } from 'drizzle-orm';
 import { perplexityService } from './perplexityService';
 import { crmService } from './crmService';
 
@@ -103,6 +103,9 @@ export class AIService {
 
       const classification = JSON.parse(response.choices[0].message.content || '{}');
       
+      // Extrair e salvar memórias da mensagem
+      await this.extractAndSaveMemories(message, classification, conversationId, contactId);
+
       // Log da classificação
       await this.logInteraction({
         conversationId,
@@ -137,6 +140,9 @@ export class AIService {
     const startTime = Date.now();
     
     try {
+      // Buscar contexto da conversa com memória contextual
+      const conversationContext = await this.getConversationContext(conversationId);
+      
       // Buscar contextos relevantes
       const relevantContexts = await this.searchRelevantContext(message, classification.contextKeywords);
       
@@ -144,8 +150,8 @@ export class AIService {
       const internalContext = relevantContexts.map(c => c.content).join(' ');
       const externalKnowledge = await this.searchExternalKnowledge(message, internalContext, classification.confidence);
       
-      // Preparar prompt baseado no modo da Prof. Ana
-      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, externalKnowledge);
+      // Preparar prompt baseado no modo da Prof. Ana incluindo memória contextual
+      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, externalKnowledge, conversationContext.contextualInfo);
       
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -446,7 +452,7 @@ export class AIService {
   }
 
   /**
-   * Busca contexto da conversa
+   * Busca contexto da conversa incluindo memória contextual
    */
   private async getConversationContext(conversationId: number): Promise<any> {
     try {
@@ -459,10 +465,231 @@ export class AIService {
         .orderBy(desc(aiSessions.lastInteraction))
         .limit(1);
       
-      return session?.sessionData || {};
+      // Buscar memória contextual
+      const memories = await this.getContextualMemory(conversationId, session?.contactId ?? undefined);
+      
+      return {
+        sessionData: session?.sessionData || {},
+        memories: memories,
+        contextualInfo: this.formatMemoriesForPrompt(memories)
+      };
     } catch (error) {
       console.error('❌ Erro ao buscar contexto da conversa:', error);
       return {};
+    }
+  }
+
+  /**
+   * Busca memória contextual da sessão/contato
+   */
+  private async getContextualMemory(conversationId: number, contactId?: number): Promise<any[]> {
+    try {
+      const whereConditions = [eq(aiMemory.isActive, true)];
+      
+      if (conversationId) {
+        whereConditions.push(eq(aiMemory.conversationId, conversationId));
+      }
+      
+      if (contactId) {
+        whereConditions.push(eq(aiMemory.contactId, contactId));
+      }
+
+      const memories = await db.select()
+        .from(aiMemory)
+        .where(and(...whereConditions))
+        .orderBy(desc(aiMemory.updatedAt))
+        .limit(20);
+
+      return memories;
+    } catch (error) {
+      console.error('❌ Erro ao buscar memória contextual:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Formata memórias para uso no prompt
+   */
+  private formatMemoriesForPrompt(memories: any[]): string {
+    if (!memories || memories.length === 0) {
+      return '';
+    }
+
+    const categorizedMemories = {
+      user_info: memories.filter(m => m.memoryType === 'user_info'),
+      preferences: memories.filter(m => m.memoryType === 'preferences'),
+      context: memories.filter(m => m.memoryType === 'context'),
+      history: memories.filter(m => m.memoryType === 'history')
+    };
+
+    let contextString = '\n=== MEMÓRIA CONTEXTUAL ===\n';
+    
+    if (categorizedMemories.user_info.length > 0) {
+      contextString += '\nInformações do usuário:\n';
+      categorizedMemories.user_info.forEach(m => {
+        contextString += `- ${m.key}: ${m.value}\n`;
+      });
+    }
+
+    if (categorizedMemories.preferences.length > 0) {
+      contextString += '\nPreferências:\n';
+      categorizedMemories.preferences.forEach(m => {
+        contextString += `- ${m.key}: ${m.value}\n`;
+      });
+    }
+
+    if (categorizedMemories.context.length > 0) {
+      contextString += '\nContexto da conversa:\n';
+      categorizedMemories.context.forEach(m => {
+        contextString += `- ${m.key}: ${m.value}\n`;
+      });
+    }
+
+    if (categorizedMemories.history.length > 0) {
+      contextString += '\nHistórico relevante:\n';
+      categorizedMemories.history.forEach(m => {
+        contextString += `- ${m.key}: ${m.value}\n`;
+      });
+    }
+
+    contextString += '=== FIM DA MEMÓRIA ===\n';
+    return contextString;
+  }
+
+  /**
+   * Salva informação na memória contextual
+   */
+  private async saveToMemory(data: {
+    sessionId?: number;
+    conversationId: number;
+    contactId: number;
+    memoryType: 'user_info' | 'preferences' | 'context' | 'history';
+    key: string;
+    value: string;
+    confidence?: number;
+    source?: string;
+    expiresAt?: Date;
+  }): Promise<void> {
+    try {
+      // Verificar se já existe uma memória com a mesma chave
+      const existingMemory = await db.select()
+        .from(aiMemory)
+        .where(and(
+          eq(aiMemory.conversationId, data.conversationId),
+          eq(aiMemory.contactId, data.contactId),
+          eq(aiMemory.memoryType, data.memoryType),
+          eq(aiMemory.key, data.key),
+          eq(aiMemory.isActive, true)
+        ))
+        .limit(1);
+
+      if (existingMemory.length > 0) {
+        // Atualizar memória existente
+        await db.update(aiMemory)
+          .set({
+            value: data.value,
+            confidence: data.confidence || 100,
+            source: data.source || 'ai',
+            updatedAt: new Date(),
+          })
+          .where(eq(aiMemory.id, existingMemory[0].id));
+      } else {
+        // Criar nova memória
+        await db.insert(aiMemory).values({
+          sessionId: data.sessionId,
+          conversationId: data.conversationId,
+          contactId: data.contactId,
+          memoryType: data.memoryType,
+          key: data.key,
+          value: data.value,
+          confidence: data.confidence || 100,
+          source: data.source || 'ai',
+          expiresAt: data.expiresAt,
+        });
+      }
+
+      console.log(`💾 Memória salva: ${data.memoryType}/${data.key} = ${data.value}`);
+    } catch (error) {
+      console.error('❌ Erro ao salvar memória:', error);
+    }
+  }
+
+  /**
+   * Extrai e salva informações importantes da mensagem na memória
+   */
+  private async extractAndSaveMemories(
+    message: string, 
+    classification: MessageClassification, 
+    conversationId: number, 
+    contactId: number, 
+    sessionId?: number
+  ): Promise<void> {
+    try {
+      // Extrair nome se mencionado
+      const nameMatch = message.match(/(?:meu nome é|me chamo|sou (?:a|o) )\s*([A-Za-záêîôûâçã\s]+)/i);
+      if (nameMatch) {
+        await this.saveToMemory({
+          sessionId,
+          conversationId,
+          contactId,
+          memoryType: 'user_info',
+          key: 'nome',
+          value: nameMatch[1].trim(),
+          confidence: 90,
+          source: 'user'
+        });
+      }
+
+      // Extrair interesse em cursos
+      const courseMatch = message.match(/(?:interesse|quero|gostaria|preciso).*(?:curso|graduação|especialização).*([A-Za-záêîôûâçã\s]+)/i);
+      if (courseMatch || classification.intent === 'course_inquiry') {
+        await this.saveToMemory({
+          sessionId,
+          conversationId,
+          contactId,
+          memoryType: 'preferences',
+          key: 'curso_interesse',
+          value: courseMatch ? courseMatch[1].trim() : 'Interesse geral em cursos',
+          confidence: classification.intent === 'course_inquiry' ? 80 : 60
+        });
+      }
+
+      // Salvar problemas ou reclamações
+      if (classification.intent === 'complaint' || classification.sentiment === 'frustrated') {
+        await this.saveToMemory({
+          sessionId,
+          conversationId,
+          contactId,
+          memoryType: 'history',
+          key: 'problema_anterior',
+          value: message.substring(0, 200),
+          confidence: 70
+        });
+      }
+
+      // Salvar contexto da conversa atual
+      await this.saveToMemory({
+        sessionId,
+        conversationId,
+        contactId,
+        memoryType: 'context',
+        key: 'ultima_intencao',
+        value: classification.intent,
+        confidence: classification.confidence
+      });
+
+      await this.saveToMemory({
+        sessionId,
+        conversationId,
+        contactId,
+        memoryType: 'context',
+        key: 'ultimo_sentimento',
+        value: classification.sentiment,
+        confidence: classification.confidence
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao extrair e salvar memórias:', error);
     }
   }
 
