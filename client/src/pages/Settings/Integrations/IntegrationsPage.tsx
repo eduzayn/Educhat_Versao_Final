@@ -498,6 +498,119 @@ export function IntegrationsPage() {
               </div>
             </TabsContent>
 
+            <TabsContent value="facebook" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <Facebook className="h-6 w-6 text-blue-600" />
+                      <Instagram className="h-6 w-6 text-pink-600" />
+                    </div>
+                    Integração Facebook & Instagram
+                  </CardTitle>
+                  <CardDescription>
+                    Configure a integração com Facebook Messenger e Instagram Direct para receber mensagens diretamente na plataforma
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Status da Integração */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-gray-400" />
+                      <div>
+                        <p className="font-medium">Status da Integração</p>
+                        <p className="text-sm text-gray-600">
+                          Configure suas credenciais para ativar
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">
+                      Aguardando Configuração
+                    </Badge>
+                  </div>
+
+                  {/* Informações da Configuração */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Recursos Inclusos:</h4>
+                        <ul className="text-sm space-y-1 text-gray-600">
+                          <li>• Recebimento de mensagens do Facebook Messenger</li>
+                          <li>• Integração com Instagram Direct</li>
+                          <li>• Processamento automático de mensagens</li>
+                          <li>• Resposta automática integrada</li>
+                          <li>• Webhook em tempo real</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Requisitos:</h4>
+                        <ul className="text-sm space-y-1 text-gray-600">
+                          <li>• Página do Facebook Business</li>
+                          <li>• App no Facebook Developer Console</li>
+                          <li>• Token de acesso da página</li>
+                          <li>• Configuração de webhook</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ações */}
+                  <div className="flex gap-4 pt-4 border-t">
+                    <Button 
+                      onClick={() => window.open('/settings/integrations/facebook', '_blank')}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Configurar Integração
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.open('https://developers.facebook.com/docs/messenger-platform', '_blank')}
+                      className="flex items-center gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Documentação Facebook
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Card de Instruções */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-blue-600" />
+                    Guia de Configuração
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h4 className="font-medium">1. Criar App no Facebook</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li>• Acesse developers.facebook.com</li>
+                        <li>• Crie um novo app Business</li>
+                        <li>• Adicione o produto Messenger</li>
+                        <li>• Configure permissões necessárias</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-3">
+                      <h4 className="font-medium">2. Configurar Webhook</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li>• Configure a URL do webhook</li>
+                        <li>• Defina token de verificação</li>
+                        <li>• Subscreva eventos de mensagem</li>
+                        <li>• Teste a conexão</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="webhooks">
               <div className="text-center py-12">
                 <Webhook className="w-16 h-16 text-purple-500 mx-auto mb-4" />
