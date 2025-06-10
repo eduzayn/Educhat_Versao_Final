@@ -27,7 +27,9 @@ import {
   ExternalLink,
   Info,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Facebook,
+  Instagram
 } from 'lucide-react';
 
 interface ManychatIntegration {
@@ -189,10 +191,14 @@ export function IntegrationsPage() {
           </div>
 
           <Tabs defaultValue="manychat" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="manychat" className="flex items-center gap-2">
                 <Bot className="h-4 w-4" />
                 Manychat
+              </TabsTrigger>
+              <TabsTrigger value="facebook" className="flex items-center gap-2">
+                <Facebook className="h-4 w-4" />
+                Facebook
               </TabsTrigger>
               <TabsTrigger value="whatsapp" className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
