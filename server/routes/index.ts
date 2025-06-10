@@ -24,7 +24,7 @@ import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerMacrosetorRoutes } from "./settings/macrosetores";
-import { registerIARoutes } from "./ia";
+import iaRouter from "./ia";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
   registerMacrosetorRoutes(app, {} as any);
-  registerIARoutes(app);
+  app.use('/api/ia', iaRouter);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);

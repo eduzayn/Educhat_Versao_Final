@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import { db } from '../core/db';
 import { aiLogs, aiContext, aiSessions } from '../../shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { perplexityService } from './perplexityService';
+import { crmService } from './crmService';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({
@@ -138,8 +140,12 @@ export class AIService {
       // Buscar contextos relevantes
       const relevantContexts = await this.searchRelevantContext(message, classification.contextKeywords);
       
+      // Buscar conhecimento externo se necessário
+      const internalContext = relevantContexts.map(c => c.content).join(' ');
+      const externalKnowledge = await this.searchExternalKnowledge(message, internalContext, classification.confidence);
+      
       // Preparar prompt baseado no modo da Prof. Ana
-      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts);
+      const responsePrompt = this.buildResponsePrompt(message, classification, relevantContexts, externalKnowledge);
       
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -245,6 +251,22 @@ export class AIService {
   }
 
   /**
+   * Busca informação externa usando Perplexity quando contexto interno é insuficiente
+   */
+  private async searchExternalKnowledge(message: string, internalContext: string, confidence: number): Promise<string | null> {
+    try {
+      if (perplexityService.shouldSearchExternal(confidence, internalContext.length > 0)) {
+        console.log('🔍 Buscando conhecimento externo via Perplexity...');
+        return await perplexityService.searchExternal(message, internalContext);
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Erro na busca externa:', error);
+      return null;
+    }
+  }
+
+  /**
    * Constrói prompt para classificação
    */
   private buildClassificationPrompt(message: string, history?: any[], context?: any): string {
@@ -267,21 +289,26 @@ export class AIService {
   /**
    * Constrói prompt para resposta baseado no modo
    */
-  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[]): string {
+  private buildResponsePrompt(message: string, classification: MessageClassification, contexts: any[], externalKnowledge?: string | null): string {
     let prompt = `Mensagem do usuário: "${message}"\n`;
     prompt += `Intenção detectada: ${classification.intent}\n`;
     prompt += `Sentimento: ${classification.sentiment}\n`;
     prompt += `Perfil: ${classification.userProfile.type}\n\n`;
     
     if (contexts.length > 0) {
-      prompt += `Contextos relevantes:\n`;
+      prompt += `Contextos relevantes da base de conhecimento:\n`;
       contexts.forEach((ctx, i) => {
         prompt += `${i + 1}. ${ctx.name}: ${ctx.content.substring(0, 200)}...\n`;
       });
       prompt += '\n';
     }
     
-    prompt += `Responda como Prof. Ana no modo ${classification.aiMode}.`;
+    if (externalKnowledge) {
+      prompt += `Informações complementares atualizadas:\n${externalKnowledge}\n\n`;
+    }
+    
+    prompt += `Responda como Prof. Ana no modo ${classification.aiMode}.\n`;
+    prompt += `IMPORTANTE: Seja concisa, empática e sempre ofereça próximos passos claros.`;
     
     return prompt;
   }
