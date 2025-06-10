@@ -498,6 +498,8 @@ export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
   joinedAt: true,
 });
 
+
+
 export type UserTeam = typeof userTeams.$inferSelect;
 export type InsertUserTeam = z.infer<typeof insertUserTeamSchema>;
 
@@ -949,12 +951,12 @@ export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({
 });
 
 // Types for AI tables
-export type AiContext = typeof aiContext.$inferSelect;
-export type InsertAiContext = z.infer<typeof insertAiContextSchema>;
-export type AiLog = typeof aiLogs.$inferSelect;
-export type InsertAiLog = z.infer<typeof insertAiLogSchema>;
-export type AiSession = typeof aiSessions.$inferSelect;
-export type InsertAiSession = z.infer<typeof insertAiSessionSchema>;
+export type ProfAnaContext = typeof aiContext.$inferSelect;
+export type InsertProfAnaContext = z.infer<typeof insertAiContextSchema>;
+export type ProfAnaLog = typeof aiLogs.$inferSelect;
+export type InsertProfAnaLog = z.infer<typeof insertAiLogSchema>;
+export type ProfAnaSession = typeof aiSessions.$inferSelect;
+export type InsertProfAnaSession = z.infer<typeof insertAiSessionSchema>;
 
 // Relations for AI tables
 export const aiLogsRelations = relations(aiLogs, ({ one }) => ({

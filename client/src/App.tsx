@@ -19,7 +19,7 @@ import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/pages/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
 import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
-import { IAPage } from "@/pages/IA/IAPage";
+import IAPage from "@/pages/IA/IAPage";
 
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
