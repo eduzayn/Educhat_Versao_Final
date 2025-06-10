@@ -28,6 +28,7 @@ import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
 import documentsRouter from "./documents/index";
 import webCaptureRouter from "./web-capture/index";
+import aiConfigRouter from "./ai-config/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -60,6 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMacrosetorRoutes(app, {} as any);
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
+  app.use('/api/ia', aiConfigRouter);
   app.use('/api/documents', documentsRouter);
   app.use('/api/web-capture', webCaptureRouter);
 

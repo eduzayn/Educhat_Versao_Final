@@ -121,7 +121,7 @@ export function ConfigPage() {
   });
 
   const handleSave = () => {
-    saveConfigMutation.mutate(formData);
+    saveConfigMutation.mutate(formData as any);
   };
 
   const handleTestKey = (provider: string, apiKey: string) => {
