@@ -5,7 +5,7 @@ import { Input } from '../../shared/ui/input';
 import { Textarea } from '../../shared/ui/textarea';
 import { Badge } from '../../shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shared/ui/tabs';
-import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft, Search, Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft, Search, Upload, FileText, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -94,6 +94,12 @@ export default function IAPage() {
   const [newContext, setNewContext] = useState({
     title: '',
     content: '',
+    category: ''
+  });
+  const [contextMode, setContextMode] = useState<'content' | 'qa'>('content');
+  const [newQA, setNewQA] = useState({
+    question: '',
+    answer: '',
     category: ''
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -200,6 +206,7 @@ export default function IAPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ia/contexts'] });
       setNewContext({ title: '', content: '', category: '' });
+      setNewQA({ question: '', answer: '', category: '' });
     }
   });
 
@@ -244,8 +251,19 @@ export default function IAPage() {
 
   const handleContextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newContext.title || !newContext.content || !newContext.category) return;
-    addContextMutation.mutate(newContext);
+    if (contextMode === 'content') {
+      if (!newContext.title || !newContext.content || !newContext.category) return;
+      addContextMutation.mutate(newContext);
+    } else {
+      if (!newQA.question || !newQA.answer || !newQA.category) return;
+      // Convert Q&A to context format
+      const qaContext = {
+        title: `FAQ: ${newQA.question}`,
+        content: `Pergunta: ${newQA.question}\n\nResposta: ${newQA.answer}`,
+        category: newQA.category
+      };
+      addContextMutation.mutate(qaContext);
+    }
   };
 
   const handleClearLogs = () => {
@@ -822,33 +840,127 @@ export default function IAPage() {
             <CardHeader>
               <CardTitle>Adicionar Contexto de Treinamento</CardTitle>
               <CardDescription>
-                Adicione novos contextos para melhorar o treinamento da IA
+                Escolha o formato mais adequado para treinar a Prof. Ana
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Mode Selector */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium mb-3">Formato do Conteúdo</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <Card 
+                    className={`cursor-pointer transition-all ${contextMode === 'content' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                    onClick={() => setContextMode('content')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <h4 className="font-medium">Conteúdo Livre</h4>
+                          <p className="text-sm text-muted-foreground">Informações gerais, políticas, processos</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card 
+                    className={`cursor-pointer transition-all ${contextMode === 'qa' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-gray-50'}`}
+                    onClick={() => setContextMode('qa')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <MessageCircle className="h-5 w-5 text-green-600" />
+                        <div>
+                          <h4 className="font-medium">Pergunta & Resposta</h4>
+                          <p className="text-sm text-muted-foreground">FAQ, dúvidas específicas, exemplos práticos</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Educational explanation based on selected mode */}
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                {contextMode === 'content' ? (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">📋 Conteúdo Livre - Ideal Para:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>Políticas institucionais:</strong> regras de matrícula, cancelamento, reembolso</li>
+                      <li>• <strong>Processos detalhados:</strong> como se inscrever, documentos necessários</li>
+                      <li>• <strong>Informações gerais:</strong> sobre cursos, metodologia, certificações</li>
+                      <li>• <strong>Contexto institucional:</strong> história, missão, diferenciais</li>
+                    </ul>
+                  </div>
+                ) : (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">❓ Pergunta & Resposta - Ideal Para:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>FAQ específicas:</strong> "Quanto custa?", "Tem certificado?"</li>
+                      <li>• <strong>Objeções comuns:</strong> "É muito caro", "Não tenho tempo"</li>
+                      <li>• <strong>Dúvidas técnicas:</strong> sobre plataforma, acesso, suporte</li>
+                      <li>• <strong>Cenários práticos:</strong> situações reais de atendimento</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Form based on selected mode */}
               <form onSubmit={handleContextSubmit} className="space-y-4">
-                <Input
-                  placeholder="Título do contexto"
-                  value={newContext.title}
-                  onChange={(e) => setNewContext(prev => ({ ...prev, title: e.target.value }))}
-                />
-                <Input
-                  placeholder="Categoria (ex: cursos, suporte, vendas)"
-                  value={newContext.category}
-                  onChange={(e) => setNewContext(prev => ({ ...prev, category: e.target.value }))}
-                />
-                <Textarea
-                  placeholder="Conteúdo do contexto"
-                  value={newContext.content}
-                  onChange={(e) => setNewContext(prev => ({ ...prev, content: e.target.value }))}
-                  className="min-h-[120px]"
-                />
-                <Button 
-                  type="submit" 
-                  disabled={addContextMutation.isPending || !newContext.title || !newContext.content || !newContext.category}
-                >
-                  {addContextMutation.isPending ? 'Adicionando...' : 'Adicionar Contexto'}
-                </Button>
+                {contextMode === 'content' ? (
+                  <>
+                    <Input
+                      placeholder="Título do contexto"
+                      value={newContext.title}
+                      onChange={(e) => setNewContext(prev => ({ ...prev, title: e.target.value }))}
+                    />
+                    <Input
+                      placeholder="Categoria (ex: cursos, suporte, vendas)"
+                      value={newContext.category}
+                      onChange={(e) => setNewContext(prev => ({ ...prev, category: e.target.value }))}
+                    />
+                    <Textarea
+                      placeholder="Conteúdo do contexto - Adicione informações detalhadas que a Prof. Ana deve conhecer sobre este tópico..."
+                      value={newContext.content}
+                      onChange={(e) => setNewContext(prev => ({ ...prev, content: e.target.value }))}
+                      className="min-h-[120px]"
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={addContextMutation.isPending || !newContext.title || !newContext.content || !newContext.category}
+                      className="w-full"
+                    >
+                      {addContextMutation.isPending ? 'Adicionando...' : 'Adicionar Contexto'}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Input
+                      placeholder="Categoria (ex: cursos, suporte, vendas)"
+                      value={newQA.category}
+                      onChange={(e) => setNewQA(prev => ({ ...prev, category: e.target.value }))}
+                    />
+                    <Textarea
+                      placeholder="Digite a pergunta que os alunos costumam fazer..."
+                      value={newQA.question}
+                      onChange={(e) => setNewQA(prev => ({ ...prev, question: e.target.value }))}
+                      className="min-h-[80px]"
+                    />
+                    <Textarea
+                      placeholder="Digite a resposta que a Prof. Ana deve dar para esta pergunta..."
+                      value={newQA.answer}
+                      onChange={(e) => setNewQA(prev => ({ ...prev, answer: e.target.value }))}
+                      className="min-h-[120px]"
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={addContextMutation.isPending || !newQA.question || !newQA.answer || !newQA.category}
+                      className="w-full"
+                    >
+                      {addContextMutation.isPending ? 'Adicionando...' : 'Adicionar Pergunta & Resposta'}
+                    </Button>
+                  </>
+                )}
               </form>
             </CardContent>
           </Card>
