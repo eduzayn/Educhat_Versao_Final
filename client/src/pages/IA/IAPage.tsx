@@ -52,10 +52,11 @@ export function IAPage() {
   const [editingContext, setEditingContext] = useState<any>(null);
 
   // Query para buscar contextos de IA
-  const { data: contexts = [], isLoading: contextsLoading } = useQuery({
+  const { data: contextsData, isLoading: contextsLoading } = useQuery({
     queryKey: ["/api/ia/context"],
     queryFn: () => apiRequest("GET", "/api/ia/context")
   });
+  const contexts = Array.isArray(contextsData) ? contextsData : [];
 
   // Query para buscar estatísticas
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -64,10 +65,11 @@ export function IAPage() {
   });
 
   // Query para buscar logs
-  const { data: logs = [], isLoading: logsLoading } = useQuery({
+  const { data: logsData, isLoading: logsLoading } = useQuery({
     queryKey: ["/api/ia/logs"],
     queryFn: () => apiRequest("GET", "/api/ia/logs")
   });
+  const logs = Array.isArray(logsData) ? logsData : [];
 
   // Form para contexto
   const contextForm = useForm<ContextFormData>({
@@ -213,7 +215,7 @@ export function IAPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {statsLoading ? "..." : stats?.totalInteractions || 0}
+                    {statsLoading ? "..." : (stats as any)?.totalInteractions || 0}
                   </div>
                   <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
                 </CardContent>
@@ -226,7 +228,7 @@ export function IAPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {statsLoading ? "..." : stats?.leadsConverted || 0}
+                    {statsLoading ? "..." : (stats as any)?.leadsConverted || 0}
                   </div>
                   <p className="text-xs text-muted-foreground">Conversões da IA</p>
                 </CardContent>
@@ -239,7 +241,7 @@ export function IAPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {statsLoading ? "..." : `${stats?.avgResponseTime || 0}s`}
+                    {statsLoading ? "..." : `${(stats as any)?.avgResponseTime || 0}s`}
                   </div>
                   <p className="text-xs text-muted-foreground">Resposta da IA</p>
                 </CardContent>
@@ -252,7 +254,7 @@ export function IAPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {statsLoading ? "..." : `${stats?.satisfactionRate || 0}%`}
+                    {statsLoading ? "..." : `${(stats as any)?.satisfactionRate || 0}%`}
                   </div>
                   <p className="text-xs text-muted-foreground">Taxa de satisfação</p>
                 </CardContent>
