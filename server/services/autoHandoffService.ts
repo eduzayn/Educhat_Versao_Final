@@ -123,6 +123,9 @@ export class AutoHandoffService {
       if (result.handoffCreated) {
         console.log(`✅ Handoff automático criado para conversa ${conversationId}: ${result.suggestion?.reason}`);
         
+        // Aguardar um momento para garantir que a atualização seja persistida
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Broadcast atualização da conversa para atualizar o cabeçalho
         await this.broadcastConversationUpdate(conversationId);
       }
@@ -150,7 +153,15 @@ export class AutoHandoffService {
       broadcastToAll({
         type: 'conversation_updated',
         conversationId: conversationId,
-        conversation: conversation
+        conversation: {
+          conversationId: conversation.id,
+          assignedUserId: conversation.assignedUserId,
+          assignedTeamId: conversation.assignedTeamId,
+          status: conversation.status,
+          macrosetor: conversation.macrosetor,
+          assignmentMethod: conversation.assignmentMethod,
+          assignedAt: conversation.assignedAt
+        }
       });
 
       console.log(`🔄 Broadcast enviado: conversa ${conversationId} atualizada`);
