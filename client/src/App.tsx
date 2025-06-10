@@ -23,7 +23,7 @@ import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
-// import DetectionConfigPage from "@/pages/Settings/DetectionConfigPage";
+import DetectionConfigPage from "@/pages/Settings/DetectionConfigPage";
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 
@@ -126,14 +126,14 @@ function Router() {
               />
             )}
           </Route>
-          {/* <Route path="/settings/detection">
+          <Route path="/settings/detection">
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
                 component={DetectionConfigPage}
               />
             )}
-          </Route> */}
+          </Route>
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={InternalChatPage} />

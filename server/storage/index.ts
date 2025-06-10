@@ -430,6 +430,43 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamStatistics(teamId);
   }
 
+  // ==================== MACROSETOR OPERATIONS ====================
+  async getMacrosetores() {
+    return this.macrosetor.getMacrosetores();
+  }
+
+  async getMacrosetor(id: number) {
+    return this.macrosetor.getMacrosetor(id);
+  }
+
+  async createMacrosetor(data: any) {
+    return this.macrosetor.createMacrosetor(data);
+  }
+
+  async updateMacrosetor(id: number, data: any) {
+    return this.macrosetor.updateMacrosetor(id, data);
+  }
+
+  async deleteMacrosetor(id: number) {
+    return this.macrosetor.deleteMacrosetor(id);
+  }
+
+  async getMacrosetorKeywords(macrosetorId: number) {
+    return this.macrosetor.getMacrosetorKeywords(macrosetorId);
+  }
+
+  async createMacrosetorKeyword(macrosetorId: number, data: any) {
+    return this.macrosetor.createMacrosetorKeyword(macrosetorId, data);
+  }
+
+  async deleteMacrosetorKeyword(macrosetorId: number, keywordId: number) {
+    return this.macrosetor.deleteMacrosetorKeyword(macrosetorId, keywordId);
+  }
+
+  async testMacrosetorDetection(text: string) {
+    return this.macrosetor.testMacrosetorDetection(text);
+  }
+
   // ==================== PERMISSIONS (padrão TRUE, customizar depois) ==========
   async canUserRespondToOthersConversations() {
     return true;

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Plus, Edit2, Trash2, TestTube, Settings, Brain, FileText, Play } from 'lucide-react';
+import { BackButton } from '@/shared/components/BackButton';
 
 interface Macrosetor {
   id: number;
@@ -56,13 +57,11 @@ export default function DetectionConfigPage() {
 
   // Queries
   const { data: macrosetores = [], isLoading: loadingMacrosetores } = useQuery({
-    queryKey: ['/api/settings/macrosetores'],
-    queryFn: () => apiRequest('GET', '/api/settings/macrosetores')
+    queryKey: ['/api/settings/macrosetores']
   });
 
   const { data: keywords = [], isLoading: loadingKeywords } = useQuery({
     queryKey: ['/api/settings/macrosetores/keywords', selectedMacrosetor?.id],
-    queryFn: () => selectedMacrosetor ? apiRequest('GET', `/api/settings/macrosetores/${selectedMacrosetor.id}/keywords`) : Promise.resolve([]),
     enabled: !!selectedMacrosetor
   });
 
@@ -112,7 +111,7 @@ export default function DetectionConfigPage() {
 
   const testDetection = useMutation({
     mutationFn: (text: string) => apiRequest('POST', '/api/settings/macrosetores/test', { text }),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setTestResult(data);
     }
   });
@@ -165,8 +164,9 @@ export default function DetectionConfigPage() {
 
   if (loadingMacrosetores) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-educhat-light">
+        <div className="p-6 space-y-6">
+          <BackButton to="/settings" label="Voltar às Configurações" />
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
@@ -181,11 +181,13 @@ export default function DetectionConfigPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-educhat-light">
+      <div className="p-6 space-y-6">
+        <BackButton to="/settings" label="Voltar às Configurações" />
+        
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Detecção Inteligente</h1>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sistema de Detecção Inteligente</h2>
           <p className="text-gray-600">Configure expressões e macrosetores para classificação automática de mensagens</p>
         </div>
 
@@ -195,24 +197,24 @@ export default function DetectionConfigPage() {
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('macrosetores')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                   activeTab === 'macrosetores'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <Brain className="w-5 h-5 inline mr-2" />
+                <Brain className="w-5 h-5" />
                 Macrosetores
               </button>
               <button
                 onClick={() => setActiveTab('test')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                   activeTab === 'test'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <TestTube className="w-5 h-5 inline mr-2" />
+                <TestTube className="w-5 h-5" />
                 Teste de Detecção
               </button>
             </nav>
@@ -225,7 +227,7 @@ export default function DetectionConfigPage() {
             {/* Macrosetores List */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Macrosetores</h2>
+                <h3 className="text-xl font-semibold">Macrosetores</h3>
                 <button
                   onClick={handleCreateMacrosetor}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
@@ -248,7 +250,7 @@ export default function DetectionConfigPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{macrosetor.name}</h3>
+                        <h4 className="font-medium text-gray-900">{macrosetor.name}</h4>
                         <p className="text-sm text-gray-600 mt-1">{macrosetor.description}</p>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className={`px-2 py-1 text-xs rounded-full ${
@@ -291,9 +293,9 @@ export default function DetectionConfigPage() {
 
             {/* Keywords Management */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">
+              <h3 className="text-xl font-semibold mb-4">
                 {selectedMacrosetor ? `Palavras-chave: ${selectedMacrosetor.name}` : 'Selecione um Macrosetor'}
-              </h2>
+              </h3>
 
               {selectedMacrosetor && (
                 <>
@@ -373,7 +375,7 @@ export default function DetectionConfigPage() {
 
         {activeTab === 'test' && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Teste de Detecção</h2>
+            <h3 className="text-xl font-semibold mb-4">Teste de Detecção</h3>
             
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -404,7 +406,7 @@ export default function DetectionConfigPage() {
 
             {testResult && (
               <div className="border rounded-lg p-4 bg-gray-50">
-                <h3 className="font-semibold text-lg mb-3">Resultado da Detecção</h3>
+                <h4 className="font-semibold text-lg mb-3">Resultado da Detecção</h4>
                 <div className="space-y-2">
                   <div>
                     <span className="font-medium">Macrosetor Detectado:</span>

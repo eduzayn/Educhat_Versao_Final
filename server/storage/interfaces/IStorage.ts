@@ -186,6 +186,17 @@ export interface IStorage {
   canUserRespondToOwnConversations(userId: number): Promise<boolean>;
   canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean>;
 
+  // ==================== MACROSETOR OPERATIONS ====================
+  getMacrosetores(): Promise<any[]>;
+  getMacrosetor(id: number): Promise<any>;
+  createMacrosetor(data: any): Promise<any>;
+  updateMacrosetor(id: number, data: any): Promise<any>;
+  deleteMacrosetor(id: number): Promise<void>;
+  getMacrosetorKeywords(macrosetorId: number): Promise<any[]>;
+  createMacrosetorKeyword(macrosetorId: number, data: any): Promise<any>;
+  deleteMacrosetorKeyword(macrosetorId: number, keywordId: number): Promise<void>;
+  testMacrosetorDetection(text: string): Promise<any>;
+
   // ==================== ANALYTICS OPERATIONS ====================
   getConversationAnalytics(filters?: any): Promise<any>;
   getMessageAnalytics(filters?: any): Promise<any>;
