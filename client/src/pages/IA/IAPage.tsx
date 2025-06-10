@@ -5,9 +5,10 @@ import { Input } from '../../shared/ui/input';
 import { Textarea } from '../../shared/ui/textarea';
 import { Badge } from '../../shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shared/ui/tabs';
-import { Brain, MessageSquare, Target, TrendingUp, Users, Activity } from 'lucide-react';
+import { Brain, MessageSquare, Target, TrendingUp, Users, Activity, ArrowLeft } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface AIStats {
   totalInteractions: number;
@@ -42,6 +43,7 @@ interface TrainingContext {
 }
 
 export default function IAPage() {
+  const [, setLocation] = useLocation();
   const [testMessage, setTestMessage] = useState('');
   const [newContext, setNewContext] = useState({
     title: '',
@@ -140,16 +142,27 @@ export default function IAPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Brain className="h-8 w-8 text-purple-600" />
-        <div>
-          <h1 className="text-3xl font-bold">Prof. Ana - IA Educacional</h1>
-          <p className="text-muted-foreground">
-            Sistema inteligente de atendimento educacional com personalidades adaptáveis
-          </p>
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Brain className="h-8 w-8 text-purple-600" />
+            <div>
+              <h1 className="text-3xl font-bold">Prof. Ana - IA Educacional</h1>
+              <p className="text-muted-foreground">
+                Sistema inteligente de atendimento educacional com personalidades adaptáveis
+              </p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao Painel
+          </Button>
         </div>
-      </div>
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -432,7 +445,8 @@ export default function IAPage() {
             </div>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
