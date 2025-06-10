@@ -225,7 +225,7 @@ export class ManychatStorage extends BaseStorage {
   // Helper methods for testing Manychat API
   async testManychatConnection(apiKey: string): Promise<any> {
     try {
-      // Test basic API connectivity
+      // Test API key validity using the correct Manychat API format
       const response = await fetch('https://api.manychat.com/fb/page/getInfo', {
         method: 'GET',
         headers: {
@@ -234,8 +234,33 @@ export class ManychatStorage extends BaseStorage {
         }
       });
 
+      // Handle different response codes appropriately
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: 'Invalid API Key - please verify your Manychat API key is correct',
+          message: 'Authentication failed',
+          status: response.status
+        };
+      }
+
+      if (response.status === 403) {
+        return {
+          success: false,
+          error: 'API Key lacks required permissions',
+          message: 'Permission denied',
+          status: response.status
+        };
+      }
+
       if (!response.ok) {
-        throw new Error(`API responded with status ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        return {
+          success: false,
+          error: `API responded with status ${response.status}: ${errorText}`,
+          message: 'Connection failed',
+          status: response.status
+        };
       }
 
       const data = await response.json();
@@ -243,12 +268,13 @@ export class ManychatStorage extends BaseStorage {
       return {
         success: true,
         data: data,
-        message: 'Connection successful'
+        message: 'Connection successful - API key is valid',
+        status: response.status
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Network error occurred',
         message: 'Connection failed'
       };
     }
