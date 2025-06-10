@@ -70,6 +70,14 @@ function Router() {
               />
             )}
           </Route>
+          <Route path="/settings/integrations">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={IntegrationsPage}
+              />
+            )}
+          </Route>
           <Route path="/settings">
             {() => <ProtectedRoute component={SettingsPage} />}
           </Route>
