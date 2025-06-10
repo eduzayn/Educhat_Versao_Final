@@ -119,10 +119,10 @@ export function registerIntegrationRoutes(app: Express) {
         });
       }
 
-      const { apiKey, pageAccessToken } = validationResult.data;
+      const { apiKey } = validationResult.data;
       
       console.log('🧪 Testando conexão Manychat...');
-      const testResult = await storage.manychat.testManychatConnection(apiKey, pageAccessToken);
+      const testResult = await storage.manychat.testManychatConnection(apiKey);
       
       if (testResult.success) {
         console.log('✅ Teste de conexão Manychat bem-sucedido');

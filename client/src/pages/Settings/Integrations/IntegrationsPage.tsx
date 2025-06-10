@@ -34,7 +34,6 @@ interface ManychatIntegration {
   id?: number;
   name: string;
   apiKey: string;
-  pageAccessToken: string;
   webhookUrl: string;
   isActive: boolean;
   syncEnabled: boolean;
@@ -56,10 +55,9 @@ export function IntegrationsPage() {
   const [urlCopied, setUrlCopied] = useState(false);
 
   // Estados para formulário do Manychat
-  const [manychatConfig, setManychatConfig] = useState<ManychatIntegration>({
+  const [manychatConfig, setManychatConfig] = useState({
     name: 'Manychat Principal',
     apiKey: '',
-
     webhookUrl: '',
     isActive: false,
     syncEnabled: true,
@@ -158,10 +156,10 @@ export function IntegrationsPage() {
   });
 
   const handleSaveConfig = () => {
-    if (!manychatConfig.apiKey || !manychatConfig.pageAccessToken) {
+    if (!manychatConfig.apiKey) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha a API Key e o Page Access Token.",
+        description: "Preencha a API Key do Manychat.",
         variant: "destructive"
       });
       return;

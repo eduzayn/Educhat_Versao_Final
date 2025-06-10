@@ -223,7 +223,7 @@ export class ManychatStorage extends BaseStorage {
   }
 
   // Helper methods for testing Manychat API
-  async testManychatConnection(apiKey: string, pageAccessToken: string): Promise<any> {
+  async testManychatConnection(apiKey: string): Promise<any> {
     try {
       // Test basic API connectivity
       const response = await fetch('https://api.manychat.com/fb/page/getInfo', {
