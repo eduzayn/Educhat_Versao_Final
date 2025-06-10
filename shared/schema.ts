@@ -1025,3 +1025,37 @@ export const aiMemoryRelations = relations(aiMemory, ({ one }) => ({
     references: [contacts.id],
   }),
 }));
+
+// Prof. Ana Configuration Table
+export const aiConfig = pgTable("ai_config", {
+  id: serial("id").primaryKey(),
+  openaiApiKey: text("openai_api_key"),
+  perplexityApiKey: text("perplexity_api_key"),
+  elevenlabsApiKey: text("elevenlabs_api_key"),
+  anthropicApiKey: text("anthropic_api_key"),
+  enabledFeatures: jsonb("enabled_features").default({
+    webSearch: false,
+    voiceSynthesis: false,
+    imageAnalysis: false,
+    contextualMemory: true
+  }),
+  responseSettings: jsonb("response_settings").default({
+    maxTokens: 1000,
+    temperature: 0.7,
+    model: "claude-sonnet-4-20250514"
+  }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schema for AI configuration
+export const insertAiConfigSchema = createInsertSchema(aiConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for AI configuration
+export type AIConfig = typeof aiConfig.$inferSelect;
+export type InsertAIConfig = z.infer<typeof insertAiConfigSchema>;

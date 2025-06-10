@@ -44,7 +44,6 @@ interface AIConfig {
 }
 
 export function ConfigPage() {
-  const { toast } = useToast();
   const [testingKey, setTestingKey] = useState<string | null>(null);
   
   const { data: config, isLoading } = useQuery({
@@ -52,7 +51,7 @@ export function ConfigPage() {
     queryFn: async () => {
       const response = await fetch('/api/ia/config');
       if (!response.ok) throw new Error('Falha ao carregar configurações');
-      return response.json() as AIConfig;
+      return response.json();
     }
   });
 
@@ -94,17 +93,10 @@ export function ConfigPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ia/config'] });
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações da Prof. Ana foram atualizadas com sucesso.",
-      });
+      console.log("Configurações salvas com sucesso");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao salvar",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Erro ao salvar configurações:", error.message);
     }
   });
 
@@ -119,17 +111,12 @@ export function ConfigPage() {
       return response.json();
     },
     onSuccess: (data, variables) => {
-      toast({
-        title: "Chave testada",
-        description: `A chave ${variables.provider} está funcionando corretamente.`,
-      });
+      setTestingKey(null);
+      console.log(`Chave ${variables.provider} testada com sucesso`);
     },
     onError: (error: Error, variables) => {
-      toast({
-        title: "Chave inválida",
-        description: `A chave ${variables.provider} não está funcionando: ${error.message}`,
-        variant: "destructive",
-      });
+      setTestingKey(null);
+      console.error(`Erro ao testar chave ${variables.provider}:`, error.message);
     }
   });
 
@@ -139,11 +126,7 @@ export function ConfigPage() {
 
   const handleTestKey = (provider: string, apiKey: string) => {
     if (!apiKey.trim()) {
-      toast({
-        title: "Chave vazia",
-        description: "Digite uma chave de API para testar.",
-        variant: "destructive",
-      });
+      console.warn("Digite uma chave de API para testar");
       return;
     }
     setTestingKey(provider);
