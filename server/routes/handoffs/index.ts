@@ -294,6 +294,14 @@ router.post('/auto-create', async (req, res) => {
         customerSentiment: aiClassification.urgency
       }
     });
+
+    // Para handoffs automáticos, executar a transferência imediatamente
+    try {
+      await handoffService.executeHandoff(handoff.id);
+      console.log(`🔄 Handoff automático ${handoff.id} executado automaticamente`);
+    } catch (executeError) {
+      console.error(`❌ Erro ao executar handoff automático ${handoff.id}:`, executeError);
+    }
     
     res.json({
       success: true,
