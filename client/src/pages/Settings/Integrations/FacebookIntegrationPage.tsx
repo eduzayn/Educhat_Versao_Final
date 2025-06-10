@@ -51,7 +51,10 @@ export default function FacebookIntegrationPage() {
   // Buscar integrações existentes
   const { data: integrations = [], isLoading } = useQuery({
     queryKey: ['/api/integrations/facebook'],
-    queryFn: () => apiRequest('GET', '/api/integrations/facebook')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/integrations/facebook');
+      return Array.isArray(response) ? response : [];
+    }
   });
 
   // Criar nova integração
@@ -261,7 +264,7 @@ export default function FacebookIntegrationPage() {
                         {getStatusBadge(integration.connectionStatus, integration.isActive)}
                         <Switch
                           checked={integration.isActive}
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={(checked: boolean) =>
                             toggleStatusMutation.mutate({ id: integration.id, isActive: checked })
                           }
                           disabled={toggleStatusMutation.isPending}
@@ -322,7 +325,7 @@ export default function FacebookIntegrationPage() {
                     id="name"
                     placeholder="Ex: Página Principal"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -331,7 +334,7 @@ export default function FacebookIntegrationPage() {
                     id="pageId"
                     placeholder="ID numérico da página"
                     value={formData.pageId}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, pageId: e.target.value }))}
                   />
                 </div>
               </div>
@@ -343,7 +346,7 @@ export default function FacebookIntegrationPage() {
                   type="password"
                   placeholder="Token de acesso da página"
                   value={formData.pageAccessToken}
-                  onChange={(e) => setFormData(prev => ({ ...prev, pageAccessToken: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, pageAccessToken: e.target.value }))}
                 />
               </div>
 

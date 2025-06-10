@@ -12,6 +12,7 @@ import { InboxPage } from "@/pages/Inbox/InboxPage";
 import { ContactsPage } from "@/pages/Contacts/ContactsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 import IntegrationsPage from "@/pages/Settings/Integrations/IntegrationsPage";
+import FacebookIntegrationPage from "@/pages/Settings/Integrations/FacebookIntegrationPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/Channels";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
@@ -75,6 +76,14 @@ function Router() {
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
                 component={IntegrationsPage}
+              />
+            )}
+          </Route>
+          <Route path="/settings/integrations/facebook">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={FacebookIntegrationPage}
               />
             )}
           </Route>
