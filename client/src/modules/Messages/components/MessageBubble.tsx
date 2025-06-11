@@ -80,7 +80,7 @@ export function MessageBubble({
     ? "text-xs text-gray-400"
     : "text-xs text-gray-500 justify-end";
 
-  const containerClasses = `flex items-start gap-3 ${
+  const containerClasses = `flex items-start gap-3 group ${
     isFromContact ? "flex-row" : "flex-row-reverse"
   } mb-4`;
 
@@ -90,20 +90,41 @@ export function MessageBubble({
 
   // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
-    // Mensagens de contatos não podem ser deletadas via Z-API, apenas ocultadas
-    if (isFromContact) {
-      return false;
-    }
-    
-    // Mensagens enviadas pelo agente podem ser deletadas em até 7 minutos
     const now = new Date();
     const sevenMinutesInMs = 7 * 60 * 1000;
-    const messageDate = new Date(message.sentAt || new Date());
+    
+    // Usar o timestamp mais recente disponível (sentAt ou deliveredAt)
+    const messageTimestamp = message.sentAt || message.deliveredAt || new Date();
+    const messageDate = new Date(messageTimestamp);
     const timeDifference = now.getTime() - messageDate.getTime();
     
+    // Debug para verificar o cálculo
+    console.log('🕒 Verificação de exclusão:', {
+      messageId: message.id,
+      isFromContact,
+      messageDate: messageDate.toISOString(),
+      now: now.toISOString(),
+      timeDifference,
+      sevenMinutesInMs,
+      canDeleteByTime: timeDifference <= sevenMinutesInMs,
+      messageTimestamp
+    });
+    
+    if (isFromContact) {
+      // Mensagens recebidas podem ser ocultadas localmente em até 7 minutos
+      return timeDifference <= sevenMinutesInMs;
+    }
+    
+    // Mensagens enviadas pelo agente podem ser deletadas via Z-API em até 7 minutos
     // Verificar se tem metadados Z-API (messageId ou zaapId)
     const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
     const hasZapiId = metadata.messageId || metadata.zaapId || metadata.id;
+    
+    console.log('📝 Metadados Z-API:', {
+      metadata,
+      hasZapiId,
+      finalCanDelete: timeDifference <= sevenMinutesInMs && hasZapiId
+    });
     
     return timeDifference <= sevenMinutesInMs && hasZapiId;
   };
