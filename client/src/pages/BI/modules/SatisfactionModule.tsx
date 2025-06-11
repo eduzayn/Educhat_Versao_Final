@@ -321,7 +321,7 @@ export function SatisfactionModule() {
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium">{team.name}</h4>
                     <Badge variant="secondary">
-                      {team.macrosetor || 'Geral'}
+                      {team.teamType || 'Geral'}
                     </Badge>
                   </div>
                   

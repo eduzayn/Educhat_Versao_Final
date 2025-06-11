@@ -123,17 +123,7 @@ export class DatabaseStorage implements IStorage {
     return this.userManagement.getAllUsers();
   }
 
-  async updateUser(id: number, userData: any) {
-    return this.userManagement.updateUser(id, userData);
-  }
-
-  async deleteUser(id: number) {
-    return this.userManagement.deleteUser(id);
-  }
-
-  async validateUser(email: string, password: string) {
-    return this.userManagement.validateUser(email, password);
-  }
+  // User management methods available through userManagement module
 
   // ==================== CONTACT OPERATIONS ====================
   async createContact(contactData: any) {
@@ -279,8 +269,6 @@ export class DatabaseStorage implements IStorage {
     return this.channel.getChannel(id);
   }
 
-
-
   async getChannelsByType(type: string) {
     return this.channel.getChannelsByType(type);
   }
@@ -297,10 +285,6 @@ export class DatabaseStorage implements IStorage {
     return this.channel.deleteChannel(id);
   }
 
-  async getChannelStatus(channelId: number) {
-    return { connected: true, status: 'active' };
-  }
-
   // ==================== DEAL OPERATIONS ====================
   async createDeal(dealData: any) {
     return this.deal.createDeal(dealData);
@@ -311,7 +295,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDeals(filters: any = {}) {
-    return this.deal.getDeals(filters);
+    return this.deal.getDeals();
   }
 
   async updateDeal(id: number, dealData: any) {
@@ -330,21 +314,7 @@ export class DatabaseStorage implements IStorage {
     return this.deal.getDealsByStage(stage);
   }
 
-  async getDealsByTeam(teamId: number) {
-    return this.deal.getDealsByTeam(teamId);
-  }
-
-  async getDealsByUser(userId: number) {
-    return this.deal.getDealsByUser(userId);
-  }
-
-  async addDealNote(note: any) {
-    return this.notes.createNote(note);
-  }
-
-  async getDealNotes(dealId: number) {
-    return this.notes.getNotesByDeal(dealId);
-  }
+  // Deal filtering methods available through deal module
 
   async getDealStatistics() {
     return { total: 0, byStage: {}, byTeam: {} };
@@ -364,7 +334,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTeams() {
-    return this.team.getAllTeams();
+    return this.team.getTeams();
   }
 
   async updateTeam(id: number, teamData: any) {

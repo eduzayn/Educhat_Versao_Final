@@ -36,6 +36,15 @@
 - ✅ `server/routes/index.ts` - Limpeza de imports obsoletos
 - ✅ `server/routes/auth/index.ts` - Correção de campos de resposta
 
+### 7. Limpeza Final de Código Obsoleto
+- ✅ `server/routes/bi/index.ts` - Correção de propriedades de equipe
+- ✅ `server/routes/funnels/index.ts` - Atualização de rotas e parâmetros
+- ✅ `server/storage/modules/manychatStorage.ts` - Correção de campos
+- ✅ `server/storage/modules/dealStorage.ts` - Atualização de consultas
+- ✅ `server/services/unifiedAssignmentService.ts` - Correção de métodos
+- ✅ `client/src/pages/Inbox/components/ChatHeader.tsx` - Propriedades atualizadas
+- ✅ `client/src/pages/BI/modules/SatisfactionModule.tsx` - Labels corrigidos
+
 ## Alterações Principais Realizadas
 
 ### Campos e Propriedades
