@@ -367,7 +367,7 @@ export function AdvancedReportsModule() {
                     </div>
                   )) || (
                     <div className="text-center py-8 text-muted-foreground">
-                      Nenhum dado de macrosetor disponível
+                      Nenhum dado de equipe disponível
                     </div>
                   )}
                 </div>

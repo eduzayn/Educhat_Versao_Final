@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { getAllMacrosetores, getStagesForMacrosetor, getMacrosetorInfo } from '@/lib/crmFunnels';
+import { getAllTeams, getStagesForTeam, getTeamInfo } from '@/lib/crmFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {

@@ -10,14 +10,14 @@ interface ConversationAssignmentDropdownProps {
   conversationId: number;
   currentTeamId?: number | null;
   currentUserId?: number | null;
-  currentMacrosetor?: string | null;
+  detectedTeam?: string | null;
 }
 
 export function ConversationAssignmentDropdown({
   conversationId,
   currentTeamId,
   currentUserId,
-  currentMacrosetor
+  detectedTeam
 }: ConversationAssignmentDropdownProps) {
   const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>([]);
@@ -207,9 +207,9 @@ export function ConversationAssignmentDropdown({
 
 
       {/* Indicador de equipe detectada automaticamente */}
-      {currentMacrosetor && (
+      {detectedTeam && (
         <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
-          {currentMacrosetor}
+          {detectedTeam}
         </Badge>
       )}
     </div>

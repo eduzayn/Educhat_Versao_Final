@@ -75,7 +75,7 @@ export function BIDashboard() {
   };
 
   const defaultChannelsData = channelsData || [];
-  const defaultMacrosetorData = macrosetorData || [];
+  const defaultTeamData = teamData || [];
 
   return (
     <div className="space-y-6">
