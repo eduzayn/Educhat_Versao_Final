@@ -105,41 +105,7 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
-  // Get audio content for a specific message - REST: GET /api/messages/:id/audio
-  app.get('/api/messages/:id/audio', async (req, res) => {
-    try {
-      const messageId = req.params.id;
-      // Tentar buscar por ID interno da mensagem
-      if (!isNaN(parseInt(messageId))) {
-        const message = await storage.getMessage(parseInt(messageId));
-        
-        if (message && message.messageType === 'audio' && message.content) {
-          // Se o content já é uma data URL válida, retornar
-          if (message.content.startsWith('data:audio/') || message.content.startsWith('data:')) {
-            return res.json({ 
-              success: true, 
-              audioUrl: message.content 
-            });
-          }
-        }
-      }
-      
-      // Tentar buscar por messageId nos metadados (mensagens recebidas)
-      const messages = await storage.getMessagesByMetadata('messageId', messageId);
-      
-      for (const message of messages) {
-        if (message.messageType === 'audio' && message.content) {
-          return res.json({ 
-            success: true, 
-            audioUrl: message.content 
-          });
-        }
-      }
-      return res.status(404).json({ error: 'Áudio não encontrado' });
-    } catch (error) {
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
+
 
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {

@@ -24,6 +24,13 @@ export function LazyMediaContent({
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!initialContent);
 
+  // Carregar automaticamente se não há conteúdo inicial
+  React.useEffect(() => {
+    if (!initialContent && !loaded && !loading) {
+      loadMediaContent();
+    }
+  }, [messageId]);
+
   const loadMediaContent = async () => {
     if (loaded || loading) return;
 
