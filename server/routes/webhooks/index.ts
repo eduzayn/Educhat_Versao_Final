@@ -1230,49 +1230,34 @@ export function registerZApiRoutes(app: Express) {
 
             console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
 
-            // PRIORIDADE 3: Análise automática de handoff integrada
+            // PRIORIDADE 3: Análise inteligente de handoff integrada com IA
             setImmediate(async () => {
               try {
-                // Usar endpoint direto para avaliação automática
-                const response = await fetch(`http://localhost:5000/api/handoffs/evaluate`, {
+                // Usar novo sistema inteligente de handoff
+                const response = await fetch(`http://localhost:5000/api/handoffs/intelligent/execute`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     conversationId: conversation.id,
-                    aiClassification: {
-                      intent: messageContent.toLowerCase().includes('problema') || messageContent.toLowerCase().includes('erro') ? 'technical_support' :
-                             messageContent.toLowerCase().includes('cancelar') || messageContent.toLowerCase().includes('reembolso') ? 'billing_issue' :
-                             messageContent.toLowerCase().includes('comprar') || messageContent.toLowerCase().includes('curso') ? 'sales_inquiry' : 'general_inquiry',
-                      urgency: messageContent.toLowerCase().includes('urgente') || messageContent.toLowerCase().includes('crítico') ? 'high' : 'normal',
-                      confidence: 85,
-                      frustrationLevel: messageContent.toLowerCase().includes('irritado') || messageContent.toLowerCase().includes('péssimo') ? 8 : 3
-                    }
+                    messageContent: messageContent,
+                    type: 'automatic'
                   })
                 });
 
                 if (response.ok) {
-                  const evaluation = await response.json();
-                  if (evaluation.shouldHandoff) {
-                    // Criar handoff automático
-                    await fetch(`http://localhost:5000/api/handoffs/auto-create`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        conversationId: conversation.id,
-                        aiClassification: {
-                          intent: messageContent.toLowerCase().includes('problema') || messageContent.toLowerCase().includes('erro') ? 'technical_support' :
-                                 messageContent.toLowerCase().includes('cancelar') || messageContent.toLowerCase().includes('reembolso') ? 'billing_issue' :
-                                 messageContent.toLowerCase().includes('comprar') || messageContent.toLowerCase().includes('curso') ? 'sales_inquiry' : 'general_inquiry',
-                          urgency: messageContent.toLowerCase().includes('urgente') || messageContent.toLowerCase().includes('crítico') ? 'high' : 'normal',
-                          confidence: 85,
-                          frustrationLevel: messageContent.toLowerCase().includes('irritado') || messageContent.toLowerCase().includes('péssimo') ? 8 : 3
-                        }
-                      })
-                    });
+                  const result = await response.json();
+                  if (result.handoffCreated) {
+                    console.log(`🧠 Handoff inteligente criado: ID ${result.handoffId} para conversa ${conversation.id}`);
+                    console.log(`📊 Análise IA: ${result.recommendation.reason}`);
+                    console.log(`🎯 Equipe sugerida: ${result.recommendation.teamId}, Confiança: ${result.recommendation.confidence}%`);
+                  } else {
+                    console.log(`🤖 Handoff não necessário para conversa ${conversation.id}: ${result.message}`);
                   }
+                } else {
+                  console.error('❌ Erro na resposta do handoff inteligente:', response.status);
                 }
               } catch (handoffError) {
-                console.error('❌ Erro na análise automática de handoff:', handoffError);
+                console.error('❌ Erro na análise inteligente de handoff:', handoffError);
               }
             });
 
