@@ -98,12 +98,13 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       }
       
       // Buscar ou criar contato
-      let contact = await storage.getContact(phone);
+      let contact = await storage.contacts.getContactByPhone(phone);
       if (!contact) {
         contact = await storage.createContact({
           phone: phone,
           name: webhookData.senderName || `WhatsApp ${phone}`,
-          source: 'whatsapp'
+          canalOrigem: 'whatsapp',
+          userIdentity: phone
         });
       }
       

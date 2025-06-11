@@ -89,9 +89,11 @@ export function InboxPage() {
     isLoading, 
     refetch 
   } = useConversations(50, { 
-    refetchInterval: 5000, // Polling a cada 5 segundos como backup do WebSocket
-    staleTime: 30000 // Cache por 30 segundos para melhor performance
-  }); // Carregar apenas 50 conversas iniciais para carregamento rápido
+    refetchInterval: 2000, // Polling mais frequente para garantir atualização
+    staleTime: 1000, // Cache menor para dados mais frescos
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
+  });
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 

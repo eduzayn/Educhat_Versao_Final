@@ -48,6 +48,13 @@ class CentralStorage {
   updateQuickReply = (id: number, data: any) => this.quickReplies.updateQuickReply(id, data);
   deleteQuickReply = (id: number) => this.quickReplies.deleteQuickReply(id);
   
+  // Métodos de Channel necessários
+  getChannels = () => this.channels.getChannels();
+  getChannel = (id: number) => this.channels.getChannel(id);
+  createChannel = (channelData: any) => this.channels.createChannel(channelData);
+  updateChannel = (id: number, data: any) => this.channels.updateChannel(id, data);
+  deleteChannel = (id: number) => this.channels.deleteChannel(id);
+  
   // Métodos de compatibilidade para rotas que ainda usam storage/index.ts
   assignConversationToTeam = (conversationId: number, teamId: number, method: string) => 
     this.conversations.assignConversationToTeam(conversationId, teamId, method);
