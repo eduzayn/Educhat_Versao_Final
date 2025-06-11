@@ -90,18 +90,22 @@ export function MessageBubble({
 
   // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
+    // Mensagens de contatos não podem ser deletadas via Z-API, apenas ocultadas
+    if (isFromContact) {
+      return false;
+    }
+    
+    // Mensagens enviadas pelo agente podem ser deletadas em até 7 minutos
     const now = new Date();
     const sevenMinutesInMs = 7 * 60 * 1000;
+    const messageDate = new Date(message.sentAt || new Date());
+    const timeDifference = now.getTime() - messageDate.getTime();
     
-    if (isFromContact) {
-      const messageDate = new Date(message.sentAt || new Date());
-      const timeDifference = now.getTime() - messageDate.getTime();
-      return timeDifference <= sevenMinutesInMs;
-    } else {
-      const messageDate = new Date(message.sentAt || new Date());
-      const timeDifference = now.getTime() - messageDate.getTime();
-      return timeDifference <= sevenMinutesInMs;
-    }
+    // Verificar se tem metadados Z-API (messageId ou zaapId)
+    const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
+    const hasZapiId = metadata.messageId || metadata.zaapId || metadata.id;
+    
+    return timeDifference <= sevenMinutesInMs && hasZapiId;
   };
 
   const handleDeleteMessage = async () => {
