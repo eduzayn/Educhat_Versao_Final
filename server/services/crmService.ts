@@ -28,43 +28,43 @@ export class CRMService {
    */
   private funnelMapping = {
     // COMERCIAL - Equipe Comercial (ID: 5)
-    'course_inquiry': { macrosetor: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
-    'lead_generation': { macrosetor: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
-    'pricing_inquiry': { macrosetor: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
+    'course_inquiry': { teamType: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
+    'lead_generation': { teamType: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
+    'pricing_inquiry': { teamType: 'comercial', stages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'] },
     
     // SUPORTE - Equipe Suporte (ID: 6)
-    'technical_support': { macrosetor: 'suporte', stages: ['new_ticket', 'in_analysis', 'in_progress', 'waiting_user', 'resolved', 'closed'] },
-    'complaint': { macrosetor: 'suporte', stages: ['new_complaint', 'investigating', 'escalated', 'resolving', 'resolved', 'closed'] },
-    'platform_issue': { macrosetor: 'suporte', stages: ['new_ticket', 'in_analysis', 'in_progress', 'waiting_user', 'resolved', 'closed'] },
+    'technical_support': { teamType: 'suporte', stages: ['new_ticket', 'in_analysis', 'in_progress', 'waiting_user', 'resolved', 'closed'] },
+    'complaint': { teamType: 'suporte', stages: ['new_complaint', 'investigating', 'escalated', 'resolving', 'resolved', 'closed'] },
+    'platform_issue': { teamType: 'suporte', stages: ['new_ticket', 'in_analysis', 'in_progress', 'waiting_user', 'resolved', 'closed'] },
     
     // SUPORTE ESPECIALIZADO - ANÁLISE PARA CERTIFICAÇÃO (ID: 12)
-    'certificate_analysis': { macrosetor: 'suporte', stages: ['received', 'under_analysis', 'documentation_needed', 'approved', 'denied', 'completed'] },
+    'certificate_analysis': { teamType: 'suporte', stages: ['received', 'under_analysis', 'documentation_needed', 'approved', 'denied', 'completed'] },
     
     // SUPORTE ESPECIALIZADO - DOCUMENTAÇÃO (ID: 13)  
-    'documentation': { macrosetor: 'suporte', stages: ['received', 'under_review', 'missing_docs', 'approved', 'rejected', 'completed'] },
+    'documentation': { teamType: 'suporte', stages: ['received', 'under_review', 'missing_docs', 'approved', 'rejected', 'completed'] },
     
     // TUTORIA - Equipe Tutoria (ID: 9)
-    'student_support': { macrosetor: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
-    'academic_support': { macrosetor: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
-    'study_help': { macrosetor: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
+    'student_support': { teamType: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
+    'academic_support': { teamType: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
+    'study_help': { teamType: 'tutoria', stages: ['new_request', 'assigned', 'in_progress', 'waiting_student', 'resolved', 'closed'] },
     
     // FINANCEIRO - Equipe Financeiro (ID: 7)
-    'financial': { macrosetor: 'financeiro', stages: ['payment_issue', 'under_review', 'documentation_needed', 'payment_plan', 'resolved', 'closed'] },
-    'refund_request': { macrosetor: 'financeiro', stages: ['request_received', 'under_analysis', 'approved', 'processing', 'completed', 'denied'] },
+    'financial': { teamType: 'financeiro', stages: ['payment_issue', 'under_review', 'documentation_needed', 'payment_plan', 'resolved', 'closed'] },
+    'refund_request': { teamType: 'financeiro', stages: ['request_received', 'under_analysis', 'approved', 'processing', 'completed', 'denied'] },
     
     // COBRANÇA - Equipe Cobrança (ID: 11)
-    'billing': { macrosetor: 'cobranca', stages: ['overdue', 'first_contact', 'negotiating', 'payment_plan', 'resolved', 'collection'] },
-    'payment_delay': { macrosetor: 'cobranca', stages: ['overdue', 'first_contact', 'negotiating', 'payment_plan', 'resolved', 'collection'] },
+    'billing': { teamType: 'cobranca', stages: ['overdue', 'first_contact', 'negotiating', 'payment_plan', 'resolved', 'collection'] },
+    'payment_delay': { teamType: 'cobranca', stages: ['overdue', 'first_contact', 'negotiating', 'payment_plan', 'resolved', 'collection'] },
     
     // SECRETARIA - Equipe Secretaria (ID: 8)
-    'enrollment': { macrosetor: 'secretaria', stages: ['initial_contact', 'documentation', 'processing', 'approved', 'enrolled', 'completed'] },
-    'certificate': { macrosetor: 'secretaria', stages: ['requested', 'processing', 'ready', 'delivered', 'completed'] },
-    'academic_record': { macrosetor: 'secretaria', stages: ['requested', 'processing', 'ready', 'delivered', 'completed'] },
+    'enrollment': { teamType: 'secretaria', stages: ['initial_contact', 'documentation', 'processing', 'approved', 'enrolled', 'completed'] },
+    'certificate': { teamType: 'secretaria', stages: ['requested', 'processing', 'ready', 'delivered', 'completed'] },
+    'academic_record': { teamType: 'secretaria', stages: ['requested', 'processing', 'ready', 'delivered', 'completed'] },
     
     // SECRETARIA PÓS - Equipe Secretaria Pós (ID: 10)
-    'graduation': { macrosetor: 'secretaria_pos', stages: ['requirements_check', 'documentation', 'processing', 'approved', 'graduation_ready', 'completed'] },
-    'postgrad_support': { macrosetor: 'secretaria_pos', stages: ['initial_contact', 'documentation', 'processing', 'approved', 'enrolled', 'completed'] },
-    'thesis_support': { macrosetor: 'secretaria_pos', stages: ['requirements_check', 'documentation', 'processing', 'approved', 'in_progress', 'completed'] }
+    'graduation': { teamType: 'secretaria_pos', stages: ['requirements_check', 'documentation', 'processing', 'approved', 'graduation_ready', 'completed'] },
+    'postgrad_support': { teamType: 'secretaria_pos', stages: ['initial_contact', 'documentation', 'processing', 'approved', 'enrolled', 'completed'] },
+    'thesis_support': { teamType: 'secretaria_pos', stages: ['requirements_check', 'documentation', 'processing', 'approved', 'in_progress', 'completed'] }
   };
 
   private stageClassification = {

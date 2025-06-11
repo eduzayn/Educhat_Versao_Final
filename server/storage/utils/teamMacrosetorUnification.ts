@@ -101,7 +101,7 @@ export function isValidTeamType(teamType: string): boolean {
   return Object.keys(TEAM_CONFIGS).includes(teamType);
 }
 
-// Manter compatibilidade com nomes antigos durante transição
+// Aliases para compatibilidade com nomenclatura antiga (macrosetor → teamType)
 export const MACROSETOR_CONFIGS = TEAM_CONFIGS;
 export const getTeamConfigByMacrosetor = getTeamConfigByType;
 export const getAllMacrosetores = getAllTeamTypes;
@@ -110,15 +110,15 @@ export const isValidMacrosetor = isValidTeamType;
 /**
  * Get team priority for assignment
  */
-export function getTeamPriority(macrosetor: string): number {
-  const config = getTeamConfigByMacrosetor(macrosetor);
+export function getTeamPriority(teamType: string): number {
+  const config = getTeamConfigByType(teamType);
   return config.priority;
 }
 
 /**
  * Check if team has capacity for new assignments
  */
-export function hasTeamCapacity(currentLoad: number, macrosetor: string): boolean {
-  const config = getTeamConfigByMacrosetor(macrosetor);
+export function hasTeamCapacity(currentLoad: number, teamType: string): boolean {
+  const config = getTeamConfigByType(teamType);
   return currentLoad < config.maxCapacity;
 }

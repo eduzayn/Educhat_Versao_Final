@@ -15,20 +15,20 @@ export function registerFunnelRoutes(app: Express) {
     }
   });
 
-  // Get funnel by macrosetor - REST: GET /api/funnels/macrosetor/:macrosetor
+  // Get funnel by team type - REST: GET /api/funnels/team-type/:teamType (mantém rota antiga para compatibilidade)
   app.get('/api/funnels/macrosetor/:macrosetor', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { macrosetor } = req.params;
-      const funnel = await funnelService.getFunnelByMacrosetor(macrosetor);
+      const funnel = await funnelService.getFunnelByTeamType(macrosetor);
       
       if (funnel) {
         res.json(funnel);
       } else {
-        res.status(404).json({ message: `Nenhum funil encontrado para o macrosetor: ${macrosetor}` });
+        res.status(404).json({ message: `Nenhum funil encontrado para o tipo de equipe: ${macrosetor}` });
       }
     } catch (error) {
-      console.error('Erro ao buscar funil por macrosetor:', error);
-      res.status(500).json({ message: 'Erro ao buscar funil por macrosetor' });
+      console.error('Erro ao buscar funil por tipo de equipe:', error);
+      res.status(500).json({ message: 'Erro ao buscar funil por tipo de equipe' });
     }
   });
 
@@ -66,13 +66,13 @@ export function registerFunnelRoutes(app: Express) {
     }
   });
 
-  // Get initial stage for macrosetor - REST: GET /api/funnels/initial-stage/:macrosetor
+  // Get initial stage for team type - REST: GET /api/funnels/initial-stage/:teamType (mantém rota antiga para compatibilidade)
   app.get('/api/funnels/initial-stage/:macrosetor', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { macrosetor } = req.params;
-      const initialStage = await funnelService.getInitialStageForMacrosetor(macrosetor);
+      const initialStage = await funnelService.getInitialStageForTeamType(macrosetor);
       
-      res.json({ macrosetor, initialStage });
+      res.json({ teamType: macrosetor, initialStage });
     } catch (error) {
       console.error('Erro ao buscar estágio inicial:', error);
       res.status(500).json({ message: 'Erro ao buscar estágio inicial' });
