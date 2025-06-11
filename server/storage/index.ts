@@ -281,13 +281,7 @@ export class DatabaseStorage implements IStorage {
     return this.channel.getChannel(id);
   }
 
-  async getChannelById(id: number) {
-    return this.channel.getChannel(id);
-  }
 
-  async getAllChannels() {
-    return this.channel.getChannels();
-  }
 
   async getChannelsByType(type: string) {
     return this.channel.getChannelsByType(type);
@@ -912,49 +906,215 @@ export class DatabaseStorage implements IStorage {
     return team;
   }
 
-  // System user methods for authentication and management
-  async getSystemUser(id: number) {
-    return this.auth.getSystemUser(id);
+  // ==================== ADDITIONAL INTERFACE COMPLIANCE ====================
+  async getConversationHandoffs(conversationId: number) {
+    return this.conversation.getConversationHandoffs(conversationId);
   }
 
-  async getSystemUsers() {
-    return this.auth.getSystemUsers();
+  async createConversationHandoff(handoffData: any) {
+    return this.conversation.createConversationHandoff(handoffData);
   }
 
-  async createSystemUser(userData: any) {
-    return this.auth.createSystemUser(userData);
+  async updateConversationHandoff(id: number, data: any) {
+    return this.conversation.updateConversationHandoff(id, data);
   }
 
-  async updateSystemUser(id: number, userData: any) {
-    return this.auth.updateSystemUser(id, userData);
+  async getActiveHandoffs() {
+    return this.conversation.getActiveHandoffs();
   }
 
-  async deleteSystemUser(id: number) {
-    return this.auth.deleteSystemUser(id);
+  async completeHandoff(id: number) {
+    return this.conversation.completeHandoff(id);
   }
 
-  // Permission checking method - delegated to PermissionService
-  async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
-    // Import PermissionService dynamically to avoid circular dependency
-    const { PermissionService } = await import('../core/permissions');
-    return PermissionService.hasPermission(userId, permissionName);
+  async getHandoffStatistics() {
+    return this.conversation.getHandoffStatistics();
   }
 
-  // Additional interface compliance methods
-  async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number) {
-    return { success: true };
+  async getConversationFiles(conversationId: number) {
+    return this.conversation.getConversationFiles(conversationId);
   }
 
-  async getDealById(id: number) {
-    return this.deal.getDeal(id);
+  async uploadConversationFile(conversationId: number, fileData: any) {
+    return this.conversation.uploadConversationFile(conversationId, fileData);
   }
 
-  async getSystemSetting(key: string) {
-    return null;
+  async deleteConversationFile(fileId: number) {
+    return this.conversation.deleteConversationFile(fileId);
+  }
+
+  async getAuditLogs(filters: any = {}) {
+    return this.system.getAuditLogs(filters);
+  }
+
+  async createAuditLog(logData: any) {
+    return this.system.createAuditLog(logData);
+  }
+
+  async getNotifications(userId: number) {
+    return this.system.getNotifications(userId);
+  }
+
+  async createNotification(notificationData: any) {
+    return this.system.createNotification(notificationData);
+  }
+
+  async markNotificationAsRead(id: number) {
+    return this.system.markNotificationAsRead(id);
+  }
+
+  async getWebhooks() {
+    return this.system.getWebhooks();
+  }
+
+  async createWebhook(webhookData: any) {
+    return this.system.createWebhook(webhookData);
+  }
+
+  async updateWebhook(id: number, data: any) {
+    return this.system.updateWebhook(id, data);
+  }
+
+  async deleteWebhook(id: number) {
+    return this.system.deleteWebhook(id);
+  }
+
+  async getTags() {
+    return this.system.getTags();
+  }
+
+  async createTag(tagData: any) {
+    return this.system.createTag(tagData);
+  }
+
+  async updateTag(id: number, data: any) {
+    return this.system.updateTag(id, data);
+  }
+
+  async deleteTag(id: number) {
+    return this.system.deleteTag(id);
+  }
+
+  async getCustomFields() {
+    return this.system.getCustomFields();
+  }
+
+  async createCustomField(fieldData: any) {
+    return this.system.createCustomField(fieldData);
+  }
+
+  async updateCustomField(id: number, data: any) {
+    return this.system.updateCustomField(id, data);
+  }
+
+  async deleteCustomField(id: number) {
+    return this.system.deleteCustomField(id);
+  }
+
+  // ==================== ANALYTICS OPERATIONS ====================
+  async getConversationAnalytics(filters: any = {}) {
+    return this.conversation.getConversationAnalytics(filters);
+  }
+
+  async getMessageAnalytics(filters: any = {}) {
+    return this.message.getMessageAnalytics(filters);
+  }
+
+  async getDealAnalytics(filters: any = {}) {
+    return this.deal.getDealAnalytics(filters);
+  }
+
+  async getResponseTimeAnalytics(filters: any = {}) {
+    return this.conversation.getResponseTimeAnalytics(filters);
+  }
+
+  async getTeamPerformanceAnalytics(teamId: number, filters: any = {}) {
+    return this.team.getTeamPerformanceAnalytics(teamId, filters);
+  }
+
+  async getUserPerformanceAnalytics(userId: number, filters: any = {}) {
+    return this.auth.getUserPerformanceAnalytics(userId, filters);
+  }
+
+  async getChannelAnalytics(channelId: number, filters: any = {}) {
+    return this.channel.getChannelAnalytics(channelId, filters);
+  }
+
+  async getIntegrationAnalytics(integrationType: string, filters: any = {}) {
+    return this.system.getIntegrationAnalytics(integrationType, filters);
+  }
+
+  async getDealConversionAnalytics(filters: any = {}) {
+    return this.deal.getDealConversionAnalytics(filters);
+  }
+
+  async getSalesFunnelAnalytics(funnelId?: number, filters: any = {}) {
+    return this.deal.getSalesFunnelAnalytics(funnelId, filters);
+  }
+
+  async generateAnalyticsReport(reportType: string, filters: any = {}) {
+    return this.system.generateAnalyticsReport(reportType, filters);
+  }
+
+  async sendAnalyticsReport(reportId: string, recipients: string[]) {
+    return this.system.sendAnalyticsReport(reportId, recipients);
+  }
+
+  async exportAnalyticsData(exportType: string, filters: any = {}) {
+    return this.system.exportAnalyticsData(exportType, filters);
+  }
+
+  async scheduleAnalyticsReport(schedule: any) {
+    return this.system.scheduleAnalyticsReport(schedule);
+  }
+
+  async getScheduledReports(userId?: number) {
+    return this.system.getScheduledReports(userId);
+  }
+
+  async deleteScheduledReport(reportId: string) {
+    return this.system.deleteScheduledReport(reportId);
   }
 
   async updateSystemSetting(key: string, value: any) {
-    return { success: true };
+    return this.system.setSystemSetting(key, value);
+  }
+
+  async getSystemSetting(key: string) {
+    return this.system.getSystemSetting(key);
+  }
+
+  // ==================== FINAL ANALYTICS METHODS ====================
+  async executeCustomAnalyticsQuery(query: string, parameters?: any[]) {
+    return this.system.executeCustomAnalyticsQuery(query, parameters);
+  }
+
+  async getRealtimeAnalytics(metric: string, filters?: any) {
+    return this.system.getRealtimeAnalytics(metric, filters);
+  }
+
+  async getAnalyticsTrends(metric: string, timeframe: string, filters?: any) {
+    return this.system.getAnalyticsTrends(metric, timeframe, filters);
+  }
+
+  async getAnalyticsAlerts(userId?: number) {
+    return this.system.getAnalyticsAlerts(userId);
+  }
+
+  async createAnalyticsAlert(alertConfig: any) {
+    return this.system.createAnalyticsAlert(alertConfig);
+  }
+
+  async updateAnalyticsAlert(alertId: string, alertConfig: any) {
+    return this.system.updateAnalyticsAlert(alertId, alertConfig);
+  }
+
+  async deleteAnalyticsAlert(alertId: string) {
+    return this.system.deleteAnalyticsAlert(alertId);
+  }
+
+  async getAnalyticsMetadata() {
+    return this.system.getAnalyticsMetadata();
   }
 
   async getConversationHandoffs(conversationId: number) {
