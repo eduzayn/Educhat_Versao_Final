@@ -120,13 +120,15 @@ export function MessageBubble({
     const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
     const hasZapiId = metadata.messageId || metadata.zaapId || metadata.id;
     
+    const canDeleteResult = timeDifference <= sevenMinutesInMs && !!hasZapiId;
+    
     console.log('📝 Metadados Z-API:', {
       metadata,
       hasZapiId,
-      finalCanDelete: timeDifference <= sevenMinutesInMs && hasZapiId
+      finalCanDelete: canDeleteResult
     });
     
-    return timeDifference <= sevenMinutesInMs && hasZapiId;
+    return canDeleteResult;
   };
 
   const handleDeleteMessage = async () => {
@@ -523,38 +525,16 @@ export function MessageBubble({
             )}
 
             {canDelete() && conversationId && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
-                    title="Deletar mensagem"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Deletar mensagem</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {isFromContact
-                        ? "Esta ação irá ocultar a mensagem apenas da sua interface. A mensagem ainda será visível para o contato."
-                        : "Esta ação irá deletar a mensagem permanentemente para ambos os lados da conversa."}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteMessage}
-                      disabled={isDeleting}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {isDeleting ? "Deletando..." : "Deletar"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 opacity-100 hover:bg-red-100 hover:text-red-600 text-red-500 border border-red-300"
+                onClick={handleDeleteMessage}
+                disabled={isDeleting}
+                title="Deletar mensagem"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             )}
           </div>
         </div>
