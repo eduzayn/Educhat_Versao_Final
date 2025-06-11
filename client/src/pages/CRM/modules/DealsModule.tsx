@@ -81,7 +81,7 @@ export function DealsModule() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        macrosetor: selectedTeam
+        team: selectedTeam
       });
       
       const response = await fetch(`/api/deals?${params}`);

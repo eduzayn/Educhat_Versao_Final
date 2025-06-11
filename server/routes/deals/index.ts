@@ -14,7 +14,6 @@ export function registerDealsRoutes(app: Express) {
         startDate, 
         endDate, 
         stage, 
-        macrosetor,
         team,
         page = '1',
         limit = '50',
@@ -33,14 +32,11 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'Limite inválido (1-100)' });
       }
       
-      // Support both "team" and "macrosetor" parameters for backward compatibility
-      const teamFilter = (team as string) || (macrosetor as string);
-      
       // Use pagination method from storage
       const result = await storage.getDealsWithPagination({
         page: pageNum,
         limit: limitNum,
-        macrosetor: teamFilter,
+        team: team as string,
         stage: stage as string,
         search: search as string
       });
