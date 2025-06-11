@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
 // GET /api/handoffs/stats - Estatísticas dos handoffs
 router.get('/stats', async (req, res) => {
   try {
-    const stats = await handoffService.getHandoffStats();
+    const stats = await unifiedAssignmentService.getHandoffStats();
     res.json({
       success: true,
       stats
@@ -95,7 +95,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const handoff = await handoffService.createHandoff(data);
+    const handoff = await unifiedAssignmentService.createHandoff(data);
     
     res.status(201).json({
       success: true,
