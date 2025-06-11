@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { handoffService } from '../../services/handoffService';
+import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { insertHandoffSchema, handoffs as handoffsTable } from '@shared/schema';
 import { db } from '../../db';
 import { desc } from 'drizzle-orm';
 import { z } from 'zod';
+import { AIService } from '../../services/aiService';
 
 const router = Router();
 
