@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
   registerFunnelRoutes(app);
-  // registerMacrosetorRoutes(app, {} as any); // Removido - sistema migrado para IA
+  // Sistema de detecção migrado para IA com equipes unificadas
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
   app.use('/api/ia', aiConfigRouter);

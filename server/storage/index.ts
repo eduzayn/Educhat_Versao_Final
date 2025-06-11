@@ -1,129 +1,63 @@
-// Barrel exports para todos os módulos de storage
-export type { IStorage } from './interfaces/IStorage';
-export { BaseStorage } from './base/BaseStorage';
-
-// Módulos de storage
-export { UserManagementStorage } from './modules/userManagementStorage';
-export { ContactStorage } from './modules/contactStorage';
-export { ConversationStorage } from './modules/conversationStorage';
-export { ChannelStorage } from './modules/channelStorage';
-export { DealStorage } from './modules/dealStorage';
-export { NotesStorage } from './modules/notesStorage';
-export { QuickReplyStorage } from './modules/quickReplyStorage';
-export { TeamStorage } from './modules/teamStorage';
-export { MessageStorage } from './modules/messageStorage';
-export { ManychatStorage } from './modules/manychatStorage';
-export { FacebookStorage } from './modules/facebookStorage';
-
-/**
- * Classe principal do Storage que implementa a interface IStorage
- * Agrega todos os módulos especializados de storage
- */
-import { IStorage } from './interfaces/IStorage';
 import { UserManagementStorage } from './modules/userManagementStorage';
 import { ContactStorage } from './modules/contactStorage';
-import { permissions, rolePermissions } from '../../shared/schema';
-import { sql } from 'drizzle-orm';
 import { ConversationStorage } from './modules/conversationStorage';
+import { MessageStorage } from './modules/messageStorage';
 import { ChannelStorage } from './modules/channelStorage';
 import { DealStorage } from './modules/dealStorage';
 import { NotesStorage } from './modules/notesStorage';
-import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { TeamStorage } from './modules/teamStorage';
-import { MessageStorage } from './modules/messageStorage';
+import { QuickReplyStorage } from './modules/quickReplyStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
 
-import {
-  type User,
-  type UpsertUser,
-  type Contact,
-  type InsertContact,
-  type Conversation,
-  type InsertConversation,
-  type Message,
-  type InsertMessage,
-  type ContactTag,
-  type InsertContactTag,
-  type QuickReply,
-  type InsertQuickReply,
-  type QuickReplyTeamShare,
-  type InsertQuickReplyTeamShare,
-  type QuickReplyShare,
-  type InsertQuickReplyShare,
-  type SystemUser,
-  type InsertSystemUser,
-  type Team,
-  type InsertTeam,
-  type Role,
-  type InsertRole,
-  type Channel,
-  type InsertChannel,
-  type ContactNote,
-  type InsertContactNote,
-  type Deal,
-  type InsertDeal,
-  type UserTeam,
-  type InsertUserTeam,
-  type ConversationWithContact,
-  type ContactWithTags,
-  type SystemSetting,
-  type InsertSystemSetting,
-} from "../../shared/schema";
-
-export class DatabaseStorage implements IStorage {
-  private userManagement: UserManagementStorage;
-  private contact: ContactStorage;
-  private conversation: ConversationStorage;
-  private channel: ChannelStorage;
-  private deal: DealStorage;
-  private notes: NotesStorage;
-  private quickReply: QuickReplyStorage;
-  private team: TeamStorage;
-  private message: MessageStorage;
-  private manychat: ManychatStorage;
-  private facebook: FacebookStorage;
+/**
+ * STORAGE PRINCIPAL CONSOLIDADO
+ * Agrupa todos os módulos de storage em uma interface unificada
+ * Sistema consolidado com terminologia unificada de equipes
+ */
+export class Storage {
+  public userManagement: UserManagementStorage;
+  public contact: ContactStorage;
+  public conversation: ConversationStorage;
+  public message: MessageStorage;
+  public channel: ChannelStorage;
+  public deal: DealStorage;
+  public notes: NotesStorage;
+  public team: TeamStorage;
+  public quickReply: QuickReplyStorage;
+  public manychat: ManychatStorage;
+  public facebook: FacebookStorage;
 
   constructor() {
     this.userManagement = new UserManagementStorage();
     this.contact = new ContactStorage();
     this.conversation = new ConversationStorage();
+    this.message = new MessageStorage();
     this.channel = new ChannelStorage();
     this.deal = new DealStorage();
     this.notes = new NotesStorage();
-    this.quickReply = new QuickReplyStorage();
     this.team = new TeamStorage();
-    this.message = new MessageStorage();
+    this.quickReply = new QuickReplyStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
   }
 
-  // ==================== AUTH OPERATIONS ====================
-  async getUser(id: string): Promise<User | undefined> {
-    return this.userManagement.getUser(id);
-  }
-
-  async upsertUser(user: UpsertUser): Promise<User> {
-    return this.userManagement.upsertUser(user);
-  }
-
+  // ==================== USER OPERATIONS ====================
   async createUser(userData: any) {
     return this.userManagement.createUser(userData);
+  }
+
+  async getUser(id: number) {
+    return this.userManagement.getUser(id);
   }
 
   async getUserByEmail(email: string) {
     return this.userManagement.getUserByEmail(email);
   }
 
-  async getUserById(id: number) {
-    return this.userManagement.getUser(id.toString());
-  }
-
   async getAllUsers() {
     return this.userManagement.getAllUsers();
   }
-
-  // User management methods available through userManagement module
 
   // ==================== CONTACT OPERATIONS ====================
   async createContact(contactData: any) {
@@ -136,14 +70,6 @@ export class DatabaseStorage implements IStorage {
 
   async getContactByPhone(phone: string) {
     return this.contact.getContactByPhone(phone);
-  }
-
-  async getContactByUserIdentity(userIdentity: string) {
-    return this.contact.getContactByUserIdentity(userIdentity);
-  }
-
-  async getContactByEmail(email: string) {
-    return this.contact.getContactByEmail(email);
   }
 
   async getAllContacts() {
@@ -162,35 +88,6 @@ export class DatabaseStorage implements IStorage {
     return this.contact.searchContacts(query);
   }
 
-  async findOrCreateContact(userIdentity: string, contactData: any) {
-    return this.contact.findOrCreateContact(userIdentity, contactData);
-  }
-
-  async updateContactOnlineStatus(id: number, isOnline: boolean) {
-    return this.contact.updateContactOnlineStatus(id, isOnline);
-  }
-
-  async getContactWithTags(id: number) {
-    return this.contact.getContactWithTags(id);
-  }
-
-  async getContactInterests(contactId: number) {
-    return []; // Implementar quando necessário
-  }
-
-  // ==================== CONTACT TAG OPERATIONS ====================
-  async getContactTags(contactId: number): Promise<ContactTag[]> {
-    return this.contact.getContactTags(contactId);
-  }
-
-  async addContactTag(tag: InsertContactTag): Promise<ContactTag> {
-    return this.contact.addContactTag(tag);
-  }
-
-  async removeContactTag(contactId: number, tag: string): Promise<void> {
-    return this.contact.removeContactTag(contactId, tag);
-  }
-
   // ==================== CONVERSATION OPERATIONS ====================
   async createConversation(conversationData: any) {
     return this.conversation.createConversation(conversationData);
@@ -198,10 +95,6 @@ export class DatabaseStorage implements IStorage {
 
   async getConversation(id: number) {
     return this.conversation.getConversation(id);
-  }
-
-  async getConversations(limit?: number, offset?: number) {
-    return this.conversation.getConversations(limit, offset);
   }
 
   async getAllConversations() {
@@ -216,28 +109,8 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.deleteConversation(id);
   }
 
-  async getConversationsByContact(contactId: number) {
-    return this.conversation.getConversationsByContact(contactId);
-  }
-
   async getConversationsByStatus(status: string) {
     return this.conversation.getConversationsByStatus(status);
-  }
-
-  async getConversationsByAssignedUser(userId: number) {
-    return this.conversation.getConversationsByAssignedUser(userId);
-  }
-
-  async getConversationByContactAndChannel(contactId: number, channel: string) {
-    return this.conversation.getConversationByContactAndChannel(contactId, channel);
-  }
-
-  async assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual') {
-    return this.conversation.assignConversationToTeam(conversationId, teamId, method);
-  }
-
-  async assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual') {
-    return this.conversation.assignConversationToUser(conversationId, userId, method);
   }
 
   async getConversationsByTeam(teamId: number) {
@@ -248,8 +121,12 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.getConversationsByUser(userId);
   }
 
-  async getTotalUnreadCount() {
-    return this.conversation.getTotalUnreadCount();
+  async assignConversationToUser(conversationId: number, userId: number) {
+    return this.conversation.assignConversationToUser(conversationId, userId);
+  }
+
+  async assignConversationToTeam(conversationId: number, teamId: number) {
+    return this.conversation.assignConversationToTeam(conversationId, teamId);
   }
 
   async markConversationAsRead(conversationId: number) {
@@ -294,7 +171,7 @@ export class DatabaseStorage implements IStorage {
     return this.deal.getDeal(id);
   }
 
-  async getDeals(filters: any = {}) {
+  async getDeals() {
     return this.deal.getDeals();
   }
 
@@ -306,15 +183,9 @@ export class DatabaseStorage implements IStorage {
     return this.deal.deleteDeal(id);
   }
 
-  async getDealsByContact(contactId: number) {
-    return this.deal.getDealsByContact(contactId);
-  }
-
   async getDealsByStage(stage: string) {
     return this.deal.getDealsByStage(stage);
   }
-
-  // Deal filtering methods available through deal module
 
   async getDealStatistics() {
     return { total: 0, byStage: {}, byTeam: {} };
@@ -333,7 +204,7 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeam(id);
   }
 
-  async getAllTeams() {
+  async getTeams() {
     return this.team.getTeams();
   }
 
@@ -349,35 +220,8 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamByTeamType(teamType);
   }
 
-  // Alias para compatibilidade
-
-
-  async getAvailableUserFromTeam(teamId: number) {
-    return this.team.getAvailableUserFromTeam(teamId);
-  }
-
-  async getUserTeams(userId: number) {
-    return this.team.getUserTeams(userId);
-  }
-
-  async addUserToTeam(userTeam: { teamId: number; userId: number; isActive?: boolean | null; role?: string | null; }) {
-    return this.team.addUserToTeam(userTeam);
-  }
-
-  async removeUserFromTeam(userId: number, teamId: number) {
-    return this.team.removeUserFromTeam(userId, teamId);
-  }
-
-  async getTeamMembers(teamId: number) {
-    return this.team.getTeamMembers(teamId);
-  }
-
-  async getTeamStatistics(teamId: number) {
-    return this.team.getTeamStatistics(teamId);
-  }
-
-  async getTeamWorkload(teamId: number) {
-    return this.team.getTeamWorkload(teamId);
+  async testTeamDetection(message: string, teamId?: number) {
+    return this.team.testTeamDetection(message);
   }
 
   // ==================== MESSAGE OPERATIONS ====================
@@ -421,783 +265,88 @@ export class DatabaseStorage implements IStorage {
     return this.message.markMessageAsDelivered(id);
   }
 
-  async markMessageAsDeleted(id: number) {
-    return this.message.markMessageAsDeleted(id);
-  }
-
-  async getMessageByZApiId(zapiMessageId: string) {
-    return this.message.getMessageByZApiId(zapiMessageId);
-  }
-
-  async getMessagesByMetadata(key: string, value: string) {
-    return this.message.getMessagesByMetadata(key, value);
-  }
-
-  async getMessageMedia(messageId: number) {
-    return this.message.getMessageMedia(messageId);
-  }
-
-  async markMessageAsDeletedByUser(messageId: number) {
-    return this.message.markMessageAsDeletedByUser(messageId);
-  }
-
-  // ==================== NOTES OPERATIONS ====================
-  async createNote(noteData: any) {
-    return this.notes.createNote(noteData);
-  }
-
-  async getNote(id: number) {
-    return this.notes.getNote(id);
-  }
-
-  async getAllNotes() {
-    return this.notes.getAllNotes();
-  }
-
-  async updateNote(id: number, noteData: any) {
-    return this.notes.updateNote(id, noteData);
-  }
-
-  async deleteNote(id: number) {
-    return this.notes.deleteNote(id);
-  }
-
-  async getNotesByContact(contactId: number) {
-    return this.notes.getNotesByContact(contactId);
-  }
-
-  async getNotesByDeal(dealId: number) {
-    return this.notes.getNotesByDeal(dealId);
-  }
-
-  async getNotesByUser(userId: number) {
-    return this.notes.getNotesByUser(userId);
-  }
+  // Soft delete methods available through message module
 
   // ==================== QUICK REPLY OPERATIONS ====================
-  async getQuickReplies(): Promise<QuickReply[]> {
-    return this.quickReply.getQuickReplies();
+  async createQuickReply(quickReplyData: any) {
+    return this.quickReply.createQuickReply(quickReplyData);
   }
 
-  async getQuickReply(id: number): Promise<QuickReply | undefined> {
+  async getQuickReply(id: number) {
     return this.quickReply.getQuickReply(id);
   }
 
-  async createQuickReply(quickReply: InsertQuickReply): Promise<QuickReply> {
-    return this.quickReply.createQuickReply(quickReply);
+  async getQuickReplies() {
+    return this.quickReply.getQuickReplies();
   }
 
-  async updateQuickReply(id: number, quickReply: Partial<InsertQuickReply>): Promise<QuickReply> {
-    return this.quickReply.updateQuickReply(id, quickReply);
+  async updateQuickReply(id: number, quickReplyData: any) {
+    return this.quickReply.updateQuickReply(id, quickReplyData);
   }
 
-  async deleteQuickReply(id: number): Promise<void> {
+  async deleteQuickReply(id: number) {
     return this.quickReply.deleteQuickReply(id);
   }
 
-  async incrementQuickReplyUsage(id: number): Promise<void> {
-    return this.quickReply.incrementQuickReplyUsage(id);
-  }
-
-  async getQuickRepliesByCategory(category: string): Promise<QuickReply[]> {
-    return this.quickReply.getQuickRepliesByCategory(category);
-  }
-
-  async searchQuickReplies(query: string): Promise<QuickReply[]> {
-    return this.quickReply.searchQuickReplies(query);
-  }
-
-  async getMostUsedQuickReplies(limit?: number): Promise<QuickReply[]> {
-    return this.quickReply.getMostUsedQuickReplies(limit);
-  }
-
-  async getUserQuickReplies(userId: number): Promise<QuickReply[]> {
-    return this.quickReply.getUserQuickReplies(userId);
-  }
-
-  async getQuickReplyCategories(): Promise<string[]> {
-    return this.quickReply.getQuickReplyCategories();
-  }
-
-  async getQuickReplyStatistics(): Promise<any> {
-    return this.quickReply.getQuickReplyStatistics();
-  }
-
-  // ==================== QUICK REPLY SHARING OPERATIONS ====================
-  async createQuickReplyTeamShare(share: InsertQuickReplyTeamShare): Promise<QuickReplyTeamShare> {
-    return this.quickReply.createQuickReplyTeamShare(share);
-  }
-
-  async createQuickReplyUserShare(share: InsertQuickReplyShare): Promise<QuickReplyShare> {
-    return this.quickReply.createQuickReplyUserShare(share);
-  }
-
-  async deleteQuickReplyTeamShares(quickReplyId: number): Promise<void> {
-    return this.quickReply.deleteQuickReplyTeamShares(quickReplyId);
-  }
-
-  async deleteQuickReplyUserShares(quickReplyId: number): Promise<void> {
-    return this.quickReply.deleteQuickReplyUserShares(quickReplyId);
-  }
-
-
-
-  // ==================== SYSTEM USER OPERATIONS ====================
-  async getSystemUsers(): Promise<SystemUser[]> {
-    return this.userManagement.getSystemUsers();
-  }
-
-  async getSystemUser(id: number): Promise<SystemUser | undefined> {
-    return this.userManagement.getSystemUser(id);
-  }
-
-  async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
-    return this.userManagement.createSystemUser(user);
-  }
-
-  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
-    return this.userManagement.updateSystemUser(id, user);
-  }
-
-  async deleteSystemUser(id: number): Promise<void> {
-    return this.userManagement.deleteSystemUser(id);
-  }
-
-  // ==================== TEAM OPERATIONS ====================
-  async getTeams(): Promise<Team[]> {
-    return this.team.getTeams();
-  }
-
-  async getAllTeams(): Promise<Team[]> {
-    return this.team.getTeams();
-  }
-
-  async getTeam(id: number): Promise<Team | undefined> {
-    return this.team.getTeam(id);
-  }
-
-  async createTeam(team: InsertTeam): Promise<Team> {
-    return this.team.createTeam(team);
-  }
-
-  async updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team> {
-    return this.team.updateTeam(id, team);
-  }
-
-  async deleteTeam(id: number): Promise<void> {
-    return this.team.deleteTeam(id);
-  }
-
-
-
-  async getTeamByTeamType(teamType: string): Promise<Team | undefined> {
-    return this.team.getTeamByTeamType(teamType);
-  }
-
-  async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
-    return this.team.getAvailableUserFromTeam(teamId);
-  }
-
-  async getUserTeams(userId: number): Promise<Team[]> {
-    return this.team.getUserTeams(userId);
-  }
-
-  async addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam> {
-    return this.team.addUserToTeam(userTeam);
-  }
-
-  async removeUserFromTeam(userId: number, teamId: number): Promise<void> {
-    return this.team.removeUserFromTeam(userId, teamId);
-  }
-
-  async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> {
-    return this.team.updateTeamMemberRole(userId, teamId, role);
-  }
-
-  async getTeamMembers(teamId: number): Promise<any[]> {
-    return this.team.getTeamMembers(teamId);
-  }
-
-  async getTeamStatistics(teamId: number): Promise<any> {
-    return this.team.getTeamStatistics(teamId);
-  }
-
-  async getTeamWorkload(teamId: number): Promise<any> {
-    return this.team.getTeamWorkload(teamId);
-  }
-
-  async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number): Promise<any> {
-    return this.team.transferConversationBetweenTeams(conversationId, fromTeamId, toTeamId);
-  }
-
-  // ==================== ROLE OPERATIONS ====================
-  async getRoles(): Promise<Role[]> {
-    return this.userManagement.getRoles();
-  }
-
-  async getRole(id: number): Promise<Role | undefined> {
-    return this.userManagement.getRole(id);
-  }
-
-  async createRole(role: InsertRole): Promise<Role> {
-    return this.userManagement.createRole(role);
-  }
-
-  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
-    return this.userManagement.updateRole(id, role);
-  }
-
-  async deleteRole(id: number): Promise<void> {
-    return this.userManagement.deleteRole(id);
-  }
-
-  async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
-    return this.userManagement.checkUserPermission(userId, permissionName);
-  }
-
-  // ==================== CHANNEL OPERATIONS ====================
-  async getChannels(): Promise<Channel[]> {
-    return this.channel.getChannels();
-  }
-
-  async getChannel(id: number): Promise<Channel | undefined> {
-    return this.channel.getChannel(id);
-  }
-
-  async getChannelsByType(type: string): Promise<Channel[]> {
-    return this.channel.getChannelsByType(type);
-  }
-
-  async createChannel(channel: InsertChannel): Promise<Channel> {
-    return this.channel.createChannel(channel);
-  }
-
-  async updateChannel(id: number, channel: Partial<InsertChannel>): Promise<Channel> {
-    return this.channel.updateChannel(id, channel);
-  }
-
-  async deleteChannel(id: number): Promise<void> {
-    return this.channel.deleteChannel(id);
-  }
-
-  async updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void> {
-    return this.channel.updateChannelConnectionStatus(id, status, isConnected);
-  }
-
-  async getChannelStatus(channelId: number): Promise<any> {
-    return this.channel.getChannelStatus(channelId);
-  }
-
-  // ==================== CONTACT NOTES OPERATIONS ====================
-  async getContactNotes(contactId: number): Promise<ContactNote[]> {
-    return this.notes.getContactNotes(contactId);
-  }
-
-  async createContactNote(note: InsertContactNote): Promise<ContactNote> {
-    return this.notes.createContactNote(note);
-  }
-
-  async updateContactNote(id: number, note: Partial<InsertContactNote>): Promise<ContactNote> {
-    return this.notes.updateContactNote(id, note);
-  }
-
-  async deleteContactNote(id: number): Promise<void> {
-    return this.notes.deleteContactNote(id);
-  }
-
-  // ==================== DEAL OPERATIONS ====================
-  async getDealsWithPagination(params: {
-    page: number;
-    limit: number;
-    team?: string;
-    stage?: string;
-    search?: string;
-  }): Promise<{ deals: Deal[]; total: number; totalPages: number; currentPage: number }> {
-    return this.deal.getDealsWithPagination(params);
-  }
-
-  async getDealById(id: number): Promise<Deal | undefined> {
-    return this.deal.getDeal(id);
-  }
-
-  async addDealNote(dealId: number, note: string, userId: number): Promise<any> {
-    return this.notes.addDealNote(dealId, note, userId);
-  }
-
-  async getDealNotes(dealId: number): Promise<any[]> {
-    return this.notes.getDealNotes(dealId);
-  }
-
-  async getDealStatistics(filters?: any): Promise<any> {
-    return this.deal.getDealStatistics(filters);
-  }
-
-  // ==================== SYSTEM SETTINGS OPERATIONS ====================
-  async getSystemSetting(key: string): Promise<SystemSetting | null> {
-    return this.userManagement.getSystemSetting(key);
-  }
-
-  async getSystemSettings(category?: string): Promise<SystemSetting[]> {
-    return this.userManagement.getSystemSettings(category);
-  }
-
-  async setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<SystemSetting> {
-    return this.userManagement.setSystemSetting(key, value, type, description, category);
-  }
-
-  async toggleSystemSetting(key: string): Promise<SystemSetting> {
-    return this.userManagement.toggleSystemSetting(key);
-  }
-
-  async deleteSystemSetting(key: string): Promise<void> {
-    return this.userManagement.deleteSystemSetting(key);
-  }
-
-  // ==================== PERMISSION OPERATIONS ====================
-  async canUserRespondToOthersConversations(userId: number): Promise<boolean> {
-    return this.userManagement.canUserRespondToOthersConversations(userId);
-  }
-
-  async canUserRespondToOwnConversations(userId: number): Promise<boolean> {
-    return this.userManagement.canUserRespondToOwnConversations(userId);
-  }
-
-  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> {
-    return this.userManagement.canUserRespondToConversation(userId, conversationId);
-  }
-
-  // ==================== TEAM DETECTION OPERATIONS ====================
-  async getTeamDetections(): Promise<any[]> {
-    return this.team.getTeamDetections();
-  }
-
-  async getTeamDetection(id: number): Promise<any> {
-    return this.team.getTeamDetection(id);
-  }
-
-  async createTeamDetection(data: any): Promise<any> {
-    return this.team.createTeamDetection(data);
-  }
-
-  async updateTeamDetection(id: number, data: any): Promise<any> {
-    return this.team.updateTeamDetection(id, data);
-  }
-
-  async deleteTeamDetection(id: number): Promise<void> {
-    return this.team.deleteTeamDetection(id);
-  }
-
-  async getTeamDetectionKeywords(teamDetectionId: number): Promise<any[]> {
-    return this.team.getTeamDetectionKeywords(teamDetectionId);
-  }
-
-  async createTeamDetectionKeyword(teamDetectionId: number, data: any): Promise<any> {
-    return this.team.createTeamDetectionKeyword(teamDetectionId, data);
-  }
-
-  async deleteTeamDetectionKeyword(teamDetectionId: number, keywordId: number): Promise<void> {
-    return this.team.deleteTeamDetectionKeyword(teamDetectionId, keywordId);
-  }
-
-  async testTeamDetection(text: string): Promise<any> {
-    return this.team.testTeamDetection(text);
-  }
-
-  // ==================== MANYCHAT OPERATIONS ====================
-  async createManychatFlow(flowData: any) {
-    return this.manychat.createFlow(flowData);
-  }
-
-  async getManychatFlows() {
-    return this.manychat.getFlows();
-  }
-
-  async updateManychatFlow(id: number, flowData: any) {
-    return this.manychat.updateFlow(id, flowData);
-  }
-
-  async deleteManychatFlow(id: number) {
-    return this.manychat.deleteFlow(id);
-  }
-
-  // ==================== FACEBOOK OPERATIONS ====================
-  async createFacebookPage(pageData: any) {
-    return this.facebook.createPage(pageData);
-  }
-
-  async getFacebookPages() {
-    return this.facebook.getPages();
-  }
-
-  async updateFacebookPage(id: number, pageData: any) {
-    return this.facebook.updatePage(id, pageData);
-  }
-
-  async deleteFacebookPage(id: number) {
-    return this.facebook.deletePage(id);
-  }
-
-  // ==================== COMPATIBILITY METHODS ====================
-  
-  /**
-   * Busca ou cria automaticamente uma equipe baseada no tipo de equipe
-   * Método atualizado com nova terminologia
-   */
-  async getOrCreateTeamByType(teamType: string): Promise<any> {
-    // Buscar equipe existente
-    let team = await this.team.getTeamByType(teamType);
-    
-    if (!team) {
-      // Configurações padrão para criação automática de equipes
-      const teamConfigs = {
-        comercial: { name: 'Equipe Comercial', description: 'Vendas e prospecção', color: '#00B4D8', maxCapacity: 10, priority: 5 },
-        suporte: { name: 'Equipe de Suporte', description: 'Atendimento ao cliente', color: '#F77F00', maxCapacity: 8, priority: 4 },
-        financeiro: { name: 'Equipe Financeira', description: 'Gestão financeira', color: '#FCBF49', maxCapacity: 5, priority: 3 },
-        secretaria: { name: 'Secretaria Acadêmica', description: 'Serviços acadêmicos', color: '#D62828', maxCapacity: 6, priority: 4 },
-        tutoria: { name: 'Equipe de Tutoria', description: 'Apoio pedagógico', color: '#003566', maxCapacity: 12, priority: 3 },
-        secretaria_pos: { name: 'Secretaria Pós-Graduação', description: 'Pós-graduação', color: '#0F3460', maxCapacity: 4, priority: 3 },
-        cobranca: { name: 'Equipe de Cobrança', description: 'Recuperação de crédito', color: '#E63946', maxCapacity: 3, priority: 2 },
-        geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: '#6C757D', maxCapacity: 15, priority: 1 }
-      };
-      
-      const config = teamConfigs[teamType as keyof typeof teamConfigs] || teamConfigs.geral;
-      
-      try {
-        team = await this.team.createTeam({
-          name: config.name,
-          description: config.description,
-          color: config.color,
-          teamType: teamType,
-          isActive: true,
-          maxCapacity: config.maxCapacity,
-          priority: config.priority,
-          autoAssignment: true
-        });
-        
-        console.log(`✅ Equipe criada automaticamente: ${config.name} (${teamType})`);
-      } catch (createError) {
-        console.error('Erro ao criar equipe automaticamente:', createError);
-      }
+  // ==================== SYSTEM SETTINGS ====================
+  async getSystemSetting(key: string) {
+    const setting = await this.userManagement.getSystemSetting(key);
+    return setting || null;
+  }
+
+  // System setting updates available through userManagement module
+
+  // ==================== ANALYTICS & REPORTS ====================
+  async getAnalyticsData(filters: any = {}) {
+    return {
+      conversations: await this.conversation.getConversations(),
+      messages: await this.message.getAllMessages(),
+      teams: await this.team.getTeams(),
+      deals: await this.deal.getDeals()
+    };
+  }
+
+  async getFunnelAnalytics(funnelId?: number) {
+    return {
+      totalSteps: 0,
+      completionRate: 0,
+      dropoffPoints: [],
+      conversions: []
+    };
+  }
+
+  // ==================== INTEGRATION HELPERS ====================
+  async findOrCreateContact(phone: string, name?: string) {
+    const existingContact = await this.contact.getContactByPhone(phone);
+    if (existingContact) {
+      return existingContact;
     }
     
-    return team;
-  }
-
-  // ==================== ADDITIONAL INTERFACE COMPLIANCE ====================
-  async getConversationHandoffs(conversationId: number) {
-    return this.conversation.getConversationHandoffs(conversationId);
-  }
-
-  async createConversationHandoff(handoffData: any) {
-    return this.conversation.createConversationHandoff(handoffData);
-  }
-
-  async updateConversationHandoff(id: number, data: any) {
-    return this.conversation.updateConversationHandoff(id, data);
-  }
-
-  async getActiveHandoffs() {
-    return this.conversation.getActiveHandoffs();
-  }
-
-  async completeHandoff(id: number) {
-    return this.conversation.completeHandoff(id);
-  }
-
-  async getHandoffStatistics() {
-    return this.conversation.getHandoffStatistics();
-  }
-
-  async getConversationFiles(conversationId: number) {
-    return this.conversation.getConversationFiles(conversationId);
-  }
-
-  async uploadConversationFile(conversationId: number, fileData: any) {
-    return this.conversation.uploadConversationFile(conversationId, fileData);
-  }
-
-  async deleteConversationFile(fileId: number) {
-    return this.conversation.deleteConversationFile(fileId);
-  }
-
-  async getAuditLogs(filters: any = {}) {
-    return this.userManagement.getAuditLogs(filters);
-  }
-
-  async createAuditLog(logData: any) {
-    return this.userManagement.createAuditLog(logData);
-  }
-
-  async getNotifications(userId: number) {
-    return this.userManagement.getNotifications(userId);
-  }
-
-  async createNotification(notificationData: any) {
-    return this.userManagement.createNotification(notificationData);
-  }
-
-  async markNotificationAsRead(id: number) {
-    return this.userManagement.markNotificationAsRead(id);
-  }
-
-  async getWebhooks() {
-    return this.userManagement.getWebhooks();
-  }
-
-  async createWebhook(webhookData: any) {
-    return this.userManagement.createWebhook(webhookData);
-  }
-
-  async updateWebhook(id: number, data: any) {
-    return this.userManagement.updateWebhook(id, data);
-  }
-
-  async deleteWebhook(id: number) {
-    return this.userManagement.deleteWebhook(id);
-  }
-
-  async getTags() {
-    return this.userManagement.getTags();
-  }
-
-  async createTag(tagData: any) {
-    return this.userManagement.createTag(tagData);
-  }
-
-  async updateTag(id: number, data: any) {
-    return this.userManagement.updateTag(id, data);
-  }
-
-  async deleteTag(id: number) {
-    return this.userManagement.deleteTag(id);
-  }
-
-  async getCustomFields() {
-    return this.userManagement.getCustomFields();
-  }
-
-  async createCustomField(fieldData: any) {
-    return this.userManagement.createCustomField(fieldData);
-  }
-
-  async updateCustomField(id: number, data: any) {
-    return this.userManagement.updateCustomField(id, data);
-  }
-
-  async deleteCustomField(id: number) {
-    return this.userManagement.deleteCustomField(id);
-  }
-
-  // ==================== ANALYTICS OPERATIONS ====================
-  async getConversationAnalytics(filters: any = {}) {
-    return this.conversation.getConversationAnalytics(filters);
-  }
-
-  async getMessageAnalytics(filters: any = {}) {
-    return this.message.getMessageAnalytics(filters);
-  }
-
-  async getDealAnalytics(filters: any = {}) {
-    return this.deal.getDealAnalytics(filters);
-  }
-
-  async getResponseTimeAnalytics(filters: any = {}) {
-    return this.conversation.getResponseTimeAnalytics(filters);
-  }
-
-  async getTeamPerformanceAnalytics(teamId: number, filters: any = {}) {
-    return this.team.getTeamPerformanceAnalytics(teamId, filters);
-  }
-
-  async getUserPerformanceAnalytics(userId: number, filters: any = {}) {
-    return this.userManagement.getUserPerformanceAnalytics(userId, filters);
-  }
-
-  async getChannelAnalytics(channelId: number, filters: any = {}) {
-    return this.channel.getChannelAnalytics(channelId, filters);
-  }
-
-  async getIntegrationAnalytics(integrationType: string, filters: any = {}) {
-    return this.userManagement.getIntegrationAnalytics(integrationType, filters);
-  }
-
-  async getDealConversionAnalytics(filters: any = {}) {
-    return this.deal.getDealConversionAnalytics(filters);
-  }
-
-  async getSalesFunnelAnalytics(funnelId?: number, filters: any = {}) {
-    return this.deal.getSalesFunnelAnalytics(funnelId, filters);
-  }
-
-  async generateAnalyticsReport(reportType: string, filters: any = {}) {
-    return this.userManagement.generateAnalyticsReport(reportType, filters);
-  }
-
-  async sendAnalyticsReport(reportId: string, recipients: string[]) {
-    return this.userManagement.sendAnalyticsReport(reportId, recipients);
-  }
-
-  async exportAnalyticsData(exportType: string, filters: any = {}) {
-    return this.userManagement.exportAnalyticsData(exportType, filters);
-  }
-
-  async scheduleAnalyticsReport(schedule: any) {
-    return this.userManagement.scheduleAnalyticsReport(schedule);
-  }
-
-  async getScheduledReports(userId?: number) {
-    return this.userManagement.getScheduledReports(userId);
-  }
-
-  async deleteScheduledReport(reportId: string) {
-    return this.userManagement.deleteScheduledReport(reportId);
-  }
-
-  async updateSystemSetting(key: string, value: any) {
-    return this.userManagement.setSystemSetting(key, value);
-  }
-
-  async getSystemSetting(key: string) {
-    return this.userManagement.getSystemSetting(key);
-  }
-
-  // ==================== FINAL ANALYTICS METHODS ====================
-  async executeCustomAnalyticsQuery(query: string, parameters?: any[]) {
-    return this.userManagement.executeCustomAnalyticsQuery(query, parameters);
-  }
-
-  async getRealtimeAnalytics(metric: string, filters?: any) {
-    return this.userManagement.getRealtimeAnalytics(metric, filters);
-  }
-
-  async getAnalyticsTrends(metric: string, timeframe: string, filters?: any) {
-    return this.userManagement.getAnalyticsTrends(metric, timeframe, filters);
-  }
-
-  async getAnalyticsAlerts(userId?: number) {
-    return this.userManagement.getAnalyticsAlerts(userId);
-  }
-
-  async createAnalyticsAlert(alertConfig: any) {
-    return this.userManagement.createAnalyticsAlert(alertConfig);
-  }
-
-  async updateAnalyticsAlert(alertId: string, alertConfig: any) {
-    return this.userManagement.updateAnalyticsAlert(alertId, alertConfig);
-  }
-
-  async deleteAnalyticsAlert(alertId: string) {
-    return this.userManagement.deleteAnalyticsAlert(alertId);
-  }
-
-  async getAnalyticsMetadata() {
-    return this.userManagement.getAnalyticsMetadata();
-  }
-
-  async getConversationHandoffs(conversationId: number) {
-    return [];
-  }
-
-  async createConversationHandoff(handoffData: any) {
-    return { success: true };
-  }
-
-  async updateConversationHandoff(id: number, data: any) {
-    return { success: true };
-  }
-
-  async getActiveHandoffs() {
-    return [];
-  }
-
-  async completeHandoff(id: number) {
-    return { success: true };
-  }
-
-  async getHandoffStatistics() {
-    return { total: 0, completed: 0, pending: 0 };
-  }
-
-  async getConversationFiles(conversationId: number) {
-    return [];
-  }
-
-  async uploadConversationFile(conversationId: number, fileData: any) {
-    return { success: true };
-  }
-
-  async deleteConversationFile(fileId: number) {
-    return { success: true };
-  }
-
-  async getAuditLogs(filters: any = {}) {
-    return [];
-  }
-
-  async createAuditLog(logData: any) {
-    return { success: true };
-  }
-
-  async getNotifications(userId: number) {
-    return [];
-  }
-
-  async createNotification(notificationData: any) {
-    return { success: true };
-  }
-
-  async markNotificationAsRead(id: number) {
-    return { success: true };
-  }
-
-  async getWebhooks() {
-    return [];
-  }
-
-  async createWebhook(webhookData: any) {
-    return { success: true };
-  }
-
-  async updateWebhook(id: number, data: any) {
-    return { success: true };
-  }
-
-  async deleteWebhook(id: number) {
-    return { success: true };
-  }
-
-  async getTags() {
-    return [];
-  }
-
-  async createTag(tagData: any) {
-    return { success: true };
-  }
-
-  async updateTag(id: number, data: any) {
-    return { success: true };
-  }
-
-  async deleteTag(id: number) {
-    return { success: true };
-  }
-
-  async getCustomFields() {
-    return [];
-  }
-
-  async createCustomField(fieldData: any) {
-    return { success: true };
-  }
-
-  async updateCustomField(id: number, data: any) {
-    return { success: true };
-  }
-
-  async deleteCustomField(id: number) {
-    return { success: true };
+    return this.contact.createContact({
+      phone,
+      name: name || `Contato ${phone}`,
+      isOnline: false
+    });
+  }
+
+  async findOrCreateConversation(contactId: number, channel: string) {
+    const conversations = await this.conversation.getConversations();
+    const existingConversation = conversations.find((c: any) => 
+      c.contactId === contactId && c.channel === channel
+    );
+    
+    if (existingConversation) {
+      return existingConversation;
+    }
+    
+    return this.conversation.createConversation({
+      contactId,
+      channel,
+      status: 'open',
+      assignedUserId: null,
+      assignedTeamId: null
+    });
   }
 }
 
-// Singleton instance
-export const storage = new DatabaseStorage();
+export const storage = new Storage();
