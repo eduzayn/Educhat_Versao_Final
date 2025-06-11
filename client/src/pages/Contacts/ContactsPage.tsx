@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw, MessageCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
 import { Badge } from '@/shared/ui/badge';
@@ -44,6 +44,9 @@ export function ContactsPage() {
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
   const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
   const [syncingMessages, setSyncingMessages] = useState(false);
+  const [sendingMessageTo, setSendingMessageTo] = useState<Contact | null>(null);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
@@ -317,6 +320,73 @@ export function ContactsPage() {
         variant: "destructive"
       });
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (!sendingMessageTo || !messageText.trim()) {
+      return;
+    }
+
+    if (!isWhatsAppAvailable) {
+      toast({
+        title: "WhatsApp indisponível",
+        description: "Configure o WhatsApp nas Configurações → Canais",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!sendingMessageTo.phone) {
+      toast({
+        title: "Telefone obrigatório",
+        description: "Este contato não possui número de telefone cadastrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSendingMessage(true);
+
+    try {
+      const response = await fetch('/api/zapi/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: sendingMessageTo.phone,
+          message: messageText.trim()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha no envio da mensagem');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Mensagem enviada",
+        description: `Mensagem enviada para ${sendingMessageTo.name}. Continue a conversa na caixa de entrada.`
+      });
+
+      setSendingMessageTo(null);
+      setMessageText('');
+
+    } catch (error) {
+      toast({
+        title: "Erro no envio",
+        description: "Não foi possível enviar a mensagem. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleStartConversation = (contact: Contact) => {
+    setSendingMessageTo(contact);
+    setMessageText('');
   };
 
   if (isLoading) {
@@ -897,6 +967,16 @@ export function ContactsPage() {
                             onClick={() => handleEditContact(contact)}
                           >
                             <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700" 
+                            title="Enviar mensagem"
+                            onClick={() => handleStartConversation(contact)}
+                            disabled={!contact.phone || !isWhatsAppAvailable}
+                          >
+                            <MessageCircle className="w-3 h-3" />
                           </Button>
                           <Button 
                             size="sm" 
