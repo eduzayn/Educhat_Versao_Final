@@ -55,7 +55,7 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationList } from './components/ConversationList';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
-import { getChannelIcon, getChannelColor } from '@/shared/lib/utils/channelIcons';
+
 
 export function InboxPage() {
   const [activeTab, setActiveTab] = useState('inbox');
@@ -238,12 +238,12 @@ export function InboxPage() {
     if (activeTab === 'inbox') {
       // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
       const activeStatuses = ['open', 'pending', 'unread'];
-      if (!activeStatuses.includes(conversation.status)) return false;
+      if (!activeStatuses.includes(conversation.status || 'open')) return false;
     }
     if (activeTab === 'resolved') {
       // Mostrar apenas conversas resolvidas/fechadas
       const resolvedStatuses = ['resolved', 'closed'];
-      if (!resolvedStatuses.includes(conversation.status)) return false;
+      if (!resolvedStatuses.includes(conversation.status || 'open')) return false;
     }
     
     // Filtro por busca - pesquisar em nome e telefone do contato
