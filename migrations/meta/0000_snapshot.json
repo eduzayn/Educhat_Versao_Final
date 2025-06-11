@@ -1840,7 +1840,7 @@
           "notNull": true,
           "identity": {
             "type": "byDefault",
-            "name": "macrosetor_detection_id_seq",
+            "name": "team_detection_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -1899,8 +1899,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.macrosetor_keywords": {
-      "name": "macrosetor_keywords",
+    "public.team_detection_keywords": {
+      "name": "team_detection_keywords",
       "schema": "",
       "columns": {
         "id": {
@@ -1910,7 +1910,7 @@
           "notNull": true,
           "identity": {
             "type": "byDefault",
-            "name": "macrosetor_keywords_id_seq",
+            "name": "team_detection_keywords_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -1920,8 +1920,8 @@
             "cycle": false
           }
         },
-        "macrosetor_id": {
-          "name": "macrosetor_id",
+        "team_detection_id": {
+          "name": "team_detection_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -1956,12 +1956,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "macrosetor_keywords_macrosetor_id_macrosetor_detection_id_fk": {
-          "name": "macrosetor_keywords_macrosetor_id_macrosetor_detection_id_fk",
-          "tableFrom": "macrosetor_keywords",
-          "tableTo": "macrosetor_detection",
+        "team_detection_keywords_team_detection_id_team_detection_id_fk": {
+          "name": "team_detection_keywords_team_detection_id_team_detection_id_fk",
+          "tableFrom": "team_detection_keywords",
+          "tableTo": "team_detection",
           "columnsFrom": [
-            "macrosetor_id"
+            "team_detection_id"
           ],
           "columnsTo": [
             "id"
