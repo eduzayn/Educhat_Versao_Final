@@ -20,13 +20,76 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
-  const [content, setContent] = useState<string | null>(initialContent || null);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!initialContent);
+  // Função para verificar se o conteúdo é uma URL válida
+  const isValidUrl = (str: string | null): boolean => {
+    if (!str) return false;
+    return str.startsWith('http') || str.startsWith('data:');
+  };
 
-  // Carregar automaticamente se não há conteúdo inicial
+  // Função para extrair URL dos metadados
+  const getUrlFromMetadata = (): string | null => {
+    if (!metadata) return null;
+    
+    // Verificar mediaUrl diretamente
+    if (metadata.mediaUrl && isValidUrl(metadata.mediaUrl)) {
+      return metadata.mediaUrl;
+    }
+    
+    // Verificar URLs específicas por tipo
+    switch (messageType) {
+      case 'image':
+        if (metadata.image?.imageUrl && isValidUrl(metadata.image.imageUrl)) {
+          return metadata.image.imageUrl;
+        }
+        if (metadata.imageUrl && isValidUrl(metadata.imageUrl)) {
+          return metadata.imageUrl;
+        }
+        break;
+      case 'video':
+        if (metadata.video?.videoUrl && isValidUrl(metadata.video.videoUrl)) {
+          return metadata.video.videoUrl;
+        }
+        if (metadata.videoUrl && isValidUrl(metadata.videoUrl)) {
+          return metadata.videoUrl;
+        }
+        break;
+      case 'document':
+        if (metadata.document?.documentUrl && isValidUrl(metadata.document.documentUrl)) {
+          return metadata.document.documentUrl;
+        }
+        if (metadata.documentUrl && isValidUrl(metadata.documentUrl)) {
+          return metadata.documentUrl;
+        }
+        break;
+      case 'audio':
+        if (metadata.audio?.audioUrl && isValidUrl(metadata.audio.audioUrl)) {
+          return metadata.audio.audioUrl;
+        }
+        if (metadata.audioUrl && isValidUrl(metadata.audioUrl)) {
+          return metadata.audioUrl;
+        }
+        break;
+    }
+    
+    return null;
+  };
+
+  // Determinar o conteúdo inicial real
+  const getRealInitialContent = (): string | null => {
+    if (isValidUrl(initialContent)) {
+      return initialContent;
+    }
+    return getUrlFromMetadata();
+  };
+
+  const realInitialContent = getRealInitialContent();
+  const [content, setContent] = useState<string | null>(realInitialContent);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(!!realInitialContent);
+
+  // Carregar automaticamente se não há conteúdo inicial válido
   React.useEffect(() => {
-    if (!initialContent && !loaded && !loading) {
+    if (!realInitialContent && !loaded && !loading) {
       loadMediaContent();
     }
   }, [messageId]);
