@@ -20,7 +20,7 @@ export class DealStorage extends BaseStorage {
     if (stage) conditions.push(eq(deals.stage, stage));
     if (contactId) conditions.push(eq(deals.contactId, contactId));
     if (userId) conditions.push(eq(deals.assignedUserId, userId));
-    if (team) conditions.push(eq(deals.macrosetor, team)); // Still using macrosetor column for compatibility
+    if (team) conditions.push(eq(deals.teamType, team));
     if (search) {
       conditions.push(sql`${deals.name} ILIKE ${`%${search}%`}`);
     }
@@ -102,8 +102,8 @@ export class DealStorage extends BaseStorage {
     };
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string, initialStage?: string): Promise<Deal> {
-    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, teamType?: string, initialStage?: string): Promise<Deal> {
+    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, teamType=${teamType}`);
     
     // Verificação robusta para evitar duplicação durante criação
     const existingDeals = await this.getDealsByContact(contactId);
@@ -148,10 +148,10 @@ export class DealStorage extends BaseStorage {
       throw new Error(`Contact with ID ${contactId} not found`);
     }
 
-    // Find appropriate user based on team_type (substituindo macrosetor)
+    // Find appropriate user based on team_type
     let assignedUserId = null;
-    if (macrosetor) {
-      const [team] = await this.db.select().from(teams).where(eq(teams.teamType, macrosetor));
+    if (teamType) {
+      const [team] = await this.db.select().from(teams).where(eq(teams.teamType, teamType));
       if (team) {
         // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
         // assignedUserId = team.id;
@@ -160,7 +160,7 @@ export class DealStorage extends BaseStorage {
 
     // Gerar nome único para o deal baseado no timestamp
     const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-    const dealName = `${contact.name} - ${macrosetor || 'Geral'}`;
+    const dealName = `${contact.name} - ${teamType || 'Geral'}`;
 
     // Verificação final antes da criação para evitar condições de corrida
     const finalCheck = await this.getDealsByContact(contactId);
@@ -185,7 +185,7 @@ export class DealStorage extends BaseStorage {
         'financeiro': 'analise-inicial',
         'secretaria_pos': 'documentos-inicial'
       };
-      return stageMapping[macrosetor || 'geral'] || 'prospecting';
+      return stageMapping[teamType || 'geral'] || 'prospecting';
     })();
 
     // Get the correct funnel for this teamType (substituindo macrosetor)
@@ -206,12 +206,12 @@ export class DealStorage extends BaseStorage {
       probability: 50,
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'automatic',
-      teamType: macrosetor || 'geral',
+      teamType: teamType || 'geral',
       notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'} em ${timestamp}`,
       tags: {
         automatic: true,
         canalOrigem,
-        teamType: macrosetor,
+        teamType: teamType,
         createdBy: 'system',
         timestamp: timestamp,
         funnelId: funnelId
@@ -250,11 +250,11 @@ export class DealStorage extends BaseStorage {
     // Buscar todos os deals ativos
     const allDeals = await this.db.select().from(deals).orderBy(deals.contactId, deals.createdAt);
     
-    // Agrupar deals por contato e macrosetor
+    // Agrupar deals por contato e teamType
     const dealGroups = new Map();
     
     for (const deal of allDeals) {
-      const key = `${deal.contactId}-${deal.macrosetor}-${deal.canalOrigem}`;
+      const key = `${deal.contactId}-${deal.teamType}-${deal.canalOrigem}`;
       if (!dealGroups.has(key)) {
         dealGroups.set(key, []);
       }
@@ -277,7 +277,7 @@ export class DealStorage extends BaseStorage {
           details.push({
             removed: duplicate,
             kept: keepDeal,
-            reason: 'Duplicate deal for same contact/macrosetor/channel'
+            reason: 'Duplicate deal for same contact/teamType/channel'
           });
         }
       }

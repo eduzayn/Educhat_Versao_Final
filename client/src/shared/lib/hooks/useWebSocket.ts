@@ -139,7 +139,7 @@ export function useWebSocket() {
               action: data.action,
               contactId: data.contactId,
               conversationId: data.conversationId,
-              macrosetor: data.macrosetor
+              teamType: data.teamType
             });
             
             // Invalidar queries do CRM para forçar recarregamento
