@@ -14,7 +14,7 @@ export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
-export { MacrosetorStorage } from './modules/macrosetorStorage';
+// MacrosetorStorage removido - sistema migrado para IA
 
 // Utilitários (sistema de detecção migrado para IA)
 
@@ -34,7 +34,7 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
-import { MacrosetorStorage } from './modules/macrosetorStorage';
+// import { MacrosetorStorage } from './modules/macrosetorStorage'; // Removido - sistema migrado para IA
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
@@ -50,7 +50,7 @@ export class DatabaseStorage implements IStorage {
   private system: SystemStorage;
   public manychat: ManychatStorage;
   public facebook: FacebookStorage;
-  public macrosetor: MacrosetorStorage;
+  // public macrosetor: MacrosetorStorage; // Removido - sistema migrado para IA
 
   constructor() {
     this.auth = new AuthStorage();
@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
-    this.macrosetor = new MacrosetorStorage();
+    // this.macrosetor = new MacrosetorStorage(); // Removido - sistema migrado para IA
   }
 
   // ==================== AUTH OPERATIONS ====================
@@ -429,42 +429,9 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamStatistics(teamId);
   }
 
-  // ==================== MACROSETOR OPERATIONS ====================
-  async getMacrosetores() {
-    return this.macrosetor.getMacrosetores();
-  }
-
-  async getMacrosetor(id: number) {
-    return this.macrosetor.getMacrosetor(id);
-  }
-
-  async createMacrosetor(data: any) {
-    return this.macrosetor.createMacrosetor(data);
-  }
-
-  async updateMacrosetor(id: number, data: any) {
-    return this.macrosetor.updateMacrosetor(id, data);
-  }
-
-  async deleteMacrosetor(id: number) {
-    return this.macrosetor.deleteMacrosetor(id);
-  }
-
-  async getMacrosetorKeywords(macrosetorId: number) {
-    return this.macrosetor.getMacrosetorKeywords(macrosetorId);
-  }
-
-  async createMacrosetorKeyword(macrosetorId: number, data: any) {
-    return this.macrosetor.createMacrosetorKeyword(macrosetorId, data);
-  }
-
-  async deleteMacrosetorKeyword(macrosetorId: number, keywordId: number) {
-    return this.macrosetor.deleteMacrosetorKeyword(macrosetorId, keywordId);
-  }
-
-  async testMacrosetorDetection(text: string) {
-    return this.macrosetor.testMacrosetorDetection(text);
-  }
+  // ==================== MACROSETOR OPERATIONS (REMOVIDO - MIGRADO PARA IA) ====================
+  // Sistema antigo de detecção por palavras-chave removido
+  // Classificação agora é feita automaticamente pela IA
 
   // ==================== PERMISSIONS (padrão TRUE, customizar depois) ==========
   async canUserRespondToOthersConversations() {

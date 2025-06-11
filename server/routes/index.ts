@@ -23,7 +23,7 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
-import { registerMacrosetorRoutes } from "./settings/macrosetores";
+// import { registerMacrosetorRoutes } from "./settings/macrosetores"; // Removido - sistema migrado para IA
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
 import documentsRouter from "./documents/index";
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
-  registerMacrosetorRoutes(app, {} as any);
+  // registerMacrosetorRoutes(app, {} as any); // Removido - sistema migrado para IA
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
   app.use('/api/ia', aiConfigRouter);
