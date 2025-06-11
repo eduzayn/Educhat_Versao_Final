@@ -30,6 +30,13 @@ class CentralStorage {
   getUser = (id: number) => this.users.getUser(id);
   getUserById = (id: number) => this.users.getUser(id); // Compatibilidade auth
   createUser = (userData: any) => this.users.createUser(userData);
+  
+  // Métodos de system users
+  getSystemUsers = () => this.users.getSystemUsers();
+  getSystemUser = (id: number) => this.users.getSystemUser(id);
+  createSystemUser = (userData: any) => this.users.createSystemUser(userData);
+  updateSystemUser = (id: number, userData: any) => this.users.updateSystemUser(id, userData);
+  deleteSystemUser = (id: number) => this.users.deleteSystemUser(id);
   getContact = (id: number) => this.contacts.getContact(id);
   createContact = (contactData: any) => this.contacts.createContact(contactData);
   getConversation = (id: number) => this.conversations.getConversation(id);
