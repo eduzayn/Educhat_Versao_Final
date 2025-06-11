@@ -34,6 +34,42 @@ import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
 import { SystemStorage } from './modules/systemStorage';
+import {
+  type User,
+  type UpsertUser,
+  type Contact,
+  type InsertContact,
+  type Conversation,
+  type InsertConversation,
+  type Message,
+  type InsertMessage,
+  type ContactTag,
+  type InsertContactTag,
+  type QuickReply,
+  type InsertQuickReply,
+  type QuickReplyTeamShare,
+  type InsertQuickReplyTeamShare,
+  type QuickReplyShare,
+  type InsertQuickReplyShare,
+  type SystemUser,
+  type InsertSystemUser,
+  type Team,
+  type InsertTeam,
+  type Role,
+  type InsertRole,
+  type Channel,
+  type InsertChannel,
+  type ContactNote,
+  type InsertContactNote,
+  type Deal,
+  type InsertDeal,
+  type UserTeam,
+  type InsertUserTeam,
+  type ConversationWithContact,
+  type ContactWithTags,
+  type SystemSetting,
+  type InsertSystemSetting,
+} from "../../shared/schema";
 
 export class DatabaseStorage implements IStorage {
   private auth: AuthStorage;
@@ -65,6 +101,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==================== AUTH OPERATIONS ====================
+  async getUser(id: string): Promise<User | undefined> {
+    return this.auth.getUser(id);
+  }
+
+  async upsertUser(user: UpsertUser): Promise<User> {
+    return this.auth.upsertUser(user);
+  }
+
   async createUser(userData: any) {
     return this.auth.createUser(userData);
   }
@@ -144,6 +188,19 @@ export class DatabaseStorage implements IStorage {
 
   async getContactInterests(contactId: number) {
     return []; // Implementar quando necessário
+  }
+
+  // ==================== CONTACT TAG OPERATIONS ====================
+  async getContactTags(contactId: number): Promise<ContactTag[]> {
+    return this.contact.getContactTags(contactId);
+  }
+
+  async addContactTag(tag: InsertContactTag): Promise<ContactTag> {
+    return this.contact.addContactTag(tag);
+  }
+
+  async removeContactTag(contactId: number, tag: string): Promise<void> {
+    return this.contact.removeContactTag(contactId, tag);
   }
 
   // ==================== CONVERSATION OPERATIONS ====================
