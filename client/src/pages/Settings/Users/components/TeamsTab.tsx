@@ -78,6 +78,9 @@ export const TeamsTab = () => {
     }
   });
 
+  // Ensure systemUsers is always an array
+  const systemUsersList = Array.isArray(systemUsers) ? systemUsers : [];
+
   // Mutação para criar nova equipe
   const createTeamMutation = useMutation({
     mutationFn: async (teamData: any) => {
@@ -443,7 +446,7 @@ export const TeamsTab = () => {
                   <SelectValue placeholder="Selecione um usuário" />
                 </SelectTrigger>
                 <SelectContent>
-                  {systemUsers.map((user: any) => (
+                  {systemUsersList.map((user: any) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.displayName} ({user.email})
                     </SelectItem>
