@@ -101,50 +101,7 @@ export function registerBIRoutes(app: Express) {
     }
   });
 
-  // Dados dos macrosetores - REST: GET /api/bi/macrosetores
-  app.get('/api/bi/macrosetores', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { period = '30' } = req.query;
-      const days = parseInt(period as string);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
 
-      const deals = await storage.getDeals();
-      const filteredDeals = deals.filter(deal => {
-        return deal.createdAt ? new Date(deal.createdAt) >= startDate : false;
-      });
-
-      // Agrupar por macrosetor
-      const macrosetorStats = filteredDeals.reduce((acc, deal) => {
-        const macrosetor = deal.macrosetor || 'comercial';
-        if (!acc[macrosetor]) {
-          acc[macrosetor] = { 
-            name: macrosetor, 
-            deals: 0, 
-            convertidos: 0, 
-            taxaConversao: 0,
-            valorTotal: 0
-          };
-        }
-        acc[macrosetor].deals++;
-        if (deal.stage === 'won') {
-          acc[macrosetor].convertidos++;
-          acc[macrosetor].valorTotal += deal.value || 0;
-        }
-        return acc;
-      }, {} as Record<string, any>);
-
-      // Calcular taxas de conversão
-      Object.values(macrosetorStats).forEach((stat: any) => {
-        stat.taxaConversao = stat.deals > 0 ? (stat.convertidos / stat.deals) * 100 : 0;
-      });
-
-      res.json(Object.values(macrosetorStats));
-    } catch (error) {
-      console.error('Erro ao buscar dados dos macrosetores:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
 
   // Dashboard Estratégico - REST: GET /api/bi/dashboard
   app.get('/api/bi/dashboard', async (req: AuthenticatedRequest, res: Response) => {

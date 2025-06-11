@@ -306,11 +306,11 @@ export function AdvancedReportsModule() {
           </div>
         </TabsContent>
 
-        {/* Relatório por Macrosetor */}
-        <TabsContent value="macrosetor" className="space-y-6">
+        {/* Relatório por Equipe */}
+        <TabsContent value="teams" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Análise por Macrosetor</h3>
-            <Button onClick={() => handleExportReport('macrosetor')}>
+            <h3 className="text-lg font-semibold">Análise por Equipe</h3>
+            <Button onClick={() => handleExportReport('teams')}>
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>

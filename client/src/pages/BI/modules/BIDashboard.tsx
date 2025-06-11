@@ -96,10 +96,10 @@ export function BIDashboard() {
 
           <Select value={macrosetor} onValueChange={setMacrosetor}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Macrosetor" />
+              <SelectValue placeholder="Equipe" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os setores</SelectItem>
+              <SelectItem value="all">Todas as equipes</SelectItem>
               <SelectItem value="comercial">Comercial</SelectItem>
               <SelectItem value="suporte">Suporte</SelectItem>
               <SelectItem value="cobranca">Cobrança</SelectItem>
@@ -279,34 +279,34 @@ export function BIDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Performance por Macrosetor</CardTitle>
+            <CardTitle>Performance por Equipe</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {defaultMacrosetorData.length > 0 ? (
-                defaultMacrosetorData.map((setor: any, index: number) => (
+                defaultMacrosetorData.map((equipe: any, index: number) => (
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">{setor.nome}</span>
+                      <span className="font-medium">{equipe.nome}</span>
                       <Badge variant="secondary">
-                        {setor.atendimentos || 0} atendimentos
+                        {equipe.atendimentos || 0} atendimentos
                       </Badge>
                     </div>
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Conversão: {setor.conversao?.toFixed(1) || '0.0'}%</span>
-                      <span>Satisfação: {setor.satisfacao?.toFixed(1) || '0.0'}</span>
+                      <span>Conversão: {equipe.conversao?.toFixed(1) || '0.0'}%</span>
+                      <span>Satisfação: {equipe.satisfacao?.toFixed(1) || '0.0'}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-primary h-2 rounded-full" 
-                        style={{ width: `${setor.conversao || 0}%` }}
+                        style={{ width: `${equipe.conversao || 0}%` }}
                       ></div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  Nenhum dado de macrosetor disponível para o período selecionado
+                  Nenhum dado de equipe disponível para o período selecionado
                 </div>
               )}
             </div>
