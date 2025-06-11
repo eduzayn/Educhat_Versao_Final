@@ -82,8 +82,8 @@ app.post('/api/contacts', async (req: Request, res: Response) => {
     
     // Criar contato no banco
     const insertQuery = `
-      INSERT INTO contacts (name, phone, email, company, address, contact_type, notes, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      INSERT INTO contacts (name, phone, email, company, contact_type, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
       RETURNING *
     `;
     
@@ -92,9 +92,7 @@ app.post('/api/contacts', async (req: Request, res: Response) => {
       cleanPhone,
       email || null,
       empresa || null,
-      endereco || null,
-      tipo || 'Lead',
-      notas || null
+      tipo || 'Lead'
     ]);
     
     const newContact = result.rows[0];
