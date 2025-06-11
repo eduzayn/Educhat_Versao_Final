@@ -23,6 +23,7 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
+import { registerFunnelRoutes } from "./funnels/index";
 // import { registerMacrosetorRoutes } from "./settings/macrosetores"; // Removido - sistema migrado para IA
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";

@@ -188,7 +188,7 @@ export class DealStorage extends BaseStorage {
     const dealData: InsertDeal = {
       name: dealName,
       contactId: contactId,
-      stage: initialStage,
+      stage: stage,
       value: 0,
       probability: 50,
       owner: 'Sistema',

@@ -1,6 +1,7 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
 import { storage } from '../../core/storage';
+import { funnelService } from '../../services/funnelService';
 
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../core/zapi-utils';
 
@@ -374,6 +375,16 @@ export function registerUtilitiesRoutes(app: Express) {
   app.post('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const team = await storage.createTeam(req.body);
+      
+      // Criar funil automaticamente para a nova equipe
+      try {
+        await funnelService.createFunnelForTeam(team.id);
+        console.log(`✅ Funil criado automaticamente para nova equipe: ${team.name} (ID: ${team.id})`);
+      } catch (funnelError) {
+        console.warn(`⚠️ Erro ao criar funil automático para equipe ${team.name}:`, funnelError);
+        // Não falhar a criação da equipe se houver erro no funil
+      }
+      
       res.status(201).json(team);
     } catch (error) {
       console.error('Error creating team:', error);
