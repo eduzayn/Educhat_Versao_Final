@@ -92,8 +92,8 @@ export class IntelligentHandoffService {
     // 2. Analisar capacidade atual das equipes
     const teamCapacities = await this.analyzeTeamCapacities();
     
-    // 3. Mapear intenção da IA para macrosetor
-    const suggestedMacrosetor = this.mapIntentToMacrosetor(aiClassification);
+    // 3. Mapear intenção da IA para tipo de equipe
+    const suggestedTeamType = this.mapIntentToTeamType(aiClassification);
     
     // 4. Buscar contexto histórico do contato
     const contactHistory = await this.getContactHistory(conversation.contactId);
@@ -101,7 +101,7 @@ export class IntelligentHandoffService {
     // 5. Calcular recomendação inteligente
     const recommendation = await this.calculateBestRecommendation(
       aiClassification,
-      suggestedMacrosetor,
+      suggestedTeamType,
       teamCapacities,
       contactHistory,
       conversation
@@ -113,16 +113,16 @@ export class IntelligentHandoffService {
       confidence: recommendation.confidence,
       reason: recommendation.reason,
       aiIntent: aiClassification.intent,
-      macrosetor: suggestedMacrosetor
+      teamType: suggestedTeamType
     });
 
     return recommendation;
   }
 
   /**
-   * Mapeia intenção da IA para macrosetor apropriado
+   * Mapeia intenção da IA para tipo de equipe apropriado
    */
-  private mapIntentToMacrosetor(classification: MessageClassification): string {
+  private mapIntentToTeamType(classification: MessageClassification): string {
     const intentMapping: Record<string, string> = {
       'lead_generation': 'comercial',
       'course_inquiry': 'comercial', 
@@ -391,15 +391,15 @@ export class IntelligentHandoffService {
    */
   private async calculateBestRecommendation(
     aiClassification: MessageClassification,
-    suggestedMacrosetor: string,
+    suggestedTeamType: string,
     teamCapacities: TeamCapacity[],
     contactHistory: any,
     conversation: any
   ): Promise<HandoffRecommendation> {
     
-    // Filtrar equipes por macrosetor sugerido
-    const preferredTeams = teamCapacities.filter(t => t.macrosetor === suggestedMacrosetor);
-    const fallbackTeams = teamCapacities.filter(t => t.macrosetor !== suggestedMacrosetor);
+    // Filtrar equipes por tipo sugerido
+    const preferredTeams = teamCapacities.filter(t => t.teamType === suggestedTeamType);
+    const fallbackTeams = teamCapacities.filter(t => t.teamType !== suggestedTeamType);
 
     let bestTeam: TeamCapacity | null = null;
     let confidence = aiClassification.confidence;
