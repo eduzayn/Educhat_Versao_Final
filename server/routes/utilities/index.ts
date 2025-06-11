@@ -66,7 +66,7 @@ export function registerUtilitiesRoutes(app: Express) {
     try {
       console.log('📤 Enviando mensagem via Z-API:', req.body);
       
-      const { phone, message, conversationId } = req.body;
+      const { phone, message, conversationId, channelId } = req.body;
       
       if (!phone || !message) {
         return res.status(400).json({ 
@@ -74,9 +74,46 @@ export function registerUtilitiesRoutes(app: Express) {
         });
       }
 
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
+      let credentials;
+      
+      // Se channelId foi fornecido, buscar credenciais específicas do canal
+      if (channelId) {
+        try {
+          const channel = await storage.getChannel(channelId);
+          if (!channel || !channel.isActive || channel.type !== 'whatsapp') {
+            return res.status(400).json({ 
+              error: 'Canal WhatsApp não encontrado ou inativo' 
+            });
+          }
+          
+          const config = channel.configuration || {};
+          credentials = {
+            valid: true,
+            instanceId: config.instanceId || channel.instanceId,
+            token: config.token || channel.token,
+            clientToken: config.clientToken || channel.clientToken
+          };
+          
+          if (!credentials.instanceId || !credentials.token || !credentials.clientToken) {
+            return res.status(400).json({ 
+              error: 'Canal WhatsApp não configurado corretamente' 
+            });
+          }
+          
+          console.log(`📱 Usando canal específico: ${channel.name} (ID: ${channelId})`);
+        } catch (error) {
+          console.error('❌ Erro ao buscar canal:', error);
+          return res.status(500).json({ 
+            error: 'Erro ao buscar configurações do canal' 
+          });
+        }
+      } else {
+        // Fallback para credenciais padrão (compatibilidade)
+        credentials = validateZApiCredentials();
+        if (!credentials.valid) {
+          return res.status(400).json({ error: credentials.error });
+        }
+        console.log('📱 Usando credenciais padrão Z-API');
       }
 
       const { instanceId, token, clientToken } = credentials;
