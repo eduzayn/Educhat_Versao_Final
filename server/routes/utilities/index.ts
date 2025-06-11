@@ -158,19 +158,44 @@ export function registerUtilitiesRoutes(app: Express) {
 
       console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
       
-      // Criar conversa e mensagem no banco de dados imediatamente
-      try {
-        // Buscar contato pelo telefone
-        let contact = await storage.contacts.getContactByPhone(cleanPhone);
-        if (!contact && cleanPhone.startsWith('+55')) {
-          contact = await storage.contacts.getContactByPhone(cleanPhone.replace('+55', ''));
+      // Se conversationId foi fornecido, significa que a mensagem já foi criada pelo frontend
+      // Apenas atualizar metadados da mensagem existente com dados da Z-API
+      if (conversationId) {
+        try {
+          const messages = await storage.messages.getMessages(parseInt(conversationId));
+          // Encontrar a mensagem mais recente sem zaapId para associar com a resposta da Z-API
+          const recentMessage = messages
+            .filter(msg => !msg.isFromContact && !msg.metadata?.zaapId)
+            .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
+          
+          if (recentMessage) {
+            await storage.messages.updateMessage(recentMessage.id, {
+              metadata: {
+                ...recentMessage.metadata,
+                zaapId: data.messageId || data.id,
+                messageId: data.messageId || data.id,
+                phone: cleanPhone,
+                instanceId: instanceId
+              }
+            });
+            console.log('✅ Metadados Z-API atualizados na mensagem:', recentMessage.id);
+          }
+        } catch (dbError) {
+          console.error('❌ Erro ao atualizar metadados da mensagem:', dbError);
         }
-        if (!contact && !cleanPhone.startsWith('+55')) {
-          contact = await storage.contacts.getContactByPhone(`+55${cleanPhone}`);
-        }
-        
-        if (contact) {
-          console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
+      } else {
+        // Fluxo original para mensagens enviadas diretamente via API (sem frontend)
+        try {
+          let contact = await storage.contacts.getContactByPhone(cleanPhone);
+          if (!contact && cleanPhone.startsWith('+55')) {
+            contact = await storage.contacts.getContactByPhone(cleanPhone.replace('+55', ''));
+          }
+          if (!contact && !cleanPhone.startsWith('+55')) {
+            contact = await storage.contacts.getContactByPhone(`+55${cleanPhone}`);
+          }
+          
+          if (contact) {
+            console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
           
           // Verificar se já existe conversa para este contato usando query direta
           const db = storage.conversations.db;
@@ -220,23 +245,22 @@ export function registerUtilitiesRoutes(app: Express) {
             }
           });
           
-          console.log('✅ Mensagem salva no banco:', savedMessage.id);
-          
-          // Broadcast via WebSocket para atualizar interface
-          const { broadcast } = await import('../realtime');
-          broadcast(conversation.id, {
-            type: 'new_message',
-            conversationId: conversation.id,
-            message: savedMessage
-          });
-          
-          console.log('📡 Broadcast enviado para conversa:', conversation.id);
-        } else {
-          console.log('⚠️ Contato não encontrado para telefone:', cleanPhone);
+            console.log('✅ Mensagem salva no banco:', savedMessage.id);
+            
+            const { broadcast } = await import('../realtime');
+            broadcast(conversation.id, {
+              type: 'new_message',
+              conversationId: conversation.id,
+              message: savedMessage
+            });
+            
+            console.log('📡 Broadcast enviado para conversa:', conversation.id);
+          } else {
+            console.log('⚠️ Contato não encontrado para telefone:', cleanPhone);
+          }
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem no banco:', dbError);
         }
-      } catch (dbError) {
-        console.error('❌ Erro ao salvar mensagem no banco:', dbError);
-        // Não falhar o envio se houver erro no banco
       }
       
       res.json(data);
