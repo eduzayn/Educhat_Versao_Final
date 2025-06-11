@@ -79,6 +79,7 @@ class CentralStorage {
   getConversationByContactAndChannel = (contactId: number, channel: string) => 
     this.conversations.getConversationByContactAndChannel(contactId, channel);
   createMessage = (messageData: any) => this.messages.createMessage(messageData);
+  getMessages = (conversationId: number, limit?: number, offset?: number) => this.messages.getMessages(conversationId, limit, offset);
   getTotalUnreadCount = () => this.conversations.getTotalUnreadCount();
 }
 
