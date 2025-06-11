@@ -75,6 +75,10 @@ class CoreStorage {
   async getDealsByContact(contactId: number) {
     return this.deals.getDealsByContact(contactId);
   }
+
+  async testTeamDetection(messageContent: string) {
+    return this.teams.testTeamDetection(messageContent);
+  }
 }
 
 // Instância singleton

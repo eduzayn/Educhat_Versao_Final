@@ -88,6 +88,38 @@ export class TeamStorage extends BaseStorage {
   }
 
   /**
+   * Test team detection for automatic assignment
+   */
+  async testTeamDetection(messageContent: string): Promise<{ teamType: string; confidence: number } | null> {
+    const keywords = {
+      comercial: ['curso', 'matricula', 'inscrição', 'valor', 'preço', 'quero me inscrever', 'informações sobre'],
+      suporte: ['problema', 'erro', 'não consigo', 'ajuda', 'suporte', 'dificuldade'],
+      cobranca: ['pagamento', 'boleto', 'vencimento', 'atraso', 'financeiro', 'cobrança'],
+      secretaria: ['certificado', 'documento', 'declaração', 'comprovante', 'histórico'],
+      tutoria: ['dúvida', 'conteúdo', 'aula', 'material', 'exercício', 'atividade'],
+      financeiro: ['desconto', 'parcelamento', 'forma de pagamento', 'cartão', 'pix']
+    };
+
+    const lowerMessage = messageContent.toLowerCase();
+    let bestMatch = { teamType: '', confidence: 0 };
+
+    for (const [teamType, teamKeywords] of Object.entries(keywords)) {
+      let confidence = 0;
+      for (const keyword of teamKeywords) {
+        if (lowerMessage.includes(keyword)) {
+          confidence += 1;
+        }
+      }
+      
+      if (confidence > bestMatch.confidence) {
+        bestMatch = { teamType, confidence: confidence / teamKeywords.length };
+      }
+    }
+
+    return bestMatch.confidence > 0.3 ? bestMatch : null;
+  }
+
+  /**
    * Get user teams
    */
   async getUserTeams(userId: number): Promise<Team[]> {

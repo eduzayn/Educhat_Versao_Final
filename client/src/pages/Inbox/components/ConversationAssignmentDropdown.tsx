@@ -37,8 +37,8 @@ export function ConversationAssignmentDropdown({
         if (teamsResponse.ok && usersResponse.ok) {
           const teamsData = await teamsResponse.json();
           const usersData = await usersResponse.json();
-          setTeams(teamsData);
-          setUsers(usersData);
+          setTeams(Array.isArray(teamsData) ? teamsData : []);
+          setUsers(Array.isArray(usersData) ? usersData : []);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
