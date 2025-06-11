@@ -209,7 +209,7 @@ export const TeamsTab = () => {
   };
 
   const handleUpdateTeam = () => {
-    if (!selectedTeam || !editTeamForm.name || !editTeamForm.macrosetor) {
+    if (!selectedTeam || !editTeamForm.name || !editTeamForm.teamType) {
       toast({
         title: "Campos obrigatórios",
         description: "Nome e macrosetor são obrigatórios.",
@@ -223,7 +223,7 @@ export const TeamsTab = () => {
       teamData: {
         name: editTeamForm.name,
         description: editTeamForm.description || null,
-        macrosetor: editTeamForm.macrosetor,
+        teamType: editTeamForm.teamType,
         isActive: editTeamForm.isActive
       }
     });
@@ -235,7 +235,7 @@ export const TeamsTab = () => {
     setEditTeamForm({
       name: team.name,
       description: team.description || '',
-      macrosetor: team.macrosetor || '',
+      teamType: team.teamType || '',
       isActive: team.isActive || true
     });
     setShowConfigDialog(true);
@@ -291,7 +291,7 @@ export const TeamsTab = () => {
                     <span className="text-sm font-medium">Macrosetor:</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {team.macrosetor || 'Não definido'}
+                        {team.teamType || 'Não definido'}
                       </Badge>
                     </div>
                   </div>
@@ -375,9 +375,9 @@ export const TeamsTab = () => {
               <Label htmlFor="team-macrosetor" className="text-right">
                 Macrosetor *
               </Label>
-              <Select value={newTeamForm.macrosetor} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, macrosetor: value }))}>
+              <Select value={newTeamForm.teamType} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, teamType: value }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o macrosetor" />
+                  <SelectValue placeholder="Selecione o tipo de equipe" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comercial">Comercial</SelectItem>
@@ -511,9 +511,9 @@ export const TeamsTab = () => {
               <Label htmlFor="config-macrosetor" className="text-right">
                 Macrosetor *
               </Label>
-              <Select value={editTeamForm.macrosetor} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, macrosetor: value }))}>
+              <Select value={editTeamForm.teamType} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, teamType: value }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o macrosetor" />
+                  <SelectValue placeholder="Selecione o tipo de equipe" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comercial">Comercial</SelectItem>
