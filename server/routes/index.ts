@@ -12,7 +12,7 @@ import { registerMessageRoutes } from "./messages/index";
 import { registerContactRoutes } from "./contacts/index";
 import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
-import { registerWebhookRoutes, registerZApiRoutes, registerFacebookWebhookRoutes } from "./webhooks/index";
+import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
 import { registerDealsRoutes } from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics/index";
@@ -38,8 +38,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
-  registerZApiRoutes(app);
-  registerFacebookWebhookRoutes(app);
   
   // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
