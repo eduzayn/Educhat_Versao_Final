@@ -18,7 +18,7 @@ declare global {
       roleId: number;
       dataKey?: string;
       channels: string[];
-      macrosetores: string[];
+      teams: string[];
       teamId?: number | null;
       team?: string | null;
     }
@@ -173,7 +173,7 @@ export function setupAuth(app: Express) {
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
             channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-            macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+            teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };
@@ -212,8 +212,8 @@ export function setupAuth(app: Express) {
         role: user.role,
         roleId: user.roleId || 1,
         dataKey: user.dataKey || undefined,
-        channels: user.channels || [],
-        teams: user.teams || [],
+        channels: Array.isArray(user.channels) ? user.channels : [],
+        teams: Array.isArray(user.teamTypes) ? user.teamTypes : [],
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };

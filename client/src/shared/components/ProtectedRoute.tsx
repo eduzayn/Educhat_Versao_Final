@@ -18,6 +18,14 @@ interface ProtectedRouteProps {
   component?: React.ComponentType;
 }
 
+// Mapeamento de roles do português para inglês para compatibilidade
+const roleMapping: Record<string, string[]> = {
+  'admin': ['Administrador', 'admin'],
+  'gerente': ['Gerente', 'gerente'],
+  'superadmin': ['SuperAdministrador', 'superadmin'],
+  'atendente': ['Atendente', 'atendente']
+};
+
 export function ProtectedRoute({ children, requiredRole = 'admin', component: Component }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   
@@ -28,11 +36,17 @@ export function ProtectedRoute({ children, requiredRole = 'admin', component: Co
     const userRole = (user as User)?.role;
     if (!userRole) return false;
     
-    if (Array.isArray(requiredRole)) {
-      return requiredRole.includes(userRole);
-    }
+    // Função para verificar se o usuário tem o role necessário
+    const hasRole = (requiredRoles: string | string[]) => {
+      const rolesToCheck = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+      
+      return rolesToCheck.some(role => {
+        const mappedRoles = roleMapping[role] || [role];
+        return mappedRoles.includes(userRole);
+      });
+    };
     
-    return userRole === requiredRole;
+    return hasRole(requiredRole);
   }, [user, isLoading, requiredRole]);
 
   if (hasPermission === null) {
