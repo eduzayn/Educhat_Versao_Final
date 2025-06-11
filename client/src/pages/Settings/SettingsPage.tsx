@@ -40,10 +40,10 @@ const settingsCards = [
     icon: "🔌"
   },
   {
-    title: "Sistema de Detecção",
-    description: "Configure expressões e macrosetores para classificação automática",
-    href: "/settings/detection",
-    icon: "🧠"
+    title: "Detecção Inteligente por IA",
+    description: "Sistema de classificação automática baseado em inteligência artificial",
+    href: "/settings/ai-detection",
+    icon: "🤖"
   },
   {
     title: "Notificações",
