@@ -68,19 +68,19 @@ export function registerTeamsRoutes(app: Express) {
     }
   });
 
-  // Get teams by macrosetor - REST: GET /api/teams/macrosetor/:macrosetor
-  app.get('/api/teams/macrosetor/:macrosetor', requirePermission('teams:read'), async (req: AuthenticatedRequest, res: Response) => {
+  // Get teams by type - REST: GET /api/teams/type/:teamType
+  app.get('/api/teams/type/:teamType', requirePermission('teams:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { macrosetor } = req.params;
-      const team = await storage.getTeamByMacrosetor(macrosetor);
+      const { teamType } = req.params;
+      const team = await storage.getTeamByType(teamType);
       if (team) {
         res.json(team);
       } else {
-        res.status(404).json({ message: `Nenhuma equipe encontrada para o macrosetor: ${macrosetor}` });
+        res.status(404).json({ message: `Nenhuma equipe encontrada para o tipo: ${teamType}` });
       }
     } catch (error) {
-      console.error('Erro ao buscar equipe por macrosetor:', error);
-      res.status(500).json({ message: 'Erro ao buscar equipe por macrosetor' });
+      console.error('Erro ao buscar equipe por tipo:', error);
+      res.status(500).json({ message: 'Erro ao buscar equipe por tipo' });
     }
   });
 

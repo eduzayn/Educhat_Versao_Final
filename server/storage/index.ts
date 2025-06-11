@@ -497,21 +497,21 @@ export class DatabaseStorage implements IStorage {
         geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: '#6C757D', maxCapacity: 15, priority: 1 }
       };
       
-      const config = teamConfigs[macrosetor as keyof typeof teamConfigs] || teamConfigs.geral;
+      const config = teamConfigs[teamType as keyof typeof teamConfigs] || teamConfigs.geral;
       
       try {
         team = await this.team.createTeam({
           name: config.name,
           description: config.description,
           color: config.color,
-          teamType: macrosetor,
+          teamType: teamType,
           isActive: true,
           maxCapacity: config.maxCapacity,
           priority: config.priority,
           autoAssignment: true
         });
         
-        console.log(`✅ Equipe criada automaticamente: ${config.name} (${macrosetor})`);
+        console.log(`✅ Equipe criada automaticamente: ${config.name} (${teamType})`);
       } catch (createError) {
         console.error('Erro ao criar equipe automaticamente:', createError);
       }

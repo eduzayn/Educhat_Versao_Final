@@ -14,7 +14,7 @@ import { AIService, MessageClassification } from './aiService';
 interface TeamCapacity {
   teamId: number;
   teamName: string;
-  macrosetor: string;
+  teamType: string;
   activeUsers: number;
   currentLoad: number;
   maxCapacity: number;
@@ -157,7 +157,7 @@ export class IntelligentHandoffService {
       .select({
         teamId: teams.id,
         teamName: teams.name,
-        macrosetor: teams.macrosetor,
+        teamType: teams.teamType,
         maxCapacity: teams.maxCapacity,
         priority: teams.priority,
         isActive: teams.isActive,
@@ -203,7 +203,7 @@ export class IntelligentHandoffService {
         return {
           teamId: team.teamId,
           teamName: team.teamName,
-          macrosetor: team.macrosetor,
+          teamType: team.teamType,
           activeUsers,
           currentLoad,
           maxCapacity,
