@@ -47,6 +47,25 @@ const uploadImage = multer({
   }
 });
 
+// Configurar multer para upload de vídeos em memória
+const uploadVideo = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB máximo para vídeos
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/mkv'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de vídeo não permitido'));
+    }
+  }
+});
+
 /**
  * Handler para envio de imagens via Z-API
  */
