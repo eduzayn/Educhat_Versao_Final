@@ -185,4 +185,20 @@ export class MessageStorage extends BaseStorage {
 
     return this.createMessage(noteData);
   }
+
+  async getMessagesByConversation(conversationId: number): Promise<Message[]> {
+    return this.getMessages(conversationId);
+  }
+
+  async updateMessage(id: number, messageData: Partial<InsertMessage>): Promise<Message> {
+    const [updated] = await this.db.update(messages)
+      .set({ ...messageData, updatedAt: new Date() })
+      .where(eq(messages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    await this.db.delete(messages).where(eq(messages.id, id));
+  }
 }

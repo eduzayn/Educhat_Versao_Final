@@ -130,6 +130,22 @@ export class DatabaseStorage implements IStorage {
     return this.contact.searchContacts(query);
   }
 
+  async findOrCreateContact(userIdentity: string, contactData: any) {
+    return this.contact.findOrCreateContact(userIdentity, contactData);
+  }
+
+  async updateContactOnlineStatus(id: number, isOnline: boolean) {
+    return this.contact.updateContactOnlineStatus(id, isOnline);
+  }
+
+  async getContactWithTags(id: number) {
+    return this.contact.getContactWithTags(id);
+  }
+
+  async getContactInterests(contactId: number) {
+    return []; // Implementar quando necessário
+  }
+
   // ==================== CONVERSATION OPERATIONS ====================
   async createConversation(conversationData: any) {
     return this.conversation.createConversation(conversationData);
@@ -365,6 +381,38 @@ export class DatabaseStorage implements IStorage {
 
   async markMessageAsRead(id: number) {
     return this.message.markMessageAsRead(id);
+  }
+
+  async getAllMessages() {
+    return this.message.getAllMessages();
+  }
+
+  async getMessages(conversationId: number, limit?: number, offset?: number) {
+    return this.message.getMessages(conversationId, limit, offset);
+  }
+
+  async markMessageAsUnread(id: number) {
+    return this.message.markMessageAsUnread(id);
+  }
+
+  async markMessageAsDelivered(id: number) {
+    return this.message.markMessageAsDelivered(id);
+  }
+
+  async markMessageAsDeleted(id: number) {
+    return this.message.markMessageAsDeleted(id);
+  }
+
+  async getMessageByZApiId(zapiMessageId: string) {
+    return this.message.getMessageByZApiId(zapiMessageId);
+  }
+
+  async getMessagesByMetadata(key: string, value: string) {
+    return this.message.getMessagesByMetadata(key, value);
+  }
+
+  async getMessageMedia(messageId: number) {
+    return this.message.getMessageMedia(messageId);
   }
 
   // ==================== NOTES OPERATIONS ====================

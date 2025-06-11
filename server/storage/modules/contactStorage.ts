@@ -88,6 +88,29 @@ export class ContactStorage extends BaseStorage {
     return tags.map(tag => ({ interest: tag.tag, source: 'tag' }));
   }
 
+  async getContactByPhone(phone: string): Promise<Contact | undefined> {
+    const [contact] = await this.db.select().from(contacts).where(eq(contacts.phone, phone));
+    return contact;
+  }
+
+  async getContactByUserIdentity(userIdentity: string): Promise<Contact | undefined> {
+    const [contact] = await this.db.select().from(contacts).where(eq(contacts.userIdentity, userIdentity));
+    return contact;
+  }
+
+  async getContactByEmail(email: string): Promise<Contact | undefined> {
+    const [contact] = await this.db.select().from(contacts).where(eq(contacts.email, email));
+    return contact;
+  }
+
+  async getAllContacts(): Promise<Contact[]> {
+    return this.db.select().from(contacts).orderBy(desc(contacts.createdAt));
+  }
+
+  async deleteContact(id: number): Promise<void> {
+    await this.db.delete(contacts).where(eq(contacts.id, id));
+  }
+
   // Contact Tags Operations
   async getContactTags(contactId: number): Promise<ContactTag[]> {
     return this.db.select().from(contactTags)
