@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { insertMessageSchema } from "@shared/schema";
 import type { AuthenticatedRequest } from "../admin/permissions";
+import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
 
 export function registerMessageRoutes(app: Express) {
   
@@ -156,42 +157,22 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'Mensagem não é de mídia' });
       }
 
-      // Retornar a URL da mídia do content ou dos metadados
-      let mediaUrl = null;
-      let fileName = null;
+      // Usar o utilitário centralizado para extrair URLs de mídia
+      const mediaInfo = extractMediaUrl(
+        message.messageType as string,
+        message.content,
+        message.metadata
+      );
 
-      // Verificar se a URL está no content (novo formato)
-      if (message.content && (message.content.startsWith('http') || message.content.startsWith('data:'))) {
-        mediaUrl = message.content;
-      }
-      
-      // Verificar nos metadados como fallback
-      if (!mediaUrl && message.metadata && typeof message.metadata === 'object') {
-        const metadata = message.metadata as any;
-        
-        // Tentar diferentes campos de URL baseado no tipo
-        if (message.messageType === 'image') {
-          mediaUrl = metadata.mediaUrl || metadata.image?.imageUrl || metadata.image?.url || metadata.imageUrl;
-          fileName = metadata.fileName || metadata.image?.fileName || 'image.jpg';
-        } else if (message.messageType === 'audio') {
-          mediaUrl = metadata.mediaUrl || metadata.audio?.audioUrl || metadata.audio?.url || metadata.audioUrl;
-          fileName = metadata.fileName || metadata.audio?.fileName || 'audio.mp3';
-        } else if (message.messageType === 'video') {
-          mediaUrl = metadata.mediaUrl || metadata.video?.videoUrl || metadata.video?.url || metadata.videoUrl;
-          fileName = metadata.fileName || metadata.video?.fileName || 'video.mp4';
-        } else if (message.messageType === 'document') {
-          mediaUrl = metadata.mediaUrl || metadata.document?.documentUrl || metadata.document?.url || metadata.documentUrl;
-          fileName = metadata.fileName || metadata.document?.fileName || 'document.pdf';
-        }
-      }
-
-      if (!mediaUrl) {
-        return res.status(404).json({ error: 'URL da mídia não encontrada' });
+      if (!mediaInfo.mediaUrl || !isValidMediaUrl(mediaInfo.mediaUrl)) {
+        return res.status(404).json({ error: 'URL da mídia não encontrada ou inválida' });
       }
 
       res.json({
-        content: mediaUrl,
-        fileName: fileName,
+        content: mediaInfo.mediaUrl,
+        fileName: mediaInfo.fileName,
+        mimeType: mediaInfo.mimeType,
+        duration: mediaInfo.duration,
         messageType: message.messageType,
         metadata: message.metadata
       });
