@@ -24,7 +24,7 @@ export interface UserPermissions {
     role: string;
     dataKey?: string;
     channels: string[];
-    macrosetores: string[];
+    teams: string[];
   };
 }
 
