@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { PeriodFilter } from '@/shared/components/filters';
 import { 
   BarChart3,
   PieChart,
@@ -52,17 +52,11 @@ export function ReportsModule() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Esta semana</SelectItem>
-              <SelectItem value="month">Este mês</SelectItem>
-              <SelectItem value="quarter">Este trimestre</SelectItem>
-              <SelectItem value="year">Este ano</SelectItem>
-            </SelectContent>
-          </Select>
+          <PeriodFilter
+            value={period}
+            onValueChange={setPeriod}
+            className="w-48"
+          />
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" /> Exportar
           </Button>

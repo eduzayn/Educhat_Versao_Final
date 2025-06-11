@@ -1,8 +1,8 @@
-import { BarChart3, TrendingUp, Download, Calendar, Filter } from 'lucide-react';
+import { BarChart3, TrendingUp, Download, Calendar } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { PeriodFilter, ChannelFilter, FilterContainer } from '@/shared/components/filters';
 
 export function ReportsPage() {
   return (
@@ -37,37 +37,23 @@ export function ReportsPage() {
           </div>
 
           {/* Filtros */}
-          <div className="flex items-center space-x-4 mb-8">
-            <Select defaultValue="30">
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">Últimos 7 dias</SelectItem>
-                <SelectItem value="30">Últimos 30 dias</SelectItem>
-                <SelectItem value="90">Últimos 90 dias</SelectItem>
-                <SelectItem value="custom">Personalizado</SelectItem>
-              </SelectContent>
-            </Select>
+          <FilterContainer 
+            className="mb-8"
+            showMoreFilters={true}
+            onMoreFilters={() => console.log('Mais filtros')}
+          >
+            <PeriodFilter
+              value="30"
+              onValueChange={(value) => console.log('Period:', value)}
+              className="w-48"
+            />
 
-            <Select defaultValue="all">
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Canal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os canais</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Mais Filtros
-            </Button>
-          </div>
+            <ChannelFilter
+              value="all"
+              onValueChange={(value) => console.log('Channel:', value)}
+              className="w-48"
+            />
+          </FilterContainer>
 
           {/* Métricas Principais */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
