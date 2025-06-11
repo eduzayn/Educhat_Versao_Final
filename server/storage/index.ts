@@ -16,8 +16,7 @@ export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
 export { MacrosetorStorage } from './modules/macrosetorStorage';
 
-// Utilitários
-export * from './utils/macrosetorUtils';
+// Utilitários (sistema de detecção migrado para IA)
 
 /**
  * Classe principal do Storage que implementa a interface IStorage

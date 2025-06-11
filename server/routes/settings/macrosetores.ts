@@ -124,22 +124,7 @@ export function registerMacrosetorRoutes(app: any, storage: DatabaseStorage) {
     }
   });
 
-  // POST /api/settings/macrosetores/test - Sistema antigo removido
-  app.post('/api/settings/macrosetores/test', async (req: any, res: any) => {
-    try {
-      // Sistema antigo de detecção por palavras-chave removido
-      // O novo sistema de IA faz a classificação automaticamente
-      res.json({
-        detected: 'geral',
-        score: 0,
-        keywords: [],
-        message: 'Sistema antigo de detecção removido. O sistema de IA faz a classificação automaticamente.'
-      });
-    } catch (error) {
-      console.error('Erro ao processar solicitação:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
+  // Sistema de teste migrado para IA
 
   // Rotas simplificadas para criar/editar/deletar (retornam sucesso mas não alteram dados)
   app.post('/api/settings/macrosetores', async (req: any, res: any) => {

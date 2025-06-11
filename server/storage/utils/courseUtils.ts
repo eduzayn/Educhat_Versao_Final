@@ -192,82 +192,8 @@ export function detectCourses(text: string): string[] {
   return Array.from(new Set(detectedCourses)); // Remove duplicatas
 }
 
-/**
- * Detecta informações educacionais completas (interesse e formação)
- */
-export function detectEducationalInfo(text: string): {
-  interests: string[];
-  background: string[];
-  allCourses: string[];
-} {
-  const lowerText = text.toLowerCase();
-  const interests: string[] = [];
-  const background: string[] = [];
-  const allCourses: string[] = [];
-  
-  // Padrões expandidos para detectar interesse
-  const interestPatterns = [
-    /quero\s+(?:fazer|estudar|cursar|me\s+formar\s+em)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
-    /interesse\s+(?:em|no|na)\s+(?:curso\s+(?:de\s+)?|área\s+de\s+)?([^.!?]+)/gi,
-    /pretendo\s+(?:fazer|estudar|cursar|me\s+formar\s+em)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
-    /gostaria\s+de\s+(?:fazer|estudar|cursar|me\s+formar\s+em)\s+(?:o\s+curso\s+de\s+)?([^.!?]+)/gi,
-    /tenho\s+interesse\s+(?:em|no|na)\s+(?:curso\s+(?:de\s+)?|área\s+de\s+)?([^.!?]+)/gi,
-    /busco\s+(?:informações\s+sobre|fazer|estudar|curso\s+de)\s+([^.!?]+)/gi,
-    /procuro\s+(?:informações\s+sobre|fazer|curso\s+de)\s+([^.!?]+)/gi,
-    /me\s+interess[oa]\s+(?:por|em)\s+(?:curso\s+de\s+)?([^.!?]+)/gi,
-    /gosto\s+(?:da\s+área\s+de|de)\s+([^.!?]+)/gi,
-    /penso\s+em\s+(?:fazer|estudar|cursar)\s+([^.!?]+)/gi,
-    /estou\s+considerando\s+(?:fazer|estudar|cursar)\s+([^.!?]+)/gi,
-    /tenho\s+vontade\s+de\s+(?:fazer|estudar|cursar)\s+([^.!?]+)/gi
-  ];
-  
-  // Padrões expandidos para detectar formação atual/passada
-  const backgroundPatterns = [
-    /sou\s+(?:formad[oa]|graduad[oa])\s+em\s+([^.!?]+)/gi,
-    /tenho\s+(?:graduação|formação|diploma)\s+em\s+([^.!?]+)/gi,
-    /me\s+form[eai]+\s+em\s+([^.!?]+)/gi,
-    /formad[oa]\s+em\s+([^.!?]+)/gi,
-    /graduad[oa]\s+em\s+([^.!?]+)/gi,
-    /bacharel\s+em\s+([^.!?]+)/gi,
-    /licenciad[oa]\s+em\s+([^.!?]+)/gi,
-    /estudei\s+([^.!?]+)/gi,
-    /cursei\s+([^.!?]+)/gi,
-    /fiz\s+(?:graduação|curso|faculdade)\s+(?:de|em)\s+([^.!?]+)/gi,
-    /minha\s+(?:graduação|formação)\s+(?:é|foi)\s+em\s+([^.!?]+)/gi,
-    /sou\s+(?:da\s+área\s+de|de)\s+([^.!?]+)/gi,
-    /trabalho\s+(?:na\s+área\s+de|com)\s+([^.!?]+)/gi,
-    /atuo\s+(?:na\s+área\s+de|em)\s+([^.!?]+)/gi
-  ];
-  
-  // Detectar interesses
-  for (const pattern of interestPatterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-      const courseText = match[1].trim();
-      const detectedCourses = detectCoursesInText(courseText);
-      interests.push(...detectedCourses);
-    }
-  }
-  
-  // Detectar formação
-  for (const pattern of backgroundPatterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-      const courseText = match[1].trim();
-      const detectedCourses = detectCoursesInText(courseText);
-      background.push(...detectedCourses);
-    }
-  }
-  
-  // Detectar todos os cursos mencionados (para compatibilidade)
-  allCourses.push(...detectCourses(text));
-  
-  return {
-    interests: Array.from(new Set(interests)),
-    background: Array.from(new Set(background)),
-    allCourses: Array.from(new Set([...interests, ...background, ...allCourses]))
-  };
-}
+// Sistema de detecção educacional migrado para IA
+// Função detectEducationalInfo removida - o novo sistema de IA faz a análise automaticamente
 
 /**
  * Função auxiliar para detectar cursos em um texto específico

@@ -178,16 +178,7 @@ export class MacrosetorStorage extends BaseStorage {
       .limit(limit);
   }
 
-  // Sistema antigo de detecção removido - agora usa IA para classificação
-  async detectMacrosetorAdvanced(content: string, channel?: string): Promise<{
-    macrosetor: string;
-    confidence: number;
-    matchedKeywords: string[];
-  }> {
-    // Sistema antigo de detecção por palavras-chave removido
-    // O novo sistema de IA faz a classificação automaticamente
-    return { macrosetor: 'geral', confidence: 0, matchedKeywords: [] };
-  }
+  // Sistema de detecção migrado para IA - função removida
 
   // Sistema antigo de teste removido - agora usa IA para classificação
   async testMacrosetorDetection(text: string): Promise<{
