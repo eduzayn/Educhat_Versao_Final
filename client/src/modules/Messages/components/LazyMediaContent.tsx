@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
+import { DocumentPreviewModal } from "@/shared/components/DocumentPreviewModal";
 
 interface LazyMediaContentProps {
   messageId: number;
@@ -102,6 +103,7 @@ export function LazyMediaContent({
   const [content, setContent] = useState<string | null>(realInitialContent);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!realInitialContent);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // Carregar automaticamente se não há conteúdo inicial válido
   React.useEffect(() => {
@@ -145,14 +147,23 @@ export function LazyMediaContent({
       case "image":
         if (content) {
           return (
-            <div className="relative max-w-xs">
-              <img
-                src={content}
-                alt="Imagem enviada"
-                className="rounded-lg max-w-full h-auto cursor-pointer"
-                onClick={() => window.open(content, "_blank")}
+            <>
+              <div className="relative max-w-xs">
+                <img
+                  src={content}
+                  alt="Imagem enviada"
+                  className="rounded-lg max-w-full h-auto cursor-pointer"
+                  onClick={() => setShowPreviewModal(true)}
+                />
+              </div>
+              <DocumentPreviewModal
+                isOpen={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                documentUrl={content}
+                fileName={fileName}
+                fileType="image"
               />
-            </div>
+            </>
           );
         }
         return (
@@ -241,29 +252,41 @@ export function LazyMediaContent({
 
       case "document":
         return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <FileText className="w-5 h-5" />
-            <span className="text-sm">Documento: {fileName}</span>
-            {content ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(content, "_blank")}
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Baixar
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadMediaContent}
-                disabled={loading}
-              >
-                {loading ? "Carregando..." : "Carregar"}
-              </Button>
+          <>
+            <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <FileText className="w-5 h-5" />
+              <span className="text-sm">Documento: {fileName}</span>
+              {content ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreviewModal(true)}
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Visualizar
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMediaContent}
+                  disabled={loading}
+                >
+                  {loading ? "Carregando..." : "Carregar"}
+                </Button>
+              )}
+            </div>
+
+            {content && (
+              <DocumentPreviewModal
+                isOpen={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                documentUrl={content}
+                fileName={fileName}
+                fileType={metadata?.mimeType}
+              />
             )}
-          </div>
+          </>
         );
 
       default:
