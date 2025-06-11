@@ -156,6 +156,45 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);
       
+      // Detecção automática de equipe baseada no conteúdo da mensagem
+      try {
+        const detectionResult = await detectTeamFromMessage(messageContent);
+        if (detectionResult.team && detectionResult.confidence > 3) {
+          // Mapear equipe detectada para tipo de equipe
+          const teamTypeMapping: Record<string, string> = {
+            'Psicologia e Saúde Mental': 'psicologia',
+            'Letras e Linguística': 'letras',
+            'Pedagogia e Educação': 'pedagogia',
+            'Direito e Jurídico': 'direito',
+            'Administração e Negócios': 'administracao',
+            'Tecnologia': 'tecnologia',
+            'Saúde e Medicina': 'saude'
+          };
+          
+          const teamType = teamTypeMapping[detectionResult.team];
+          if (teamType) {
+            // Buscar equipe por tipo
+            const team = await storage.getTeamByType(teamType);
+            if (team && !conversation.assignedTeamId) {
+              await storage.assignConversationToTeam(conversation.id, team.id, 'automatic');
+              console.log(`🤖 Prof. Ana detectou automaticamente: ${detectionResult.team} (confiança: ${detectionResult.confidence}) - Conversa ${conversation.id} atribuída à equipe ${team.name}`);
+              
+              // Log da detecção
+              await storage.createDetectionLog({
+                content: messageContent,
+                detectedTeam: detectionResult.team,
+                confidence: detectionResult.confidence,
+                matchedKeywords: detectionResult.matchedKeywords,
+                channel: 'whatsapp',
+                contactId: contact.id
+              });
+            }
+          }
+        }
+      } catch (detectionError) {
+        console.error('❌ Erro na detecção automática de equipe:', detectionError);
+      }
+      
       // Registrar sucesso no monitor de saúde
       const processingTime = Date.now() - startTime;
       webhookHealthMonitor.recordSuccess(processingTime);
