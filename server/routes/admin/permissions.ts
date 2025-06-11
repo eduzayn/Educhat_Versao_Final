@@ -60,7 +60,7 @@ export class PermissionService {
       if (!user) return false;
       
       // Admin tem acesso total
-      if (user.role === 'admin') return true;
+      if (user.role === 'Administrador' || user.role === 'admin') return true;
       
       return false;
     } catch (error) {
@@ -75,7 +75,7 @@ export class PermissionService {
       if (!user) return false;
       
       // Admin tem acesso total
-      if (user.role === 'admin') return true;
+      if (user.role === 'Administrador' || user.role === 'admin') return true;
       
       return user.teamId !== null;
     } catch (error) {
