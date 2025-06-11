@@ -11,6 +11,8 @@ import { DealStorage } from '../storage/modules/dealStorage';
 import { TeamStorage } from '../storage/modules/teamStorage';
 import { MessageStorage } from '../storage/modules/messageStorage';
 import { QuickReplyStorage } from '../storage/modules/quickReplyStorage';
+import { FacebookStorage } from '../storage/modules/facebookStorage';
+import { ManychatStorage } from '../storage/modules/manychatStorage';
 
 class CentralStorage {
   public readonly users = new UserManagementStorage();
@@ -21,9 +23,12 @@ class CentralStorage {
   public readonly teams = new TeamStorage();
   public readonly messages = new MessageStorage();
   public readonly quickReplies = new QuickReplyStorage();
+  public readonly facebook = new FacebookStorage();
+  public readonly manychat = new ManychatStorage();
 
   // Métodos de conveniência diretos - sem proxies desnecessários
   getUser = (id: number) => this.users.getUser(id);
+  getUserById = (id: number) => this.users.getUser(id); // Compatibilidade auth
   createUser = (userData: any) => this.users.createUser(userData);
   getContact = (id: number) => this.contacts.getContact(id);
   createContact = (contactData: any) => this.contacts.createContact(contactData);
@@ -35,6 +40,22 @@ class CentralStorage {
   getDealsByContact = (contactId: number) => this.deals.getDealsByContact(contactId);
   createAutomaticDeal = (contactId: number, canalOrigem: string, teamType: string, initialStage: string) => 
     this.deals.createAutomaticDeal(contactId, canalOrigem, teamType, initialStage);
+  
+  // Métodos de QuickReply necessários
+  createQuickReply = (replyData: any) => this.quickReplies.createQuickReply(replyData);
+  getQuickReplies = () => this.quickReplies.getQuickReplies();
+  updateQuickReply = (id: number, data: any) => this.quickReplies.updateQuickReply(id, data);
+  deleteQuickReply = (id: number) => this.quickReplies.deleteQuickReply(id);
+  
+  // Métodos de compatibilidade para rotas que ainda usam storage/index.ts
+  assignConversationToTeam = (conversationId: number, teamId: number, method: string) => 
+    this.conversations.assignConversationToTeam(conversationId, teamId, method);
+  getAvailableUserFromTeam = (teamId: number) => this.teams.getAvailableUserFromTeam(teamId);
+  assignConversationToUser = (conversationId: number, userId: number, method: string) => 
+    this.conversations.assignConversationToUser(conversationId, userId, method);
+  getConversationByContactAndChannel = (contactId: number, channel: string) => 
+    this.conversations.getConversationByContactAndChannel(contactId, channel);
+  createMessage = (messageData: any) => this.messages.createMessage(messageData);
 }
 
 export const storage = new CentralStorage();

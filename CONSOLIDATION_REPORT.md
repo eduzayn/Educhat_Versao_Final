@@ -115,6 +115,34 @@ const intentToTeamType = {
 ⚡ Performance otimizada
 ```
 
+## 4. Fase 4: Simplificação de Arquivos de Configuração Redundantes ✅
+
+### Problema Identificado
+O arquivo `server/storage/index.ts` continha 1223 linhas com múltiplas camadas de abstração desnecessárias:
+- Re-exports redundantes de módulos de storage
+- Proxies desnecessários para métodos simples
+- Duplicação de implementações de métodos
+- Camadas de abstração que não agregavam valor
+
+### Solução Implementada
+Criação do `server/core/storage.ts` simplificado:
+- Acesso direto aos módulos sem proxies
+- Eliminação de re-exports desnecessários
+- Métodos de conveniência apenas para casos comuns
+- Estrutura de 47 linhas vs 1223 linhas originais
+
+### Arquivos Migrados
+- `server/routes/webhooks/facebook.ts` → migrado para novo storage
+- `server/routes/integrations/facebook.ts` → migrado para novo storage
+- Compatibilidade mantida com `getUserById` para autenticação
+- Adicionados módulos Facebook e Manychat ao storage central
+
+### Impacto da Simplificação
+- **Redução de complexidade**: De 1223 para 47 linhas no storage principal
+- **Performance melhorada**: Acesso direto sem camadas intermediárias
+- **Manutenibilidade**: Estrutura mais clara e direta
+- **Compatibilidade**: Sistema continua operacional sem interrupções
+
 ## Validação em Produção
 
 O sistema EduChat continua operacional com:
