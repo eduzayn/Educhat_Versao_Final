@@ -38,9 +38,9 @@ const formatCurrency = (value: number) => {
   }).format(value / 100);
 };
 
-const getStageColor = (stage: string, macrosetor?: string) => {
-  if (macrosetor) {
-    const stages = getStagesForMacrosetor(macrosetor);
+const getStageColor = (stage: string, team?: string) => {
+  if (team) {
+    const stages = getStagesForTeam(team);
     const stageInfo = stages.find(s => s.id === stage);
     if (stageInfo) {
       // Convert bg-color to badge color
@@ -62,9 +62,9 @@ const getStageColor = (stage: string, macrosetor?: string) => {
   return 'bg-gray-100 text-gray-800';
 };
 
-const getStageLabel = (stage: string, macrosetor?: string) => {
-  if (macrosetor) {
-    const stages = getStagesForMacrosetor(macrosetor);
+const getStageLabel = (stage: string, team?: string) => {
+  if (team) {
+    const stages = getStagesForTeam(team);
     const stageInfo = stages.find(s => s.id === stage);
     if (stageInfo) {
       return stageInfo.name.toUpperCase();
@@ -594,15 +594,15 @@ export function ContactSidebar({
                       <span className="text-sm font-bold text-green-600">
                         {formatCurrency(deal.value || 0)}
                       </span>
-                      <Badge className={`text-xs ${getStageColor(deal.stage, deal.macrosetor)}`}>
-                        {getStageLabel(deal.stage, deal.macrosetor)}
+                      <Badge className={`text-xs ${getStageColor(deal.stage, deal.team)}`}>
+                        {getStageLabel(deal.stage, deal.team)}
                       </Badge>
                     </div>
                     
                     <div className="text-xs text-gray-500">
-                      {deal.macrosetor && getMacrosetorInfo(deal.macrosetor) 
-                        ? `${getMacrosetorInfo(deal.macrosetor)?.name}` 
-                        : deal.macrosetor?.toUpperCase()
+                      {deal.team && getTeamInfo(deal.team) 
+                        ? `${getTeamInfo(deal.team)?.name}` 
+                        : deal.team?.toUpperCase()
                       } • Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
                     </div>
                   </CardContent>

@@ -158,7 +158,7 @@ export interface IStorage {
   getDealsWithPagination(params: {
     page: number;
     limit: number;
-    macrosetor?: string;
+    team?: string;
     stage?: string;
     search?: string;
   }): Promise<{ deals: Deal[]; total: number; totalPages: number; currentPage: number }>;
@@ -169,7 +169,7 @@ export interface IStorage {
   createDeal(deal: InsertDeal): Promise<Deal>;
   updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal>;
   deleteDeal(id: number): Promise<void>;
-  createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal>;
+  createAutomaticDeal(contactId: number, canalOrigem?: string, team?: string): Promise<Deal>;
   addDealNote(dealId: number, note: string, userId: number): Promise<any>;
   getDealNotes(dealId: number): Promise<any[]>;
   getDealStatistics(filters?: any): Promise<any>;
