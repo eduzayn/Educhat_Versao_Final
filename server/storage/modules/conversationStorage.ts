@@ -350,6 +350,17 @@ export class ConversationStorage extends BaseStorage {
       .where(eq(conversations.id, conversationId));
   }
 
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    await this.db
+      .update(conversations)
+      .set({
+        isRead: true,
+        unreadCount: 0,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
   async incrementUnreadCount(conversationId: number): Promise<void> {
     await this.db
       .update(conversations)

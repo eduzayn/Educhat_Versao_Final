@@ -55,6 +55,13 @@ class CentralStorage {
   updateChannel = (id: number, data: any) => this.channels.updateChannel(id, data);
   deleteChannel = (id: number) => this.channels.deleteChannel(id);
   
+  // Métodos de Contact necessários
+  getContactInterests = (contactId: number) => this.contacts.getContactInterests(contactId);
+  getContactNotes = (contactId: number) => Promise.resolve([]);
+  
+  // Método de marcar conversa como lida
+  markConversationAsRead = (conversationId: number) => this.conversations.markConversationAsRead(conversationId);
+  
   // Métodos de compatibilidade para rotas que ainda usam storage/index.ts
   assignConversationToTeam = (conversationId: number, teamId: number, method: string) => 
     this.conversations.assignConversationToTeam(conversationId, teamId, method);
