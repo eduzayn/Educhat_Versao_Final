@@ -132,11 +132,26 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
         }
       }
       
+      // Format phone number for Brazilian format if needed
+      let formattedPhone = form.phone;
+      if (formattedPhone && !formattedPhone.startsWith('+55')) {
+        // Remove any non-digits
+        const digits = formattedPhone.replace(/\D/g, '');
+        // Add +55 prefix if not present
+        if (digits.length === 11 && digits.startsWith('11')) {
+          formattedPhone = `+55${digits}`;
+        } else if (digits.length === 10) {
+          formattedPhone = `+55${digits}`;
+        } else if (digits.length === 11) {
+          formattedPhone = `+55${digits}`;
+        }
+      }
+
       // Create in local database
       const newContact = await createContact.mutateAsync({
         name: form.name,
         email: form.email || null,
-        phone: form.phone || null
+        phone: formattedPhone || null
       });
       
       // Send welcome message if provided and phone is available
@@ -166,7 +181,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              phone: form.phone,
+              phone: formattedPhone,
               message: messageText.trim(),
               channelId: channelToUse
             })
