@@ -477,12 +477,12 @@ export class DatabaseStorage implements IStorage {
   // ==================== COMPATIBILITY METHODS ====================
   
   /**
-   * Busca ou cria automaticamente uma equipe baseada no macrosetor
-   * Mantém compatibilidade com sistema legado
+   * Busca ou cria automaticamente uma equipe baseada no tipo de equipe
+   * Método atualizado com nova terminologia
    */
-  async getOrCreateTeamByMacrosetor(macrosetor: string): Promise<any> {
+  async getOrCreateTeamByType(teamType: string): Promise<any> {
     // Buscar equipe existente
-    let team = await this.team.getTeamByMacrosetor(macrosetor);
+    let team = await this.team.getTeamByType(teamType);
     
     if (!team) {
       // Configurações padrão para criação automática de equipes
