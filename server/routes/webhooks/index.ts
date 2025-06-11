@@ -1043,18 +1043,36 @@ export function registerZApiRoutes(app: Express) {
   
   // Main Z-API webhook endpoint for receiving messages - REST: POST /api/zapi/webhook
   app.post('/api/zapi/webhook', async (req, res) => {
+    const webhookData = req.body;
+    const startTime = Date.now();
+    
     try {
-      console.log('📨 Webhook Z-API recebido (handler principal):', JSON.stringify(req.body, null, 2));
+      console.log('📨 Webhook Z-API recebido (handler principal):', JSON.stringify(webhookData, null, 2));
       console.log('📊 Dados do webhook processados:', {
-        type: req.body.type,
-        phone: req.body.phone,
-        hasText: !!(req.body.text && req.body.text.message),
-        hasImage: !!req.body.image,
-        hasAudio: !!req.body.audio,
+        type: webhookData.type,
+        phone: webhookData.phone,
+        hasText: !!(webhookData.text && webhookData.text.message),
+        hasImage: !!webhookData.image,
+        hasAudio: !!webhookData.audio,
         timestamp: new Date().toISOString()
       });
       
-      const webhookData = req.body;
+      // Validação básica dos dados recebidos
+      if (!webhookData || typeof webhookData !== 'object') {
+        console.error('❌ Webhook inválido: dados não são um objeto');
+        return res.status(400).json({ 
+          error: 'Dados do webhook inválidos',
+          success: false 
+        });
+      }
+      
+      if (!webhookData.type) {
+        console.error('❌ Webhook sem tipo definido');
+        return res.status(400).json({ 
+          error: 'Tipo do webhook não definido',
+          success: false 
+        });
+      }
       
       // Verificar se é um callback de status (não precisa processar como mensagem)
       if (webhookData.type === 'MessageStatusCallback') {
@@ -1120,62 +1138,96 @@ export function registerZApiRoutes(app: Express) {
 
         console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
 
-        // Criar ou encontrar o contato
-        const contacts = await storage.searchContacts(phone);
-        let contact = contacts.find(c => c.phone === phone);
-        
-        if (!contact) {
-          contact = await storage.createContact({
-            name: webhookData.senderName || `WhatsApp ${phone}`,
-            phone: phone,
-            email: null,
-            isOnline: true,
-            profileImageUrl: webhookData.photo || null,
-            canalOrigem: 'whatsapp',
-            nomeCanal: 'WhatsApp',
-            idCanal: `whatsapp-${phone}`
-          });
-        } else {
-          // Atualizar dados do contato se necessário
-          await storage.updateContact(contact.id, {
-            name: webhookData.senderName || contact.name,
-            isOnline: true,
-            profileImageUrl: webhookData.photo || contact.profileImageUrl
-          });
+        // Criar ou encontrar o contato com tratamento robusto de erros
+        let contact;
+        try {
+          const contacts = await storage.searchContacts(phone);
+          contact = contacts.find(c => c.phone === phone);
+          
+          if (!contact) {
+            console.log(`📝 Criando novo contato para ${phone}`);
+            contact = await storage.createContact({
+              name: webhookData.senderName || `WhatsApp ${phone}`,
+              phone: phone,
+              email: null,
+              isOnline: true,
+              profileImageUrl: webhookData.photo || null,
+              canalOrigem: 'whatsapp',
+              nomeCanal: 'WhatsApp',
+              idCanal: `whatsapp-${phone}`
+            });
+            console.log(`✅ Contato criado: ID ${contact.id}`);
+          } else {
+            console.log(`📞 Contato existente encontrado: ${contact.name} (ID: ${contact.id})`);
+            // Atualizar dados do contato se necessário
+            try {
+              await storage.updateContact(contact.id, {
+                name: webhookData.senderName || contact.name,
+                isOnline: true,
+                profileImageUrl: webhookData.photo || contact.profileImageUrl
+              });
+            } catch (updateError) {
+              console.log(`⚠️ Erro ao atualizar contato ${contact.id}, continuando com dados existentes:`, updateError.message);
+            }
+          }
+        } catch (contactError) {
+          console.error(`❌ Erro crítico ao gerenciar contato ${phone}:`, contactError);
+          throw new Error(`Falha ao processar contato: ${contactError.message}`);
         }
 
-        // Criar ou encontrar a conversa
-        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
-        if (!conversation) {
-          conversation = await storage.createConversation({
-            contactId: contact.id,
-            channel: 'whatsapp',
-            status: 'open',
-            lastMessageAt: new Date()
-          });
-        } else {
-          // IMPORTANTE: Reabrir automaticamente conversas resolvidas quando nova mensagem chega
-          if (conversation.status === 'resolved' || conversation.status === 'closed') {
-            console.log(`🔄 Reabrindo conversa ${conversation.id} (status: ${conversation.status}) para nova mensagem`);
-            
-            await storage.updateConversation(conversation.id, {
+        // Criar ou encontrar a conversa com tratamento robusto
+        let conversation;
+        try {
+          conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+          
+          if (!conversation) {
+            console.log(`💬 Criando nova conversa para contato ${contact.id}`);
+            conversation = await storage.createConversation({
+              contactId: contact.id,
+              channel: 'whatsapp',
               status: 'open',
-              lastMessageAt: new Date(),
-              unreadCount: (conversation.unreadCount || 0) + 1
+              lastMessageAt: new Date()
             });
-            
-            // Atualizar o objeto local
-            conversation.status = 'open';
-            conversation.lastMessageAt = new Date();
-            
-            console.log(`✅ Conversa ${conversation.id} reaberta automaticamente`);
+            console.log(`✅ Conversa criada: ID ${conversation.id}`);
           } else {
-            // Atualizar timestamp da última mensagem mesmo se já estiver aberta
-            await storage.updateConversation(conversation.id, {
-              lastMessageAt: new Date(),
-              unreadCount: (conversation.unreadCount || 0) + 1
-            });
+            console.log(`💬 Conversa existente encontrada: ID ${conversation.id} (status: ${conversation.status})`);
+            
+            // IMPORTANTE: Reabrir automaticamente conversas resolvidas quando nova mensagem chega
+            if (conversation.status === 'resolved' || conversation.status === 'closed') {
+              console.log(`🔄 Reabrindo conversa ${conversation.id} (status: ${conversation.status}) para nova mensagem`);
+              
+              try {
+                await storage.updateConversation(conversation.id, {
+                  status: 'open',
+                  lastMessageAt: new Date(),
+                  unreadCount: (conversation.unreadCount || 0) + 1
+                });
+                
+                // Atualizar o objeto local
+                conversation.status = 'open';
+                conversation.lastMessageAt = new Date();
+                
+                console.log(`✅ Conversa ${conversation.id} reaberta automaticamente`);
+              } catch (reopenError) {
+                console.error(`⚠️ Erro ao reabrir conversa ${conversation.id}:`, reopenError.message);
+                // Continuar com a conversa no estado atual
+              }
+            } else {
+              // Atualizar timestamp da última mensagem mesmo se já estiver aberta
+              try {
+                await storage.updateConversation(conversation.id, {
+                  lastMessageAt: new Date(),
+                  unreadCount: (conversation.unreadCount || 0) + 1
+                });
+              } catch (updateError) {
+                console.log(`⚠️ Erro ao atualizar timestamp da conversa ${conversation.id}:`, updateError.message);
+                // Continuar sem atualizar timestamp
+              }
+            }
           }
+        } catch (conversationError) {
+          console.error(`❌ Erro crítico ao gerenciar conversa para contato ${contact.id}:`, conversationError);
+          throw new Error(`Falha ao processar conversa: ${conversationError.message}`);
         }
 
         // Criar metadados enriquecidos para mensagens de mídia
@@ -1311,8 +1363,32 @@ export function registerZApiRoutes(app: Express) {
       
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error('❌ Erro ao processar webhook Z-API:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      const processingTime = Date.now() - startTime;
+      
+      console.error('❌ Erro crítico ao processar webhook Z-API:', {
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
+        stack: error instanceof Error ? error.stack : undefined,
+        webhookType: webhookData?.type,
+        phone: webhookData?.phone,
+        processingTime: `${processingTime}ms`,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Tentar retornar sucesso mesmo com erro para evitar reenvios da Z-API
+      // mas logar detalhadamente para debugging
+      try {
+        res.status(200).json({ 
+          success: false, 
+          error: 'Erro interno processado',
+          processed: true 
+        });
+      } catch (responseError) {
+        console.error('❌ Erro ao enviar resposta do webhook:', responseError);
+        // Fallback final
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Erro interno do servidor' });
+        }
+      }
     }
   });
   
