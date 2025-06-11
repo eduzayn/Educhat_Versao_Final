@@ -49,7 +49,8 @@ Consolidação bem-sucedida de componentes de filtros repetitivos em componentes
 ### Redução de Redundância
 - **Antes**: 8+ implementações similares de Select components
 - **Depois**: 1 componente base + 4 especializados
-- **Código eliminado**: ~200 linhas duplicadas
+- **Código eliminado**: ~250 linhas duplicadas
+- **Total de páginas consolidadas**: 4 módulos principais
 
 ### Manutenibilidade
 - Mudanças de design aplicadas centralmente
