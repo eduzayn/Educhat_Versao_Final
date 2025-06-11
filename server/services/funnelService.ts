@@ -252,12 +252,7 @@ export class FunnelService {
     return funnel;
   }
 
-  /**
-   * Busca funil por macrosetor (alias para compatibilidade)
-   */
-  async getFunnelByMacrosetor(teamType: string) {
-    return this.getFunnelByTeamType(teamType);
-  }
+
 
   /**
    * Obter estágio inicial para um tipo de equipe
@@ -281,12 +276,7 @@ export class FunnelService {
     return await db.select().from(funnels);
   }
 
-  /**
-   * Busca primeiro estágio de um funil (alias para compatibilidade)
-   */
-  async getInitialStageForMacrosetor(teamType: string): Promise<string> {
-    return this.getInitialStageForTeamType(teamType);
-  }
+
 }
 
 export const funnelService = new FunnelService();

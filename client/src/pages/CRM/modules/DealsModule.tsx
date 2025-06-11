@@ -283,16 +283,16 @@ export function DealsModule() {
                   {selectedTeam && funnelsData && (
                     <div className="flex items-center gap-2">
                       <span className="text-base">{getFunnelIcon(selectedTeam)}</span>
-                      <span>{funnelsData.find((f: any) => f.macrosetor === selectedTeam)?.name}</span>
+                      <span>{funnelsData.find((f: any) => f.teamType === selectedTeam)?.name}</span>
                     </div>
                   )}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {funnelsData?.map((funnel: any) => (
-                  <SelectItem key={funnel.id} value={funnel.macrosetor}>
+                  <SelectItem key={funnel.id} value={funnel.teamType}>
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{getFunnelIcon(funnel.macrosetor)}</span>
+                      <span className="text-base">{getFunnelIcon(funnel.teamType)}</span>
                       <span>{funnel.name}</span>
                     </div>
                   </SelectItem>

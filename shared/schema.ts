@@ -152,7 +152,7 @@ export const quickReplyTeamShares = pgTable("quick_reply_team_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Teams table (unified with macrosetores)
+// Teams table (unified team management)
 export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).unique().notNull(),
