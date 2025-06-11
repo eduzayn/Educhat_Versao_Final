@@ -99,6 +99,41 @@ export function registerMessageRoutes(app: Express) {
 
 
 
+  // Soft delete message (para mensagens recebidas) - REST: POST /api/messages/soft-delete
+  app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
+    try {
+      const { messageId, conversationId } = req.body;
+
+      if (!messageId || !conversationId) {
+        return res.status(400).json({ 
+          error: 'messageId e conversationId são obrigatórios' 
+        });
+      }
+
+      // Verificar se a mensagem existe
+      const message = await storage.messages.getMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
+      }
+
+      // Marcar mensagem como deletada
+      await storage.messages.markMessageAsDeleted(messageId);
+
+      // Broadcast para atualizar a interface
+      const { broadcast } = await import('../realtime');
+      broadcast(conversationId, {
+        type: 'message_deleted',
+        conversationId,
+        messageId,
+      });
+
+      res.json({ success: true, message: 'Mensagem removida da interface' });
+    } catch (error) {
+      console.error('Erro ao fazer soft delete da mensagem:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {
     try {
