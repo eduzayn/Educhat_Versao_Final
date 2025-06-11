@@ -475,17 +475,14 @@ export class ConversationStorage extends BaseStorage {
 
   async markConversationAsUnread(conversationId: number): Promise<void> {
     // Definir a conversa como não lida com pelo menos 1 mensagem não lida
-    const result = await this.db
+    await this.db
       .update(conversations)
       .set({
         unreadCount: 1,
         isRead: false,
         updatedAt: new Date()
       })
-      .where(eq(conversations.id, conversationId))
-      .returning({ id: conversations.id, unreadCount: conversations.unreadCount });
-    
-    console.log(`✅ Conversa ${conversationId} marcada como não lida:`, result);
+      .where(eq(conversations.id, conversationId));
   }
 
   async assignConversationToTeam(conversationId: number, teamId: number, method: string = 'manual'): Promise<void> {
