@@ -1,0 +1,13 @@
+{
+  "type": "ReceivedCallback",
+  "phone": "5511999888777",
+  "text": {
+    "message": "Esta é uma mensagem de teste para verificar se aparece na interface"
+  },
+  "senderName": "Contato Teste",
+  "messageId": "TEST_MSG_12345",
+  "momment": 1749646700000,
+  "fromMe": false,
+  "status": "RECEIVED",
+  "instanceId": "TEST_INSTANCE"
+}

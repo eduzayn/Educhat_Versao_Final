@@ -1121,19 +1121,28 @@ export function registerZApiRoutes(app: Express) {
         console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
 
         // Criar ou encontrar o contato
-        const contact = await storage.findOrCreateContact(phone, {
-          name: webhookData.senderName || `WhatsApp ${phone}`,
-          phone: phone,
-          email: null,
-          isOnline: true,
-          profileImageUrl: null,
-          canalOrigem: 'whatsapp',
-          nomeCanal: 'WhatsApp',
-          idCanal: `whatsapp-${phone}`
-        });
-
-        // Atualizar status online do contato
-        await storage.updateContactOnlineStatus(contact.id, true);
+        const contacts = await storage.searchContacts(phone);
+        let contact = contacts.find(c => c.phone === phone);
+        
+        if (!contact) {
+          contact = await storage.createContact({
+            name: webhookData.senderName || `WhatsApp ${phone}`,
+            phone: phone,
+            email: null,
+            isOnline: true,
+            profileImageUrl: webhookData.photo || null,
+            canalOrigem: 'whatsapp',
+            nomeCanal: 'WhatsApp',
+            idCanal: `whatsapp-${phone}`
+          });
+        } else {
+          // Atualizar dados do contato se necessário
+          await storage.updateContact(contact.id, {
+            name: webhookData.senderName || contact.name,
+            isOnline: true,
+            profileImageUrl: webhookData.photo || contact.profileImageUrl
+          });
+        }
 
         // Criar ou encontrar a conversa
         let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
