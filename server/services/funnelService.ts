@@ -12,7 +12,7 @@ export interface FunnelStage {
 
 export interface CreateFunnelData {
   name: string;
-  macrosetor: string;
+  teamType: string;
   teamId: number;
   stages: FunnelStage[];
   description?: string;
@@ -24,7 +24,7 @@ export interface CreateFunnelData {
 export class FunnelService {
   
   /**
-   * Templates de estágios padrão por tipo de macrosetor
+   * Templates de estágios padrão por tipo de equipe
    */
   private defaultStageTemplates: Record<string, FunnelStage[]> = {
     comercial: [
@@ -82,7 +82,7 @@ export class FunnelService {
       { id: "pagamento_efetuado", name: "Pagamento Efetuado", order: 5, color: "bg-green-500", probability: 100 },
       { id: "cobranca_juridica", name: "Cobrança Jurídica", order: 6, color: "bg-red-600", probability: 15 }
     ],
-    // Template genérico para macrosetores desconhecidos
+    // Template genérico para tipos de equipe desconhecidos
     generico: [
       { id: "novo", name: "Novo", order: 1, color: "bg-blue-500", probability: 30 },
       { id: "em_andamento", name: "Em Andamento", order: 2, color: "bg-orange-500", probability: 60 },
@@ -109,26 +109,26 @@ export class FunnelService {
         return false;
       }
 
-      // Verificar se já existe funil para este macrosetor
+      // Verificar se já existe funil para este tipo de equipe
       const existingFunnel = await db
         .select()
         .from(funnels)
-        .where(eq(funnels.macrosetor, team.macrosetor || 'generico'))
+        .where(eq(funnels.teamType, team.teamType || 'generico'))
         .limit(1);
 
       if (existingFunnel.length > 0) {
-        console.log(`⚠️ Funil já existe para macrosetor: ${team.macrosetor}`);
+        console.log(`⚠️ Funil já existe para tipo de equipe: ${team.teamType}`);
         return false;
       }
 
-      // Determinar estágios baseado no macrosetor
-      const macrosetor = team.macrosetor || 'generico';
-      const stages = this.defaultStageTemplates[macrosetor] || this.defaultStageTemplates.generico;
+      // Determinar estágios baseado no tipo de equipe
+      const teamType = team.teamType || 'generico';
+      const stages = this.defaultStageTemplates[teamType] || this.defaultStageTemplates.generico;
       
       // Criar funil
       const funnelData = {
         name: `Funil ${team.name}`,
-        macrosetor: macrosetor,
+        teamType: teamType,
         teamId: teamId,
         stages: stages,
         description: `Funil automático para ${team.description || team.name}`,
@@ -139,7 +139,7 @@ export class FunnelService {
 
       await db.insert(funnels).values(funnelData);
 
-      console.log(`✅ Funil criado automaticamente: ${funnelData.name} (${macrosetor})`);
+      console.log(`✅ Funil criado automaticamente: ${funnelData.name} (${teamType})`);
       return true;
 
     } catch (error) {
@@ -160,20 +160,20 @@ export class FunnelService {
       
       // Buscar funis existentes
       const existingFunnels = await db.select().from(funnels);
-      const existingMacrosetores = new Set(existingFunnels.map(f => f.macrosetor));
+      const existingTeamTypes = new Set(existingFunnels.map(f => f.teamType));
       
       const details: string[] = [];
       let created = 0;
       
       for (const team of allTeams) {
-        const macrosetor = team.macrosetor || 'generico';
+        const teamType = team.teamType || 'generico';
         
-        if (!existingMacrosetores.has(macrosetor)) {
+        if (!existingTeamTypes.has(teamType)) {
           const success = await this.createFunnelForTeam(team.id);
           if (success) {
             created++;
-            details.push(`Funil criado para ${team.name} (${macrosetor})`);
-            existingMacrosetores.add(macrosetor); // Evitar duplicatas
+            details.push(`Funil criado para ${team.name} (${teamType})`);
+            existingTeamTypes.add(teamType); // Evitar duplicatas
           }
         }
       }
@@ -196,9 +196,9 @@ export class FunnelService {
       
       // Buscar todos os funis
       const allFunnels = await db.select().from(funnels);
-      const funnelsByMacrosetor = new Map(allFunnels.map(f => [f.macrosetor, f]));
+      const funnelsByTeamType = new Map(allFunnels.map(f => [f.teamType, f]));
       
-      // Buscar deals com macrosetores incorretos ou sem correspondência
+      // Buscar deals com tipos de equipe incorretos ou sem correspondência
       const dealsToUpdate = await db
         .select()
         .from(deals)
@@ -208,7 +208,7 @@ export class FunnelService {
       let updated = 0;
       
       for (const deal of dealsToUpdate) {
-        const funnel = funnelsByMacrosetor.get(deal.macrosetor);
+        const funnel = funnelsByTeamType.get(deal.teamType);
         
         if (funnel) {
           // Verificar se o estágio atual existe no funil
@@ -242,42 +242,50 @@ export class FunnelService {
   }
 
   /**
-   * Busca funil por macrosetor
+   * Busca funil por tipo de equipe (método unificado)
    */
-  async getFunnelByMacrosetor(macrosetor: string) {
+  async getFunnelByTeamType(teamType: string) {
     const [funnel] = await db
       .select()
       .from(funnels)
-      .where(eq(funnels.macrosetor, macrosetor))
-      .limit(1);
-    
-    return funnel || null;
+      .where(eq(funnels.teamType, teamType));
+    return funnel;
   }
 
   /**
-   * Busca primeiro estágio de um funil
+   * Busca funil por macrosetor (alias para compatibilidade)
    */
-  async getInitialStageForMacrosetor(macrosetor: string): Promise<string> {
-    const funnel = await this.getFunnelByMacrosetor(macrosetor);
+  async getFunnelByMacrosetor(teamType: string) {
+    return this.getFunnelByTeamType(teamType);
+  }
+
+  /**
+   * Obter estágio inicial para um tipo de equipe
+   */
+  async getInitialStageForTeamType(teamType: string): Promise<string> {
+    const funnel = await this.getFunnelByTeamType(teamType);
     
     if (funnel && funnel.stages && funnel.stages.length > 0) {
-      const sortedStages = funnel.stages.sort((a: any, b: any) => a.order - b.order);
-      return sortedStages[0].id;
+      return funnel.stages[0].id;
     }
     
-    // Fallback para estágios padrão se não encontrar funil
-    const defaultStages = this.defaultStageTemplates[macrosetor] || this.defaultStageTemplates.generico;
+    // Retornar estágio padrão se não encontrar funil
+    const defaultStages = this.defaultStageTemplates[teamType] || this.defaultStageTemplates.generico;
     return defaultStages[0].id;
   }
 
   /**
-   * Lista todos os funis ativos
+   * Buscar todos os funis
    */
   async getAllFunnels() {
-    return await db
-      .select()
-      .from(funnels)
-      .where(eq(funnels.isActive, true));
+    return await db.select().from(funnels);
+  }
+
+  /**
+   * Busca primeiro estágio de um funil (alias para compatibilidade)
+   */
+  async getInitialStageForMacrosetor(teamType: string): Promise<string> {
+    return this.getInitialStageForTeamType(teamType);
   }
 }
 
