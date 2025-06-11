@@ -11,7 +11,7 @@ export interface AuthenticatedRequest extends Request {
     roleId: number;
     dataKey?: string;
     channels: string[];
-    macrosetores: string[];
+    teams: string[];
     teamId?: number | null;
     team?: string | null;
   } | undefined;
@@ -25,7 +25,11 @@ export class PermissionService {
   }): Promise<boolean> {
     try {
       const user = await storage.getSystemUser(userId);
-      return user?.role === 'admin' || user?.role === 'manager';
+      if (!user) return false;
+      
+      // Check if user has the specific permission through their role
+      const hasPermission = await storage.checkUserPermission(userId, permissionName);
+      return hasPermission;
     } catch (error) {
       console.error('Erro ao verificar permissão:', error);
       return false;
