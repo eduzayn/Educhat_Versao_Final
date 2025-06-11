@@ -525,6 +525,31 @@ export class DatabaseStorage implements IStorage {
     return this.auth.getUser("1");
   }
 
+  // Permission checking method
+  async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
+    try {
+      const { systemUsers, roles, rolePermissions, permissions } = await import('../../shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      const result = await this.db
+        .select()
+        .from(systemUsers)
+        .leftJoin(roles, eq(systemUsers.roleId, roles.id))
+        .leftJoin(rolePermissions, eq(roles.id, rolePermissions.roleId))
+        .leftJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+        .where(and(
+          eq(systemUsers.id, userId),
+          eq(permissions.name, permissionName)
+        ))
+        .limit(1);
+
+      return result.length > 0;
+    } catch (error) {
+      console.error('Erro ao verificar permissão:', error);
+      return false;
+    }
+  }
+
   // Additional interface compliance methods
   async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number) {
     return { success: true };

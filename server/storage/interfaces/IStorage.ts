@@ -136,6 +136,7 @@ export interface IStorage {
   createRole(role: InsertRole): Promise<Role>;
   updateRole(id: number, role: Partial<InsertRole>): Promise<Role>;
   deleteRole(id: number): Promise<void>;
+  checkUserPermission(userId: number, permissionName: string): Promise<boolean>;
 
   // ==================== CHANNEL OPERATIONS ====================
   getChannels(): Promise<Channel[]>;

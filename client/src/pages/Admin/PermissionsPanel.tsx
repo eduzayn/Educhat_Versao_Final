@@ -43,7 +43,7 @@ interface User {
   team: string;
   dataKey: string;
   channels: string[];
-  macrosetores: string[];
+  teams: string[];
   isActive: boolean;
   status: string;
   isOnline: boolean;
@@ -61,7 +61,7 @@ interface AuditLog {
   resource: string;
   resourceId: string;
   channel: string;
-  macrosetor: string;
+  teamType: string;
   dataKey: string;
   details: any;
   ipAddress: string;

@@ -206,7 +206,7 @@ export class AuthStorage extends BaseStorage {
       roleId: user.roleId || 1,
       dataKey: user.dataKey || undefined,
       channels: Array.isArray(user.channels) ? user.channels : [],
-      macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
+      teams: Array.isArray(user.teams) ? user.teams : [],
       teamId: user.teamId || undefined,
       team: user.team || undefined
     };
