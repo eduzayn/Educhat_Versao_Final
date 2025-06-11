@@ -62,7 +62,8 @@ export function useUpdateContact() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, contact }: { id: number; contact: Partial<InsertContact> }) => {
+    mutationFn: async (data: { id: number; name: string; email: string; phone: string }) => {
+      const { id, ...contact } = data;
       const response = await apiRequest('PUT', `/api/contacts/${id}`, contact);
       return response.json();
     },
