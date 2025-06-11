@@ -11,6 +11,11 @@ export function registerInboxRoutes(app: Express) {
       const limit = parseInt(req.query.limit as string) || 1000; // Aumentado para carregar mais conversas
       const offset = (page - 1) * limit;
       
+      // Desabilitar cache para forçar sempre buscar dados atualizados
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const conversations = await storage.getConversations(limit, offset);
       res.json(conversations);
     } catch (error) {
