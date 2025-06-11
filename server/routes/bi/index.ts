@@ -302,7 +302,7 @@ export function registerBIRoutes(app: Express) {
         return {
           id: team.id,
           name: team.name,
-          macrosetor: team.macrosetor,
+          teamType: team.teamType,
           totalConversations: teamConversations.length,
           activeMembers: teamUsers.length,
           avgResponseTime: Math.random() * 3 + 1, // Simulado

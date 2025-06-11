@@ -188,10 +188,10 @@ export class DealStorage extends BaseStorage {
       return stageMapping[teamType || 'geral'] || 'prospecting';
     })();
 
-    // Get the correct funnel for this teamType (substituindo macrosetor)
+    // Get the correct funnel for this teamType
     const funnel = await this.db.select()
       .from(funnels)
-      .where(eq(funnels.teamType, macrosetor || 'geral'))
+      .where(eq(funnels.teamType, teamType || 'geral'))
       .limit(1);
 
     const funnelId = funnel.length > 0 ? funnel[0].id : null;

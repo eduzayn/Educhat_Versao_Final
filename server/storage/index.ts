@@ -380,9 +380,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Alias para compatibilidade
-  async getTeamByMacrosetor(teamType: string) {
-    return this.team.getTeamByTeamType(teamType);
-  }
+
 
   async getAvailableUserFromTeam(teamId: number) {
     return this.team.getAvailableUserFromTeam(teamId);

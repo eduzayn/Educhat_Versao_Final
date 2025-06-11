@@ -98,7 +98,7 @@ export function DealsModule() {
   // Set default selected team when funnels are loaded
   useEffect(() => {
     if (funnelsData && funnelsData.length > 0 && !selectedTeam) {
-      setSelectedTeam(funnelsData[0].macrosetor);
+      setSelectedTeam(funnelsData[0].teamType);
     }
   }, [funnelsData, selectedTeam]);
 
@@ -198,7 +198,7 @@ export function DealsModule() {
       probability: parseInt(formData.get('probability') as string) || 0,
       description: formData.get('description') || '',
       stage: selectedStageForNewDeal || currentTeam.stages[0].id, // Usa estágio selecionado ou primeiro do funil
-      macrosetor: selectedTeam
+      teamType: selectedTeam
     };
 
     createDealMutation.mutate(dealData);

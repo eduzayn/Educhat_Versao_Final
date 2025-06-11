@@ -338,7 +338,7 @@ export class ManychatStorage extends BaseStorage {
             contactId: contact.id,
             channel: 'manychat',
             status: 'open',
-            macrosetor: 'comercial',
+            teamType: 'comercial',
             assignmentMethod: 'automatic'
           })
           .returning();

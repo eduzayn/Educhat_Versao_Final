@@ -24,7 +24,7 @@ export function registerFunnelRoutes(app: Express) {
       if (funnel) {
         res.json(funnel);
       } else {
-        res.status(404).json({ message: `Nenhum funil encontrado para o tipo de equipe: ${macrosetor}` });
+        res.status(404).json({ message: `Nenhum funil encontrado para o tipo de equipe: ${teamType}` });
       }
     } catch (error) {
       console.error('Erro ao buscar funil por tipo de equipe:', error);
@@ -67,12 +67,12 @@ export function registerFunnelRoutes(app: Express) {
   });
 
   // Get initial stage for team type - REST: GET /api/funnels/initial-stage/:teamType (mantém rota antiga para compatibilidade)
-  app.get('/api/funnels/initial-stage/:macrosetor', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/funnels/initial-stage/:teamType', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { macrosetor } = req.params;
-      const initialStage = await funnelService.getInitialStageForTeamType(macrosetor);
+      const { teamType } = req.params;
+      const initialStage = await funnelService.getInitialStageForTeamType(teamType);
       
-      res.json({ teamType: macrosetor, initialStage });
+      res.json({ teamType, initialStage });
     } catch (error) {
       console.error('Erro ao buscar estágio inicial:', error);
       res.status(500).json({ message: 'Erro ao buscar estágio inicial' });

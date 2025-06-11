@@ -318,14 +318,14 @@ export class UnifiedAssignmentService {
         return null;
       }
 
-      // Usar teamType em vez de macrosetor (migração concluída)
+      // Usar teamType para atribuição
       const teamType = team.teamType || 'geral';
       const canalOrigem = conversation.channel || 'unknown';
 
       console.log(`🔄 Criando deal automático: contato=${conversation.contactId}, canal=${canalOrigem}, teamType=${teamType}`);
 
       // Buscar estágio inicial correto do funil
-      const initialStage = await funnelService.getInitialStageForMacrosetor(teamType);
+      const initialStage = await funnelService.getInitialStageForTeamType(teamType);
       
       // Criar deal automático
       const deal = await storage.createAutomaticDeal(
