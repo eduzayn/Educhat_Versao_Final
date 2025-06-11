@@ -36,7 +36,7 @@ export function registerDealsRoutes(app: Express) {
       const result = await storage.getDealsWithPagination({
         page: pageNum,
         limit: limitNum,
-        team: team as string,
+        teamType: team as string,
         stage: stage as string,
         search: search as string
       });
