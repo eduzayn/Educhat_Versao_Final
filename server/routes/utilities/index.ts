@@ -172,12 +172,21 @@ export function registerUtilitiesRoutes(app: Express) {
         if (contact) {
           console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
           
-          // Verificar se já existe conversa para este contato
-          let conversation = await storage.getConversationByContactId(contact.id);
+          // Verificar se já existe conversa para este contato usando query direta
+          const db = storage.conversations.db;
+          const { conversations } = await import('../../../shared/schema');
+          const { eq } = await import('drizzle-orm');
+          
+          const [existingConversation] = await db.select()
+            .from(conversations)
+            .where(eq(conversations.contactId, contact.id))
+            .limit(1);
+          
+          let conversation = existingConversation;
           
           if (!conversation) {
             // Criar nova conversa
-            conversation = await storage.createConversation({
+            conversation = await storage.conversations.createConversation({
               contactId: contact.id,
               channel: 'whatsapp',
               status: 'active',
@@ -197,7 +206,7 @@ export function registerUtilitiesRoutes(app: Express) {
           }
           
           // Criar mensagem enviada no banco
-          const savedMessage = await storage.createMessage({
+          const savedMessage = await storage.messages.createMessage({
             conversationId: conversation.id,
             content: message.toString(),
             isFromContact: false,
