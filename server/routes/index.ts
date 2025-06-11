@@ -24,6 +24,7 @@ import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerFunnelRoutes } from "./funnels/index";
+import { registerConversationDetailsRoutes } from "./conversations/details";
 // import { registerMacrosetorRoutes } from "./settings/macrosetores"; // Removido - sistema migrado para IA
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
@@ -49,6 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerContactRoutes(app);
   registerUserRoutes(app);
   registerChannelRoutes(app);
+  registerConversationDetailsRoutes(app);
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
