@@ -109,24 +109,21 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  // Middleware de debugging para sessões (apenas em produção)
-  if (process.env.NODE_ENV === "production") {
-    app.use((req, res, next) => {
-      if (req.path.startsWith('/api/')) {
-        console.log("🔍 Debug de sessão:", {
-          path: req.path,
-          method: req.method,
-          sessionID: req.sessionID,
-          hasSession: !!req.session,
-          cookies: !!req.headers.cookie,
-          userAgent: req.get('User-Agent')?.substring(0, 50) + "...",
-          secure: req.secure,
-          protocol: req.protocol
-        });
-      }
-      next();
-    });
-  }
+  // Middleware de debugging para sessões (apenas para endpoints críticos)
+  app.use((req, res, next) => {
+    if (req.path === '/api/user' || req.path.includes('/api/admin/role-permissions')) {
+      console.log("🔍 Debug de sessão:", {
+        path: req.path,
+        method: req.method,
+        sessionID: req.sessionID,
+        hasSession: !!req.session,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+        hasUser: !!req.user,
+        cookies: !!req.headers.cookie
+      });
+    }
+    next();
+  });
 
   app.use(passport.initialize());
   app.use(passport.session());

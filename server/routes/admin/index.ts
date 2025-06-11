@@ -630,9 +630,15 @@ export function registerAdminRoutes(app: Express) {
           return res.json({ success: true, message: 'Permissão adicionada com sucesso' });
         }
 
-        if (!roleId || !Array.isArray(permissionNames)) {
-          console.log('❌ Validação falhou:', { roleId, permissionNames, hasRoleId: !!roleId, isArray: Array.isArray(permissionNames) });
-          return res.status(400).json({ message: 'roleId e permissions são obrigatórios' });
+        if (!roleId || (!permissionNames && !Array.isArray(permissionNames))) {
+          console.log('❌ Validação falhou:', { 
+            roleId, 
+            permissionNames, 
+            hasRoleId: !!roleId, 
+            isArray: Array.isArray(permissionNames),
+            bodyKeys: Object.keys(req.body)
+          });
+          return res.status(400).json({ message: 'Formato de dados inválido para atualização de permissões' });
         }
 
         // Buscar IDs das permissões pelos nomes
