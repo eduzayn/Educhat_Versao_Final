@@ -33,6 +33,7 @@ class CentralStorage {
   getContact = (id: number) => this.contacts.getContact(id);
   createContact = (contactData: any) => this.contacts.createContact(contactData);
   getConversation = (id: number) => this.conversations.getConversation(id);
+  getConversations = (limit?: number, offset?: number) => this.conversations.getConversations(limit, offset);
   createConversation = (conversationData: any) => this.conversations.createConversation(conversationData);
   getTeam = (id: number) => this.teams.getTeam(id);
   getTeams = () => this.teams.getTeams();
