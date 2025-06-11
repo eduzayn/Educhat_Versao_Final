@@ -602,6 +602,8 @@ export function registerAdminRoutes(app: Express) {
     requirePermission('permissao:gerenciar'),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
+        console.log('📝 Dados recebidos no POST role-permissions:', JSON.stringify(req.body, null, 2));
+        
         const { roleId, permissionId, permissions: permissionNames } = req.body;
 
         // Suporte para múltiplos formatos de requisição
@@ -629,6 +631,7 @@ export function registerAdminRoutes(app: Express) {
         }
 
         if (!roleId || !Array.isArray(permissionNames)) {
+          console.log('❌ Validação falhou:', { roleId, permissionNames, hasRoleId: !!roleId, isArray: Array.isArray(permissionNames) });
           return res.status(400).json({ message: 'roleId e permissions são obrigatórios' });
         }
 
@@ -683,9 +686,12 @@ export function registerAdminRoutes(app: Express) {
     requirePermission('permissao:gerenciar'),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
+        console.log('📝 Dados recebidos no DELETE role-permissions:', JSON.stringify(req.body, null, 2));
+        
         const { roleId, permissionId } = req.body;
 
         if (!roleId || !permissionId) {
+          console.log('❌ Validação falhou no DELETE:', { roleId, permissionId });
           return res.status(400).json({ message: 'roleId e permissionId são obrigatórios' });
         }
 

@@ -240,12 +240,19 @@ export function requirePermission(
   extractContext?: (req: AuthenticatedRequest) => PermissionContext
 ) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    console.log(`🔐 Verificando permissão '${permissionName}' para endpoint ${req.method} ${req.path}`);
+    
     if (!req.user) {
+      console.log('❌ Usuário não autenticado');
       return res.status(401).json({ error: 'Acesso negado - usuário não autenticado' });
     }
 
+    console.log(`👤 Usuário: ${req.user.id} (${req.user.email})`);
+    
     const context = extractContext ? extractContext(req) : {};
     const hasPermission = await PermissionService.hasPermission(req.user.id, permissionName, context);
+
+    console.log(`✅ Tem permissão '${permissionName}': ${hasPermission}`);
 
     if (!hasPermission) {
       await PermissionService.logAction({
@@ -254,9 +261,11 @@ export function requirePermission(
         resource: permissionName,
         result: 'failure'
       });
+      console.log(`🚫 Acesso negado para permissão '${permissionName}'`);
       return res.status(403).json({ error: 'Acesso negado - permissão insuficiente' });
     }
 
+    console.log(`✅ Permissão '${permissionName}' aprovada, prosseguindo...`);
     next();
   };
 }
