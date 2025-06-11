@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
@@ -86,6 +86,7 @@ export function MessageBubble({
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [isForwarding, setIsForwarding] = useState(false);
 
   // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
@@ -178,6 +179,37 @@ export function MessageBubble({
       });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleForwardMessage = async () => {
+    if (!conversationId) return;
+    
+    setIsForwarding(true);
+    try {
+      // Por simplicidade, vamos mostrar um toast indicando que a funcionalidade está sendo implementada
+      // Em uma implementação completa, seria aberto um modal para seleção de contatos/conversas
+      toast({
+        title: "Encaminhar mensagem",
+        description: "Selecione o contato ou conversa para encaminhar esta mensagem",
+      });
+      
+      console.log("Encaminhando mensagem:", {
+        messageId: message.id,
+        content: message.content,
+        messageType: message.messageType,
+        metadata: message.metadata
+      });
+      
+    } catch (error) {
+      console.error("Erro ao encaminhar mensagem:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível encaminhar a mensagem",
+        variant: "destructive",
+      });
+    } finally {
+      setIsForwarding(false);
     }
   };
 
@@ -449,6 +481,20 @@ export function MessageBubble({
                 title="Responder"
               >
                 <Reply className="h-3 w-3" />
+              </Button>
+            )}
+
+            {/* Botão de Encaminhar - sempre visível para mensagens recebidas */}
+            {isFromContact && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 hover:text-blue-600"
+                onClick={handleForwardMessage}
+                disabled={isForwarding}
+                title="Encaminhar mensagem"
+              >
+                <Forward className="h-3 w-3" />
               </Button>
             )}
 
