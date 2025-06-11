@@ -96,6 +96,9 @@ export const messages = pgTable("messages", {
   authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar
   // Campo para ocultação local de mensagens
   isHiddenForUser: boolean("is_hidden_for_user").default(false), // oculta mensagem apenas localmente exibição
+  // Campo para indicar que mensagem foi deletada pelo usuário (mas deve mostrar placeholder)
+  isDeletedByUser: boolean("is_deleted_by_user").default(false), // mensagem deletada mas deve mostrar "Esta mensagem foi apagada"
+  deletedAt: timestamp("deleted_at"), // quando foi deletada
 });
 
 // Contact tags table

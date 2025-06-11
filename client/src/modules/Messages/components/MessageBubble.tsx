@@ -98,18 +98,6 @@ export function MessageBubble({
     const messageDate = new Date(messageTimestamp);
     const timeDifference = now.getTime() - messageDate.getTime();
     
-    // Debug para verificar o cálculo
-    console.log('🕒 Verificação de exclusão:', {
-      messageId: message.id,
-      isFromContact,
-      messageDate: messageDate.toISOString(),
-      now: now.toISOString(),
-      timeDifference,
-      sevenMinutesInMs,
-      canDeleteByTime: timeDifference <= sevenMinutesInMs,
-      messageTimestamp
-    });
-    
     if (isFromContact) {
       // Mensagens recebidas podem ser ocultadas localmente em até 7 minutos
       return timeDifference <= sevenMinutesInMs;
@@ -120,15 +108,7 @@ export function MessageBubble({
     const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
     const hasZapiId = metadata.messageId || metadata.zaapId || metadata.id;
     
-    const canDeleteResult = timeDifference <= sevenMinutesInMs && !!hasZapiId;
-    
-    console.log('📝 Metadados Z-API:', {
-      metadata,
-      hasZapiId,
-      finalCanDelete: canDeleteResult
-    });
-    
-    return canDeleteResult;
+    return timeDifference <= sevenMinutesInMs && !!hasZapiId;
   };
 
   const handleDeleteMessage = async () => {
@@ -525,16 +505,38 @@ export function MessageBubble({
             )}
 
             {canDelete() && conversationId && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 opacity-100 hover:bg-red-100 hover:text-red-600 text-red-500 border border-red-300"
-                onClick={handleDeleteMessage}
-                disabled={isDeleting}
-                title="Deletar mensagem"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
+                    title="Deletar mensagem"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Deletar mensagem</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {isFromContact
+                        ? "Esta ação irá ocultar a mensagem apenas da sua interface. A mensagem ainda será visível para o contato."
+                        : "Esta ação irá deletar a mensagem permanentemente para ambos os lados da conversa."}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteMessage}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isDeleting ? "Deletando..." : "Deletar"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
