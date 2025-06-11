@@ -12,3 +12,9 @@ export * from './zapi';
 export * from './date';
 export * from './text';
 export * from './auth';
+
+// Utilitários legados mantidos para compatibilidade
+export { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from './zapi';
+export { detectCourses, getCourseCategories, getCoursesByCategory } from './course';
+export { isValidEmail, normalizePhoneNumber, isValidCPF } from './validation';
+export { formatPhoneForDisplay, formatCurrency, formatDateBR } from './formatting';
