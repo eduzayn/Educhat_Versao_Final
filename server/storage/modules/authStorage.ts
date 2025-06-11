@@ -29,6 +29,13 @@ export class AuthStorage extends BaseStorage {
   }
 
   /**
+   * Get user by ID (numeric version)
+   */
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.getUser(id.toString());
+  }
+
+  /**
    * Get user by email for login
    */
   async getUserByEmail(email: string): Promise<SystemUser | undefined> {
@@ -135,5 +142,73 @@ export class AuthStorage extends BaseStorage {
 
   async deleteSystemUser(id: number): Promise<void> {
     await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
+  }
+
+  // Additional methods required by storage interface
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.db.select().from(systemUsers);
+    return users.map(user => ({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      roleId: user.roleId || 1,
+      dataKey: user.dataKey || undefined,
+      channels: Array.isArray(user.channels) ? user.channels : [],
+      macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
+      teamId: user.teamId || undefined,
+      team: user.team || undefined
+    }));
+  }
+
+  async updateUser(id: number, userData: Partial<UpsertUser>): Promise<User> {
+    const [updated] = await this.db
+      .update(systemUsers)
+      .set({
+        ...userData,
+        updatedAt: new Date()
+      })
+      .where(eq(systemUsers.id, id))
+      .returning();
+
+    return {
+      id: updated.id,
+      email: updated.email,
+      username: updated.username,
+      displayName: updated.displayName,
+      role: updated.role,
+      roleId: updated.roleId || 1,
+      dataKey: updated.dataKey || undefined,
+      channels: Array.isArray(updated.channels) ? updated.channels : [],
+      macrosetores: Array.isArray(updated.macrosetores) ? updated.macrosetores : [],
+      teamId: updated.teamId || undefined,
+      team: updated.team || undefined
+    };
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
+  }
+
+  async validateUser(email: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user || user.password !== password) {
+      return undefined;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      roleId: user.roleId || 1,
+      dataKey: user.dataKey || undefined,
+      channels: Array.isArray(user.channels) ? user.channels : [],
+      macrosetores: Array.isArray(user.macrosetores) ? user.macrosetores : [],
+      teamId: user.teamId || undefined,
+      team: user.team || undefined
+    };
   }
 }

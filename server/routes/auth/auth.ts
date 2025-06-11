@@ -193,7 +193,7 @@ export function setupAuth(app: Express) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await storage.getSystemUser(id);
+      const user = await storage.getUserById(id);
       if (!user) {
         return done(null, false);
       }

@@ -72,7 +72,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserById(id: number) {
-    return this.auth.getUserById(id);
+    return this.auth.getUser(id.toString());
   }
 
   async getAllUsers() {
@@ -518,7 +518,7 @@ export class DatabaseStorage implements IStorage {
 
   // System user method for authentication
   async getSystemUser() {
-    return this.auth.getUserById(1);
+    return this.auth.getUser("1");
   }
 
   // Additional interface compliance methods
