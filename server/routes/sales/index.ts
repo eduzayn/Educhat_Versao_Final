@@ -252,9 +252,9 @@ export function registerSalesRoutes(app: Express) {
         new Date(deal.createdAt) >= startDate
       );
 
-      // Análise por categoria/produto (baseado no macrosetor)
+      // Análise por categoria/produto (baseado no teamType)
       const productAnalysis = wonDeals.reduce((acc, deal) => {
-        const product = deal.macrosetor || 'Produto Genérico';
+        const product = deal.teamType || 'Produto Genérico';
         if (!acc[product]) {
           acc[product] = {
             name: product,

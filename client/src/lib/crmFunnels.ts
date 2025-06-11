@@ -123,8 +123,5 @@ export function getAllTeams(): Array<{ id: string; info: TeamConfig }> {
   return Object.entries(teamConfigs).map(([id, info]) => ({ id, info }));
 }
 
-// Manter compatibilidade durante transição
-export const teamMacrosetores = teamConfigs;
-export const getStagesForMacrosetor = getStagesForTeam;
-export const getMacrosetorInfo = getTeamInfo;
+
 export const getAllMacrosetores = getAllTeams;

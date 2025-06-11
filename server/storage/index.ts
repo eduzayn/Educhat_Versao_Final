@@ -624,6 +624,10 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamByTeamType(macrosetor);
   }
 
+  async getTeamByTeamType(teamType: string): Promise<Team | undefined> {
+    return this.team.getTeamByTeamType(teamType);
+  }
+
   async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
     return this.team.getAvailableUserFromTeam(teamId);
   }
