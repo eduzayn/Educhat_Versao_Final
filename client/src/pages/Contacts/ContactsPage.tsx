@@ -695,42 +695,9 @@ export function ContactsPage() {
                   </div>
                 </div>
               )}
-
-              {/* Buttons */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setIsCreating(false);
-                    setCreateForm({ 
-                      name: '', 
-                      email: '', 
-                      phone: '', 
-                      company: '', 
-                      address: '', 
-                      contactType: 'Lead', 
-                      owner: '', 
-                      notes: '' 
-                    });
-                    setNewTags([]);
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleCreateContact}
-                  disabled={createContact.isPending || !createForm.name.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                >
-                  {createContact.isPending ? 'Criando...' : 
-                    (messageText.trim() && createForm.phone && whatsappChannels.length > 0) 
-                      ? 'Criar Contato e Enviar Mensagem' 
-                      : 'Criar Contato'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Modal de Visualização */}
         <Dialog open={!!viewingContact} onOpenChange={(open) => !open && setViewingContact(null)}>
@@ -1261,6 +1228,15 @@ export function ContactsPage() {
           </Card>
         </div>
       </div>
+      {/* Modal de Criação de Contatos */}
+      <ContactDialog 
+        isOpen={isCreating} 
+        onClose={() => setIsCreating(false)}
+        onSuccess={() => {
+          refetch();
+          setIsCreating(false);
+        }}
+      />
     </div>
   );
 }
