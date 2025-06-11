@@ -551,7 +551,40 @@ export class CRMService {
     }
   }
 
-    return actions;
+  /**
+   * Executa ações automáticas baseadas na análise da IA
+   */
+  async executeAutomatedActions(
+    aiClassification: any,
+    contactId: number,
+    conversationId: number,
+    messageContent: string
+  ): Promise<any[]> {
+    const actions: any[] = [];
+
+    try {
+      // Verificar se é um lead qualificado
+      if (aiClassification.isLead && aiClassification.confidence >= 85) {
+        
+        // Ação 1: Criar ou atualizar negócio no CRM
+        const dealAction = await this.createOrUpdateLead(
+          aiClassification,
+          contactId,
+          conversationId,
+          messageContent
+        );
+        
+        if (dealAction) {
+          actions.push(dealAction);
+          console.log(`💼 Deal criado/atualizado automaticamente: ${dealAction.data.name}`);
+        }
+      }
+
+      return actions;
+    } catch (error) {
+      console.error('❌ Erro ao executar ações automáticas do CRM:', error);
+      return [];
+    }
   }
 
   /**
