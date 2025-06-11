@@ -101,9 +101,38 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         messageContent = documentUrl || `📄 ${webhookData.document.fileName || 'Documento'}`;
         mediaUrl = documentUrl;
         fileName = webhookData.document.fileName;
+      } else if (webhookData.sticker) {
+        messageType = 'sticker';
+        const stickerUrl = webhookData.sticker.stickerUrl || webhookData.sticker.url;
+        messageContent = stickerUrl || '🎭 Figurinha';
+        mediaUrl = stickerUrl;
+        fileName = webhookData.sticker.fileName || 'sticker.webp';
+      } else if (webhookData.location) {
+        messageType = 'location';
+        messageContent = `📍 Localização: ${webhookData.location.latitude}, ${webhookData.location.longitude}`;
+      } else if (webhookData.contact) {
+        messageType = 'contact';
+        messageContent = `👤 Contato: ${webhookData.contact.displayName || webhookData.contact.name || 'Contato compartilhado'}`;
+      } else if (webhookData.reaction) {
+        messageType = 'reaction';
+        messageContent = `${webhookData.reaction.emoji || '👍'} Reação à mensagem`;
+      } else if (webhookData.poll) {
+        messageType = 'poll';
+        messageContent = `📊 Enquete: ${webhookData.poll.name || 'Nova enquete'}`;
+      } else if (webhookData.button) {
+        messageType = 'button';
+        messageContent = `🔘 Botão: ${webhookData.button.text || 'Botão clicado'}`;
+      } else if (webhookData.list) {
+        messageType = 'list';
+        messageContent = `📋 Lista: ${webhookData.list.title || 'Lista interativa'}`;
+      } else if (webhookData.template) {
+        messageType = 'template';
+        messageContent = `📨 Template: ${webhookData.template.name || 'Mensagem template'}`;
       } else {
-        messageContent = '[Mensagem não suportada]';
-        messageType = 'unknown';
+        // Para tipos verdadeiramente desconhecidos, registrar no log para análise
+        console.log('🔍 Tipo de mensagem não reconhecido:', JSON.stringify(webhookData, null, 2));
+        messageContent = `⚠️ Tipo de mensagem ainda não suportado pelo sistema`;
+        messageType = 'unsupported';
       }
       
       // Buscar ou criar contato

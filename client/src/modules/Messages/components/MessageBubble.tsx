@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
@@ -292,6 +292,100 @@ export function MessageBubble({
           metadata={message.metadata}
           initialContent={message.content}
         />
+      );
+    }
+
+    // Tipos de mensagem especiais com formatação específica
+    if (message.messageType === 'location') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">Localização compartilhada</span>
+          </div>
+          <p className="text-sm mt-1 text-gray-600">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'contact') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <User className="h-4 w-4 text-green-600" />
+            <span className="font-medium">Contato compartilhado</span>
+          </div>
+          <p className="text-sm mt-1 text-gray-600">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'reaction') {
+      return (
+        <div className={`px-3 py-2 rounded-lg ${bubbleClasses}`}>
+          <p className="text-sm">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'poll') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <span className="font-medium">Enquete</span>
+          </div>
+          <p className="text-sm mt-1">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'button') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <Square className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">Botão interativo</span>
+          </div>
+          <p className="text-sm mt-1">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'list') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <List className="h-4 w-4 text-indigo-600" />
+            <span className="font-medium">Lista interativa</span>
+          </div>
+          <p className="text-sm mt-1">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'template') {
+      return (
+        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
+          <div className="flex items-center gap-2 text-sm">
+            <Mail className="h-4 w-4 text-cyan-600" />
+            <span className="font-medium">Mensagem template</span>
+          </div>
+          <p className="text-sm mt-1">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.messageType === 'unsupported') {
+      return (
+        <div className={`px-4 py-3 rounded-lg border-2 border-dashed border-yellow-300 bg-yellow-50 ${isFromContact ? 'border-l-4 border-l-yellow-500' : 'border-r-4 border-r-yellow-500'}`}>
+          <div className="flex items-center gap-2 text-sm text-yellow-800">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="font-medium">Tipo de mensagem não suportado</span>
+          </div>
+          <p className="text-sm mt-1 text-yellow-700">{message.content}</p>
+          <p className="text-xs mt-2 text-yellow-600">Este tipo de conteúdo ainda não é totalmente suportado pelo sistema</p>
+        </div>
       );
     }
 
