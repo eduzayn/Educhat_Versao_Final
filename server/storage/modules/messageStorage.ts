@@ -218,4 +218,16 @@ export class MessageStorage extends BaseStorage {
   async deleteMessage(id: number): Promise<void> {
     await this.db.delete(messages).where(eq(messages.id, id));
   }
+
+  async markMessageAsDeletedByUser(messageId: number): Promise<Message> {
+    const [updated] = await this.db.update(messages)
+      .set({ 
+        isDeletedByUser: true, 
+        deletedAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(messages.id, messageId))
+      .returning();
+    return updated;
+  }
 }

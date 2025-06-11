@@ -296,9 +296,124 @@ export async function handleSendAudio(req: Request, res: Response) {
 }
 
 /**
+ * Handler para envio de vídeos via Z-API
+ */
+export async function handleSendVideo(req: Request, res: Response) {
+  try {
+    console.log('🎥 Recebendo solicitação de envio de vídeo:', {
+      hasPhone: !!req.body.phone,
+      hasFile: !!req.file,
+      contentType: req.headers['content-type']
+    });
+    
+    const phone = req.body.phone;
+    const conversationId = req.body.conversationId;
+    const caption = req.body.caption || '';
+    
+    if (!phone || !req.file) {
+      return res.status(400).json({ 
+        error: 'Phone e arquivo de vídeo são obrigatórios' 
+      });
+    }
+
+    const credentials = validateZApiCredentials();
+    if (!credentials.valid) {
+      return res.status(400).json({ error: credentials.error });
+    }
+
+    const { instanceId, token, clientToken } = credentials;
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Converter arquivo para base64 com prefixo data URL conforme documentação Z-API
+    const videoBase64 = req.file.buffer.toString('base64');
+    const dataUrl = `data:${req.file.mimetype};base64,${videoBase64}`;
+    
+    const payload = {
+      phone: cleanPhone,
+      video: dataUrl,
+      caption: caption
+    };
+
+    const url = buildZApiUrl(instanceId, token, 'send-video');
+    console.log('🎥 Enviando vídeo para Z-API:', { 
+      url: url.replace(token, '****'), 
+      phone: cleanPhone,
+      videoSize: videoBase64.length,
+      mimeType: req.file.mimetype,
+      hasCaption: !!caption
+    });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getZApiHeaders(clientToken),
+      body: JSON.stringify(payload)
+    });
+
+    const responseText = await response.text();
+    console.log('📥 Resposta Z-API (vídeo):', {
+      status: response.status,
+      statusText: response.statusText,
+      body: responseText.substring(0, 200) + '...'
+    });
+
+    if (!response.ok) {
+      console.error('❌ Erro na Z-API (vídeo):', responseText);
+      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Erro ao parsear resposta JSON (vídeo):', parseError);
+      throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+    }
+
+    console.log('✅ Vídeo enviado com sucesso via Z-API:', data);
+    
+    // Salvar mensagem no banco de dados se conversationId foi fornecido
+    if (conversationId) {
+      try {
+        await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: caption || 'Vídeo',
+          isFromContact: false,
+          messageType: 'video',
+          sentAt: new Date(),
+          metadata: {
+            zaapId: data.messageId || data.id,
+            videoSent: true,
+            mimeType: req.file.mimetype,
+            mediaUrl: dataUrl,
+            originalContent: caption || 'Vídeo'
+          }
+        });
+
+        // Broadcast para WebSocket
+        const { broadcast } = await import('../../realtime');
+        broadcast(parseInt(conversationId), {
+          type: 'message_sent',
+          conversationId: parseInt(conversationId)
+        });
+      } catch (dbError) {
+        console.error('❌ Erro ao salvar mensagem de vídeo no banco:', dbError);
+      }
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Erro ao enviar vídeo via Z-API:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+}
+
+/**
  * Registra rotas Z-API relacionadas a mídia
  */
 export function registerZApiMediaRoutes(app: Express) {
   app.post('/api/zapi/send-image', uploadImage.single('image'), handleSendImage);
   app.post('/api/zapi/send-audio', uploadAudio.single('audio'), handleSendAudio);
+  app.post('/api/zapi/send-video', uploadVideo.single('video'), handleSendVideo);
 }

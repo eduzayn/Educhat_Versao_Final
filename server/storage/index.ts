@@ -464,6 +464,10 @@ export class DatabaseStorage implements IStorage {
     return this.message.getMessageMedia(messageId);
   }
 
+  async markMessageAsDeletedByUser(messageId: number) {
+    return this.message.markMessageAsDeletedByUser(messageId);
+  }
+
   // ==================== NOTES OPERATIONS ====================
   async createNote(noteData: any) {
     return this.notes.createNote(noteData);
