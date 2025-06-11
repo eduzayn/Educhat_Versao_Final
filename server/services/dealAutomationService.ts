@@ -1,4 +1,5 @@
 import { storage } from '../core/storage';
+import { funnelService } from './funnelService';
 
 /**
  * Serviço de automação de deals - Sistema simplificado
@@ -32,11 +33,15 @@ export class DealAutomationService {
 
       console.log(`📋 Dados para automação: contato=${conversation.contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
 
-      // Criar deal automático usando o sistema existente
+      // Buscar estágio inicial correto do funil da equipe
+      const initialStage = await funnelService.getInitialStageForMacrosetor(macrosetor);
+      
+      // Criar deal automático usando o sistema existente com estágio correto
       const deal = await storage.createAutomaticDeal(
         conversation.contactId,
         canalOrigem,
-        macrosetor
+        macrosetor,
+        initialStage
       );
 
       console.log(`✅ Deal criado automaticamente: ID ${deal.id} - ${deal.name}`);

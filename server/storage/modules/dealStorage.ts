@@ -98,7 +98,7 @@ export class DealStorage extends BaseStorage {
     };
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string, initialStage?: string): Promise<Deal> {
     console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
     
     // Verificação robusta para evitar duplicação durante criação
@@ -170,8 +170,8 @@ export class DealStorage extends BaseStorage {
       return lastMinuteActiveDeal;
     }
 
-    // Determinar estágio inicial baseado no macrosetor
-    const getInitialStageByMacrosetor = (macrosetor: string): string => {
+    // Usar estágio fornecido pelo serviço de funis ou fallback para compatibilidade
+    const stage = initialStage || (() => {
       const stageMapping: { [key: string]: string } = {
         'comercial': 'prospecting',
         'suporte': 'solicitacao',
@@ -181,10 +181,8 @@ export class DealStorage extends BaseStorage {
         'financeiro': 'analise-inicial',
         'secretaria_pos': 'documentos-inicial'
       };
-      return stageMapping[macrosetor] || 'prospecting';
-    };
-
-    const initialStage = getInitialStageByMacrosetor(macrosetor || 'geral');
+      return stageMapping[macrosetor || 'geral'] || 'prospecting';
+    })();
 
     // Create automatic deal
     const dealData: InsertDeal = {
