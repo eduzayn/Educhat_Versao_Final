@@ -3,6 +3,54 @@ import { storage } from "../../core/storage";
 import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
 import { pool } from "../../db";
 
+/**
+ * Sincroniza contato criado manualmente com Z-API para permitir mensagens ativas
+ */
+async function syncContactWithZApi(contact: any) {
+  const instanceId = process.env.ZAPI_INSTANCE_ID;
+  const token = process.env.ZAPI_TOKEN;
+  const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+  
+  if (!instanceId || !token || !clientToken) {
+    throw new Error('Credenciais Z-API não configuradas');
+  }
+  
+  // Verifica se o número está em formato válido para WhatsApp
+  const phoneNumber = contact.phone.replace(/\D/g, '');
+  if (!phoneNumber.startsWith('55')) {
+    throw new Error('Número deve estar em formato brasileiro (+55)');
+  }
+  
+  try {
+    // Registra contato na Z-API para permitir mensagens ativas
+    const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Token': clientToken
+      },
+      body: JSON.stringify({
+        phone: phoneNumber,
+        name: contact.name
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Erro Z-API: ${response.status} - ${errorData}`);
+    }
+    
+    console.log(`✅ Contato ${contact.name} (${phoneNumber}) adicionado ao Z-API`);
+    return await response.json();
+    
+  } catch (error) {
+    console.error('❌ Erro ao sincronizar contato com Z-API:', error);
+    throw error;
+  }
+}
+
 export function registerContactRoutes(app: Express) {
   
   // Contacts endpoints  
@@ -49,7 +97,21 @@ export function registerContactRoutes(app: Express) {
   app.post('/api/contacts', async (req, res) => {
     try {
       const validatedData = insertContactSchema.parse(req.body);
+      
+      // Criar contato no banco local
       const contact = await storage.createContact(validatedData);
+      
+      // Integração com Z-API - adicionar contato para permitir mensagens ativas
+      if (contact.phone) {
+        try {
+          await syncContactWithZApi(contact);
+          console.log(`✅ Contato ${contact.name} sincronizado com Z-API para mensagens ativas`);
+        } catch (zapiError) {
+          console.warn(`⚠️ Falha ao sincronizar contato com Z-API: ${zapiError}`);
+          // Não falha a criação do contato por erro na Z-API
+        }
+      }
+      
       res.status(201).json(contact);
     } catch (error) {
       console.error('Error creating contact:', error);

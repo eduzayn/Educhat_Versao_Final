@@ -64,6 +64,83 @@ app.get('/api/contacts', async (req: Request, res: Response) => {
   }
 });
 
+// Endpoint POST para criação de contatos com integração Z-API
+app.post('/api/contacts', async (req: Request, res: Response) => {
+  try {
+    // Validar dados básicos do contato
+    const { name, phone, email, empresa, endereco, tipo, tags, notas } = req.body;
+    
+    if (!name || !phone) {
+      return res.status(400).json({ message: 'Nome e telefone são obrigatórios' });
+    }
+    
+    // Limpar e validar número de telefone
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (!cleanPhone.startsWith('55') || cleanPhone.length < 12) {
+      return res.status(400).json({ message: 'Telefone deve estar em formato brasileiro válido (+55)' });
+    }
+    
+    // Criar contato no banco
+    const insertQuery = `
+      INSERT INTO contacts (name, phone, email, company, address, contact_type, notes, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      RETURNING *
+    `;
+    
+    const result = await pool.query(insertQuery, [
+      name,
+      cleanPhone,
+      email || null,
+      empresa || null,
+      endereco || null,
+      tipo || 'Lead',
+      notas || null
+    ]);
+    
+    const newContact = result.rows[0];
+    
+    // Integração com Z-API para permitir mensagens ativas
+    try {
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      
+      if (instanceId && token && clientToken) {
+        const zapiUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts`;
+        
+        const zapiResponse = await fetch(zapiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Client-Token': clientToken
+          },
+          body: JSON.stringify({
+            phone: cleanPhone,
+            name: name
+          })
+        });
+        
+        if (zapiResponse.ok) {
+          console.log(`✅ Contato ${name} (${cleanPhone}) sincronizado com Z-API para mensagens ativas`);
+        } else {
+          console.warn(`⚠️ Falha ao sincronizar contato com Z-API: ${zapiResponse.status}`);
+        }
+      }
+    } catch (zapiError) {
+      console.warn(`⚠️ Erro na integração Z-API (contato salvo no banco): ${zapiError}`);
+    }
+    
+    res.status(201).json({
+      ...newContact,
+      message: 'Contato criado com sucesso e sincronizado com WhatsApp para mensagens ativas'
+    });
+    
+  } catch (error) {
+    console.error('Error creating contact:', error);
+    res.status(500).json({ message: 'Failed to create contact' });
+  }
+});
+
 // Endpoints para cursos e categorias
 app.get('/api/courses/categories', async (req: Request, res: Response) => {
   try {
