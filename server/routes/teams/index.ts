@@ -20,7 +20,7 @@ export function registerTeamsRoutes(app: Express) {
     try {
       const teamData = req.body;
       const newTeam = await storage.createTeam(teamData);
-      console.log(`🎯 Nova equipe criada: ${newTeam.name} - Tipo: ${newTeam.team_type}`);
+      console.log(`🎯 Nova equipe criada: ${newTeam.name} - Tipo: ${newTeam.teamType}`);
       
       // Criar automaticamente canal de chat interno para a nova equipe
       try {

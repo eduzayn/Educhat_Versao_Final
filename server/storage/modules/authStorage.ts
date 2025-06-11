@@ -58,7 +58,7 @@ export class AuthStorage extends BaseStorage {
         roleId: 1,
         isActive: true,
         channels: [],
-        macrosetores: []
+        teams: []
       })
       .returning();
     
