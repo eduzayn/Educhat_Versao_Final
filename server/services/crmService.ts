@@ -590,11 +590,26 @@ export class CRMService {
    * Cria ou atualiza lead no CRM
    */
   private async createOrUpdateLead(
-    contact: any,
+    contactId: number,
     classification: any,
     message: string
   ): Promise<CRMAction | null> {
     try {
+      // Buscar dados do contato
+      console.log(`🔍 Buscando contato ID: ${contactId}`);
+      const [contact] = await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.id, contactId))
+        .limit(1);
+
+      console.log(`🔍 Resultado da busca de contato:`, contact);
+
+      if (!contact) {
+        console.log(`❌ Contato não encontrado: ${contactId}`);
+        return null;
+      }
+
       // Extrair curso de interesse da mensagem
       const courseInterest = this.extractCourseInterest(message, classification.contextKeywords);
       
@@ -605,13 +620,13 @@ export class CRMService {
       const [existingDeal] = await db
         .select()
         .from(deals)
-        .where(eq(deals.contactId, contact.id))
+        .where(eq(deals.contactId, contactId))
         .orderBy(desc(deals.createdAt))
         .limit(1);
 
       let dealData = {
         name: `Lead: ${contact.name} - ${courseInterest}`,
-        contactId: contact.id,
+        contactId: contactId,
         value: this.estimateDealValue(courseInterest),
         stage: stage,
         status: 'active',
