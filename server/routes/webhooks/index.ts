@@ -1236,7 +1236,10 @@ export function registerZApiRoutes(app: Express) {
                 // Usar novo sistema inteligente de handoff
                 const response = await fetch(`http://localhost:5000/api/handoffs/intelligent/execute`, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'x-internal-call': 'true'
+                  },
                   body: JSON.stringify({
                     conversationId: conversation.id,
                     messageContent: messageContent,
