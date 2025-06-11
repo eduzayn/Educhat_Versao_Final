@@ -67,7 +67,7 @@ export function ChatHeader({
             conversationId={activeConversation.id}
             currentTeamId={activeConversation.assignedTeamId}
             currentUserId={activeConversation.assignedUserId}
-            currentMacrosetor={activeConversation.macrosetor}
+            detectedTeam={activeConversation.macrosetor}
           />
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
             <Phone className="w-4 h-4" />
