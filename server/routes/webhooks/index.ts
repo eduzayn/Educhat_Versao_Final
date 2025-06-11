@@ -74,28 +74,32 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         messageContent = webhookData.text.message;
         messageType = 'text';
       } else if (webhookData.image) {
-        // Para imagens, armazenar a URL no content para exibição direta
-        messageContent = webhookData.image.imageUrl || webhookData.image.url || `📷 ${webhookData.image.caption || 'Imagem'}`;
         messageType = 'image';
-        mediaUrl = webhookData.image.imageUrl || webhookData.image.url;
+        // Para imagens, armazenar a URL no content para exibição direta
+        const imageUrl = webhookData.image.imageUrl || webhookData.image.url;
+        messageContent = imageUrl || `📷 ${webhookData.image.caption || 'Imagem'}`;
+        mediaUrl = imageUrl;
         fileName = webhookData.image.fileName || 'image.jpg';
       } else if (webhookData.audio) {
-        const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
-        // Para áudios, armazenar a URL no content para reprodução direta
-        messageContent = webhookData.audio.audioUrl || webhookData.audio.url || `🎵 Áudio (${audioSeconds}s)`;
         messageType = 'audio';
-        mediaUrl = webhookData.audio.audioUrl || webhookData.audio.url;
+        const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
+        const audioUrl = webhookData.audio.audioUrl || webhookData.audio.url;
+        // Para áudios, armazenar a URL no content para reprodução direta
+        messageContent = audioUrl || `🎵 Áudio (${audioSeconds}s)`;
+        mediaUrl = audioUrl;
         fileName = webhookData.audio.fileName || 'audio.ogg';
       } else if (webhookData.video) {
-        // Para vídeos, armazenar a URL no content
-        messageContent = webhookData.video.videoUrl || webhookData.video.url || `🎥 ${webhookData.video.caption || 'Vídeo'}`;
         messageType = 'video';
-        mediaUrl = webhookData.video.videoUrl || webhookData.video.url;
+        const videoUrl = webhookData.video.videoUrl || webhookData.video.url;
+        // Para vídeos, armazenar a URL no content
+        messageContent = videoUrl || `🎥 ${webhookData.video.caption || 'Vídeo'}`;
+        mediaUrl = videoUrl;
         fileName = webhookData.video.fileName || 'video.mp4';
       } else if (webhookData.document) {
-        messageContent = `📄 ${webhookData.document.fileName || 'Documento'}`;
         messageType = 'document';
-        mediaUrl = webhookData.document.documentUrl || webhookData.document.url;
+        const documentUrl = webhookData.document.documentUrl || webhookData.document.url;
+        messageContent = documentUrl || `📄 ${webhookData.document.fileName || 'Documento'}`;
+        mediaUrl = documentUrl;
         fileName = webhookData.document.fileName;
       } else {
         messageContent = '[Mensagem não suportada]';
@@ -138,12 +142,41 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           mediaUrl: mediaUrl,
           fileName: fileName,
           originalContent: messageContent,
-          // Metadados específicos para áudio
+          // Metadados específicos por tipo de mídia
+          ...(messageType === 'image' && webhookData.image ? {
+            image: {
+              imageUrl: webhookData.image.imageUrl || webhookData.image.url,
+              url: webhookData.image.imageUrl || webhookData.image.url,
+              fileName: webhookData.image.fileName || 'image.jpg',
+              mimeType: webhookData.image.mimeType || 'image/jpeg',
+              caption: webhookData.image.caption
+            }
+          } : {}),
           ...(messageType === 'audio' && webhookData.audio ? {
             audio: {
               audioUrl: webhookData.audio.audioUrl || webhookData.audio.url,
+              url: webhookData.audio.audioUrl || webhookData.audio.url,
               duration: webhookData.audio.seconds || webhookData.audio.duration || 0,
-              mimeType: webhookData.audio.mimeType || 'audio/mp4'
+              seconds: webhookData.audio.seconds || webhookData.audio.duration || 0,
+              fileName: webhookData.audio.fileName || 'audio.ogg',
+              mimeType: webhookData.audio.mimeType || 'audio/ogg'
+            }
+          } : {}),
+          ...(messageType === 'video' && webhookData.video ? {
+            video: {
+              videoUrl: webhookData.video.videoUrl || webhookData.video.url,
+              url: webhookData.video.videoUrl || webhookData.video.url,
+              fileName: webhookData.video.fileName || 'video.mp4',
+              mimeType: webhookData.video.mimeType || 'video/mp4',
+              caption: webhookData.video.caption
+            }
+          } : {}),
+          ...(messageType === 'document' && webhookData.document ? {
+            document: {
+              documentUrl: webhookData.document.documentUrl || webhookData.document.url,
+              url: webhookData.document.documentUrl || webhookData.document.url,
+              fileName: webhookData.document.fileName || 'document.pdf',
+              mimeType: webhookData.document.mimeType || 'application/pdf'
             }
           } : {})
         }

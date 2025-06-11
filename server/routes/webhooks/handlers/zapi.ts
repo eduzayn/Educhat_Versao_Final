@@ -7,6 +7,7 @@ import type { Request, Response, Express } from "express";
 import { storage } from "../../../core/storage";
 import multer from "multer";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../../utils/zapi";
+import { extractMediaUrl, normalizeMessageMetadata } from "../../../utils/mediaUrlExtractor";
 
 // Configurar multer para upload de áudio em memória
 const uploadAudio = multer({
