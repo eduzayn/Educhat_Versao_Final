@@ -439,7 +439,7 @@ export class IntelligentHandoffService {
       .slice(0, 2)
       .map(t => ({
         teamId: t.teamId,
-        reason: `Equipe ${t.teamName} (${t.macrosetor}) - ${t.utilizationRate.toFixed(0)}% ocupada`,
+        reason: `Equipe ${t.teamName} (${t.teamType}) - ${t.utilizationRate.toFixed(0)}% ocupada`,
         confidence: confidence * 0.8
       }));
 
@@ -466,7 +466,7 @@ export class IntelligentHandoffService {
     const isBusinessTime = this.isBusinessHours();
     
     reasons.push(`IA detectou intenção: ${classification.intent}`);
-    reasons.push(`Equipe ${team.teamName} especializada em ${team.macrosetor}`);
+    reasons.push(`Equipe ${team.teamName} especializada em ${team.teamType}`);
     reasons.push(`Capacidade atual: ${team.utilizationRate.toFixed(0)}%`);
     
     if (classification.frustrationLevel > 6) {
@@ -557,17 +557,6 @@ export class IntelligentHandoffService {
 
     if (recommendation.teamId) {
       updateData.assignedTeamId = recommendation.teamId;
-      
-      // Buscar macrosetor da equipe
-      const [team] = await db
-        .select({ macrosetor: teams.macrosetor })
-        .from(teams)
-        .where(eq(teams.id, recommendation.teamId))
-        .limit(1);
-      
-      if (team) {
-        updateData.macrosetor = team.macrosetor;
-      }
     }
 
     if (recommendation.userId) {
