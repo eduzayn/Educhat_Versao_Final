@@ -3,7 +3,7 @@ export type { IStorage } from './interfaces/IStorage';
 export { BaseStorage } from './base/BaseStorage';
 
 // Módulos de storage
-export { AuthStorage } from './modules/authStorage';
+export { UserManagementStorage } from './modules/userManagementStorage';
 export { ContactStorage } from './modules/contactStorage';
 export { ConversationStorage } from './modules/conversationStorage';
 export { ChannelStorage } from './modules/channelStorage';
@@ -100,39 +100,39 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== AUTH OPERATIONS ====================
   async getUser(id: string): Promise<User | undefined> {
-    return this.auth.getUser(id);
+    return this.userManagement.getUser(id);
   }
 
   async upsertUser(user: UpsertUser): Promise<User> {
-    return this.auth.upsertUser(user);
+    return this.userManagement.upsertUser(user);
   }
 
   async createUser(userData: any) {
-    return this.auth.createUser(userData);
+    return this.userManagement.createUser(userData);
   }
 
   async getUserByEmail(email: string) {
-    return this.auth.getUserByEmail(email);
+    return this.userManagement.getUserByEmail(email);
   }
 
   async getUserById(id: number) {
-    return this.auth.getUser(id.toString());
+    return this.userManagement.getUser(id.toString());
   }
 
   async getAllUsers() {
-    return this.auth.getAllUsers();
+    return this.userManagement.getAllUsers();
   }
 
   async updateUser(id: number, userData: any) {
-    return this.auth.updateUser(id, userData);
+    return this.userManagement.updateUser(id, userData);
   }
 
   async deleteUser(id: number) {
-    return this.auth.deleteUser(id);
+    return this.userManagement.deleteUser(id);
   }
 
   async validateUser(email: string, password: string) {
-    return this.auth.validateUser(email, password);
+    return this.userManagement.validateUser(email, password);
   }
 
   // ==================== CONTACT OPERATIONS ====================
@@ -567,23 +567,23 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== SYSTEM USER OPERATIONS ====================
   async getSystemUsers(): Promise<SystemUser[]> {
-    return this.auth.getSystemUsers();
+    return this.userManagement.getSystemUsers();
   }
 
   async getSystemUser(id: number): Promise<SystemUser | undefined> {
-    return this.auth.getSystemUser(id);
+    return this.userManagement.getSystemUser(id);
   }
 
   async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
-    return this.auth.createSystemUser(user);
+    return this.userManagement.createSystemUser(user);
   }
 
   async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
-    return this.auth.updateSystemUser(id, user);
+    return this.userManagement.updateSystemUser(id, user);
   }
 
   async deleteSystemUser(id: number): Promise<void> {
-    return this.auth.deleteSystemUser(id);
+    return this.userManagement.deleteSystemUser(id);
   }
 
   // ==================== TEAM OPERATIONS ====================
@@ -653,27 +653,27 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== ROLE OPERATIONS ====================
   async getRoles(): Promise<Role[]> {
-    return this.auth.getRoles();
+    return this.userManagement.getRoles();
   }
 
   async getRole(id: number): Promise<Role | undefined> {
-    return this.auth.getRole(id);
+    return this.userManagement.getRole(id);
   }
 
   async createRole(role: InsertRole): Promise<Role> {
-    return this.auth.createRole(role);
+    return this.userManagement.createRole(role);
   }
 
   async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
-    return this.auth.updateRole(id, role);
+    return this.userManagement.updateRole(id, role);
   }
 
   async deleteRole(id: number): Promise<void> {
-    return this.auth.deleteRole(id);
+    return this.userManagement.deleteRole(id);
   }
 
   async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
-    return this.auth.checkUserPermission(userId, permissionName);
+    return this.userManagement.checkUserPermission(userId, permissionName);
   }
 
   // ==================== CHANNEL OPERATIONS ====================
@@ -755,36 +755,36 @@ export class DatabaseStorage implements IStorage {
 
   // ==================== SYSTEM SETTINGS OPERATIONS ====================
   async getSystemSetting(key: string): Promise<SystemSetting | null> {
-    return this.system.getSystemSetting(key);
+    return this.userManagement.getSystemSetting(key);
   }
 
   async getSystemSettings(category?: string): Promise<SystemSetting[]> {
-    return this.system.getSystemSettings(category);
+    return this.userManagement.getSystemSettings(category);
   }
 
   async setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<SystemSetting> {
-    return this.system.setSystemSetting(key, value, type, description, category);
+    return this.userManagement.setSystemSetting(key, value, type, description, category);
   }
 
   async toggleSystemSetting(key: string): Promise<SystemSetting> {
-    return this.system.toggleSystemSetting(key);
+    return this.userManagement.toggleSystemSetting(key);
   }
 
   async deleteSystemSetting(key: string): Promise<void> {
-    return this.system.deleteSystemSetting(key);
+    return this.userManagement.deleteSystemSetting(key);
   }
 
   // ==================== PERMISSION OPERATIONS ====================
   async canUserRespondToOthersConversations(userId: number): Promise<boolean> {
-    return this.auth.canUserRespondToOthersConversations(userId);
+    return this.userManagement.canUserRespondToOthersConversations(userId);
   }
 
   async canUserRespondToOwnConversations(userId: number): Promise<boolean> {
-    return this.auth.canUserRespondToOwnConversations(userId);
+    return this.userManagement.canUserRespondToOwnConversations(userId);
   }
 
   async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> {
-    return this.auth.canUserRespondToConversation(userId, conversationId);
+    return this.userManagement.canUserRespondToConversation(userId, conversationId);
   }
 
   // ==================== TEAM DETECTION OPERATIONS ====================
@@ -942,71 +942,71 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAuditLogs(filters: any = {}) {
-    return this.system.getAuditLogs(filters);
+    return this.userManagement.getAuditLogs(filters);
   }
 
   async createAuditLog(logData: any) {
-    return this.system.createAuditLog(logData);
+    return this.userManagement.createAuditLog(logData);
   }
 
   async getNotifications(userId: number) {
-    return this.system.getNotifications(userId);
+    return this.userManagement.getNotifications(userId);
   }
 
   async createNotification(notificationData: any) {
-    return this.system.createNotification(notificationData);
+    return this.userManagement.createNotification(notificationData);
   }
 
   async markNotificationAsRead(id: number) {
-    return this.system.markNotificationAsRead(id);
+    return this.userManagement.markNotificationAsRead(id);
   }
 
   async getWebhooks() {
-    return this.system.getWebhooks();
+    return this.userManagement.getWebhooks();
   }
 
   async createWebhook(webhookData: any) {
-    return this.system.createWebhook(webhookData);
+    return this.userManagement.createWebhook(webhookData);
   }
 
   async updateWebhook(id: number, data: any) {
-    return this.system.updateWebhook(id, data);
+    return this.userManagement.updateWebhook(id, data);
   }
 
   async deleteWebhook(id: number) {
-    return this.system.deleteWebhook(id);
+    return this.userManagement.deleteWebhook(id);
   }
 
   async getTags() {
-    return this.system.getTags();
+    return this.userManagement.getTags();
   }
 
   async createTag(tagData: any) {
-    return this.system.createTag(tagData);
+    return this.userManagement.createTag(tagData);
   }
 
   async updateTag(id: number, data: any) {
-    return this.system.updateTag(id, data);
+    return this.userManagement.updateTag(id, data);
   }
 
   async deleteTag(id: number) {
-    return this.system.deleteTag(id);
+    return this.userManagement.deleteTag(id);
   }
 
   async getCustomFields() {
-    return this.system.getCustomFields();
+    return this.userManagement.getCustomFields();
   }
 
   async createCustomField(fieldData: any) {
-    return this.system.createCustomField(fieldData);
+    return this.userManagement.createCustomField(fieldData);
   }
 
   async updateCustomField(id: number, data: any) {
-    return this.system.updateCustomField(id, data);
+    return this.userManagement.updateCustomField(id, data);
   }
 
   async deleteCustomField(id: number) {
-    return this.system.deleteCustomField(id);
+    return this.userManagement.deleteCustomField(id);
   }
 
   // ==================== ANALYTICS OPERATIONS ====================
@@ -1031,7 +1031,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserPerformanceAnalytics(userId: number, filters: any = {}) {
-    return this.auth.getUserPerformanceAnalytics(userId, filters);
+    return this.userManagement.getUserPerformanceAnalytics(userId, filters);
   }
 
   async getChannelAnalytics(channelId: number, filters: any = {}) {
@@ -1039,7 +1039,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getIntegrationAnalytics(integrationType: string, filters: any = {}) {
-    return this.system.getIntegrationAnalytics(integrationType, filters);
+    return this.userManagement.getIntegrationAnalytics(integrationType, filters);
   }
 
   async getDealConversionAnalytics(filters: any = {}) {
@@ -1051,68 +1051,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateAnalyticsReport(reportType: string, filters: any = {}) {
-    return this.system.generateAnalyticsReport(reportType, filters);
+    return this.userManagement.generateAnalyticsReport(reportType, filters);
   }
 
   async sendAnalyticsReport(reportId: string, recipients: string[]) {
-    return this.system.sendAnalyticsReport(reportId, recipients);
+    return this.userManagement.sendAnalyticsReport(reportId, recipients);
   }
 
   async exportAnalyticsData(exportType: string, filters: any = {}) {
-    return this.system.exportAnalyticsData(exportType, filters);
+    return this.userManagement.exportAnalyticsData(exportType, filters);
   }
 
   async scheduleAnalyticsReport(schedule: any) {
-    return this.system.scheduleAnalyticsReport(schedule);
+    return this.userManagement.scheduleAnalyticsReport(schedule);
   }
 
   async getScheduledReports(userId?: number) {
-    return this.system.getScheduledReports(userId);
+    return this.userManagement.getScheduledReports(userId);
   }
 
   async deleteScheduledReport(reportId: string) {
-    return this.system.deleteScheduledReport(reportId);
+    return this.userManagement.deleteScheduledReport(reportId);
   }
 
   async updateSystemSetting(key: string, value: any) {
-    return this.system.setSystemSetting(key, value);
+    return this.userManagement.setSystemSetting(key, value);
   }
 
   async getSystemSetting(key: string) {
-    return this.system.getSystemSetting(key);
+    return this.userManagement.getSystemSetting(key);
   }
 
   // ==================== FINAL ANALYTICS METHODS ====================
   async executeCustomAnalyticsQuery(query: string, parameters?: any[]) {
-    return this.system.executeCustomAnalyticsQuery(query, parameters);
+    return this.userManagement.executeCustomAnalyticsQuery(query, parameters);
   }
 
   async getRealtimeAnalytics(metric: string, filters?: any) {
-    return this.system.getRealtimeAnalytics(metric, filters);
+    return this.userManagement.getRealtimeAnalytics(metric, filters);
   }
 
   async getAnalyticsTrends(metric: string, timeframe: string, filters?: any) {
-    return this.system.getAnalyticsTrends(metric, timeframe, filters);
+    return this.userManagement.getAnalyticsTrends(metric, timeframe, filters);
   }
 
   async getAnalyticsAlerts(userId?: number) {
-    return this.system.getAnalyticsAlerts(userId);
+    return this.userManagement.getAnalyticsAlerts(userId);
   }
 
   async createAnalyticsAlert(alertConfig: any) {
-    return this.system.createAnalyticsAlert(alertConfig);
+    return this.userManagement.createAnalyticsAlert(alertConfig);
   }
 
   async updateAnalyticsAlert(alertId: string, alertConfig: any) {
-    return this.system.updateAnalyticsAlert(alertId, alertConfig);
+    return this.userManagement.updateAnalyticsAlert(alertId, alertConfig);
   }
 
   async deleteAnalyticsAlert(alertId: string) {
-    return this.system.deleteAnalyticsAlert(alertId);
+    return this.userManagement.deleteAnalyticsAlert(alertId);
   }
 
   async getAnalyticsMetadata() {
-    return this.system.getAnalyticsMetadata();
+    return this.userManagement.getAnalyticsMetadata();
   }
 
   async getConversationHandoffs(conversationId: number) {

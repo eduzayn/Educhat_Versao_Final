@@ -1,3 +1,5 @@
+// DEPRECATED: Este módulo foi consolidado em userManagementStorage.ts
+// Mantido para compatibilidade durante migração
 import { BaseStorage } from "../base/BaseStorage";
 import { systemUsers, systemSettings, roles, type SystemUser, type InsertSystemUser, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "../../../shared/schema";
 import { eq, desc, ilike, or } from "drizzle-orm";
