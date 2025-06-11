@@ -41,6 +41,9 @@ export function MessageBubble({
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   
+  // Verificar se a mensagem foi deletada pelo usuário
+  const isDeletedByUser = message.isDeletedByUser || false;
+  
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
   const messageTime = useMemo(
@@ -117,19 +120,18 @@ export function MessageBubble({
     setIsDeleting(true);
     try {
       if (isFromContact) {
-        const response = await apiRequest("POST", "/api/messages/soft-delete", {
-          messageId: message.id,
-          conversationId: conversationId,
+        // Para mensagens recebidas, marcar como deletada pelo usuário
+        await apiRequest("PATCH", `/api/messages/${message.id}/mark-deleted`, {
+          deletedByUser: true
         });
 
-        setIsDeleted(true);
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
         });
 
         toast({
           title: "Sucesso",
-          description: "Mensagem removida da interface",
+          description: "Mensagem apagada da sua interface",
         });
       } else {
         const metadata =
@@ -218,6 +220,27 @@ export function MessageBubble({
       setIsForwarding(false);
     }
   };
+
+  // Se a mensagem foi deletada pelo usuário, mostrar indicação visual
+  if (isDeletedByUser) {
+    return (
+      <div className={`flex mb-4 ${isFromContact ? 'justify-start' : 'justify-end'}`}>
+        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+          isFromContact 
+            ? 'bg-gray-100 text-gray-500' 
+            : 'bg-gray-200 text-gray-500'
+        }`}>
+          <div className="flex items-center gap-2 text-sm italic">
+            <AlertTriangle size={14} className="text-gray-400" />
+            <span>Esta mensagem foi apagada</span>
+          </div>
+          <div className="text-xs text-gray-400 mt-1">
+            {messageTime}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isDeleted) {
     return (

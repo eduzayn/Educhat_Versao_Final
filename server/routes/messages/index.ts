@@ -175,4 +175,27 @@ export function registerMessageRoutes(app: Express) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
+
+  // Marcar mensagem como deletada pelo usuário
+  app.patch('/api/messages/:id/mark-deleted', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const { deletedByUser } = req.body;
+
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: 'ID da mensagem inválido' });
+      }
+
+      const success = await storage.markMessageAsDeletedByUser(messageId, deletedByUser);
+      
+      if (success) {
+        res.json({ success: true, message: 'Mensagem marcada como deletada' });
+      } else {
+        res.status(404).json({ error: 'Mensagem não encontrada' });
+      }
+    } catch (error) {
+      console.error('Erro ao marcar mensagem como deletada:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
 }

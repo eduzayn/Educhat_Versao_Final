@@ -102,6 +102,23 @@ export class MessageStorage extends BaseStorage {
       .where(eq(messages.id, id));
   }
 
+  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean): Promise<boolean> {
+    try {
+      const result = await this.db.update(messages)
+        .set({ 
+          isDeletedByUser: deletedByUser,
+          deletedAt: deletedByUser ? new Date() : null
+        })
+        .where(eq(messages.id, messageId))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Erro ao marcar mensagem como deletada pelo usuário:', error);
+      return false;
+    }
+  }
+
   async getMessageByZApiId(zapiMessageId: string): Promise<Message | undefined> {
     const [message] = await this.db.select().from(messages)
       .where(eq(messages.whatsappMessageId, zapiMessageId));
