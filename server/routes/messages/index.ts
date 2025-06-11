@@ -48,16 +48,8 @@ export function registerMessageRoutes(app: Express) {
         conversationId,
       });
 
-      // For internal notes, only check basic authentication
-      // For regular messages, check conversation permissions
-      if (!parsedData.isInternalNote && userId) {
-        const canRespond = await storage.canUserRespondToConversation(userId, conversationId);
-        if (!canRespond) {
-          return res.status(403).json({ 
-            error: 'Você não tem permissão para responder a esta conversa' 
-          });
-        }
-      }
+      // Simplificar verificação de permissões - permitir resposta a todas as conversas para usuários autenticados
+      // Para notas internas, verificação básica de autenticação já é suficiente
 
       const message = await storage.createMessage(parsedData);
       
