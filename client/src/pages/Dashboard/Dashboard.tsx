@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { useAuth } from '@/shared/lib/hooks/useAuth';
-import { useUnreadCount } from '@/shared/lib/hooks/useUnreadCount';
+import { useAuth } from '../../shared/lib/hooks/useAuth';
+import { useUnreadCount } from '../../shared/lib/hooks/useUnreadCount';
+import { useDashboardMetrics } from '../../shared/lib/hooks/useDashboardMetrics';
 import { 
   MessageSquare, 
   Users, 
@@ -36,6 +37,7 @@ export function Dashboard() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   const { data: unreadData } = useUnreadCount();
+  const { data: metricsData, isLoading: metricsLoading } = useDashboardMetrics();
 
   const handleLogout = async () => {
     try {
@@ -143,12 +145,46 @@ export function Dashboard() {
     return true;
   });
 
-  const channelStats = [
-    { name: 'WhatsApp', icon: Phone, count: 45, color: 'bg-green-100 text-green-800' },
-    { name: 'Instagram', icon: Instagram, count: 23, color: 'bg-pink-100 text-pink-800' },
-    { name: 'Facebook', icon: Facebook, count: 18, color: 'bg-blue-100 text-blue-800' },
-    { name: 'Email', icon: Mail, count: 7, color: 'bg-gray-100 text-gray-800' }
-  ];
+  // Mapear canais reais para ícones e cores
+  const getChannelIcon = (name: string) => {
+    switch (name?.toLowerCase()) {
+      case 'whatsapp':
+      case 'whatsapp-1':
+        return Phone;
+      case 'instagram':
+        return Instagram;
+      case 'facebook':
+        return Facebook;
+      case 'email':
+        return Mail;
+      default:
+        return MessageCircle;
+    }
+  };
+
+  const getChannelColor = (name: string) => {
+    switch (name?.toLowerCase()) {
+      case 'whatsapp':
+      case 'whatsapp-1':
+        return 'bg-green-100 text-green-800';
+      case 'instagram':
+        return 'bg-pink-100 text-pink-800';
+      case 'facebook':
+        return 'bg-blue-100 text-blue-800';
+      case 'email':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-purple-100 text-purple-800';
+    }
+  };
+
+  const channelStats = metricsData?.channels?.map(channel => ({
+    name: channel.name === 'whatsapp-1' ? 'WhatsApp (Alt)' : 
+          channel.name.charAt(0).toUpperCase() + channel.name.slice(1),
+    icon: getChannelIcon(channel.name),
+    count: channel.count,
+    color: getChannelColor(channel.name)
+  })) || [];
 
   const renderContent = () => {
     switch (activeSection) {
@@ -171,8 +207,14 @@ export function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-educhat-dark">93</div>
-                  <p className="text-xs text-green-600 mt-1">+12% desde ontem</p>
+                  {metricsLoading ? (
+                    <div className="text-2xl font-bold text-gray-400">...</div>
+                  ) : (
+                    <div className="text-2xl font-bold text-educhat-dark">
+                      {metricsData?.activeConversations || 0}
+                    </div>
+                  )}
+                  <p className="text-xs text-blue-600 mt-1">Últimas 24 horas</p>
                 </CardContent>
               </Card>
 
@@ -183,8 +225,16 @@ export function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-educhat-dark">27</div>
-                  <p className="text-xs text-green-600 mt-1">+8% esta semana</p>
+                  {metricsLoading ? (
+                    <div className="text-2xl font-bold text-gray-400">...</div>
+                  ) : (
+                    <div className="text-2xl font-bold text-educhat-dark">
+                      {metricsData?.newContacts?.week || 0}
+                    </div>
+                  )}
+                  <p className="text-xs text-green-600 mt-1">
+                    {metricsData?.newContacts?.today || 0} hoje
+                  </p>
                 </CardContent>
               </Card>
 
@@ -195,8 +245,16 @@ export function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-educhat-dark">95%</div>
-                  <p className="text-xs text-green-600 mt-1">Excelente!</p>
+                  {metricsLoading ? (
+                    <div className="text-2xl font-bold text-gray-400">...</div>
+                  ) : (
+                    <div className="text-2xl font-bold text-educhat-dark">
+                      {metricsData?.responseRate?.toFixed(1) || 0}%
+                    </div>
+                  )}
+                  <p className="text-xs text-orange-600 mt-1">
+                    {(metricsData?.responseRate || 0) < 50 ? 'Necessita atenção' : 'Boa performance'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -207,7 +265,16 @@ export function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-educhat-dark">2.3m</div>
+                  {metricsLoading ? (
+                    <div className="text-2xl font-bold text-gray-400">...</div>
+                  ) : (
+                    <div className="text-2xl font-bold text-educhat-dark">
+                      {metricsData?.averageResponseTime 
+                        ? `${Math.round(metricsData.averageResponseTime)}m`
+                        : 'N/A'
+                      }
+                    </div>
+                  )}
                   <p className="text-xs text-orange-600 mt-1">Tempo de resposta</p>
                 </CardContent>
               </Card>
