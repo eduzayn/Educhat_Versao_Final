@@ -47,7 +47,7 @@ export function DealsModule() {
   const limit = 50;
 
   // Mapeamento de ícones para cada tipo de funil
-  const getFunnelIcon = (macrosetor: string) => {
+  const getFunnelIcon = (team: string) => {
     const iconMap = {
       'comercial': '🏢',
       'suporte': '🛠️',
@@ -61,7 +61,7 @@ export function DealsModule() {
       'geral': '⚙️',
       'teste_automacao': '🧪'
     };
-    return iconMap[macrosetor as keyof typeof iconMap] || '📊';
+    return iconMap[team as keyof typeof iconMap] || '📊';
   };
 
   // Fetch all available funnels
@@ -81,7 +81,7 @@ export function DealsModule() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        team: selectedTeam
+        macrosetor: selectedTeam
       });
       
       const response = await fetch(`/api/deals?${params}`);
