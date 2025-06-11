@@ -417,12 +417,18 @@ router.post('/intelligent/execute', async (req, res) => {
       });
     }
 
+    // Buscar conversa para obter contactId correto
+    const conversation = await storage.getConversation(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversa não encontrada' });
+    }
+
     const aiService = new AIService();
     
-    // Classificar mensagem com IA
+    // Classificar mensagem com IA usando contactId correto
     const aiClassification = await aiService.classifyMessage(
       messageContent,
-      0,
+      conversation.contactId,
       conversationId,
       []
     );
