@@ -75,7 +75,7 @@ CREATE TABLE "audit_logs" (
         "resource" varchar(50) NOT NULL,
         "resource_id" varchar(50),
         "channel" varchar(50),
-        "macrosetor" varchar(20),
+        "team_type" varchar(20),
         "data_key" varchar(200),
         "details" jsonb,
         "ip_address" varchar(45),
@@ -150,7 +150,7 @@ CREATE TABLE "conversations" (
         "status" varchar(20) DEFAULT 'open',
         "last_message_at" timestamp DEFAULT now(),
         "unread_count" integer DEFAULT 0,
-        "macrosetor" varchar(20),
+        "team_type" varchar(20),
         "assigned_team_id" integer,
         "assigned_user_id" integer,
         "assignment_method" varchar(20) DEFAULT 'automatic',
@@ -179,7 +179,7 @@ CREATE TABLE "deals" (
         "id" serial PRIMARY KEY NOT NULL,
         "name" text NOT NULL,
         "contact_id" integer NOT NULL,
-        "macrosetor" varchar(20) DEFAULT 'comercial' NOT NULL,
+        "team_type" varchar(20) DEFAULT 'comercial' NOT NULL,
         "stage" varchar(50) DEFAULT 'prospecting' NOT NULL,
         "value" integer DEFAULT 0,
         "probability" integer DEFAULT 0,
@@ -425,7 +425,7 @@ CREATE TABLE "system_users" (
         "team" varchar(100),
         "data_key" varchar(200),
         "channels" jsonb DEFAULT '[]'::jsonb,
-        "macrosetores" jsonb DEFAULT '[]'::jsonb,
+        "teams" jsonb DEFAULT '[]'::jsonb,
         "is_active" boolean DEFAULT true,
         "is_online" boolean DEFAULT false,
         "status" varchar(20) DEFAULT 'active',
@@ -444,7 +444,7 @@ CREATE TABLE "teams" (
         "name" varchar(100) NOT NULL,
         "description" text,
         "color" varchar(20) DEFAULT 'blue',
-        "macrosetor" varchar(20) NOT NULL,
+        "team_type" varchar(20) NOT NULL,
         "is_active" boolean DEFAULT true,
         "max_capacity" integer DEFAULT 100,
         "priority" integer DEFAULT 1,
@@ -453,7 +453,7 @@ CREATE TABLE "teams" (
         "created_at" timestamp DEFAULT now(),
         "updated_at" timestamp DEFAULT now(),
         CONSTRAINT "teams_name_unique" UNIQUE("name"),
-        CONSTRAINT "teams_macrosetor_unique" UNIQUE("macrosetor")
+        CONSTRAINT "teams_team_type_unique" UNIQUE("team_type")
 );
 --> statement-breakpoint
 CREATE TABLE "user_teams" (
