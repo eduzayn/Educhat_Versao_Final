@@ -49,6 +49,11 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
   const { toast } = useToast();
   const { status: zapiStatus } = useZApiStore();
   const { data: whatsappChannels = [] } = useActiveWhatsAppChannels();
+  
+  // Debug: Log para verificar canais disponíveis
+  console.log('WhatsApp Channels:', whatsappChannels);
+  console.log('Form phone:', form.phone);
+  console.log('Should show message section:', form.phone.trim() && whatsappChannels.length > 0);
 
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   const isCreating = createContact.isPending;
@@ -356,7 +361,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
         </div>
 
         {/* Seção de Mensagem Inicial */}
-        {form.phone && whatsappChannels.length > 0 && (
+        {form.phone.trim() && whatsappChannels.length > 0 && (
           <div className="mt-6 pt-6 border-t border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               💬 Mensagem de Boas-vindas
