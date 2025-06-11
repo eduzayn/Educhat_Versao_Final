@@ -551,28 +551,6 @@ export class CRMService {
     }
   }
 
-      // Ação 3: Adicionar tags automáticas
-      const tagAction = await this.addAutomaticTags(contact, classification);
-      if (tagAction) actions.push(tagAction);
-
-      // Ação 4: Programar follow-up para leads quentes
-      if (classification.isLead && classification.frustrationLevel <= 3) {
-        const followupAction = await this.scheduleFollowup(contactId, conversationId, classification);
-        if (followupAction) actions.push(followupAction);
-      }
-
-      // Ação 5: Transferir para equipe especializada se necessário
-      if (classification.urgency === 'high' || classification.frustrationLevel >= 7) {
-        const transferAction = await this.transferToTeam(classification.suggestedTeam, contactId, conversationId);
-        if (transferAction) actions.push(transferAction);
-      }
-
-      console.log(`✅ ${actions.length} ações automáticas executadas para contato ${contactId}`);
-      
-    } catch (error) {
-      console.error('❌ Erro ao executar ações automáticas:', error);
-    }
-
     return actions;
   }
 
