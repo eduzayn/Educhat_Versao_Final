@@ -85,6 +85,13 @@ export class DealAutomationService {
       return false;
     }
   }
+
+  /**
+   * Método para compatibilidade com handoffs
+   */
+  async handleTeamAssignment(conversation: any, teamId: number) {
+    return this.onConversationAssigned(conversation.id, teamId, 'manual');
+  }
 }
 
 export const dealAutomationService = new DealAutomationService();
