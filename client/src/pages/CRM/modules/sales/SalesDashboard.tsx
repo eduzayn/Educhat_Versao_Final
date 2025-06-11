@@ -8,6 +8,7 @@ import { Progress } from '@/shared/ui/progress';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { PeriodFilter, ChannelFilter, FilterContainer } from '@/shared/components/filters';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -110,20 +111,13 @@ export function SalesDashboard() {
           <p className="text-muted-foreground">Visão geral do desempenho da equipe comercial</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="week">Esta semana</SelectItem>
-              <SelectItem value="month">Este mês</SelectItem>
-              <SelectItem value="quarter">Este trimestre</SelectItem>
-              <SelectItem value="year">Este ano</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
+        <FilterContainer>
+          <PeriodFilter
+            value={period}
+            onValueChange={setPeriod}
+            className="w-40"
+            includeCustom={true}
+          />
 
           {period === 'custom' && (
             <Dialog open={isCustomDateOpen} onOpenChange={setIsCustomDateOpen}>
@@ -172,37 +166,17 @@ export function SalesDashboard() {
             </Dialog>
           )}
 
-          <Select value={channel} onValueChange={setChannel}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos canais</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="email">E-mail</SelectItem>
-              <SelectItem value="phone">Telefone</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={salesperson} onValueChange={setSalesperson}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todos vendedores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos vendedores</SelectItem>
-              {salespeople?.map((person: any) => (
-                <SelectItem key={person.id} value={person.id.toString()}>
-                  {person.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ChannelFilter
+            value={channel}
+            onValueChange={setChannel}
+            className="w-40"
+          />
 
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-        </div>
+        </FilterContainer>
       </div>
 
       {/* Cards de Métricas Principais */}
