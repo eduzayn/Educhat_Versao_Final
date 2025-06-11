@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
 import cors from "cors";
+import { pool } from "./db";
 
 // Garantir que o diretório de uploads exista
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -37,6 +38,31 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
   exposedHeaders: ['Set-Cookie']
 }));
+
+// Endpoint direto para contatos (sem autenticação)
+app.get('/api/contacts', async (req: Request, res: Response) => {
+  try {
+    const { search } = req.query;
+    let query = 'SELECT * FROM contacts';
+    let params: any[] = [];
+    
+    // Se há uma pesquisa, aplicar filtros
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const searchTerm = `%${search.trim()}%`;
+      query += ' WHERE (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1)';
+      params.push(searchTerm);
+    }
+    
+    // Ordenar por data de criação (mais recentes primeiro) e limitar a 1000
+    query += ' ORDER BY created_at DESC LIMIT 1000';
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ message: 'Failed to fetch contacts' });
+  }
+});
 
 // Endpoints para cursos e categorias
 app.get('/api/courses/categories', async (req: Request, res: Response) => {

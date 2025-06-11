@@ -1,21 +1,29 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
-import { insertContactSchema, insertContactTagSchema, contacts } from "@shared/schema";
-import { db } from "../../db";
-import { desc, ilike, or } from "drizzle-orm";
+import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
+import { pool } from "../../db";
 
 export function registerContactRoutes(app: Express) {
   
-  // Contacts endpoints
+  // Contacts endpoints  
   app.get('/api/contacts', async (req, res) => {
     try {
       const { search } = req.query;
+      let query = 'SELECT * FROM contacts';
+      let params: any[] = [];
       
-      // Usar query vazia para buscar todos os contatos quando não há filtro
-      const searchQuery = (search && typeof search === 'string') ? search.trim() : '';
-      const contacts = await storage.searchContacts(searchQuery);
+      // Se há uma pesquisa, aplicar filtros
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        const searchTerm = `%${search.trim()}%`;
+        query += ' WHERE (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1)';
+        params.push(searchTerm);
+      }
       
-      res.json(contacts);
+      // Ordenar por data de criação (mais recentes primeiro) e limitar a 1000
+      query += ' ORDER BY created_at DESC LIMIT 1000';
+      
+      const result = await pool.query(query, params);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
