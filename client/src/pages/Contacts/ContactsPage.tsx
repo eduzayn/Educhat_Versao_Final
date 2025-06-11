@@ -18,6 +18,7 @@ import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/compone
 import { useActiveWhatsAppChannels, useChannels, type Channel } from '@/shared/lib/hooks/useChannels';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
+import { ContactDialog } from '@/shared/components/ContactDialog';
 
 export function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -493,28 +494,14 @@ export function ContactsPage() {
               </div>
             </div>
           </div>
-          <Dialog open={isCreating} onOpenChange={setIsCreating}>
-            <DialogTrigger asChild>
-              <Button className="bg-educhat-primary hover:bg-educhat-secondary text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Contato
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">Novo Contato</DialogTitle>
-                {isWhatsAppAvailable && (
-                  <p className="text-sm text-green-600 bg-green-50 p-2 rounded-md mt-2">
-                    ✓ Contatos com telefone serão automaticamente adicionados ao seu WhatsApp
-                  </p>
-                )}
-                {!isWhatsAppAvailable && (
-                  <p className="text-sm text-gray-500 bg-gray-50 p-2 rounded-md mt-2">
-                    ⚠ WhatsApp não conectado. Configure nas Configurações → Canais para sincronização automática
-                  </p>
-                )}
-              </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <Button 
+            onClick={() => setIsCreating(true)}
+            className="bg-educhat-primary hover:bg-educhat-secondary text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Contato
+          </Button>
+        </div>
                 {/* Nome completo */}
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-700 mb-2 block">Nome completo</label>
