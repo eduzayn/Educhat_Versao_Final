@@ -46,6 +46,16 @@ export function DealsModule() {
   const [page, setPage] = useState(1);
   const limit = 50;
 
+  // Fetch all available funnels
+  const { data: funnelsData } = useQuery({
+    queryKey: ['/api/funnels'],
+    queryFn: async () => {
+      const response = await fetch('/api/funnels');
+      if (!response.ok) throw new Error('Falha ao carregar funis');
+      return response.json();
+    }
+  });
+
   // Fetch deals from database with pagination and filtering
   const { data: dealsResponse, isLoading } = useQuery({
     queryKey: ['/api/deals', selectedTeam, page, limit],
@@ -67,7 +77,12 @@ export function DealsModule() {
   const totalPages = dealsResponse?.totalPages || 1;
   const currentPage = dealsResponse?.currentPage || 1;
   
-  // Debug logs para paginação removidos para evitar erro de JSON parsing
+  // Set default selected team when funnels are loaded
+  useEffect(() => {
+    if (funnelsData && funnelsData.length > 0 && !selectedTeam) {
+      setSelectedTeam(funnelsData[0].macrosetor);
+    }
+  }, [funnelsData, selectedTeam]);
 
   // Get current team configuration
   const currentTeam = teamConfigs[selectedTeam as keyof typeof teamConfigs];
@@ -249,13 +264,11 @@ export function DealsModule() {
                 <SelectValue placeholder="Selecione o funil" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="comercial">🏢 Comercial</SelectItem>
-                <SelectItem value="suporte">🛠️ Suporte</SelectItem>
-                <SelectItem value="cobranca">💰 Cobrança</SelectItem>
-                <SelectItem value="secretaria">📋 Secretaria</SelectItem>
-                <SelectItem value="tutoria">🎓 Tutoria</SelectItem>
-                <SelectItem value="financeiro">💳 Financeiro Aluno</SelectItem>
-                <SelectItem value="secretaria_pos">🎓 Secretaria Pós</SelectItem>
+                {funnelsData?.map((funnel: any) => (
+                  <SelectItem key={funnel.id} value={funnel.macrosetor}>
+                    {funnel.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
