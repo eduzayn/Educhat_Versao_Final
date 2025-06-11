@@ -251,8 +251,8 @@ export function registerAnalyticsRoutes(app: Express) {
         period: period || '30d'
       };
       
-      if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
+      if (teamType && typeof teamType === 'string') {
+        filters.teamType = teamType;
       }
       
       if (userId && typeof userId === 'string') {
@@ -281,14 +281,14 @@ export function registerAnalyticsRoutes(app: Express) {
   // Get sales funnel analytics - REST: GET /api/analytics/sales-funnel
   app.get('/api/analytics/sales-funnel', requirePermission('analytics:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { period, macrosetor, userId, teamId } = req.query;
+      const { period, teamType, userId, teamId } = req.query;
       
       const filters: any = {
         period: period || '30d'
       };
       
-      if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
+      if (teamType && typeof teamType === 'string') {
+        filters.teamType = teamType;
       }
       
       if (userId && typeof userId === 'string') {

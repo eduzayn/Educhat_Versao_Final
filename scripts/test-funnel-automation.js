@@ -54,8 +54,8 @@ async function testFunnelAutomation() {
       console.log('✅ Todos os deals estão associados a funis');
     }
     
-    // 4. Verificar estágios por macrosetor
-    console.log('\n🎯 ESTÁGIOS INICIAIS POR MACROSETOR:');
+    // 4. Verificar estágios por tipo de equipe
+    console.log('\n🎯 ESTÁGIOS INICIAIS POR TIPO DE EQUIPE:');
     const stageMappings = {
       'comercial': 'prospecting',
       'suporte': 'new_ticket', 
@@ -68,13 +68,13 @@ async function testFunnelAutomation() {
       'documentacao': 'solicitacao_recebida'
     };
     
-    Object.entries(stageMappings).forEach(([macrosetor, expectedStage]) => {
-      console.log(`  ✓ ${macrosetor} → ${expectedStage}`);
+    Object.entries(stageMappings).forEach(([teamType, expectedStage]) => {
+      console.log(`  ✓ ${teamType} → ${expectedStage}`);
     });
     
     // 5. Verificar se funis têm as equipes corretas
     const teamFunnelResult = await pool.query(`
-      SELECT t.id, t.name, t.macrosetor, f.id as funnel_id, f.name as funnel_name
+      SELECT t.id, t.name, t.team_type, f.id as funnel_id, f.name as funnel_name
       FROM teams t 
       LEFT JOIN funnels f ON f.team_id = t.id 
       WHERE t.id >= 5 
@@ -84,9 +84,9 @@ async function testFunnelAutomation() {
     console.log('\n🏢 ASSOCIAÇÃO EQUIPES ↔ FUNIS:');
     teamFunnelResult.rows.forEach(row => {
       if (row.funnel_id) {
-        console.log(`  ✅ Equipe "${row.name}" (${row.macrosetor}) → Funil "${row.funnel_name}" (ID: ${row.funnel_id})`);
+        console.log(`  ✅ Equipe "${row.name}" (${row.team_type}) → Funil "${row.funnel_name}" (ID: ${row.funnel_id})`);
       } else {
-        console.log(`  ❌ Equipe "${row.name}" (${row.macrosetor}) → SEM FUNIL`);
+        console.log(`  ❌ Equipe "${row.name}" (${row.team_type}) → SEM FUNIL`);
       }
     });
     
