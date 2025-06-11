@@ -220,7 +220,7 @@ export const systemUsers = pgTable("system_users", {
   team: varchar("team", { length: 100 }),
   dataKey: varchar("data_key", { length: 200 }), // ex: "zayn", "zayn.piracema", "zayn.piracema.tutoria"
   channels: jsonb("channels").default([]), // array of channels user can access
-  teamTypes: jsonb("macrosetores").default([]), // array of team types user can access (mantém coluna DB como macrosetores para compatibilidade)
+  teamTypes: jsonb("team_types").default([]), // array of team types user can access
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
   status: varchar("status", { length: 20 }).default("active"), // active, inactive, blocked
@@ -248,7 +248,7 @@ export const contactNotes = pgTable("contact_notes", {
 export const funnels = pgTable("funnels", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // Nome do funil
-  teamType: varchar("macrosetor", { length: 20 }).notNull().unique(), // tipo de equipe único (mantém coluna DB como macrosetor para compatibilidade)
+  teamType: varchar("team_type", { length: 20 }).notNull().unique(), // tipo de equipe único
   teamId: integer("team_id").references(() => teams.id), // equipe associada
   stages: jsonb("stages").notNull().$type<{
     id: string;
@@ -268,7 +268,7 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
-  teamType: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // referencia funnels.teamType (mantém coluna DB como macrosetor para compatibilidade)
+  teamType: varchar("team_type", { length: 20 }).notNull().default("comercial"), // referencia funnels.teamType
   funnelId: integer("funnel_id").references(() => funnels.id), // referencia direta ao funil da equipe
   stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // referencia stages do funil
   value: integer("value").default(0), // valor em centavos
@@ -623,7 +623,7 @@ export const customRules = pgTable("custom_rules", {
   userId: integer("user_id").references(() => systemUsers.id),
   roleId: integer("role_id").references(() => roles.id),
   permissionId: integer("permission_id").references(() => permissions.id).notNull(),
-  conditions: jsonb("conditions"), // JSON with conditions like channel, macrosetor, etc.
+  conditions: jsonb("conditions"), // JSON with conditions like channel, team, etc.
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -637,7 +637,7 @@ export const auditLogs = pgTable("audit_logs", {
   resource: varchar("resource", { length: 50 }).notNull(),
   resourceId: varchar("resource_id", { length: 50 }),
   channel: varchar("channel", { length: 50 }),
-  macrosetor: varchar("macrosetor", { length: 20 }),
+  team: varchar("team", { length: 20 }),
   dataKey: varchar("data_key", { length: 200 }),
   details: jsonb("details"),
   ipAddress: varchar("ip_address", { length: 45 }),
@@ -921,8 +921,8 @@ export const facebookWebhookLogsRelations = relations(facebookWebhookLogs, ({ on
   }),
 }));
 
-// Sistema de Detecção de Macrosetores
-export const macrosetorDetection = pgTable("macrosetor_detection", {
+// Sistema de Detecção de Equipes
+export const teamDetection = pgTable("team_detection", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: text("name").notNull(),
   description: text("description"),
@@ -932,9 +932,9 @@ export const macrosetorDetection = pgTable("macrosetor_detection", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const macrosetorKeywords = pgTable("macrosetor_keywords", {
+export const teamDetectionKeywords = pgTable("team_detection_keywords", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  macrosetorId: integer("macrosetor_id").notNull().references(() => macrosetorDetection.id, { onDelete: "cascade" }),
+  teamDetectionId: integer("team_detection_id").notNull().references(() => teamDetection.id, { onDelete: "cascade" }),
   keyword: text("keyword").notNull(),
   weight: integer("weight").default(1).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -944,7 +944,7 @@ export const macrosetorKeywords = pgTable("macrosetor_keywords", {
 export const detectionLogs = pgTable("detection_logs", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   content: text("content").notNull(),
-  detectedMacrosetor: text("detected_macrosetor"),
+  detectedTeam: text("detected_team"),
   confidence: integer("confidence"),
   matchedKeywords: text("matched_keywords").array(),
   channel: text("channel"),
@@ -952,39 +952,39 @@ export const detectionLogs = pgTable("detection_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertMacrosetorDetectionSchema = createInsertSchema(macrosetorDetection).omit({
+export const insertTeamDetectionSchema = createInsertSchema(teamDetection).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertMacrosetorKeywordSchema = createInsertSchema(macrosetorKeywords).omit({
+export const insertTeamDetectionKeywordSchema = createInsertSchema(teamDetectionKeywords).omit({
   id: true,
   createdAt: true,
 });
 
 export const insertDetectionLogSchema = createInsertSchema(detectionLogs);
 
-export type MacrosetorDetection = typeof macrosetorDetection.$inferSelect;
-export type InsertMacrosetorDetection = z.infer<typeof insertMacrosetorDetectionSchema>;
-export type MacrosetorKeyword = typeof macrosetorKeywords.$inferSelect;
-export type InsertMacrosetorKeyword = z.infer<typeof insertMacrosetorKeywordSchema>;
+export type TeamDetection = typeof teamDetection.$inferSelect;
+export type InsertTeamDetection = z.infer<typeof insertTeamDetectionSchema>;
+export type TeamDetectionKeyword = typeof teamDetectionKeywords.$inferSelect;
+export type InsertTeamDetectionKeyword = z.infer<typeof insertTeamDetectionKeywordSchema>;
 export type DetectionLog = typeof detectionLogs.$inferSelect;
 export type InsertDetectionLog = z.infer<typeof insertDetectionLogSchema>;
 
-export const macrosetorDetectionRelations = relations(macrosetorDetection, ({ many }) => ({
-  keywords: many(macrosetorKeywords),
+export const teamDetectionRelations = relations(teamDetection, ({ many }) => ({
+  keywords: many(teamDetectionKeywords),
 }));
 
-export const macrosetorKeywordsRelations = relations(macrosetorKeywords, ({ one }) => ({
-  macrosetor: one(macrosetorDetection, {
-    fields: [macrosetorKeywords.macrosetorId],
-    references: [macrosetorDetection.id],
+export const teamDetectionKeywordsRelations = relations(teamDetectionKeywords, ({ one }) => ({
+  teamDetection: one(teamDetection, {
+    fields: [teamDetectionKeywords.teamDetectionId],
+    references: [teamDetection.id],
   }),
 }));
 
-export type MacrosetorWithKeywords = MacrosetorDetection & {
-  keywords: MacrosetorKeyword[];
+export type TeamDetectionWithKeywords = TeamDetection & {
+  keywords: TeamDetectionKeyword[];
 };
 
 // Prof. Ana - AI Assistant Tables
