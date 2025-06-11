@@ -186,16 +186,16 @@ export interface IStorage {
   canUserRespondToOwnConversations(userId: number): Promise<boolean>;
   canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean>;
 
-  // ==================== MACROSETOR OPERATIONS ====================
-  getMacrosetores(): Promise<any[]>;
-  getMacrosetor(id: number): Promise<any>;
-  createMacrosetor(data: any): Promise<any>;
-  updateMacrosetor(id: number, data: any): Promise<any>;
-  deleteMacrosetor(id: number): Promise<void>;
-  getMacrosetorKeywords(macrosetorId: number): Promise<any[]>;
-  createMacrosetorKeyword(macrosetorId: number, data: any): Promise<any>;
-  deleteMacrosetorKeyword(macrosetorId: number, keywordId: number): Promise<void>;
-  testMacrosetorDetection(text: string): Promise<any>;
+  // ==================== TEAM DETECTION OPERATIONS ====================
+  getTeamDetections(): Promise<any[]>;
+  getTeamDetection(id: number): Promise<any>;
+  createTeamDetection(data: any): Promise<any>;
+  updateTeamDetection(id: number, data: any): Promise<any>;
+  deleteTeamDetection(id: number): Promise<void>;
+  getTeamDetectionKeywords(teamDetectionId: number): Promise<any[]>;
+  createTeamDetectionKeyword(teamDetectionId: number, data: any): Promise<any>;
+  deleteTeamDetectionKeyword(teamDetectionId: number, keywordId: number): Promise<void>;
+  testTeamDetection(text: string): Promise<any>;
 
   // ==================== ANALYTICS OPERATIONS ====================
   getConversationAnalytics(filters?: any): Promise<any>;
@@ -217,6 +217,6 @@ export interface IStorage {
   updateAnalyticsAlert(alertId: string, alert: any): Promise<any>;
   deleteAnalyticsAlert(alertId: string): Promise<any>;
 
-  // ==================== MACROSETOR DETECTION ====================
-  detectMacrosetor(content: string, channel?: string): string | null;
+  // ==================== TEAM DETECTION ====================
+  detectTeam(content: string, channel?: string): string | null;
 }

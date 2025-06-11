@@ -109,23 +109,23 @@ async function reorganizeDeals() {
     console.log('\n📈 Verificação final - negócios por equipe e estágio:');
     const finalCheckQuery = `
       SELECT 
-        macrosetor,
+        team,
         stage,
         COUNT(*) as count
       FROM deals 
-      WHERE macrosetor IS NOT NULL AND macrosetor != ''
-      GROUP BY macrosetor, stage
-      ORDER BY macrosetor, stage
+      WHERE team IS NOT NULL AND team != ''
+      GROUP BY team, stage
+      ORDER BY team, stage
     `;
     
     const finalResult = await pool.query(finalCheckQuery);
     const grouped = {};
     
     finalResult.rows.forEach(row => {
-      if (!grouped[row.macrosetor]) {
-        grouped[row.macrosetor] = {};
+      if (!grouped[row.team]) {
+        grouped[row.team] = {};
       }
-      grouped[row.macrosetor][row.stage] = row.count;
+      grouped[row.team][row.stage] = row.count;
     });
     
     Object.keys(grouped).forEach(team => {

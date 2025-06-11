@@ -3,7 +3,7 @@
  * Verifica se a transição de "macrosetor" para "teams" foi concluída com sucesso
  */
 
-const { DatabaseStorage } = require('../server/storage');
+import { DatabaseStorage } from '../server/storage/index.js';
 
 async function verifyTerminologyConsolidation() {
   const storage = new DatabaseStorage();
