@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../../core/db';
 import { aiContext, aiLogs, aiSessions, contacts, conversations } from '../../../shared/schema';
-import { eq, desc, and, count, avg, sql } from 'drizzle-orm';
+import { eq, desc, and, count, avg, sql, gt, isNotNull } from 'drizzle-orm';
 import { aiService } from '../../services/aiService';
 import multer from 'multer';
 import fs from 'fs/promises';
@@ -20,66 +20,57 @@ const upload = multer({
  */
 router.get('/stats', async (req: Request, res: Response) => {
   try {
-    // Total de interações
+    // Estatísticas básicas baseadas nos dados reais disponíveis
     const [totalInteractionsResult] = await db
       .select({ count: count() })
       .from(aiLogs);
 
-    // Leads convertidos (classificados como lead_generation)
+    // Leads convertidos baseado em classificação
     const [leadsConvertedResult] = await db
       .select({ count: count() })
       .from(aiLogs)
-      .where(sql`(classification->>'intent') = 'lead_generation'`);
+      .where(eq(aiLogs.classification, 'course_inquiry'));
 
     // Tempo médio de resposta
     const [avgResponseTimeResult] = await db
       .select({ avg: avg(aiLogs.processingTime) })
       .from(aiLogs);
 
-    // Taxa de sucesso (respostas com confiança > 70%)
-    const [totalResponsesResult] = await db
-      .select({ count: count() })
+    // Total de conversas com IA
+    const [totalConversationsResult] = await db
+      .select({ count: sql`COUNT(DISTINCT ${aiLogs.conversationId})` })
       .from(aiLogs);
 
-    const [successfulResponsesResult] = await db
-      .select({ count: count() })
-      .from(aiLogs)
-      .where(sql`(classification->>'confidence')::numeric > 70`);
-
-    // Estudantes únicos ajudados
-    const [studentsHelpedResult] = await db
-      .select({ count: sql`COUNT(DISTINCT ${conversations.contactId})` })
-      .from(aiLogs)
-      .innerJoin(conversations, eq(aiLogs.conversationId, conversations.id));
+    // Estatísticas simplificadas
+    const totalInteractions = Number(totalInteractionsResult?.count) || 0;
+    const leadsConverted = Number(leadsConvertedResult?.count) || 0;
+    const avgResponseTime = Number(avgResponseTimeResult?.avg) || 0;
+    const studentsHelped = Number(totalConversationsResult?.count) || 0;
+    
+    // Taxa de sucesso baseada em dados disponíveis
+    const successRate = totalInteractions > 0 ? Math.round((leadsConverted / totalInteractions) * 100) : 0;
 
     // Top 5 intenções mais comuns
     const topIntents = await db
       .select({
-        intent: sql`classification->>'intent'`,
+        intent: aiLogs.classification,
         count: count()
       })
       .from(aiLogs)
-      .groupBy(sql`classification->>'intent'`)
+      .where(sql`${aiLogs.classification} IS NOT NULL`)
+      .groupBy(aiLogs.classification)
       .orderBy(desc(count()))
       .limit(5);
-
-    const totalInteractions = totalInteractionsResult?.count || 0;
-    const leadsConverted = leadsConvertedResult?.count || 0;
-    const avgResponseTime = Number(avgResponseTimeResult?.avg) || 0;
-    const totalResponses = totalResponsesResult?.count || 0;
-    const successfulResponses = successfulResponsesResult?.count || 0;
-    const successRate = totalResponses > 0 ? (successfulResponses / totalResponses) * 100 : 0;
-    const studentsHelped = Number(studentsHelpedResult?.count) || 0;
 
     res.json({
       totalInteractions,
       leadsConverted,
       avgResponseTime: Math.round(avgResponseTime),
-      successRate: Math.round(successRate),
+      successRate,
       studentsHelped,
       topIntents: topIntents.map(item => ({
         intent: item.intent || 'unknown',
-        count: item.count
+        count: Number(item.count)
       }))
     });
   } catch (error) {
