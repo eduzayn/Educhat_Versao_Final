@@ -231,6 +231,46 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);
       
+      // ANÁLISE DE IA E TRANSFERÊNCIAS AUTOMÁTICAS
+      try {
+        // Só processar mensagens de texto para IA (evitar sobrecarga)
+        if (messageType === 'text' && messageContent && messageContent.length > 5) {
+          console.log(`🤖 Iniciando análise de IA para mensagem: "${messageContent}"`);
+          
+          // Chamar endpoint de handoff inteligente
+          const handoffResponse = await fetch('http://localhost:5000/api/handoffs/intelligent/execute', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-internal-call': 'true'
+            },
+            body: JSON.stringify({
+              conversationId: conversation.id,
+              messageContent: messageContent,
+              type: 'automatic'
+            })
+          });
+
+          if (handoffResponse.ok) {
+            const handoffResult = await handoffResponse.json();
+            console.log(`✅ Análise de IA concluída:`, {
+              handoffCreated: handoffResult.handoffCreated,
+              confidence: handoffResult.recommendation?.confidence,
+              reason: handoffResult.recommendation?.reason
+            });
+            
+            if (handoffResult.handoffCreated) {
+              console.log(`🔄 Transferência automática executada com sucesso para conversa ${conversation.id}`);
+            }
+          } else {
+            console.error(`❌ Erro na análise de IA:`, await handoffResponse.text());
+          }
+        }
+      } catch (aiError) {
+        console.error('❌ Erro na análise de IA para transferências:', aiError);
+        // Não falhar o webhook por causa da IA
+      }
+      
       // Registrar sucesso no monitor de saúde
       const processingTime = Date.now() - startTime;
       webhookHealthMonitor.recordSuccess(processingTime);

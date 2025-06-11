@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
+import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
 import { insertHandoffSchema, handoffs as handoffsTable } from '@shared/schema';
 import { db } from '../../db';
 import { desc } from 'drizzle-orm';
@@ -8,6 +9,9 @@ import { AIService } from '../../services/aiService';
 import { storage } from '../../storage';
 
 const router = Router();
+
+// Instanciar serviços
+const intelligentHandoffService = new IntelligentHandoffService();
 
 // GET /api/handoffs - Buscar todos os handoffs
 router.get('/', async (req, res) => {
