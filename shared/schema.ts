@@ -59,7 +59,7 @@ export const conversations = pgTable("conversations", {
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
   // Campos para sistema de equipes e atribuição
-  macrosetor: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  teamType: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos (mantém coluna DB como macrosetor para compatibilidade)
   assignedTeamId: integer("assigned_team_id").references(() => teams.id), // equipe atribuída
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
   assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
@@ -155,7 +155,7 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   color: varchar("color", { length: 20 }).default("blue"),
-  macrosetor: varchar("macrosetor", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  teamType: varchar("macrosetor", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos (mantém coluna DB como macrosetor para compatibilidade)
   isActive: boolean("is_active").default(true),
   maxCapacity: integer("max_capacity").default(100), // Maximum concurrent conversations
   priority: integer("priority").default(1), // For distribution priority
@@ -220,7 +220,7 @@ export const systemUsers = pgTable("system_users", {
   team: varchar("team", { length: 100 }),
   dataKey: varchar("data_key", { length: 200 }), // ex: "zayn", "zayn.piracema", "zayn.piracema.tutoria"
   channels: jsonb("channels").default([]), // array of channels user can access
-  macrosetores: jsonb("macrosetores").default([]), // array of macrosetores user can access
+  teamTypes: jsonb("macrosetores").default([]), // array of team types user can access (mantém coluna DB como macrosetores para compatibilidade)
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
   status: varchar("status", { length: 20 }).default("active"), // active, inactive, blocked
@@ -248,7 +248,7 @@ export const contactNotes = pgTable("contact_notes", {
 export const funnels = pgTable("funnels", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // Nome do funil
-  macrosetor: varchar("macrosetor", { length: 20 }).notNull().unique(), // macrosetor único
+  teamType: varchar("macrosetor", { length: 20 }).notNull().unique(), // tipo de equipe único (mantém coluna DB como macrosetor para compatibilidade)
   teamId: integer("team_id").references(() => teams.id), // equipe associada
   stages: jsonb("stages").notNull().$type<{
     id: string;
@@ -268,7 +268,7 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
-  macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // referencia funnels.macrosetor
+  teamType: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // referencia funnels.teamType (mantém coluna DB como macrosetor para compatibilidade)
   funnelId: integer("funnel_id").references(() => funnels.id), // referencia direta ao funil da equipe
   stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // referencia stages do funil
   value: integer("value").default(0), // valor em centavos
