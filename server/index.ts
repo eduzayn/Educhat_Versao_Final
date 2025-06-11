@@ -97,36 +97,10 @@ app.post('/api/contacts', async (req: Request, res: Response) => {
     
     const newContact = result.rows[0];
     
-    // Integração com Z-API para permitir mensagens ativas
-    try {
-      const instanceId = process.env.ZAPI_INSTANCE_ID;
-      const token = process.env.ZAPI_TOKEN;
-      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
-      
-      if (instanceId && token && clientToken) {
-        const zapiUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts`;
-        
-        const zapiResponse = await fetch(zapiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Client-Token': clientToken
-          },
-          body: JSON.stringify({
-            phone: cleanPhone,
-            name: name
-          })
-        });
-        
-        if (zapiResponse.ok) {
-          console.log(`✅ Contato ${name} (${cleanPhone}) sincronizado com Z-API para mensagens ativas`);
-        } else {
-          console.warn(`⚠️ Falha ao sincronizar contato com Z-API: ${zapiResponse.status}`);
-        }
-      }
-    } catch (zapiError) {
-      console.warn(`⚠️ Erro na integração Z-API (contato salvo no banco): ${zapiError}`);
-    }
+    // Nota: A Z-API permite mensagens ativas para qualquer número válido do WhatsApp
+    // Não é necessário "adicionar" o contato previamente à instância Z-API
+    // O contato foi salvo no banco local e estará disponível para envio de mensagens
+    console.log(`✅ Contato ${name} (${cleanPhone}) criado e disponível para mensagens ativas via WhatsApp`);
     
     res.status(201).json({
       ...newContact,
