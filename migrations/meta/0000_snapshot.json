@@ -567,8 +567,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "macrosetor": {
-          "name": "macrosetor",
+        "team_type": {
+          "name": "team_type",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
@@ -1066,8 +1066,8 @@
           "notNull": false,
           "default": 0
         },
-        "macrosetor": {
-          "name": "macrosetor",
+        "team_type": {
+          "name": "team_type",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
@@ -1331,8 +1331,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "macrosetor": {
-          "name": "macrosetor",
+        "team_type": {
+          "name": "team_type",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true,
@@ -3114,8 +3114,8 @@
           "notNull": false,
           "default": "'[]'::jsonb"
         },
-        "macrosetores": {
-          "name": "macrosetores",
+        "teams": {
+          "name": "teams",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
@@ -3260,8 +3260,8 @@
           "notNull": false,
           "default": "'blue'"
         },
-        "macrosetor": {
-          "name": "macrosetor",
+        "team_type": {
+          "name": "team_type",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true
@@ -3326,11 +3326,11 @@
             "name"
           ]
         },
-        "teams_macrosetor_unique": {
-          "name": "teams_macrosetor_unique",
+        "teams_team_type_unique": {
+          "name": "teams_team_type_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "macrosetor"
+            "team_type"
           ]
         }
       },
