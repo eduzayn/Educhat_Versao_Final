@@ -52,7 +52,7 @@ import { ConversationAssignmentDropdown } from './components/ConversationAssignm
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
-import { ConversationItem } from './components/ConversationItem';
+import { ConversationList } from './components/ConversationList';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
 
@@ -299,111 +299,9 @@ export function InboxPage() {
     return { icon: '💬', color: 'text-gray-500', label: 'Canal' };
   };
 
-  const getSpecificChannelName = (conversation: any) => {
-    // Mapeamento padronizado de macrosetores para nomes de canal
-    const standardChannelNames = {
-      'comercial': 'Comercial',
-      'suporte': 'Suporte',
-      'cobranca': 'Cobrança',
-      'secretaria': 'Secretaria',
-      'tutoria': 'Tutoria'
-    };
+  // Função removida - agora usamos apenas ícones de canal
 
-    // PRIORIDADE 1: Busca por channelId específico
-    if (conversation.channelId) {
-      const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel) {
-        return channel.type === 'whatsapp' 
-          ? channel.name 
-          : `${channel.type.charAt(0).toUpperCase() + channel.type.slice(1)} - ${channel.name}`;
-      }
-    }
-    
-    // PRIORIDADE 2: Se há equipe atribuída, usa o macrosetor padronizado
-    if (conversation.assignedTeamId) {
-      const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team && team.macrosetor && standardChannelNames[team.macrosetor as keyof typeof standardChannelNames]) {
-        return standardChannelNames[team.macrosetor as keyof typeof standardChannelNames];
-      }
-      // Fallback para equipes sem macrosetor definido
-      if (team) {
-        return team.name;
-      }
-    }
-    
-    // PRIORIDADE 3: Fallback para conversas sem channelId específico
-    const channelType = conversation.channel || 'unknown';
-    if (channelType === 'whatsapp') {
-      const whatsappChannels = channels.filter(c => c.type === 'whatsapp' && c.isActive);
-      if (whatsappChannels.length > 1) {
-        const phoneNumber = conversation.contact?.phoneNumber || '';
-        
-        // Tenta identificar canal baseado em padrões configuráveis
-        for (const channel of whatsappChannels) {
-          const config = channel.configuration as any;
-          if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
-            return channel.name;
-          }
-        }
-        
-        // Fallback: usa primeiro canal ativo disponível
-        return whatsappChannels[0]?.name || 'WhatsApp';
-      }
-      return whatsappChannels[0]?.name || 'WhatsApp';
-    }
-    
-    return getChannelInfo(channelType).label;
-  };
-
-  const getChannelStyle = (conversation: any) => {
-    // Definir cores padronizadas uma única vez
-    const standardColors = {
-      'comercial': 'bg-blue-100 text-blue-700',
-      'suporte': 'bg-pink-100 text-pink-700', 
-      'cobranca': 'bg-orange-100 text-orange-700',
-      'secretaria': 'bg-purple-100 text-purple-700',
-      'tutoria': 'bg-green-100 text-green-700'
-    };
-
-    // PRIORIDADE 1: Se há equipe atribuída, sempre usa cores baseadas no macrosetor
-    if (conversation.assignedTeamId) {
-      const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team && team.macrosetor && standardColors[team.macrosetor as keyof typeof standardColors]) {
-        return standardColors[team.macrosetor as keyof typeof standardColors];
-      }
-    }
-    
-    // PRIORIDADE 2: Se há channelId, usa cores baseadas no nome do canal
-    if (conversation.channelId) {
-      const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel?.type === 'whatsapp') {
-        const channelLower = channel.name.toLowerCase();
-        
-        // Usar mesmas cores padronizadas para manter consistência
-        for (const [keyword, color] of Object.entries(standardColors)) {
-          if (channelLower.includes(keyword)) {
-            return color;
-          }
-        }
-        
-        // Fallback: cor neutra para canais não mapeados
-        return 'bg-gray-100 text-gray-600';
-      }
-    }
-    
-    // PRIORIDADE 3: Fallback baseado no nome específico do canal para conversas antigas
-    const channelName = getSpecificChannelName(conversation);
-    if (channelName) {
-      const channelNameLower = channelName.toLowerCase();
-      for (const [keyword, color] of Object.entries(standardColors)) {
-        if (channelNameLower.includes(keyword)) {
-          return color;
-        }
-      }
-    }
-    
-    return 'bg-gray-100 text-gray-600';
-  };
+  // Função removida - agora usamos apenas ícones de canal
 
   const formatTime = (date: string | Date) => {
     const dateObj = new Date(date);
@@ -488,35 +386,18 @@ export function InboxPage() {
         />
 
         {/* Lista de Conversas */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation, index) => (
-            <ConversationItem
-              key={`conversation-${conversation.id}-${index}`}
-              conversation={conversation}
-              index={index}
-              isActive={activeConversation?.id === conversation.id}
-              onSelect={handleSelectConversation}
-              formatTime={formatTime}
-              getChannelStyle={getChannelStyle}
-              getSpecificChannelName={getSpecificChannelName}
-            />
-          ))}
-          
-          {filteredConversations.length === 0 && !isLoading && (
-            <div className="p-6 text-center text-gray-500">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div>
-          )}
-          
-          {/* Loading inicial */}
-          {isLoading && (
-            <div className="p-6 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
-              <p className="text-sm">Carregando contatos...</p>
-            </div>
-          )}
-        </div>
+        <ConversationList
+          conversations={filteredConversations}
+          isLoading={isLoading}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          channelFilter={channelFilter}
+          setChannelFilter={setChannelFilter}
+          activeConversation={activeConversation}
+          onSelectConversation={handleSelectConversation}
+        />
       </div>
 
       {/* Área de Mensagens */}
