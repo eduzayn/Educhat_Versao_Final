@@ -10,7 +10,7 @@ import {
   teams
 } from '../../../shared/schema';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
-import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from './permissions';
+import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
 
 /**
  * Módulo Admin - Sistema de Administração

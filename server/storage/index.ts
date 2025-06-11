@@ -595,22 +595,11 @@ export class DatabaseStorage implements IStorage {
     return this.auth.deleteSystemUser(id);
   }
 
-  // Permission checking method
+  // Permission checking method - delegated to PermissionService
   async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
-    try {
-      const user = await this.system.getSystemUser(userId);
-      if (!user) return false;
-
-      // Admin tem todas as permissões
-      if (user.role === 'admin') return true;
-
-      // Para simplificar, por enquanto vamos verificar se é admin
-      // A verificação completa será implementada após a correção da interface
-      return user.role === 'admin';
-    } catch (error) {
-      console.error('Erro ao verificar permissão:', error);
-      return false;
-    }
+    // Import PermissionService dynamically to avoid circular dependency
+    const { PermissionService } = await import('../core/permissions');
+    return PermissionService.hasPermission(userId, permissionName);
   }
 
   // Additional interface compliance methods
