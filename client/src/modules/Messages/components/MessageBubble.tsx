@@ -148,9 +148,8 @@ export function MessageBubble({
           return;
         }
 
-        const response = await apiRequest("POST", "/api/zapi/delete-message", {
+        const response = await apiRequest("DELETE", `/api/zapi/messages/${messageId}`, {
           phone: contact.phone,
-          messageId: messageId.toString(),
           conversationId: conversationId,
         });
 

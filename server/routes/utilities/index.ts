@@ -248,6 +248,123 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
+  // Delete message via Z-API - REST: DELETE /api/zapi/messages/:messageId
+  app.delete('/api/zapi/messages/:messageId', async (req, res) => {
+    try {
+      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', {
+        params: req.params,
+        body: req.body,
+        headers: req.headers
+      });
+      
+      const { phone, conversationId } = req.body;
+      const messageId = req.params.messageId;
+      
+      if (!phone || !messageId) {
+        return res.status(400).json({ 
+          error: 'Phone e messageId são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
+      
+      console.log('🗑️ Deletando mensagem via Z-API:', { 
+        url,
+        conversationId 
+      });
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Client-Token': clientToken || ''
+        }
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API exclusão de mensagem:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        body: responseText 
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        
+        let errorMessage = 'Erro ao deletar mensagem via Z-API';
+        if (response.status === 404) {
+          errorMessage = 'Mensagem não encontrada ou já foi deletada';
+        } else if (response.status === 400) {
+          errorMessage = 'Dados inválidos para deletar mensagem';
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = 'Credenciais Z-API inválidas ou sem permissão';
+        }
+        
+        return res.status(response.status).json({ 
+          error: errorMessage,
+          details: responseText
+        });
+      }
+
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : { success: true };
+      } catch (parseError) {
+        console.log('⚠️ Resposta não é JSON válido, tratando como sucesso:', responseText);
+        data = { success: true, rawResponse: responseText };
+      }
+
+      // Se a exclusão foi bem-sucedida, marcar mensagem como deletada no banco
+      if (conversationId) {
+        const messages = await storage.messages.getMessages(parseInt(conversationId));
+        const messageToDelete = messages.find(msg => {
+          const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
+          const msgId = 'messageId' in metadata ? metadata.messageId : 
+                       'zaapId' in metadata ? metadata.zaapId : 
+                       'id' in metadata ? metadata.id : null;
+          return msgId === messageId.toString();
+        });
+
+        if (messageToDelete) {
+          await storage.messages.markMessageAsDeleted(messageToDelete.id);
+        }
+
+        const { broadcast } = await import('../realtime');
+        broadcast(parseInt(conversationId), {
+          type: 'message_deleted',
+          messageId: messageId.toString(),
+          deletedAt: new Date().toISOString(),
+          conversationId: parseInt(conversationId)
+        });
+      }
+
+      console.log('✅ Mensagem deletada com sucesso via Z-API:', data);
+      
+      res.status(200).json({
+        success: true,
+        messageId: messageId.toString(),
+        deletedAt: new Date().toISOString(),
+        ...data
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao deletar mensagem:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
 
   // System Users endpoints - REST: CRUD operations
   app.get('/api/system-users', async (req: AuthenticatedRequest, res: Response) => {
