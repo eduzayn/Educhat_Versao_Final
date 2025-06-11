@@ -48,11 +48,11 @@ export function AdvancedReportsModule() {
     }
   });
 
-  const { data: macrosetorReports, isLoading: macrosetorLoading } = useQuery({
-    queryKey: ['/api/bi/reports/macrosetor', period],
+  const { data: teamReports, isLoading: teamLoading } = useQuery({
+    queryKey: ['/api/bi/reports/teams', period],
     queryFn: async () => {
-      const response = await fetch(`/api/bi/reports/macrosetor?period=${period}`);
-      if (!response.ok) throw new Error('Erro ao carregar relatório de macrosetor');
+      const response = await fetch(`/api/bi/reports/teams?period=${period}`);
+      if (!response.ok) throw new Error('Erro ao carregar relatório de equipes');
       return response.json();
     }
   });
@@ -323,7 +323,7 @@ export function AdvancedReportsModule() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {macrosetorReports?.sectors?.map((sector: any, index: number) => (
+                  {teamReports?.sectors?.map((sector: any, index: number) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>

@@ -27,8 +27,8 @@ export function registerAnalyticsRoutes(app: Express) {
         filters.teamId = parseInt(teamId);
       }
       
-      if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
+      if (teamType && typeof teamType === 'string') {
+        filters.teamType = teamType;
       }
       
       // Buscar dados analíticos

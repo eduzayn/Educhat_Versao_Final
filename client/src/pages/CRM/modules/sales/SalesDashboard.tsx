@@ -329,7 +329,7 @@ export function SalesDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PieChart className="h-5 w-5" />
-              Distribuição por Macrosetor
+              Distribuição por Equipe
             </CardTitle>
           </CardHeader>
           <CardContent>
