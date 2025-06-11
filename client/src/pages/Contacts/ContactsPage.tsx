@@ -11,6 +11,7 @@ import { useContacts, useUpdateContact, useDeleteContact } from '@/shared/lib/ho
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useActiveWhatsAppChannels } from '@/shared/lib/hooks/useChannels';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { ContactFilters } from './components/ContactFilters';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
@@ -26,6 +27,9 @@ export function ContactsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [syncingContacts, setSyncingContacts] = useState(false);
+  const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
 
   const { toast } = useToast();
   const contactsPerPage = 10;
@@ -160,6 +164,107 @@ export function ContactsPage() {
     }
   };
 
+  const handleSyncContacts = async () => {
+    setSyncingContacts(true);
+    try {
+      const response = await fetch('/api/webhooks/zapi/import-contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao sincronizar contatos');
+      }
+
+      const result = await response.json();
+      toast({
+        title: "Sincronização concluída",
+        description: `${result.imported} contatos importados, ${result.skipped} ignorados`,
+      });
+      
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erro na sincronização",
+        description: "Erro ao sincronizar contatos do WhatsApp. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setSyncingContacts(false);
+    }
+  };
+
+  const handleUpdateAllPhotos = async () => {
+    setUpdatingAllPhotos(true);
+    try {
+      const response = await fetch('/api/contacts/update-photos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar fotos');
+      }
+
+      const result = await response.json();
+      toast({
+        title: "Fotos atualizadas",
+        description: `${result.updated} fotos de perfil atualizadas`,
+      });
+      
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erro na atualização",
+        description: "Erro ao atualizar fotos dos contatos. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingAllPhotos(false);
+    }
+  };
+
+  const handleExportContacts = async () => {
+    try {
+      const response = await fetch('/api/contacts/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ contactIds: selectedContacts }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao exportar contatos');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'contatos.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Export concluído",
+        description: `${selectedContacts.length} contatos exportados com sucesso`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no export",
+        description: "Erro ao exportar contatos. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-educhat-light flex items-center justify-center">
@@ -187,13 +292,7 @@ export function ContactsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-educhat-dark">Contatos</h1>
-            <div className="flex items-center gap-4">
-              <p className="text-educhat-medium">Gerencie seus contatos e integração WhatsApp</p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Status WhatsApp:</span>
-                <ZApiStatusIndicator />
-              </div>
-            </div>
+            <p className="text-educhat-medium">Gerencie seus contatos e integração WhatsApp</p>
           </div>
           <Button 
             onClick={() => setIsCreating(true)}
@@ -204,22 +303,24 @@ export function ContactsPage() {
           </Button>
         </div>
 
+        {/* Filtros e Ações */}
+        <ContactFilters
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedContacts={selectedContacts}
+          isWhatsAppAvailable={isWhatsAppAvailable}
+          onSyncContacts={handleSyncContacts}
+          onUpdateAllPhotos={handleUpdateAllPhotos}
+          onExportContacts={handleExportContacts}
+          updatingAllPhotos={updatingAllPhotos}
+          syncingContacts={syncingContacts}
+        />
+
         {/* Lista de Contatos */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Lista de Contatos ({totalContacts})</span>
-              <div className="flex items-center space-x-2">
-                <Input
-                  placeholder="Buscar contatos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-64"
-                />
-                <Button variant="outline" size="icon">
-                  <Search className="w-4 h-4" />
-                </Button>
-              </div>
+            <CardTitle>
+              Lista de Contatos ({totalContacts})
             </CardTitle>
           </CardHeader>
           <CardContent>
