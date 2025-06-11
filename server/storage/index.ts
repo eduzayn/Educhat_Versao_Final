@@ -137,6 +137,14 @@ export class Storage {
     return this.conversation.markConversationAsUnread(conversationId);
   }
 
+  async getTotalUnreadCount() {
+    return this.conversation.getTotalUnreadCount();
+  }
+
+  async recalculateUnreadCounts() {
+    return this.conversation.recalculateUnreadCounts();
+  }
+
   // ==================== CHANNEL OPERATIONS ====================
   async getChannels() {
     return this.channel.getChannels();

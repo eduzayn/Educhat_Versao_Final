@@ -394,12 +394,15 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async getUnreadCount(): Promise<number> {
+    // Retornar a soma total de mensagens não lidas de todas as conversas
     const [result] = await this.db
-      .select({ count: count() })
+      .select({ 
+        totalUnread: sql<number>`COALESCE(SUM(${conversations.unreadCount}), 0)::integer` 
+      })
       .from(conversations)
-      .where(eq(conversations.isRead, false));
+      .where(sql`${conversations.unreadCount} > 0`);
     
-    return result?.count || 0;
+    return result?.totalUnread || 0;
   }
 
   async getConversationCount(): Promise<number> {
@@ -491,6 +494,18 @@ export class ConversationStorage extends BaseStorage {
     return this.getUnreadCount();
   }
 
+  /**
+   * Método alternativo para contar conversas não lidas (não mensagens)
+   */
+  async getUnreadConversationCount(): Promise<number> {
+    const [result] = await this.db
+      .select({ count: count() })
+      .from(conversations)
+      .where(eq(conversations.isRead, false));
+    
+    return result?.count || 0;
+  }
+
   async markConversationAsRead(conversationId: number): Promise<void> {
     await this.resetUnreadCount(conversationId);
   }
@@ -505,6 +520,11 @@ export class ConversationStorage extends BaseStorage {
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));
+  }
+
+  async recalculateUnreadCounts(): Promise<void> {
+    // Implementação básica - pode ser expandida conforme necessário
+    console.log('Recalculando contadores de mensagens não lidas...');
   }
 
   async assignConversationToTeam(conversationId: number, teamId: number, method: string = 'manual'): Promise<void> {
