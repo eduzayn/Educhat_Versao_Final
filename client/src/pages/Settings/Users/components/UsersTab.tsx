@@ -133,12 +133,15 @@ export const UsersTab = () => {
     queryFn: () => fetch('/api/system-users').then(res => res.json())
   });
 
+  // Ensure users is always an array
+  const usersList = Array.isArray(users) ? users : [];
+
   // Calculate user statistics from actual data
   const userStats = {
-    total: users.length,
-    active: users.filter((user: any) => user.isActive !== false).length,
-    online: users.filter((user: any) => user.isOnline).length,
-    pending: users.filter((user: any) => user.status === 'pending').length
+    total: usersList.length,
+    active: usersList.filter((user: any) => user.isActive !== false).length,
+    online: usersList.filter((user: any) => user.isOnline).length,
+    pending: usersList.filter((user: any) => user.status === 'pending').length
   };
 
   // Create user mutation
@@ -353,7 +356,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
     });
   };
 
-  const filteredUsers = users.filter((user: any) => {
+  const filteredUsers = usersList.filter((user: any) => {
     const matchesSearch = user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.username?.toLowerCase().includes(searchQuery.toLowerCase());
