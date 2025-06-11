@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, Filter, X } from 'lucide-react';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
+import { getChannelIcon, getChannelColor } from '@/shared/lib/utils/channelIcons';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationListProps {
@@ -47,9 +48,12 @@ export function ConversationList({
     return matchesSearch && matchesStatus && matchesChannel;
   }) || [];
 
-  const getChannelIcon = (channel: string) => {
-    // Channel icons now handled by backend data
-    return '💬';
+  const renderChannelIcon = (channel: string) => {
+    return (
+      <div className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${getChannelColor(channel)}`}>
+        {getChannelIcon(channel)}
+      </div>
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -183,8 +187,8 @@ export function ConversationList({
                     </Avatar>
                     
                     {/* Indicador de canal */}
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-gray-200 text-xs">
-                      {getChannelIcon(conversation.channel)}
+                    <div className="absolute -bottom-1 -right-1">
+                      {renderChannelIcon(conversation.channel)}
                     </div>
                   </div>
 
