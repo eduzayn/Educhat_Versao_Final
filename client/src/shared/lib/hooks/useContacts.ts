@@ -3,14 +3,30 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact, ContactWithTags, InsertContact } from '@shared/schema';
 
-export function useContacts(search?: string) {
-  return useQuery<Contact[]>({
-    queryKey: ['/api/contacts', { search }],
+export function useContacts(params?: { search?: string; page?: number; limit?: number }) {
+  return useQuery<{ data: Contact[]; total: number }>({
+    queryKey: ['/api/contacts', params],
     queryFn: async () => {
-      const url = search ? `/api/contacts?search=${encodeURIComponent(search)}` : '/api/contacts';
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      
+      const url = `/api/contacts${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch contacts');
-      return response.json();
+      
+      const data = await response.json();
+      
+      // Se a resposta é um array (formato antigo), converte para o novo formato
+      if (Array.isArray(data)) {
+        return {
+          data: data,
+          total: data.length
+        };
+      }
+      
+      return data;
     }
   });
 }
