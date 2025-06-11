@@ -269,6 +269,7 @@ export const deals = pgTable("deals", {
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
   macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // referencia funnels.macrosetor
+  funnelId: integer("funnel_id").references(() => funnels.id), // referencia direta ao funil da equipe
   stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // referencia stages do funil
   value: integer("value").default(0), // valor em centavos
   probability: integer("probability").default(0), // 0-100

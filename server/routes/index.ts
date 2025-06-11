@@ -60,6 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
+  registerFunnelRoutes(app);
   // registerMacrosetorRoutes(app, {} as any); // Removido - sistema migrado para IA
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
