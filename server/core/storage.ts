@@ -29,6 +29,7 @@ class CentralStorage {
   // Métodos de conveniência diretos - sem proxies desnecessários
   getUser = (id: number) => this.users.getUser(id);
   getUserById = (id: number) => this.users.getUser(id); // Compatibilidade auth
+  getUserByEmail = (email: string) => this.users.getUserByEmail(email); // Método crítico para autenticação
   createUser = (userData: any) => this.users.createUser(userData);
   
   // Métodos de system users

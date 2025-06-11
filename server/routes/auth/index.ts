@@ -27,46 +27,65 @@ export function registerAuthRoutes(app: Express) {
     res.json(sessionHealth);
   });
   // Login endpoint
-  app.post("/api/login", (req: Request, res: Response, next) => {
-    console.log("🔐 Tentativa de login recebida:", { 
-      email: req.body.email, 
-      hasPassword: !!req.body.password,
-      environment: process.env.NODE_ENV,
-      userAgent: req.get('User-Agent'),
-      ip: req.ip,
-      headers: {
-        host: req.get('host'),
-        origin: req.get('origin'),
-        referer: req.get('referer')
-      }
-    });
+  app.post("/api/login", async (req: Request, res: Response, next) => {
+    try {
+      console.log("🔐 Tentativa de login recebida:", { 
+        email: req.body.email, 
+        hasPassword: !!req.body.password,
+        environment: process.env.NODE_ENV,
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        sessionID: req.sessionID,
+        hasSession: !!req.session,
+        headers: {
+          host: req.get('host'),
+          origin: req.get('origin'),
+          referer: req.get('referer'),
+          cookie: !!req.headers.cookie
+        }
+      });
 
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        console.error("❌ Erro na autenticação:", err);
-        return res.status(500).json({ message: "Erro interno no servidor" });
-      }
-      
-      if (!user) {
-        console.log("❌ Falha na autenticação:", info?.message || "Usuário não encontrado");
-        return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
+      // Verificar se os dados necessários estão presentes
+      if (!req.body.email || !req.body.password) {
+        console.log("❌ Dados de login incompletos");
+        return res.status(400).json({ message: "Email e senha são obrigatórios" });
       }
 
-      req.login(user, (loginErr) => {
-        if (loginErr) {
-          console.error("❌ Erro ao estabelecer sessão:", loginErr);
-          return res.status(500).json({ message: "Erro ao estabelecer sessão" });
+      // Usar passport para autenticação
+      passport.authenticate("local", (err: any, user: any, info: any) => {
+        if (err) {
+          console.error("❌ Erro na autenticação:", err);
+          console.error("Stack trace:", err.stack);
+          return res.status(500).json({ message: "Erro interno no servidor durante autenticação" });
         }
         
-        console.log("✅ Login realizado com sucesso:", { 
-          userId: user.id, 
-          email: user.email,
-          sessionId: req.sessionID,
-          cookieSecure: 'session-store-active'
+        if (!user) {
+          console.log("❌ Falha na autenticação:", info?.message || "Usuário não encontrado");
+          return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
+        }
+
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error("❌ Erro ao estabelecer sessão:", loginErr);
+            console.error("Session error stack:", loginErr.stack);
+            return res.status(500).json({ message: "Erro ao estabelecer sessão de usuário" });
+          }
+          
+          console.log("✅ Login realizado com sucesso:", { 
+            userId: user.id, 
+            email: user.email,
+            sessionId: req.sessionID,
+            sessionSaved: !!req.session
+          });
+          
+          res.json(user);
         });
-        res.json(user);
-      });
-    })(req, res, next);
+      })(req, res, next);
+    } catch (error) {
+      console.error("❌ Erro crítico no endpoint de login:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: "Erro interno crítico do servidor" });
+    }
   });
 
   // Logout endpoint
