@@ -153,77 +153,77 @@ export function ConversationActionsDropdown({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors">
           <MoreVertical className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 border border-blue-100 shadow-lg">
         {/* Status da conversa */}
-        <DropdownMenuItem onClick={() => handleMarkAsUnread()}>
-          <MailCheck className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleMarkAsUnread()} className="hover:bg-blue-50 focus:bg-blue-50">
+          <MailCheck className="w-4 h-4 mr-2 text-blue-600" />
           Marcar como não lida
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleStatusChange('pending')}>
-          <Clock className="w-4 h-4 mr-2" />
-          Desmarcar como pendente
+        <DropdownMenuItem onClick={() => handleStatusChange('pending')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <Clock className="w-4 h-4 mr-2 text-orange-600" />
+          Marcar como pendente
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         
         {/* Ações do usuário */}
-        <DropdownMenuItem onClick={() => handleAction('seguir')}>
-          <UserCheck className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('seguir')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <UserCheck className="w-4 h-4 mr-2 text-green-600" />
           Seguir
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleAction('executar-bot')}>
-          <Bot className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('executar-bot')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <Bot className="w-4 h-4 mr-2 text-purple-600" />
           Executar bot
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleAction('agendar-mensagem')}>
-          <Calendar className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('agendar-mensagem')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <Calendar className="w-4 h-4 mr-2 text-blue-600" />
           Agendar mensagem
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         
         {/* Histórico e transferência */}
-        <DropdownMenuItem onClick={() => handleAction('sincronizar-historico')}>
-          <History className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('sincronizar-historico')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <History className="w-4 h-4 mr-2 text-gray-600" />
           Sincronizar histórico
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleAction('transferir-canal')}>
-          <ArrowRight className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('transferir-canal')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <ArrowRight className="w-4 h-4 mr-2 text-blue-600" />
           Transferir para outro canal
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         
         {/* Ações restritivas */}
-        <DropdownMenuItem onClick={() => handleAction('bloquear')}>
-          <UserX className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('bloquear')} className="hover:bg-red-50 focus:bg-red-50">
+          <UserX className="w-4 h-4 mr-2 text-red-600" />
           Bloquear
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleAction('exportar-csv')}>
-          <FileText className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('exportar-csv')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <FileText className="w-4 h-4 mr-2 text-gray-600" />
           Exportar para CSV
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         
         {/* Informações */}
-        <DropdownMenuItem onClick={() => handleAction('pesquisar-mensagem')}>
-          <Search className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('pesquisar-mensagem')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <Search className="w-4 h-4 mr-2 text-gray-600" />
           Pesquisar mensagem
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => handleAction('ver-informacoes')}>
-          <Info className="w-4 h-4 mr-2" />
+        <DropdownMenuItem onClick={() => handleAction('ver-informacoes')} className="hover:bg-blue-50 focus:bg-blue-50">
+          <Info className="w-4 h-4 mr-2 text-blue-600" />
           Ver informações
         </DropdownMenuItem>
       </DropdownMenuContent>
