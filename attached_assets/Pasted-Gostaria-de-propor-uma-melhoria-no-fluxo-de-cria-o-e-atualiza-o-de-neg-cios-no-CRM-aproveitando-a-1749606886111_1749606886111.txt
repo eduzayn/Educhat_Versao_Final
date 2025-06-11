@@ -1,0 +1,47 @@
+Gostaria de propor uma melhoria no fluxo de criação e atualização de negócios no CRM, aproveitando a inteligência da Prof. Ana para tornar o processo mais preciso e automático.
+
+🧠 Comportamento desejado:
+Atualmente, todo novo chat gera automaticamente:
+
+Um novo contato
+
+Um novo negócio no CRM, mas sem identificação do funil e da etapa correta
+
+A ideia agora é que a Prof. Ana analise o conteúdo da conversa em tempo real, e determine automaticamente:
+
+Qual o funil de vendas mais apropriado para aquele lead ou aluno (ex: Comercial, Secretaria, Pós, Tutoria, Suporte etc.)
+
+Em qual etapa do funil o negócio deve ser alocado (ex: Prospecção, Qualificado, Proposta...)
+
+💡 Lógica esperada:
+A IA deve fazer essa análise com base na intenção, palavras-chave e contexto da conversa.
+
+O negócio deve ser criado já no funil e etapa corretos, sem necessidade de ajuste manual.
+
+Caso o contato já possua um negócio no sistema, a IA pode:
+
+Atualizar o negócio existente com a nova etapa se for mais avançada
+
+Ou criar um segundo negócio se o novo atendimento for claramente uma nova oportunidade (seguindo lógica de duplicidade já existente no sistema)
+
+🔁 Integração com o painel lateral (Inbox):
+No canto lateral da interface de atendimento (Inbox), há um atalho para “Negócios” vinculado ao contato.
+
+⚠️ Esse card também precisa ser atualizado automaticamente:
+
+Mostrar o negócio criado no funil e etapa corretos
+
+Atualizar status caso o lead avance de etapa
+
+Garantir que esteja vinculado ao atendente responsável (como já ocorre)
+
+⚙️ Reaproveitamento de código:
+Manter a lógica atual de criação automática de negócios e contatos.
+
+Adicionar apenas a etapa de classificação inteligente feita pela Prof. Ana, antes da criação ou atualização do negócio.
+
+A lógica pode ser integrada diretamente no handler que gera o novo negócio, reaproveitando o fluxo.
+
+Com isso, vamos garantir que os negócios estejam sempre bem organizados dentro dos funis e etapas certas, economizando tempo da equipe e aumentando a precisão no atendimento e na gestão.
+
+Se precisarem, posso fornecer uma tabela com exemplos de palavras-chave por funil e etapa para alimentar a árvore de decisão da IA.
