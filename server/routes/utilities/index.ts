@@ -161,8 +161,13 @@ export function registerUtilitiesRoutes(app: Express) {
       // Criar conversa e mensagem no banco de dados imediatamente
       try {
         // Buscar contato pelo telefone
-        const contacts = await storage.getContacts();
-        const contact = contacts.find(c => c.phone === cleanPhone || c.phone === `+55${cleanPhone}` || c.phone === cleanPhone.replace('+55', ''));
+        let contact = await storage.contacts.getContactByPhone(cleanPhone);
+        if (!contact && cleanPhone.startsWith('+55')) {
+          contact = await storage.contacts.getContactByPhone(cleanPhone.replace('+55', ''));
+        }
+        if (!contact && !cleanPhone.startsWith('+55')) {
+          contact = await storage.contacts.getContactByPhone(`+55${cleanPhone}`);
+        }
         
         if (contact) {
           console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
