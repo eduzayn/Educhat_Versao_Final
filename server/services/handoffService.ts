@@ -1,3 +1,5 @@
+// DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
+// Mantido para compatibilidade durante migração
 import { db } from '../db';
 import { handoffs, conversations, systemUsers, teams } from '@shared/schema';
 import { eq, and, desc, asc } from 'drizzle-orm';

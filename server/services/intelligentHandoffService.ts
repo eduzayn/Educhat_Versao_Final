@@ -1,3 +1,5 @@
+// DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
+// Mantido para compatibilidade durante migração
 import { db } from '../core/db';
 import { eq, and, desc, asc, or, count, isNull } from 'drizzle-orm';
 import { 

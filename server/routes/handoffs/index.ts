@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { handoffService } from '../../services/handoffService';
-import { intelligentHandoffService } from '../../services/intelligentHandoffService';
+import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
 import { insertHandoffSchema, handoffs as handoffsTable } from '@shared/schema';
 import { db } from '../../db';
 import { desc } from 'drizzle-orm';
