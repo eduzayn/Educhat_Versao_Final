@@ -8,15 +8,18 @@ export function registerInboxRoutes(app: Express) {
   app.get('/api/conversations', async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 1000; // Aumentado para carregar mais conversas
+      const limit = parseInt(req.query.limit as string) || 50; // Reduzido para melhor performance
       const offset = (page - 1) * limit;
       
-      // Desabilitar cache para forçar sempre buscar dados atualizados
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
+      // Log para diagnóstico de performance
+      const startTime = Date.now();
+      console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}`);
       
       const conversations = await storage.getConversations(limit, offset);
+      
+      const endTime = Date.now();
+      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
+      
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);

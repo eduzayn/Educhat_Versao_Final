@@ -8,8 +8,8 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Consulta principal otimizada - buscar conversas com contatos
-    const conversationsWithContacts = await this.db
+    // Consulta única otimizada sem buscar mensagens para máxima performance
+    const conversationsData = await this.db
       .select({
         id: conversations.id,
         contactId: conversations.contactId,
@@ -57,41 +57,18 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Buscar últimas mensagens individualmente para evitar problemas
-    const result = [];
-    for (const conv of conversationsWithContacts) {
-      // Buscar última mensagem
-      const [lastMessage] = await this.db
-        .select({
-          id: messages.id,
-          content: messages.content,
-          sentAt: messages.sentAt,
-          isFromContact: messages.isFromContact,
-          messageType: messages.messageType,
-          metadata: messages.metadata
-        })
-        .from(messages)
-        .where(and(
-          eq(messages.conversationId, conv.id),
-          eq(messages.isDeleted, false)
-        ))
-        .orderBy(desc(messages.sentAt))
-        .limit(1);
-
-      result.push({
-        ...conv,
-        contact: {
-          ...conv.contact,
-          tags: [],
-          deals: []
-        },
-        channelInfo: undefined,
-        messages: lastMessage ? [lastMessage] : [],
-        _count: { messages: conv.unreadCount || 0 }
-      } as ConversationWithContact);
-    }
-
-    return result;
+    // Retornar dados sem buscar mensagens para performance máxima
+    return conversationsData.map(conv => ({
+      ...conv,
+      contact: {
+        ...conv.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: [], // Mensagens carregadas sob demanda pela interface
+      _count: { messages: conv.unreadCount || 0 }
+    })) as ConversationWithContact[];
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
