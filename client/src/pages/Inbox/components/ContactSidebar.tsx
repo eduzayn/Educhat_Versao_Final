@@ -192,7 +192,7 @@ export function ContactSidebar({
       name: dealFormData.name,
       contactId: activeConversation.contact.id,
       value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
-      macrosetor: dealFormData.macrosetor,
+      teamType: dealFormData.team,
       stage: dealFormData.stage,
       category: dealFormData.category || null,
       course: dealFormData.course || null,
