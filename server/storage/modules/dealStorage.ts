@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { deals, contacts, teams, type Deal, type InsertDeal } from "@shared/schema";
+import { deals, contacts, teams, funnels, type Deal, type InsertDeal } from "@shared/schema";
 import { eq, desc, and, count, sql } from "drizzle-orm";
 
 /**
@@ -184,10 +184,19 @@ export class DealStorage extends BaseStorage {
       return stageMapping[macrosetor || 'geral'] || 'prospecting';
     })();
 
+    // Get the correct funnel for this macrosetor
+    const funnel = await this.db.select()
+      .from(funnels)
+      .where(eq(funnels.macrosetor, macrosetor || 'geral'))
+      .limit(1);
+
+    const funnelId = funnel.length > 0 ? funnel[0].id : null;
+
     // Create automatic deal
     const dealData: InsertDeal = {
       name: dealName,
       contactId: contactId,
+      funnelId: funnelId,
       stage: stage,
       value: 0,
       probability: 50,
@@ -200,7 +209,8 @@ export class DealStorage extends BaseStorage {
         canalOrigem,
         macrosetor,
         createdBy: 'system',
-        timestamp: timestamp
+        timestamp: timestamp,
+        funnelId: funnelId
       }
     };
 
