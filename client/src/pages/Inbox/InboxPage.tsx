@@ -433,23 +433,14 @@ export function InboxPage() {
                     </span>
                   </div>
 
-                  {/* Status e contadores */}
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs ${STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.bgColor || 'bg-gray-100'} ${STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.color || 'text-gray-600'}`}
-                      >
-                        {STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.label || 'Aberto'}
-                      </Badge>
-                    </div>
-                    
-                    {/* Badge de mensagens não lidas - posicionado à direita */}
-                    {(conversation.unreadCount || 0) > 0 && (
-                      <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px] ml-auto">
-                        {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
-                      </Badge>
-                    )}
+                  {/* Status */}
+                  <div className="flex items-center mb-1">
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ${STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.bgColor || 'bg-gray-100'} ${STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.color || 'text-gray-600'}`}
+                    >
+                      {STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.label || 'Aberto'}
+                    </Badge>
                   </div>
 
                   {/* Preview da última mensagem */}
