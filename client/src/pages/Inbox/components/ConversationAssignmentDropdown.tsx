@@ -155,9 +155,9 @@ export function ConversationAssignmentDropdown({
                     style={{ backgroundColor: team.color || '#6b7280' }}
                   />
                   {team.name}
-                  {team.macrosetor && (
+                  {team.teamType && (
                     <span className="text-xs text-gray-500">
-                      ({team.macrosetor})
+                      ({team.teamType})
                     </span>
                   )}
                 </div>
