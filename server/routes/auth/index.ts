@@ -168,7 +168,7 @@ export function registerAuthRoutes(app: Express) {
         roleId: newUser.roleId || 1,
         dataKey: newUser.dataKey || undefined,
         channels: [],
-        macrosetores: [],
+        teams: [],
         teamId: newUser.teamId,
         team: null
       };

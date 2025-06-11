@@ -144,7 +144,7 @@ export function AdvancedReportsModule() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="channels">Canais</TabsTrigger>
           <TabsTrigger value="funnel">Funil de Vendas</TabsTrigger>
-          <TabsTrigger value="macrosetor">Macrosetores</TabsTrigger>
+          <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="retention">Retenção</TabsTrigger>
         </TabsList>
 

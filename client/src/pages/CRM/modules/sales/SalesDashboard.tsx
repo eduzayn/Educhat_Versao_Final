@@ -324,7 +324,7 @@ export function SalesDashboard() {
 
       {/* Distribuição por Tipo e Resumo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Distribuição por Macrosetor */}
+        {/* Distribuição por Equipe */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

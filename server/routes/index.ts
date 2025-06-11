@@ -25,7 +25,7 @@ import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
-// import { registerMacrosetorRoutes } from "./settings/macrosetores"; // Removido - sistema migrado para IA
+// Teams are now managed through dedicated team management system
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
 import documentsRouter from "./documents/index";
