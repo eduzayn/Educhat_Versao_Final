@@ -59,7 +59,7 @@ export const conversations = pgTable("conversations", {
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
   // Campos para sistema de equipes e atribuição
-  teamType: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos (mantém coluna DB como macrosetor para compatibilidade)
+  teamType: varchar("team_type", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   assignedTeamId: integer("assigned_team_id").references(() => teams.id), // equipe atribuída
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
   assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
@@ -155,7 +155,7 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   color: varchar("color", { length: 20 }).default("blue"),
-  teamType: varchar("macrosetor", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos (mantém coluna DB como macrosetor para compatibilidade)
+  teamType: varchar("team_type", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   isActive: boolean("is_active").default(true),
   maxCapacity: integer("max_capacity").default(100), // Maximum concurrent conversations
   priority: integer("priority").default(1), // For distribution priority

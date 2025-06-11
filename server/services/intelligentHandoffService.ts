@@ -76,7 +76,7 @@ export class IntelligentHandoffService {
         channel: conversations.channel,
         currentTeamId: conversations.assignedTeamId,
         currentUserId: conversations.assignedUserId,
-        macrosetor: conversations.macrosetor,
+        teamType: conversations.teamType,
         priority: conversations.priority,
         tags: conversations.tags
       })
