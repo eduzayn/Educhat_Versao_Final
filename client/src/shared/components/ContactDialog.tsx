@@ -49,11 +49,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
   const { toast } = useToast();
   const { status: zapiStatus } = useZApiStore();
   const { data: whatsappChannels = [] } = useActiveWhatsAppChannels();
-  
-  // Debug: Log para verificar canais disponíveis
-  console.log('WhatsApp Channels:', whatsappChannels);
-  console.log('Form phone:', form.phone);
-  console.log('Should show message section:', form.phone.trim() && whatsappChannels.length > 0);
 
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   const isCreating = createContact.isPending;
@@ -206,9 +201,10 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       onSuccess?.();
       
     } catch (error) {
+      console.error('Erro ao criar contato:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o contato.",
+        description: error instanceof Error ? error.message : "Não foi possível criar o contato.",
         variant: "destructive"
       });
     } finally {
