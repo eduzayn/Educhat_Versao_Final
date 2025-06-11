@@ -30,265 +30,6 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
-
-
-// Componente para exibir mensagem de imagem
-function ImageMessage({
-  message,
-  isFromContact,
-}: {
-  message: Message;
-  isFromContact: boolean;
-}) {
-  const metadata =
-    message.metadata && typeof message.metadata === "object"
-      ? message.metadata
-      : {};
-  const fileName = (metadata as any).fileName || "Imagem";
-  const fileSize = (metadata as any).fileSize;
-  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : "";
-
-  // Verificar múltiplas fontes de URL da imagem
-  let imageUrl = null;
-
-  // 1. Verificar se é uma imagem em base64 (enviadas pelo sistema)
-  if (message.content?.startsWith("data:image/")) {
-    imageUrl = message.content;
-  }
-  // 2. Verificar se o content já é uma URL de imagem (formato Z-API atualizado)
-  else if (message.content?.startsWith("http") && message.content?.includes("backblazeb2.com")) {
-    imageUrl = message.content;
-  }
-  // 3. Verificar se há URL da imagem nos metadados (recebidas via WhatsApp)
-  else if (metadata && typeof metadata === "object") {
-    const meta = metadata as any;
-    
-    // Verificar mediaUrl diretamente nos metadados (novo formato Z-API)
-    if (meta.mediaUrl) {
-      imageUrl = meta.mediaUrl;
-    }
-    // Verificar imageUrl no objeto image dos metadados
-    else if (meta.image && meta.image.imageUrl) {
-      imageUrl = meta.image.imageUrl;
-    }
-    // Verificar thumbnailUrl como fallback
-    else if (meta.image && meta.image.thumbnailUrl) {
-      imageUrl = meta.image.thumbnailUrl;
-    }
-    // Verificar se há imageUrl diretamente nos metadados
-    else if (meta.imageUrl) {
-      imageUrl = meta.imageUrl;
-    }
-  }
-
-  return (
-    <div
-      className={`max-w-md ${
-        isFromContact ? "bg-gray-100" : "bg-blue-600"
-      } rounded-lg overflow-hidden`}
-    >
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={fileName}
-          className="w-full h-auto max-h-96 object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div
-          className={`p-4 text-center ${
-            isFromContact ? "text-gray-600" : "text-white"
-          }`}
-        >
-          <div className="text-sm">📷 Imagem não disponível</div>
-          <div className="text-xs opacity-75">
-            {fileName}
-            {sizeText}
-          </div>
-        </div>
-      )}
-
-      {imageUrl && (
-        <div
-          className={`px-3 py-2 text-xs ${
-            isFromContact
-              ? "text-gray-600 bg-gray-50"
-              : "text-blue-100 bg-blue-700"
-          }`}
-        >
-          {fileName}
-          {sizeText}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Componente para exibir mensagem de vídeo
-function VideoMessage({
-  message,
-  isFromContact,
-}: {
-  message: Message;
-  isFromContact: boolean;
-}) {
-  const metadata =
-    message.metadata && typeof message.metadata === "object"
-      ? message.metadata
-      : {};
-  const fileName = (metadata as any).fileName || "Vídeo";
-  const fileSize = (metadata as any).fileSize;
-  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : "";
-
-  // Verificar se é um vídeo válido
-  const videoUrl = message.content?.startsWith("data:video/")
-    ? message.content
-    : null;
-
-  return (
-    <div
-      className={`max-w-md ${
-        isFromContact ? "bg-gray-100" : "bg-blue-600"
-      } rounded-lg overflow-hidden`}
-    >
-      {videoUrl ? (
-        <video
-          src={videoUrl}
-          controls
-          className="w-full h-auto max-h-96"
-          preload="metadata"
-        >
-          Seu navegador não suporta a reprodução de vídeo.
-        </video>
-      ) : (
-        <div
-          className={`p-4 text-center ${
-            isFromContact ? "text-gray-600" : "text-white"
-          }`}
-        >
-          <div className="text-sm">🎥 Vídeo não disponível</div>
-          <div className="text-xs opacity-75">
-            {fileName}
-            {sizeText}
-          </div>
-        </div>
-      )}
-
-      {videoUrl && (
-        <div
-          className={`px-3 py-2 text-xs ${
-            isFromContact
-              ? "text-gray-600 bg-gray-50"
-              : "text-blue-100 bg-blue-700"
-          }`}
-        >
-          {fileName}
-          {sizeText}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Componente para exibir mensagens de documento
-function DocumentMessage({
-  message,
-  isFromContact,
-}: {
-  message: Message;
-  isFromContact: boolean;
-}) {
-  // Extrair informações do documento dos metadados
-  const metadata =
-    message.metadata && typeof message.metadata === "object"
-      ? message.metadata
-      : {};
-  const fileName =
-    "fileName" in metadata ? (metadata.fileName as string) : "Documento";
-  const fileSize =
-    "fileSize" in metadata ? (metadata.fileSize as number) : null;
-  const mimeType = "mimeType" in metadata ? (metadata.mimeType as string) : "";
-
-  const sizeText = fileSize ? ` (${Math.round(fileSize / 1024)}KB)` : "";
-
-  // Função para determinar o ícone baseado no tipo de arquivo
-  const getFileIcon = (mimeType: string, fileName: string) => {
-    const extension = fileName.split(".").pop()?.toLowerCase() || "";
-
-    if (mimeType.includes("pdf") || extension === "pdf") {
-      return "📄";
-    } else if (
-      mimeType.includes("word") ||
-      ["doc", "docx"].includes(extension)
-    ) {
-      return "📝";
-    } else if (
-      mimeType.includes("excel") ||
-      ["xls", "xlsx"].includes(extension)
-    ) {
-      return "📊";
-    } else if (
-      mimeType.includes("powerpoint") ||
-      ["ppt", "pptx"].includes(extension)
-    ) {
-      return "📑";
-    } else if (
-      mimeType.includes("zip") ||
-      ["zip", "rar", "7z"].includes(extension)
-    ) {
-      return "🗂️";
-    } else {
-      return "📄";
-    }
-  };
-
-  const handleDownload = () => {
-    if (message.content && message.content.startsWith("data:")) {
-      const link = document.createElement("a");
-      link.href = message.content;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  return (
-    <div
-      className={`max-w-md ${
-        isFromContact ? "bg-gray-100" : "bg-blue-600"
-      } rounded-lg overflow-hidden`}
-    >
-      <div className={`p-4 ${isFromContact ? "text-gray-900" : "text-white"}`}>
-        <div className="flex items-center gap-3">
-          <div className="text-2xl">{getFileIcon(mimeType, fileName)}</div>
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm truncate">{fileName}</div>
-            <div
-              className={`text-xs ${
-                isFromContact ? "text-gray-500" : "text-blue-100"
-              }`}
-            >
-              Documento{sizeText}
-            </div>
-          </div>
-          {message.content && message.content.startsWith("data:") && (
-            <button
-              onClick={handleDownload}
-              className={`p-2 rounded-full hover:bg-opacity-20 hover:bg-white transition-colors ${
-                isFromContact ? "text-gray-600 hover:bg-gray-200" : "text-white"
-              }`}
-              title="Baixar documento"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function MessageBubble({
   message,
   contact,
@@ -298,6 +39,7 @@ export function MessageBubble({
   onReply,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
+  const { toast } = useToast();
   
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
@@ -338,30 +80,23 @@ export function MessageBubble({
     ? "text-xs text-gray-400"
     : "text-xs text-gray-500 justify-end";
 
-  const containerClasses = `flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`;
+  const containerClasses = `flex items-start gap-3 ${
+    isFromContact ? "flex-row" : "flex-row-reverse"
+  } mb-4`;
 
-  const bubbleWrapperClasses = `flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`;
-
-  const metadata =
-    message.metadata && typeof message.metadata === "object"
-      ? message.metadata
-      : {};
-  const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
 
   // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
     const now = new Date();
-    const sevenMinutesInMs = 7 * 60 * 1000; // 7 minutos em milissegundos
+    const sevenMinutesInMs = 7 * 60 * 1000;
     
     if (isFromContact) {
-      // Para mensagens recebidas: apenas nos primeiros 7 minutos após o recebimento
       const messageDate = new Date(message.sentAt || new Date());
       const timeDifference = now.getTime() - messageDate.getTime();
       return timeDifference <= sevenMinutesInMs;
     } else {
-      // Para mensagens enviadas: dentro de 7 minutos para WhatsApp
       const messageDate = new Date(message.sentAt || new Date());
       const timeDifference = now.getTime() - messageDate.getTime();
       return timeDifference <= sevenMinutesInMs;
@@ -374,18 +109,12 @@ export function MessageBubble({
     setIsDeleting(true);
     try {
       if (isFromContact) {
-        // Para mensagens recebidas: soft delete apenas na interface
         const response = await apiRequest("POST", "/api/messages/soft-delete", {
           messageId: message.id,
           conversationId: conversationId,
         });
 
-        console.log("✅ Mensagem recebida ocultada da interface:", response);
-
-        // Marcar mensagem como deletada localmente
         setIsDeleted(true);
-
-        // Invalidar cache para recarregar mensagens
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
         });
@@ -395,14 +124,12 @@ export function MessageBubble({
           description: "Mensagem removida da interface",
         });
       } else {
-        // Para mensagens enviadas: deletar via Z-API (lógica original)
         const metadata =
           message.metadata && typeof message.metadata === "object"
             ? message.metadata
             : {};
         let messageId = null;
 
-        // Buscar o ID da mensagem nos metadados
         if ("messageId" in metadata && metadata.messageId) {
           messageId = metadata.messageId;
         } else if ("zaapId" in metadata && metadata.zaapId) {
@@ -426,12 +153,7 @@ export function MessageBubble({
           conversationId: conversationId,
         });
 
-        console.log("✅ Mensagem enviada deletada via Z-API:", response);
-
-        // Marcar mensagem como deletada localmente
         setIsDeleted(true);
-
-        // Invalidar cache para recarregar mensagens
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
         });
@@ -442,7 +164,7 @@ export function MessageBubble({
         });
       }
     } catch (error) {
-      console.error("❌ Erro ao deletar mensagem:", error);
+      console.error("Erro ao deletar mensagem:", error);
 
       let errorMessage = "Não foi possível deletar a mensagem";
       if (error && typeof error === "object" && "message" in error) {
@@ -459,29 +181,11 @@ export function MessageBubble({
     }
   };
 
-  // Mensagem deletada
-  if (isDeleted || message.isDeleted) {
+  if (isDeleted) {
     return (
-      <div className={containerClasses}>
-        <Avatar className="w-9 h-9 flex-shrink-0 opacity-50">
-          <AvatarImage
-            src={isFromContact ? contact.profileImageUrl || "" : ""}
-            alt={isFromContact ? contact.name : "Agente"}
-          />
-          <AvatarFallback className="text-sm">
-            {avatarFallbackChar}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className={bubbleWrapperClasses}>
-          <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500 opacity-75">
-            <span className="text-sm italic">Esta mensagem foi deletada</span>
-          </div>
-          <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
-            <span title={new Date(messageTimestamp).toLocaleString()}>
-              {messageTime}
-            </span>
-          </div>
+      <div className="flex items-center justify-center py-2 text-xs text-gray-400 italic">
+        <div className="bg-gray-100 px-3 py-1 rounded-full">
+          Esta mensagem foi removida
         </div>
       </div>
     );
@@ -493,35 +197,28 @@ export function MessageBubble({
       // Verificar se temos uma URL válida para o áudio
       let audioUrl: string | null = null;
       
-      // 1. Verificar se content é uma data URL válida (formato completo)
       if (message.content && message.content.startsWith('data:audio/')) {
         audioUrl = message.content;
       }
-      // 2. Verificar se content já contém "data:" mas com outro formato de mídia
       else if (message.content && message.content.startsWith('data:') && message.content.includes('base64,')) {
         audioUrl = message.content;
       }
-      // 3. Verificar se é apenas base64 e construir data URL
       else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
         const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
         audioUrl = `data:${mimeType};base64,${message.content}`;
       }
-      // 4. Verificar se é uma URL HTTP/HTTPS válida
       else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
         audioUrl = message.content;
       }
-      // 5. Verificar se há audioUrl nos metadados (para mensagens recebidas)
       else if ((message.metadata as any)?.audio?.audioUrl) {
         audioUrl = (message.metadata as any).audio.audioUrl;
       }
-      // 6. Verificar se há mediaUrl nos metadados (fallback)
       else if ((message.metadata as any)?.mediaUrl) {
         audioUrl = (message.metadata as any).mediaUrl;
       }
 
       const duration = (message.metadata as any)?.audio?.duration || (message.metadata as any)?.duration || 0;
       
-      // Se temos URL válida, renderizar o player
       if (audioUrl) {
         return (
           <AudioMessage
@@ -532,7 +229,6 @@ export function MessageBubble({
         );
       }
 
-      // Se não temos URL mas temos messageId, tentar buscar
       const messageIdFromMetadata = (message.metadata as any)?.messageId;
       if (messageIdFromMetadata) {
         return (
@@ -545,7 +241,6 @@ export function MessageBubble({
         );
       }
 
-      // Se é um áudio enviado por nós (audioSent: true), usar o ID da mensagem para buscar
       if ((message.metadata as any)?.audioSent && !isFromContact) {
         return (
           <AudioMessage
@@ -557,7 +252,6 @@ export function MessageBubble({
         );
       }
       
-      // Fallback para áudio indisponível
       return (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
           <Volume2 className="w-4 h-4 text-red-500" />
@@ -587,7 +281,7 @@ export function MessageBubble({
       );
     }
 
-    // Para outros tipos de mídia, usar LazyMediaContent
+    // Para todos os tipos de mídia (image, video, document), usar LazyMediaContent
     if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
       return (
         <LazyMediaContent
@@ -595,6 +289,8 @@ export function MessageBubble({
           messageType={message.messageType as "audio" | "video" | "image" | "document"}
           conversationId={conversationId}
           isFromContact={isFromContact}
+          metadata={message.metadata}
+          initialContent={message.content}
         />
       );
     }
@@ -640,82 +336,71 @@ export function MessageBubble({
         </AvatarFallback>
       </Avatar>
 
-      <div className={bubbleWrapperClasses}>
-        {renderMessageContent()}
+      <div className="flex-1 min-w-0 max-w-lg">
+        <div className="flex flex-col gap-1">
+          {renderMessageContent()}
 
-        {/* Ações da mensagem - Botões de Responder e Excluir */}
-        {contact.phone && conversationId && (
-          <div className={`flex gap-1 mt-1 ${isFromContact ? 'justify-start' : 'justify-end'}`}>
-            {/* Botão de Responder - apenas para mensagens do contato */}
-            {isFromContact && onReply && (
+          <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
+            <span title={new Date(messageTimestamp).toLocaleString()}>
+              {messageTime}
+            </span>
+            {messageStatus}
+            
+            {!message.isInternalNote && onReply && (
               <Button
                 variant="ghost"
                 size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => onReply(message)}
-                className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100"
+                title="Responder"
               >
-                <Reply className="w-3.5 h-3.5 mr-1" />
-                Responder
+                <Reply className="h-3 w-3" />
               </Button>
             )}
-            
-            {/* Botão de Excluir - para todas as mensagens que podem ser deletadas */}
-            {canDelete() && (
+
+            {canDelete() && conversationId && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={isDeleting}
-                    className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100 text-red-500 hover:text-red-600"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
+                    title="Deletar mensagem"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                    {isDeleting ? "Excluindo..." : "Excluir"}
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir mensagem</AlertDialogTitle>
+                    <AlertDialogTitle>Deletar mensagem</AlertDialogTitle>
                     <AlertDialogDescription>
-                      {isFromContact 
-                        ? "Tem certeza que deseja remover esta mensagem da interface? A mensagem será ocultada apenas para você, não será deletada do WhatsApp."
-                        : "Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita e será removida do WhatsApp."
-                      }
+                      {isFromContact
+                        ? "Esta ação irá ocultar a mensagem apenas da sua interface. A mensagem ainda será visível para o contato."
+                        : "Esta ação irá deletar a mensagem permanentemente para ambos os lados da conversa."}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteMessage}>
-                      Excluir
+                    <AlertDialogAction
+                      onClick={handleDeleteMessage}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isDeleting ? "Deletando..." : "Deletar"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
           </div>
-        )}
-
-        {/* Reações e informações da mensagem */}
-        <div className="flex flex-col gap-1 mt-1">
-          {/* Reações - apenas para mensagens de contatos do WhatsApp */}
-          {contact.phone && conversationId && (
-            <div className="flex justify-end">
-              <MessageReactions
-                message={message}
-                conversationId={conversationId}
-                contactPhone={contact.phone}
-              />
-            </div>
-          )}
-          
-          {/* Horário e status */}
-          <div className={`flex items-center gap-1 ${timeClasses}`}>
-            {messageStatus}
-            <span title={new Date(messageTimestamp).toLocaleString()}>
-              {messageTime}
-            </span>
-          </div>
         </div>
+
+        <MessageReactions
+          messageId={message.id}
+          conversationId={conversationId || 0}
+          contactPhone={contact.phone}
+          isFromContact={isFromContact}
+        />
       </div>
     </div>
   );
