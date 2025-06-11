@@ -101,16 +101,8 @@ export function LazyMediaContent({
   const [loaded, setLoaded] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // Para documentos, manter o comportamento atual de não carregamento automático
-  // Para imagens e vídeos, não carregar automaticamente para economizar banda
-  useEffect(() => {
-    // Apenas carregar automaticamente se o conteúdo estiver disponível nos metadados
-    // e for um documento ou áudio
-    if ((messageType === 'document' || messageType === 'audio') && realInitialContent && !loaded && !loading) {
-      setContent(realInitialContent);
-      setLoaded(true);
-    }
-  }, [messageId, messageType, realInitialContent, loaded, loading]);
+  // Não carregar automaticamente nenhum tipo de mídia para economizar banda
+  // Todos os tipos de mídia agora requerem ação do usuário para visualizar
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
@@ -182,6 +174,18 @@ export function LazyMediaContent({
         );
 
       case "audio":
+        if (loaded && content) {
+          return (
+            <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <audio controls className="w-full max-w-xs">
+                <source src={content} type="audio/mpeg" />
+                <source src={content} type="audio/ogg" />
+                <source src={content} type="audio/wav" />
+                Seu navegador não suporta áudio.
+              </audio>
+            </div>
+          );
+        }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Play className="w-5 h-5" />
@@ -200,7 +204,7 @@ export function LazyMediaContent({
         );
 
       case "video":
-        if (content) {
+        if (loaded && content) {
           return (
             <div className="relative max-w-sm">
               <video
@@ -233,7 +237,7 @@ export function LazyMediaContent({
               onClick={loadMediaContent}
               disabled={loading}
             >
-              {loading ? "Carregando..." : "Reproduzir"}
+              {loading ? "Carregando..." : "Visualizar"}
             </Button>
           </div>
         );
