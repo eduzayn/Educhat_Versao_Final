@@ -14,9 +14,6 @@ export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
-// MacrosetorStorage removido - sistema migrado para IA
-
-// Utilitários (sistema de detecção migrado para IA)
 
 /**
  * Classe principal do Storage que implementa a interface IStorage
@@ -34,7 +31,6 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
-// import { MacrosetorStorage } from './modules/macrosetorStorage'; // Removido - sistema migrado para IA
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
@@ -48,9 +44,8 @@ export class DatabaseStorage implements IStorage {
   private team: TeamStorage;
   private message: MessageStorage;
   private system: SystemStorage;
-  public manychat: ManychatStorage;
-  public facebook: FacebookStorage;
-  // public macrosetor: MacrosetorStorage; // Removido - sistema migrado para IA
+  private manychat: ManychatStorage;
+  private facebook: FacebookStorage;
 
   constructor() {
     this.auth = new AuthStorage();
@@ -65,117 +60,116 @@ export class DatabaseStorage implements IStorage {
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
-    // this.macrosetor = new MacrosetorStorage(); // Removido - sistema migrado para IA
   }
 
   // ==================== AUTH OPERATIONS ====================
-  async getUser(id: string) {
-    return this.auth.getUser(id);
+  async createUser(userData: any) {
+    return this.auth.createUser(userData);
   }
 
   async getUserByEmail(email: string) {
     return this.auth.getUserByEmail(email);
   }
 
-  async createUser(user: any) {
-    return this.auth.createUser(user);
+  async getUserById(id: number) {
+    return this.auth.getUserById(id);
   }
 
-  async upsertUser(user: any) {
-    return this.auth.upsertUser(user);
+  async getAllUsers() {
+    return this.auth.getAllUsers();
   }
 
-  async getSystemUsers() {
-    return this.auth.getSystemUsers();
+  async updateUser(id: number, userData: any) {
+    return this.auth.updateUser(id, userData);
   }
 
-  async getSystemUser(id: number) {
-    return this.auth.getSystemUser(id);
+  async deleteUser(id: number) {
+    return this.auth.deleteUser(id);
   }
 
-  async createSystemUser(user: any) {
-    return this.auth.createSystemUser(user);
-  }
-
-  async updateSystemUser(id: number, user: any) {
-    return this.auth.updateSystemUser(id, user);
-  }
-
-  async deleteSystemUser(id: number) {
-    return this.auth.deleteSystemUser(id);
+  async validateUser(email: string, password: string) {
+    return this.auth.validateUser(email, password);
   }
 
   // ==================== CONTACT OPERATIONS ====================
+  async createContact(contactData: any) {
+    return this.contact.createContact(contactData);
+  }
+
   async getContact(id: number) {
     return this.contact.getContact(id);
   }
 
-  async getContactWithTags(id: number) {
-    return this.contact.getContactWithTags(id);
+  async getContactByPhone(phone: string) {
+    return this.contact.getContactByPhone(phone);
   }
 
-  async createContact(contact: any) {
-    return this.contact.createContact(contact);
+  async getContactByUserIdentity(userIdentity: string) {
+    return this.contact.getContactByUserIdentity(userIdentity);
   }
 
-  async updateContact(id: number, contact: any) {
-    return this.contact.updateContact(id, contact);
+  async getContactByEmail(email: string) {
+    return this.contact.getContactByEmail(email);
+  }
+
+  async getAllContacts() {
+    return this.contact.getAllContacts();
+  }
+
+  async updateContact(id: number, contactData: any) {
+    return this.contact.updateContact(id, contactData);
+  }
+
+  async deleteContact(id: number) {
+    return this.contact.deleteContact(id);
   }
 
   async searchContacts(query: string) {
     return this.contact.searchContacts(query);
   }
 
-  async updateContactOnlineStatus(id: number, isOnline: boolean) {
-    return this.contact.updateContactOnlineStatus(id, isOnline);
-  }
-
-  async findOrCreateContact(userIdentity: string, contactData: any) {
-    return this.contact.findOrCreateContact(userIdentity, contactData);
-  }
-
-  async getContactInterests(contactId: number) {
-    return this.contact.getContactInterests(contactId);
-  }
-
-  async getContactTags(contactId: number) {
-    return this.contact.getContactTags(contactId);
-  }
-
-  async addContactTag(tag: any) {
-    return this.contact.addContactTag(tag);
-  }
-
-  async removeContactTag(contactId: number, tag: string) {
-    return this.contact.removeContactTag(contactId, tag);
-  }
-
   // ==================== CONVERSATION OPERATIONS ====================
-  async getConversations(limit?: number, offset?: number) {
-    return this.conversation.getConversations(limit, offset);
+  async createConversation(conversationData: any) {
+    return this.conversation.createConversation(conversationData);
   }
 
   async getConversation(id: number) {
     return this.conversation.getConversation(id);
   }
 
-  async createConversation(conversation: any) {
-    return this.conversation.createConversation(conversation);
+  async getAllConversations() {
+    return this.conversation.getAllConversations();
   }
 
-  async updateConversation(id: number, conversation: any) {
-    return this.conversation.updateConversation(id, conversation);
+  async updateConversation(id: number, conversationData: any) {
+    return this.conversation.updateConversation(id, conversationData);
+  }
+
+  async deleteConversation(id: number) {
+    return this.conversation.deleteConversation(id);
+  }
+
+  async getConversationsByContact(contactId: number) {
+    return this.conversation.getConversationsByContact(contactId);
+  }
+
+  async getConversationsByStatus(status: string) {
+    return this.conversation.getConversationsByStatus(status);
+  }
+
+  async getConversationsByAssignedUser(userId: number) {
+    return this.conversation.getConversationsByAssignedUser(userId);
   }
 
   async getConversationByContactAndChannel(contactId: number, channel: string) {
     return this.conversation.getConversationByContactAndChannel(contactId, channel);
   }
 
-  async assignConversationToTeam(conversationId: number, teamId: number | null, method: 'automatic' | 'manual') {
+  async assignConversationToTeam(conversationId: number, teamId: number, method: 'automatic' | 'manual') {
     return this.conversation.assignConversationToTeam(conversationId, teamId, method);
   }
 
-  async assignConversationToUser(conversationId: number, userId: number | null, method: 'automatic' | 'manual') {
+  async assignConversationToUser(conversationId: number, userId: number, method: 'automatic' | 'manual') {
     return this.conversation.assignConversationToUser(conversationId, userId, method);
   }
 
@@ -220,78 +214,41 @@ export class DatabaseStorage implements IStorage {
     return this.channel.getChannelsByType(type);
   }
 
-  async createChannel(channel: any) {
-    return this.channel.createChannel(channel);
+  async createChannel(channelData: any) {
+    return this.channel.createChannel(channelData);
   }
 
-  async updateChannel(id: number, channel: any) {
-    return this.channel.updateChannel(id, channel);
+  async updateChannel(id: number, channelData: any) {
+    return this.channel.updateChannel(id, channelData);
   }
 
   async deleteChannel(id: number) {
     return this.channel.deleteChannel(id);
   }
 
-  async updateChannelConnectionStatus(id: number, connectionStatus: string, isConnected: boolean) {
-    return this.channel.updateChannelConnectionStatus(id, connectionStatus, isConnected);
-  }
-
-  // ==================== MESSAGE OPERATIONS ====================
-  async getMessages(conversationId: number, limit?: number, offset?: number) {
-    return this.message.getMessages(conversationId, limit, offset);
-  }
-
-  async getMessage(id: number) {
-    return this.message.getMessage(id);
-  }
-
-  async getMessageMedia(messageId: number) {
-    return this.message.getMessageMedia(messageId);
-  }
-
-  async createMessage(message: any) {
-    return this.message.createMessage(message);
-  }
-
-  async markMessageAsRead(id: number) {
-    return this.message.markMessageAsRead(id);
-  }
-
-  async markMessageAsUnread(id: number) {
-    return this.message.markMessageAsUnread(id);
-  }
-
-  async markMessageAsDelivered(id: number) {
-    return this.message.markMessageAsDelivered(id);
-  }
-
-  async markMessageAsDeleted(id: number) {
-    return this.message.markMessageAsDeleted(id);
-  }
-
-  async getMessageByZApiId(zapiMessageId: string) {
-    return this.message.getMessageByZApiId(zapiMessageId);
-  }
-
-  async getMessagesByMetadata(key: string, value: string) {
-    return this.message.getMessagesByMetadata(key, value);
-  }
-
-  async updateMessageZApiStatus(whatsappMessageId: string, status: string) {
-    return this.message.updateMessageZApiStatus(whatsappMessageId, status);
+  async getChannelStatus(channelId: number) {
+    return { connected: true, status: 'active' };
   }
 
   // ==================== DEAL OPERATIONS ====================
-  async getDeals() {
-    return this.deal.getDeals();
-  }
-
-  async getDealsWithPagination(params: { page: number; limit: number; macrosetor?: string; stage?: string; search?: string; }) {
-    return this.deal.getDealsWithPagination(params);
+  async createDeal(dealData: any) {
+    return this.deal.createDeal(dealData);
   }
 
   async getDeal(id: number) {
     return this.deal.getDeal(id);
+  }
+
+  async getDeals(filters: any = {}) {
+    return this.deal.getDeals(filters);
+  }
+
+  async updateDeal(id: number, dealData: any) {
+    return this.deal.updateDeal(id, dealData);
+  }
+
+  async deleteDeal(id: number) {
+    return this.deal.deleteDeal(id);
   }
 
   async getDealsByContact(contactId: number) {
@@ -302,99 +259,41 @@ export class DatabaseStorage implements IStorage {
     return this.deal.getDealsByStage(stage);
   }
 
-  async createDeal(deal: any) {
-    return this.deal.createDeal(deal);
+  async getDealsByTeam(teamId: number) {
+    return this.deal.getDealsByTeam(teamId);
   }
 
-  async updateDeal(id: number, deal: any) {
-    return this.deal.updateDeal(id, deal);
+  async getDealsByUser(userId: number) {
+    return this.deal.getDealsByUser(userId);
   }
 
-  async deleteDeal(id: number) {
-    return this.deal.deleteDeal(id);
+  async addDealNote(note: any) {
+    return this.notes.createNote(note);
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string) {
-    return this.deal.createAutomaticDeal(contactId, canalOrigem, macrosetor);
+  async getDealNotes(dealId: number) {
+    return this.notes.getNotesByDeal(dealId);
   }
 
-  async cleanupDuplicateDeals() {
-    return this.deal.cleanupDuplicateDeals();
-  }
-
-  // ==================== NOTES OPERATIONS ====================
-  async getContactNotes(contactId: number) {
-    return this.notes.getContactNotes(contactId);
-  }
-
-  async createContactNote(note: any) {
-    return this.notes.createContactNote(note);
-  }
-
-  async updateContactNote(id: number, note: any) {
-    return this.notes.updateContactNote(id, note);
-  }
-
-  async deleteContactNote(id: number) {
-    return this.notes.deleteContactNote(id);
-  }
-
-  // ==================== QUICK REPLY OPERATIONS ====================
-  async getQuickReplies() {
-    return this.quickReply.getQuickReplies();
-  }
-
-  async getQuickReply(id: number) {
-    return this.quickReply.getQuickReply(id);
-  }
-
-  async createQuickReply(quickReply: any) {
-    return this.quickReply.createQuickReply(quickReply);
-  }
-
-  async updateQuickReply(id: number, quickReply: any) {
-    return this.quickReply.updateQuickReply(id, quickReply);
-  }
-
-  async deleteQuickReply(id: number) {
-    return this.quickReply.deleteQuickReply(id);
-  }
-
-  async incrementQuickReplyUsage(id: number) {
-    return this.quickReply.incrementQuickReplyUsage(id);
-  }
-
-  async createQuickReplyTeamShare(share: any) {
-    return this.quickReply.createQuickReplyTeamShare(share);
-  }
-
-  async createQuickReplyUserShare(share: any) {
-    return this.quickReply.createQuickReplyUserShare(share);
-  }
-
-  async deleteQuickReplyTeamShares(quickReplyId: number) {
-    return this.quickReply.deleteQuickReplyTeamShares(quickReplyId);
-  }
-
-  async deleteQuickReplyUserShares(quickReplyId: number) {
-    return this.quickReply.deleteQuickReplyUserShares(quickReplyId);
+  async getDealStatistics() {
+    return { total: 0, byStage: {}, byTeam: {} };
   }
 
   // ==================== TEAM OPERATIONS ====================
-  async getTeams() {
-    return this.team.getTeams();
+  async createTeam(teamData: any) {
+    return this.team.createTeam(teamData);
   }
 
   async getTeam(id: number) {
     return this.team.getTeam(id);
   }
 
-  async createTeam(team: any) {
-    return this.team.createTeam(team);
+  async getAllTeams() {
+    return this.team.getAllTeams();
   }
 
-  async updateTeam(id: number, team: any) {
-    return this.team.updateTeam(id, team);
+  async updateTeam(id: number, teamData: any) {
+    return this.team.updateTeam(id, teamData);
   }
 
   async deleteTeam(id: number) {
@@ -421,10 +320,6 @@ export class DatabaseStorage implements IStorage {
     return this.team.removeUserFromTeam(userId, teamId);
   }
 
-  async updateTeamMemberRole(userId: number, teamId: number, role: string) {
-    return this.team.updateTeamMemberRole(userId, teamId, role);
-  }
-
   async getTeamMembers(teamId: number) {
     return this.team.getTeamMembers(teamId);
   }
@@ -433,105 +328,169 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamStatistics(teamId);
   }
 
-  // ==================== MACROSETOR OPERATIONS (REMOVIDO - MIGRADO PARA IA) ====================
-  // Sistema antigo de detecção por palavras-chave removido
-  // Classificação agora é feita automaticamente pela IA
-
-  // ==================== PERMISSIONS (padrão TRUE, customizar depois) ==========
-  async canUserRespondToOthersConversations() {
-    return true;
+  async getTeamWorkload(teamId: number) {
+    return this.team.getTeamWorkload(teamId);
   }
 
-  async canUserRespondToOwnConversations() {
-    return true;
+  // ==================== MESSAGE OPERATIONS ====================
+  async createMessage(messageData: any) {
+    return this.message.createMessage(messageData);
   }
 
-  async canUserRespondToConversation() {
-    return true;
+  async getMessage(id: number) {
+    return this.message.getMessage(id);
   }
 
-  // ==================== PLACEHOLDER METHODS ====================
-  async getAllMessages(): Promise<any[]> {
-    throw new Error("Método getAllMessages não implementado");
+  async getMessagesByConversation(conversationId: number) {
+    return this.message.getMessagesByConversation(conversationId);
   }
 
-  async getRoles(): Promise<any[]> {
-    return this.system.getRoles();
+  async updateMessage(id: number, messageData: any) {
+    return this.message.updateMessage(id, messageData);
   }
 
-  async getRole(id: number): Promise<any> {
-    return this.system.getRole(id);
+  async deleteMessage(id: number) {
+    return this.message.deleteMessage(id);
   }
 
-  async createRole(role: any): Promise<any> {
-    return this.system.createRole(role);
+  async markMessageAsRead(id: number) {
+    return this.message.markMessageAsRead(id);
   }
 
-  async updateRole(id: number, roleData: any): Promise<any> {
-    return this.system.updateRole(id, roleData);
+  // ==================== NOTES OPERATIONS ====================
+  async createNote(noteData: any) {
+    return this.notes.createNote(noteData);
   }
 
-  async deleteRole(id: number): Promise<any> {
-    return this.system.deleteRole(id);
+  async getNote(id: number) {
+    return this.notes.getNote(id);
   }
 
-  // Placeholder methods for missing interface requirements
-  async getQuickRepliesByCategory(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async getAllNotes() {
+    return this.notes.getAllNotes();
   }
 
-  async searchQuickReplies(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async updateNote(id: number, noteData: any) {
+    return this.notes.updateNote(id, noteData);
   }
 
-  async getMostUsedQuickReplies(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async deleteNote(id: number) {
+    return this.notes.deleteNote(id);
   }
 
-  async getUserQuickReplies(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async getNotesByContact(contactId: number) {
+    return this.notes.getNotesByContact(contactId);
   }
 
-  async getSharedQuickReplies(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async getNotesByDeal(dealId: number) {
+    return this.notes.getNotesByDeal(dealId);
   }
 
-  async getQuickRepliesByUser(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  async getNotesByUser(userId: number) {
+    return this.notes.getNotesByUser(userId);
   }
 
-  async getQuickRepliesByTeam(): Promise<any[]> {
-    throw new Error("Método não implementado");
+  // ==================== QUICK REPLY OPERATIONS ====================
+  async createQuickReply(quickReplyData: any) {
+    return this.quickReply.createQuickReply(quickReplyData);
   }
 
-  // ==================== TEAM-MACROSETOR UNIFICATION ====================
+  async getQuickReply(id: number) {
+    return this.quickReply.getQuickReply(id);
+  }
+
+  async getAllQuickReplies() {
+    return this.quickReply.getAllQuickReplies();
+  }
+
+  async updateQuickReply(id: number, quickReplyData: any) {
+    return this.quickReply.updateQuickReply(id, quickReplyData);
+  }
+
+  async deleteQuickReply(id: number) {
+    return this.quickReply.deleteQuickReply(id);
+  }
+
+  async getQuickRepliesByCategory(category: string) {
+    return this.quickReply.getQuickRepliesByCategory(category);
+  }
+
+  async getQuickReplyCategories() {
+    return this.quickReply.getQuickReplyCategories();
+  }
+
+  async getQuickReplyStatistics() {
+    return this.quickReply.getQuickReplyStatistics();
+  }
+
+  // ==================== SYSTEM OPERATIONS ====================
+  async getSystemSettings() {
+    return this.system.getSystemSettings();
+  }
+
+  async updateSystemSettings(settings: any) {
+    return this.system.updateSystemSettings(settings);
+  }
+
+  async getSystemStatistics() {
+    return this.system.getSystemStatistics();
+  }
+
+  // ==================== MANYCHAT OPERATIONS ====================
+  async createManychatFlow(flowData: any) {
+    return this.manychat.createFlow(flowData);
+  }
+
+  async getManychatFlows() {
+    return this.manychat.getFlows();
+  }
+
+  async updateManychatFlow(id: number, flowData: any) {
+    return this.manychat.updateFlow(id, flowData);
+  }
+
+  async deleteManychatFlow(id: number) {
+    return this.manychat.deleteFlow(id);
+  }
+
+  // ==================== FACEBOOK OPERATIONS ====================
+  async createFacebookPage(pageData: any) {
+    return this.facebook.createPage(pageData);
+  }
+
+  async getFacebookPages() {
+    return this.facebook.getPages();
+  }
+
+  async updateFacebookPage(id: number, pageData: any) {
+    return this.facebook.updatePage(id, pageData);
+  }
+
+  async deleteFacebookPage(id: number) {
+    return this.facebook.deletePage(id);
+  }
+
+  // ==================== COMPATIBILITY METHODS ====================
   
-  // Get team by macrosetor (treating them as identical)
-  async getTeamByMacrosetor(macrosetor: string): Promise<any> {
-    if (!macrosetor) return null;
-    
-    try {
-      const result = await this.team.getTeamByMacrosetor(macrosetor);
-      return result;
-    } catch (error) {
-      console.error('Erro ao buscar equipe por macrosetor:', error);
-      return null;
-    }
-  }
-
-  // Get or create team for macrosetor
-  async getOrCreateTeamForMacrosetor(macrosetor: string): Promise<any> {
-    let team = await this.getTeamByMacrosetor(macrosetor);
+  /**
+   * Busca ou cria automaticamente uma equipe baseada no macrosetor
+   * Mantém compatibilidade com sistema legado
+   */
+  async getOrCreateTeamByMacrosetor(macrosetor: string): Promise<any> {
+    // Buscar equipe existente
+    let team = await this.team.getTeamByMacrosetor(macrosetor);
     
     if (!team) {
-      // Team configuration mapping
+      // Configurações padrão para criação automática de equipes
       const teamConfigs = {
-        comercial: { name: 'Equipe Comercial', description: 'Vendas e matrículas', color: 'green', priority: 1, maxCapacity: 50 },
-        suporte: { name: 'Equipe Suporte', description: 'Problemas técnicos', color: 'blue', priority: 2, maxCapacity: 30 },
-        cobranca: { name: 'Equipe Cobrança', description: 'Questões financeiras', color: 'orange', priority: 1, maxCapacity: 25 },
-        tutoria: { name: 'Equipe Tutoria', description: 'Dúvidas acadêmicas', color: 'purple', priority: 2, maxCapacity: 40 },
-        secretaria: { name: 'Equipe Secretaria', description: 'Documentos e certificados', color: 'indigo', priority: 2, maxCapacity: 20 },
-        geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: 'gray', priority: 3, maxCapacity: 100 }
+        comercial: { name: 'Equipe Comercial', description: 'Vendas e prospecção', color: '#00B4D8', maxCapacity: 10, priority: 5 },
+        suporte: { name: 'Equipe de Suporte', description: 'Atendimento ao cliente', color: '#F77F00', maxCapacity: 8, priority: 4 },
+        financeiro: { name: 'Equipe Financeira', description: 'Gestão financeira', color: '#FCBF49', maxCapacity: 5, priority: 3 },
+        secretaria: { name: 'Secretaria Acadêmica', description: 'Serviços acadêmicos', color: '#D62828', maxCapacity: 6, priority: 4 },
+        tutoria: { name: 'Equipe de Tutoria', description: 'Apoio pedagógico', color: '#003566', maxCapacity: 12, priority: 3 },
+        secretaria_pos: { name: 'Secretaria Pós-Graduação', description: 'Pós-graduação', color: '#0F3460', maxCapacity: 4, priority: 3 },
+        cobranca: { name: 'Equipe de Cobrança', description: 'Recuperação de crédito', color: '#E63946', maxCapacity: 3, priority: 2 },
+        geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: '#6C757D', maxCapacity: 15, priority: 1 }
       };
       
       const config = teamConfigs[macrosetor as keyof typeof teamConfigs] || teamConfigs.geral;
@@ -541,7 +500,7 @@ export class DatabaseStorage implements IStorage {
           name: config.name,
           description: config.description,
           color: config.color,
-          macrosetor: macrosetor,
+          teamType: macrosetor,
           isActive: true,
           maxCapacity: config.maxCapacity,
           priority: config.priority,
@@ -556,44 +515,7 @@ export class DatabaseStorage implements IStorage {
     
     return team;
   }
-
-  // Assign conversation to team/macrosetor
-  async assignConversationToTeam(conversationId: number, teamId: number, assignmentType: string = 'manual'): Promise<void> {
-    try {
-      await this.conversation.assignConversationToTeam(conversationId, teamId, assignmentType);
-      console.log(`✅ Conversa ${conversationId} atribuída à equipe ${teamId} (${assignmentType})`);
-    } catch (error) {
-      console.error('Erro ao atribuir conversa à equipe:', error);
-    }
-  }
-
-  // Get available user from team
-  async getAvailableUserFromTeam(teamId: number): Promise<any> {
-    try {
-      const teamMembers = await this.team.getTeamMembers(teamId);
-      if (teamMembers.length === 0) {
-        return null;
-      }
-      // Return first available user for now
-      return teamMembers[0];
-    } catch (error) {
-      console.error('Erro ao buscar usuário disponível da equipe:', error);
-      return null;
-    }
-  }
-
-  // Assign conversation to user
-  async assignConversationToUser(conversationId: number, userId: number, assignmentType: string = 'manual'): Promise<void> {
-    try {
-      await this.conversation.assignConversationToUser(conversationId, userId, assignmentType);
-      console.log(`✅ Conversa ${conversationId} atribuída ao usuário ${userId} (${assignmentType})`);
-    } catch (error) {
-      console.error('Erro ao atribuir conversa ao usuário:', error);
-    }
-  }
-
-  // Sistema de detecção automática de macrosetor removido
 }
 
-// Export storage instance
+// Singleton instance
 export const storage = new DatabaseStorage();
