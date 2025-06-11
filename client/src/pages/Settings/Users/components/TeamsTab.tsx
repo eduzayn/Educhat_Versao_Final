@@ -37,7 +37,7 @@ export const TeamsTab = () => {
   const [newTeamForm, setNewTeamForm] = useState({
     name: '',
     description: '',
-    macrosetor: '',
+    teamType: '',
     color: '',
     isActive: true
   });
@@ -47,7 +47,7 @@ export const TeamsTab = () => {
   const [editTeamForm, setEditTeamForm] = useState({
     name: '',
     description: '',
-    macrosetor: '',
+    teamType: '',
     isActive: true
   });
 
@@ -101,7 +101,7 @@ export const TeamsTab = () => {
         description: "A nova equipe foi criada com sucesso.",
       });
       setShowTeamDialog(false);
-      setNewTeamForm({ name: '', description: '', macrosetor: '', color: '', isActive: true });
+      setNewTeamForm({ name: '', description: '', teamType: '', color: '', isActive: true });
     },
     onError: () => {
       toast({
@@ -174,7 +174,7 @@ export const TeamsTab = () => {
   });
 
   const handleCreateTeam = () => {
-    if (!newTeamForm.name || !newTeamForm.macrosetor) {
+    if (!newTeamForm.name || !newTeamForm.teamType) {
       toast({
         title: "Campos obrigatórios",
         description: "Nome e macrosetor são obrigatórios.",
@@ -186,7 +186,7 @@ export const TeamsTab = () => {
     createTeamMutation.mutate({
       name: newTeamForm.name,
       description: newTeamForm.description || null,
-      macrosetor: newTeamForm.macrosetor,
+      teamType: newTeamForm.teamType,
       color: newTeamForm.color || '#4F46E5',
       isActive: newTeamForm.isActive
     });
