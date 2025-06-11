@@ -119,7 +119,7 @@ export interface IStorage {
   createTeam(team: InsertTeam): Promise<Team>;
   updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team>;
   deleteTeam(id: number): Promise<void>;
-  getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined>;
+  getTeamByTeamType(teamType: string): Promise<Team | undefined>;
   getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined>;
   getUserTeams(userId: number): Promise<Team[]>;
   addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam>;

@@ -23,26 +23,26 @@ export class DealAutomationService {
         return null;
       }
 
-      // Buscar dados da equipe para determinar macrosetor
+      // Buscar dados da equipe para determinar teamType
       const team = await storage.getTeam(teamId);
       if (!team) {
         console.log(`❌ Equipe ${teamId} não encontrada`);
         return null;
       }
 
-      const macrosetor = team.macrosetor || 'geral';
+      const teamType = team.teamType || 'geral';
       const canalOrigem = conversation.channel || 'unknown';
 
-      console.log(`📋 Dados para automação: contato=${conversation.contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
+      console.log(`📋 Dados para automação: contato=${conversation.contactId}, canal=${canalOrigem}, teamType=${teamType}`);
 
       // Buscar estágio inicial correto do funil da equipe
-      const initialStage = await funnelService.getInitialStageForMacrosetor(macrosetor);
+      const initialStage = await funnelService.getInitialStageForTeamType(teamType);
       
       // Criar deal automático usando o sistema existente com estágio correto
       const deal = await storage.createAutomaticDeal(
         conversation.contactId,
         canalOrigem,
-        macrosetor,
+        teamType,
         initialStage
       );
 
@@ -57,9 +57,9 @@ export class DealAutomationService {
   }
 
   /**
-   * Mapear estágios iniciais por macrosetor
+   * Mapear estágios iniciais por teamType
    */
-  private getInitialStageByMacrosetor(macrosetor: string): string {
+  private getInitialStageByTeamType(teamType: string): string {
     const stageMapping: { [key: string]: string } = {
       'comercial': 'prospecting',
       'suporte': 'atendimento-inicial',
@@ -70,20 +70,20 @@ export class DealAutomationService {
       'secretaria_pos': 'documentos-inicial'
     };
 
-    return stageMapping[macrosetor] || 'prospecting';
+    return stageMapping[teamType] || 'prospecting';
   }
 
   /**
    * Verificar se deve criar deal automático
    */
-  async shouldCreateAutomaticDeal(contactId: number, macrosetor: string): Promise<boolean> {
+  async shouldCreateAutomaticDeal(contactId: number, teamType: string): Promise<boolean> {
     try {
       const existingDeals = await storage.getDealsByContact(contactId);
       
-      // Verificar se já existe deal ativo no mesmo macrosetor
+      // Verificar se já existe deal ativo no mesmo teamType
       const activeDealInSector = existingDeals.find(deal => {
         const isActive = !['closed', 'lost', 'closed_won', 'closed_lost'].includes(deal.stage);
-        return isActive && deal.macrosetor === macrosetor;
+        return isActive && deal.teamType === teamType;
       });
 
       return !activeDealInSector;
