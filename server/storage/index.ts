@@ -285,6 +285,10 @@ export class DatabaseStorage implements IStorage {
     return { total: 0, byStage: {}, byTeam: {} };
   }
 
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, team?: string): Promise<any> {
+    return this.deal.createAutomaticDeal(contactId, canalOrigem, team);
+  }
+
   // ==================== TEAM OPERATIONS ====================
   async createTeam(teamData: any) {
     return this.team.createTeam(teamData);
@@ -522,9 +526,25 @@ export class DatabaseStorage implements IStorage {
     return team;
   }
 
-  // System user method for authentication
-  async getSystemUser() {
-    return this.auth.getUser("1");
+  // System user methods for authentication and management
+  async getSystemUser(id: number) {
+    return this.auth.getSystemUser(id);
+  }
+
+  async getSystemUsers() {
+    return this.auth.getSystemUsers();
+  }
+
+  async createSystemUser(userData: any) {
+    return this.auth.createSystemUser(userData);
+  }
+
+  async updateSystemUser(id: number, userData: any) {
+    return this.auth.updateSystemUser(id, userData);
+  }
+
+  async deleteSystemUser(id: number) {
+    return this.auth.deleteSystemUser(id);
   }
 
   // Permission checking method
