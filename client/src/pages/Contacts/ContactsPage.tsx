@@ -15,7 +15,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
-import { useActiveWhatsAppChannels, type Channel } from '@/shared/lib/hooks/useChannels';
+import { useActiveWhatsAppChannels, useChannels, type Channel } from '@/shared/lib/hooks/useChannels';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 
