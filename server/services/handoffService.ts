@@ -221,7 +221,7 @@ export class HandoffService {
       const [team] = await db
         .select()
         .from(teams)
-        .where(eq(teams.macrosetor, suggestedTeamType))
+        .where(eq(teams.teamType, suggestedTeamType))
         .limit(1);
       
       if (team) {
@@ -235,7 +235,7 @@ export class HandoffService {
       const [supportTeam] = await db
         .select()
         .from(teams)
-        .where(eq(teams.macrosetor, 'suporte'))
+        .where(eq(teams.teamType, 'suporte'))
         .limit(1);
       
       if (supportTeam) {

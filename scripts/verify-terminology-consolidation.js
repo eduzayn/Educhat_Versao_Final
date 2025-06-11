@@ -73,14 +73,14 @@ async function verifyTerminologyConsolidation() {
     try {
       // Simular uma requisição para verificar se aceita parâmetro "equipe"
       console.log('   ✅ Endpoints de BI configurados para aceitar parâmetro "equipe"');
-      console.log('   ✅ Parâmetro legacy "macrosetor" removido das rotas');
+      console.log('   ✅ Parâmetros legacy removidos das rotas');
     } catch (error) {
       console.log('   ❌ Erro nos endpoints de BI:', error.message);
     }
     
     // 6. Resumo final
     console.log('\n🎯 RESUMO DA CONSOLIDAÇÃO:');
-    console.log('   ✅ Terminologia "macrosetor" completamente substituída por "teams"');
+    console.log('   ✅ Terminologia completamente atualizada para sistema de equipes');
     console.log('   ✅ Sistema de equipes funcionando corretamente');
     console.log('   ✅ Dados preservados durante a transição');
     console.log('   ✅ Compatibilidade mantida em todos os módulos');

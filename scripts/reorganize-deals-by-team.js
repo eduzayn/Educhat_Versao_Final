@@ -32,10 +32,10 @@ async function reorganizeDeals() {
     
     // Buscar todos os negócios que têm equipes definidas
     const dealsQuery = `
-      SELECT id, name, macrosetor, stage, contact_id
+      SELECT id, name, team_type, stage, contact_id
       FROM deals 
-      WHERE macrosetor IS NOT NULL AND macrosetor != ''
-      ORDER BY macrosetor, id
+      WHERE team_type IS NOT NULL AND team_type != ''
+      ORDER BY team_type, id
     `;
     
     const dealsResult = await pool.query(dealsQuery);
@@ -46,10 +46,10 @@ async function reorganizeDeals() {
     // Agrupar por equipe
     const dealsByTeam = {};
     deals.forEach(deal => {
-      if (!dealsByTeam[deal.macrosetor]) {
-        dealsByTeam[deal.macrosetor] = [];
+      if (!dealsByTeam[deal.team_type]) {
+        dealsByTeam[deal.team_type] = [];
       }
-      dealsByTeam[deal.macrosetor].push(deal);
+      dealsByTeam[deal.team_type].push(deal);
     });
     
     console.log('📋 Negócios por equipe:');

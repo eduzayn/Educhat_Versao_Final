@@ -15,7 +15,7 @@ async function testFunnelAutomation() {
   try {
     // 1. Verificar funis criados
     const funnelsResult = await pool.query(`
-      SELECT f.id, f.name, f.macrosetor, f.team_id, t.name as team_name 
+      SELECT f.id, f.name, f.team_type, f.team_id, t.name as team_name 
       FROM funnels f 
       LEFT JOIN teams t ON f.team_id = t.id 
       ORDER BY f.team_id
@@ -23,16 +23,16 @@ async function testFunnelAutomation() {
     
     console.log('📊 FUNIS CONFIGURADOS:');
     funnelsResult.rows.forEach(funnel => {
-      console.log(`  ✓ ${funnel.name} (${funnel.macrosetor}) → Equipe: ${funnel.team_name} (ID: ${funnel.team_id})`);
+      console.log(`  ✓ ${funnel.name} (${funnel.team_type}) → Equipe: ${funnel.team_name} (ID: ${funnel.team_id})`);
     });
     console.log(`  Total: ${funnelsResult.rows.length} funis\n`);
     
     // 2. Verificar deals associados aos funis
     const dealsResult = await pool.query(`
-      SELECT d.macrosetor, f.name as funnel_name, f.team_id, COUNT(*) as deal_count
+      SELECT d.team_type, f.name as funnel_name, f.team_id, COUNT(*) as deal_count
       FROM deals d 
       JOIN funnels f ON d.funnel_id = f.id 
-      GROUP BY d.macrosetor, f.name, f.team_id 
+      GROUP BY d.team_type, f.name, f.team_id 
       ORDER BY deal_count DESC
     `);
     
