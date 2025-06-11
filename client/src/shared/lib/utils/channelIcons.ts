@@ -32,32 +32,48 @@ export const InstagramIcon = ({ className = "w-4 h-4" }: ChannelIconProps) =>
   }));
 
 // Facebook Icon Component
-export const FacebookIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  </svg>
-);
+export const FacebookIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => 
+  React.createElement('svg', {
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    className
+  }, 
+  React.createElement('path', {
+    d: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+  }));
 
 // Email Icon Component
-export const EmailIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-  </svg>
-);
+export const EmailIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => 
+  React.createElement('svg', {
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    className
+  }, 
+  React.createElement('path', {
+    d: "M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+  }));
 
 // SMS Icon Component
-export const SmsIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-  </svg>
-);
+export const SmsIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => 
+  React.createElement('svg', {
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    className
+  }, 
+  React.createElement('path', {
+    d: "M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+  }));
 
 // Website Icon Component
-export const WebsiteIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-  </svg>
-);
+export const WebsiteIcon = ({ className = "w-4 h-4" }: ChannelIconProps) => 
+  React.createElement('svg', {
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    className
+  }, 
+  React.createElement('path', {
+    d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
+  }));
 
 // Função principal para obter o ícone do canal
 export const getChannelIcon = (channel: string) => {
