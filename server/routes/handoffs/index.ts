@@ -457,6 +457,32 @@ router.post('/intelligent/execute', (req, res, next) => {
         type
       );
 
+      // PRIORIDADE: Executar automação CRM quando Prof. Ana detecta lead qualificado
+      if (aiClassification.isLead && aiClassification.confidence >= 85) {
+        try {
+          const { crmService } = await import('../../services/crmService');
+          
+          const crmActions = await crmService.executeAutomatedActions(
+            aiClassification,
+            conversation.contactId,
+            conversationId,
+            messageContent
+          );
+          
+          if (crmActions && crmActions.length > 0) {
+            for (const action of crmActions) {
+              if (action.type === 'create_lead') {
+                console.log(`💼 Novo deal criado automaticamente via handoff: ${action.data.name}`);
+              } else if (action.type === 'update_stage') {
+                console.log(`💼 Deal atualizado via handoff: ${action.data.name} → ${action.data.stage}`);
+              }
+            }
+          }
+        } catch (crmError) {
+          console.error('❌ Erro ao executar automação CRM no handoff:', crmError);
+        }
+      }
+
       res.json({
         success: true,
         handoffCreated: true,
