@@ -551,13 +551,9 @@ export class CRMService {
     }
   }
 
-      // Ação 2: Adicionar tags automáticas
+      // Ação 3: Adicionar tags automáticas
       const tagAction = await this.addAutomaticTags(contact, classification);
       if (tagAction) actions.push(tagAction);
-
-      // Ação 3: Enviar links úteis
-      const linkAction = await this.sendRelevantLinks(classification, contactId, conversationId);
-      if (linkAction) actions.push(linkAction);
 
       // Ação 4: Programar follow-up para leads quentes
       if (classification.isLead && classification.frustrationLevel <= 3) {
@@ -909,6 +905,33 @@ export class CRMService {
     }
 
     return `Olá! Passando para ver se conseguiu resolver sua questão. Caso precise de mais informações, é só me chamar! 😊`;
+  }
+
+  /**
+   * Programa follow-up automático para leads qualificados
+   */
+  private async scheduleFollowup(contactId: number, conversationId: number, classification: any): Promise<CRMAction | null> {
+    try {
+      const followupTime = this.calculateFollowupTime(classification);
+      const followupMessage = this.generateFollowupMessage(classification);
+      
+      console.log(`📅 Follow-up agendado para contato ${contactId} em ${followupTime.toLocaleString()}`);
+      
+      return {
+        type: 'schedule_followup',
+        contactId,
+        conversationId,
+        data: {
+          scheduledFor: followupTime,
+          message: followupMessage,
+          automated: true
+        },
+        automated: true
+      };
+    } catch (error) {
+      console.error('❌ Erro ao agendar follow-up:', error);
+      return null;
+    }
   }
 }
 

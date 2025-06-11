@@ -1253,6 +1253,33 @@ export function registerZApiRoutes(app: Express) {
                   } else {
                     console.log(`🤖 Handoff não necessário para conversa ${conversation.id}: ${result.message}`);
                   }
+                  
+                  // NOVA FUNCIONALIDADE: Criar/atualizar negócio automaticamente baseado na análise da IA
+                  if (result.aiClassification) {
+                    const { CRMService } = await import('../../services/crmService');
+                    const crmService = new CRMService();
+                    
+                    try {
+                      const crmActions = await crmService.executeAutomatedActions(
+                        result.aiClassification,
+                        contact.id,
+                        conversation.id,
+                        messageContent
+                      );
+                      
+                      if (crmActions && crmActions.length > 0) {
+                        for (const action of crmActions) {
+                          if (action.type === 'create_lead') {
+                            console.log(`💼 Novo deal criado automaticamente: ${action.data.name}`);
+                          } else if (action.type === 'update_stage') {
+                            console.log(`💼 Deal atualizado: ${action.data.name} → ${action.data.stage}`);
+                          }
+                        }
+                      }
+                    } catch (crmError) {
+                      console.error('❌ Erro ao executar ações automáticas do CRM:', crmError);
+                    }
+                  }
                 } else {
                   console.error('❌ Erro na resposta do handoff inteligente:', response.status);
                 }
