@@ -157,19 +157,24 @@ export function MessageBubble({
           return;
         }
 
-        const response = await apiRequest("DELETE", `/api/zapi/messages/${messageId}`, {
+        // Primeiro deletar via Z-API
+        await apiRequest("DELETE", `/api/zapi/messages/${messageId}`, {
           phone: contact.phone,
           conversationId: conversationId,
         });
 
-        setIsDeleted(true);
+        // Depois marcar como deletada pelo usuário
+        await apiRequest("PATCH", `/api/messages/${message.id}/mark-deleted`, {
+          deletedByUser: true
+        });
+
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
         });
 
         toast({
           title: "Sucesso",
-          description: "Mensagem deletada com sucesso",
+          description: "Mensagem apagada para todos",
         });
       }
     } catch (error) {
