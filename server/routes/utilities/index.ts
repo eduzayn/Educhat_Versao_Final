@@ -120,6 +120,73 @@ export function registerUtilitiesRoutes(app: Express) {
       }
 
       console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
+      
+      // Criar conversa e mensagem no banco de dados imediatamente
+      try {
+        // Buscar contato pelo telefone
+        const contact = await storage.getContactByPhone(cleanPhone);
+        
+        if (contact) {
+          console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
+          
+          // Verificar se já existe conversa para este contato
+          let conversation = await storage.getConversationByContactId(contact.id);
+          
+          if (!conversation) {
+            // Criar nova conversa
+            conversation = await storage.createConversation({
+              contactId: contact.id,
+              channel: 'whatsapp',
+              status: 'active',
+              priority: 'normal',
+              assignedUserId: null,
+              teamType: null,
+              isRead: false,
+              tags: [],
+              metadata: {
+                phone: cleanPhone,
+                instanceId: instanceId
+              }
+            });
+            console.log('✅ Conversa criada:', conversation.id);
+          } else {
+            console.log('📋 Usando conversa existente:', conversation.id);
+          }
+          
+          // Criar mensagem enviada no banco
+          const savedMessage = await storage.createMessage({
+            conversationId: conversation.id,
+            content: message.toString(),
+            isFromContact: false,
+            messageType: 'text',
+            sentAt: new Date(),
+            metadata: {
+              zaapId: data.messageId || data.id,
+              phone: cleanPhone,
+              instanceId: instanceId,
+              originalContent: message.toString()
+            }
+          });
+          
+          console.log('✅ Mensagem salva no banco:', savedMessage.id);
+          
+          // Broadcast via WebSocket para atualizar interface
+          const { broadcast } = await import('../realtime');
+          broadcast(conversation.id, {
+            type: 'new_message',
+            conversationId: conversation.id,
+            message: savedMessage
+          });
+          
+          console.log('📡 Broadcast enviado para conversa:', conversation.id);
+        } else {
+          console.log('⚠️ Contato não encontrado para telefone:', cleanPhone);
+        }
+      } catch (dbError) {
+        console.error('❌ Erro ao salvar mensagem no banco:', dbError);
+        // Não falhar o envio se houver erro no banco
+      }
+      
       res.json(data);
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem via Z-API:', error);
