@@ -155,7 +155,7 @@ export function useWebSocket() {
               teamName: data.teamName,
               userId: data.userId,
               userName: data.userName,
-              macrosetor: data.macrosetor,
+              teamType: data.teamType,
               method: data.method
             });
             

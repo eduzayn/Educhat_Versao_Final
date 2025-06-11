@@ -165,7 +165,7 @@ export function ContactSidebar({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       setShowDealDialog(false);
-      setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
+      setDealFormData({ name: '', value: '', team: 'comercial', stage: 'prospecting', category: '', course: '' });
     },
     onError: (error: any) => {
       console.error('Erro ao criar negócio:', error);
@@ -397,7 +397,7 @@ export function ContactSidebar({
                   size="sm"
                   onClick={() => {
                     setEditingDeal(null);
-                    setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
+                    setDealFormData({ name: '', value: '', team: 'comercial', stage: 'prospecting', category: '', course: '' });
                   }}
                 >
                   <Plus className="w-4 h-4" />
