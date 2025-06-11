@@ -101,8 +101,13 @@ export function LazyMediaContent({
   const [loaded, setLoaded] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // Não carregar automaticamente nenhum tipo de mídia para economizar banda
-  // Todos os tipos de mídia agora requerem ação do usuário para visualizar
+  // Áudios carregam automaticamente, imagens/vídeos/documentos sob demanda
+  useEffect(() => {
+    if (messageType === 'audio' && realInitialContent && !loaded && !loading) {
+      setContent(realInitialContent);
+      setLoaded(true);
+    }
+  }, [messageId, messageType, realInitialContent, loaded, loading]);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
@@ -174,13 +179,14 @@ export function LazyMediaContent({
         );
 
       case "audio":
-        if (loaded && content) {
+        const audioUrl = content || realInitialContent;
+        if (audioUrl) {
           return (
             <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <audio controls className="w-full max-w-xs">
-                <source src={content} type="audio/mpeg" />
-                <source src={content} type="audio/ogg" />
-                <source src={content} type="audio/wav" />
+                <source src={audioUrl} type="audio/mpeg" />
+                <source src={audioUrl} type="audio/ogg" />
+                <source src={audioUrl} type="audio/wav" />
                 Seu navegador não suporta áudio.
               </audio>
             </div>
