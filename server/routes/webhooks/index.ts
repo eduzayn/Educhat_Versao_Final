@@ -156,30 +156,6 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);
       
-      // Usar o sistema existente de detecção automática de equipes
-      try {
-        if (!conversation.assignedTeamId) {
-          const detectionResult = await storage.testTeamDetection(messageContent);
-          if (detectionResult?.team && detectionResult.confidence > 3) {
-            console.log(`🤖 Prof. Ana detectou automaticamente: ${detectionResult.team} (confiança: ${detectionResult.confidence}) - Conversa ${conversation.id} será atribuída`);
-            
-            // Buscar equipe pelo nome ou tipo detectado
-            const teams = await storage.getTeams();
-            const targetTeam = teams.find(team => 
-              team.name.toLowerCase().includes(detectionResult.team.toLowerCase()) ||
-              team.teamType === detectionResult.team.toLowerCase()
-            );
-            
-            if (targetTeam) {
-              await storage.assignConversationToTeam(conversation.id, targetTeam.id, 'automatic');
-              console.log(`✅ Conversa ${conversation.id} atribuída automaticamente à equipe ${targetTeam.name}`);
-            }
-          }
-        }
-      } catch (detectionError) {
-        console.error('❌ Erro na detecção automática de equipe:', detectionError);
-      }
-      
       // Registrar sucesso no monitor de saúde
       const processingTime = Date.now() - startTime;
       webhookHealthMonitor.recordSuccess(processingTime);
