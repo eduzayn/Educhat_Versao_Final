@@ -428,9 +428,16 @@ export function InboxPage() {
                     <h3 className="font-medium text-gray-900 truncate">
                       {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
                     </h3>
-                    <span className="text-xs text-gray-500 flex-shrink-0">
-                      {conversation.lastMessageAt ? formatTime(conversation.lastMessageAt) : ''}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {conversation.lastMessageAt ? formatTime(conversation.lastMessageAt) : ''}
+                      </span>
+                      <ConversationActionsDropdown 
+                        conversationId={conversation.id}
+                        contactId={conversation.contactId}
+                        currentStatus={conversation.status || 'open'}
+                      />
+                    </div>
                   </div>
 
                   {/* Badge de mensagens não lidas */}
