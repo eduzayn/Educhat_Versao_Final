@@ -448,6 +448,7 @@ router.post('/intelligent/execute', async (req, res) => {
         handoffCreated: true,
         handoffId,
         recommendation,
+        aiClassification,
         message: 'Handoff inteligente executado com sucesso'
       });
     } else {
