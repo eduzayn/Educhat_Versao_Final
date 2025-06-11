@@ -79,7 +79,8 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         mediaUrl = webhookData.image.imageUrl || webhookData.image.url;
         fileName = webhookData.image.fileName;
       } else if (webhookData.audio) {
-        messageContent = `🎵 Áudio (${webhookData.audio.seconds || 0}s)`;
+        const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
+        messageContent = webhookData.audio.audioUrl || webhookData.audio.url || `🎵 Áudio (${audioSeconds}s)`;
         messageType = 'audio';
         mediaUrl = webhookData.audio.audioUrl || webhookData.audio.url;
       } else if (webhookData.video) {
@@ -132,7 +133,15 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           senderName: webhookData.senderName,
           mediaUrl: mediaUrl,
           fileName: fileName,
-          originalContent: messageContent
+          originalContent: messageContent,
+          // Metadados específicos para áudio
+          ...(messageType === 'audio' && webhookData.audio ? {
+            audio: {
+              audioUrl: webhookData.audio.audioUrl || webhookData.audio.url,
+              duration: webhookData.audio.seconds || webhookData.audio.duration || 0,
+              mimeType: webhookData.audio.mimeType || 'audio/mp4'
+            }
+          } : {})
         }
       });
       

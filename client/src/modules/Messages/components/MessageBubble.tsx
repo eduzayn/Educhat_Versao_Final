@@ -505,8 +505,12 @@ export function MessageBubble({
       else if ((message.metadata as any)?.audio?.audioUrl) {
         audioUrl = (message.metadata as any).audio.audioUrl;
       }
+      // 6. Verificar se há mediaUrl nos metadados (fallback)
+      else if ((message.metadata as any)?.mediaUrl) {
+        audioUrl = (message.metadata as any).mediaUrl;
+      }
 
-      const duration = (message.metadata as any)?.duration || 0;
+      const duration = (message.metadata as any)?.audio?.duration || (message.metadata as any)?.duration || 0;
       
       // Se temos URL válida, renderizar o player
       if (audioUrl) {
