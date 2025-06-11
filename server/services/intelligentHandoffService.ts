@@ -218,7 +218,17 @@ export class IntelligentHandoffService {
   }
 
   /**
-   * Busca usuários disponíveis em uma equipe específica
+   * Verifica se está no horário comercial (09:00 às 19:00 - horário de Brasília)
+   */
+  private isBusinessHours(): boolean {
+    const now = new Date();
+    const brasiliaTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+    const hour = brasiliaTime.getHours();
+    return hour >= 9 && hour < 19;
+  }
+
+  /**
+   * Busca usuários disponíveis em uma equipe específica com lógica de distribuição inteligente
    */
   private async getAvailableUsersInTeam(teamId: number): Promise<UserAvailability[]> {
     const users = await db
@@ -277,11 +287,62 @@ export class IntelligentHandoffService {
       })
     );
 
-    // Ordenar por disponibilidade (online primeiro, menor carga)
-    return usersWithLoad.sort((a, b) => {
-      if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
-      return a.currentConversations - b.currentConversations;
-    });
+    // Aplicar lógica de distribuição baseada no horário comercial
+    const isBusinessTime = this.isBusinessHours();
+    
+    if (isBusinessTime) {
+      // Durante horário comercial: priorizar usuários online
+      const onlineUsers = usersWithLoad.filter(user => user.isOnline);
+      
+      if (onlineUsers.length > 0) {
+        // Ordenar usuários online por menor carga de trabalho (rodízio equilibrado)
+        return onlineUsers.sort((a, b) => a.currentConversations - b.currentConversations);
+      }
+      
+      // Se nenhum usuário online, usar todos os usuários ordenados por carga
+      return usersWithLoad.sort((a, b) => a.currentConversations - b.currentConversations);
+    } else {
+      // Fora do horário comercial: distribuir equilibradamente entre todos
+      return usersWithLoad.sort((a, b) => a.currentConversations - b.currentConversations);
+    }
+  }
+
+  /**
+   * Seleciona o melhor usuário da equipe usando rodízio inteligente
+   */
+  private selectBestUserFromTeam(users: UserAvailability[]): UserAvailability | null {
+    if (users.length === 0) return null;
+
+    const isBusinessTime = this.isBusinessHours();
+    
+    if (isBusinessTime) {
+      // Durante horário comercial: priorizar usuários online com menor carga
+      const onlineUsers = users.filter(user => user.isOnline);
+      
+      if (onlineUsers.length > 0) {
+        // Encontrar a menor carga entre usuários online
+        const minLoad = Math.min(...onlineUsers.map(u => u.currentConversations));
+        const availableOnlineUsers = onlineUsers.filter(u => 
+          u.currentConversations === minLoad && u.currentConversations < u.roleCapacity
+        );
+        
+        // Retornar usuário aleatório entre os com menor carga (rodízio)
+        return availableOnlineUsers.length > 0 
+          ? availableOnlineUsers[Math.floor(Math.random() * availableOnlineUsers.length)]
+          : null;
+      }
+    }
+    
+    // Fora do horário ou sem usuários online: usar rodízio geral equilibrado
+    const minLoad = Math.min(...users.map(u => u.currentConversations));
+    const availableUsers = users.filter(u => 
+      u.currentConversations === minLoad && u.currentConversations < u.roleCapacity
+    );
+    
+    // Retornar usuário aleatório entre os com menor carga
+    return availableUsers.length > 0 
+      ? availableUsers[Math.floor(Math.random() * availableUsers.length)]
+      : null;
   }
 
   /**
@@ -355,11 +416,9 @@ export class IntelligentHandoffService {
       throw new Error('Nenhuma equipe disponível para handoff');
     }
 
-    // Buscar melhor usuário na equipe
+    // Buscar melhor usuário na equipe usando lógica de rodízio inteligente
     const availableUsers = await this.getAvailableUsersInTeam(bestTeam.teamId);
-    const bestUser = availableUsers.find(u => 
-      u.isOnline && u.currentConversations < u.roleCapacity
-    ) || availableUsers[0];
+    const bestUser = this.selectBestUserFromTeam(availableUsers);
 
     // Calcular prioridade baseada em urgência e frustração
     let priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal';
@@ -404,6 +463,7 @@ export class IntelligentHandoffService {
     user?: UserAvailability
   ): string {
     const reasons = [];
+    const isBusinessTime = this.isBusinessHours();
     
     reasons.push(`IA detectou intenção: ${classification.intent}`);
     reasons.push(`Equipe ${team.teamName} especializada em ${team.macrosetor}`);
@@ -414,7 +474,26 @@ export class IntelligentHandoffService {
     }
     
     if (user) {
-      reasons.push(`Usuário ${user.displayName} ${user.isOnline ? 'online' : 'offline'} com ${user.currentConversations} conversas`);
+      const userStatus = user.isOnline ? 'online' : 'offline';
+      reasons.push(`Usuário ${user.displayName} ${userStatus} com ${user.currentConversations} conversas`);
+      
+      // Adicionar informação sobre a lógica de distribuição
+      if (isBusinessTime) {
+        if (user.isOnline) {
+          reasons.push('Selecionado por estar online no horário comercial');
+        } else {
+          reasons.push('Selecionado por menor carga (nenhum usuário online disponível)');
+        }
+      } else {
+        reasons.push('Distribuição equilibrada para próximo dia útil');
+      }
+    } else {
+      // Se não há usuário específico selecionado
+      if (isBusinessTime) {
+        reasons.push('Aguardando atendente online no horário comercial');
+      } else {
+        reasons.push('Aguardando distribuição para próximo dia útil');
+      }
     }
 
     return reasons.join(' • ');
