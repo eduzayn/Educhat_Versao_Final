@@ -48,19 +48,19 @@ export function DealsModule() {
 
   // Fetch deals from database with pagination and filtering
   const { data: dealsResponse, isLoading } = useQuery({
-    queryKey: ['/api/deals', selectedMacrosetor, page, limit],
+    queryKey: ['/api/deals', selectedTeam, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        macrosetor: selectedMacrosetor
+        macrosetor: selectedTeam
       });
       
       const response = await fetch(`/api/deals?${params}`);
       if (!response.ok) throw new Error('Falha ao carregar negócios');
       return response.json();
     },
-    enabled: !!selectedMacrosetor // Só busca se macrosetor estiver selecionado
+    enabled: !!selectedTeam // Só busca se equipe estiver selecionada
   });
 
   const rawDeals = dealsResponse?.deals || [];
@@ -70,12 +70,12 @@ export function DealsModule() {
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
   // Get current team configuration
-  const currentTeam = teamConfigs[selectedMacrosetor as keyof typeof teamConfigs];
+  const currentTeam = teamConfigs[selectedTeam as keyof typeof teamConfigs];
   
-  // Reset page when macrosetor changes
+  // Reset page when team changes
   useEffect(() => {
     setPage(1);
-  }, [selectedMacrosetor]);
+  }, [selectedTeam]);
 
   // Transform deals (already filtered by backend)
   const deals = rawDeals.map(deal => ({
@@ -117,13 +117,13 @@ export function DealsModule() {
     },
     onMutate: async ({ dealId, stage }) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedMacrosetor, page, limit] });
+      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedTeam, page, limit] });
       
       // Snapshot the previous value
-      const previousDeals = queryClient.getQueryData(['/api/deals', selectedMacrosetor, page, limit]);
+      const previousDeals = queryClient.getQueryData(['/api/deals', selectedTeam, page, limit]);
       
       // Optimistically update to the new value
-      queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], (old: any) => {
+      queryClient.setQueryData(['/api/deals', selectedTeam, page, limit], (old: any) => {
         if (!old?.data) return old;
         
         return {
@@ -140,7 +140,7 @@ export function DealsModule() {
     onError: (err, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousDeals) {
-        queryClient.setQueryData(['/api/deals', selectedMacrosetor, page, limit], context.previousDeals);
+        queryClient.setQueryData(['/api/deals', selectedTeam, page, limit], context.previousDeals);
       }
       console.error('Erro ao atualizar estágio do negócio:', err);
     },
@@ -164,8 +164,8 @@ export function DealsModule() {
       expectedCloseDate: formData.get('expectedCloseDate') || null,
       probability: parseInt(formData.get('probability') as string) || 0,
       description: formData.get('description') || '',
-      stage: selectedStageForNewDeal || currentMacrosetor.stages[0].id, // Usa estágio selecionado ou primeiro do funil
-      macrosetor: selectedMacrosetor
+      stage: selectedStageForNewDeal || currentTeam.stages[0].id, // Usa estágio selecionado ou primeiro do funil
+      macrosetor: selectedTeam
     };
 
     createDealMutation.mutate(dealData);
