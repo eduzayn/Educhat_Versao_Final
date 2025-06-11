@@ -519,28 +519,84 @@ export class IntelligentHandoffService {
    * Obtém estatísticas de performance do sistema inteligente
    */
   async getIntelligentHandoffStats(days: number = 7): Promise<any> {
-    const dateThreshold = new Date();
-    dateThreshold.setDate(dateThreshold.getDate() - days);
+    try {
+      const dateThreshold = new Date();
+      dateThreshold.setDate(dateThreshold.getDate() - days);
 
-    const stats = await db
-      .select({
-        totalHandoffs: count(),
-        avgConfidence: handoffs.aiClassification,
-        successRate: handoffs.status
-      })
-      .from(handoffs)
-      .where(
-        and(
-          eq(handoffs.type, 'automatic'),
-          // Note: adicionar filtro de data quando necessário
-        )
-      );
+      // Buscar handoffs automáticos usando query builder
+      const automaticHandoffs = await db
+        .select()
+        .from(handoffs)
+        .where(
+          and(
+            eq(handoffs.type, 'automatic'),
+            sql`${handoffs.createdAt} >= ${dateThreshold}`
+          )
+        );
 
-    return {
-      totalIntelligentHandoffs: stats.length,
-      avgSuccessRate: stats.filter(s => s.successRate === 'completed').length / stats.length * 100,
-      teamUtilization: await this.analyzeTeamCapacities()
-    };
+      const totalHandoffs = automaticHandoffs.length;
+      const completedHandoffs = automaticHandoffs.filter(h => h.status === 'completed').length;
+      const successRate = totalHandoffs > 0 ? (completedHandoffs / totalHandoffs) * 100 : 0;
+
+      // Estatísticas por equipe
+      const teamStats = automaticHandoffs.reduce((acc, h) => {
+        const teamId = h.toTeamId;
+        if (!teamId) return acc;
+        
+        if (!acc[teamId]) {
+          acc[teamId] = { total: 0, completed: 0 };
+        }
+        acc[teamId].total++;
+        if (h.status === 'completed') {
+          acc[teamId].completed++;
+        }
+        return acc;
+      }, {} as Record<number, { total: number; completed: number }>);
+
+      // Confiança média baseada em classificações reais de IA
+      let avgConfidence = 85; // Padrão para handoffs automáticos
+      if (automaticHandoffs.length > 0) {
+        const handoffsWithClassification = automaticHandoffs.filter(h => h.aiClassification);
+        if (handoffsWithClassification.length > 0) {
+          const confidenceSum = handoffsWithClassification.reduce((sum, h) => {
+            try {
+              const classification = typeof h.aiClassification === 'string' 
+                ? JSON.parse(h.aiClassification) 
+                : h.aiClassification;
+              return sum + (classification?.confidence || 85);
+            } catch {
+              return sum + 85;
+            }
+          }, 0);
+          avgConfidence = confidenceSum / handoffsWithClassification.length;
+        }
+      }
+
+      return {
+        totalIntelligentHandoffs: totalHandoffs,
+        successRate: Math.round(successRate * 100) / 100,
+        avgConfidence: Math.round(avgConfidence * 100) / 100,
+        teamStats,
+        teamUtilization: await this.analyzeTeamCapacities(),
+        period: `${days} dias`,
+        dateRange: {
+          from: dateThreshold.toISOString(),
+          to: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao obter estatísticas inteligentes:', error);
+      // Retornar estatísticas básicas em caso de erro
+      return {
+        totalIntelligentHandoffs: 0,
+        successRate: 0,
+        avgConfidence: 0,
+        teamStats: {},
+        teamUtilization: [],
+        period: `${days} dias`,
+        error: 'Não foi possível carregar estatísticas detalhadas'
+      };
+    }
   }
 }
 
