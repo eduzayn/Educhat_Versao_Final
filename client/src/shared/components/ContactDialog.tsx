@@ -9,6 +9,7 @@ import { X, Plus } from 'lucide-react';
 import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
+import { useActiveWhatsAppChannels } from '@/shared/lib/hooks/useChannels';
 
 interface ContactDialogProps {
   isOpen: boolean;
@@ -40,10 +41,14 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
   });
   const [newTags, setNewTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
+  const [messageText, setMessageText] = useState('');
+  const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   const createContact = useCreateContact();
   const { toast } = useToast();
   const { status: zapiStatus } = useZApiStore();
+  const { data: whatsappChannels = [] } = useActiveWhatsAppChannels();
 
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   const isCreating = createContact.isPending;
@@ -61,6 +66,8 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
     });
     setNewTags([]);
     setCurrentTag('');
+    setMessageText('');
+    setSelectedChannelId(null);
   };
 
   const handleClose = () => {
@@ -96,6 +103,8 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       return;
     }
 
+    setSendingMessage(true);
+
     try {
       // Add contact to Z-API WhatsApp if available
       if (form.phone && isWhatsAppAvailable) {
@@ -124,18 +133,69 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       }
       
       // Create in local database
-      await createContact.mutateAsync({
+      const newContact = await createContact.mutateAsync({
         name: form.name,
         email: form.email || null,
         phone: form.phone || null
       });
       
-      toast({
-        title: "Contato criado",
-        description: isWhatsAppAvailable && form.phone 
-          ? "Contato criado no sistema e adicionado ao WhatsApp." 
-          : "Contato criado no sistema."
-      });
+      // Send welcome message if provided and phone is available
+      if (messageText.trim() && form.phone && whatsappChannels.length > 0) {
+        let channelToUse = selectedChannelId;
+        
+        // Use first channel if only one available
+        if (!channelToUse && whatsappChannels.length === 1) {
+          channelToUse = whatsappChannels[0].id;
+        }
+        
+        // Check if channel is selected when multiple channels exist
+        if (!channelToUse && whatsappChannels.length > 1) {
+          toast({
+            title: "Selecione um canal",
+            description: "Por favor, selecione o canal WhatsApp para envio da mensagem.",
+            variant: "destructive"
+          });
+          setSendingMessage(false);
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/zapi/send-message', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              phone: form.phone,
+              message: messageText.trim(),
+              channelId: channelToUse
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Falha no envio da mensagem');
+          }
+
+          toast({
+            title: "Contato criado e mensagem enviada",
+            description: `Contato ${form.name} criado e mensagem de boas-vindas enviada. Continue a conversa na caixa de entrada.`
+          });
+        } catch (messageError) {
+          console.warn('Erro ao enviar mensagem:', messageError);
+          toast({
+            title: "Contato criado",
+            description: "Contato criado com sucesso, mas não foi possível enviar a mensagem inicial.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Contato criado",
+          description: isWhatsAppAvailable && form.phone 
+            ? "Contato criado no sistema e adicionado ao WhatsApp." 
+            : "Contato criado no sistema."
+        });
+      }
       
       handleClose();
       onSuccess?.();
@@ -146,6 +206,8 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
         description: "Não foi possível criar o contato.",
         variant: "destructive"
       });
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -293,16 +355,82 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
           </div>
         </div>
 
+        {/* Seção de Mensagem Inicial */}
+        {form.phone && whatsappChannels.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              💬 Mensagem de Boas-vindas
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Envie uma mensagem inicial para este contato via WhatsApp
+            </p>
+            
+            <div className="space-y-4">
+              {/* Seletor de Canal WhatsApp */}
+              {whatsappChannels.length > 1 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Canal WhatsApp
+                  </label>
+                  <Select 
+                    value={selectedChannelId?.toString() || ''} 
+                    onValueChange={(value) => setSelectedChannelId(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o canal WhatsApp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {whatsappChannels.map((channel) => (
+                        <SelectItem key={channel.id} value={channel.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${channel.connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'}`} />
+                            {channel.name}
+                            {channel.identifier && (
+                              <span className="text-xs text-gray-500">({channel.identifier})</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {whatsappChannels.length} canais WhatsApp disponíveis
+                  </p>
+                </div>
+              )}
+              
+              {/* Campo de Mensagem */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Mensagem inicial
+                </label>
+                <Textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Digite uma mensagem de boas-vindas para este contato..."
+                  className="min-h-[100px] resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Esta mensagem será enviada imediatamente após criar o contato
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="outline" onClick={handleClose}>
             Cancelar
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!form.name.trim() || isCreating}
+            disabled={!form.name.trim() || isCreating || sendingMessage}
             className="bg-educhat-primary hover:bg-educhat-secondary"
           >
-            {isCreating ? 'Criando...' : 'Criar Contato'}
+            {isCreating || sendingMessage ? 'Processando...' : 
+              (messageText.trim() && form.phone && whatsappChannels.length > 0) 
+                ? 'Criar Contato e Enviar Mensagem' 
+                : 'Criar Contato'}
           </Button>
         </div>
       </DialogContent>
