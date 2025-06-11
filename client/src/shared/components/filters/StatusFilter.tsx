@@ -5,6 +5,7 @@ interface StatusFilterProps {
   value: string;
   onValueChange: (value: string) => void;
   statusOptions?: FilterOption[];
+  options?: FilterOption[];
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   includeAll?: boolean;
@@ -15,6 +16,7 @@ export function StatusFilter({
   value,
   onValueChange,
   statusOptions,
+  options,
   className = "",
   size = 'md',
   includeAll = true,
@@ -57,8 +59,8 @@ export function StatusFilter({
     }
   };
 
-  const options = statusOptions || getDefaultOptions();
-  const allOptions = [...baseOptions, ...options];
+  const finalOptions = options || statusOptions || getDefaultOptions();
+  const allOptions = [...baseOptions, ...finalOptions];
 
   return (
     <BaseFilterSelect

@@ -38,11 +38,11 @@ Consolidação bem-sucedida de componentes de filtros repetitivos em componentes
    - Status: Atualizado com PeriodFilter
    - Redução de código: ~15 linhas
 
-### 🔧 EM PROGRESSO
-4. **SalesDashboard** (CRM)
-   - Status: Parcialmente atualizado
-   - Problema: Erro de sintaxe nos componentes Select restantes
-   - Próxima ação: Corrigir imports e estrutura JSX
+### ✅ CONCLUÍDO
+4. **SalesCommissions** (CRM)
+   - Status: Atualizado com componentes consolidados
+   - Componentes utilizados: PeriodFilter, StatusFilter, FilterContainer
+   - Redução de código: ~35 linhas
 
 ## Benefícios Alcançados
 

@@ -7,6 +7,7 @@ import { Badge } from '@/shared/ui/badge';
 import { getStatusBadge } from '@/shared/lib/utils/badgeHelpers';
 import { formatCurrency, formatPercentage } from '@/shared/lib/utils/formatters';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
+import { PeriodFilter, StatusFilter, FilterContainer, BaseFilterSelect } from '@/shared/components/filters';
 import { 
   Download, 
   Filter, 
@@ -120,32 +121,22 @@ export function SalesCommissions() {
           <p className="text-muted-foreground">Gerencie e acompanhe as comissões da equipe</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="week">Esta semana</SelectItem>
-              <SelectItem value="month">Este mês</SelectItem>
-              <SelectItem value="quarter">Este trimestre</SelectItem>
-              <SelectItem value="year">Este ano</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Status</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-              <SelectItem value="approved">Aprovadas</SelectItem>
-              <SelectItem value="paid">Pagas</SelectItem>
-            </SelectContent>
-          </Select>
+        <FilterContainer>
+          <PeriodFilter
+            value={period}
+            onValueChange={setPeriod}
+          />
+          
+          <StatusFilter
+            value={status}
+            onValueChange={setStatus}
+            options={[
+              { value: 'all', label: 'Todos Status' },
+              { value: 'pending', label: 'Pendentes' },
+              { value: 'approved', label: 'Aprovadas' },
+              { value: 'paid', label: 'Pagas' }
+            ]}
+          />
 
           <Select value={salesperson} onValueChange={setSalesperson}>
             <SelectTrigger className="w-48">
@@ -165,7 +156,7 @@ export function SalesCommissions() {
             <Download className="h-4 w-4 mr-2" />
             Exportar CSV
           </Button>
-        </div>
+        </FilterContainer>
       </div>
 
       {/* Cards de Estatísticas */}
