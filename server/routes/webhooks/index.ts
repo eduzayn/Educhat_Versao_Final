@@ -1049,15 +1049,15 @@ export function registerZApiRoutes(app: Express) {
     try {
       console.log('📨 Webhook Z-API recebido (handler principal):', JSON.stringify(webhookData, null, 2));
       console.log('📊 Dados do webhook processados:', {
-        type: webhookData.type,
-        phone: webhookData.phone,
-        hasText: !!(webhookData.text && webhookData.text.message),
-        hasImage: !!webhookData.image,
-        hasAudio: !!webhookData.audio,
+        type: webhookData?.type,
+        phone: webhookData?.phone,
+        hasText: !!(webhookData?.text && webhookData.text.message),
+        hasImage: !!webhookData?.image,
+        hasAudio: !!webhookData?.audio,
         timestamp: new Date().toISOString()
       });
       
-      // Validação básica dos dados recebidos
+      // Validação robusta dos dados recebidos
       if (!webhookData || typeof webhookData !== 'object') {
         console.error('❌ Webhook inválido: dados não são um objeto');
         return res.status(400).json({ 
@@ -1072,6 +1072,15 @@ export function registerZApiRoutes(app: Express) {
           error: 'Tipo do webhook não definido',
           success: false 
         });
+      }
+      
+      // Sanitização básica para evitar problemas de processamento
+      if (webhookData.phone && typeof webhookData.phone === 'string') {
+        webhookData.phone = webhookData.phone.replace(/\D/g, '');
+      }
+      
+      if (webhookData.senderName && typeof webhookData.senderName === 'string') {
+        webhookData.senderName = webhookData.senderName.trim();
       }
       
       // Verificar se é um callback de status (não precisa processar como mensagem)
