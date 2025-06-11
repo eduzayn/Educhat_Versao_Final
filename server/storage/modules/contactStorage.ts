@@ -33,6 +33,12 @@ export class ContactStorage extends BaseStorage {
   }
 
   async searchContacts(query: string): Promise<Contact[]> {
+    if (!query || query.trim() === '') {
+      // Se não há query, retornar todos os contatos
+      return this.db.select().from(contacts)
+        .orderBy(desc(contacts.createdAt));
+    }
+    
     return this.db.select().from(contacts)
       .where(
         or(
