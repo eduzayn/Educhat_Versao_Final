@@ -213,7 +213,7 @@ export function setupAuth(app: Express) {
         roleId: user.roleId || 1,
         dataKey: user.dataKey || undefined,
         channels: user.channels || [],
-        macrosetores: user.macrosetores || [],
+        teams: user.teams || [],
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };
