@@ -74,20 +74,24 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         messageContent = webhookData.text.message;
         messageType = 'text';
       } else if (webhookData.image) {
-        messageContent = `📷 ${webhookData.image.caption || 'Imagem'}`;
+        // Para imagens, armazenar a URL no content para exibição direta
+        messageContent = webhookData.image.imageUrl || webhookData.image.url || `📷 ${webhookData.image.caption || 'Imagem'}`;
         messageType = 'image';
         mediaUrl = webhookData.image.imageUrl || webhookData.image.url;
-        fileName = webhookData.image.fileName;
+        fileName = webhookData.image.fileName || 'image.jpg';
       } else if (webhookData.audio) {
         const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
+        // Para áudios, armazenar a URL no content para reprodução direta
         messageContent = webhookData.audio.audioUrl || webhookData.audio.url || `🎵 Áudio (${audioSeconds}s)`;
         messageType = 'audio';
         mediaUrl = webhookData.audio.audioUrl || webhookData.audio.url;
+        fileName = webhookData.audio.fileName || 'audio.ogg';
       } else if (webhookData.video) {
-        messageContent = `🎥 ${webhookData.video.caption || 'Vídeo'}`;
+        // Para vídeos, armazenar a URL no content
+        messageContent = webhookData.video.videoUrl || webhookData.video.url || `🎥 ${webhookData.video.caption || 'Vídeo'}`;
         messageType = 'video';
         mediaUrl = webhookData.video.videoUrl || webhookData.video.url;
-        fileName = webhookData.video.fileName;
+        fileName = webhookData.video.fileName || 'video.mp4';
       } else if (webhookData.document) {
         messageContent = `📄 ${webhookData.document.fileName || 'Documento'}`;
         messageType = 'document';

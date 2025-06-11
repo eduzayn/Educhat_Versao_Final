@@ -55,7 +55,11 @@ function ImageMessage({
   if (message.content?.startsWith("data:image/")) {
     imageUrl = message.content;
   }
-  // 2. Verificar se há URL da imagem nos metadados (recebidas via WhatsApp)
+  // 2. Verificar se o content já é uma URL de imagem (formato Z-API atualizado)
+  else if (message.content?.startsWith("http") && message.content?.includes("backblazeb2.com")) {
+    imageUrl = message.content;
+  }
+  // 3. Verificar se há URL da imagem nos metadados (recebidas via WhatsApp)
   else if (metadata && typeof metadata === "object") {
     const meta = metadata as any;
     
