@@ -177,7 +177,7 @@ export const TeamsTab = () => {
     if (!newTeamForm.name || !newTeamForm.teamType) {
       toast({
         title: "Campos obrigatórios",
-        description: "Nome e macrosetor são obrigatórios.",
+        description: "Nome e tipo de equipe são obrigatórios.",
         variant: "destructive",
       });
       return;
@@ -212,7 +212,7 @@ export const TeamsTab = () => {
     if (!selectedTeam || !editTeamForm.name || !editTeamForm.teamType) {
       toast({
         title: "Campos obrigatórios",
-        description: "Nome e macrosetor são obrigatórios.",
+        description: "Nome e tipo de equipe são obrigatórios.",
         variant: "destructive",
       });
       return;
@@ -288,7 +288,7 @@ export const TeamsTab = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Macrosetor:</span>
+                    <span className="text-sm font-medium">Tipo de Equipe:</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
                         {team.teamType || 'Não definido'}
@@ -372,8 +372,8 @@ export const TeamsTab = () => {
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="team-macrosetor" className="text-right">
-                Macrosetor *
+              <Label htmlFor="team-teamType" className="text-right">
+                Tipo de Equipe *
               </Label>
               <Select value={newTeamForm.teamType} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, teamType: value }))}>
                 <SelectTrigger className="col-span-3">
@@ -508,8 +508,8 @@ export const TeamsTab = () => {
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="config-macrosetor" className="text-right">
-                Macrosetor *
+              <Label htmlFor="config-teamType" className="text-right">
+                Tipo de Equipe *
               </Label>
               <Select value={editTeamForm.teamType} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, teamType: value }))}>
                 <SelectTrigger className="col-span-3">

@@ -47,16 +47,16 @@ export function BIDashboard() {
     }
   });
 
-  const { data: macrosetorData, isLoading: macrosetorLoading } = useQuery({
-    queryKey: ['/api/bi/macrosetores', { period }],
+  const { data: teamData, isLoading: teamLoading } = useQuery({
+    queryKey: ['/api/bi/teams', { period }],
     queryFn: async () => {
-      const response = await fetch(`/api/bi/macrosetores?period=${period}`);
-      if (!response.ok) throw new Error('Erro ao carregar dados dos macrosetores');
+      const response = await fetch(`/api/bi/teams?period=${period}`);
+      if (!response.ok) throw new Error('Erro ao carregar dados das equipes');
       return response.json();
     }
   });
 
-  if (kpiLoading || channelsLoading || macrosetorLoading) {
+  if (kpiLoading || channelsLoading || teamLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -283,8 +283,8 @@ export function BIDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {defaultMacrosetorData.length > 0 ? (
-                defaultMacrosetorData.map((equipe: any, index: number) => (
+              {defaultTeamData.length > 0 ? (
+                defaultTeamData.map((equipe: any, index: number) => (
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">{equipe.nome}</span>
