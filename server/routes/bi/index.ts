@@ -7,7 +7,7 @@ export function registerBIRoutes(app: Express) {
   // KPIs do Dashboard - REST: GET /api/bi/kpis
   app.get('/api/bi/kpis', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { period = '30', macrosetor = 'all', channel = 'all' } = req.query;
+      const { period = '30', equipe = 'all', channel = 'all' } = req.query;
       const days = parseInt(period as string);
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);

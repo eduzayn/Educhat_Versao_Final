@@ -25,14 +25,14 @@ import {
 
 export function BIDashboard() {
   const [period, setPeriod] = useState('30');
-  const [macrosetor, setMacrosetor] = useState('all');
+  const [equipe, setEquipe] = useState('all');
   const [channel, setChannel] = useState('all');
 
   // Buscar dados reais do sistema
   const { data: kpiData, isLoading: kpiLoading } = useQuery({
-    queryKey: ['/api/bi/kpis', { period, macrosetor, channel }],
+    queryKey: ['/api/bi/kpis', { period, equipe, channel }],
     queryFn: async () => {
-      const response = await fetch(`/api/bi/kpis?period=${period}&macrosetor=${macrosetor}&channel=${channel}`);
+      const response = await fetch(`/api/bi/kpis?period=${period}&equipe=${equipe}&channel=${channel}`);
       if (!response.ok) throw new Error('Erro ao carregar KPIs');
       return response.json();
     }
@@ -94,7 +94,7 @@ export function BIDashboard() {
             </SelectContent>
           </Select>
 
-          <Select value={macrosetor} onValueChange={setMacrosetor}>
+          <Select value={equipe} onValueChange={setEquipe}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Equipe" />
             </SelectTrigger>
