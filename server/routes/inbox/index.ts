@@ -117,6 +117,18 @@ export function registerInboxRoutes(app: Express) {
     }
   });
 
+  // Mark conversation as unread
+  app.post('/api/conversations/:id/mark-unread', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.markConversationAsUnread(id);
+      res.json({ message: 'Conversation marked as unread' });
+    } catch (error) {
+      console.error('Error marking conversation as unread:', error);
+      res.status(500).json({ message: 'Failed to mark conversation as unread' });
+    }
+  });
+
   // Recalculate unread counts
   app.post('/api/conversations/recalculate-unread', async (req, res) => {
     try {

@@ -195,6 +195,10 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.markConversationAsRead(conversationId);
   }
 
+  async markConversationAsUnread(conversationId: number) {
+    return this.conversation.markConversationAsUnread(conversationId);
+  }
+
   // ==================== CHANNEL OPERATIONS ====================
   async getChannels() {
     return this.channel.getChannels();
