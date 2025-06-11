@@ -96,17 +96,21 @@ export function LazyMediaContent({
   };
 
   const realInitialContent = getRealInitialContent();
-  const [content, setContent] = useState<string | null>(realInitialContent);
+  const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!realInitialContent);
+  const [loaded, setLoaded] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // Carregar automaticamente se não há conteúdo inicial válido
+  // Para documentos, manter o comportamento atual de não carregamento automático
+  // Para imagens e vídeos, não carregar automaticamente para economizar banda
   useEffect(() => {
-    if (!realInitialContent && !loaded && !loading) {
-      loadMediaContent();
+    // Apenas carregar automaticamente se o conteúdo estiver disponível nos metadados
+    // e for um documento ou áudio
+    if ((messageType === 'document' || messageType === 'audio') && realInitialContent && !loaded && !loading) {
+      setContent(realInitialContent);
+      setLoaded(true);
     }
-  }, [messageId, realInitialContent, loaded, loading]);
+  }, [messageId, messageType, realInitialContent, loaded, loading]);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
@@ -141,7 +145,7 @@ export function LazyMediaContent({
 
     switch (messageType) {
       case "image":
-        if (content) {
+        if (loaded && content) {
           return (
             <>
               <div className="relative max-w-xs">
