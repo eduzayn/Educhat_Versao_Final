@@ -59,8 +59,9 @@ class CentralStorage {
   getContactInterests = (contactId: number) => this.contacts.getContactInterests(contactId);
   getContactNotes = (contactId: number) => Promise.resolve([]);
   
-  // Método de marcar conversa como lida
+  // Métodos de marcar conversa como lida/não lida
   markConversationAsRead = (conversationId: number) => this.conversations.markConversationAsRead(conversationId);
+  markConversationAsUnread = (conversationId: number) => this.conversations.markConversationAsUnread(conversationId);
   
   // Métodos de compatibilidade para rotas que ainda usam storage/index.ts
   assignConversationToTeam = (conversationId: number, teamId: number, method: string) => 
