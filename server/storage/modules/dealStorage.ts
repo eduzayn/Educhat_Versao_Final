@@ -170,11 +170,27 @@ export class DealStorage extends BaseStorage {
       return lastMinuteActiveDeal;
     }
 
+    // Determinar estágio inicial baseado no macrosetor
+    const getInitialStageByMacrosetor = (macrosetor: string): string => {
+      const stageMapping: { [key: string]: string } = {
+        'comercial': 'prospecting',
+        'suporte': 'solicitacao',
+        'cobranca': 'pendencia-identificada',
+        'secretaria': 'documentos-pendentes',
+        'tutoria': 'duvida-academica',
+        'financeiro': 'analise-inicial',
+        'secretaria_pos': 'documentos-inicial'
+      };
+      return stageMapping[macrosetor] || 'prospecting';
+    };
+
+    const initialStage = getInitialStageByMacrosetor(macrosetor || 'geral');
+
     // Create automatic deal
     const dealData: InsertDeal = {
       name: dealName,
       contactId: contactId,
-      stage: 'prospecting',
+      stage: initialStage,
       value: 0,
       probability: 50,
       owner: 'Sistema',
