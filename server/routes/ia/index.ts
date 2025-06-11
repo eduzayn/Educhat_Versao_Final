@@ -96,8 +96,8 @@ router.get('/logs', async (req: Request, res: Response) => {
     const logs = await db
       .select({
         id: aiLogs.id,
-        message: aiLogs.message,
-        response: aiLogs.response,
+        message: aiLogs.messageId,
+        response: aiLogs.aiResponse,
         classification: aiLogs.classification,
         processingTime: aiLogs.processingTime,
         createdAt: aiLogs.createdAt
