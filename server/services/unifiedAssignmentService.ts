@@ -555,23 +555,108 @@ export class UnifiedAssignmentService {
 
   // Compatibilidade com handoffService
   async createHandoff(handoffData: HandoffRequest): Promise<Handoff> {
-    const result = await this.processAssignment(
-      handoffData.conversationId,
-      undefined,
-      handoffData.type === 'intelligent' ? 'intelligent' : handoffData.type
-    );
+    try {
+      // Validar dados obrigatórios
+      if (!handoffData.conversationId) {
+        throw new Error('conversationId é obrigatório');
+      }
 
-    if (!result.success || !result.handoffId) {
-      throw new Error(result.message);
+      if (!handoffData.toTeamId && !handoffData.toUserId) {
+        throw new Error('Deve ser fornecido pelo menos toTeamId ou toUserId');
+      }
+
+      // Criar handoff diretamente
+      const insertData: any = {
+        conversationId: handoffData.conversationId,
+        fromUserId: handoffData.fromUserId || null,
+        toUserId: handoffData.toUserId || null,
+        fromTeamId: handoffData.fromTeamId || null,
+        toTeamId: handoffData.toTeamId || null,
+        type: handoffData.type || 'manual',
+        reason: handoffData.reason || null,
+        priority: handoffData.priority || 'normal',
+        status: 'pending',
+        aiClassification: handoffData.aiClassification || null,
+        metadata: handoffData.metadata || null
+      };
+
+      const [handoff] = await db.insert(handoffs).values(insertData).returning();
+      
+      console.log(`🔄 Handoff criado: ${handoff.type} - Conversa ${handoff.conversationId} (ID: ${handoff.id})`);
+      
+      // Executar handoff imediatamente
+      await this.executeHandoffById(handoff.id);
+      
+      return handoff;
+
+    } catch (error) {
+      console.error('Erro ao criar handoff:', error);
+      throw error;
     }
+  }
 
-    const handoff = await db
-      .select()
-      .from(handoffs)
-      .where(eq(handoffs.id, result.handoffId))
-      .limit(1);
+  /**
+   * Executar handoff específico pelo ID
+   */
+  async executeHandoffById(handoffId: number): Promise<void> {
+    try {
+      const [handoff] = await db
+        .select()
+        .from(handoffs)
+        .where(eq(handoffs.id, handoffId))
+        .limit(1);
 
-    return handoff[0];
+      if (!handoff) {
+        throw new Error('Handoff não encontrado');
+      }
+
+      if (handoff.status !== 'pending') {
+        console.log(`⚠️ Handoff ${handoffId} já foi processado (status: ${handoff.status})`);
+        return;
+      }
+
+      // Dados para atualizar a conversa
+      const updateData: any = {
+        updatedAt: new Date(),
+        priority: handoff.priority || 'normal'
+      };
+
+      if (handoff.toTeamId) {
+        updateData.assignedTeamId = handoff.toTeamId;
+      }
+
+      if (handoff.toUserId) {
+        updateData.assignedUserId = handoff.toUserId;
+        updateData.assignedAt = new Date();
+      }
+
+      // Atualizar conversa
+      await db
+        .update(conversations)
+        .set(updateData)
+        .where(eq(conversations.id, handoff.conversationId));
+
+      // Marcar handoff como completado
+      await db
+        .update(handoffs)
+        .set({
+          status: 'completed',
+          completedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(handoffs.id, handoffId));
+
+      console.log(`✅ Handoff executado: ${handoff.type} - Conversa ${handoff.conversationId} → Equipe ${handoff.toTeamId || 'N/A'}, Usuário ${handoff.toUserId || 'N/A'}`);
+
+      // Criar deal automático se conversa foi atribuída a equipe
+      if (handoff.toTeamId) {
+        await this.createAutomaticDeal(handoff.conversationId, handoff.toTeamId);
+      }
+
+    } catch (error) {
+      console.error(`❌ Erro ao executar handoff ${handoffId}:`, error);
+      throw error;
+    }
   }
 
   // Compatibilidade com intelligentHandoffService
@@ -590,6 +675,48 @@ export class UnifiedAssignmentService {
     assignmentMethod: 'manual' | 'automatic'
   ) {
     return this.createAutomaticDeal(conversationId, teamId);
+  }
+
+  /**
+   * Adicionar método para estatísticas
+   */
+  async getHandoffStats(days: number = 7): Promise<any> {
+    try {
+      const dateThreshold = new Date();
+      dateThreshold.setDate(dateThreshold.getDate() - days);
+
+      // Buscar todos os handoffs
+      const allHandoffs = await db
+        .select()
+        .from(handoffs);
+
+      // Filtrar por data
+      const recentHandoffs = allHandoffs.filter(h => 
+        h.createdAt && new Date(h.createdAt) >= dateThreshold
+      );
+
+      const totalHandoffs = recentHandoffs.length;
+      const completedHandoffs = recentHandoffs.filter(h => h.status === 'completed').length;
+      const pendingHandoffs = recentHandoffs.filter(h => h.status === 'pending').length;
+
+      return {
+        totalHandoffs,
+        completedHandoffs,
+        pendingHandoffs,
+        completionRate: totalHandoffs > 0 ? Math.round((completedHandoffs / totalHandoffs) * 100) : 0,
+        periodDays: days
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas de handoffs:', error);
+      return {
+        totalHandoffs: 0,
+        completedHandoffs: 0,
+        pendingHandoffs: 0,
+        completionRate: 0,
+        periodDays: days
+      };
+    }
   }
 }
 
