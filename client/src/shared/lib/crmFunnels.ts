@@ -123,5 +123,3 @@ export function getAllTeams(): Array<{ id: string; info: TeamConfig }> {
   return Object.entries(teamConfigs).map(([id, info]) => ({ id, info }));
 }
 
-
-export const getAllMacrosetores = getAllTeams;

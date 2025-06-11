@@ -620,9 +620,7 @@ export class DatabaseStorage implements IStorage {
     return this.team.deleteTeam(id);
   }
 
-  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
-    return this.team.getTeamByTeamType(macrosetor);
-  }
+
 
   async getTeamByTeamType(teamType: string): Promise<Team | undefined> {
     return this.team.getTeamByTeamType(teamType);

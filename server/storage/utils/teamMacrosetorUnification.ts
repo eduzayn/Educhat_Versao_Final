@@ -101,11 +101,7 @@ export function isValidTeamType(teamType: string): boolean {
   return Object.keys(TEAM_CONFIGS).includes(teamType);
 }
 
-// Aliases para compatibilidade com nomenclatura antiga (macrosetor → teamType)
-export const MACROSETOR_CONFIGS = TEAM_CONFIGS;
-export const getTeamConfigByMacrosetor = getTeamConfigByType;
-export const getAllMacrosetores = getAllTeamTypes;
-export const isValidMacrosetor = isValidTeamType;
+
 
 /**
  * Get team priority for assignment

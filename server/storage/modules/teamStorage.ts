@@ -61,12 +61,7 @@ export class TeamStorage extends BaseStorage {
     return team;
   }
 
-  /**
-   * Get team by team type (alias for compatibility)
-   */
-  async getTeamByMacrosetor(teamType: string): Promise<Team | undefined> {
-    return this.getTeamByTeamType(teamType);
-  }
+
 
   /**
    * Get available user from team
