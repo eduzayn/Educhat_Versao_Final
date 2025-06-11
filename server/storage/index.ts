@@ -20,7 +20,7 @@ export { FacebookStorage } from './modules/facebookStorage';
  * Agrega todos os módulos especializados de storage
  */
 import { IStorage } from './interfaces/IStorage';
-import { AuthStorage } from './modules/authStorage';
+import { UserManagementStorage } from './modules/userManagementStorage';
 import { ContactStorage } from './modules/contactStorage';
 import { permissions, rolePermissions } from '../../shared/schema';
 import { sql } from 'drizzle-orm';
@@ -33,7 +33,7 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
-import { SystemStorage } from './modules/systemStorage';
+
 import {
   type User,
   type UpsertUser,
@@ -72,7 +72,7 @@ import {
 } from "../../shared/schema";
 
 export class DatabaseStorage implements IStorage {
-  private auth: AuthStorage;
+  private userManagement: UserManagementStorage;
   private contact: ContactStorage;
   private conversation: ConversationStorage;
   private channel: ChannelStorage;
@@ -81,12 +81,11 @@ export class DatabaseStorage implements IStorage {
   private quickReply: QuickReplyStorage;
   private team: TeamStorage;
   private message: MessageStorage;
-  private system: SystemStorage;
   private manychat: ManychatStorage;
   private facebook: FacebookStorage;
 
   constructor() {
-    this.auth = new AuthStorage();
+    this.userManagement = new UserManagementStorage();
     this.contact = new ContactStorage();
     this.conversation = new ConversationStorage();
     this.channel = new ChannelStorage();
@@ -95,7 +94,6 @@ export class DatabaseStorage implements IStorage {
     this.quickReply = new QuickReplyStorage();
     this.team = new TeamStorage();
     this.message = new MessageStorage();
-    this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
   }
