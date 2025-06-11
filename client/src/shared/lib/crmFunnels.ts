@@ -8,15 +8,15 @@ export interface Stage {
   color: string;
 }
 
-export interface TeamMacrosetor {
+export interface TeamConfig {
   name: string;
   description?: string;
   color: string;
   stages: Stage[];
 }
 
-// Configuração unificada dos funis por equipe/macrosetor (extraída do DealsModule existente)
-export const teamMacrosetores: Record<string, TeamMacrosetor> = {
+// Configuração unificada dos funis por equipe
+export const teamConfigs: Record<string, TeamConfig> = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Vendas, matrículas e informações sobre cursos',

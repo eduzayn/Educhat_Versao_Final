@@ -8,15 +8,15 @@ export interface Stage {
   color: string;
 }
 
-export interface TeamMacrosetor {
+export interface TeamConfig {
   name: string;
   description?: string;
   color: string;
   stages: Stage[];
 }
 
-// Configuração unificada dos funis por equipe/macrosetor (extraída do DealsModule existente)
-export const teamMacrosetores: Record<string, TeamMacrosetor> = {
+// Configuração unificada dos funis por equipe
+export const teamConfigs: Record<string, TeamConfig> = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Vendas, matrículas e informações sobre cursos',
@@ -105,20 +105,26 @@ export const teamMacrosetores: Record<string, TeamMacrosetor> = {
 /**
  * Obtém as etapas de um funil específico
  */
-export function getStagesForMacrosetor(macrosetor: string): Stage[] {
-  return teamMacrosetores[macrosetor]?.stages || [];
+export function getStagesForTeam(teamType: string): Stage[] {
+  return teamConfigs[teamType]?.stages || [];
 }
 
 /**
- * Obtém informações de um funil específico
+ * Obtém informações de uma equipe específica
  */
-export function getMacrosetorInfo(macrosetor: string): TeamMacrosetor | undefined {
-  return teamMacrosetores[macrosetor];
+export function getTeamInfo(teamType: string): TeamConfig | undefined {
+  return teamConfigs[teamType];
 }
 
 /**
- * Obtém todos os funis disponíveis
+ * Obtém todas as equipes disponíveis
  */
-export function getAllMacrosetores(): Array<{ id: string; info: TeamMacrosetor }> {
-  return Object.entries(teamMacrosetores).map(([id, info]) => ({ id, info }));
+export function getAllTeams(): Array<{ id: string; info: TeamConfig }> {
+  return Object.entries(teamConfigs).map(([id, info]) => ({ id, info }));
 }
+
+// Manter compatibilidade durante transição
+export const teamMacrosetores = teamConfigs;
+export const getStagesForMacrosetor = getStagesForTeam;
+export const getMacrosetorInfo = getTeamInfo;
+export const getAllMacrosetores = getAllTeams;

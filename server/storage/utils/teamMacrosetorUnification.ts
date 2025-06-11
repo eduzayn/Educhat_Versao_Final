@@ -1,12 +1,12 @@
 /**
- * Team-Macrosetor Unification Utilities
- * Treats teams and macrosetors as identical concepts throughout the system
+ * Team Configuration Utilities
+ * Centralized team configurations and utilities
  */
 
-export interface UnifiedTeamMacrosetor {
+export interface TeamConfig {
   id: number;
   name: string;
-  macrosetor: string;
+  teamType: string;
   description?: string;
   color: string;
   isActive: boolean;
@@ -18,8 +18,8 @@ export interface UnifiedTeamMacrosetor {
   updatedAt: Date;
 }
 
-// Standard macrosetor configurations
-export const MACROSETOR_CONFIGS = {
+// Standard team configurations
+export const TEAM_CONFIGS = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Responsável por vendas, matrículas e informações sobre cursos',
@@ -71,36 +71,41 @@ export const MACROSETOR_CONFIGS = {
 };
 
 /**
- * Get team configuration by macrosetor
+ * Get team configuration by team type
  */
-export function getTeamConfigByMacrosetor(macrosetor: string): any {
-  return MACROSETOR_CONFIGS[macrosetor as keyof typeof MACROSETOR_CONFIGS] || MACROSETOR_CONFIGS.geral;
+export function getTeamConfigByType(teamType: string): any {
+  return TEAM_CONFIGS[teamType as keyof typeof TEAM_CONFIGS] || TEAM_CONFIGS.geral;
 }
 
 /**
- * Get all available macrosetores/teams
+ * Get all available team types
  */
-export function getAllMacrosetores(): string[] {
-  return Object.keys(MACROSETOR_CONFIGS);
+export function getAllTeamTypes(): string[] {
+  return Object.keys(TEAM_CONFIGS);
 }
 
 /**
- * Normalize team/macrosetor identifier
+ * Normalize team identifier
  */
-export function normalizeTeamMacrosetorId(identifier: string | number): string {
+export function normalizeTeamId(identifier: string | number): string {
   if (typeof identifier === 'number') {
-    // If it's a team ID, we need to look up the macrosetor
     return identifier.toString();
   }
   return identifier.toLowerCase();
 }
 
 /**
- * Check if a macrosetor is valid
+ * Check if a team type is valid
  */
-export function isValidMacrosetor(macrosetor: string): boolean {
-  return Object.keys(MACROSETOR_CONFIGS).includes(macrosetor);
+export function isValidTeamType(teamType: string): boolean {
+  return Object.keys(TEAM_CONFIGS).includes(teamType);
 }
+
+// Manter compatibilidade com nomes antigos durante transição
+export const MACROSETOR_CONFIGS = TEAM_CONFIGS;
+export const getTeamConfigByMacrosetor = getTeamConfigByType;
+export const getAllMacrosetores = getAllTeamTypes;
+export const isValidMacrosetor = isValidTeamType;
 
 /**
  * Get team priority for assignment
