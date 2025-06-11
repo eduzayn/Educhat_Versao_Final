@@ -1,14 +1,17 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
 import { deals } from "../../../shared/schema";
-import { eq, desc, and, count, sql } from "drizzle-orm";
+import { eq, desc, and, count, sql, inArray } from "drizzle-orm";
 
 /**
  * Conversation storage module - manages conversations and assignments
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Consulta única otimizada sem buscar mensagens para máxima performance
+    console.log('🔄 Iniciando busca de conversas:', { limit, offset });
+    const startTime = Date.now();
+
+    // Buscar conversas com dados básicos
     const conversationsData = await this.db
       .select({
         id: conversations.id,
@@ -57,7 +60,37 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Retornar dados sem buscar mensagens para performance máxima
+    // Buscar última mensagem para cada conversa em uma única query
+    const conversationIds = conversationsData.map(conv => conv.id);
+    const lastMessages = conversationIds.length > 0 ? await this.db
+      .select({
+        conversationId: messages.conversationId,
+        id: messages.id,
+        content: messages.content,
+        messageType: messages.messageType,
+        isFromContact: messages.isFromContact,
+        sentAt: messages.sentAt,
+        metadata: messages.metadata
+      })
+      .from(messages)
+      .where(and(
+        inArray(messages.conversationId, conversationIds),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(desc(messages.sentAt)) : [];
+
+    // Agrupar mensagens por conversa (apenas a primeira/última de cada conversa)
+    const messagesByConversation = new Map();
+    for (const msg of lastMessages) {
+      if (!messagesByConversation.has(msg.conversationId)) {
+        messagesByConversation.set(msg.conversationId, msg);
+      }
+    }
+
+    const endTime = Date.now();
+    console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
+
+    // Retornar dados com última mensagem para prévias
     return conversationsData.map(conv => ({
       ...conv,
       contact: {
@@ -66,7 +99,7 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [], // Mensagens carregadas sob demanda pela interface
+      messages: messagesByConversation.has(conv.id) ? [messagesByConversation.get(conv.id)] : [],
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
