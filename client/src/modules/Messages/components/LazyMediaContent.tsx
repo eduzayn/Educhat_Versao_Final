@@ -38,32 +38,48 @@ export function LazyMediaContent({
     // Verificar URLs específicas por tipo
     switch (messageType) {
       case 'image':
+        // Verificar múltiplas estruturas de metadados para imagens
         if (metadata.image?.imageUrl && isValidUrl(metadata.image.imageUrl)) {
           return metadata.image.imageUrl;
+        }
+        if (metadata.image?.url && isValidUrl(metadata.image.url)) {
+          return metadata.image.url;
         }
         if (metadata.imageUrl && isValidUrl(metadata.imageUrl)) {
           return metadata.imageUrl;
         }
         break;
       case 'video':
+        // Verificar múltiplas estruturas de metadados para vídeos
         if (metadata.video?.videoUrl && isValidUrl(metadata.video.videoUrl)) {
           return metadata.video.videoUrl;
+        }
+        if (metadata.video?.url && isValidUrl(metadata.video.url)) {
+          return metadata.video.url;
         }
         if (metadata.videoUrl && isValidUrl(metadata.videoUrl)) {
           return metadata.videoUrl;
         }
         break;
       case 'document':
+        // Verificar múltiplas estruturas de metadados para documentos
         if (metadata.document?.documentUrl && isValidUrl(metadata.document.documentUrl)) {
           return metadata.document.documentUrl;
+        }
+        if (metadata.document?.url && isValidUrl(metadata.document.url)) {
+          return metadata.document.url;
         }
         if (metadata.documentUrl && isValidUrl(metadata.documentUrl)) {
           return metadata.documentUrl;
         }
         break;
       case 'audio':
+        // Verificar múltiplas estruturas de metadados para áudios
         if (metadata.audio?.audioUrl && isValidUrl(metadata.audio.audioUrl)) {
           return metadata.audio.audioUrl;
+        }
+        if (metadata.audio?.url && isValidUrl(metadata.audio.url)) {
+          return metadata.audio.url;
         }
         if (metadata.audioUrl && isValidUrl(metadata.audioUrl)) {
           return metadata.audioUrl;
