@@ -120,11 +120,9 @@ export function ConversationActionsDropdown({
         return { count: old.count + 1 };
       });
       
-      // Invalidar apenas após sucesso para garantir sincronização
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-      }, 100);
+      // Invalidar imediatamente para resposta instantânea
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
       
       toast({
         title: "Marcado como não lida",

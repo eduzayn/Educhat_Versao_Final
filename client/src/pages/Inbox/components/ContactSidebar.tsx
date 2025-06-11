@@ -111,36 +111,26 @@ export function ContactSidebar({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log('🔍 Buscando categorias de cursos...');
         const response = await fetch('/api/courses/categories');
-        console.log('📊 Resposta categorias:', response.status, response.ok);
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Categorias carregadas:', data);
           setCategories(data);
-        } else {
-          console.error('❌ Erro na resposta categorias:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar categorias:', error);
+        console.error('Erro ao buscar categorias:', error);
       }
     };
 
     const fetchAllCourses = async () => {
       try {
-        console.log('🔍 Buscando todos os cursos...');
         const response = await fetch('/api/courses');
-        console.log('📊 Resposta cursos:', response.status, response.ok);
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Cursos carregados:', data.length, 'cursos');
           setCourses(data);
           setFilteredCourses(data);
-        } else {
-          console.error('❌ Erro na resposta cursos:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar cursos:', error);
+        console.error('Erro ao buscar cursos:', error);
       }
     };
 
@@ -515,14 +505,11 @@ export function ContactSidebar({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">Todas as categorias</SelectItem>
-                        {categories.map((category) => {
-                          console.log('🏷️ Renderizando categoria:', category);
-                          return (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          );
-                        })}
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -541,14 +528,11 @@ export function ContactSidebar({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">Nenhum curso específico</SelectItem>
-                        {filteredCourses.map((course) => {
-                          console.log('📚 Renderizando curso:', course);
-                          return (
-                            <SelectItem key={course} value={course}>
-                              {course}
-                            </SelectItem>
-                          );
-                        })}
+                        {filteredCourses.map((course) => (
+                          <SelectItem key={course} value={course}>
+                            {course}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
