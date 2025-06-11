@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { z } from 'zod';
-import { storage } from '../../storage/index';
+import { storage } from '../../core/storage';
 import { insertFacebookIntegrationSchema } from '../../../shared/schema';
 
 const router = Router();

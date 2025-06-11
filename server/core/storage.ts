@@ -1,56 +1,40 @@
-// Nova implementação do storage usando a estrutura modular refatorada
-import { DatabaseStorage as ModularDatabaseStorage } from "../storage/index";
-import type { IStorage as ModularIStorage } from "../storage/interfaces/IStorage";
+/**
+ * Storage Central Simplificado
+ * Substitui o complexo storage/index.ts (1223 linhas) por acesso direto aos módulos
+ */
 
-// Re-export dos tipos para manter compatibilidade
-export type {
-  User,
-  UpsertUser,
-  Contact,
-  InsertContact,
-  Conversation,
-  InsertConversation,
-  Message,
-  InsertMessage,
-  ContactTag,
-  InsertContactTag,
-  QuickReply,
-  InsertQuickReply,
-  QuickReplyTeamShare,
-  InsertQuickReplyTeamShare,
-  QuickReplyShare,
-  InsertQuickReplyShare,
-  SystemUser,
-  InsertSystemUser,
-  Team,
-  InsertTeam,
-  Role,
-  InsertRole,
-  Channel,
-  InsertChannel,
-  ContactNote,
-  InsertContactNote,
-  Deal,
-  InsertDeal,
-  UserTeam,
-  InsertUserTeam,
-  ConversationWithContact,
-  ContactWithTags,
-  QuickReplyWithCreator,
-  SystemSetting,
-  InsertSystemSetting,
-} from "../../shared/schema";
+import { UserManagementStorage } from '../storage/modules/userManagementStorage';
+import { ContactStorage } from '../storage/modules/contactStorage';
+import { ConversationStorage } from '../storage/modules/conversationStorage';
+import { ChannelStorage } from '../storage/modules/channelStorage';
+import { DealStorage } from '../storage/modules/dealStorage';
+import { TeamStorage } from '../storage/modules/teamStorage';
+import { MessageStorage } from '../storage/modules/messageStorage';
+import { QuickReplyStorage } from '../storage/modules/quickReplyStorage';
 
-// Interface para manter compatibilidade com código existente
-export interface IStorage extends ModularIStorage {}
+class CentralStorage {
+  public readonly users = new UserManagementStorage();
+  public readonly contacts = new ContactStorage();
+  public readonly conversations = new ConversationStorage();
+  public readonly channels = new ChannelStorage();
+  public readonly deals = new DealStorage();
+  public readonly teams = new TeamStorage();
+  public readonly messages = new MessageStorage();
+  public readonly quickReplies = new QuickReplyStorage();
 
-// Classe principal que agora usa a estrutura modular
-export class DatabaseStorage extends ModularDatabaseStorage {
-  constructor() {
-    super();
-    console.log("🔄 Storage inicializado com nova estrutura modular");
-  }
+  // Métodos de conveniência diretos - sem proxies desnecessários
+  getUser = (id: number) => this.users.getUser(id);
+  createUser = (userData: any) => this.users.createUser(userData);
+  getContact = (id: number) => this.contacts.getContact(id);
+  createContact = (contactData: any) => this.contacts.createContact(contactData);
+  getConversation = (id: number) => this.conversations.getConversation(id);
+  createConversation = (conversationData: any) => this.conversations.createConversation(conversationData);
+  getTeam = (id: number) => this.teams.getTeam(id);
+  getTeams = () => this.teams.getTeams();
+  createDeal = (dealData: any) => this.deals.createDeal(dealData);
+  getDealsByContact = (contactId: number) => this.deals.getDealsByContact(contactId);
+  createAutomaticDeal = (contactId: number, canalOrigem: string, teamType: string, initialStage: string) => 
+    this.deals.createAutomaticDeal(contactId, canalOrigem, teamType, initialStage);
 }
 
-// Instância singleton para manter compatibilidade
-export const storage = new DatabaseStorage();
+export const storage = new CentralStorage();
