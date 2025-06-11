@@ -207,7 +207,7 @@ export function ConversationList({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {(conversation.unreadCount || 0) > 0 && (
-                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                          <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
                             {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
                           </Badge>
                         )}

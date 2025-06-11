@@ -443,7 +443,7 @@ export function InboxPage() {
                   {/* Badge de mensagens não lidas */}
                   <div className="flex items-center justify-end mb-1">
                     {(conversation.unreadCount || 0) > 0 && (
-                      <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                      <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
                         {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
                       </Badge>
                     )}
