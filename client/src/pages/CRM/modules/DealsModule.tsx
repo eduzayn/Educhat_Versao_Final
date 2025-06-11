@@ -46,6 +46,24 @@ export function DealsModule() {
   const [page, setPage] = useState(1);
   const limit = 50;
 
+  // Mapeamento de ícones para cada tipo de funil
+  const getFunnelIcon = (macrosetor: string) => {
+    const iconMap = {
+      'comercial': '🏢',
+      'suporte': '🛠️',
+      'financeiro': '💳',
+      'secretaria': '📋',
+      'tutoria': '🎓',
+      'cobranca': '💰',
+      'secretaria_pos': '🎓',
+      'analise_certificacao': '🔍',
+      'documentacao': '📄',
+      'geral': '⚙️',
+      'teste_automacao': '🧪'
+    };
+    return iconMap[macrosetor as keyof typeof iconMap] || '📊';
+  };
+
   // Fetch all available funnels
   const { data: funnelsData } = useQuery({
     queryKey: ['/api/funnels'],
@@ -261,12 +279,22 @@ export function DealsModule() {
           <div className="flex items-center gap-3">
             <Select value={selectedTeam} onValueChange={setSelectedTeam}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Selecione o funil" />
+                <SelectValue placeholder="Selecione o funil">
+                  {selectedTeam && funnelsData && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{getFunnelIcon(selectedTeam)}</span>
+                      <span>{funnelsData.find((f: any) => f.macrosetor === selectedTeam)?.name}</span>
+                    </div>
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {funnelsData?.map((funnel: any) => (
                   <SelectItem key={funnel.id} value={funnel.macrosetor}>
-                    {funnel.name}
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{getFunnelIcon(funnel.macrosetor)}</span>
+                      <span>{funnel.name}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
