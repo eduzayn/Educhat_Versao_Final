@@ -15,6 +15,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { useActiveWhatsAppChannels, type Channel } from '@/shared/lib/hooks/useChannels';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 
@@ -47,11 +48,15 @@ export function ContactsPage() {
   const [sendingMessageTo, setSendingMessageTo] = useState<Contact | null>(null);
   const [messageText, setMessageText] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
   const { toast } = useToast();
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
   useGlobalZApiMonitor();
+  
+  // Buscar canais WhatsApp ativos para seleção
+  const { data: whatsappChannels = [], isLoading: loadingChannels } = useActiveWhatsAppChannels();
   
   // Verificar se WhatsApp está disponível para sincronização
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
@@ -345,6 +350,24 @@ export function ContactsPage() {
       return;
     }
 
+    // Determinar canal a ser usado
+    let channelToUse = selectedChannelId;
+    
+    // Se não há canal selecionado mas existe apenas um canal, usar automaticamente
+    if (!channelToUse && whatsappChannels.length === 1) {
+      channelToUse = whatsappChannels[0].id;
+    }
+    
+    // Se há múltiplos canais mas nenhum selecionado, exigir seleção
+    if (!channelToUse && whatsappChannels.length > 1) {
+      toast({
+        title: "Selecione um canal",
+        description: "Por favor, selecione o canal WhatsApp para envio da mensagem.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSendingMessage(true);
 
     try {
@@ -355,7 +378,8 @@ export function ContactsPage() {
         },
         body: JSON.stringify({
           phone: sendingMessageTo.phone,
-          message: messageText.trim()
+          message: messageText.trim(),
+          channelId: channelToUse
         })
       });
 
@@ -372,6 +396,7 @@ export function ContactsPage() {
 
       setSendingMessageTo(null);
       setMessageText('');
+      setSelectedChannelId(null);
 
     } catch (error) {
       toast({
@@ -822,6 +847,40 @@ export function ContactsPage() {
             </DialogHeader>
             
             <div className="mt-4 space-y-4">
+              {/* Seletor de Canal WhatsApp */}
+              {whatsappChannels.length > 1 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Canal WhatsApp
+                  </label>
+                  <Select 
+                    value={selectedChannelId?.toString() || ''} 
+                    onValueChange={(value) => setSelectedChannelId(parseInt(value))}
+                    disabled={sendingMessage}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o canal WhatsApp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {whatsappChannels.map((channel) => (
+                        <SelectItem key={channel.id} value={channel.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${channel.connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'}`} />
+                            {channel.name}
+                            {channel.identifier && (
+                              <span className="text-xs text-gray-500">({channel.identifier})</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {whatsappChannels.length} canais WhatsApp disponíveis
+                  </p>
+                </div>
+              )}
+              
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Mensagem

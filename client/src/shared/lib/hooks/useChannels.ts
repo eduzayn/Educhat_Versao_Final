@@ -4,32 +4,38 @@ export interface Channel {
   id: number;
   name: string;
   type: string;
-  identifier: string | null;
-  description: string | null;
-  instanceId: string | null;
-  token: string | null;
-  clientToken: string | null;
-  configuration: unknown;
+  identifier?: string;
+  description?: string;
+  instanceId?: string;
+  token?: string;
+  clientToken?: string;
+  configuration?: any;
   isActive: boolean;
   isConnected: boolean;
-  lastConnectionCheck: Date | null;
+  lastConnectionCheck?: string;
   connectionStatus: string;
-  webhookUrl: string | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  webhookUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function useChannels() {
   return useQuery<Channel[]>({
     queryKey: ['/api/channels'],
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    select: (data) => data || []
   });
 }
 
-export function useChannelById(channelId: number | null | undefined) {
-  const { data: channels } = useChannels();
-  
-  if (!channelId || !channels) return null;
-  
-  return channels.find(channel => channel.id === channelId) || null;
+export function useActiveWhatsAppChannels() {
+  return useQuery<Channel[]>({
+    queryKey: ['/api/channels'],
+    select: (data) => {
+      return (data || []).filter(channel => 
+        channel.type === 'whatsapp' && 
+        channel.isActive &&
+        channel.instanceId &&
+        channel.token
+      );
+    }
+  });
 }
