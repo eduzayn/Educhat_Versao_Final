@@ -568,9 +568,8 @@ export class CRMService {
         
         // Ação 1: Criar ou atualizar negócio no CRM
         const dealAction = await this.createOrUpdateLead(
-          aiClassification,
           contactId,
-          conversationId,
+          aiClassification,
           messageContent
         );
         
@@ -832,15 +831,21 @@ export class CRMService {
   }
 
   // Métodos auxiliares
-  private extractCourseInterest(message: string, keywords: string[]): string {
+  private extractCourseInterest(message: any, keywords: any[]): string {
     const courses = [
       'neuropsicopedagogia', 'psicopedagogia', 'educacao especial',
       'gestao escolar', 'pedagogia', 'psicologia', 'libras'
     ];
 
-    const messageLower = message.toLowerCase();
+    // Garantir que message é uma string
+    const messageStr = String(message || '');
+    const messageLower = messageStr.toLowerCase();
+    
+    // Garantir que keywords é um array
+    const keywordsArray = Array.isArray(keywords) ? keywords : [];
+    
     for (const course of courses) {
-      if (messageLower.includes(course) || keywords.some((k: string) => k.includes(course))) {
+      if (messageLower.includes(course) || keywordsArray.some((k: any) => String(k || '').toLowerCase().includes(course))) {
         return course;
       }
     }
