@@ -2,6 +2,7 @@ import { db } from '../db';
 import { handoffs, conversations, systemUsers, teams } from '@shared/schema';
 import { eq, and, desc, asc } from 'drizzle-orm';
 import type { InsertHandoff, Handoff } from '@shared/schema';
+import { DealAutomationService } from './dealAutomationService';
 
 export interface HandoffRequest {
   conversationId: number;
@@ -118,6 +119,23 @@ export class HandoffService {
         updatedAt: new Date()
       })
       .where(eq(handoffs.id, handoffId));
+
+    // Executar automação de deals quando conversa é atribuída a uma equipe
+    if (handoff.toTeamId) {
+      try {
+        const automationService = new DealAutomationService();
+        const conversation = await db.query.conversations.findFirst({
+          where: eq(conversations.id, handoff.conversationId)
+        });
+
+        if (conversation) {
+          console.log(`🤖 Executando automação de deals para handoff...`);
+          await automationService.handleTeamAssignment(conversation, handoff.toTeamId);
+        }
+      } catch (error) {
+        console.error(`❌ Erro na automação de deals para handoff:`, error);
+      }
+    }
 
     console.log(`✅ Handoff executado: ${handoff.type} - Conversa ${handoff.conversationId}`);
   }
