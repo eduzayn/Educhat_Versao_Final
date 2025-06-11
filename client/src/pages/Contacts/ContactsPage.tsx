@@ -806,6 +806,68 @@ export function ContactsPage() {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Modal de Envio de Mensagem */}
+        <Dialog open={!!sendingMessageTo} onOpenChange={(open) => !open && setSendingMessageTo(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold">
+                Enviar mensagem para {sendingMessageTo?.name}
+              </DialogTitle>
+              <p className="text-sm text-gray-600 mt-2">
+                {sendingMessageTo?.phone && isWhatsAppAvailable 
+                  ? `📱 ${sendingMessageTo.phone} - Mensagem será enviada via WhatsApp`
+                  : '⚠️ WhatsApp não está disponível'
+                }
+              </p>
+            </DialogHeader>
+            
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Mensagem
+                </label>
+                <Textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Digite sua mensagem..."
+                  className="min-h-[120px] resize-none"
+                  disabled={sendingMessage}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Após enviar, continue a conversa na caixa de entrada
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setSendingMessageTo(null)}
+                disabled={sendingMessage}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSendMessage}
+                disabled={sendingMessage || !messageText.trim() || !isWhatsAppAvailable}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {sendingMessage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Enviar Mensagem
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Main Content */}
         <div>
           {/* Lista de Contatos */}
