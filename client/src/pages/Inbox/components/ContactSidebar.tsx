@@ -440,7 +440,7 @@ export function ContactSidebar({
                   </div>
 
                   <div>
-                    <Label htmlFor="deal-macrosetor">Funil de vendas *</Label>
+                    <Label htmlFor="deal-team">Funil de vendas *</Label>
                     <Select 
                       value={dealFormData.team} 
                       onValueChange={(value) => {
@@ -474,13 +474,13 @@ export function ContactSidebar({
                     <Select 
                       value={dealFormData.stage} 
                       onValueChange={(value) => setDealFormData(prev => ({ ...prev, stage: value }))}
-                      disabled={!dealFormData.macrosetor}
+                      disabled={!dealFormData.team}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={dealFormData.macrosetor ? "Selecione a etapa" : "Primeiro selecione o funil"} />
+                        <SelectValue placeholder={dealFormData.team ? "Selecione a etapa" : "Primeiro selecione o funil"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {dealFormData.macrosetor && getStagesForTeam(dealFormData.macrosetor).map((stage) => (
+                        {dealFormData.team && getStagesForTeam(dealFormData.team).map((stage) => (
                           <SelectItem key={stage.id} value={stage.id}>
                             {stage.name.toUpperCase()}
                           </SelectItem>
@@ -645,12 +645,12 @@ export function ContactSidebar({
                 <div>
                   <Label>Funil de vendas</Label>
                   <Select 
-                    value={editingDealData.macrosetor || editingDeal.macrosetor} 
+                    value={editingDealData.team || editingDeal.team} 
                     onValueChange={(value) => {
                       setEditingDealData((prev: any) => ({ 
                         ...prev, 
-                        macrosetor: value,
-                        stage: getStagesForMacrosetor(value)[0]?.id || ''
+                        team: value,
+                        stage: getStagesForTeam(value)[0]?.id || ''
                       }));
                     }}
                   >
@@ -658,7 +658,7 @@ export function ContactSidebar({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {getAllMacrosetores().map(({ id, info }) => (
+                      {getAllTeams().map(({ id, info }) => (
                         <SelectItem key={id} value={id}>
                           {info.name.toUpperCase()}
                         </SelectItem>
@@ -674,14 +674,14 @@ export function ContactSidebar({
                     onValueChange={(value) => {
                       setEditingDealData((prev: any) => ({ ...prev, stage: value }));
                     }}
-                    disabled={!(editingDealData.macrosetor || editingDeal.macrosetor)}
+                    disabled={!(editingDealData.team || editingDeal.team)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {(editingDealData.macrosetor || editingDeal.macrosetor) && 
-                        getStagesForMacrosetor(editingDealData.macrosetor || editingDeal.macrosetor).map((stage) => (
+                      {(editingDealData.team || editingDeal.team) && 
+                        getStagesForTeam(editingDealData.team || editingDeal.team).map((stage) => (
                           <SelectItem key={stage.id} value={stage.id}>
                             {stage.name.toUpperCase()}
                           </SelectItem>
