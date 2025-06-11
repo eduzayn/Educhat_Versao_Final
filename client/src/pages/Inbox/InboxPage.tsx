@@ -442,13 +442,14 @@ export function InboxPage() {
                       >
                         {STATUS_CONFIG[conversation.status as keyof typeof STATUS_CONFIG]?.label || 'Aberto'}
                       </Badge>
-                      
-                      {(conversation.unreadCount || 0) > 0 && (
-                        <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                          {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
-                        </Badge>
-                      )}
                     </div>
+                    
+                    {/* Badge de mensagens não lidas - posicionado à direita */}
+                    {(conversation.unreadCount || 0) > 0 && (
+                      <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px] ml-auto">
+                        {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Preview da última mensagem */}
