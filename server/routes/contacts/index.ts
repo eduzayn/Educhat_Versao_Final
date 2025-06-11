@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
-import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
+import { insertContactSchema, insertContactTagSchema, contacts } from "@shared/schema";
+import { db } from "../../db";
+import { desc, ilike, or } from "drizzle-orm";
 
 export function registerContactRoutes(app: Express) {
   
@@ -8,13 +10,10 @@ export function registerContactRoutes(app: Express) {
   app.get('/api/contacts', async (req, res) => {
     try {
       const { search } = req.query;
-      let contacts;
       
-      if (search && typeof search === 'string') {
-        contacts = await storage.searchContacts(search);
-      } else {
-        contacts = await storage.searchContacts(''); 
-      }
+      // Usar query vazia para buscar todos os contatos quando não há filtro
+      const searchQuery = (search && typeof search === 'string') ? search.trim() : '';
+      const contacts = await storage.searchContacts(searchQuery);
       
       res.json(contacts);
     } catch (error) {
