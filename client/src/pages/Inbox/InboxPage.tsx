@@ -357,10 +357,8 @@ export function InboxPage() {
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
         <ConversationListHeader
-          activeTab={activeTab}
           searchTerm={searchTerm}
           isWhatsAppAvailable={isWhatsAppAvailable}
-          onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
