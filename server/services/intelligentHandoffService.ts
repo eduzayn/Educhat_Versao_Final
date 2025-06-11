@@ -523,23 +523,23 @@ export class IntelligentHandoffService {
       const dateThreshold = new Date();
       dateThreshold.setDate(dateThreshold.getDate() - days);
 
-      // Buscar handoffs automáticos usando query builder
+      // Buscar handoffs automáticos simples
       const automaticHandoffs = await db
         .select()
         .from(handoffs)
-        .where(
-          and(
-            eq(handoffs.type, 'automatic'),
-            sql`${handoffs.createdAt} >= ${dateThreshold}`
-          )
-        );
+        .where(eq(handoffs.type, 'automatic'));
 
-      const totalHandoffs = automaticHandoffs.length;
-      const completedHandoffs = automaticHandoffs.filter(h => h.status === 'completed').length;
+      // Filtrar por data no código (mais simples que SQL complexo)
+      const recentHandoffs = automaticHandoffs.filter(h => 
+        h.createdAt && new Date(h.createdAt) >= dateThreshold
+      );
+
+      const totalHandoffs = recentHandoffs.length;
+      const completedHandoffs = recentHandoffs.filter(h => h.status === 'completed').length;
       const successRate = totalHandoffs > 0 ? (completedHandoffs / totalHandoffs) * 100 : 0;
 
       // Estatísticas por equipe
-      const teamStats = automaticHandoffs.reduce((acc, h) => {
+      const teamStats = recentHandoffs.reduce((acc, h) => {
         const teamId = h.toTeamId;
         if (!teamId) return acc;
         
@@ -555,8 +555,8 @@ export class IntelligentHandoffService {
 
       // Confiança média baseada em classificações reais de IA
       let avgConfidence = 85; // Padrão para handoffs automáticos
-      if (automaticHandoffs.length > 0) {
-        const handoffsWithClassification = automaticHandoffs.filter(h => h.aiClassification);
+      if (recentHandoffs.length > 0) {
+        const handoffsWithClassification = recentHandoffs.filter(h => h.aiClassification);
         if (handoffsWithClassification.length > 0) {
           const confidenceSum = handoffsWithClassification.reduce((sum, h) => {
             try {
