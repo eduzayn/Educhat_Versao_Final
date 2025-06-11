@@ -28,8 +28,8 @@ import {
   ArrowLeft
 } from "lucide-react";
 
-// Configuração unificada dos funis por equipe/macrosetor
-const teamMacrosetores = {
+// Configuração unificada dos funis por equipe
+const teamConfigs = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Vendas, matrículas e informações sobre cursos',
@@ -145,8 +145,8 @@ export function DealsModule() {
   
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
-  // Get current macrosetor configuration
-  const currentMacrosetor = teamMacrosetores[selectedMacrosetor as keyof typeof teamMacrosetores];
+  // Get current team configuration
+  const currentTeam = teamConfigs[selectedMacrosetor as keyof typeof teamConfigs];
   
   // Reset page when macrosetor changes
   useEffect(() => {
@@ -440,9 +440,9 @@ export function DealsModule() {
                   <div className="text-sm text-muted-foreground">
                     O negócio será criado no estágio: {
                       selectedStageForNewDeal 
-                        ? currentMacrosetor.stages.find(s => s.id === selectedStageForNewDeal)?.name
-                        : currentMacrosetor.stages[0].name
-                    } ({currentMacrosetor.name})
+                        ? currentTeam.stages.find(s => s.id === selectedStageForNewDeal)?.name
+                        : currentTeam.stages[0].name
+                    } ({currentTeam.name})
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -465,7 +465,7 @@ export function DealsModule() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
-                {currentMacrosetor.stages.map((stage: any) => {
+                {currentTeam.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
                     <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
