@@ -137,8 +137,12 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.getConversation(id);
   }
 
+  async getConversations(limit?: number, offset?: number) {
+    return this.conversation.getConversations(limit, offset);
+  }
+
   async getAllConversations() {
-    return this.conversation.getAllConversations();
+    return this.conversation.getConversations();
   }
 
   async updateConversation(id: number, conversationData: any) {
