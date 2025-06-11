@@ -506,49 +506,330 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==================== QUICK REPLY OPERATIONS ====================
-  async createQuickReply(quickReplyData: any) {
-    return this.quickReply.createQuickReply(quickReplyData);
+  async getQuickReplies(): Promise<QuickReply[]> {
+    return this.quickReply.getQuickReplies();
   }
 
-  async getQuickReply(id: number) {
+  async getQuickReply(id: number): Promise<QuickReply | undefined> {
     return this.quickReply.getQuickReply(id);
   }
 
-  async getAllQuickReplies() {
-    return this.quickReply.getAllQuickReplies();
+  async createQuickReply(quickReply: InsertQuickReply): Promise<QuickReply> {
+    return this.quickReply.createQuickReply(quickReply);
   }
 
-  async updateQuickReply(id: number, quickReplyData: any) {
-    return this.quickReply.updateQuickReply(id, quickReplyData);
+  async updateQuickReply(id: number, quickReply: Partial<InsertQuickReply>): Promise<QuickReply> {
+    return this.quickReply.updateQuickReply(id, quickReply);
   }
 
-  async deleteQuickReply(id: number) {
+  async deleteQuickReply(id: number): Promise<void> {
     return this.quickReply.deleteQuickReply(id);
   }
 
-  async getQuickRepliesByCategory(category: string) {
+  async incrementQuickReplyUsage(id: number): Promise<void> {
+    return this.quickReply.incrementQuickReplyUsage(id);
+  }
+
+  async getQuickRepliesByCategory(category: string): Promise<QuickReply[]> {
     return this.quickReply.getQuickRepliesByCategory(category);
   }
 
-  async getQuickReplyCategories() {
+  async searchQuickReplies(query: string): Promise<QuickReply[]> {
+    return this.quickReply.searchQuickReplies(query);
+  }
+
+  async getMostUsedQuickReplies(limit?: number): Promise<QuickReply[]> {
+    return this.quickReply.getMostUsedQuickReplies(limit);
+  }
+
+  async getUserQuickReplies(userId: number): Promise<QuickReply[]> {
+    return this.quickReply.getUserQuickReplies(userId);
+  }
+
+  async getQuickReplyCategories(): Promise<string[]> {
     return this.quickReply.getQuickReplyCategories();
   }
 
-  async getQuickReplyStatistics() {
+  async getQuickReplyStatistics(): Promise<any> {
     return this.quickReply.getQuickReplyStatistics();
   }
 
-  // ==================== SYSTEM OPERATIONS ====================
-  async getSystemSettings() {
-    return this.system.getSystemSettings();
+  // ==================== QUICK REPLY SHARING OPERATIONS ====================
+  async createQuickReplyTeamShare(share: InsertQuickReplyTeamShare): Promise<QuickReplyTeamShare> {
+    return this.quickReply.createQuickReplyTeamShare(share);
   }
 
-  async updateSystemSettings(settings: any) {
-    return this.system.updateSystemSettings(settings);
+  async createQuickReplyUserShare(share: InsertQuickReplyShare): Promise<QuickReplyShare> {
+    return this.quickReply.createQuickReplyUserShare(share);
   }
 
-  async getSystemStatistics() {
-    return this.system.getSystemStatistics();
+  async deleteQuickReplyTeamShares(quickReplyId: number): Promise<void> {
+    return this.quickReply.deleteQuickReplyTeamShares(quickReplyId);
+  }
+
+  async deleteQuickReplyUserShares(quickReplyId: number): Promise<void> {
+    return this.quickReply.deleteQuickReplyUserShares(quickReplyId);
+  }
+
+
+
+  // ==================== SYSTEM USER OPERATIONS ====================
+  async getSystemUsers(): Promise<SystemUser[]> {
+    return this.auth.getSystemUsers();
+  }
+
+  async getSystemUser(id: number): Promise<SystemUser | undefined> {
+    return this.auth.getSystemUser(id);
+  }
+
+  async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
+    return this.auth.createSystemUser(user);
+  }
+
+  async updateSystemUser(id: number, user: Partial<InsertSystemUser>): Promise<SystemUser> {
+    return this.auth.updateSystemUser(id, user);
+  }
+
+  async deleteSystemUser(id: number): Promise<void> {
+    return this.auth.deleteSystemUser(id);
+  }
+
+  // ==================== TEAM OPERATIONS ====================
+  async getTeams(): Promise<Team[]> {
+    return this.team.getTeams();
+  }
+
+  async getAllTeams(): Promise<Team[]> {
+    return this.team.getTeams();
+  }
+
+  async getTeam(id: number): Promise<Team | undefined> {
+    return this.team.getTeam(id);
+  }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    return this.team.createTeam(team);
+  }
+
+  async updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team> {
+    return this.team.updateTeam(id, team);
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    return this.team.deleteTeam(id);
+  }
+
+  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
+    return this.team.getTeamByTeamType(macrosetor);
+  }
+
+  async getAvailableUserFromTeam(teamId: number): Promise<SystemUser | undefined> {
+    return this.team.getAvailableUserFromTeam(teamId);
+  }
+
+  async getUserTeams(userId: number): Promise<Team[]> {
+    return this.team.getUserTeams(userId);
+  }
+
+  async addUserToTeam(userTeam: InsertUserTeam): Promise<UserTeam> {
+    return this.team.addUserToTeam(userTeam);
+  }
+
+  async removeUserFromTeam(userId: number, teamId: number): Promise<void> {
+    return this.team.removeUserFromTeam(userId, teamId);
+  }
+
+  async updateTeamMemberRole(userId: number, teamId: number, role: string): Promise<any> {
+    return this.team.updateTeamMemberRole(userId, teamId, role);
+  }
+
+  async getTeamMembers(teamId: number): Promise<any[]> {
+    return this.team.getTeamMembers(teamId);
+  }
+
+  async getTeamStatistics(teamId: number): Promise<any> {
+    return this.team.getTeamStatistics(teamId);
+  }
+
+  async getTeamWorkload(teamId: number): Promise<any> {
+    return this.team.getTeamWorkload(teamId);
+  }
+
+  async transferConversationBetweenTeams(conversationId: number, fromTeamId: number, toTeamId: number): Promise<any> {
+    return this.team.transferConversationBetweenTeams(conversationId, fromTeamId, toTeamId);
+  }
+
+  // ==================== ROLE OPERATIONS ====================
+  async getRoles(): Promise<Role[]> {
+    return this.auth.getRoles();
+  }
+
+  async getRole(id: number): Promise<Role | undefined> {
+    return this.auth.getRole(id);
+  }
+
+  async createRole(role: InsertRole): Promise<Role> {
+    return this.auth.createRole(role);
+  }
+
+  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
+    return this.auth.updateRole(id, role);
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    return this.auth.deleteRole(id);
+  }
+
+  async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
+    return this.auth.checkUserPermission(userId, permissionName);
+  }
+
+  // ==================== CHANNEL OPERATIONS ====================
+  async getChannels(): Promise<Channel[]> {
+    return this.channel.getChannels();
+  }
+
+  async getChannel(id: number): Promise<Channel | undefined> {
+    return this.channel.getChannel(id);
+  }
+
+  async getChannelsByType(type: string): Promise<Channel[]> {
+    return this.channel.getChannelsByType(type);
+  }
+
+  async createChannel(channel: InsertChannel): Promise<Channel> {
+    return this.channel.createChannel(channel);
+  }
+
+  async updateChannel(id: number, channel: Partial<InsertChannel>): Promise<Channel> {
+    return this.channel.updateChannel(id, channel);
+  }
+
+  async deleteChannel(id: number): Promise<void> {
+    return this.channel.deleteChannel(id);
+  }
+
+  async updateChannelConnectionStatus(id: number, status: string, isConnected: boolean): Promise<void> {
+    return this.channel.updateChannelConnectionStatus(id, status, isConnected);
+  }
+
+  async getChannelStatus(channelId: number): Promise<any> {
+    return this.channel.getChannelStatus(channelId);
+  }
+
+  // ==================== CONTACT NOTES OPERATIONS ====================
+  async getContactNotes(contactId: number): Promise<ContactNote[]> {
+    return this.notes.getContactNotes(contactId);
+  }
+
+  async createContactNote(note: InsertContactNote): Promise<ContactNote> {
+    return this.notes.createContactNote(note);
+  }
+
+  async updateContactNote(id: number, note: Partial<InsertContactNote>): Promise<ContactNote> {
+    return this.notes.updateContactNote(id, note);
+  }
+
+  async deleteContactNote(id: number): Promise<void> {
+    return this.notes.deleteContactNote(id);
+  }
+
+  // ==================== DEAL OPERATIONS ====================
+  async getDealsWithPagination(params: {
+    page: number;
+    limit: number;
+    team?: string;
+    stage?: string;
+    search?: string;
+  }): Promise<{ deals: Deal[]; total: number; totalPages: number; currentPage: number }> {
+    return this.deal.getDealsWithPagination(params);
+  }
+
+  async getDealById(id: number): Promise<Deal | undefined> {
+    return this.deal.getDeal(id);
+  }
+
+  async addDealNote(dealId: number, note: string, userId: number): Promise<any> {
+    return this.notes.addDealNote(dealId, note, userId);
+  }
+
+  async getDealNotes(dealId: number): Promise<any[]> {
+    return this.notes.getDealNotes(dealId);
+  }
+
+  async getDealStatistics(filters?: any): Promise<any> {
+    return this.deal.getDealStatistics(filters);
+  }
+
+  // ==================== SYSTEM SETTINGS OPERATIONS ====================
+  async getSystemSetting(key: string): Promise<SystemSetting | null> {
+    return this.system.getSystemSetting(key);
+  }
+
+  async getSystemSettings(category?: string): Promise<SystemSetting[]> {
+    return this.system.getSystemSettings(category);
+  }
+
+  async setSystemSetting(key: string, value: string, type?: string, description?: string, category?: string): Promise<SystemSetting> {
+    return this.system.setSystemSetting(key, value, type, description, category);
+  }
+
+  async toggleSystemSetting(key: string): Promise<SystemSetting> {
+    return this.system.toggleSystemSetting(key);
+  }
+
+  async deleteSystemSetting(key: string): Promise<void> {
+    return this.system.deleteSystemSetting(key);
+  }
+
+  // ==================== PERMISSION OPERATIONS ====================
+  async canUserRespondToOthersConversations(userId: number): Promise<boolean> {
+    return this.auth.canUserRespondToOthersConversations(userId);
+  }
+
+  async canUserRespondToOwnConversations(userId: number): Promise<boolean> {
+    return this.auth.canUserRespondToOwnConversations(userId);
+  }
+
+  async canUserRespondToConversation(userId: number, conversationId: number): Promise<boolean> {
+    return this.auth.canUserRespondToConversation(userId, conversationId);
+  }
+
+  // ==================== TEAM DETECTION OPERATIONS ====================
+  async getTeamDetections(): Promise<any[]> {
+    return this.team.getTeamDetections();
+  }
+
+  async getTeamDetection(id: number): Promise<any> {
+    return this.team.getTeamDetection(id);
+  }
+
+  async createTeamDetection(data: any): Promise<any> {
+    return this.team.createTeamDetection(data);
+  }
+
+  async updateTeamDetection(id: number, data: any): Promise<any> {
+    return this.team.updateTeamDetection(id, data);
+  }
+
+  async deleteTeamDetection(id: number): Promise<void> {
+    return this.team.deleteTeamDetection(id);
+  }
+
+  async getTeamDetectionKeywords(teamDetectionId: number): Promise<any[]> {
+    return this.team.getTeamDetectionKeywords(teamDetectionId);
+  }
+
+  async createTeamDetectionKeyword(teamDetectionId: number, data: any): Promise<any> {
+    return this.team.createTeamDetectionKeyword(teamDetectionId, data);
+  }
+
+  async deleteTeamDetectionKeyword(teamDetectionId: number, keywordId: number): Promise<void> {
+    return this.team.deleteTeamDetectionKeyword(teamDetectionId, keywordId);
+  }
+
+  async testTeamDetection(text: string): Promise<any> {
+    return this.team.testTeamDetection(text);
   }
 
   // ==================== MANYCHAT OPERATIONS ====================

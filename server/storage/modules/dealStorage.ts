@@ -148,10 +148,10 @@ export class DealStorage extends BaseStorage {
       throw new Error(`Contact with ID ${contactId} not found`);
     }
 
-    // Find appropriate user based on macrosetor
+    // Find appropriate user based on team_type (substituindo macrosetor)
     let assignedUserId = null;
     if (macrosetor) {
-      const [team] = await this.db.select().from(teams).where(eq(teams.macrosetor, macrosetor));
+      const [team] = await this.db.select().from(teams).where(eq(teams.teamType, macrosetor));
       if (team) {
         // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
         // assignedUserId = team.id;
@@ -188,10 +188,10 @@ export class DealStorage extends BaseStorage {
       return stageMapping[macrosetor || 'geral'] || 'prospecting';
     })();
 
-    // Get the correct funnel for this macrosetor
+    // Get the correct funnel for this teamType (substituindo macrosetor)
     const funnel = await this.db.select()
       .from(funnels)
-      .where(eq(funnels.macrosetor, macrosetor || 'geral'))
+      .where(eq(funnels.teamType, macrosetor || 'geral'))
       .limit(1);
 
     const funnelId = funnel.length > 0 ? funnel[0].id : null;
@@ -206,12 +206,12 @@ export class DealStorage extends BaseStorage {
       probability: 50,
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'automatic',
-      macrosetor: macrosetor || 'geral',
+      teamType: macrosetor || 'geral',
       notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'} em ${timestamp}`,
       tags: {
         automatic: true,
         canalOrigem,
-        macrosetor,
+        teamType: macrosetor,
         createdBy: 'system',
         timestamp: timestamp,
         funnelId: funnelId
