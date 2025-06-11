@@ -602,7 +602,31 @@ export function registerAdminRoutes(app: Express) {
     requirePermission('permissao:gerenciar'),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { roleId, permissions: permissionNames } = req.body;
+        const { roleId, permissionId, permissions: permissionNames } = req.body;
+
+        // Suporte para múltiplos formatos de requisição
+        if (roleId && permissionId) {
+          // Formato individual: { roleId, permissionId }
+          const existingPermission = await db
+            .select()
+            .from(rolePermissions)
+            .where(and(
+              eq(rolePermissions.roleId, roleId),
+              eq(rolePermissions.permissionId, permissionId)
+            ));
+
+          if (existingPermission.length === 0) {
+            await db.insert(rolePermissions).values({
+              roleId,
+              permissionId,
+              isActive: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+          }
+
+          return res.json({ success: true, message: 'Permissão adicionada com sucesso' });
+        }
 
         if (!roleId || !Array.isArray(permissionNames)) {
           return res.status(400).json({ message: 'roleId e permissions são obrigatórios' });
@@ -648,6 +672,44 @@ export function registerAdminRoutes(app: Express) {
         res.json({ success: true, message: 'Permissões atualizadas com sucesso' });
       } catch (error) {
         console.error('Erro ao atualizar permissões da função:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
+  // Remover permissão específica de uma função
+  app.delete('/api/admin/role-permissions',
+    updateLastActivity(),
+    requirePermission('permissao:gerenciar'),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { roleId, permissionId } = req.body;
+
+        if (!roleId || !permissionId) {
+          return res.status(400).json({ message: 'roleId e permissionId são obrigatórios' });
+        }
+
+        // Remover a permissão específica
+        await db
+          .delete(rolePermissions)
+          .where(and(
+            eq(rolePermissions.roleId, roleId),
+            eq(rolePermissions.permissionId, permissionId)
+          ));
+
+        // Log da ação
+        await PermissionService.logAction({
+          userId: req.user!.id,
+          action: 'delete',
+          resource: 'role_permission',
+          resourceId: `${roleId}-${permissionId}`,
+          details: { roleId, permissionId },
+          result: 'success'
+        });
+
+        res.json({ success: true, message: 'Permissão removida com sucesso' });
+      } catch (error) {
+        console.error('Erro ao remover permissão da função:', error);
         res.status(500).json({ message: 'Erro interno do servidor' });
       }
     }
