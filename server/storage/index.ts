@@ -22,6 +22,8 @@ export { FacebookStorage } from './modules/facebookStorage';
 import { IStorage } from './interfaces/IStorage';
 import { AuthStorage } from './modules/authStorage';
 import { ContactStorage } from './modules/contactStorage';
+import { permissions, rolePermissions } from '../../shared/schema';
+import { sql } from 'drizzle-orm';
 import { ConversationStorage } from './modules/conversationStorage';
 import { ChannelStorage } from './modules/channelStorage';
 import { DealStorage } from './modules/dealStorage';
@@ -528,9 +530,25 @@ export class DatabaseStorage implements IStorage {
   // Permission checking method
   async checkUserPermission(userId: number, permissionName: string): Promise<boolean> {
     try {
-      // Simple permission check - for now, just check if user exists and has admin role
       const user = await this.system.getSystemUser(userId);
-      return user?.role === 'Administrador' || user?.role === 'admin';
+      if (!user) return false;
+
+      // Admin tem todas as permissões
+      if (user.role === 'admin') return true;
+
+      // Verificar se o usuário tem a permissão específica através da sua role
+      const result = await this.db.select({
+        hasPermission: sql<boolean>`EXISTS(
+          SELECT 1 FROM ${rolePermissions} rp
+          JOIN ${permissions} p ON rp.permission_id = p.id
+          WHERE rp.role_id = ${user.roleId}
+          AND p.name = ${permissionName}
+          AND rp.is_active = true
+          AND p.is_active = true
+        )`
+      });
+
+      return result[0]?.hasPermission || false;
     } catch (error) {
       console.error('Erro ao verificar permissão:', error);
       return false;
