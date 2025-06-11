@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
+import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { funnelService } from '../../services/funnelService';
 
 export function registerFunnelRoutes(app: Express) {

@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
+import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { storage } from '../../core/storage';
 
 export function registerDealsRoutes(app: Express) {
