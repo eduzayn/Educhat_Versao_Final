@@ -110,7 +110,7 @@ export function LazyMediaContent({
     if (!realInitialContent && !loaded && !loading) {
       loadMediaContent();
     }
-  }, [messageId]);
+  }, [messageId, realInitialContent, loaded, loading]);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
