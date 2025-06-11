@@ -16,7 +16,7 @@ export function registerFunnelRoutes(app: Express) {
   });
 
   // Get funnel by team type - REST: GET /api/funnels/team-type/:teamType (mantém rota antiga para compatibilidade)
-  app.get('/api/funnels/macrosetor/:macrosetor', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/funnels/team-type/:teamType', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { macrosetor } = req.params;
       const funnel = await funnelService.getFunnelByTeamType(macrosetor);

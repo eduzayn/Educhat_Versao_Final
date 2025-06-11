@@ -88,7 +88,7 @@ export function registerDealsRoutes(app: Express) {
         assignedUserId,
         channel,
         source,
-        macrosetor,
+        teamType,
         priority,
         tags
       } = req.body;
@@ -111,7 +111,7 @@ export function registerDealsRoutes(app: Express) {
         assignedUserId: assignedUserId ? parseInt(assignedUserId) : req.user?.id,
         channel: channel || 'direct',
         source: source || 'manual',
-        macrosetor: macrosetor || 'geral',
+        teamType: teamType || 'geral',
         priority: priority || 'medium',
         tags: tags || [],
         createdBy: req.user?.id
@@ -364,7 +364,7 @@ export function registerDealsRoutes(app: Express) {
   // Get deals statistics - REST: GET /api/deals/stats
   app.get('/api/deals/stats', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { startDate, endDate, userId, macrosetor } = req.query;
+      const { startDate, endDate, userId, teamType } = req.query;
       
       const filters: any = {};
       
@@ -380,8 +380,8 @@ export function registerDealsRoutes(app: Express) {
         filters.assignedUserId = parseInt(userId);
       }
       
-      if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
+      if (teamType && typeof teamType === 'string') {
+        filters.teamType = teamType;
       }
       
       const stats = await storage.getDealStatistics(filters);

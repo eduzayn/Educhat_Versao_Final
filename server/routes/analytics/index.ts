@@ -7,7 +7,7 @@ export function registerAnalyticsRoutes(app: Express) {
   // Get analytics dashboard data - REST: GET /api/analytics/dashboard
   app.get('/api/analytics/dashboard', requirePermission('analytics:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { startDate, endDate, userId, teamId, macrosetor } = req.query;
+      const { startDate, endDate, userId, teamId, teamType } = req.query;
       
       const filters: any = {};
       
@@ -245,7 +245,7 @@ export function registerAnalyticsRoutes(app: Express) {
   // Get deal conversion analytics - REST: GET /api/analytics/deals/conversion
   app.get('/api/analytics/deals/conversion', requirePermission('analytics:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { period, macrosetor, userId, teamId, stage } = req.query;
+      const { period, teamType, userId, teamId, stage } = req.query;
       
       const filters: any = {
         period: period || '30d'

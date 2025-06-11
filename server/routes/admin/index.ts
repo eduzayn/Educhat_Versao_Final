@@ -545,7 +545,7 @@ export function registerAdminRoutes(app: Express) {
             role: req.user.role,
             dataKey: req.user.dataKey,
             channels: req.user.channels,
-            macrosetores: req.user.macrosetores
+            teams: req.user.teams
           }
         });
       } catch (error) {
@@ -692,7 +692,7 @@ export function registerAdminRoutes(app: Express) {
             role: req.user.role,
             dataKey: req.user.dataKey,
             channels: req.user.channels,
-            macrosetores: req.user.macrosetores
+            teams: req.user.teams
           }
         });
       } catch (error) {
