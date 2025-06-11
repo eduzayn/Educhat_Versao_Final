@@ -500,7 +500,7 @@ export interface User {
   roleId: number;
   dataKey?: string;
   channels: string[];
-  macrosetores: string[];
+  teams: string[];
   teamId?: number;
   team?: string;
 }
