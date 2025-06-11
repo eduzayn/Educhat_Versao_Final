@@ -20,40 +20,33 @@ const upload = multer({
  */
 router.get('/stats', async (req: Request, res: Response) => {
   try {
-    // Estatísticas básicas baseadas nos dados reais disponíveis
+    // Total de interações da IA
     const [totalInteractionsResult] = await db
       .select({ count: count() })
       .from(aiLogs);
 
-    // Leads convertidos baseado em classificação
-    const [leadsConvertedResult] = await db
+    // Conversas com interesse em cursos (classificação course_inquiry)
+    const [courseInquiryResult] = await db
       .select({ count: count() })
       .from(aiLogs)
       .where(eq(aiLogs.classification, 'course_inquiry'));
 
-    // Tempo médio de resposta
-    const [avgResponseTimeResult] = await db
+    // Tempo médio de processamento
+    const [avgProcessingTimeResult] = await db
       .select({ avg: avg(aiLogs.processingTime) })
-      .from(aiLogs);
+      .from(aiLogs)
+      .where(sql`${aiLogs.processingTime} IS NOT NULL`);
 
-    // Total de conversas com IA
-    const [totalConversationsResult] = await db
+    // Conversas únicas atendidas pela IA
+    const [uniqueConversationsResult] = await db
       .select({ count: sql`COUNT(DISTINCT ${aiLogs.conversationId})` })
-      .from(aiLogs);
+      .from(aiLogs)
+      .where(sql`${aiLogs.conversationId} IS NOT NULL`);
 
-    // Estatísticas simplificadas
-    const totalInteractions = Number(totalInteractionsResult?.count) || 0;
-    const leadsConverted = Number(leadsConvertedResult?.count) || 0;
-    const avgResponseTime = Number(avgResponseTimeResult?.avg) || 0;
-    const studentsHelped = Number(totalConversationsResult?.count) || 0;
-    
-    // Taxa de sucesso baseada em dados disponíveis
-    const successRate = totalInteractions > 0 ? Math.round((leadsConverted / totalInteractions) * 100) : 0;
-
-    // Top 5 intenções mais comuns
-    const topIntents = await db
+    // Top 5 classificações mais comuns
+    const topClassifications = await db
       .select({
-        intent: aiLogs.classification,
+        classification: aiLogs.classification,
         count: count()
       })
       .from(aiLogs)
@@ -62,14 +55,23 @@ router.get('/stats', async (req: Request, res: Response) => {
       .orderBy(desc(count()))
       .limit(5);
 
+    const totalInteractions = Number(totalInteractionsResult?.count) || 0;
+    const courseInquiries = Number(courseInquiryResult?.count) || 0;
+    const avgProcessingTime = Math.round(Number(avgProcessingTimeResult?.avg) || 0);
+    const uniqueConversations = Number(uniqueConversationsResult?.count) || 0;
+    
+    // Taxa de detecção de interesse em cursos
+    const courseDetectionRate = totalInteractions > 0 ? 
+      Math.round((courseInquiries / totalInteractions) * 100) : 0;
+
     res.json({
       totalInteractions,
-      leadsConverted,
-      avgResponseTime: Math.round(avgResponseTime),
-      successRate,
-      studentsHelped,
-      topIntents: topIntents.map(item => ({
-        intent: item.intent || 'unknown',
+      leadsConverted: courseInquiries,
+      avgResponseTime: avgProcessingTime,
+      successRate: courseDetectionRate,
+      studentsHelped: uniqueConversations,
+      topIntents: topClassifications.map(item => ({
+        intent: item.classification || 'unknown',
         count: Number(item.count)
       }))
     });
