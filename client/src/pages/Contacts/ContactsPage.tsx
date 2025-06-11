@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Textarea } from '@/shared/ui/textarea';
 import { Search, Plus, Eye, Edit, Trash2, Phone, ChevronRight, MessageCircle, Users, Mail } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { useContacts, useUpdateContact, useDeleteContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useActiveWhatsAppChannels } from '@/shared/lib/hooks/useChannels';
@@ -30,6 +31,7 @@ export function ContactsPage() {
   const [syncingContacts, setSyncingContacts] = useState(false);
   const [updatingAllPhotos, setUpdatingAllPhotos] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
 
   const { toast } = useToast();
   const contactsPerPage = 10;
@@ -73,6 +75,12 @@ export function ContactsPage() {
   const handleStartConversation = (contact: Contact) => {
     setSendingMessageTo(contact);
     setMessageText('');
+    // Se há apenas um canal, seleciona automaticamente
+    if (whatsappChannels && whatsappChannels.length === 1) {
+      setSelectedChannelId(whatsappChannels[0].id);
+    } else {
+      setSelectedChannelId(null);
+    }
   };
 
   const handleUpdateContact = async () => {
@@ -126,21 +134,49 @@ export function ContactsPage() {
 
   const handleSendMessage = async () => {
     if (!sendingMessageTo || !messageText.trim()) return;
+    
+    if (!selectedChannelId && whatsappChannels && whatsappChannels.length > 1) {
+      toast({
+        title: "Selecione um canal",
+        description: "Escolha qual canal WhatsApp usar para enviar a mensagem.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSendingMessage(true);
     try {
-      // Implementar envio de mensagem via WhatsApp
+      const channelToUse = selectedChannelId || (whatsappChannels && whatsappChannels.length === 1 ? whatsappChannels[0].id : null);
+      
+      const response = await fetch('/api/utilities/send-whatsapp-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: sendingMessageTo.phone,
+          message: messageText.trim(),
+          channelId: channelToUse
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao enviar mensagem');
+      }
+
       toast({
-        title: "Sucesso",
-        description: "Mensagem enviada com sucesso!",
+        title: "Mensagem enviada",
+        description: "Mensagem WhatsApp enviada com sucesso!",
       });
       
       setSendingMessageTo(null);
       setMessageText('');
+      setSelectedChannelId(null);
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao enviar mensagem. Tente novamente.",
+        title: "Erro no envio",
+        description: error instanceof Error ? error.message : "Erro ao enviar mensagem. Tente novamente.",
         variant: "destructive"
       });
     } finally {
