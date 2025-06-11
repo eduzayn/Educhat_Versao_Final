@@ -22,7 +22,7 @@ export function LazyMediaContent({
   initialContent,
 }: LazyMediaContentProps) {
   // Função para verificar se o conteúdo é uma URL válida
-  const isValidUrl = (str: string | null): boolean => {
+  const isValidUrl = (str: string | null | undefined): str is string => {
     if (!str) return false;
     return str.startsWith('http') || str.startsWith('data:');
   };
@@ -39,7 +39,6 @@ export function LazyMediaContent({
     // Verificar URLs específicas por tipo
     switch (messageType) {
       case 'image':
-        // Verificar múltiplas estruturas de metadados para imagens
         if (metadata.image?.imageUrl && isValidUrl(metadata.image.imageUrl)) {
           return metadata.image.imageUrl;
         }
@@ -51,7 +50,6 @@ export function LazyMediaContent({
         }
         break;
       case 'video':
-        // Verificar múltiplas estruturas de metadados para vídeos
         if (metadata.video?.videoUrl && isValidUrl(metadata.video.videoUrl)) {
           return metadata.video.videoUrl;
         }
@@ -63,7 +61,6 @@ export function LazyMediaContent({
         }
         break;
       case 'document':
-        // Verificar múltiplas estruturas de metadados para documentos
         if (metadata.document?.documentUrl && isValidUrl(metadata.document.documentUrl)) {
           return metadata.document.documentUrl;
         }
@@ -75,7 +72,6 @@ export function LazyMediaContent({
         }
         break;
       case 'audio':
-        // Verificar múltiplas estruturas de metadados para áudios
         if (metadata.audio?.audioUrl && isValidUrl(metadata.audio.audioUrl)) {
           return metadata.audio.audioUrl;
         }
@@ -106,7 +102,7 @@ export function LazyMediaContent({
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // Carregar automaticamente se não há conteúdo inicial válido
-  React.useEffect(() => {
+  useEffect(() => {
     if (!realInitialContent && !loaded && !loading) {
       loadMediaContent();
     }
@@ -126,9 +122,9 @@ export function LazyMediaContent({
         setLoaded(true);
 
         if (messageType === "video") {
-          secureLog.debug("Vídeo carregado com sucesso", { messageId });
+          secureLog.debug("Vídeo carregado", { messageId });
         } else if (messageType === "image") {
-          secureLog.image("Carregada com sucesso", messageId);
+          secureLog.debug("Imagem carregada", { messageId });
         }
       } else {
         secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
@@ -176,26 +172,14 @@ export function LazyMediaContent({
               onClick={loadMediaContent}
               disabled={loading}
             >
-              {loading ? "Carregando..." : "Ver imagem"}
+              {loading ? "Carregando..." : "Visualizar"}
             </Button>
           </div>
         );
 
       case "audio":
-        if (content) {
-          return (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <audio controls className="w-48">
-                <source src={content} type="audio/mpeg" />
-                <source src={content} type="audio/mp4" />
-                <source src={content} type="audio/wav" />
-                Seu navegador não suporta áudio.
-              </audio>
-            </div>
-          );
-        }
         return (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Play className="w-5 h-5" />
             <span className="text-sm">
               Áudio: {metadata?.duration || "Duração desconhecida"}
@@ -251,48 +235,62 @@ export function LazyMediaContent({
         );
 
       case "document":
-        return (
-          <>
-            <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <FileText className="w-5 h-5" />
-              <span className="text-sm">Documento: {fileName}</span>
-              {content ? (
+        if (content) {
+          return (
+            <>
+              <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <FileText className="w-5 h-5" />
+                <span className="text-sm">{fileName}</span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowPreviewModal(true)}
                 >
-                  <Download className="w-4 h-4 mr-1" />
                   Visualizar
                 </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadMediaContent}
-                  disabled={loading}
-                >
-                  {loading ? "Carregando..." : "Carregar"}
-                </Button>
-              )}
-            </div>
-
-            {content && (
+              </div>
               <DocumentPreviewModal
                 isOpen={showPreviewModal}
                 onClose={() => setShowPreviewModal(false)}
                 documentUrl={content}
                 fileName={fileName}
-                fileType={metadata?.mimeType}
+                fileType="document"
               />
-            )}
-          </>
+            </>
+          );
+        }
+        return (
+          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <FileText className="w-5 h-5" />
+            <span className="text-sm">Documento: {fileName}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMediaContent}
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Visualizar"}
+            </Button>
+          </div>
         );
 
       default:
-        return null;
+        return (
+          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <FileText className="w-5 h-5" />
+            <span className="text-sm">Arquivo: {fileName}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMediaContent}
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Visualizar"}
+            </Button>
+          </div>
+        );
     }
   };
 
-  return <div className="my-1">{renderMediaPreview()}</div>;
+  return <div className="my-2">{renderMediaPreview()}</div>;
 }
