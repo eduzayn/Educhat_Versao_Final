@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/shared/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
@@ -13,7 +13,13 @@ import {
   X, 
   Upload,
   Play,
-  Pause
+  Pause,
+  Camera,
+  Headphones,
+  User,
+  BarChart3,
+  Calendar,
+  Gift
 } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 
@@ -119,10 +125,11 @@ export function MediaAttachmentModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Anexar arquivo</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[320px] p-0 rounded-2xl overflow-hidden">
+        {/* Header minimalista similar ao WhatsApp */}
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h3 className="text-lg font-medium text-gray-900">Anexar</h3>
+        </div>
 
         <input
           ref={fileInputRef}
@@ -132,63 +139,115 @@ export function MediaAttachmentModal({
         />
 
         {!selectedFile && activeTab === 'file' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {/* Imagem */}
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
-                onClick={() => handleFileSelect('image/*')}
-              >
-                <Image className="h-6 w-6" />
-                <span className="text-sm font-medium">Imagem</span>
-              </Button>
-
-              {/* Vídeo */}
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
-                onClick={() => handleFileSelect('video/*')}
-              >
-                <Video className="h-6 w-6" />
-                <span className="text-sm font-medium">Vídeo</span>
-              </Button>
-
+          <div className="py-2">
+            {/* Lista vertical similar ao WhatsApp */}
+            <div className="space-y-0">
               {/* Documento */}
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
+              <button
                 onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
               >
-                <FileText className="h-6 w-6" />
-                <span className="text-sm font-medium">Documento</span>
-              </Button>
+                <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Documento</span>
+              </button>
 
-              {/* Link */}
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700"
-                onClick={() => setActiveTab('link')}
+              {/* Fotos e vídeos */}
+              <button
+                onClick={() => handleFileSelect('image/*,video/*')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
               >
-                <Link className="h-6 w-6" />
-                <span className="text-sm font-medium">Link</span>
-              </Button>
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                  <Image className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Fotos e vídeos</span>
+              </button>
+
+              {/* Câmera */}
+              <button
+                onClick={() => handleFileSelect('image/*')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Câmera</span>
+              </button>
+
+              {/* Áudio */}
+              <button
+                onClick={() => handleFileSelect('audio/*')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                  <Headphones className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Áudio</span>
+              </button>
+
+              {/* Contato */}
+              <button
+                onClick={() => setActiveTab('link')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Contato</span>
+              </button>
+
+              {/* Enquete */}
+              <button
+                onClick={() => setActiveTab('link')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Enquete</span>
+              </button>
+
+              {/* Nova figurinha */}
+              <button
+                onClick={() => handleFileSelect('image/*')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center">
+                  <Gift className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Nova figurinha</span>
+              </button>
+
+              {/* Evento */}
+              <button
+                onClick={() => setActiveTab('link')}
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+              >
+                <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-gray-900 font-normal text-base">Evento</span>
+              </button>
             </div>
           </div>
         )}
 
         {/* Preview do arquivo selecionado */}
         {selectedFile && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col h-full">
+            {/* Header com nome do arquivo */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 {getFileTypeIcon(selectedFile)}
-                <span className="text-sm font-medium truncate max-w-[200px]">
-                  {selectedFile.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
               </div>
               <Button
                 variant="ghost"
@@ -197,7 +256,7 @@ export function MediaAttachmentModal({
                   setSelectedFile(null);
                   setFilePreview('');
                 }}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -205,114 +264,118 @@ export function MediaAttachmentModal({
 
             {/* Preview da imagem */}
             {selectedFile.type.startsWith('image/') && filePreview && (
-              <div className="rounded-lg overflow-hidden border">
+              <div className="flex-1 bg-gray-100 flex items-center justify-center p-4">
                 <img 
                   src={filePreview} 
                   alt="Preview" 
-                  className="w-full h-48 object-cover"
+                  className="max-w-full max-h-48 rounded-lg object-contain"
                 />
               </div>
             )}
 
             {/* Preview do vídeo */}
             {selectedFile.type.startsWith('video/') && filePreview && (
-              <div className="relative rounded-lg overflow-hidden border">
-                <video 
-                  ref={videoRef}
-                  src={filePreview}
-                  className="w-full h-48 object-cover"
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={toggleVideoPlay}
-                  className="absolute bottom-2 left-2 h-8 w-8 p-0"
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
+              <div className="flex-1 bg-gray-100 flex items-center justify-center p-4">
+                <div className="relative">
+                  <video 
+                    ref={videoRef}
+                    src={filePreview}
+                    className="max-w-full max-h-48 rounded-lg object-contain"
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={toggleVideoPlay}
+                    className="absolute bottom-2 left-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
+                  >
+                    {isPlaying ? <Pause className="h-4 w-4 text-white" /> : <Play className="h-4 w-4 text-white" />}
+                  </Button>
+                </div>
               </div>
             )}
 
-            {/* Campo de legenda */}
-            <div className="space-y-2">
-              <Label htmlFor="caption">Legenda (opcional)</Label>
-              <Textarea
-                id="caption"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Adicione uma legenda..."
-                className="min-h-[80px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={resetModal}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleSendFile}
-                disabled={isUploading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isUploading ? (
-                  <>
-                    <Upload className="w-4 h-4 mr-2 animate-spin" />
-                    Enviando...
-                  </>
-                ) : (
-                  'Enviar'
-                )}
-              </Button>
+            {/* Area de legenda estilo WhatsApp */}
+            <div className="border-t border-gray-100">
+              <div className="p-4">
+                <Textarea
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Adicione uma legenda..."
+                  className="border-0 shadow-none resize-none bg-transparent p-0 min-h-[20px] focus-visible:ring-0"
+                  rows={2}
+                />
+              </div>
+              
+              {/* Botão de envio */}
+              <div className="px-4 pb-4">
+                <Button 
+                  onClick={handleSendFile}
+                  disabled={isUploading}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-full"
+                >
+                  {isUploading ? (
+                    <>
+                      <Upload className="w-4 h-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    'Enviar'
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Aba de Link */}
         {activeTab === 'link' && (
-          <div className="space-y-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveTab('file')}
-              className="mb-2"
-            >
-              ← Voltar aos arquivos
-            </Button>
-
-            <div className="space-y-2">
-              <Label htmlFor="link-url">URL do Link</Label>
-              <Input
-                id="link-url"
-                type="url"
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://exemplo.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="link-caption">Mensagem (opcional)</Label>
-              <Textarea
-                id="link-caption"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Adicione uma mensagem..."
-                className="min-h-[80px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={resetModal}>
-                Cancelar
+          <div className="flex flex-col h-full">
+            {/* Header com botão voltar */}
+            <div className="flex items-center px-4 py-3 border-b border-gray-100">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab('file')}
+                className="h-8 w-8 p-0 mr-3"
+              >
+                <X className="h-4 w-4" />
               </Button>
+              <h3 className="text-lg font-medium text-gray-900">Enviar link</h3>
+            </div>
+
+            {/* Formulário */}
+            <div className="flex-1 p-4 space-y-4">
+              <div>
+                <Input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="Cole o link aqui"
+                  className="border-gray-200 focus:border-green-500 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <Textarea
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Adicione uma mensagem..."
+                  className="border-gray-200 focus:border-green-500 focus:ring-green-500 min-h-[100px] resize-none"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Botão de envio */}
+            <div className="p-4 border-t border-gray-100">
               <Button 
                 onClick={handleSendLink}
                 disabled={!linkUrl.trim() || isUploading}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-full disabled:bg-gray-300"
               >
-                Enviar Link
+                Enviar link
               </Button>
             </div>
           </div>
