@@ -244,13 +244,32 @@ export const contactNotes = pgTable("contact_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Funnels table for CRM - define funis por equipe
+export const funnels = pgTable("funnels", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // Nome do funil
+  macrosetor: varchar("macrosetor", { length: 20 }).notNull().unique(), // macrosetor único
+  teamId: integer("team_id").references(() => teams.id), // equipe associada
+  stages: jsonb("stages").notNull().$type<{
+    id: string;
+    name: string;
+    order: number;
+    color?: string;
+    probability?: number;
+  }[]>(), // estágios do funil
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Deals table for CRM
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
-  macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
-  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // varia por macrosetor
+  macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // referencia funnels.macrosetor
+  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // referencia stages do funil
   value: integer("value").default(0), // valor em centavos
   probability: integer("probability").default(0), // 0-100
   expectedCloseDate: timestamp("expected_close_date"),
@@ -768,6 +787,17 @@ export const insertManychatWebhookLogSchema = createInsertSchema(manychatWebhook
   id: true,
   createdAt: true,
 });
+
+// Insert schemas for Funnels
+export const insertFunnelSchema = createInsertSchema(funnels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for Funnels
+export type Funnel = typeof funnels.$inferSelect;
+export type InsertFunnel = z.infer<typeof insertFunnelSchema>;
 
 // Types for Manychat integration
 export type ManychatIntegration = typeof manychatIntegrations.$inferSelect;
