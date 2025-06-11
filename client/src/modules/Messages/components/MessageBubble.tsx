@@ -58,8 +58,13 @@ function ImageMessage({
   // 2. Verificar se há URL da imagem nos metadados (recebidas via WhatsApp)
   else if (metadata && typeof metadata === "object") {
     const meta = metadata as any;
+    
+    // Verificar mediaUrl diretamente nos metadados (novo formato Z-API)
+    if (meta.mediaUrl) {
+      imageUrl = meta.mediaUrl;
+    }
     // Verificar imageUrl no objeto image dos metadados
-    if (meta.image && meta.image.imageUrl) {
+    else if (meta.image && meta.image.imageUrl) {
       imageUrl = meta.image.imageUrl;
     }
     // Verificar thumbnailUrl como fallback
