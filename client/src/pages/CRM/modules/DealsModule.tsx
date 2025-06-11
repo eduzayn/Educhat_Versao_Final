@@ -53,7 +53,7 @@ export function DealsModule() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        macrosetor: selectedTeam
+        team: selectedTeam
       });
       
       const response = await fetch(`/api/deals?${params}`);
@@ -98,7 +98,7 @@ export function DealsModule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+        queryKey: ['/api/deals', selectedTeam, page, limit] 
       });
       queryClient.invalidateQueries({ 
         queryKey: ['/api/deals'] 
@@ -147,7 +147,7 @@ export function DealsModule() {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+        queryKey: ['/api/deals', selectedTeam, page, limit] 
       });
     }
   });
@@ -504,7 +504,7 @@ export function DealsModule() {
                   </div>
                   <div>
                     <Badge variant="secondary" className="text-xs">
-                      {currentMacrosetor.stages.find((s: any) => s.id === deal.stage)?.name}
+                      {currentTeam.stages.find((s: any) => s.id === deal.stage)?.name}
                     </Badge>
                   </div>
                   <div>
