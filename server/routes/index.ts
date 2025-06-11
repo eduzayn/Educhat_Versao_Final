@@ -32,6 +32,7 @@ import documentsRouter from "./documents/index";
 import webCaptureRouter from "./web-capture/index";
 import aiConfigRouter from "./ai-config/index";
 import handoffsRouter from "./handoffs/index";
+import dashboardRouter from "./dashboard/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
@@ -68,6 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/documents', documentsRouter);
   app.use('/api/web-capture', webCaptureRouter);
   app.use('/api/handoffs', handoffsRouter);
+  app.use('/api/dashboard', dashboardRouter);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
