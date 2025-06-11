@@ -58,7 +58,7 @@ import { MessagesArea } from './components/MessagesArea';
 
 
 export function InboxPage() {
-  const [activeTab, setActiveTab] = useState('inbox');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
@@ -232,19 +232,8 @@ export function InboxPage() {
 
 
 
-  // Filtrar conversas baseado na aba ativa e filtros
+  // Filtrar conversas baseado nos filtros disponíveis
   const filteredConversations = (conversations || []).filter(conversation => {
-    // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
-    if (activeTab === 'inbox') {
-      // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
-      const activeStatuses = ['open', 'pending', 'unread'];
-      if (!activeStatuses.includes(conversation.status || 'open')) return false;
-    }
-    if (activeTab === 'resolved') {
-      // Mostrar apenas conversas resolvidas/fechadas
-      const resolvedStatuses = ['resolved', 'closed'];
-      if (!resolvedStatuses.includes(conversation.status || 'open')) return false;
-    }
     
     // Filtro por busca - pesquisar em nome e telefone do contato
     if (searchTerm) {

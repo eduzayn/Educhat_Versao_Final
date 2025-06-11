@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+
 import { Input } from '@/shared/ui/input';
 import { BackButton } from '@/shared/components/BackButton';
 import { 
@@ -12,20 +12,16 @@ import {
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
 interface ConversationListHeaderProps {
-  activeTab: string;
   searchTerm: string;
   isWhatsAppAvailable: boolean;
-  onTabChange: (value: string) => void;
   onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
   onRefresh?: () => void;
 }
 
 export function ConversationListHeader({
-  activeTab,
   searchTerm,
   isWhatsAppAvailable,
-  onTabChange,
   onSearchChange,
   onNewContactClick,
   onRefresh
@@ -83,14 +79,7 @@ export function ConversationListHeader({
         />
       </div>
       
-      {/* Abas simplificadas */}
-      <Tabs value={activeTab} onValueChange={onTabChange}>
-        <TabsList className="grid w-full grid-cols-3 h-8">
-          <TabsTrigger value="inbox" className="text-xs">Entrada</TabsTrigger>
-          <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
-          <TabsTrigger value="resolved" className="text-xs">Resolvidas</TabsTrigger>
-        </TabsList>
-      </Tabs>
+
     </div>
   );
 }
