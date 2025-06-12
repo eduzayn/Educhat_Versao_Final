@@ -98,19 +98,76 @@ export function InfiniteConversationList({
   };
 
   const formatMessagePreview = (conversation: ConversationWithContact) => {
-    if (!conversation.lastMessage) return 'Sem mensagens';
+    // Usar messages[0] ao invés de lastMessage para compatibilidade com o backend
+    const lastMessage = conversation.messages?.[0];
+    if (!lastMessage) return 'Sem mensagens';
     
-    const message = conversation.lastMessage;
-    if (message.type === 'text') {
-      return message.content?.substring(0, 50) + (message.content && message.content.length > 50 ? '...' : '');
-    } else if (message.type === 'image') {
-      return '📷 Imagem';
-    } else if (message.type === 'audio') {
-      return '🎵 Áudio';
-    } else if (message.type === 'document') {
-      return '📄 Documento';
+    // Filtrar mensagens genéricas inadequadas primeiro
+    const isGenericMessage = lastMessage.content && (
+      lastMessage.content === 'Mensagem recebida' ||
+      lastMessage.content === 'Mensagem não identificada' ||
+      lastMessage.content === 'Mensagem em processamento'
+    );
+
+    // Se for mensagem genérica, tentar extrair conteúdo real dos metadados
+    if (isGenericMessage && lastMessage.metadata) {
+      const metadata = lastMessage.metadata as any;
+      
+      // Tentar extrair texto real dos metadados
+      if (metadata.text && metadata.text.message) {
+        return metadata.text.message.substring(0, 50) + (metadata.text.message.length > 50 ? '...' : '');
+      }
+      
+      // Para outros tipos de mídia, mostrar descrição apropriada
+      if (metadata.image) {
+        const caption = metadata.image.caption;
+        return caption && caption.trim() ? caption.substring(0, 50) + '...' : '📷 Imagem';
+      }
+      
+      if (metadata.audio) return '🎵 Áudio';
+      if (metadata.video) {
+        const caption = metadata.video.caption;
+        return caption && caption.trim() ? caption.substring(0, 50) + '...' : '🎥 Vídeo';
+      }
+      if (metadata.document) {
+        const fileName = metadata.document.fileName || metadata.fileName;
+        return fileName ? `📄 ${fileName}` : '📄 Documento';
+      }
     }
-    return 'Mensagem';
+
+    // Para mensagens de texto válidas, sempre mostrar o conteúdo real
+    if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
+      return lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '');
+    }
+    
+    // Para diferentes tipos de mensagem
+    if (lastMessage.messageType === 'image') {
+      const caption = (lastMessage.metadata as any)?.image?.caption;
+      return caption && caption.trim() ? caption.substring(0, 50) + '...' : '📷 Imagem';
+    }
+    
+    if (lastMessage.messageType === 'audio') return '🎵 Áudio';
+    
+    if (lastMessage.messageType === 'video') {
+      const caption = (lastMessage.metadata as any)?.video?.caption;
+      return caption && caption.trim() ? caption.substring(0, 50) + '...' : '🎥 Vídeo';
+    }
+    
+    if (lastMessage.messageType === 'document') {
+      const fileName = (lastMessage.metadata as any)?.document?.fileName || (lastMessage.metadata as any)?.fileName;
+      return fileName ? `📄 ${fileName}` : '📄 Documento';
+    }
+    
+    if (lastMessage.messageType === 'sticker') return '🎭 Figurinha';
+    if (lastMessage.messageType === 'location') return '📍 Localização';
+    if (lastMessage.messageType === 'contact') return '👤 Contato';
+    
+    // Fallback final
+    if (lastMessage.content && !isGenericMessage) {
+      return lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '');
+    }
+    
+    return 'Nova mensagem';
   };
 
   if (isLoading && !data) {
