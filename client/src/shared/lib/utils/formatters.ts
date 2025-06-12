@@ -3,8 +3,26 @@
  * @deprecated Use shared/formatters.ts instead
  */
 
-// Re-export from shared module
-export * from '../../../../../shared/formatters';
+// Import specific functions to avoid conflicts
+export {
+  formatPhoneForDisplay,
+  formatPhoneNumber,
+  formatCPF,
+  formatDateBR,
+  formatTimeBR,
+  formatDateTimeBR,
+  formatCurrency,
+  formatNumber,
+  formatPercentage,
+  formatDurationMinutes,
+  formatDurationSeconds,
+  formatAudioTime,
+  capitalizeWords,
+  formatName,
+  truncateText,
+  formatInitials,
+  formatFileSize
+} from '../../../../../shared/formatters';
 
 export function formatTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -14,15 +32,3 @@ export function formatTime(date: Date | string): string {
     minute: '2-digit'
   }).format(d);
 }
-
-export function formatAudioTime(seconds: number): string {
-  if (!seconds || seconds <= 0) return '0:00';
-
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-// Ensure formatAudioTime is explicitly exported
-export { formatAudioTime as formatAudioTime };

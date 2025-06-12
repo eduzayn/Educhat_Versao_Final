@@ -110,7 +110,7 @@ export function formatDurationSeconds(seconds: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-export const formatAudioTime2 = formatDurationSeconds;
+
 
 // ========== FORMATAÇÃO DE TEXTO ==========
 export function capitalizeWords(text: string): string {
