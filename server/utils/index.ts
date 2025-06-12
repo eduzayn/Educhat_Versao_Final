@@ -6,7 +6,7 @@
 // Re-exports organizados por categoria
 export * from './api';
 export * from './validation';
-export * from './formatting';
+// Formatters migrados para shared/formatters.ts
 export * from './course';
 export * from './zapi';
 export * from './date';

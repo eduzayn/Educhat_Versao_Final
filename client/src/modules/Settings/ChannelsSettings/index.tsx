@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -81,7 +80,7 @@ const channelTypes = [
 export const ChannelsSettingsModule = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [openAddChannelWizard, setOpenAddChannelWizard] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
@@ -233,28 +232,29 @@ export const ChannelsSettingsModule = () => {
       const response = await fetch('/api/zapi/status');
       if (response.ok) {
         const data = await response.json();
-        
+
         // Atualizar o store global com o status real
+        // ZApi store removido - funcionalidade migrada para hooks consolidados
         const { setStatus, setConfigured } = await import('../../store/zapiStore').then(m => m.useZApiStore.getState());
-        
+
         setStatus({
           connected: data.connected || false,
           session: data.session || false,
           smartphoneConnected: data.smartphoneConnected || false,
           lastUpdated: new Date()
         });
-        
+
         // Se conectado, marcar como configurado
         if (data.connected) {
           setConfigured(true);
         }
-        
+
         console.log('Status atualizado:', data);
       }
-      
+
       // Atualizar lista de canais
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
-      
+
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
     } finally {
@@ -306,7 +306,7 @@ export const ChannelsSettingsModule = () => {
 
   const renderChannelCard = (channelType: typeof channelTypes[0]) => {
     const existingChannels = Array.isArray(channels) ? channels.filter((ch: Channel) => ch.type === channelType.type) : [];
-    
+
     return (
       <Card key={channelType.type} className="border border-gray-200">
         <CardHeader className="pb-3">
@@ -342,7 +342,7 @@ export const ChannelsSettingsModule = () => {
             </div>
           </div>
         </CardHeader>
-        
+
         {existingChannels.length > 0 && (
           <CardContent>
             <div className="space-y-3">
@@ -358,7 +358,7 @@ export const ChannelsSettingsModule = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(channel)}
-                    
+
                     {channel.type === 'whatsapp' && (
                       <>
                         <Button
@@ -375,7 +375,7 @@ export const ChannelsSettingsModule = () => {
                           )}
                           {testConnectionMutation.isPending ? 'Testando...' : 'Testar'}
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -386,7 +386,7 @@ export const ChannelsSettingsModule = () => {
                         </Button>
                       </>
                     )}
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -396,7 +396,7 @@ export const ChannelsSettingsModule = () => {
                       <Edit className="h-4 w-4" />
                       Editar
                     </Button>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"

@@ -1,3 +1,4 @@
+
 /**
  * Sistema de monitoramento e recuperação automática do webhook
  * Garante que problemas críticos sejam detectados e resolvidos automaticamente
@@ -108,16 +109,6 @@ export function validateWebhookData(data: any): {
     senderName: data.senderName ? String(data.senderName).trim() : undefined,
     messageId: data.messageId ? String(data.messageId).trim() : undefined
   };
-
-  if (data.type === 'ReceivedCallback') {
-    if (!data.phone) {
-      errors.push('Telefone é obrigatório para mensagens recebidas');
-    }
-    
-    if (!data.messageId) {
-      errors.push('ID da mensagem é obrigatório');
-    }
-  }
 
   return {
     isValid: errors.length === 0,

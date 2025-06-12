@@ -1,7 +1,9 @@
+
 /**
- * Server Formatting Utils - Redirects to shared module
- * @deprecated Use shared/formatters.ts instead
+ * @deprecated Este arquivo foi consolidado em shared/formatters.ts
+ * Mantenha apenas para compatibilidade temporária
  */
 
-// Re-export from shared module
 export * from '../../shared/formatters';
+
+// TODO: Remover este arquivo após migração completa dos imports
