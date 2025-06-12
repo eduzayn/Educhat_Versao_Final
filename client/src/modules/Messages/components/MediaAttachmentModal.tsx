@@ -132,7 +132,7 @@ export function MediaAttachmentModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[320px] p-0 rounded-2xl overflow-hidden 
+      <DialogContent className="sm:max-w-[480px] max-h-[80vh] p-0 rounded-2xl overflow-hidden 
                                 shadow-xl border-0 backdrop-blur-sm
                                 animate-in fade-in-0 zoom-in-95 duration-300">
         {/* Header minimalista similar ao WhatsApp */}
@@ -330,23 +330,23 @@ export function MediaAttachmentModal({
 
             {/* Preview da imagem */}
             {selectedFile.type.startsWith('image/') && filePreview && (
-              <div className="flex-1 bg-gray-100 flex items-center justify-center p-4">
+              <div className="flex-1 bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-6 min-h-[300px]">
                 <img 
                   src={filePreview} 
                   alt="Preview" 
-                  className="max-w-full max-h-48 rounded-lg object-contain"
+                  className="max-w-full max-h-[350px] rounded-lg object-contain shadow-sm"
                 />
               </div>
             )}
 
             {/* Preview do vídeo */}
             {selectedFile.type.startsWith('video/') && filePreview && (
-              <div className="flex-1 bg-gray-100 flex items-center justify-center p-4">
+              <div className="flex-1 bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-6 min-h-[300px]">
                 <div className="relative">
                   <video 
                     ref={videoRef}
                     src={filePreview}
-                    className="max-w-full max-h-48 rounded-lg object-contain"
+                    className="max-w-full max-h-[350px] rounded-lg object-contain shadow-sm"
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                   />
@@ -354,9 +354,9 @@ export function MediaAttachmentModal({
                     variant="secondary"
                     size="sm"
                     onClick={toggleVideoPlay}
-                    className="absolute bottom-2 left-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
+                    className="absolute bottom-3 left-3 h-10 w-10 p-0 bg-black/60 hover:bg-black/80 border-0 rounded-full transition-all duration-200"
                   >
-                    {isPlaying ? <Pause className="h-4 w-4 text-white" /> : <Play className="h-4 w-4 text-white" />}
+                    {isPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white ml-0.5" />}
                   </Button>
                 </div>
               </div>
