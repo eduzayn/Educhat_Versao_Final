@@ -229,7 +229,7 @@ export function DocumentsSection({
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             </div>
-          ) : recentDocuments?.length > 0 ? (
+          ) : recentDocuments && recentDocuments.length > 0 ? (
             <div className="space-y-4">
               {recentDocuments.map((doc) => (
                 <div key={doc.id} className="border rounded-lg p-4">

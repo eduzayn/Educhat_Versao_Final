@@ -430,7 +430,7 @@ export function DealsModule() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
-                {currentTeam?.stages?.map((stage: any) => {
+                {(currentTeam?.stages || []).map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
                     <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
@@ -545,7 +545,7 @@ export function DealsModule() {
                   </div>
                   <div>
                     <Badge variant="secondary" className="text-xs">
-                      {currentTeam.stages.find((s: any) => s.id === deal.stage)?.name}
+                      {currentTeam?.stages?.find((s: any) => s.id === deal.stage)?.name}
                     </Badge>
                   </div>
                   <div>

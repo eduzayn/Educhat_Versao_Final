@@ -132,7 +132,7 @@ export class DocumentService {
       // Classificar conteúdo do documento
       const classification = await aiService.classifyMessage(
         `Analise este documento: ${text.substring(0, 2000)}...`,
-        [], // Sem histórico
+        1, // ID da conversa fictícia
         {} // Sem contexto adicional
       );
 
@@ -158,7 +158,7 @@ export class DocumentService {
       const response = await aiService.generateResponse(
         analysisPrompt,
         classification,
-        [],
+        1,
         null
       );
 

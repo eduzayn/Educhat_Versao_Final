@@ -48,7 +48,7 @@ export class CentralStorage {
   }
 
   async getUser(id: number) {
-    return this.userManagement.getUser(id);
+    return this.userManagement.getUser(String(id));
   }
 
   async getUserByEmail(email: string) {
