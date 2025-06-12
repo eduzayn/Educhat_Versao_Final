@@ -15,16 +15,8 @@ export class MessageStorage extends BaseStorage {
     return message;
   }
 
-  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<any[]> {
-    return this.db.select({
-      ...messages,
-      deletedByUser: {
-        id: users.id,
-        displayName: users.displayName,
-        username: users.username
-      }
-    }).from(messages)
-      .leftJoin(users, eq(messages.deletedBy, users.id))
+  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
+    return this.db.select().from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
@@ -32,6 +24,44 @@ export class MessageStorage extends BaseStorage {
       .orderBy(messages.sentAt) // Ordem cronológica: mensagens mais antigas primeiro
       .limit(limit)
       .offset(offset);
+  }
+
+  async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0): Promise<any[]> {
+    const baseMessages = await this.getMessages(conversationId, limit, offset);
+    
+    // Para cada mensagem que foi deletada pelo usuário, buscar info do usuário
+    const messagesWithUserInfo = await Promise.all(
+      baseMessages.map(async (message) => {
+        if (message.isDeletedByUser && message.deletedBy) {
+          try {
+            const [userInfo] = await this.db.select({
+              id: users.id,
+              displayName: users.displayName,
+              username: users.username
+            }).from(users)
+            .where(eq(users.id, message.deletedBy))
+            .limit(1);
+            
+            return {
+              ...message,
+              deletedByUser: userInfo || null
+            };
+          } catch (error) {
+            console.error('Erro ao buscar info do usuário que deletou:', error);
+            return {
+              ...message,
+              deletedByUser: null
+            };
+          }
+        }
+        return {
+          ...message,
+          deletedByUser: null
+        };
+      })
+    );
+    
+    return messagesWithUserInfo;
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {
