@@ -6,7 +6,7 @@ import { registerAuthRoutes } from './auth';
 import { registerAdminRoutes } from './admin';
 import { registerChannelsRoutes } from './channels';
 import { registerContactsRoutes } from './contacts';
-import { registerConversationsRoutes } from './conversations';
+import { registerConversationDetailsRoutes as registerConversationsRoutes } from './conversations/details';
 import { registerMessagesRoutes } from './messages';
 import { registerWebhooksRoutes } from './webhooks';
 import { registerUtilitiesRoutes } from './utilities';

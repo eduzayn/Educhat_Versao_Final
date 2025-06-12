@@ -1,5 +1,4 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
@@ -200,6 +199,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  const { registerRoutes } = await import("./routes/index");
   const server = await registerRoutes(app);
 
   // Error handling middleware deve vir ANTES do Vite
@@ -232,9 +232,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Registrar rotas consolidadas
-  import { registerAllRoutes } from './routes';
-  registerAllRoutes(app);
+
 
   // Use PORT environment variable for production (Railway) or default to 5000 for development
   const port = parseInt(process.env.PORT || "5000", 10);
