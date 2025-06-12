@@ -196,47 +196,51 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'URL inválida' });
       }
 
-      // Fazer fetch da imagem
+      // Fazer fetch da imagem com headers mais compatíveis
       const response = await fetch(imageUrl, {
+        method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'WhatsApp/2.23.24.76 A',
           'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
           'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
           'Accept-Encoding': 'gzip, deflate, br',
           'Referer': 'https://web.whatsapp.com/',
           'Origin': 'https://web.whatsapp.com',
           'Sec-Fetch-Dest': 'image',
-          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Mode': 'cors',
           'Sec-Fetch-Site': 'cross-site',
-          'Cache-Control': 'max-age=0'
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
-        redirect: 'follow'
+        redirect: 'follow',
+        signal: AbortSignal.timeout(10000)
       });
 
       if (!response.ok) {
         console.error(`Erro ao carregar imagem: ${response.status} - ${response.statusText} para URL: ${imageUrl}`);
         
-        // Se for erro 404, retornar uma imagem placeholder transparente
-        if (response.status === 404) {
-          const transparentPixel = Buffer.from([
-            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-            0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
-            0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41,
-            0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-            0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00,
-            0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
-            0x42, 0x60, 0x82
-          ]);
+        // Se a imagem não for encontrada ou expirou, retornar SVG placeholder
+        if (response.status === 404 || response.status === 403 || response.status === 410) {
+          console.log(`⚠️ Imagem não encontrada (${response.status}): ${imageUrl}`);
+          
+          const placeholderSvg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"/>
+            <circle cx="100" cy="80" r="25" fill="#d1d5db"/>
+            <path d="M85 90 L100 105 L115 90 M70 130 L130 130 M80 150 L120 150" stroke="#9ca3af" stroke-width="2" fill="none"/>
+            <text x="100" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">
+              Imagem indisponível
+            </text>
+          </svg>`;
           
           res.set({
-            'Content-Type': 'image/png',
+            'Content-Type': 'image/svg+xml',
             'Cache-Control': 'public, max-age=300',
-            'X-Content-Type-Options': 'nosniff'
+            'X-Content-Type-Options': 'nosniff',
+            'Cross-Origin-Resource-Policy': 'cross-origin',
+            'Access-Control-Allow-Origin': '*'
           });
           
-          return res.send(transparentPixel);
+          return res.send(placeholderSvg);
         }
         
         return res.status(response.status).json({ error: 'Falha ao carregar imagem' });
@@ -260,8 +264,30 @@ export function registerMessageRoutes(app: Express) {
       res.send(Buffer.from(buffer));
 
     } catch (error) {
-      console.error('Erro no proxy de imagem:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('❌ Erro no proxy de imagem:', error);
+      
+      // Retornar SVG placeholder em caso de erro
+      const errorSvg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+        <circle cx="100" cy="80" r="25" fill="#f87171"/>
+        <path d="M85 70 L115 90 M115 70 L85 90" stroke="#dc2626" stroke-width="3"/>
+        <text x="100" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">
+          Erro ao carregar
+        </text>
+        <text x="100" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">
+          imagem
+        </text>
+      </svg>`;
+      
+      res.set({
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=300',
+        'X-Content-Type-Options': 'nosniff',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'Access-Control-Allow-Origin': '*'
+      });
+      
+      res.send(errorSvg);
     }
   });
 
