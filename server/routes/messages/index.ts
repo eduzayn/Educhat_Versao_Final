@@ -363,23 +363,53 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
       }
 
+      console.log('🗑️ Deletando mensagem enviada:', {
+        messageId,
+        zapiMessageId,
+        phone,
+        messageTime: messageTime.toISOString(),
+        timeDifference: Math.floor(timeDifference / 1000) + 's'
+      });
+
       // Marcar como deletada localmente primeiro
       const success = await storage.markMessageAsDeletedByUser(messageId, true);
       
-      if (success) {
-        res.json({ 
-          success: true, 
-          message: 'Mensagem removida da sua interface',
-          needsZapiDeletion: true,
-          zapiMessageId,
-          phone
+      if (!success) {
+        console.error('❌ Falha ao marcar mensagem como deletada no banco');
+        return res.status(500).json({ error: 'Erro ao deletar mensagem no banco' });
+      }
+
+      console.log('✅ Mensagem marcada como deletada localmente');
+
+      // Broadcast para atualizar interface imediatamente
+      const { broadcast } = await import('../realtime');
+      broadcast(message.conversationId, {
+        type: 'message_deleted',
+        conversationId: message.conversationId,
+        messageId: messageId,
+        deletedAt: new Date().toISOString()
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Mensagem removida da sua interface',
+        needsZapiDeletion: !!zapiMessageId,
+        zapiMessageId,
+        phone
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao deletar mensagem enviada:', error);
+      
+      // Retornar erro mais específico
+      if (error instanceof Error) {
+        res.status(500).json({ 
+          error: 'Erro interno do servidor',
+          details: error.message
         });
       } else {
-        res.status(500).json({ error: 'Erro ao deletar mensagem' });
+        res.status(500).json({ error: 'Erro interno do servidor' });
       }
-    } catch (error) {
-      console.error('Erro ao deletar mensagem enviada:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 }

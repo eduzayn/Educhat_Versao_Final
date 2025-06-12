@@ -156,18 +156,34 @@ export function MessageBubble({
           return;
         }
 
-        // Deletar mensagem enviada (localmente + Z-API)
+        console.log('🗑️ Iniciando exclusão de mensagem enviada:', {
+          messageId: message.id,
+          zapiMessageId,
+          phone: contact.phone,
+          conversationId
+        });
+
+        // Deletar mensagem enviada (localmente primeiro)
         const response = await apiRequest("PATCH", `/api/messages/${message.id}/delete-sent`, {
           zapiMessageId,
           phone: contact.phone
         });
 
+        console.log('✅ Mensagem deletada localmente:', response);
+
         // Se precisar deletar via Z-API também
-        if (response.needsZapiDeletion) {
-          await apiRequest("DELETE", `/api/zapi/messages/${zapiMessageId}`, {
-            phone: contact.phone,
-            conversationId: conversationId,
-          });
+        if (response.needsZapiDeletion && zapiMessageId) {
+          try {
+            console.log('🗑️ Deletando via Z-API:', zapiMessageId);
+            await apiRequest("DELETE", `/api/zapi/messages/${zapiMessageId}`, {
+              phone: contact.phone,
+              conversationId: conversationId,
+            });
+            console.log('✅ Mensagem deletada via Z-API');
+          } catch (zapiError) {
+            console.warn('⚠️ Falha na exclusão via Z-API (mensagem já removida localmente):', zapiError);
+            // Não falhar se a exclusão via Z-API falhar, pois a mensagem já foi removida localmente
+          }
         }
 
         queryClient.invalidateQueries({
@@ -176,19 +192,38 @@ export function MessageBubble({
 
         toast({
           title: "Sucesso",
-          description: "Mensagem apagada para todos",
+          description: "Mensagem removida da conversa",
         });
       }
     } catch (error) {
-      console.error("Erro ao deletar mensagem:", error);
+      console.error("❌ Erro ao deletar mensagem:", error);
 
       let errorMessage = "Não foi possível deletar a mensagem";
-      if (error && typeof error === "object" && "message" in error) {
-        errorMessage = (error as Error).message;
+      let errorTitle = "Erro";
+      
+      if (error && typeof error === "object") {
+        if ("message" in error) {
+          const message = (error as Error).message;
+          if (message.includes("Failed to fetch")) {
+            errorTitle = "Erro de Conexão";
+            errorMessage = "Problema de conexão com o servidor. Verifique sua internet e tente novamente.";
+          } else if (message.includes("NetworkError")) {
+            errorTitle = "Erro de Rede";
+            errorMessage = "Erro de rede. Tente novamente em alguns segundos.";
+          } else if (message.includes("timeout")) {
+            errorTitle = "Timeout";
+            errorMessage = "A operação demorou muito. Tente novamente.";
+          } else if (message.includes("7 minutos")) {
+            errorTitle = "Prazo Expirado";
+            errorMessage = "Só é possível deletar mensagens em até 7 minutos após o envio.";
+          } else {
+            errorMessage = message;
+          }
+        }
       }
 
       toast({
-        title: "Erro",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
