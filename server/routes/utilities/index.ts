@@ -390,6 +390,99 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
+  // Proxy para imagens do WhatsApp - REST: GET /api/proxy/whatsapp-image
+  app.get('/api/proxy/whatsapp-image', async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL é obrigatória' });
+      }
+
+      // Verificar se é uma URL válida do WhatsApp
+      if (!url.includes('pps.whatsapp.net') && !url.includes('mmg.whatsapp.net')) {
+        return res.status(400).json({ error: 'URL não é do WhatsApp' });
+      }
+
+      console.log('🖼️ Proxying WhatsApp image:', url);
+
+      // Fazer requisição para a imagem original
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        timeout: 10000
+      });
+
+      if (!response.ok) {
+        console.log('⚠️ WhatsApp image URL expired, returning placeholder');
+        
+        // Retornar placeholder SVG para imagem indisponível
+        const placeholderSvg = `
+          <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#f3f4f6"/>
+            <rect x="50" y="50" width="100" height="100" fill="#d1d5db" rx="8"/>
+            <text x="100" y="110" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">
+              Imagem não
+            </text>
+            <text x="100" y="125" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">
+              disponível
+            </text>
+          </svg>
+        `;
+        
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send(placeholderSvg);
+      }
+
+      // Definir headers apropriados
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const contentLength = response.headers.get('content-length');
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 dia
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
+      }
+
+      // Stream da imagem para o cliente
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('❌ Erro no proxy de imagem:', error);
+      
+      // Retornar placeholder em caso de erro
+      const errorSvg = `
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" fill="#fef2f2"/>
+          <rect x="50" y="50" width="100" height="100" fill="#fca5a5" rx="8"/>
+          <text x="100" y="110" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="12">
+            Erro ao carregar
+          </text>
+          <text x="100" y="125" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="12">
+            imagem
+          </text>
+        </svg>
+      `;
+      
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Cache-Control', 'public, max-age=300'); // Cache menor para erros
+      res.status(200).send(errorSvg);
+    }
+  });
+
   // System Users endpoints - REST: CRUD operations
   app.get('/api/system-users', async (req: AuthenticatedRequest, res: Response) => {
     try {

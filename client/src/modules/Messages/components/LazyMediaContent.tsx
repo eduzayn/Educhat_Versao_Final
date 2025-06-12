@@ -3,6 +3,7 @@ import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
 import { DocumentPreviewModal } from "@/shared/components/DocumentPreviewModal";
+import { useMediaUrl } from "@/shared/lib/utils/whatsappProxy";
 
 interface LazyMediaContentProps {
   messageId: number;
@@ -96,6 +97,7 @@ export function LazyMediaContent({
   };
 
   const realInitialContent = getRealInitialContent();
+  const proxiedMediaUrl = useMediaUrl(realInitialContent);
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -103,11 +105,11 @@ export function LazyMediaContent({
 
   // Áudios carregam automaticamente, imagens/vídeos/documentos sob demanda
   useEffect(() => {
-    if (messageType === 'audio' && realInitialContent && !loaded && !loading) {
-      setContent(realInitialContent);
+    if (messageType === 'audio' && proxiedMediaUrl && !loaded && !loading) {
+      setContent(proxiedMediaUrl);
       setLoaded(true);
     }
-  }, [messageId, messageType, realInitialContent, loaded, loading]);
+  }, [messageId, messageType, proxiedMediaUrl, loaded, loading]);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
