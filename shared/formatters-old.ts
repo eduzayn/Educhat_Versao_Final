@@ -1,3 +1,4 @@
+
 /**
  * Utilitários de Formatação Unificados - EduChat
  * Módulo compartilhado entre client e server
@@ -31,6 +32,8 @@ export function formatPhoneForDisplay(phone: string): string {
   return phone;
 }
 
+// formatPhoneNumber é exportado como alias no final do arquivo
+
 // ========== FORMATAÇÃO DE DOCUMENTOS ==========
 export function formatCPF(cpf: string): string {
   const cleanCPF = cpf.replace(/\D/g, '');
@@ -46,27 +49,54 @@ export function formatDateBR(date: Date | string): string {
   return d.toLocaleDateString('pt-BR');
 }
 
-export function formatTimeBR(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
 export function formatDateTimeBR(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleString('pt-BR', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric',
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
+  return d.toLocaleString('pt-BR');
 }
 
-// ========== FORMATAÇÃO DE MOEDA ==========
-export function formatCurrency(value: number): string {
+export function formatFullDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d);
+}
+
+export function formatRelativeDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return 'Agora mesmo';
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minuto${minutes > 1 ? 's' : ''} atrás`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hora${hours > 1 ? 's' : ''} atrás`;
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} dia${days > 1 ? 's' : ''} atrás`;
+  } else {
+    return d.toLocaleDateString('pt-BR');
+  }
+}
+
+export function formatTime(hours: number, minutes: number = 0): string {
+  const h = hours.toString().padStart(2, '0');
+  const m = minutes.toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+// ========== FORMATAÇÃO MONETÁRIA ==========
+export function formatCurrency(value: number, currency: string = 'BRL'): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currency,
   }).format(value);
 }
 
@@ -93,6 +123,20 @@ export function formatDurationMinutes(minutes: number): string {
 }
 
 export function formatDurationSeconds(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`;
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return remainingSeconds > 0 ? `${minutes}min ${remainingSeconds}s` : `${minutes}min`;
+  } else {
+    const hours = Math.floor(seconds / 3600);
+    const remainingMinutes = Math.floor((seconds % 3600) / 60);
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+  }
+}
+
+export function formatAudioTime(seconds: number): string {
   if (isNaN(seconds) || seconds < 0) return "0:00";
   
   const minutes = Math.floor(seconds / 60);
@@ -106,21 +150,35 @@ export function capitalizeWords(text: string): string {
   return text.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
 }
 
+// formatName is exported as alias to capitalizeWords at the end of file
+
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
+  
+  const truncated = text.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > 0) {
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated + '...';
 }
 
-export function formatInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
+export function removeAccents(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// ========== FORMATAÇÃO DE TAMANHO DE ARQUIVO ==========
+export function createSlug(text: string): string {
+  return removeAccents(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+// ========== FORMATAÇÃO DE ARQUIVO ==========
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   
@@ -132,5 +190,5 @@ export function formatFileSize(bytes: number): string {
 }
 
 // ========== ALIASES PARA COMPATIBILIDADE ==========
-export const formatPhoneNumber = formatPhoneForDisplay;
-export const formatName = capitalizeWords;
+export { formatPhoneForDisplay as formatPhoneNumber };
+export { capitalizeWords as formatName };
