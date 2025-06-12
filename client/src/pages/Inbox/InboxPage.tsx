@@ -294,7 +294,7 @@ export function InboxPage() {
       }
 
       // Recarregar conversas para manter sincronização
-      refetch();
+      window.location.reload();
       
       toast({
         title: "Status atualizado",
@@ -311,13 +311,7 @@ export function InboxPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-educhat-primary"></div>
-      </div>
-    );
-  }
+  // Loading is now handled by InfiniteConversationList component
 
   return (
     <div className="flex h-screen bg-gray-50 mobile-full-height">
