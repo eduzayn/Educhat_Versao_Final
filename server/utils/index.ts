@@ -17,4 +17,4 @@ export * from './auth';
 export { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from './zapi';
 export { detectCourses, getCourseCategories, getCoursesByCategory } from './course';
 export { isValidEmail, normalizePhoneNumber, isValidCPF } from './validation';
-export { formatPhoneForDisplay, formatCurrency, formatDateBR } from './formatting';
+export { formatPhoneForDisplay, formatCurrency, formatDateBR } from '../../shared/formatters';
