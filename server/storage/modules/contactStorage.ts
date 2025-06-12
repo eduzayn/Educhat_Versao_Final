@@ -175,18 +175,18 @@ export class ContactStorage extends BaseStorage {
     }
 
     // Get total count
-    const countQuery = this.db.select({ count: sql<number>`count(*)`.as('count') }).from(contacts);
+    let countQuery = this.db.select({ count: sql<number>`count(*)`.as('count') }).from(contacts);
     if (whereCondition) {
-      countQuery.where(whereCondition);
+      countQuery = countQuery.where(whereCondition);
     }
     const [{ count: total }] = await countQuery;
 
     // Get paginated data
-    const dataQuery = this.db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    let dataQuery = this.db.select().from(contacts).orderBy(desc(contacts.createdAt));
     if (whereCondition) {
-      dataQuery.where(whereCondition);
+      dataQuery = dataQuery.where(whereCondition);
     }
-    dataQuery.limit(limit).offset(offset);
+    dataQuery = dataQuery.limit(limit).offset(offset);
     
     const data = await dataQuery;
 
