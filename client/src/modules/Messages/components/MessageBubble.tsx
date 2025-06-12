@@ -251,6 +251,9 @@ export function MessageBubble({
 
   // Se a mensagem foi deletada pelo usuário, mostrar indicação visual
   if (isDeletedByUser) {
+    const deletedByUserInfo = (message as any)?.deletedByUser;
+    const deletedByName = deletedByUserInfo?.displayName || deletedByUserInfo?.username || 'Usuário';
+    
     return (
       <div className={`flex mb-4 ${isFromContact ? 'justify-start' : 'justify-end'}`}>
         <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
@@ -263,6 +266,9 @@ export function MessageBubble({
             <span>Esta mensagem foi apagada</span>
           </div>
           <div className="text-xs text-gray-400 mt-1">
+            Deletada por: {deletedByName}
+          </div>
+          <div className="text-xs text-gray-400">
             {messageTime}
           </div>
         </div>

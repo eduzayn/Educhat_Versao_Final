@@ -103,6 +103,7 @@ export function registerMessageRoutes(app: Express) {
   app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
     try {
       const { messageId, conversationId } = req.body;
+      const userId = req.user?.id?.toString(); // Capturar ID do usuário logado
 
       if (!messageId || !conversationId) {
         return res.status(400).json({ 
@@ -116,13 +117,13 @@ export function registerMessageRoutes(app: Express) {
         return res.status(404).json({ error: 'Mensagem não encontrada' });
       }
 
-      // Marcar mensagem como deletada
-      await storage.messages.markMessageAsDeleted(messageId);
+      // Marcar mensagem como deletada pelo usuário
+      await storage.messages.markMessageAsDeletedByUser(messageId, true, userId);
 
       // Broadcast para atualizar a interface
       const { broadcast } = await import('../realtime');
       broadcast(conversationId, {
-        type: 'message_deleted',
+        type: 'message_updated',
         conversationId,
         messageId,
       });

@@ -99,6 +99,7 @@ export const messages = pgTable("messages", {
   // Campo para indicar que mensagem foi deletada pelo usuário (mas deve mostrar placeholder)
   isDeletedByUser: boolean("is_deleted_by_user").default(false), // mensagem deletada mas deve mostrar "Esta mensagem foi apagada"
   deletedAt: timestamp("deleted_at"), // quando foi deletada
+  deletedBy: varchar("deleted_by").references(() => users.id), // ID do usuário que deletou a mensagem
 });
 
 // Contact tags table

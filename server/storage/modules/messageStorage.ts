@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { messages, conversations, type Message, type InsertMessage } from "../../../shared/schema";
+import { messages, conversations, users, type Message, type InsertMessage } from "../../../shared/schema";
 import { eq, desc, and, isNull } from "drizzle-orm";
 
 /**
@@ -15,8 +15,16 @@ export class MessageStorage extends BaseStorage {
     return message;
   }
 
-  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    return this.db.select().from(messages)
+  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<any[]> {
+    return this.db.select({
+      ...messages,
+      deletedByUser: {
+        id: users.id,
+        displayName: users.displayName,
+        username: users.username
+      }
+    }).from(messages)
+      .leftJoin(users, eq(messages.deletedBy, users.id))
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
@@ -103,12 +111,13 @@ export class MessageStorage extends BaseStorage {
       .where(eq(messages.id, id));
   }
 
-  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean): Promise<boolean> {
+  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean, userId?: string): Promise<boolean> {
     try {
       const result = await this.db.update(messages)
         .set({ 
           isDeletedByUser: deletedByUser,
-          deletedAt: deletedByUser ? new Date() : null
+          deletedAt: deletedByUser ? new Date() : null,
+          deletedBy: deletedByUser ? userId : null
         })
         .where(eq(messages.id, messageId))
         .returning();
