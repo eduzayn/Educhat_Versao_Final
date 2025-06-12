@@ -214,6 +214,7 @@ export function registerMessageRoutes(app: Express) {
         userId,
         userIdType: typeof userId,
         req_user: req.user,
+        passport_user: req.session?.passport?.user,
         comportamento: 'Remove apenas da interface (NÃO deleta no WhatsApp)'
       });
 
