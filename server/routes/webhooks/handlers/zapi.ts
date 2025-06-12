@@ -47,11 +47,12 @@ const uploadImage = multer({
   }
 });
 
-// Configurar multer para upload de vídeos em memória
+// Configurar multer para upload de vídeos - otimizado para velocidade
 const uploadVideo = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB máximo para vídeos
+    fieldSize: 100 * 1024 * 1024, // Aumentar limit do campo
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -324,29 +325,30 @@ export async function handleSendVideo(req: Request, res: Response) {
     const { instanceId, token, clientToken } = credentials;
     const cleanPhone = phone.replace(/\D/g, '');
     
-    // Converter arquivo para base64 com prefixo data URL conforme documentação Z-API
-    const videoBase64 = req.file.buffer.toString('base64');
-    const dataUrl = `data:${req.file.mimetype};base64,${videoBase64}`;
-    
-    const payload = {
-      phone: cleanPhone,
-      video: dataUrl,
-      caption: caption
-    };
+    // Usar FormData para envio direto do arquivo (mais eficiente que base64)
+    const formData = new FormData();
+    formData.append('phone', cleanPhone);
+    formData.append('video', new Blob([req.file.buffer], { type: req.file.mimetype }), `video.${req.file.mimetype.split('/')[1]}`);
+    if (caption) {
+      formData.append('caption', caption);
+    }
 
     const url = buildZApiUrl(instanceId, token, 'send-video');
-    console.log('🎥 Enviando vídeo para Z-API:', { 
+    console.log('🎥 Enviando vídeo para Z-API (FormData):', { 
       url: url.replace(token, '****'), 
       phone: cleanPhone,
-      videoSize: videoBase64.length,
+      videoSize: req.file.buffer.length,
       mimeType: req.file.mimetype,
       hasCaption: !!caption
     });
 
     const response = await fetch(url, {
       method: 'POST',
-      headers: getZApiHeaders(clientToken),
-      body: JSON.stringify(payload)
+      headers: {
+        'Client-Token': clientToken,
+        // Não definir Content-Type para FormData (deixar o navegador definir)
+      },
+      body: formData
     });
 
     const responseText = await response.text();

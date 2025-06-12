@@ -495,13 +495,14 @@ export function InputArea() {
           conversationId: activeConversation.id,
           fileName: file.name,
           fileSize: file.size,
+          fileSizeMB: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
         });
 
-        // Criar controller para timeout personalizado compatível
+        // Criar controller para timeout personalizado - otimizado para velocidade
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           controller.abort();
-        }, 180000); // 3 minutos
+        }, 90000); // 1.5 minutos (reduzido de 3 minutos)
 
         const response = await fetch("/api/zapi/send-video", {
           method: "POST",
