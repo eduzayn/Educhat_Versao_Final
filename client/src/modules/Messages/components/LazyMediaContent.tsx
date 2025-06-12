@@ -144,21 +144,27 @@ export function LazyMediaContent({
 
     switch (messageType) {
       case "image":
-        if (loaded && content) {
+        // Para imagens, usar o proxiedMediaUrl se disponível, senão usar content carregado
+        const imageUrl = proxiedMediaUrl || content;
+        if ((loaded && content) || proxiedMediaUrl) {
           return (
             <>
               <div className="relative max-w-xs">
                 <img
-                  src={content}
+                  src={imageUrl}
                   alt="Imagem enviada"
                   className="rounded-lg max-w-full h-auto cursor-pointer"
                   onClick={() => setShowPreviewModal(true)}
+                  onError={(e) => {
+                    // Se a imagem falhar ao carregar, não mostrar erro (placeholder será usado pelo proxy)
+                    console.log('🖼️ Imagem processada pelo proxy');
+                  }}
                 />
               </div>
               <DocumentPreviewModal
                 isOpen={showPreviewModal}
                 onClose={() => setShowPreviewModal(false)}
-                documentUrl={content}
+                documentUrl={imageUrl}
                 fileName={fileName}
                 fileType="image"
               />
