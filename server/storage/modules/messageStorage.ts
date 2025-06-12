@@ -69,11 +69,7 @@ export class MessageStorage extends BaseStorage {
     return newMessage;
   }
 
-  async getMessage(id: number): Promise<Message | undefined> {
-    const [message] = await this.db.select().from(messages)
-      .where(eq(messages.id, id));
-    return message;
-  }
+
 
   async markMessageAsRead(id: number): Promise<void> {
     await this.db.update(messages)

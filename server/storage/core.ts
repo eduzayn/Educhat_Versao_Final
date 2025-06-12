@@ -79,6 +79,15 @@ class CoreStorage {
   async testTeamDetection(messageContent: string) {
     return this.teams.testTeamDetection(messageContent);
   }
+
+  // Métodos de mensagens
+  async getMessage(id: number) {
+    return this.messages.getMessage(id);
+  }
+
+  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean) {
+    return this.messages.markMessageAsDeletedByUser(messageId, deletedByUser);
+  }
 }
 
 // Instância singleton
