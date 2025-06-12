@@ -183,6 +183,10 @@ export class CentralStorage {
     return this.deal.getDeals();
   }
 
+  async getDealsWithPagination(params: any) {
+    return this.deal.getDealsWithPagination(params);
+  }
+
   async updateDeal(id: number, dealData: any) {
     return this.deal.updateDeal(id, dealData);
   }

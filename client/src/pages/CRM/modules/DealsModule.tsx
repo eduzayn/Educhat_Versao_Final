@@ -197,7 +197,7 @@ export function DealsModule() {
       expectedCloseDate: formData.get('expectedCloseDate') || null,
       probability: parseInt(formData.get('probability') as string) || 0,
       description: formData.get('description') || '',
-      stage: selectedStageForNewDeal || currentTeam.stages[0].id, // Usa estágio selecionado ou primeiro do funil
+      stage: selectedStageForNewDeal || (currentTeam?.stages?.[0]?.id) || 'inicial', // Usa estágio selecionado ou primeiro do funil
       teamType: selectedTeam
     };
 
@@ -405,9 +405,9 @@ export function DealsModule() {
                   <div className="text-sm text-muted-foreground">
                     O negócio será criado no estágio: {
                       selectedStageForNewDeal 
-                        ? currentTeam.stages.find(s => s.id === selectedStageForNewDeal)?.name
-                        : currentTeam.stages[0].name
-                    } ({currentTeam.name})
+                        ? currentTeam?.stages?.find(s => s.id === selectedStageForNewDeal)?.name
+                        : currentTeam?.stages?.[0]?.name
+                    } ({currentTeam?.name || 'Funil'})
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -430,7 +430,7 @@ export function DealsModule() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
-                {currentTeam.stages.map((stage: any) => {
+                {currentTeam?.stages?.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
                     <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
