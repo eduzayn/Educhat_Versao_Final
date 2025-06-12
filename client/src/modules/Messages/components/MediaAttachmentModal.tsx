@@ -120,15 +120,25 @@ export function MediaAttachmentModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
-          <Paperclip className="h-5 w-5" />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-10 w-10 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 
+                     transition-all duration-300 hover:scale-110 active:scale-95
+                     rounded-full group"
+        >
+          <Paperclip className="h-5 w-5 transition-all duration-300 
+                                group-hover:rotate-12 group-hover:scale-110" />
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[320px] p-0 rounded-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[320px] p-0 rounded-2xl overflow-hidden 
+                                shadow-xl border-0 backdrop-blur-sm
+                                animate-in fade-in-0 zoom-in-95 duration-300">
         {/* Header minimalista similar ao WhatsApp */}
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900">Anexar</h3>
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 
+                        bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Anexar</h3>
         </div>
 
         <input
@@ -139,84 +149,140 @@ export function MediaAttachmentModal({
         />
 
         {!selectedFile && activeTab === 'file' && (
-          <div className="py-2">
+          <div className="py-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm">
             {/* Lista vertical similar ao WhatsApp */}
-            <div className="space-y-0">
+            <div className="space-y-1 px-2">
               {/* Documento */}
               <button
                 onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-purple-600 group-active:scale-105">
+                  <FileText className="w-5 h-5 text-white transition-transform duration-300 
+                                     group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Documento</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Documento</span>
               </button>
 
               {/* Fotos e vídeos */}
               <button
                 onClick={() => handleFileSelect('image/*,video/*')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                  <Image className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-blue-600 group-active:scale-105">
+                  <Image className="w-5 h-5 text-white transition-transform duration-300 
+                                   group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Fotos e vídeos</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Fotos e vídeos</span>
               </button>
 
               {/* Câmera */}
               <button
                 onClick={() => handleFileSelect('image/*')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-pink-600 group-active:scale-105">
+                  <Camera className="w-5 h-5 text-white transition-transform duration-300 
+                                    group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Câmera</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Câmera</span>
               </button>
 
               {/* Áudio */}
               <button
                 onClick={() => handleFileSelect('audio/*')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
-                  <Headphones className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-orange-600 group-active:scale-105">
+                  <Headphones className="w-5 h-5 text-white transition-transform duration-300 
+                                        group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Áudio</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Áudio</span>
               </button>
 
               {/* Contato */}
               <button
                 onClick={() => setActiveTab('link')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-blue-600 group-active:scale-105">
+                  <User className="w-5 h-5 text-white transition-transform duration-300 
+                                  group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Contato</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Contato</span>
               </button>
 
               {/* Enquete */}
               <button
                 onClick={() => setActiveTab('link')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-yellow-600 group-active:scale-105">
+                  <BarChart3 className="w-5 h-5 text-white transition-transform duration-300 
+                                       group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Enquete</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Enquete</span>
               </button>
 
               {/* Nova figurinha */}
               <button
                 onClick={() => handleFileSelect('image/*')}
-                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors text-left border-0"
+                className="w-full flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 
+                          transition-all duration-300 ease-out text-left border-0 rounded-lg 
+                          hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
+                          dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center 
+                               transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
+                               group-hover:bg-teal-600 group-active:scale-105">
+                  <Gift className="w-5 h-5 text-white transition-transform duration-300 
+                                  group-hover:scale-110" />
                 </div>
-                <span className="text-gray-900 font-normal text-base">Nova figurinha</span>
+                <span className="text-gray-900 dark:text-gray-100 font-normal text-base 
+                               transition-colors duration-300 group-hover:text-gray-700 
+                               dark:group-hover:text-gray-200">Nova figurinha</span>
               </button>
 
               {/* Evento */}
