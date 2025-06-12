@@ -311,7 +311,10 @@ export function registerContactRoutes(app: Express) {
         total: contacts.length,
         updated,
         errors,
-        message: `${updated} fotos atualizadas com sucesso`
+        message: updated > 0 ? `${updated} fotos atualizadas com sucesso` : 'Nenhuma foto foi atualizada',
+        warning: updated === 0 ? 'Client-Token não possui permissão para acessar fotos de perfil da Z-API' : null,
+        info: 'As fotos são capturadas automaticamente via webhooks quando contatos enviam mensagens',
+        recommendation: 'Para ativar sincronização manual, solicite ao suporte da Z-API as permissões de profile-picture'
       };
 
       console.log('✅ Atualização de fotos concluída:', summary);
