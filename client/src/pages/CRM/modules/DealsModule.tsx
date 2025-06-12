@@ -61,7 +61,7 @@ export function DealsModule() {
   };
 
   // Configuração atual do team
-  const currentTeam = teamConfigs.find(t => t.id === selectedTeam);
+  const currentTeam = teamConfigs[selectedTeam];
 
   // Query para buscar funis
   const { data: funnelsData } = useQuery({
