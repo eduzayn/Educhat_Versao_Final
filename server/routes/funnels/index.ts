@@ -1,13 +1,15 @@
-import { Express, Response } from 'express';
+import { Express, Request, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { funnelService } from '../../services/funnelService';
 
 export function registerFunnelRoutes(app: Express) {
   
-  // Get all funnels - REST: GET /api/funnels
-  app.get('/api/funnels', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
+  // Get all funnels - REST: GET /api/funnels (rota pública)
+  app.get('/api/funnels', async (req: Request, res: Response) => {
     try {
+      console.log('📋 Buscando todos os funis (rota pública)');
       const funnels = await funnelService.getAllFunnels();
+      console.log(`✅ ${funnels.length} funis encontrados`);
       res.json(funnels);
     } catch (error) {
       console.error('Erro ao buscar funis:', error);
@@ -16,7 +18,7 @@ export function registerFunnelRoutes(app: Express) {
   });
 
   // Get funnel by team type - REST: GET /api/funnels/team-type/:teamType (mantém rota antiga para compatibilidade)
-  app.get('/api/funnels/team-type/:teamType', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/funnels/team-type/:teamType', async (req: Request, res: Response) => {
     try {
       const { teamType } = req.params;
       const funnel = await funnelService.getFunnelByTeamType(teamType);
