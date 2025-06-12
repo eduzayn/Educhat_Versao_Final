@@ -82,6 +82,7 @@ class CentralStorage {
   createMessage = (messageData: any) => this.messages.createMessage(messageData);
   getMessages = (conversationId: number, limit?: number, offset?: number) => this.messages.getMessages(conversationId, limit, offset);
   getMessage = (messageId: number) => this.messages.getMessage(messageId);
+  markMessageAsDeletedByUser = (messageId: number, deletedByUser: boolean) => this.messages.markMessageAsDeletedByUser(messageId, deletedByUser);
   getTotalUnreadCount = () => this.conversations.getTotalUnreadCount();
 }
 
