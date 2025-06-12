@@ -292,19 +292,47 @@ export function registerMessageRoutes(app: Express) {
           
           console.log('🌐 DELETAR VIA Z-API - Fazendo requisição para:', deleteUrl);
           
+          const requestBody = {
+            phone: cleanPhone,
+            messageId: zapiMessageId
+          };
+
+          console.log('📝 DELETAR VIA Z-API - Dados da requisição:', {
+            url: deleteUrl,
+            method: 'POST',
+            headers: {
+              'Client-Token': clientToken ? '***' : 'undefined',
+              'Content-Type': 'application/json'
+            },
+            body: requestBody
+          });
+
           const deleteResponse = await fetch(deleteUrl, {
             method: 'POST',
             headers: {
               'Client-Token': clientToken || '',
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-              phone: cleanPhone,
-              messageId: zapiMessageId
-            })
+            body: JSON.stringify(requestBody)
           });
 
-          const deleteResult = await deleteResponse.json();
+          console.log('📥 DELETAR VIA Z-API - Resposta recebida:', {
+            status: deleteResponse.status,
+            statusText: deleteResponse.statusText,
+            headers: Object.fromEntries(deleteResponse.headers.entries())
+          });
+
+          let deleteResult;
+          const responseText = await deleteResponse.text();
+          
+          console.log('📄 DELETAR VIA Z-API - Texto da resposta:', responseText);
+
+          try {
+            deleteResult = responseText ? JSON.parse(responseText) : {};
+          } catch (parseError) {
+            console.error('❌ DELETAR VIA Z-API - Erro ao parsear JSON:', parseError);
+            deleteResult = { rawResponse: responseText };
+          }
           
           if (deleteResponse.ok) {
             console.log('✅ DELETAR VIA Z-API - Mensagem deletada com sucesso para ambos os usuários:', deleteResult);
@@ -313,7 +341,8 @@ export function registerMessageRoutes(app: Express) {
             console.error('❌ DELETAR VIA Z-API - Falha na resposta:', {
               status: deleteResponse.status,
               statusText: deleteResponse.statusText,
-              result: deleteResult
+              result: deleteResult,
+              rawResponse: responseText
             });
           }
         } catch (error) {
