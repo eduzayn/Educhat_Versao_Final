@@ -199,13 +199,46 @@ export function registerMessageRoutes(app: Express) {
       // Fazer fetch da imagem
       const response = await fetch(imageUrl, {
         headers: {
-          'User-Agent': 'EduChat/1.0 (Image Proxy)',
-          'Accept': 'image/*,*/*;q=0.8',
-          'Cache-Control': 'no-cache'
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Referer': 'https://web.whatsapp.com/',
+          'Origin': 'https://web.whatsapp.com',
+          'Sec-Fetch-Dest': 'image',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Site': 'cross-site',
+          'Cache-Control': 'max-age=0'
+        },
+        redirect: 'follow'
       });
 
       if (!response.ok) {
+        console.error(`Erro ao carregar imagem: ${response.status} - ${response.statusText} para URL: ${imageUrl}`);
+        
+        // Se for erro 404, retornar uma imagem placeholder transparente
+        if (response.status === 404) {
+          const transparentPixel = Buffer.from([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
+            0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
+            0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00,
+            0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
+            0x42, 0x60, 0x82
+          ]);
+          
+          res.set({
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=300',
+            'X-Content-Type-Options': 'nosniff'
+          });
+          
+          return res.send(transparentPixel);
+        }
+        
         return res.status(response.status).json({ error: 'Falha ao carregar imagem' });
       }
 

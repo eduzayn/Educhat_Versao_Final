@@ -15,7 +15,7 @@ import { FacebookStorage } from './modules/facebookStorage';
  * Agrupa todos os módulos de storage em uma interface unificada
  * Sistema consolidado com terminologia unificada de equipes
  */
-export class Storage {
+export class CentralStorage {
   public userManagement: UserManagementStorage;
   public contact: ContactStorage;
   public conversation: ConversationStorage;
@@ -361,4 +361,4 @@ export class Storage {
   }
 }
 
-export const storage = new Storage();
+export const storage = new CentralStorage();
