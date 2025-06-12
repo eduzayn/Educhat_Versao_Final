@@ -238,7 +238,7 @@ export class Storage {
   }
 
   async getMessage(id: number) {
-    return this.message.getMessage(id);
+    return this.message.getMessage ? this.message.getMessage(id) : null;
   }
 
   async getMessagesByConversation(conversationId: number) {

@@ -10,6 +10,11 @@ export class MessageStorage extends BaseStorage {
     return this.db.select().from(messages).orderBy(desc(messages.sentAt));
   }
 
+  async getMessage(id: number): Promise<Message | undefined> {
+    const [message] = await this.db.select().from(messages).where(eq(messages.id, id));
+    return message;
+  }
+
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
     return this.db.select().from(messages)
       .where(and(

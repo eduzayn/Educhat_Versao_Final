@@ -232,25 +232,94 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
-  // Marcar mensagem como deletada pelo usuário
-  app.patch('/api/messages/:id/mark-deleted', async (req, res) => {
+  // Deletar mensagem recebida (apenas localmente)
+  app.patch('/api/messages/:id/delete-received', async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const { deletedByUser } = req.body;
 
       if (isNaN(messageId)) {
         return res.status(400).json({ error: 'ID da mensagem inválido' });
       }
 
-      const success = await storage.markMessageAsDeletedByUser(messageId, deletedByUser);
+      // Verificar se a mensagem é realmente recebida (isFromContact = true)
+      const message = await storage.getMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
+      }
+
+      if (!message.isFromContact) {
+        return res.status(400).json({ error: 'Esta operação é apenas para mensagens recebidas' });
+      }
+
+      // Verificar se está dentro do prazo de 7 minutos
+      const messageTime = new Date(message.sentAt);
+      const now = new Date();
+      const timeDifference = now.getTime() - messageTime.getTime();
+      const sevenMinutesInMs = 7 * 60 * 1000;
+
+      if (timeDifference > sevenMinutesInMs) {
+        return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
+      }
+
+      const success = await storage.markMessageAsDeletedByUser(messageId, true);
       
       if (success) {
-        res.json({ success: true, message: 'Mensagem marcada como deletada' });
+        res.json({ success: true, message: 'Mensagem removida da sua interface' });
       } else {
-        res.status(404).json({ error: 'Mensagem não encontrada' });
+        res.status(500).json({ error: 'Erro ao deletar mensagem' });
       }
     } catch (error) {
-      console.error('Erro ao marcar mensagem como deletada:', error);
+      console.error('Erro ao deletar mensagem recebida:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Deletar mensagem enviada (localmente + Z-API)
+  app.patch('/api/messages/:id/delete-sent', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const { zapiMessageId, phone } = req.body;
+
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: 'ID da mensagem inválido' });
+      }
+
+      // Verificar se a mensagem é realmente enviada (isFromContact = false)
+      const message = await storage.getMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
+      }
+
+      if (message.isFromContact) {
+        return res.status(400).json({ error: 'Esta operação é apenas para mensagens enviadas' });
+      }
+
+      // Verificar se está dentro do prazo de 7 minutos
+      const messageTime = new Date(message.sentAt);
+      const now = new Date();
+      const timeDifference = now.getTime() - messageTime.getTime();
+      const sevenMinutesInMs = 7 * 60 * 1000;
+
+      if (timeDifference > sevenMinutesInMs) {
+        return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
+      }
+
+      // Marcar como deletada localmente primeiro
+      const success = await storage.markMessageAsDeletedByUser(messageId, true);
+      
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: 'Mensagem removida da sua interface',
+          needsZapiDeletion: true,
+          zapiMessageId,
+          phone
+        });
+      } else {
+        res.status(500).json({ error: 'Erro ao deletar mensagem' });
+      }
+    } catch (error) {
+      console.error('Erro ao deletar mensagem enviada:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

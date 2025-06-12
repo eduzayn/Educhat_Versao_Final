@@ -120,10 +120,8 @@ export function MessageBubble({
     setIsDeleting(true);
     try {
       if (isFromContact) {
-        // Para mensagens recebidas, marcar como deletada pelo usuário
-        await apiRequest("PATCH", `/api/messages/${message.id}/mark-deleted`, {
-          deletedByUser: true
-        });
+        // Para mensagens recebidas, deletar apenas localmente
+        await apiRequest("PATCH", `/api/messages/${message.id}/delete-received`);
 
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
@@ -131,24 +129,25 @@ export function MessageBubble({
 
         toast({
           title: "Sucesso",
-          description: "Mensagem apagada da sua interface",
+          description: "Mensagem removida da sua interface",
         });
       } else {
+        // Para mensagens enviadas, deletar localmente e via Z-API
         const metadata =
           message.metadata && typeof message.metadata === "object"
             ? message.metadata
             : {};
-        let messageId = null;
+        let zapiMessageId = null;
 
         if ("messageId" in metadata && metadata.messageId) {
-          messageId = metadata.messageId;
+          zapiMessageId = metadata.messageId;
         } else if ("zaapId" in metadata && metadata.zaapId) {
-          messageId = metadata.zaapId;
+          zapiMessageId = metadata.zaapId;
         } else if ("id" in metadata && metadata.id) {
-          messageId = metadata.id;
+          zapiMessageId = metadata.id;
         }
 
-        if (!messageId) {
+        if (!zapiMessageId) {
           toast({
             title: "Erro",
             description: "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
@@ -157,16 +156,19 @@ export function MessageBubble({
           return;
         }
 
-        // Primeiro deletar via Z-API
-        await apiRequest("DELETE", `/api/zapi/messages/${messageId}`, {
-          phone: contact.phone,
-          conversationId: conversationId,
+        // Deletar mensagem enviada (localmente + Z-API)
+        const response = await apiRequest("PATCH", `/api/messages/${message.id}/delete-sent`, {
+          zapiMessageId,
+          phone: contact.phone
         });
 
-        // Depois marcar como deletada pelo usuário
-        await apiRequest("PATCH", `/api/messages/${message.id}/mark-deleted`, {
-          deletedByUser: true
-        });
+        // Se precisar deletar via Z-API também
+        if (response.needsZapiDeletion) {
+          await apiRequest("DELETE", `/api/zapi/messages/${zapiMessageId}`, {
+            phone: contact.phone,
+            conversationId: conversationId,
+          });
+        }
 
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
