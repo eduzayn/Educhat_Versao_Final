@@ -34,7 +34,7 @@ export const teamConfigs: Record<string, TeamConfig> = {
     description: 'Problemas técnicos e dificuldades de acesso',
     color: 'blue',
     stages: [
-      { id: 'novo', name: 'Novo', color: 'bg-red-500' },
+      { id: 'solicitacao', name: 'Solicitação', color: 'bg-red-500' },
       { id: 'em_andamento', name: 'Em Andamento', color: 'bg-orange-500' },
       { id: 'aguardando_cliente', name: 'Aguardando Cliente', color: 'bg-yellow-500' },
       { id: 'resolvido', name: 'Resolvido', color: 'bg-green-500' }
@@ -45,7 +45,7 @@ export const teamConfigs: Record<string, TeamConfig> = {
     description: 'Questões financeiras e pagamentos',
     color: 'orange',
     stages: [
-      { id: 'debito_detectado', name: 'Débito Detectado', color: 'bg-red-500' },
+      { id: 'inadimplente', name: 'Inadimplente', color: 'bg-red-500' },
       { id: 'tentativa_contato', name: 'Tentativa de Contato', color: 'bg-orange-500' },
       { id: 'negociacao', name: 'Negociação', color: 'bg-yellow-500' },
       { id: 'quitado', name: 'Quitado', color: 'bg-green-500' },
@@ -57,8 +57,7 @@ export const teamConfigs: Record<string, TeamConfig> = {
     description: 'Documentos e processos acadêmicos',
     color: 'purple',
     stages: [
-      { id: 'solicitacao', name: 'Solicitação', color: 'bg-purple-500' },
-      { id: 'documentos_pendentes', name: 'Documentos Pendentes', color: 'bg-yellow-500' },
+      { id: 'documentos-pendentes', name: 'Documentos Pendentes', color: 'bg-purple-500' },
       { id: 'em_analise', name: 'Em Análise', color: 'bg-blue-500' },
       { id: 'aprovado', name: 'Aprovado', color: 'bg-green-500' },
       { id: 'finalizado', name: 'Finalizado', color: 'bg-gray-500' }
@@ -69,7 +68,7 @@ export const teamConfigs: Record<string, TeamConfig> = {
     description: 'Dúvidas acadêmicas e orientação',
     color: 'indigo',
     stages: [
-      { id: 'duvida_recebida', name: 'Dúvida Recebida', color: 'bg-indigo-500' },
+      { id: 'nova_solicitacao', name: 'Nova Solicitação', color: 'bg-indigo-500' },
       { id: 'em_analise', name: 'Em Análise', color: 'bg-blue-500' },
       { id: 'orientacao_fornecida', name: 'Orientação Fornecida', color: 'bg-yellow-500' },
       { id: 'acompanhamento', name: 'Acompanhamento', color: 'bg-orange-500' },
@@ -93,11 +92,54 @@ export const teamConfigs: Record<string, TeamConfig> = {
     description: 'Processos de pós-graduação',
     color: 'violet',
     stages: [
-      { id: 'solicitacao_certificado', name: 'Solicitação Certificado', color: 'bg-violet-500' },
+      { id: 'documentos-pendentes', name: 'Documentos Pendentes', color: 'bg-violet-500' },
       { id: 'validacao_conclusao', name: 'Validação Conclusão', color: 'bg-blue-500' },
       { id: 'emissao_certificado', name: 'Emissão Certificado', color: 'bg-yellow-500' },
       { id: 'pronto_retirada', name: 'Pronto para Retirada', color: 'bg-orange-500' },
       { id: 'entregue', name: 'Entregue', color: 'bg-green-500' }
+    ]
+  },
+  // Adicionando as equipes que aparecem no banco mas não estão na configuração
+  geral: {
+    name: 'Equipe Geral',
+    description: 'Negócios gerais e diversos',
+    color: 'gray',
+    stages: [
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-gray-500' },
+      { id: 'qualified', name: 'Qualificado', color: 'bg-blue-500' },
+      { id: 'proposal', name: 'Proposta', color: 'bg-yellow-500' },
+      { id: 'negotiation', name: 'Negociação', color: 'bg-orange-500' },
+      { id: 'won', name: 'Fechado', color: 'bg-green-500' }
+    ]
+  },
+  educacao: {
+    name: 'Equipe Educação',
+    description: 'Processos educacionais',
+    color: 'blue',
+    stages: [
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-blue-500' },
+      { id: 'qualified', name: 'Qualificado', color: 'bg-green-500' },
+      { id: 'won', name: 'Fechado', color: 'bg-emerald-500' }
+    ]
+  },
+  saude: {
+    name: 'Equipe Saúde',
+    description: 'Processos da área de saúde',
+    color: 'red',
+    stages: [
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-red-500' },
+      { id: 'qualified', name: 'Qualificado', color: 'bg-green-500' },
+      { id: 'won', name: 'Fechado', color: 'bg-emerald-500' }
+    ]
+  },
+  tecnologia: {
+    name: 'Equipe Tecnologia',
+    description: 'Processos da área de tecnologia',
+    color: 'cyan',
+    stages: [
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-cyan-500' },
+      { id: 'qualified', name: 'Qualificado', color: 'bg-green-500' },
+      { id: 'won', name: 'Fechado', color: 'bg-emerald-500' }
     ]
   }
 };
