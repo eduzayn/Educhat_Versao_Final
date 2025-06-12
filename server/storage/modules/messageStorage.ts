@@ -147,14 +147,15 @@ export class MessageStorage extends BaseStorage {
         messageId,
         deletedByUser,
         userId,
-        userIdType: typeof userId
+        userIdType: typeof userId,
+        actualUserId: userId || 35
       });
 
       const result = await this.db.update(messages)
         .set({ 
           isDeletedByUser: deletedByUser,
           deletedAt: deletedByUser ? new Date() : null,
-          deletedBy: deletedByUser ? userId : null
+          deletedBy: deletedByUser ? (userId || 35) : null
         })
         .where(eq(messages.id, messageId))
         .returning();
