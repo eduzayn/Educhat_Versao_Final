@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
@@ -38,6 +39,10 @@ export function DealsModule() {
   // Estado para modal de novo negócio
   const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
   const [selectedStageForNewDeal, setSelectedStageForNewDeal] = useState<string | null>(null);
+  
+  // Estado para modal de edição de negócio
+  const [isEditDealDialogOpen, setIsEditDealDialogOpen] = useState(false);
+  const [selectedDealForEdit, setSelectedDealForEdit] = useState<any | null>(null);
 
   // State para paginação
   const [page, setPage] = useState(1);
@@ -173,6 +178,38 @@ export function DealsModule() {
     
     setDraggedDeal(null);
   };
+
+  // Função para abrir modal de edição
+  const handleEditDeal = (deal: any) => {
+    setSelectedDealForEdit(deal);
+    setIsEditDealDialogOpen(true);
+  };
+
+  // Função para atualizar negócio completo
+  const updateFullDealMutation = useMutation({
+    mutationFn: async (dealData: any) => {
+      return apiRequest(`/api/deals/${dealData.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(dealData)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+      setIsEditDealDialogOpen(false);
+      setSelectedDealForEdit(null);
+      toast({
+        title: "Sucesso",
+        description: "Negócio atualizado com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar negócio. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -382,9 +419,18 @@ export function DealsModule() {
                             <CardContent className="p-2.5 space-y-1.5">
                               <div className="flex items-start justify-between">
                                 <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
-                                <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
-                                  <MoreHorizontal className="h-3 w-3" />
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
+                                      <MoreHorizontal className="h-3 w-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEditDeal(deal)}>
+                                      Editar negócio
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <Building2 className="h-3 w-3 flex-shrink-0" />
@@ -431,6 +477,95 @@ export function DealsModule() {
           )}
         </div>
       </div>
+
+      {/* Modal de Edição de Negócio */}
+      <Dialog open={isEditDealDialogOpen} onOpenChange={setIsEditDealDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Negócio</DialogTitle>
+          </DialogHeader>
+          {selectedDealForEdit && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const dealData = {
+                id: selectedDealForEdit.id,
+                name: formData.get('name'),
+                company: formData.get('company'),
+                value: parseFloat(formData.get('value') as string),
+                probability: parseInt(formData.get('probability') as string),
+                description: formData.get('description'),
+                team: selectedDealForEdit.team,
+                stage: selectedDealForEdit.stage
+              };
+              updateFullDealMutation.mutate(dealData);
+            }} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Nome do Negócio</Label>
+                <Input
+                  name="name"
+                  defaultValue={selectedDealForEdit.name}
+                  placeholder="Ex: Curso de Programação - João Silva"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-company">Empresa/Cliente</Label>
+                <Input
+                  name="company"
+                  defaultValue={selectedDealForEdit.company}
+                  placeholder="Ex: João Silva"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-value">Valor (R$)</Label>
+                <Input
+                  name="value"
+                  type="number"
+                  step="0.01"
+                  defaultValue={selectedDealForEdit.value}
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-probability">Probabilidade (%)</Label>
+                <Input
+                  name="probability"
+                  type="number"
+                  min="0"
+                  max="100"
+                  defaultValue={selectedDealForEdit.probability}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-description">Descrição</Label>
+                <Textarea
+                  name="description"
+                  defaultValue={selectedDealForEdit.description || ''}
+                  placeholder="Detalhes sobre o negócio..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDealDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={updateFullDealMutation.isPending}>
+                  {updateFullDealMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
