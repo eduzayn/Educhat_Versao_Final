@@ -52,7 +52,7 @@ import { ConversationAssignmentDropdown } from './components/ConversationAssignm
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
-import { ConversationList } from './components/ConversationList';
+
 import { InfiniteConversationList } from './components/InfiniteConversationList';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';

@@ -69,14 +69,14 @@ export function InfiniteConversationList({
     return matchesSearch && matchesStatus && matchesChannel;
   });
 
-  const renderChannelIcon = (channel: string) => {
+  const renderChannelBadge = (channel: string) => {
     const getChannelColor = (ch: string) => {
       switch (ch) {
-        case 'whatsapp': return 'bg-green-500 text-white';
-        case 'instagram': return 'bg-pink-500 text-white';
-        case 'facebook': return 'bg-blue-500 text-white';
-        case 'email': return 'bg-gray-500 text-white';
-        default: return 'bg-gray-400 text-white';
+        case 'whatsapp': return 'bg-green-500';
+        case 'instagram': return 'bg-pink-500';
+        case 'facebook': return 'bg-blue-500';
+        case 'email': return 'bg-gray-500';
+        default: return 'bg-gray-400';
       }
     };
 
@@ -91,7 +91,7 @@ export function InfiniteConversationList({
     };
 
     return (
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getChannelColor(channel)}`}>
+      <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium ${getChannelColor(channel)} border border-white shadow-sm`}>
         {getChannelLabel(channel)}
       </div>
     );
