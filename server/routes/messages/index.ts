@@ -221,7 +221,7 @@ export function registerMessageRoutes(app: Express) {
         
         // Se a imagem não for encontrada ou expirou, retornar SVG placeholder
         if (response.status === 404 || response.status === 403 || response.status === 410) {
-          console.log(`⚠️ Imagem não encontrada (${response.status}): ${imageUrl}`);
+          console.log(`⚠️ URL do WhatsApp expirada (${response.status}) - substituindo por placeholder: ${imageUrl}`);
           
           const placeholderSvg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
             <rect width="200" height="200" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"/>
