@@ -8,98 +8,80 @@ import { eq, desc, and, count, sql, inArray } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    console.log('🔄 Iniciando busca de conversas:', { limit, offset });
     const startTime = Date.now();
 
-    // Buscar conversas com dados básicos
+    // Query otimizada: buscar apenas campos essenciais
     const conversationsData = await this.db
       .select({
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
-        channelId: conversations.channelId,
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
         isRead: conversations.isRead,
         priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
         createdAt: conversations.createdAt,
         updatedAt: conversations.updatedAt,
         
-        // Contact fields
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
+        // Apenas campos essenciais do contato
+        contactName: contacts.name,
+        contactPhone: contacts.phone,
+        contactProfileImage: contacts.profileImageUrl
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
+      .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
-
-    // Buscar última mensagem para cada conversa em uma única query
-    const conversationIds = conversationsData.map(conv => conv.id);
-    const lastMessages = conversationIds.length > 0 ? await this.db
-      .select({
-        conversationId: messages.conversationId,
-        id: messages.id,
-        content: messages.content,
-        messageType: messages.messageType,
-        isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt,
-        metadata: messages.metadata
-      })
-      .from(messages)
-      .where(and(
-        inArray(messages.conversationId, conversationIds),
-        eq(messages.isDeleted, false)
-      ))
-      .orderBy(desc(messages.sentAt)) : [];
-
-    // Agrupar mensagens por conversa (apenas a primeira/última de cada conversa)
-    const messagesByConversation = new Map();
-    for (const msg of lastMessages) {
-      if (!messagesByConversation.has(msg.conversationId)) {
-        messagesByConversation.set(msg.conversationId, msg);
-      }
-    }
 
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados com última mensagem para prévias
+    // Retornar dados otimizados
     return conversationsData.map(conv => ({
-      ...conv,
+      id: conv.id,
+      contactId: conv.contactId,
+      channel: conv.channel,
+      channelId: null,
+      status: conv.status,
+      lastMessageAt: conv.lastMessageAt,
+      unreadCount: conv.unreadCount,
+      teamType: null,
+      assignedTeamId: conv.assignedTeamId,
+      assignedUserId: conv.assignedUserId,
+      assignmentMethod: null,
+      assignedAt: null,
+      isRead: conv.isRead,
+      priority: conv.priority,
+      tags: [],
+      metadata: null,
+      createdAt: conv.createdAt,
+      updatedAt: conv.updatedAt,
       contact: {
-        ...conv.contact,
+        id: conv.contactId,
+        userIdentity: null,
+        name: conv.contactName,
+        email: null,
+        phone: conv.contactPhone,
+        profileImageUrl: conv.contactProfileImage,
+        location: null,
+        age: null,
+        isOnline: false,
+        lastSeenAt: null,
+        canalOrigem: null,
+        nomeCanal: null,
+        idCanal: null,
+        assignedUserId: null,
         tags: [],
+        createdAt: conv.createdAt,
+        updatedAt: conv.updatedAt,
         deals: []
       },
       channelInfo: undefined,
-      messages: messagesByConversation.has(conv.id) ? [messagesByConversation.get(conv.id)] : [],
+      messages: [],
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
