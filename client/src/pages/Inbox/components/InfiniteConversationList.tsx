@@ -82,7 +82,7 @@ export function InfiniteConversationList({
 
     const getChannelLabel = (ch: string) => {
       switch (ch) {
-        case 'whatsapp': return 'WA';
+        case 'whatsapp': return 'W';
         case 'instagram': return 'IG';
         case 'facebook': return 'FB';
         case 'email': return '@';
