@@ -265,10 +265,10 @@ export class DealStorage extends BaseStorage {
     const toRemove = [];
     const details = [];
     
-    for (const [key, deals] of dealGroups) {
+    for (const [key, deals] of dealGroups.entries()) {
       if (deals.length > 1) {
         // Manter apenas o deal mais recente
-        const sortedDeals = deals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const sortedDeals = deals.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         const keepDeal = sortedDeals[0];
         const duplicates = sortedDeals.slice(1);
         

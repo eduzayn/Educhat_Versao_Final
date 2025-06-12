@@ -366,19 +366,19 @@ export class CentralStorage {
 
   // ==================== CONTACT NOTES OPERATIONS ====================
   async createContactNote(noteData: any) {
-    return this.notes.createNote(noteData);
+    return this.notes.createContactNote(noteData);
   }
 
   async updateContactNote(id: number, noteData: any) {
-    return this.notes.updateNote(id, noteData);
+    return this.notes.updateContactNote(id, noteData);
   }
 
   async deleteContactNote(id: number) {
-    return this.notes.deleteNote(id);
+    return this.notes.deleteContactNote(id);
   }
 
   async getContactNotes(contactId: number) {
-    return this.notes.getNotesByContact(contactId);
+    return this.notes.getContactNotes(contactId);
   }
 }
 
