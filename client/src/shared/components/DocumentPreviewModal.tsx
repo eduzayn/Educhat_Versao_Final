@@ -64,8 +64,18 @@ export function DocumentPreviewModal({
             src={documentUrl}
             alt={fileName}
             className="max-w-full max-h-full object-contain rounded-lg"
-            onError={() => {
-              secureLog.error("Erro ao carregar imagem", { fileName });
+            crossOrigin="anonymous"
+            referrerPolicy="strict-origin-when-cross-origin"
+            onError={(e) => {
+              secureLog.error("Erro ao carregar imagem", { fileName, url: documentUrl });
+              // Tentar carregar através de proxy se falhar diretamente
+              const target = e.target as HTMLImageElement;
+              if (!target.src.includes('/api/proxy/image/')) {
+                target.src = `/api/proxy/image/${encodeURIComponent(documentUrl)}`;
+              }
+            }}
+            onLoad={() => {
+              secureLog.debug("Imagem carregada com sucesso", { fileName });
             }}
           />
         </div>

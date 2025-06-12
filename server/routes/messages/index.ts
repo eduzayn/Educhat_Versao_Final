@@ -161,6 +161,16 @@ export function registerMessageRoutes(app: Express) {
         return res.status(404).json({ error: 'URL da mídia não encontrada ou inválida' });
       }
 
+      // Configurar headers para permitir visualização inline e evitar bloqueio do Chrome
+      res.set({
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Cache-Control': 'public, max-age=3600'
+      });
+
       res.json({
         content: mediaInfo.mediaUrl,
         fileName: mediaInfo.fileName,
@@ -172,6 +182,52 @@ export function registerMessageRoutes(app: Express) {
 
     } catch (error) {
       console.error('Erro ao buscar mídia:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Proxy para imagens para resolver problemas de CORS e bloqueio do Chrome
+  app.get('/api/proxy/image/:url', async (req, res) => {
+    try {
+      const imageUrl = decodeURIComponent(req.params.url);
+      
+      // Validar URL
+      if (!imageUrl || !imageUrl.startsWith('http')) {
+        return res.status(400).json({ error: 'URL inválida' });
+      }
+
+      // Fazer fetch da imagem
+      const response = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'EduChat/1.0 (Image Proxy)',
+          'Accept': 'image/*,*/*;q=0.8',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Falha ao carregar imagem' });
+      }
+
+      // Configurar headers para permitir visualização inline
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      
+      res.set({
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      });
+
+      // Stream da imagem
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+
+    } catch (error) {
+      console.error('Erro no proxy de imagem:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
