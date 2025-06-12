@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { messages, conversations, users, type Message, type InsertMessage } from "../../../shared/schema";
+import { messages, conversations, users, systemUsers, type Message, type InsertMessage } from "../../../shared/schema";
 import { eq, desc, and, isNull } from "drizzle-orm";
 
 /**
@@ -34,12 +34,29 @@ export class MessageStorage extends BaseStorage {
       baseMessages.map(async (message) => {
         if (message.isDeletedByUser && message.deletedBy) {
           try {
+            // Primeiro tenta buscar na tabela systemUsers
+            const [systemUserInfo] = await this.db.select({
+              id: systemUsers.id,
+              displayName: systemUsers.displayName,
+              username: systemUsers.username
+            }).from(systemUsers)
+            .where(eq(systemUsers.id, message.deletedBy))
+            .limit(1);
+            
+            if (systemUserInfo) {
+              return {
+                ...message,
+                deletedByUser: systemUserInfo
+              };
+            }
+            
+            // Se não encontrar em systemUsers, tenta na tabela users (fallback)
             const [userInfo] = await this.db.select({
               id: users.id,
-              displayName: users.displayName,
-              username: users.username
+              displayName: users.firstName,
+              username: users.email
             }).from(users)
-            .where(eq(users.id, message.deletedBy))
+            .where(eq(users.id, String(message.deletedBy)))
             .limit(1);
             
             return {
