@@ -37,6 +37,7 @@ import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { AudioRecorder, AudioRecorderRef } from "./AudioRecorder";
+import { MediaAttachmentModal } from "./MediaAttachmentModal";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -64,9 +65,7 @@ export function InputArea() {
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkText, setLinkText] = useState("");
+
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [quickReplyFilter, setQuickReplyFilter] = useState("");
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
@@ -681,16 +680,28 @@ export function InputArea() {
     input.click();
   };
 
-  const handleSendLink = () => {
-    if (linkUrl.trim() && linkText.trim()) {
-      sendLinkMutation.mutate({ url: linkUrl.trim(), text: linkText.trim() });
+
+
+  // Função para upload de arquivos do MediaAttachmentModal
+  const handleFileUpload = (file: File, caption?: string) => {
+    const fileType = file.type;
+    
+    if (fileType.startsWith('image/')) {
+      sendImageMutation.mutate(file);
+    } else if (fileType.startsWith('video/')) {
+      sendVideoMutation.mutate(file);
+    } else if (fileType.startsWith('audio/')) {
+      // Para áudio, usar a mesma lógica de documento por enquanto
+      sendDocumentMutation.mutate(file);
     } else {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha a URL e o texto do link.",
-        variant: "destructive",
-      });
+      sendDocumentMutation.mutate(file);
     }
+  };
+
+  // Função para compartilhar links do MediaAttachmentModal
+  const handleLinkShare = (url: string, caption?: string) => {
+    const linkText = caption && caption.trim() ? caption.trim() : url;
+    sendLinkMutation.mutate({ url: url.trim(), text: linkText });
   };
 
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
@@ -765,132 +776,11 @@ export function InputArea() {
 
       {/* Interface de digitação sempre visível */}
       <div className="flex items-end space-x-3">
-        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 text-educhat-medium hover:text-educhat-blue"
-              disabled={!activeConversation?.contact.phone}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="w-96">
-            <DialogHeader>
-              <DialogTitle>Enviar Anexo</DialogTitle>
-            </DialogHeader>
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              {/* Botão para Imagem */}
-              <Button
-                onClick={() => handleFileSelect("image")}
-                disabled={sendImageMutation.isPending}
-                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                {sendImageMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Image className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Imagem</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Vídeo */}
-              <Button
-                onClick={() => handleFileSelect("video")}
-                disabled={sendVideoMutation.isPending}
-                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
-              >
-                {sendVideoMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <Video className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Vídeo</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Documento */}
-              <Button
-                onClick={() => handleFileSelect("document")}
-                disabled={sendDocumentMutation.isPending}
-                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
-              >
-                {sendDocumentMutation.isPending ? (
-                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <FileText className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Documento</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Botão para Link */}
-              <Button
-                onClick={() => {
-                  /* Abrirá seção de link */
-                }}
-                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                <Link className="w-8 h-8 mb-2" />
-                <span className="text-sm">Link</span>
-              </Button>
-            </div>
-
-            {/* Seção para envio de link */}
-            <div className="mt-6 space-y-3">
-              <div>
-                <Label htmlFor="linkUrl">URL do Link</Label>
-                <Input
-                  id="linkUrl"
-                  type="url"
-                  placeholder="https://exemplo.com"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="linkText">Texto do Link</Label>
-                <Input
-                  id="linkText"
-                  placeholder="Descrição do link"
-                  value={linkText}
-                  onChange={(e) => setLinkText(e.target.value)}
-                />
-              </div>
-
-              <Button
-                onClick={handleSendLink}
-                disabled={
-                  !linkUrl.trim() ||
-                  !linkText.trim() ||
-                  sendLinkMutation.isPending
-                }
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-              >
-                {sendLinkMutation.isPending ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                ) : (
-                  <Link className="w-4 h-4 mr-2" />
-                )}
-                Enviar Link
-              </Button>
-            </div>
-
-            {!activeConversation?.contact.phone && (
-              <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
-                Anexos disponíveis apenas para contatos do WhatsApp
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <MediaAttachmentModal
+          onFileUpload={handleFileUpload}
+          onLinkShare={handleLinkShare}
+          isUploading={sendImageMutation.isPending || sendVideoMutation.isPending || sendDocumentMutation.isPending}
+        />
 
         <Button
           variant="ghost"
