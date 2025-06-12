@@ -426,7 +426,6 @@ export function InputArea() {
         title: "Imagem enviada",
         description: "Sua imagem foi enviada com sucesso!",
       });
-      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -508,7 +507,6 @@ export function InputArea() {
         title: "Vídeo enviado",
         description: "Seu vídeo foi enviado com sucesso!",
       });
-      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -587,7 +585,6 @@ export function InputArea() {
         title: "Documento enviado",
         description: "Seu documento foi enviado com sucesso!",
       });
-      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -631,9 +628,6 @@ export function InputArea() {
         title: "Link enviado",
         description: "Seu link foi enviado com sucesso!",
       });
-      setIsAttachmentOpen(false);
-      setLinkUrl("");
-      setLinkText("");
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -652,33 +646,7 @@ export function InputArea() {
     },
   });
 
-  const handleFileSelect = (type: "image" | "video" | "document") => {
-    const input = document.createElement("input");
-    input.type = "file";
 
-    if (type === "image") {
-      input.accept = "image/*";
-    } else if (type === "video") {
-      input.accept = "video/*";
-    } else if (type === "document") {
-      input.accept = ".pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx";
-    }
-
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (type === "image") {
-          sendImageMutation.mutate(file);
-        } else if (type === "video") {
-          sendVideoMutation.mutate(file);
-        } else if (type === "document") {
-          sendDocumentMutation.mutate(file);
-        }
-      }
-    };
-
-    input.click();
-  };
 
 
 
