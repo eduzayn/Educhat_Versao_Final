@@ -212,6 +212,8 @@ export function registerMessageRoutes(app: Express) {
       console.log('🗑️ SOFT DELETE - Iniciando processo para mensagem recebida:', {
         messageId: parsedMessageId,
         userId,
+        userIdType: typeof userId,
+        req_user: req.user,
         comportamento: 'Remove apenas da interface (NÃO deleta no WhatsApp)'
       });
 

@@ -143,6 +143,13 @@ export class MessageStorage extends BaseStorage {
 
   async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean, userId?: number): Promise<boolean> {
     try {
+      console.log('🔍 DEBUG markMessageAsDeletedByUser:', {
+        messageId,
+        deletedByUser,
+        userId,
+        userIdType: typeof userId
+      });
+
       const result = await this.db.update(messages)
         .set({ 
           isDeletedByUser: deletedByUser,
@@ -152,6 +159,7 @@ export class MessageStorage extends BaseStorage {
         .where(eq(messages.id, messageId))
         .returning();
       
+      console.log('✅ UPDATE result:', result[0]);
       return result.length > 0;
     } catch (error) {
       console.error('Erro ao marcar mensagem como deletada pelo usuário:', error);
