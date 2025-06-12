@@ -12,7 +12,7 @@ export function registerMessageRoutes(app: Express) {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-      const messages = await storage.messages.getMessages(id, limit, offset);
+      const messages = await storage.messages.getMessagesWithDeletedByInfo(id, limit, offset);
       res.json(messages); // Return in descending order (newest first for pagination)
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -190,18 +190,24 @@ export function registerMessageRoutes(app: Express) {
 
 
   // Soft Delete (Mensagens Recebidas) - POST /api/messages/soft-delete
-  app.post('/api/messages/soft-delete', async (req, res) => {
+  app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
     try {
       const { messageId } = req.body;
+      const userId = req.user?.id;
 
       if (!messageId || isNaN(parseInt(messageId))) {
         return res.status(400).json({ error: 'messageId é obrigatório e deve ser um número válido' });
+      }
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
       }
 
       const parsedMessageId = parseInt(messageId);
 
       console.log('🗑️ SOFT DELETE - Iniciando processo para mensagem recebida:', {
         messageId: parsedMessageId,
+        userId,
         comportamento: 'Remove apenas da interface (NÃO deleta no WhatsApp)'
       });
 
@@ -225,8 +231,8 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
       }
 
-      // Marcar como deletada apenas no sistema (isDeleted = true)
-      const success = await storage.markMessageAsDeletedByUser(parsedMessageId, true);
+      // Marcar como deletada apenas no sistema (isDeleted = true) com ID do usuário
+      const success = await storage.messages.markMessageAsDeletedByUser(parsedMessageId, true, userId);
       
       console.log('✅ SOFT DELETE - Mensagem ocultada da interface:', {
         messageId: parsedMessageId,
