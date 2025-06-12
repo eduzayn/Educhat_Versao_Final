@@ -207,6 +207,10 @@ export class CentralStorage {
     return this.deal.createAutomaticDeal(contactId, canalOrigem, team);
   }
 
+  async getDealsByContact(contactId: number) {
+    return this.deal.getDealsByContact(contactId);
+  }
+
   // ==================== TEAM OPERATIONS ====================
   async createTeam(teamData: any) {
     return this.team.createTeam(teamData);

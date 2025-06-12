@@ -248,13 +248,8 @@ export function registerDealsRoutes(app: Express) {
   });
 
   // Get deals by contact - REST: GET /api/contacts/:contactId/deals
-  app.get('/api/contacts/:contactId/deals', async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/contacts/:contactId/deals', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Verificar se o usuário está autenticado
-      if (!req.user) {
-        return res.status(401).json({ error: 'Acesso negado - usuário não autenticado' });
-      }
-
       const contactId = parseInt(req.params.contactId);
       
       if (isNaN(contactId)) {
