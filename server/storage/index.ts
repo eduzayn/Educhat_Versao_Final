@@ -273,6 +273,10 @@ export class Storage {
     return this.message.markMessageAsDelivered(id);
   }
 
+  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean) {
+    return this.message.markMessageAsDeletedByUser(messageId, deletedByUser);
+  }
+
   // Soft delete methods available through message module
 
   // ==================== QUICK REPLY OPERATIONS ====================
