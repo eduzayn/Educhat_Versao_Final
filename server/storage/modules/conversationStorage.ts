@@ -536,21 +536,7 @@ export class ConversationStorage extends BaseStorage {
     return result?.count || 0;
   }
 
-  async markConversationAsRead(conversationId: number): Promise<void> {
-    await this.resetUnreadCount(conversationId);
-  }
 
-  async markConversationAsUnread(conversationId: number): Promise<void> {
-    // Definir a conversa como não lida com pelo menos 1 mensagem não lida
-    await this.db
-      .update(conversations)
-      .set({
-        unreadCount: 1,
-        isRead: false,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
 
   async recalculateUnreadCounts(): Promise<void> {
     // Implementação básica - pode ser expandida conforme necessário

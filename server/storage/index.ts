@@ -363,6 +363,23 @@ export class CentralStorage {
       assignedTeamId: null
     });
   }
+
+  // ==================== CONTACT NOTES OPERATIONS ====================
+  async createContactNote(noteData: any) {
+    return this.notes.createNote(noteData);
+  }
+
+  async updateContactNote(id: number, noteData: any) {
+    return this.notes.updateNote(id, noteData);
+  }
+
+  async deleteContactNote(id: number) {
+    return this.notes.deleteNote(id);
+  }
+
+  async getContactNotes(contactId: number) {
+    return this.notes.getNotesByContact(contactId);
+  }
 }
 
 export const storage = new CentralStorage();

@@ -12,6 +12,7 @@ const router = Router();
 
 // Instanciar serviços
 const intelligentHandoffService = new IntelligentHandoffService();
+const handoffService = intelligentHandoffService;
 
 // GET /api/handoffs - Buscar todos os handoffs
 router.get('/', async (req, res) => {
