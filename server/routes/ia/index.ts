@@ -132,8 +132,8 @@ router.post('/test', async (req: Request, res: Response) => {
 
     console.log('🧪 Testando IA com mensagem:', message);
     
-    const classification = await aiService.classifyMessage(message, 0);
-    const response = await aiService.generateResponse(message, classification, 0);
+    const classification = await aiService.classifyMessage(message, 0, 0, []);
+    const response = await aiService.generateResponse(message, classification, 0, 0);
     
     res.json({
       message: response.message,
@@ -181,8 +181,8 @@ router.post('/contexts', async (req: Request, res: Response) => {
       .insert(aiContext)
       .values({
         name: title,
+        type: category,
         content,
-        category,
         isActive: true
       })
       .returning();
@@ -242,8 +242,8 @@ router.post('/upload-training', upload.single('file'), async (req: Request, res:
             .insert(aiContext)
             .values({
               name: title,
+              type: 'upload',
               content,
-              category: 'upload',
               isActive: true
             })
             .returning();
