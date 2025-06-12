@@ -390,7 +390,7 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
-  // Proxy para imagens do WhatsApp - REST: GET /api/proxy/whatsapp-image
+  // Sistema robusto de proxy para imagens WhatsApp - REST: GET /api/proxy/whatsapp-image
   app.get('/api/proxy/whatsapp-image', async (req, res) => {
     try {
       const { url } = req.query;
@@ -400,86 +400,175 @@ export function registerUtilitiesRoutes(app: Express) {
       }
 
       // Verificar se é uma URL válida do WhatsApp
-      if (!url.includes('pps.whatsapp.net') && !url.includes('mmg.whatsapp.net')) {
+      if (!url.includes('pps.whatsapp.net') && !url.includes('mmg.whatsapp.net') && !url.includes('media.whatsapp.net')) {
         return res.status(400).json({ error: 'URL não é do WhatsApp' });
       }
 
-      console.log('🖼️ Proxying WhatsApp image:', url);
+      console.log('🖼️ Tentando carregar imagem WhatsApp:', url.substring(0, 100) + '...');
 
-      // Fazer requisição para a imagem original
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
-          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
+      // Estratégias de requisição com diferentes User-Agents e headers
+      const strategies = [
+        {
+          name: 'WhatsApp Web',
+          headers: {
+            'User-Agent': 'WhatsApp/2.23.24.76 A',
+            'Accept': 'image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://web.whatsapp.com/',
+            'Origin': 'https://web.whatsapp.com',
+            'Sec-Fetch-Dest': 'image',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+          },
+          timeout: 8000
         },
-        timeout: 10000
-      });
+        {
+          name: 'Chrome Desktop',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Pragma': 'no-cache'
+          },
+          timeout: 10000
+        },
+        {
+          name: 'Safari Mobile',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'Accept': 'image/png,image/svg+xml,image/*;q=0.8,video/*;q=0.8,*/*;q=0.5',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive'
+          },
+          timeout: 12000
+        }
+      ];
 
-      if (!response.ok) {
-        console.log('⚠️ WhatsApp image URL expired, returning placeholder');
-        
-        // Retornar placeholder SVG para imagem indisponível
-        const placeholderSvg = `
-          <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-            <rect width="200" height="200" fill="#f3f4f6"/>
-            <rect x="50" y="50" width="100" height="100" fill="#d1d5db" rx="8"/>
-            <text x="100" y="110" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">
-              Imagem não
-            </text>
-            <text x="100" y="125" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">
-              disponível
-            </text>
-          </svg>
-        `;
-        
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.send(placeholderSvg);
+      let lastError: Error | null = null;
+
+      // Tentar cada estratégia
+      for (const strategy of strategies) {
+        try {
+          console.log(`🔄 Tentando estratégia: ${strategy.name}`);
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), strategy.timeout);
+
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: strategy.headers,
+            signal: controller.signal,
+            redirect: 'follow'
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            console.log(`✅ Sucesso com estratégia: ${strategy.name}`);
+            
+            const contentType = response.headers.get('content-type') || 'image/jpeg';
+            const contentLength = response.headers.get('content-length');
+            
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+            
+            if (contentLength) {
+              res.setHeader('Content-Length', contentLength);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            return res.send(Buffer.from(arrayBuffer));
+          }
+
+          // URL expirou (404, 403, 410)
+          if (response.status === 404 || response.status === 403 || response.status === 410) {
+            console.log(`⚠️ URL WhatsApp expirada (${response.status}) com ${strategy.name}`);
+            throw new Error(`WhatsApp URL expired: ${response.status}`);
+          }
+
+          console.log(`⚠️ Falha ${response.status} com ${strategy.name}`);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+        } catch (error) {
+          lastError = error as Error;
+          console.log(`❌ Estratégia ${strategy.name} falhou: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          continue;
+        }
       }
 
-      // Definir headers apropriados
-      const contentType = response.headers.get('content-type') || 'image/jpeg';
-      const contentLength = response.headers.get('content-length');
+      // Todas as estratégias falharam - URL definitivamente expirada
+      console.log('⚠️ Todas as tentativas falharam - URL WhatsApp expirada, retornando placeholder');
       
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 dia
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      
-      if (contentLength) {
-        res.setHeader('Content-Length', contentLength);
-      }
-
-      // Stream da imagem para o cliente
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      
-      res.send(buffer);
-      
-    } catch (error) {
-      console.error('❌ Erro no proxy de imagem:', error);
-      
-      // Retornar placeholder em caso de erro
-      const errorSvg = `
-        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="200" height="200" fill="#fef2f2"/>
-          <rect x="50" y="50" width="100" height="100" fill="#fca5a5" rx="8"/>
-          <text x="100" y="110" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="12">
-            Erro ao carregar
-          </text>
-          <text x="100" y="125" text-anchor="middle" fill="#dc2626" font-family="Arial, sans-serif" font-size="12">
-            imagem
-          </text>
-        </svg>
-      `;
+      const placeholderSvg = `<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+        <defs>
+          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
+          </linearGradient>
+          <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="1" fill="#e2e8f0" opacity="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="300" height="200" fill="url(#bgGrad)" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+        <rect width="300" height="200" fill="url(#dots)" opacity="0.3"/>
+        <g transform="translate(150, 70)">
+          <circle r="25" fill="#cbd5e1" opacity="0.7"/>
+          <g transform="translate(-12, -8)">
+            <rect x="0" y="0" width="24" height="16" fill="none" stroke="#64748b" stroke-width="2" rx="2"/>
+            <circle cx="8" cy="6" r="3" fill="none" stroke="#64748b" stroke-width="1.5"/>
+            <polyline points="2,12 8,8 14,12 22,6" fill="none" stroke="#64748b" stroke-width="1.5"/>
+          </g>
+        </g>
+        <text x="150" y="130" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#64748b">
+          Imagem não disponível
+        </text>
+        <text x="150" y="150" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">
+          URL do WhatsApp expirou
+        </text>
+        <text x="150" y="170" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#cbd5e1">
+          As imagens do WhatsApp expiram após alguns dias
+        </text>
+      </svg>`;
       
       res.setHeader('Content-Type', 'image/svg+xml');
-      res.setHeader('Cache-Control', 'public, max-age=300'); // Cache menor para erros
-      res.status(200).send(errorSvg);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.send(placeholderSvg);
+
+    } catch (error) {
+      console.error('❌ Erro crítico no proxy WhatsApp:', error);
+      
+      // Placeholder para erro de sistema
+      const errorSvg = `<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+        <rect width="300" height="200" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="8"/>
+        <g transform="translate(150, 70)">
+          <circle r="25" fill="#f87171"/>
+          <g transform="translate(-8, -8)" stroke="#dc2626" stroke-width="3" fill="none">
+            <line x1="0" y1="0" x2="16" y2="16"/>
+            <line x1="16" y1="0" x2="0" y2="16"/>
+          </g>
+        </g>
+        <text x="150" y="130" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#dc2626">
+          Erro ao carregar imagem
+        </text>
+        <text x="150" y="150" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ef4444">
+          Falha no sistema de proxy
+        </text>
+      </svg>`;
+      
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.send(errorSvg);
     }
   });
 

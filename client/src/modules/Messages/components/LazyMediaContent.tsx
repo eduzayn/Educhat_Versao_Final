@@ -156,8 +156,11 @@ export function LazyMediaContent({
                   className="rounded-lg max-w-full h-auto cursor-pointer"
                   onClick={() => setShowPreviewModal(true)}
                   onError={(e) => {
-                    // Se a imagem falhar ao carregar, não mostrar erro (placeholder será usado pelo proxy)
-                    console.log('🖼️ Imagem processada pelo proxy');
+                    // O novo sistema de proxy já trata automaticamente URLs expiradas
+                    console.log('🖼️ Imagem carregada via proxy robusto');
+                  }}
+                  onLoad={() => {
+                    console.log('✅ Imagem carregada com sucesso');
                   }}
                 />
               </div>
