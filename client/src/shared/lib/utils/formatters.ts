@@ -23,3 +23,6 @@ export function formatAudioTime(seconds: number): string {
 
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
+
+// Ensure formatAudioTime is explicitly exported
+export { formatAudioTime as formatAudioTime };

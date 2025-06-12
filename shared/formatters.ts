@@ -6,28 +6,28 @@
 // ========== FORMATAÇÃO DE TELEFONE ==========
 export function formatPhoneForDisplay(phone: string): string {
   const cleanPhone = phone.replace(/\D/g, '');
-  
+
   if (cleanPhone.length === 13 && cleanPhone.startsWith('55')) {
     // Formato: +55 (11) 99999-9999
     const ddd = cleanPhone.substring(2, 4);
     const number = cleanPhone.substring(4);
     return `+55 (${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
   }
-  
+
   if (cleanPhone.length === 11) {
     // Formato: (11) 99999-9999
     const ddd = cleanPhone.substring(0, 2);
     const number = cleanPhone.substring(2);
     return `(${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
   }
-  
+
   if (cleanPhone.length === 10) {
     // Formato: (11) 9999-9999
     const ddd = cleanPhone.substring(0, 2);
     const number = cleanPhone.substring(2);
     return `(${ddd}) ${number.substring(0, 4)}-${number.substring(4)}`;
   }
-  
+
   return phone;
 }
 
@@ -66,8 +66,17 @@ export function formatDateTimeBR(date: Date | string): string {
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: 'BRL'
   }).format(value);
+}
+
+export function formatAudioTime(seconds: number): string {
+  if (!seconds || seconds <= 0) return '0:00';
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 export function formatNumber(value: number, decimals: number = 0): string {
@@ -94,14 +103,14 @@ export function formatDurationMinutes(minutes: number): string {
 
 export function formatDurationSeconds(seconds: number): string {
   if (isNaN(seconds) || seconds < 0) return "0:00";
-  
+
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  
+
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-export const formatAudioTime = formatDurationSeconds;
+export const formatAudioTime2 = formatDurationSeconds;
 
 // ========== FORMATAÇÃO DE TEXTO ==========
 export function capitalizeWords(text: string): string {
@@ -125,11 +134,11 @@ export function formatInitials(name: string): string {
 // ========== FORMATAÇÃO DE TAMANHO DE ARQUIVO ==========
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
