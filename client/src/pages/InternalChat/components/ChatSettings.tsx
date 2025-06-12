@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/shared/ui/dialog";
 import {
   Card,
@@ -114,6 +115,9 @@ export function ChatSettings() {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Configurações do Chat</DialogTitle>
+          <DialogDescription>
+            Configure as preferências de notificação e áudio para o chat interno
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
