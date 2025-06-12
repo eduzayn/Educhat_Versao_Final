@@ -151,7 +151,7 @@ export function LazyMediaContent({
             <>
               <div className="relative max-w-xs">
                 <img
-                  src={imageUrl}
+                  src={imageUrl || ''}
                   alt="Imagem enviada"
                   className="rounded-lg max-w-full h-auto cursor-pointer"
                   onClick={() => setShowPreviewModal(true)}
@@ -164,7 +164,7 @@ export function LazyMediaContent({
               <DocumentPreviewModal
                 isOpen={showPreviewModal}
                 onClose={() => setShowPreviewModal(false)}
-                documentUrl={imageUrl}
+                documentUrl={imageUrl || ''}
                 fileName={fileName}
                 fileType="image"
               />

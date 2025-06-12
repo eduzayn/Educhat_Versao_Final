@@ -363,23 +363,79 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
       }
 
-      console.log('🗑️ Deletando mensagem enviada:', {
+      console.log('🗑️ DELETAR MENSAGEM ENVIADA - Iniciando processo completo:', {
         messageId,
         zapiMessageId,
         phone,
         messageTime: messageTime.toISOString(),
-        timeDifference: Math.floor(timeDifference / 1000) + 's'
+        timeDifference: Math.floor(timeDifference / 1000) + 's',
+        hasZapiId: !!zapiMessageId
       });
 
-      // Marcar como deletada localmente primeiro
+      // Se temos zapiMessageId, deletar via Z-API primeiro (para ambos os usuários)
+      let zapiDeletionSuccess = false;
+      if (zapiMessageId && phone) {
+        try {
+          console.log('🌐 DELETAR VIA Z-API - Tentando deletar para ambos os usuários');
+          
+          // Importar utilitários do Z-API
+          const { validateZApiCredentials } = await import('../../core/zapi-utils');
+          
+          const credentials = validateZApiCredentials();
+          if (!credentials.valid) {
+            console.error('❌ DELETAR VIA Z-API - Credenciais inválidas:', credentials.error);
+            throw new Error(credentials.error);
+          }
+
+          const { instanceId, token, clientToken } = credentials;
+          const cleanPhone = phone.replace(/\D/g, '');
+          
+          // URL da API Z-API para deletar mensagem
+          const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
+          
+          console.log('🌐 DELETAR VIA Z-API - Fazendo requisição para:', deleteUrl);
+          
+          const deleteResponse = await fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: {
+              'Client-Token': clientToken || '',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              phone: cleanPhone,
+              messageId: zapiMessageId,
+              deleteForEveryone: true // Deletar para ambos os usuários
+            })
+          });
+
+          const deleteResult = await deleteResponse.json();
+          
+          if (deleteResponse.ok) {
+            console.log('✅ DELETAR VIA Z-API - Mensagem deletada com sucesso para ambos os usuários:', deleteResult);
+            zapiDeletionSuccess = true;
+          } else {
+            console.error('❌ DELETAR VIA Z-API - Falha na resposta:', {
+              status: deleteResponse.status,
+              statusText: deleteResponse.statusText,
+              result: deleteResult
+            });
+          }
+        } catch (error) {
+          console.error('❌ DELETAR VIA Z-API - Erro na requisição:', error);
+        }
+      } else {
+        console.log('⚠️ DELETAR VIA Z-API - Pulando (zapiMessageId ou phone não fornecidos)');
+      }
+
+      // Marcar como deletada localmente
       const success = await storage.markMessageAsDeletedByUser(messageId, true);
       
       if (!success) {
-        console.error('❌ Falha ao marcar mensagem como deletada no banco');
+        console.error('❌ DELETAR LOCAL - Falha ao marcar mensagem como deletada no banco');
         return res.status(500).json({ error: 'Erro ao deletar mensagem no banco' });
       }
 
-      console.log('✅ Mensagem marcada como deletada localmente');
+      console.log('✅ DELETAR LOCAL - Mensagem marcada como deletada localmente');
 
       // Broadcast para atualizar interface imediatamente
       const { broadcast } = await import('../realtime');
@@ -387,15 +443,27 @@ export function registerMessageRoutes(app: Express) {
         type: 'message_deleted',
         conversationId: message.conversationId,
         messageId: messageId,
-        deletedAt: new Date().toISOString()
+        deletedAt: new Date().toISOString(),
+        deletedForEveryone: zapiDeletionSuccess
       });
+
+      // Log final do resultado
+      if (zapiDeletionSuccess) {
+        console.log('🎉 DELETAR COMPLETO - Mensagem deletada localmente E para ambos os usuários via Z-API');
+      } else if (zapiMessageId) {
+        console.log('⚠️ DELETAR PARCIAL - Mensagem deletada localmente, mas falha no Z-API');
+      } else {
+        console.log('📱 DELETAR LOCAL - Mensagem deletada apenas localmente (sem zapiMessageId)');
+      }
 
       res.json({ 
         success: true, 
-        message: 'Mensagem removida da sua interface',
-        needsZapiDeletion: !!zapiMessageId,
-        zapiMessageId,
-        phone
+        message: zapiDeletionSuccess 
+          ? 'Mensagem deletada para ambos os usuários' 
+          : 'Mensagem removida da sua interface',
+        localDeletion: true,
+        zapiDeletion: zapiDeletionSuccess,
+        deletedForEveryone: zapiDeletionSuccess
       });
 
     } catch (error) {
