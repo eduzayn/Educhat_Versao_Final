@@ -161,7 +161,7 @@ export class DocumentService {
       const words = text.split(/\s+/).filter(word => word.length > 3);
       
       // Extrair palavras-chave simples (palavras mais frequentes)
-      const wordCount = {};
+      const wordCount: Record<string, number> = {};
       words.forEach(word => {
         const cleaned = word.toLowerCase().replace(/[^\w]/g, '');
         if (cleaned.length > 3) {
@@ -170,31 +170,15 @@ export class DocumentService {
       });
       
       const keywords = Object.entries(wordCount)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 10)
         .map(([word]) => word);
 
-      const analysis = {
+      return {
         summary: lines.slice(0, 3).join(' ').substring(0, 200) + '...',
         keywords: keywords,
         category: 'documento'
       };
-
-      try {
-        const analysis = JSON.parse(response.message);
-        return {
-          summary: analysis.summary || 'Resumo não disponível',
-          keywords: analysis.keywords || [],
-          category: analysis.category || 'Geral'
-        };
-      } catch {
-        // Fallback se JSON não for válido
-        return {
-          summary: text.substring(0, 200) + '...',
-          keywords: this.extractKeywords(text),
-          category: this.categorizeContent(text)
-        };
-      }
 
     } catch (error) {
       console.error('❌ Erro na análise de IA:', error);
