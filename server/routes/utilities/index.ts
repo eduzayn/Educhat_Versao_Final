@@ -315,8 +315,7 @@ export function registerUtilitiesRoutes(app: Express) {
         },
         body: JSON.stringify({
           phone: cleanPhone,
-          messageId: messageId.toString(),
-          deleteForEveryone: true
+          messageId: messageId.toString()
         })
       });
 

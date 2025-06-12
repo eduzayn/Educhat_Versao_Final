@@ -287,8 +287,8 @@ export function registerMessageRoutes(app: Express) {
           const { instanceId, token, clientToken } = credentials;
           const cleanPhone = phone.replace(/\D/g, '');
           
-          // URL correta da API Z-API para deletar mensagem (método DELETE)
-          const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages/${zapiMessageId}`;
+          // URL correta da API Z-API para deletar mensagem
+          const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
           
           console.log('🌐 DELETAR VIA Z-API - Fazendo requisição para:', deleteUrl);
           
@@ -300,8 +300,7 @@ export function registerMessageRoutes(app: Express) {
             },
             body: JSON.stringify({
               phone: cleanPhone,
-              messageId: zapiMessageId,
-              deleteForEveryone: true
+              messageId: zapiMessageId
             })
           });
 
