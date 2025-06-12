@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Badge } from '@/shared/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { formatRelative } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Search, Filter, X, MessageSquare, Clock, CheckCircle } from 'lucide-react';
