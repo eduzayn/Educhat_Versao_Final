@@ -631,7 +631,20 @@ export function InputArea() {
 
         return responseData;
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error("💥 Erro no processo de envio:", error);
+        
+        // Tratamento específico para diferentes tipos de erro
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
+          } else if (error.message.includes('Failed to fetch')) {
+            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
+          } else if (error.message.includes('NetworkError')) {
+            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
+          }
+        }
+        
         throw error;
       }
     },
