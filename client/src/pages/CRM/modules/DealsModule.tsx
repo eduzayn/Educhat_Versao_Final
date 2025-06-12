@@ -189,7 +189,7 @@ export function DealsModule() {
   const updateFullDealMutation = useMutation({
     mutationFn: async (dealData: any) => {
       return apiRequest(`/api/deals/${dealData.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(dealData)
       });
     },
