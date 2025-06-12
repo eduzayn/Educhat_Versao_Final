@@ -6,7 +6,7 @@ import { db } from '../../db';
 import { desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { AIService } from '../../services/aiService';
-import { storage } from '../../storage';
+import { storage } from '../../core/storage';
 
 const router = Router();
 

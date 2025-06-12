@@ -86,6 +86,23 @@ class CentralStorage {
   getMessage = (messageId: number) => this.messages.getMessage(messageId);
   markMessageAsDeletedByUser = (messageId: number, deletedByUser: boolean) => this.messages.markMessageAsDeletedByUser(messageId, deletedByUser);
   getTotalUnreadCount = () => this.conversations.getTotalUnreadCount();
+  
+  // Métodos de Contact com Tags e Paginação
+  getContactsPaginated = (page: number, limit: number) => this.contacts.getContactsPaginated(page, limit);
+  getContactWithTags = (id: number) => this.contacts.getContactWithTags(id);
+  updateContact = (id: number, data: any) => this.contacts.updateContact(id, data);
+  getContactTags = (contactId: number) => this.contacts.getContactTags(contactId);
+  addContactTag = (contactId: number, tag: string) => this.contacts.addContactTag(contactId, tag);
+  removeContactTag = (contactId: number, tag: string) => this.contacts.removeContactTag(contactId, tag);
+  
+  // Métodos de Deal completos
+  getDealsWithPagination = (page: number, limit: number, filters?: any) => this.deals.getDealsWithPagination(page, limit, filters);
+  getDeal = (id: number) => this.deals.getDeal(id);
+  updateDeal = (id: number, data: any) => this.deals.updateDeal(id, data);
+  deleteDeal = (id: number) => this.deals.deleteDeal(id);
+  addDealNote = (dealId: number, noteData: any) => this.deals.addDealNote(dealId, noteData);
+  getDealNotes = (dealId: number) => this.deals.getDealNotes(dealId);
+  getDealStatistics = (filters?: any) => this.deals.getDealStatistics(filters);
 }
 
 export const storage = new CentralStorage();
