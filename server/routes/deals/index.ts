@@ -248,15 +248,32 @@ export function registerDealsRoutes(app: Express) {
   });
 
   // Get deals by contact - REST: GET /api/contacts/:contactId/deals
-  app.get('/api/contacts/:contactId/deals', requirePermission('deals:read'), async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/contacts/:contactId/deals', async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Verificar autenticação básica
+      if (!req.user) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
       const contactId = parseInt(req.params.contactId);
       
       if (isNaN(contactId)) {
         return res.status(400).json({ error: 'ID do contato inválido' });
       }
       
-      const deals = await storage.getDealsByContact(contactId);
+      // Verificar se o usuário tem permissão para ver negócios
+      const userRole = req.user.role;
+      const userId = req.user.id;
+      
+      console.log(`🔍 Buscando negócios do contato ${contactId} - Usuário: ${userId} (${userRole})`);
+      
+      let deals = await storage.getDealsByContact(contactId);
+      
+      // Filtrar negócios baseado no papel do usuário
+      if (!['admin', 'manager', 'superadmin'].includes(userRole)) {
+        // Agentes só veem negócios atribuídos a eles
+        deals = deals.filter(deal => deal.assignedUserId === userId);
+      }
       
       res.json({ deals });
     } catch (error) {
