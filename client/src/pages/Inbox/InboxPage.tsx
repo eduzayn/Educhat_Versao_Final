@@ -85,16 +85,17 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real
   useWebSocket();
   
-  const { 
-    data: conversations, 
-    isLoading, 
-    refetch 
-  } = useConversations(50, { 
-    refetchInterval: 2000, // Polling mais frequente para garantir atualização
-    staleTime: 1000, // Cache menor para dados mais frescos
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
-  });
+  // Usando hook de scroll infinito já integrado no componente
+  // const { 
+  //   data: conversations, 
+  //   isLoading, 
+  //   refetch 
+  // } = useConversations(50, { 
+  //   refetchInterval: 2000, // Polling mais frequente para garantir atualização
+  //   staleTime: 1000, // Cache menor para dados mais frescos
+  //   refetchOnWindowFocus: true,
+  //   refetchOnMount: true
+  // });
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -235,43 +236,7 @@ export function InboxPage() {
 
 
 
-  // Filtrar conversas baseado nos filtros disponíveis
-  const filteredConversations = (conversations || []).filter(conversation => {
-    
-    // Filtro por busca - pesquisar em nome e telefone do contato
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const nameMatch = conversation.contact.name?.toLowerCase().includes(searchLower) || false;
-      const phoneMatch = conversation.contact.phone?.toLowerCase()?.includes(searchLower) || false;
-      const emailMatch = conversation.contact.email?.toLowerCase()?.includes(searchLower) || false;
-      
-      if (!nameMatch && !phoneMatch && !emailMatch) {
-        return false;
-      }
-    }
-    
-    // Filtro por status
-    if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
-    
-    // Filtro por canal - implementação escalável para canais específicos
-    if (channelFilter !== 'all') {
-      // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
-      if (channelFilter === conversation.channel) {
-        return true;
-      }
-      
-      // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
-      if (channelFilter.startsWith('whatsapp-')) {
-        const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-      }
-      
-      // Se não corresponde a nenhum filtro específico, excluir
-      return false;
-    }
-    
-    return true;
-  });
+  // Filtros agora são gerenciados pelo InfiniteConversationList
 
   const getStatusBadge = (status: string) => {
     const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
@@ -364,7 +329,7 @@ export function InboxPage() {
           isWhatsAppAvailable={isWhatsAppAvailable}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
-          onRefresh={() => refetch()}
+          onRefresh={() => window.location.reload()}
         />
 
         {/* Filtros compactos */}
@@ -431,7 +396,7 @@ export function InboxPage() {
       <ContactDialog 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => refetch()}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   );
