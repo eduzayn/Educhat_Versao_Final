@@ -288,45 +288,25 @@ export function registerMessageRoutes(app: Express) {
           const cleanPhone = phone.replace(/\D/g, '');
           
           // URL correta da API Z-API para deletar mensagem
-          const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
+          const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${zapiMessageId}&owner=true`;
           
           console.log('🌐 DELETAR VIA Z-API - Fazendo requisição para:', deleteUrl);
-          
-          const requestBody = {
-            phone: cleanPhone,
-            messageId: zapiMessageId
-          };
-
-          console.log('📝 DELETAR VIA Z-API - Dados da requisição:', {
-            url: deleteUrl,
-            method: 'POST',
-            headers: {
-              'Client-Token': clientToken ? '***' : 'undefined',
-              'Content-Type': 'application/json'
-            },
-            body: requestBody
-          });
 
           const deleteResponse = await fetch(deleteUrl, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
-              'Client-Token': clientToken || '',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
+              'Client-Token': clientToken || ''
+            }
           });
 
+          const responseText = await deleteResponse.text();
           console.log('📥 DELETAR VIA Z-API - Resposta recebida:', {
             status: deleteResponse.status,
             statusText: deleteResponse.statusText,
-            headers: Object.fromEntries(deleteResponse.headers.entries())
+            body: responseText
           });
 
           let deleteResult;
-          const responseText = await deleteResponse.text();
-          
-          console.log('📄 DELETAR VIA Z-API - Texto da resposta:', responseText);
-
           try {
             deleteResult = responseText ? JSON.parse(responseText) : {};
           } catch (parseError) {

@@ -275,11 +275,7 @@ export function registerUtilitiesRoutes(app: Express) {
   // Delete message via Z-API - REST: DELETE /api/zapi/messages/:messageId
   app.delete('/api/zapi/messages/:messageId', async (req, res) => {
     try {
-      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', {
-        params: req.params,
-        body: req.body,
-        headers: req.headers
-      });
+      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', req.body);
       
       const { phone, conversationId } = req.body;
       const messageId = req.params.messageId;
@@ -298,25 +294,18 @@ export function registerUtilitiesRoutes(app: Express) {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
       
       console.log('🗑️ Deletando mensagem via Z-API:', { 
         url,
-        messageId,
-        phone: cleanPhone,
         conversationId 
       });
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          phone: cleanPhone,
-          messageId: messageId.toString()
-        })
+          'Client-Token': clientToken || ''
+        }
       });
 
       const responseText = await response.text();
@@ -358,7 +347,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
       // Se a exclusão foi bem-sucedida, marcar mensagem como deletada no banco
       if (conversationId) {
-        const messages = await storage.messages.getMessages(parseInt(conversationId));
+        const messages = await storage.getMessages(parseInt(conversationId));
         const messageToDelete = messages.find(msg => {
           const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
           const msgId = 'messageId' in metadata ? metadata.messageId : 
@@ -368,7 +357,7 @@ export function registerUtilitiesRoutes(app: Express) {
         });
 
         if (messageToDelete) {
-          await storage.messages.markMessageAsDeleted(messageToDelete.id);
+          await storage.markMessageAsDeleted(messageToDelete.id);
         }
 
         const { broadcast } = await import('../realtime');
@@ -382,7 +371,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
       console.log('✅ Mensagem deletada com sucesso via Z-API:', data);
       
-      res.status(200).json({
+      res.json({
         success: true,
         messageId: messageId.toString(),
         deletedAt: new Date().toISOString(),
