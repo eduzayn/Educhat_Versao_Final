@@ -41,10 +41,10 @@ export function ConversationList({
     const matchesSearch = !searchTerm || 
       conversation.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conversation.contact?.phone?.includes(searchTerm);
-    
+
     const matchesStatus = statusFilter === 'all' || conversation.status === statusFilter;
     const matchesChannel = channelFilter === 'all' || conversation.channel === channelFilter;
-    
+
     return matchesSearch && matchesStatus && matchesChannel;
   }) || [];
 
@@ -70,11 +70,11 @@ export function ConversationList({
 
   const formatLastMessageTime = (date: Date | null) => {
     if (!date) return '';
-    
+
     const now = new Date();
     const messageDate = new Date(date);
     const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 24) {
       return messageDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     } else if (diffInHours < 168) { // 7 dias
@@ -185,7 +185,7 @@ export function ConversationList({
                         {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     {/* Indicador de canal */}
                     <div className="absolute -bottom-1 -right-1">
                       {renderChannelIcon(conversation.channel)}
@@ -221,49 +221,49 @@ export function ConversationList({
                           {conversation.messages[0].isFromContact ? '' : 'Você: '}
                           {(() => {
                             const lastMessage = conversation.messages[0];
-                            
+
                             // Filtrar mensagens genéricas inadequadas primeiro
                             const isGenericMessage = lastMessage.content && (
                               lastMessage.content === 'Mensagem recebida' ||
                               lastMessage.content === 'Mensagem não identificada' ||
                               lastMessage.content === 'Mensagem em processamento'
                             );
-                            
+
                             // Se for mensagem genérica, tentar extrair conteúdo real dos metadados
                             if (isGenericMessage && lastMessage.metadata) {
                               const metadata = lastMessage.metadata as any;
-                              
+
                               // Tentar extrair texto real dos metadados
                               if (metadata.text && metadata.text.message) {
                                 return metadata.text.message;
                               }
-                              
+
                               // Para outros tipos de mídia, mostrar descrição apropriada
                               if (metadata.image) {
                                 const caption = metadata.image.caption;
                                 return caption && caption.trim() ? caption : '📷 Imagem';
                               }
-                              
+
                               if (metadata.audio) {
                                 return '🎵 Áudio';
                               }
-                              
+
                               if (metadata.video) {
                                 const caption = metadata.video.caption;
                                 return caption && caption.trim() ? caption : '🎥 Vídeo';
                               }
-                              
+
                               if (metadata.document) {
                                 const fileName = metadata.document.fileName || metadata.fileName;
                                 return fileName ? `📄 ${fileName}` : '📄 Documento';
                               }
                             }
-                            
+
                             // Para mensagens de texto válidas, sempre mostrar o conteúdo real
                             if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
                               return lastMessage.content;
                             }
-                            
+
                             // Para imagens, mostrar caption se existir
                             if (lastMessage.messageType === 'image') {
                               const caption = (lastMessage.metadata as any)?.image?.caption;
@@ -272,12 +272,12 @@ export function ConversationList({
                               }
                               return '📷 Imagem';
                             }
-                            
+
                             // Para áudios
                             if (lastMessage.messageType === 'audio') {
                               return '🎵 Áudio';
                             }
-                            
+
                             // Para vídeos, mostrar caption se existir
                             if (lastMessage.messageType === 'video') {
                               const caption = (lastMessage.metadata as any)?.video?.caption;
@@ -286,8 +286,32 @@ export function ConversationList({
                               }
                               return '🎥 Vídeo';
                             }
-                            
-                            // Para documentos
+
+                            // Tratar tipos específicos de mensagem
+                            if (lastMessage.messageType === 'audio') {
+                              return '🎵 Áudio';
+                            }
+
+                            if (lastMessage.messageType === 'image') {
+                              return '📷 Imagem';
+                            }
+
+                            if (lastMessage.messageType === 'video') {
+                              return '🎬 Vídeo';
+                            }
+
+                            if (lastMessage.messageType === 'sticker') {
+                              return '🎭 Figurinha';
+                            }
+
+                            if (lastMessage.messageType === 'location') {
+                              return '📍 Localização';
+                            }
+
+                            if (lastMessage.messageType === 'contact') {
+                              return '👤 Contato';
+                            }
+
                             if (lastMessage.messageType === 'document') {
                               const fileName = (lastMessage.metadata as any)?.document?.fileName || (lastMessage.metadata as any)?.fileName;
                               if (fileName) {
@@ -295,12 +319,12 @@ export function ConversationList({
                               }
                               return '📄 Documento';
                             }
-                            
+
                             // Fallback final - só usar se realmente não tiver conteúdo
                             if (lastMessage.content && !isGenericMessage) {
                               return lastMessage.content;
                             }
-                            
+
                             return 'Nova mensagem';
                           })()}
                         </>
