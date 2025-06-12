@@ -249,33 +249,64 @@ export function registerContactRoutes(app: Express) {
           if (!contact.phone) continue;
           
           const cleanPhone = contact.phone.replace(/\D/g, '');
+          
+          // Formato correto da URL conforme documentação Z-API
           const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/${cleanPhone}/profile-picture`;
+          
+          console.log(`🔍 Buscando foto para ${contact.name} (${cleanPhone})`);
           
           const response = await fetch(url, {
             method: 'GET',
             headers: {
-              'Client-Token': clientToken || '',
+              'Client-Token': clientToken,
               'Content-Type': 'application/json'
             }
           });
 
+          const responseText = await response.text();
+          console.log(`📋 Resposta Z-API para ${cleanPhone}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            response: responseText.substring(0, 200)
+          });
+
           if (!response.ok) {
-            console.log(`❌ Erro ao buscar foto para ${cleanPhone}: ${response.status}`);
+            console.log(`❌ Erro HTTP ${response.status} para ${cleanPhone}: ${response.statusText}`);
             errors++;
             continue;
           }
 
-          const data = await response.json();
+          let data;
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            console.log(`❌ Erro ao fazer parse JSON para ${cleanPhone}:`, parseError);
+            errors++;
+            continue;
+          }
           
-          if (data.value?.profilePictureUrl) {
+          // Verificar diferentes estruturas de resposta possíveis
+          let profilePictureUrl = null;
+          
+          if (data.profilePictureUrl) {
+            profilePictureUrl = data.profilePictureUrl;
+          } else if (data.value?.profilePictureUrl) {
+            profilePictureUrl = data.value.profilePictureUrl;
+          } else if (data.profilePicUrl) {
+            profilePictureUrl = data.profilePicUrl;
+          }
+          
+          if (profilePictureUrl && profilePictureUrl.startsWith('http')) {
             // Atualizar usando SQL direto
             await pool.query(
               'UPDATE contacts SET profile_image_url = $1, updated_at = NOW() WHERE id = $2',
-              [data.value.profilePictureUrl, contact.id]
+              [profilePictureUrl, contact.id]
             );
             
-            console.log(`✅ Foto atualizada para ${contact.name} (${cleanPhone})`);
+            console.log(`✅ Foto atualizada para ${contact.name} (${cleanPhone}): ${profilePictureUrl}`);
             updated++;
+          } else {
+            console.log(`⚠️ Nenhuma foto encontrada para ${contact.name} (${cleanPhone})`);
           }
           
           // Pausa entre requisições
