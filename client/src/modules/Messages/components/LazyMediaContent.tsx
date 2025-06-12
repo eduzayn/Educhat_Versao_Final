@@ -97,19 +97,18 @@ export function LazyMediaContent({
   };
 
   const realInitialContent = getRealInitialContent();
-  const proxiedMediaUrl = useMediaUrl(realInitialContent);
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // Áudios carregam automaticamente, imagens/vídeos/documentos sob demanda
+  // Apenas áudios carregam automaticamente
   useEffect(() => {
-    if (messageType === 'audio' && proxiedMediaUrl && !loaded && !loading) {
-      setContent(proxiedMediaUrl);
+    if (messageType === 'audio' && realInitialContent && !loaded && !loading) {
+      setContent(realInitialContent);
       setLoaded(true);
     }
-  }, [messageId, messageType, proxiedMediaUrl, loaded, loading]);
+  }, [messageId, messageType, realInitialContent, loaded, loading]);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
@@ -118,19 +117,23 @@ export function LazyMediaContent({
     secureLog.debug(`Carregando ${messageType}`, { messageId });
 
     try {
-      const response = await fetch(`/api/messages/${messageId}/media`);
-      if (response.ok) {
-        const data = await response.json();
-        setContent(data.content);
+      // Para imagens, usar o conteúdo inicial com proxy se disponível
+      if (messageType === 'image' && realInitialContent) {
+        const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(realInitialContent)}`;
+        setContent(proxiedUrl);
         setLoaded(true);
-
-        if (messageType === "video") {
-          secureLog.debug("Vídeo carregado", { messageId });
-        } else if (messageType === "image") {
-          secureLog.debug("Imagem carregada", { messageId });
-        }
+        secureLog.debug("Imagem carregada via proxy", { messageId });
       } else {
-        secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
+        // Para outros tipos de mídia, usar API tradicional
+        const response = await fetch(`/api/messages/${messageId}/media`);
+        if (response.ok) {
+          const data = await response.json();
+          setContent(data.content);
+          setLoaded(true);
+          secureLog.debug(`${messageType} carregado`, { messageId });
+        } else {
+          secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
+        }
       }
     } catch (error) {
       secureLog.error(`Erro ao carregar ${messageType}`, error);
@@ -144,21 +147,16 @@ export function LazyMediaContent({
 
     switch (messageType) {
       case "image":
-        // Para imagens, usar o proxiedMediaUrl se disponível, senão usar content carregado
-        const imageUrl = proxiedMediaUrl || content;
-        if ((loaded && content) || proxiedMediaUrl) {
+        // Só mostrar imagem após carregamento manual
+        if (loaded && content) {
           return (
             <>
               <div className="relative max-w-xs">
                 <img
-                  src={imageUrl || ''}
+                  src={content}
                   alt="Imagem enviada"
                   className="rounded-lg max-w-full h-auto cursor-pointer"
                   onClick={() => setShowPreviewModal(true)}
-                  onError={(e) => {
-                    // O novo sistema de proxy já trata automaticamente URLs expiradas
-                    console.log('🖼️ Imagem carregada via proxy robusto');
-                  }}
                   onLoad={() => {
                     console.log('✅ Imagem carregada com sucesso');
                   }}
@@ -167,7 +165,7 @@ export function LazyMediaContent({
               <DocumentPreviewModal
                 isOpen={showPreviewModal}
                 onClose={() => setShowPreviewModal(false)}
-                documentUrl={imageUrl || ''}
+                documentUrl={content}
                 fileName={fileName}
                 fileType="image"
               />
