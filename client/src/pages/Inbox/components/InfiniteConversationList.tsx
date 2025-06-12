@@ -221,8 +221,11 @@ export function InfiniteConversationList({
                           {conversation.contact?.name?.charAt(0).toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
+                      {/* Indicador discreto do canal */}
+                      {renderChannelBadge(conversation.channel)}
+                      {/* Indicador de online (se necessário, posicionar diferente do canal) */}
                       {conversation.contact?.isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
 
@@ -232,7 +235,6 @@ export function InfiniteConversationList({
                           {conversation.contact?.name || conversation.contact?.phone || 'Contato desconhecido'}
                         </h3>
                         <div className="flex items-center space-x-2">
-                          {renderChannelIcon(conversation.channel)}
                           {conversation.lastMessage && (
                             <span className="text-xs text-gray-500">
                               {formatRelative(new Date(conversation.lastMessage.createdAt), new Date(), { locale: ptBR })}
