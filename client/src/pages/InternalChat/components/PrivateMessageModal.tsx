@@ -271,6 +271,9 @@ export function PrivateMessageModal({
                 <DialogTitle className="text-base">
                   {targetUser.displayName}
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Chat privado com {targetUser.displayName}
+                </DialogDescription>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
                     @{targetUser.username}

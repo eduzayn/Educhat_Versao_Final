@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -354,6 +354,9 @@ export function UnifiedChannelWizard({ open, onOpenChange, onChannelAdded }: Uni
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Adicionar Novo Canal</DialogTitle>
+          <DialogDescription>
+            Configure e conecte um novo canal de comunicação para sua equipe
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

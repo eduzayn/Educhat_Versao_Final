@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/shared/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
@@ -135,11 +135,15 @@ export function MediaAttachmentModal({
       <DialogContent className="sm:max-w-[480px] max-h-[80vh] p-0 rounded-2xl overflow-hidden 
                                 shadow-xl border-0 backdrop-blur-sm
                                 animate-in fade-in-0 zoom-in-95 duration-300">
-        {/* Header minimalista similar ao WhatsApp */}
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 
+        <DialogHeader className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 
                         bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Anexar</h3>
-        </div>
+          <DialogTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Anexar
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Selecione arquivos ou links para anexar à mensagem
+          </DialogDescription>
+        </DialogHeader>
 
         <input
           ref={fileInputRef}
