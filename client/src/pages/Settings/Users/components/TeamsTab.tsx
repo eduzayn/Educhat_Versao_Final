@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { BaseConfigModal, ConfigCard } from '@/shared/components/modals/BaseConfigModal';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
@@ -32,7 +32,7 @@ export const TeamsTab = () => {
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  
+
   // Estados do formulário de nova equipe
   const [newTeamForm, setNewTeamForm] = useState({
     name: '',
@@ -295,14 +295,14 @@ export const TeamsTab = () => {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Status:</span>
                     <Badge variant={team.isActive ? "default" : "destructive"} className="text-xs">
                       {team.isActive ? 'Ativa' : 'Inativa'}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
@@ -342,7 +342,7 @@ export const TeamsTab = () => {
               Preencha os dados abaixo para criar uma nova equipe educacional.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-name" className="text-right">
@@ -356,7 +356,7 @@ export const TeamsTab = () => {
                 onChange={(e) => setNewTeamForm(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-description" className="text-right">
                 Descrição
@@ -370,7 +370,7 @@ export const TeamsTab = () => {
                 onChange={(e) => setNewTeamForm(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-teamType" className="text-right">
                 Tipo de Equipe *
@@ -390,7 +390,7 @@ export const TeamsTab = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="team-color" className="text-right">
                 Cor
@@ -410,7 +410,7 @@ export const TeamsTab = () => {
               </Select>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTeamDialog(false)}>
               Cancelar
@@ -435,7 +435,7 @@ export const TeamsTab = () => {
               Adicione um usuário à equipe {selectedTeam?.name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="user-select" className="text-right">
@@ -455,7 +455,7 @@ export const TeamsTab = () => {
               </Select>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddMemberDialog(false)}>
               Cancelar
@@ -472,16 +472,22 @@ export const TeamsTab = () => {
       </Dialog>
 
       {/* Modal de Configurações da Equipe */}
-      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Configurações da Equipe</DialogTitle>
-            <DialogDescription>
-              Configure as propriedades da equipe {selectedTeam?.name}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
+      <BaseConfigModal
+        open={showConfigDialog}
+        onOpenChange={setShowConfigDialog}
+        title="Configurações da Equipe"
+        description={`Configure as propriedades da equipe ${selectedTeam?.name}`}
+        icon={Settings}
+        maxWidth="lg"
+        onSave={handleUpdateTeam}
+        isSaving={updateTeamMutation.isPending}
+        saveText="Salvar Configurações"
+      >
+        <ConfigCard
+          title="Informações da Equipe"
+          description="Configure as propriedades básicas da equipe"
+        >
+          <div className="grid gap-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="config-name" className="text-right">
                 Nome *
@@ -493,7 +499,7 @@ export const TeamsTab = () => {
                 className="col-span-3"
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="config-description" className="text-right">
                 Descrição
@@ -506,32 +512,28 @@ export const TeamsTab = () => {
                 rows={3}
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="config-teamType" className="text-right">
-                Tipo de Equipe *
+              <Label htmlFor="config-color" className="text-right">
+                Cor
               </Label>
-              <Select value={editTeamForm.teamType} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, teamType: value }))}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o tipo de equipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="comercial">Comercial</SelectItem>
-                  <SelectItem value="suporte">Suporte</SelectItem>
-                  <SelectItem value="financeiro">Financeiro</SelectItem>
-                  <SelectItem value="secretaria">Secretaria</SelectItem>
-                  <SelectItem value="secretaria_pos">Secretaria Pós</SelectItem>
-                  <SelectItem value="tutoria">Tutoria</SelectItem>
-                  <SelectItem value="cobranca">Cobrança</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="config-color"
+                type="color"
+                value={editTeamForm.color}
+                onChange={(e) => setEditTeamForm(prev => ({ ...prev, color: e.target.value }))}
+                className="col-span-3 h-10"
+              />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="config-status" className="text-right">
                 Status
               </Label>
-              <Select value={editTeamForm.isActive ? "true" : "false"} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, isActive: value === "true" }))}>
+              <Select 
+                value={editTeamForm.isActive?.toString() || "true"}
+                onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, isActive: value === "true" }))}
+              >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
@@ -542,21 +544,8 @@ export const TeamsTab = () => {
               </Select>
             </div>
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleUpdateTeam}
-              disabled={updateTeamMutation.isPending}
-            >
-              {updateTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Configurações
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </ConfigCard>
+      </BaseConfigModal>
     </div>
   );
 };
