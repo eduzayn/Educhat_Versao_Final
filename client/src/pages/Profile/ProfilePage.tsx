@@ -1,6 +1,3 @@
-Updating the API routes to use /api/auth/* and updating the query key for fetching user data.
-```
-```replit_final_file
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';

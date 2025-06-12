@@ -4,4 +4,4 @@
  */
 
 // Re-export from shared module
-export * from '../../../../shared/formatters';
+export * from '../../../../../shared/formatters';
