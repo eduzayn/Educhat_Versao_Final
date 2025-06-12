@@ -90,7 +90,8 @@ export function Dashboard() {
       label: 'Prof. Ana',
       icon: Bot,
       description: 'Assistente de Relacionamento Inteligente',
-      route: '/ia'
+      route: '/ia',
+      adminOnly: true
     },
     {
       id: 'bi',
