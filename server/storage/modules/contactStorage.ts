@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { contacts, contactTags, type Contact, type InsertContact, type ContactTag, type InsertContactTag, type ContactWithTags } from "../../../shared/schema";
-import { eq, desc, ilike, or, and } from "drizzle-orm";
+import { eq, desc, ilike, or, and, isNull } from "drizzle-orm";
 
 /**
  * Contact storage module - manages contacts and contact tags
@@ -97,6 +97,18 @@ export class ContactStorage extends BaseStorage {
   async getContactByPhone(phone: string): Promise<Contact | undefined> {
     const [contact] = await this.db.select().from(contacts).where(eq(contacts.phone, phone));
     return contact;
+  }
+
+  async getContactsWithoutProfilePicture(): Promise<Contact[]> {
+    return this.db.select().from(contacts)
+      .where(
+        or(
+          isNull(contacts.profileImageUrl),
+          eq(contacts.profileImageUrl, ''),
+          ilike(contacts.profileImageUrl, '%attached_assets%')
+        )
+      )
+      .orderBy(desc(contacts.createdAt));
   }
 
   async getContactByUserIdentity(userIdentity: string): Promise<Contact | undefined> {
