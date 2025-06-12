@@ -188,17 +188,24 @@ export function registerMessageRoutes(app: Express) {
 
 
 
-  // Deletar mensagem recebida (apenas localmente)
-  app.patch('/api/messages/:id/delete-received', async (req, res) => {
+  // Soft Delete (Mensagens Recebidas) - POST /api/messages/soft-delete
+  app.post('/api/messages/soft-delete', async (req, res) => {
     try {
-      const messageId = parseInt(req.params.id);
+      const { messageId } = req.body;
 
-      if (isNaN(messageId)) {
-        return res.status(400).json({ error: 'ID da mensagem inválido' });
+      if (!messageId || isNaN(parseInt(messageId))) {
+        return res.status(400).json({ error: 'messageId é obrigatório e deve ser um número válido' });
       }
 
+      const parsedMessageId = parseInt(messageId);
+
+      console.log('🗑️ SOFT DELETE - Iniciando processo para mensagem recebida:', {
+        messageId: parsedMessageId,
+        comportamento: 'Remove apenas da interface (NÃO deleta no WhatsApp)'
+      });
+
       // Verificar se a mensagem é realmente recebida (isFromContact = true)
-      const message = await storage.getMessage(messageId);
+      const message = await storage.getMessage(parsedMessageId);
       if (!message) {
         return res.status(404).json({ error: 'Mensagem não encontrada' });
       }
@@ -217,15 +224,37 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
       }
 
-      const success = await storage.markMessageAsDeletedByUser(messageId, true);
+      // Marcar como deletada apenas no sistema (isDeleted = true)
+      const success = await storage.markMessageAsDeletedByUser(parsedMessageId, true);
+      
+      console.log('✅ SOFT DELETE - Mensagem ocultada da interface:', {
+        messageId: parsedMessageId,
+        success,
+        observacao: 'Mensagem permanece no WhatsApp do contato'
+      });
+
+      // Broadcast para atualizar interface
+      const { broadcast } = await import('../realtime');
+      broadcast(message.conversationId, {
+        type: 'message_deleted',
+        conversationId: message.conversationId,
+        messageId: parsedMessageId,
+        deletedAt: new Date().toISOString(),
+        deletedForEveryone: false // Soft delete não remove do WhatsApp
+      });
       
       if (success) {
-        res.json({ success: true, message: 'Mensagem removida da sua interface' });
+        res.json({ 
+          success: true, 
+          message: 'Mensagem removida da sua interface',
+          type: 'soft_delete',
+          deletedForEveryone: false
+        });
       } else {
         res.status(500).json({ error: 'Erro ao deletar mensagem' });
       }
     } catch (error) {
-      console.error('Erro ao deletar mensagem recebida:', error);
+      console.error('❌ Erro ao fazer soft delete da mensagem recebida:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

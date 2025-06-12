@@ -120,8 +120,11 @@ export function MessageBubble({
     setIsDeleting(true);
     try {
       if (isFromContact) {
-        // Para mensagens recebidas, deletar apenas localmente
-        await apiRequest("PATCH", `/api/messages/${message.id}/delete-received`);
+        // Mensagem RECEBIDA → Soft Delete
+        await apiRequest("POST", "/api/messages/soft-delete", {
+          messageId: message.id,
+          conversationId: conversationId,
+        });
 
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
@@ -132,7 +135,7 @@ export function MessageBubble({
           description: "Mensagem removida da sua interface",
         });
       } else {
-        // Para mensagens enviadas, deletar localmente e via Z-API
+        // Mensagem ENVIADA → Z-API Delete
         const metadata =
           message.metadata && typeof message.metadata === "object"
             ? message.metadata
@@ -163,13 +166,11 @@ export function MessageBubble({
           conversationId
         });
 
-        // Deletar mensagem enviada (localmente primeiro)
-        const response = await apiRequest("PATCH", `/api/messages/${message.id}/delete-sent`, {
-          zapiMessageId,
-          phone: contact.phone
+        await apiRequest("POST", "/api/zapi/delete-message", {
+          phone: contact.phone,
+          messageId: zapiMessageId.toString(),
+          conversationId: conversationId,
         });
-
-        console.log('✅ Mensagem processada:', response);
 
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],

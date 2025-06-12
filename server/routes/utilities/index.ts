@@ -386,6 +386,132 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
+  // Z-API Delete Message (Mensagens Enviadas) - POST /api/zapi/delete-message
+  app.post('/api/zapi/delete-message', async (req, res) => {
+    try {
+      const { phone, messageId, conversationId } = req.body;
+
+      if (!phone || !messageId) {
+        return res.status(400).json({ error: 'phone e messageId são obrigatórios' });
+      }
+
+      console.log('🗑️ Z-API DELETE - Iniciando processo para mensagem enviada:', {
+        phone,
+        messageId,
+        conversationId,
+        comportamento: 'Deleta localmente + Remove do WhatsApp via Z-API'
+      });
+
+      // Validar credenciais Z-API
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Tentar deletar via Z-API primeiro
+      let zapiDeletionSuccess = false;
+      
+      try {
+        // URL correta da API Z-API para deletar mensagem
+        const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId}&owner=true`;
+        
+        console.log('🌐 Z-API DELETE - Fazendo requisição para:', deleteUrl);
+
+        const deleteResponse = await fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            'Client-Token': clientToken || ''
+          }
+        });
+
+        const responseText = await deleteResponse.text();
+        console.log('📥 Z-API DELETE - Resposta recebida:', {
+          status: deleteResponse.status,
+          statusText: deleteResponse.statusText,
+          body: responseText
+        });
+
+        let deleteResult;
+        try {
+          deleteResult = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          console.error('❌ Z-API DELETE - Erro ao parsear JSON:', parseError);
+          deleteResult = { rawResponse: responseText };
+        }
+        
+        if (deleteResponse.ok) {
+          console.log('✅ Z-API DELETE - Mensagem deletada com sucesso do WhatsApp:', deleteResult);
+          zapiDeletionSuccess = true;
+        } else {
+          console.error('❌ Z-API DELETE - Falha ao deletar no WhatsApp:', {
+            status: deleteResponse.status,
+            body: deleteResult
+          });
+        }
+      } catch (zapiError) {
+        console.error('❌ Z-API DELETE - Erro na requisição:', zapiError);
+      }
+
+      // Sempre marcar como deletada no sistema local (mesmo se Z-API falhar)
+      if (conversationId) {
+        try {
+          // Buscar mensagem pelo messageId da Z-API
+          const db = storage.messages.db;
+          const { messages } = await import('../../../shared/schema');
+          const { eq, and, sql } = await import('drizzle-orm');
+          
+          const [localMessage] = await db.select()
+            .from(messages)
+            .where(
+              and(
+                eq(messages.conversationId, parseInt(conversationId)),
+                sql`${messages.metadata}->>'zaapId' = ${messageId} OR ${messages.metadata}->>'messageId' = ${messageId} OR ${messages.metadata}->>'id' = ${messageId}`
+              )
+            )
+            .limit(1);
+
+          if (localMessage) {
+            await storage.markMessageAsDeletedByUser(localMessage.id, true);
+            console.log('✅ Z-API DELETE - Mensagem marcada como deletada localmente:', localMessage.id);
+
+            // Broadcast para atualizar interface
+            const { broadcast } = await import('../realtime');
+            broadcast(localMessage.conversationId, {
+              type: 'message_deleted',
+              conversationId: localMessage.conversationId,
+              messageId: localMessage.id,
+              deletedAt: new Date().toISOString(),
+              deletedForEveryone: zapiDeletionSuccess // True se deletou do WhatsApp também
+            });
+          } else {
+            console.warn('⚠️ Z-API DELETE - Mensagem não encontrada no banco local');
+          }
+        } catch (localError) {
+          console.error('❌ Z-API DELETE - Erro ao deletar localmente:', localError);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: zapiDeletionSuccess 
+          ? 'Mensagem deletada da conversa e do WhatsApp'
+          : 'Mensagem deletada localmente (falha na Z-API)',
+        type: 'zapi_delete',
+        deletedForEveryone: zapiDeletionSuccess,
+        zapiSuccess: zapiDeletionSuccess
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro geral no Z-API delete:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Sistema robusto de proxy para imagens WhatsApp - REST: GET /api/proxy/whatsapp-image
   app.get('/api/proxy/whatsapp-image', async (req, res) => {
     try {
