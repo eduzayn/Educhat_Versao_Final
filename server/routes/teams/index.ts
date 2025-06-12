@@ -207,18 +207,38 @@ export function registerTeamsRoutes(app: Express) {
   });
 
   // Add user to team - REST: POST /api/user-teams
-  app.post('/api/user-teams', requirePermission('teams:create'), async (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/user-teams', requirePermission('teams:manage'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { userId, teamId, role = 'member' } = req.body;
+      const { userId, teamId, role = 'agent' } = req.body;
       
       if (!userId || !teamId) {
         return res.status(400).json({ message: 'userId e teamId são obrigatórios' });
       }
 
+      // Validar se o usuário e equipe existem
+      const userExists = await storage.getUser(parseInt(userId));
+      if (!userExists) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+      const teamExists = await storage.getTeam(parseInt(teamId));
+      if (!teamExists) {
+        return res.status(404).json({ message: 'Equipe não encontrada' });
+      }
+
+      // Verificar se o usuário já está na equipe
+      const userTeams = await storage.getUserTeams(parseInt(userId));
+      const alreadyInTeam = userTeams.some(team => team.id === parseInt(teamId));
+      
+      if (alreadyInTeam) {
+        return res.status(409).json({ message: 'Usuário já está nesta equipe' });
+      }
+
       const userTeam = await storage.addUserToTeam({
         userId: parseInt(userId),
         teamId: parseInt(teamId),
-        role
+        role,
+        isActive: true
       });
 
       console.log(`👥 Usuário ${userId} adicionado à equipe ${teamId} com role: ${role}`);
