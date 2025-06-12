@@ -49,7 +49,7 @@ export function DocumentPreviewModal({
             src={documentUrl}
             className="w-full h-full rounded-lg"
             title={fileName}
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"
             onError={() => {
               secureLog.error("Erro ao carregar PDF", { fileName });
             }}
