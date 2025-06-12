@@ -45,6 +45,8 @@ class CentralStorage {
   createConversation = (conversationData: any) => this.conversations.createConversation(conversationData);
   getTeam = (id: number) => this.teams.getTeam(id);
   getTeams = () => this.teams.getTeams();
+  getUserTeams = (userId: number) => this.teams.getUserTeams(userId);
+  addUserToTeam = (userTeamData: any) => this.teams.addUserToTeam(userTeamData);
   createDeal = (dealData: any) => this.deals.createDeal(dealData);
   getDealsByContact = (contactId: number) => this.deals.getDealsByContact(contactId);
   createAutomaticDeal = (contactId: number, canalOrigem: string, teamType: string, initialStage: string) => 
