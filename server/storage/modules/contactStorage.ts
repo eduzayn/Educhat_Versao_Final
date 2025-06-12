@@ -150,5 +150,53 @@ export class ContactStorage extends BaseStorage {
       ));
   }
 
+  async getContactsPaginated(options: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<{
+    data: Contact[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const { search, page = 1, limit = 50 } = options;
+    const offset = (page - 1) * limit;
+
+    // Build where condition
+    let whereCondition;
+    if (search && search.trim() !== '') {
+      whereCondition = or(
+        ilike(contacts.name, `%${search}%`),
+        ilike(contacts.phone, `%${search}%`),
+        ilike(contacts.email, `%${search}%`)
+      );
+    }
+
+    // Get total count
+    const countQuery = this.db.select({ count: sql<number>`count(*)` }).from(contacts);
+    if (whereCondition) {
+      countQuery.where(whereCondition);
+    }
+    const [{ count: total }] = await countQuery;
+
+    // Get paginated data
+    const dataQuery = this.db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    if (whereCondition) {
+      dataQuery.where(whereCondition);
+    }
+    dataQuery.limit(limit).offset(offset);
+    
+    const data = await dataQuery;
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
 
 }
