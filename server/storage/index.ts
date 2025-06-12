@@ -59,6 +59,10 @@ export class CentralStorage {
     return this.userManagement.getAllUsers();
   }
 
+  async getUserById(id: number) {
+    return this.userManagement.getUserById(id);
+  }
+
   // ==================== CONTACT OPERATIONS ====================
   async createContact(contactData: any) {
     return this.contact.createContact(contactData);
