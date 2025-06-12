@@ -34,6 +34,9 @@ export function ViewContactDialog({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Detalhes do Contato</DialogTitle>
+          <DialogDescription>
+            Visualize as informações completas do contato e histórico de interações
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">

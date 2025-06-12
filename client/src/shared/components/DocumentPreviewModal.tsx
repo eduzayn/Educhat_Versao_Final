@@ -125,6 +125,9 @@ export function DocumentPreviewModal({
           <DialogTitle className="text-lg font-medium truncate pr-4">
             {fileName}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Visualização de documento anexado
+          </DialogDescription>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
