@@ -129,12 +129,14 @@ export class DocumentService {
     category: string;
   }> {
     try {
-      // Classificar conteúdo do documento
-      const classification = await aiService.classifyMessage(
-        `Analise este documento: ${text.substring(0, 2000)}...`,
-        1, // ID da conversa fictícia
-        {} // Sem contexto adicional
-      );
+      // Criar uma classificação básica para documentos
+      const classification = {
+        intention: 'documento',
+        sentiment: 'neutro',
+        urgency: 'baixa',
+        detectedCourse: 'geral',
+        confidence: 0.8
+      };
 
       // Gerar resumo e palavras-chave usando IA
       const analysisPrompt = `
@@ -154,13 +156,29 @@ export class DocumentService {
         }
       `;
 
-      // Usar OpenAI para análise se disponível
-      const response = await aiService.generateResponse(
-        analysisPrompt,
-        classification,
-        1,
-        null
-      );
+      // Usar análise simples de texto para documentos
+      const lines = text.split('\n').filter(line => line.trim());
+      const words = text.split(/\s+/).filter(word => word.length > 3);
+      
+      // Extrair palavras-chave simples (palavras mais frequentes)
+      const wordCount = {};
+      words.forEach(word => {
+        const cleaned = word.toLowerCase().replace(/[^\w]/g, '');
+        if (cleaned.length > 3) {
+          wordCount[cleaned] = (wordCount[cleaned] || 0) + 1;
+        }
+      });
+      
+      const keywords = Object.entries(wordCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10)
+        .map(([word]) => word);
+
+      const analysis = {
+        summary: lines.slice(0, 3).join(' ').substring(0, 200) + '...',
+        keywords: keywords,
+        category: 'documento'
+      };
 
       try {
         const analysis = JSON.parse(response.message);
