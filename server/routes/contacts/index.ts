@@ -250,24 +250,17 @@ export function registerContactRoutes(app: Express) {
           
           const cleanPhone = contact.phone.replace(/\D/g, '');
           
-          // Formato correto da URL conforme documentação Z-API
-          const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/${cleanPhone}/profile-picture`;
+          // Formato correto da URL usando query parameter
+          const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
           
           console.log(`🔍 Buscando foto para ${contact.name} (${cleanPhone})`);
           
           const response = await fetch(url, {
             method: 'GET',
             headers: {
-              'Client-Token': clientToken,
+              'Client-Token': clientToken || '',
               'Content-Type': 'application/json'
             }
-          });
-
-          const responseText = await response.text();
-          console.log(`📋 Resposta Z-API para ${cleanPhone}:`, {
-            status: response.status,
-            statusText: response.statusText,
-            response: responseText.substring(0, 200)
           });
 
           if (!response.ok) {
@@ -276,19 +269,15 @@ export function registerContactRoutes(app: Express) {
             continue;
           }
 
-          let data;
-          try {
-            data = JSON.parse(responseText);
-          } catch (parseError) {
-            console.log(`❌ Erro ao fazer parse JSON para ${cleanPhone}:`, parseError);
-            errors++;
-            continue;
-          }
+          const data = await response.json();
+          console.log(`📋 Resposta Z-API para ${cleanPhone}:`, JSON.stringify(data, null, 2));
           
-          // Verificar diferentes estruturas de resposta possíveis
+          // Verificar se há URL da foto na resposta (conforme exemplo fornecido)
           let profilePictureUrl = null;
           
-          if (data.profilePictureUrl) {
+          if (data.link) {
+            profilePictureUrl = data.link;
+          } else if (data.profilePictureUrl) {
             profilePictureUrl = data.profilePictureUrl;
           } else if (data.value?.profilePictureUrl) {
             profilePictureUrl = data.value.profilePictureUrl;
@@ -296,7 +285,7 @@ export function registerContactRoutes(app: Express) {
             profilePictureUrl = data.profilePicUrl;
           }
           
-          if (profilePictureUrl && profilePictureUrl.startsWith('http')) {
+          if (profilePictureUrl && profilePictureUrl.startsWith('http') && profilePictureUrl !== contact.profile_image_url) {
             // Atualizar usando SQL direto
             await pool.query(
               'UPDATE contacts SET profile_image_url = $1, updated_at = NOW() WHERE id = $2',

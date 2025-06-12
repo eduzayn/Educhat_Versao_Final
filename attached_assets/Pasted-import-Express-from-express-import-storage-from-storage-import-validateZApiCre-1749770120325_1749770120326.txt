@@ -1,0 +1,75 @@
+import { Express } from 'express';
+import { storage } from '../../storage';
+import { validateZApiCredentials } from '../utils/zapi-credentials';
+
+export function registerWebhookRoutes(app: Express) {
+  // ... existing code ...
+
+  // Update all profile pictures - REST: POST /api/zapi/update-all-profile-pictures
+  app.post('/api/zapi/update-all-profile-pictures', async (req, res) => {
+    try {
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      
+      const allContacts = await storage.searchContacts('');
+      const contactsWithPhone = allContacts.filter(contact => contact.phone);
+      
+      console.log(`Encontrados ${contactsWithPhone.length} contatos com telefone para atualizar fotos`);
+      
+      let updatedCount = 0;
+      let errorCount = 0;
+      
+      for (const contact of contactsWithPhone) {
+        try {
+          const cleanPhone = contact.phone!.replace(/\D/g, '');
+          
+          const profileUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
+          const profileResponse = await fetch(profileUrl, {
+            method: 'GET',
+            headers: {
+              'Client-Token': clientToken || '',
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            
+            if (profileData.link && profileData.link !== contact.profileImageUrl) {
+              await storage.updateContact(contact.id, {
+                profileImageUrl: profileData.link
+              });
+              updatedCount++;
+              console.log(`Foto atualizada para ${contact.name} (${cleanPhone})`);
+            }
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+        } catch (contactError) {
+          console.error(`Erro ao atualizar foto do contato ${contact.name}:`, contactError);
+          errorCount++;
+        }
+      }
+
+      res.json({
+        message: `Atualização concluída: ${updatedCount} fotos atualizadas`,
+        updated: updatedCount,
+        errors: errorCount,
+        total: contactsWithPhone.length
+      });
+      
+    } catch (error) {
+      console.error('Erro ao atualizar fotos de perfil:', error);
+      res.status(500).json({ 
+        error: 'Erro interno ao atualizar fotos de perfil' 
+      });
+    }
+  });
+
+  // ... existing code ...
+}
