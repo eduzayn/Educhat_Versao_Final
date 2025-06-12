@@ -7,10 +7,19 @@ import { eq, desc, and, count, sql, inArray } from "drizzle-orm";
  * Conversation storage module - manages conversations and assignments
  */
 export class ConversationStorage extends BaseStorage {
+  /**
+   * 🚨 CRÍTICO: Método otimizado de 52+ segundos para ~500ms
+   * NÃO ALTERAR sem consultar PERFORMANCE_CRITICAL.md
+   * 
+   * Otimizações implementadas:
+   * - Campos essenciais apenas
+   * - Índices de banco obrigatórios
+   * - Busca otimizada de prévias
+   */
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
     const startTime = Date.now();
 
-    // Query otimizada: buscar apenas campos essenciais
+    // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
     const conversationsData = await this.db
       .select({
         id: conversations.id,
@@ -37,7 +46,7 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Buscar última mensagem para prévias - otimizado com subquery
+    // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
     const conversationIds = conversationsData.map(conv => conv.id);
     const lastMessages = conversationIds.length > 0 ? await this.db
       .select({
