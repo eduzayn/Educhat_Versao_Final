@@ -235,7 +235,7 @@ export const ChannelsSettingsModule = () => {
 
         // Atualizar o store global com o status real
         // ZApi store removido - funcionalidade migrada para hooks consolidados
-        const { setStatus, setConfigured } = await import('../../store/zapiStore').then(m => m.useZApiStore.getState());
+        const { setStatus, setConfigured } = await import('@/shared/store/zapiStore').then(m => m.useZApiStore.getState());
 
         setStatus({
           connected: data.connected || false,

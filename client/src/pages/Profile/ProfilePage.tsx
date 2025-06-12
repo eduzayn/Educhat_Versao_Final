@@ -1,3 +1,6 @@
+Updating the API routes to use /api/auth/* and updating the query key for fetching user data.
+```
+```replit_final_file
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -29,7 +32,7 @@ export function ProfilePage() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     displayName: user?.displayName || '',
     email: user?.email || '',
@@ -54,7 +57,7 @@ export function ProfilePage() {
         description: "Suas informações foram atualizadas com sucesso",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: () => {
       toast({
@@ -115,7 +118,7 @@ export function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-6">
         <Breadcrumbs items={breadcrumbItems} className="mb-6" />
-        
+
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Meu Perfil</h1>
           <p className="text-gray-600 mt-2">Gerencie suas informações pessoais e configurações de conta</p>

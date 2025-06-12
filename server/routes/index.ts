@@ -1,78 +1,80 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { setupAuth } from "./auth/auth";
 
-// Import modular routes
-import { registerAuthRoutes } from "./auth/index";
-import { registerAdminRoutes } from "./admin/index";
-import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
-import { registerMediaRoutes } from "./media/index";
-import { registerInboxRoutes } from "./inbox/index";
-import { registerMessageRoutes } from "./messages/index";
-import { registerContactRoutes } from "./contacts/index";
-import { registerUserRoutes } from "./users/index";
-import { registerChannelRoutes } from "./channels/index";
-import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
-import { registerRealtimeConfig } from "./realtime/index";
-import { registerDealsRoutes } from "./deals/index";
-import { registerAnalyticsRoutes } from "./analytics/index";
-import { registerTeamsRoutes } from "./teams/index";
-import { registerQuickRepliesRoutes } from "./quick-replies/index";
-import { registerUtilitiesRoutes } from "./utilities/index";
-import { registerBIRoutes } from "./bi/index";
-import { registerSalesRoutes } from "./sales/index";
-import { registerCourseRoutes } from "./courses/index";
-import { registerIntegrationRoutes } from "./integrations/index";
-import { registerFunnelRoutes } from "./funnels/index";
-import { registerConversationDetailsRoutes } from "./conversations/details";
-// Teams are now managed through dedicated team management system
-import iaRouter from "./ia/index";
-import iaMemoryRouter from "./ia/memory";
-import documentsRouter from "./documents/index";
-import webCaptureRouter from "./web-capture/index";
-import aiConfigRouter from "./ai-config/index";
-import handoffsRouter from "./handoffs/index";
-import dashboardRouter from "./dashboard/index";
+import { Express } from 'express';
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup do sistema de autenticação próprio PRIMEIRO
-  setupAuth(app);
-  
-  // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
-  registerWebhookRoutes(app);
-  
-  // Registrar rotas de autenticação após webhooks
+// Importar todas as rotas modularizadas
+import { registerAuthRoutes } from './auth';
+import { registerAdminRoutes } from './admin';
+import { registerChannelsRoutes } from './channels';
+import { registerContactsRoutes } from './contacts';
+import { registerConversationsRoutes } from './conversations';
+import { registerMessagesRoutes } from './messages';
+import { registerWebhooksRoutes } from './webhooks';
+import { registerUtilitiesRoutes } from './utilities';
+import { registerDashboardRoutes } from './dashboard';
+import { registerTeamsRoutes } from './teams';
+import { registerUsersRoutes } from './users';
+import { registerDealsRoutes } from './deals';
+import { registerFunnelsRoutes } from './funnels';
+import { registerHandoffsRoutes } from './handoffs';
+import { registerQuickRepliesRoutes } from './quick-replies';
+import { registerMediaRoutes } from './media';
+import { registerIARoutes } from './ia';
+import { registerBIRoutes } from './bi';
+import { registerAnalyticsRoutes } from './analytics';
+import { registerSalesRoutes } from './sales';
+import { registerInboxRoutes } from './inbox';
+import { registerDocumentsRoutes } from './documents';
+import { registerWebCaptureRoutes } from './web-capture';
+import { registerCoursesRoutes } from './courses';
+import { registerIntegrationsRoutes } from './integrations';
+import { registerRealtimeRoutes } from './realtime';
+
+/**
+ * Registra todas as rotas da aplicação
+ * Consolidação de imports e registros de rotas em arquivo único
+ */
+export function registerAllRoutes(app: Express): void {
+  console.log('🔧 Registrando todas as rotas do sistema...');
+
+  // Rotas de autenticação (prioritárias)
   registerAuthRoutes(app);
+  
+  // Rotas administrativas
   registerAdminRoutes(app);
-  registerTeamsIntegratedChatRoutes(app);
-  registerMediaRoutes(app);
-  registerInboxRoutes(app);
-  registerMessageRoutes(app);
-  registerContactRoutes(app);
-  registerUserRoutes(app);
-  registerChannelRoutes(app);
-  registerConversationDetailsRoutes(app);
-  registerDealsRoutes(app);
-  registerAnalyticsRoutes(app);
-  registerTeamsRoutes(app);
-  registerQuickRepliesRoutes(app);
+  
+  // Rotas principais do sistema
+  registerChannelsRoutes(app);
+  registerContactsRoutes(app);
+  registerConversationsRoutes(app);
+  registerMessagesRoutes(app);
+  registerWebhooksRoutes(app);
   registerUtilitiesRoutes(app);
+  
+  // Rotas de funcionalidades
+  registerDashboardRoutes(app);
+  registerTeamsRoutes(app);
+  registerUsersRoutes(app);
+  registerDealsRoutes(app);
+  registerFunnelsRoutes(app);
+  registerHandoffsRoutes(app);
+  registerQuickRepliesRoutes(app);
+  registerMediaRoutes(app);
+  
+  // Rotas de IA e análise
+  registerIARoutes(app);
   registerBIRoutes(app);
+  registerAnalyticsRoutes(app);
   registerSalesRoutes(app);
-  registerCourseRoutes(app);
-  registerIntegrationRoutes(app);
-  registerFunnelRoutes(app);
-  // Sistema de detecção migrado para IA com equipes unificadas
-  app.use('/api/ia', iaRouter);
-  app.use('/api/ia', iaMemoryRouter);
-  app.use('/api/ia', aiConfigRouter);
-  app.use('/api/documents', documentsRouter);
-  app.use('/api/web-capture', webCaptureRouter);
-  app.use('/api/handoffs', handoffsRouter);
-  app.use('/api/dashboard', dashboardRouter);
-
-  // Configurar Socket.IO e retornar servidor
-  const httpServer = registerRealtimeConfig(app);
-
-  return httpServer;
+  
+  // Rotas de interface
+  registerInboxRoutes(app);
+  registerDocumentsRoutes(app);
+  registerWebCaptureRoutes(app);
+  registerCoursesRoutes(app);
+  
+  // Rotas de integrações
+  registerIntegrationsRoutes(app);
+  registerRealtimeRoutes(app);
+  
+  console.log('✅ Todas as rotas registradas com sucesso');
 }

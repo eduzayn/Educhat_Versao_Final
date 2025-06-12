@@ -33,12 +33,12 @@ export function Login() {
 
     try {
       const user = await apiRequest('POST', '/api/login', loginData);
-      
+
       toast({
         title: "Login realizado com sucesso!",
         description: `Bem-vindo de volta, ${user.displayName}!`,
       });
-      
+
       window.location.reload();
     } catch (error: any) {
       toast({
@@ -53,7 +53,7 @@ export function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (registerData.password !== registerData.confirmPassword) {
       toast({
         title: "Erro no cadastro",
@@ -81,12 +81,12 @@ export function Login() {
         email: registerData.email,
         password: registerData.password,
       });
-      
+
       toast({
         title: "Cadastro realizado com sucesso!",
         description: `Bem-vindo ao EduChat, ${user.displayName}!`,
       });
-      
+
       window.location.reload();
     } catch (error: any) {
       toast({

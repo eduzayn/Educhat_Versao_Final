@@ -33,7 +33,7 @@ const isDocumentFile = (file: File): boolean => {
     'application/zip',
     'application/x-rar-compressed'
   ];
-  
+
   return documentTypes.includes(file.type) || 
          file.name.toLowerCase().endsWith('.pdf') ||
          file.name.toLowerCase().endsWith('.doc') ||
@@ -111,7 +111,7 @@ export default function QuickRepliesSettingsPage() {
   const [shareScope, setShareScope] = useState<string>('private');
   const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
@@ -119,9 +119,9 @@ export default function QuickRepliesSettingsPage() {
 
   // Fetch current user
   const { data: currentUser } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      const response = await fetch('/api/user');
+      const response = await fetch('/api/auth/user');
       if (!response.ok) throw new Error('Failed to fetch user');
       return response.json();
     },
@@ -167,50 +167,50 @@ export default function QuickRepliesSettingsPage() {
   // Check if user can edit a specific quick reply
   const canEditQuickReply = (quickReply: QuickReply) => {
     if (!currentUser || !canEditQuickReplyPermission) return false;
-    
+
     // Atendentes só podem editar respostas criadas por eles próprios
     if (currentUser.role === 'atendente') {
       return quickReply.createdBy === currentUser.id;
     }
-    
+
     // Para outros papéis (supervisores, gestores, admin)
     // Se pode gerenciar respostas globais, pode editar qualquer uma
     if (canManageGlobalQuickReplies) return true;
-    
+
     // Se for resposta global e não tem permissão global, não pode editar
     if (quickReply.shareScope === 'global' && !canManageGlobalQuickReplies) return false;
-    
+
     // Se for resposta individual e o usuário for o criador
     if (quickReply.shareScope === 'personal' && quickReply.createdBy === currentUser.id) return true;
-    
+
     // Se for resposta da equipe e o usuário pertencer à mesma equipe
     if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
-    
+
     return false;
   };
 
   // Check if user can delete a specific quick reply
   const canDeleteSpecificQuickReply = (quickReply: QuickReply) => {
     if (!currentUser || !canDeleteQuickReply) return false;
-    
+
     // Atendentes só podem excluir respostas criadas por eles próprios
     if (currentUser.role === 'atendente') {
       return quickReply.createdBy === currentUser.id;
     }
-    
+
     // Para outros papéis (supervisores, gestores, admin)
     // Se pode gerenciar respostas globais, pode excluir qualquer uma
     if (canManageGlobalQuickReplies) return true;
-    
+
     // Se for resposta global e não tem permissão global, não pode excluir
     if (quickReply.shareScope === 'global' && !canManageGlobalQuickReplies) return false;
-    
+
     // Se for resposta individual e o usuário for o criador
     if (quickReply.shareScope === 'personal' && quickReply.createdBy === currentUser.id) return true;
-    
+
     // Se for resposta da equipe e o usuário pertencer à mesma equipe
     if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
-    
+
     return false;
   };
 
@@ -219,13 +219,13 @@ export default function QuickRepliesSettingsPage() {
     mutationFn: async (data: FormData & { id?: number }) => {
       const url = data.id ? `/api/quick-replies/${data.id}` : '/api/quick-replies';
       const method = data.id ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) throw new Error('Failed to save quick reply');
       return response.json();
     },
@@ -281,7 +281,7 @@ export default function QuickRepliesSettingsPage() {
     if (!file) return;
 
     const formType = form.watch('type');
-    
+
     // Validate file type based on selected type
     if (formType === 'audio' && !file.type.startsWith('audio/')) {
       toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de áudio.', variant: 'destructive' });
@@ -306,7 +306,7 @@ export default function QuickRepliesSettingsPage() {
     }
 
     setSelectedFile(file);
-    
+
     // Create preview for images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -315,7 +315,7 @@ export default function QuickRepliesSettingsPage() {
     } else {
       setFilePreview(null);
     }
-    
+
     // Set content as file name for non-text types
     form.setValue('content', file.name);
   };
@@ -335,11 +335,11 @@ export default function QuickRepliesSettingsPage() {
   const handleAudioRecorded = async (audioBlob: Blob, duration: number) => {
     setRecordedAudio({ blob: audioBlob, duration });
     setShowAudioRecorder(false);
-    
+
     // Create a file from the blob for consistency with file handling
     const audioFile = new File([audioBlob], `audio_${Date.now()}.mp4`, { type: 'audio/mp4' });
     setSelectedFile(audioFile);
-    
+
     // Set content as audio description
     form.setValue('content', `Áudio gravado (${Math.round(duration)}s)`);
   };
@@ -434,7 +434,7 @@ export default function QuickRepliesSettingsPage() {
                          (qr.content || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || qr.category === selectedCategory;
     const matchesType = selectedType === 'all' || qr.type === selectedType;
-    
+
     return matchesSearch && matchesCategory && matchesType;
   });
 
@@ -464,7 +464,7 @@ export default function QuickRepliesSettingsPage() {
             className="pl-8"
           />
         </div>
-        
+
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Categoria" />
@@ -566,7 +566,7 @@ export default function QuickRepliesSettingsPage() {
                   name="content"
                   render={({ field }) => {
                     const selectedType = form.watch('type');
-                    
+
                     return (
                       <FormItem>
                         <FormLabel>Conteúdo</FormLabel>
@@ -578,7 +578,7 @@ export default function QuickRepliesSettingsPage() {
                                 className="min-h-[100px]"
                                 {...field}
                               />
-                              
+
                               {/* Media Attachment for Text */}
                               <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
@@ -594,7 +594,7 @@ export default function QuickRepliesSettingsPage() {
                                     </Button>
                                   )}
                                 </div>
-                                
+
                                 <input
                                   ref={fileInputRef}
                                   type="file"
@@ -602,7 +602,7 @@ export default function QuickRepliesSettingsPage() {
                                   onChange={handleFileSelect}
                                   className="hidden"
                                 />
-                                
+
                                 {!selectedFile ? (
                                   <div className="text-center">
                                     <div className="mx-auto w-8 h-8 text-gray-400 mb-2">
@@ -662,7 +662,7 @@ export default function QuickRepliesSettingsPage() {
                                   onChange={handleFileSelect}
                                   className="hidden"
                                 />
-                                
+
                                 {!selectedFile ? (
                                   <div className="space-y-3">
                                     <div className="mx-auto w-12 h-12 text-gray-400">
@@ -703,7 +703,7 @@ export default function QuickRepliesSettingsPage() {
                                           Selecionar {selectedType === 'image' ? 'Imagem' : selectedType === 'video' ? 'Vídeo' : 'Documento'}
                                         </Button>
                                       ) : null}
-                                      
+
                                       {selectedType === 'audio' && showAudioRecorder && (
                                         <div className="mt-4">
                                           <AudioRecorder
@@ -713,7 +713,7 @@ export default function QuickRepliesSettingsPage() {
                                           />
                                         </div>
                                       )}
-                                      
+
                                       <p className="text-sm text-gray-500 mt-2">
                                         Formatos suportados: {
                                           selectedType === 'audio' ? 'MP3, WAV, OGG ou grave diretamente' :
@@ -736,7 +736,7 @@ export default function QuickRepliesSettingsPage() {
                                         />
                                       </div>
                                     )}
-                                    
+
                                     {/* File Info */}
                                     <div className="flex items-center justify-center space-x-2 text-sm">
                                       {selectedType === 'audio' && <Mic className="w-4 h-4" />}
@@ -746,7 +746,7 @@ export default function QuickRepliesSettingsPage() {
                                       <span className="font-medium">{selectedFile.name}</span>
                                       <span className="text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
                                     </div>
-                                    
+
                                     {/* Actions */}
                                     <div className="flex justify-center space-x-2">
                                       <Button
@@ -770,7 +770,7 @@ export default function QuickRepliesSettingsPage() {
                                   </div>
                                 )}
                               </div>
-                              
+
                               {/* Hidden textarea for form validation */}
                               <Textarea
                                 {...field}
@@ -834,7 +834,7 @@ export default function QuickRepliesSettingsPage() {
                 {/* Compartilhamento */}
                 <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
                   <h3 className="text-sm font-medium">Compartilhamento</h3>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Visibilidade</label>
                     <Select value={shareScope} onValueChange={setShareScope}>
