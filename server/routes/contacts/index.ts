@@ -62,7 +62,7 @@ export function registerContactRoutes(app: Express) {
       const pageNum = parseInt(page as string) || 1;
       const limitNum = parseInt(limit as string) || 50;
       
-      const result = await storage.contact.getContactsPaginated({
+      const result = await storage.getContactsPaginated({
         search: search as string,
         page: pageNum,
         limit: limitNum

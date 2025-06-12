@@ -175,27 +175,36 @@ export class ContactStorage extends BaseStorage {
     }
 
     // Get total count
-    let countQuery = this.db.select({ count: sql<number>`count(*)`.as('count') }).from(contacts);
+    let totalCount = 0;
     if (whereCondition) {
-      countQuery = countQuery.where(whereCondition);
+      const countResult = await this.db.select({ count: sql<number>`count(*)` }).from(contacts).where(whereCondition);
+      totalCount = Number(countResult[0].count);
+    } else {
+      const countResult = await this.db.select({ count: sql<number>`count(*)` }).from(contacts);
+      totalCount = Number(countResult[0].count);
     }
-    const [{ count: total }] = await countQuery;
 
     // Get paginated data
-    let dataQuery = this.db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    let data: Contact[];
     if (whereCondition) {
-      dataQuery = dataQuery.where(whereCondition);
+      data = await this.db.select().from(contacts)
+        .where(whereCondition)
+        .orderBy(desc(contacts.createdAt))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      data = await this.db.select().from(contacts)
+        .orderBy(desc(contacts.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
-    dataQuery = dataQuery.limit(limit).offset(offset);
-    
-    const data = await dataQuery;
 
     return {
       data,
-      total,
+      total: totalCount,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(totalCount / limit)
     };
   }
 

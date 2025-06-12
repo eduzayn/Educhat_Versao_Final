@@ -92,6 +92,14 @@ export class CentralStorage {
     return this.contact.searchContacts(query);
   }
 
+  async getContactsPaginated(options: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}) {
+    return this.contact.getContactsPaginated(options);
+  }
+
   // ==================== CONVERSATION OPERATIONS ====================
   async createConversation(conversationData: any) {
     return this.conversation.createConversation(conversationData);
