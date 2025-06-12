@@ -298,18 +298,26 @@ export function registerUtilitiesRoutes(app: Express) {
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
       
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${messageId.toString()}&owner=true`;
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/delete-message`;
       
       console.log('🗑️ Deletando mensagem via Z-API:', { 
         url,
+        messageId,
+        phone: cleanPhone,
         conversationId 
       });
 
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
-          'Client-Token': clientToken || ''
-        }
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: cleanPhone,
+          messageId: messageId.toString(),
+          deleteForEveryone: true
+        })
       });
 
       const responseText = await response.text();
