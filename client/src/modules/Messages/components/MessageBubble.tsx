@@ -169,22 +169,7 @@ export function MessageBubble({
           phone: contact.phone
         });
 
-        console.log('✅ Mensagem deletada localmente:', response);
-
-        // Se precisar deletar via Z-API também
-        if (response.needsZapiDeletion && zapiMessageId) {
-          try {
-            console.log('🗑️ Deletando via Z-API:', zapiMessageId);
-            await apiRequest("DELETE", `/api/zapi/messages/${zapiMessageId}`, {
-              phone: contact.phone,
-              conversationId: conversationId,
-            });
-            console.log('✅ Mensagem deletada via Z-API');
-          } catch (zapiError) {
-            console.warn('⚠️ Falha na exclusão via Z-API (mensagem já removida localmente):', zapiError);
-            // Não falhar se a exclusão via Z-API falhar, pois a mensagem já foi removida localmente
-          }
-        }
+        console.log('✅ Mensagem processada:', response);
 
         queryClient.invalidateQueries({
           queryKey: [`/api/conversations/${conversationId}/messages`],
