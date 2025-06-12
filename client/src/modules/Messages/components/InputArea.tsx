@@ -410,16 +410,40 @@ export function InputArea() {
       formData.append("conversationId", activeConversation.id.toString());
       formData.append("image", file);
 
-      const response = await fetch("/api/zapi/send-image", {
-        method: "POST",
-        body: formData,
-      });
+      // Criar controller para timeout personalizado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 120000); // 2 minutos para imagens
 
-      if (!response.ok) {
-        throw new Error("Erro ao enviar imagem");
+      try {
+        const response = await fetch("/api/zapi/send-image", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Erro ao enviar imagem");
+        }
+
+        return response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        
+        // Tratamento específico para diferentes tipos de erro
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
+          } else if (error.message.includes('Failed to fetch')) {
+            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
+          } else if (error.message.includes('NetworkError')) {
+            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
+          }
+        }
+        
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -473,12 +497,22 @@ export function InputArea() {
           fileSize: file.size,
         });
 
+        // Criar controller para timeout personalizado compatível
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+        }, 180000); // 3 minutos
+
         const response = await fetch("/api/zapi/send-video", {
           method: "POST",
           body: formData,
-          // Aumentar timeout para arquivos grandes
-          signal: AbortSignal.timeout(180000), // 3 minutos
+          signal: controller.signal,
+          headers: {
+            // Não definir Content-Type para FormData - deixar o browser definir automaticamente
+          }
         });
+
+        clearTimeout(timeoutId);
 
         console.log("📥 Resposta do servidor:", {
           status: response.status,
@@ -499,6 +533,18 @@ export function InputArea() {
         return result;
       } catch (error) {
         console.error("💥 Erro no processo de envio:", error);
+        
+        // Tratamento específico para diferentes tipos de erro
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
+          } else if (error.message.includes('Failed to fetch')) {
+            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
+          } else if (error.message.includes('NetworkError')) {
+            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
+          }
+        }
+        
         throw error;
       }
     },
@@ -554,11 +600,20 @@ export function InputArea() {
       formData.append("conversationId", activeConversation.id.toString());
       formData.append("document", file);
 
+      // Criar controller para timeout personalizado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 120000); // 2 minutos para documentos
+
       try {
         const response = await fetch("/api/zapi/send-document", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         console.log("📥 Resposta do servidor:", {
           status: response.status,
