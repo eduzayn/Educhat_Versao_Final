@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { VirtualizedMessageList } from '@/modules/Messages/components/VirtualizedMessageList';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
+import { queryClient } from '@/lib/queryClient';
+import { io } from 'socket.io-client';
 import type { Message, Contact } from '@shared/schema';
 
 interface MessagesListProps {
@@ -31,6 +33,34 @@ export function MessagesList({ conversationId, contact }: MessagesListProps) {
       return () => clearTimeout(timer);
     }
   }, [conversationId, messages.length]);
+
+  // Listener para eventos em tempo real
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const socket = io();
+    
+    // Entrar na sala da conversa para receber atualizações
+    socket.emit('join_conversation', conversationId);
+    
+    // Escutar eventos de atualização de mensagens
+    socket.on('broadcast_message', (data) => {
+      console.log('📨 Evento em tempo real recebido:', data);
+      
+      if (data.type === 'message_updated' && data.conversationId === conversationId) {
+        // Invalidar cache para recarregar mensagens com dados atualizados
+        queryClient.invalidateQueries({
+          queryKey: ['/api/conversations', conversationId, 'messages']
+        });
+      }
+    });
+
+    return () => {
+      socket.off('broadcast_message');
+      socket.emit('leave_conversation', conversationId);
+      socket.disconnect();
+    };
+  }, [conversationId]);
 
   // Calcular altura do container dinamicamente
   useEffect(() => {

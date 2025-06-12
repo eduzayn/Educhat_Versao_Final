@@ -233,12 +233,15 @@ export function registerMessageRoutes(app: Express) {
         observacao: 'Mensagem permanece no WhatsApp do contato'
       });
 
-      // Broadcast para atualizar interface
+      // Buscar mensagem atualizada para broadcast
+      const updatedMessage = await storage.getMessage(parsedMessageId);
+      
+      // Broadcast para atualizar interface com dados completos
       const { broadcast } = await import('../realtime');
       broadcast(message.conversationId, {
-        type: 'message_deleted',
+        type: 'message_updated',
         conversationId: message.conversationId,
-        messageId: parsedMessageId,
+        message: updatedMessage,
         deletedAt: new Date().toISOString(),
         deletedForEveryone: false // Soft delete não remove do WhatsApp
       });
