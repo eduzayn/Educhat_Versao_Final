@@ -325,16 +325,18 @@ export async function handleSendVideo(req: Request, res: Response) {
     const { instanceId, token, clientToken } = credentials;
     const cleanPhone = phone.replace(/\D/g, '');
     
-    // Usar FormData para envio direto do arquivo (mais eficiente que base64)
-    const formData = new FormData();
-    formData.append('phone', cleanPhone);
-    formData.append('video', new Blob([req.file.buffer], { type: req.file.mimetype }), `video.${req.file.mimetype.split('/')[1]}`);
-    if (caption) {
-      formData.append('caption', caption);
-    }
+    // Converter vídeo para base64 (formato esperado pela Z-API)
+    const videoBase64 = req.file.buffer.toString('base64');
+    const dataUrl = `data:${req.file.mimetype};base64,${videoBase64}`;
+
+    const payload = {
+      phone: cleanPhone,
+      video: dataUrl,
+      ...(caption && { caption })
+    };
 
     const url = buildZApiUrl(instanceId, token, 'send-video');
-    console.log('🎥 Enviando vídeo para Z-API (FormData):', { 
+    console.log('🎥 Enviando vídeo para Z-API (base64):', { 
       url: url.replace(token, '****'), 
       phone: cleanPhone,
       videoSize: req.file.buffer.length,
@@ -345,10 +347,10 @@ export async function handleSendVideo(req: Request, res: Response) {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Client-Token': clientToken,
-        // Não definir Content-Type para FormData (deixar o navegador definir)
       },
-      body: formData
+      body: JSON.stringify(payload)
     });
 
     const responseText = await response.text();
