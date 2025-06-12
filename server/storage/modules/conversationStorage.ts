@@ -37,10 +37,37 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
+    // Buscar última mensagem para prévias - otimizado com subquery
+    const conversationIds = conversationsData.map(conv => conv.id);
+    const lastMessages = conversationIds.length > 0 ? await this.db
+      .select({
+        conversationId: messages.conversationId,
+        content: messages.content,
+        messageType: messages.messageType,
+        isFromContact: messages.isFromContact,
+        sentAt: messages.sentAt
+      })
+      .from(messages)
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.isDeleted, false)
+        )
+      )
+      .orderBy(desc(messages.sentAt)) : [];
+
+    // Agrupar mensagens por conversa (apenas a última de cada)
+    const messagesByConversation = new Map();
+    for (const msg of lastMessages) {
+      if (!messagesByConversation.has(msg.conversationId)) {
+        messagesByConversation.set(msg.conversationId, msg);
+      }
+    }
+
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados otimizados
+    // Retornar dados com prévias das mensagens
     return conversationsData.map(conv => ({
       id: conv.id,
       contactId: conv.contactId,
@@ -81,7 +108,9 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [],
+      messages: messagesByConversation.has(conv.id) ? 
+        [messagesByConversation.get(conv.id)] : 
+        [],
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
