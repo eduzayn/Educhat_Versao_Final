@@ -249,16 +249,10 @@ export function InfiniteConversationList({
                         </p>
                         <div className="flex items-center space-x-2 ml-2">
                           {conversation.unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs">
+                            <Badge className="text-xs bg-educhat-primary text-white hover:bg-educhat-primary/80">
                               {conversation.unreadCount}
                             </Badge>
                           )}
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-xs ${STATUS_CONFIG[conversation.status as ConversationStatus]?.bgColor} ${STATUS_CONFIG[conversation.status as ConversationStatus]?.color}`}
-                          >
-                            {STATUS_CONFIG[conversation.status as ConversationStatus]?.label || conversation.status}
-                          </Badge>
                         </div>
                       </div>
                     </div>
