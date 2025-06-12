@@ -199,7 +199,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const { registerRoutes } = await import("./routes/index-working");
+  const { registerRoutes } = await import("./routes/index");
   const server = await registerRoutes(app);
 
   // Error handling middleware deve vir ANTES do Vite

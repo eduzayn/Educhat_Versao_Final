@@ -29,11 +29,23 @@
 - server/routes/deals/index.ts: ../../storage → ../../core/storage
 - server/routes/handoffs/index.ts: ../../storage → ../../core/storage
 
+## Consolidação de Rotas Também Resolvida
+
+### 3. server/routes/index-working.ts
+- **Status**: REMOVIDO - Conteúdo migrado para server/routes/index.ts
+- **Funcionalidade**: Sistema de registro de rotas duplicado
+- **Razão da Remoção**: Redundância completa com index.ts
+
+### Arquivos de Rotas Atualizados:
+- server/index.ts: Atualizado para usar ./routes/index em vez de index-working
+- server/routes/index.ts: Consolidado com melhor organização das rotas
+
 ## Data da Consolidação
-2025-06-12 23:31:00
+2025-06-12 23:32:00
 
 ## Verificação de Funcionamento
-- Sistema operacional após consolidação
+- Sistema operacional após consolidação completa
 - Todas as rotas funcionando corretamente
 - Z-API processando mensagens normalmente
 - 7.821+ contatos com paginação ativa
+- Ambas redundâncias críticas resolvidas
