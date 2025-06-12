@@ -32,13 +32,42 @@ export function registerDealsRoutes(app: Express) {
         return res.status(400).json({ error: 'Limite inválido (1-100)' });
       }
       
+      // Verificar permissões do usuário para aplicar filtros apropriados
+      const userRole = req.user?.role || 'agent';
+      const userId = req.user?.id;
+      
+      let filterUserId = null;
+      
+      // Se não for admin/manager, filtrar apenas negócios atribuídos ao usuário
+      if (!['admin', 'manager', 'superadmin'].includes(userRole)) {
+        filterUserId = userId;
+      }
+      
+      console.log('🔍 Debug filtros de negócios:', {
+        userRole,
+        userId,
+        filterUserId,
+        team,
+        stage,
+        search,
+        assignedUserId
+      });
+      
       // Use pagination method from storage
       const result = await storage.getDealsWithPagination({
         page: pageNum,
         limit: limitNum,
         teamType: team as string,
         stage: stage as string,
-        search: search as string
+        search: search as string,
+        userId: filterUserId, // Aplicar filtro de usuário quando necessário
+        assignedUserId: assignedUserId as string
+      });
+      
+      console.log('📊 Resultado da busca de negócios:', {
+        total: result.total,
+        dealsCount: result.deals?.length || 0,
+        teamType: team
       });
       
       res.json(result);
