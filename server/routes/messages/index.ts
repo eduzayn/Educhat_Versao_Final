@@ -192,11 +192,15 @@ export function registerMessageRoutes(app: Express) {
   // Soft Delete (Mensagens Recebidas) - POST /api/messages/soft-delete
   app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
     try {
-      const { messageId } = req.body;
+      const { messageId, conversationId } = req.body;
       const userId = req.user?.id;
 
       if (!messageId || isNaN(parseInt(messageId))) {
         return res.status(400).json({ error: 'messageId é obrigatório e deve ser um número válido' });
+      }
+
+      if (!conversationId || isNaN(parseInt(conversationId))) {
+        return res.status(400).json({ error: 'conversationId é obrigatório e deve ser um número válido' });
       }
 
       if (!userId) {
