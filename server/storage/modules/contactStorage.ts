@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { contacts, contactTags, type Contact, type InsertContact, type ContactTag, type InsertContactTag, type ContactWithTags } from "../../../shared/schema";
-import { eq, desc, ilike, or, and } from "drizzle-orm";
+import { eq, desc, ilike, or, and, sql } from "drizzle-orm";
 
 /**
  * Contact storage module - manages contacts and contact tags
@@ -175,7 +175,7 @@ export class ContactStorage extends BaseStorage {
     }
 
     // Get total count
-    const countQuery = this.db.select({ count: sql<number>`count(*)` }).from(contacts);
+    const countQuery = this.db.select({ count: sql<number>`count(*)`.as('count') }).from(contacts);
     if (whereCondition) {
       countQuery.where(whereCondition);
     }

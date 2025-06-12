@@ -61,36 +61,14 @@ export function registerContactRoutes(app: Express) {
       
       const pageNum = parseInt(page as string) || 1;
       const limitNum = parseInt(limit as string) || 50;
-      const offset = (pageNum - 1) * limitNum;
       
-      let whereClause = '';
-      let params: any[] = [];
-      
-      // Se há uma pesquisa, aplicar filtros
-      if (search && typeof search === 'string' && search.trim() !== '') {
-        const searchTerm = `%${search.trim()}%`;
-        whereClause = ' WHERE (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1)';
-        params.push(searchTerm);
-      }
-      
-      // Query para contar total
-      const countQuery = `SELECT COUNT(*) as total FROM contacts${whereClause}`;
-      const countResult = await pool.query(countQuery, params);
-      const total = parseInt(countResult.rows[0].total);
-      
-      // Query para buscar dados com paginação
-      const dataQuery = `SELECT * FROM contacts${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-      params.push(limitNum, offset);
-      
-      const dataResult = await pool.query(dataQuery, params);
-      
-      res.json({
-        data: dataResult.rows,
-        total: total,
+      const result = await storage.contact.getContactsPaginated({
+        search: search as string,
         page: pageNum,
-        limit: limitNum,
-        totalPages: Math.ceil(total / limitNum)
+        limit: limitNum
       });
+      
+      res.json(result);
     } catch (error) {
       console.error('Error fetching contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
