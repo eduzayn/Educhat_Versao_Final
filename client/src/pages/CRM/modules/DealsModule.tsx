@@ -72,17 +72,18 @@ export function DealsModule() {
   // Query para buscar negócios
   const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
     queryKey: ['/api/deals', { page, limit, team: selectedTeam, search }],
-    queryFn: () => apiRequest(`/api/deals?page=${page}&limit=${limit}&team=${selectedTeam}&search=${encodeURIComponent(search)}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/deals?page=${page}&limit=${limit}&team=${selectedTeam}&search=${encodeURIComponent(search)}`);
+      return response.json();
+    },
     staleTime: 30 * 1000, // 30 segundos
   });
 
   // Mutation para atualizar deal
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
-      return apiRequest(`/api/deals/${dealId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ stage })
-      });
+      const response = await apiRequest('PATCH', `/api/deals/${dealId}`, { stage });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
@@ -92,10 +93,8 @@ export function DealsModule() {
   // Mutation para criar deal
   const createDealMutation = useMutation({
     mutationFn: async (dealData: any) => {
-      return apiRequest('/api/deals', {
-        method: 'POST',
-        body: JSON.stringify(dealData)
-      });
+      const response = await apiRequest('POST', '/api/deals', dealData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
