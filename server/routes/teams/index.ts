@@ -7,13 +7,7 @@ export function registerTeamsRoutes(app: Express) {
   // Get all teams - REST: GET /api/teams
   app.get('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Verificar se o usuário está autenticado
-      if (!req.user) {
-        return res.status(401).json({ error: 'Acesso negado - usuário não autenticado' });
-      }
-
-      // Permitir acesso a todos os usuários autenticados para visualizar equipes
-      // Isso é necessário para o funcionamento básico do sistema
+      // Permitir acesso básico para usuários autenticados via middleware de sessão
       const teams = await storage.getTeams();
       res.json(teams);
     } catch (error) {
