@@ -325,10 +325,10 @@ export const UsersTab = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as funções</SelectItem>
-            <SelectItem value="admin">Administrador</SelectItem>
-            <SelectItem value="manager">Gerente</SelectItem>
-            <SelectItem value="agent">Atendente</SelectItem>
-            <SelectItem value="supervisor">Supervisor</SelectItem>
+            <SelectItem value="Administrador">Administrador</SelectItem>
+            <SelectItem value="Gerente">Gerente</SelectItem>
+            <SelectItem value="Atendente">Atendente</SelectItem>
+            <SelectItem value="Visualizador">Visualizador</SelectItem>
           </SelectContent>
         </Select>
         
