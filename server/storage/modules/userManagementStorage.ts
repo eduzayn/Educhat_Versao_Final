@@ -50,16 +50,18 @@ export class UserManagementStorage extends BaseStorage {
   /**
    * Create new user
    */
-  async createUser(userData: UpsertUser): Promise<User> {
+  async createUser(userData: any): Promise<User> {
     const [systemUser] = await this.db
       .insert(systemUsers)
       .values({
         email: userData.email,
-        username: userData.firstName || userData.email.split('@')[0],
-        displayName: `${userData.firstName} ${userData.lastName}`.trim() || userData.email,
+        username: userData.username || userData.firstName || userData.email.split('@')[0],
+        displayName: userData.displayName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email,
         password: userData.password,
         role: userData.role || 'user',
-        roleId: 1,
+        roleId: userData.roleId || 1,
+        team: userData.team || null,
+        teamId: userData.teamId || null,
         isActive: true,
         channels: [],
         teamTypes: []

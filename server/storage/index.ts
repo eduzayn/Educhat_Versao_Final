@@ -63,6 +63,14 @@ export class CentralStorage {
     return this.userManagement.getUserById(id);
   }
 
+  async updateUser(id: number, userData: any) {
+    return this.userManagement.updateSystemUser(id, userData);
+  }
+
+  async deleteUser(id: number) {
+    return this.userManagement.deleteSystemUser(id);
+  }
+
   // ==================== CONTACT OPERATIONS ====================
   async createContact(contactData: any) {
     return this.contact.createContact(contactData);
