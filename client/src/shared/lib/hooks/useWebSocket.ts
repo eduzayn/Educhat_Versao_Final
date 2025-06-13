@@ -210,6 +210,64 @@ export function useWebSocket() {
             });
           }
           break;
+        case 'conversation_assigned_to_user':
+          if (data.conversationId && data.conversation) {
+            console.log('👤 Conversa atribuída a usuário em tempo real:', {
+              conversationId: data.conversationId,
+              assignedUserId: data.conversation.assignedUserId,
+              assignedUserName: data.conversation.assignedUserName
+            });
+            
+            // Invalidar cache para atualizar a interface
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            queryClient.invalidateQueries({ 
+              queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch para atualização imediata
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após atribuição:', error);
+            });
+          }
+          break;
+        case 'conversation_user_unassigned':
+          if (data.conversationId) {
+            console.log('🔄 Usuário removido da conversa em tempo real:', {
+              conversationId: data.conversationId,
+              previousUserId: data.previousUserId,
+              previousUserName: data.previousUserName
+            });
+            
+            // Invalidar cache para atualizar a interface
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            queryClient.invalidateQueries({ 
+              queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch para atualização imediata
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após remoção:', error);
+            });
+          }
+          break;
         default:
           console.log('📨 Evento Socket.IO não mapeado:', data.type);
       }
