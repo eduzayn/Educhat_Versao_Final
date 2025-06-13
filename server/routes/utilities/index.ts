@@ -7,6 +7,68 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../cor
 
 export function registerUtilitiesRoutes(app: Express) {
   
+  // Rotas de compatibilidade para gestão de usuários
+  app.get('/api/system-users', async (req, res) => {
+    try {
+      const { systemUsers } = await import('../../shared/schema');
+      const { storage } = await import('../storage');
+      const { eq } = await import('drizzle-orm');
+      const users = await storage.db.select().from(systemUsers).where(eq(systemUsers.isActive, true));
+      res.json(users);
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      res.json([]);
+    }
+  });
+
+  app.post('/api/system-users', async (req, res) => {
+    try {
+      const { systemUsers } = await import('../../shared/schema');
+      const { storage } = await import('../storage');
+      const [newUser] = await storage.db.insert(systemUsers).values({
+        ...req.body,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      res.json(newUser);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.put('/api/system-users/:id', async (req, res) => {
+    try {
+      const { systemUsers } = await import('../../shared/schema');
+      const { storage } = await import('../storage');
+      const { eq } = await import('drizzle-orm');
+      const [updatedUser] = await storage.db.update(systemUsers)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(systemUsers.id, parseInt(req.params.id)))
+        .returning();
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.delete('/api/system-users/:id', async (req, res) => {
+    try {
+      const { systemUsers } = await import('../../shared/schema');
+      const { storage } = await import('../storage');
+      const { eq } = await import('drizzle-orm');
+      await storage.db.update(systemUsers)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(systemUsers.id, parseInt(req.params.id)));
+      res.json({ message: 'Usuário desativado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao desativar usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+  
   // Cache para o status Z-API (10 segundos)
   let statusCache: { data: any; timestamp: number } | null = null;
   const CACHE_DURATION = 10000; // 10 segundos para reduzir ainda mais a carga
