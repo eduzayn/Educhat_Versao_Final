@@ -419,6 +419,21 @@ export class CentralStorage {
   async getContactInterests(contactId: number) {
     return this.contact.getContactInterests ? this.contact.getContactInterests(contactId) : [];
   }
+
+  // ==================== MISSING CONVERSATION METHODS ====================
+  async getConversationByContactAndChannel(contactId: number, channel: string) {
+    return this.conversation.getConversationByContactAndChannel ? 
+      this.conversation.getConversationByContactAndChannel(contactId, channel) : null;
+  }
+
+  // ==================== COMPATIBILITY ALIASES ====================
+  get contacts() {
+    return this.contact;
+  }
+
+  get messages() {
+    return this.message;
+  }
 }
 
 export const storage = new CentralStorage();

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../../core/storage";
+import { storage } from "../../storage";
 import { insertMessageSchema } from "@shared/schema";
 import type { AuthenticatedRequest } from "../admin/permissions";
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";

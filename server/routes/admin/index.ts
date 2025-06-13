@@ -784,7 +784,7 @@ export function registerAdminRoutes(app: Express) {
     requirePermission('permissao:gerenciar'), 
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { storage } = await import('../../core/storage');
+        const { storage } = await import('../../storage');
         
         console.log(`🧹 Iniciando limpeza de deals duplicados por usuário ${req.user!.displayName}`);
         

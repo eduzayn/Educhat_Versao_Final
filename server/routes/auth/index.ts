@@ -137,7 +137,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       // Import storage here to avoid circular dependencies
-      const { storage } = await import("../../core/storage");
+      const { storage } = await import("../../storage");
       const { hashPassword } = await import("./auth");
 
       // Check if user already exists

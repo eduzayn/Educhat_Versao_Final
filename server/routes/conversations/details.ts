@@ -1,5 +1,5 @@
 import { Express, Request, Response } from 'express';
-import { storage } from '../../core/storage';
+import { storage } from "../../storage"';
 
 export function registerConversationDetailsRoutes(app: Express) {
   // Endpoint para carregar detalhes da conversa sob demanda

@@ -10,7 +10,7 @@ import {
   aiMemory 
 } from '../../shared/schema';
 import { AIService, MessageClassification } from './aiService';
-import { storage } from '../core/storage';
+import { storage } from "../../storage"';
 import { funnelService } from './funnelService';
 import type { InsertHandoff, Handoff } from '@shared/schema';
 

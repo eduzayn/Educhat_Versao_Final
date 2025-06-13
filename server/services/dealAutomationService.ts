@@ -1,6 +1,6 @@
 // DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
 // Mantido para compatibilidade durante migração
-import { storage } from '../core/storage';
+import { storage } from "../../storage"';
 import { funnelService } from './funnelService';
 
 /**
