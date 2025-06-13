@@ -40,7 +40,7 @@ export function InfiniteConversationList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteConversations(100);
+  } = useInfiniteConversations(50);
 
   const observer = useRef<IntersectionObserver>();
   const lastConversationElementRef = useCallback((node: HTMLDivElement) => {
@@ -69,20 +69,20 @@ export function InfiniteConversationList({
     return matchesSearch && matchesStatus && matchesChannel;
   });
 
-  const renderChannelBadge = (channel: string) => {
+  const renderChannelIcon = (channel: string) => {
     const getChannelColor = (ch: string) => {
       switch (ch) {
-        case 'whatsapp': return 'bg-green-500';
-        case 'instagram': return 'bg-pink-500';
-        case 'facebook': return 'bg-blue-500';
-        case 'email': return 'bg-gray-500';
-        default: return 'bg-gray-400';
+        case 'whatsapp': return 'bg-green-500 text-white';
+        case 'instagram': return 'bg-pink-500 text-white';
+        case 'facebook': return 'bg-blue-500 text-white';
+        case 'email': return 'bg-gray-500 text-white';
+        default: return 'bg-gray-400 text-white';
       }
     };
 
     const getChannelLabel = (ch: string) => {
       switch (ch) {
-        case 'whatsapp': return 'W';
+        case 'whatsapp': return 'WA';
         case 'instagram': return 'IG';
         case 'facebook': return 'FB';
         case 'email': return '@';
@@ -91,83 +91,26 @@ export function InfiniteConversationList({
     };
 
     return (
-      <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs font-medium ${getChannelColor(channel)} border border-white shadow-sm`}>
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getChannelColor(channel)}`}>
         {getChannelLabel(channel)}
       </div>
     );
   };
 
   const formatMessagePreview = (conversation: ConversationWithContact) => {
-    // Usar messages[0] ao invés de lastMessage para compatibilidade com o backend
-    const lastMessage = conversation.messages?.[0];
-    if (!lastMessage) return 'Sem mensagens';
+    if (!conversation.lastMessage) return 'Sem mensagens';
     
-    // Filtrar mensagens genéricas inadequadas primeiro
-    const isGenericMessage = lastMessage.content && (
-      lastMessage.content === 'Mensagem recebida' ||
-      lastMessage.content === 'Mensagem não identificada' ||
-      lastMessage.content === 'Mensagem em processamento'
-    );
-
-    // Se for mensagem genérica, tentar extrair conteúdo real dos metadados
-    if (isGenericMessage && lastMessage.metadata) {
-      const metadata = lastMessage.metadata as any;
-      
-      // Tentar extrair texto real dos metadados
-      if (metadata.text && metadata.text.message) {
-        return metadata.text.message.substring(0, 50) + (metadata.text.message.length > 50 ? '...' : '');
-      }
-      
-      // Para outros tipos de mídia, mostrar descrição apropriada
-      if (metadata.image) {
-        const caption = metadata.image.caption;
-        return caption && caption.trim() ? caption.substring(0, 50) + '...' : '📷 Imagem';
-      }
-      
-      if (metadata.audio) return '🎵 Áudio';
-      if (metadata.video) {
-        const caption = metadata.video.caption;
-        return caption && caption.trim() ? caption.substring(0, 50) + '...' : '🎥 Vídeo';
-      }
-      if (metadata.document) {
-        const fileName = metadata.document.fileName || metadata.fileName;
-        return fileName ? `📄 ${fileName}` : '📄 Documento';
-      }
+    const message = conversation.lastMessage;
+    if (message.type === 'text') {
+      return message.content?.substring(0, 50) + (message.content && message.content.length > 50 ? '...' : '');
+    } else if (message.type === 'image') {
+      return '📷 Imagem';
+    } else if (message.type === 'audio') {
+      return '🎵 Áudio';
+    } else if (message.type === 'document') {
+      return '📄 Documento';
     }
-
-    // Para mensagens de texto válidas, sempre mostrar o conteúdo real
-    if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
-      return lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '');
-    }
-    
-    // Para diferentes tipos de mensagem
-    if (lastMessage.messageType === 'image') {
-      const caption = (lastMessage.metadata as any)?.image?.caption;
-      return caption && caption.trim() ? caption.substring(0, 50) + '...' : '📷 Imagem';
-    }
-    
-    if (lastMessage.messageType === 'audio') return '🎵 Áudio';
-    
-    if (lastMessage.messageType === 'video') {
-      const caption = (lastMessage.metadata as any)?.video?.caption;
-      return caption && caption.trim() ? caption.substring(0, 50) + '...' : '🎥 Vídeo';
-    }
-    
-    if (lastMessage.messageType === 'document') {
-      const fileName = (lastMessage.metadata as any)?.document?.fileName || (lastMessage.metadata as any)?.fileName;
-      return fileName ? `📄 ${fileName}` : '📄 Documento';
-    }
-    
-    if (lastMessage.messageType === 'sticker') return '🎭 Figurinha';
-    if (lastMessage.messageType === 'location') return '📍 Localização';
-    if (lastMessage.messageType === 'contact') return '👤 Contato';
-    
-    // Fallback final
-    if (lastMessage.content && !isGenericMessage) {
-      return lastMessage.content.substring(0, 50) + (lastMessage.content.length > 50 ? '...' : '');
-    }
-    
-    return 'Nova mensagem';
+    return 'Mensagem';
   };
 
   if (isLoading && !data) {
@@ -221,11 +164,8 @@ export function InfiniteConversationList({
                           {conversation.contact?.name?.charAt(0).toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
-                      {/* Indicador discreto do canal */}
-                      {renderChannelBadge(conversation.channel)}
-                      {/* Indicador de online (se necessário, posicionar diferente do canal) */}
                       {conversation.contact?.isOnline && (
-                        <div className="absolute bottom-0 left-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
 
@@ -235,6 +175,7 @@ export function InfiniteConversationList({
                           {conversation.contact?.name || conversation.contact?.phone || 'Contato desconhecido'}
                         </h3>
                         <div className="flex items-center space-x-2">
+                          {renderChannelIcon(conversation.channel)}
                           {conversation.lastMessage && (
                             <span className="text-xs text-gray-500">
                               {formatRelative(new Date(conversation.lastMessage.createdAt), new Date(), { locale: ptBR })}
@@ -249,10 +190,16 @@ export function InfiniteConversationList({
                         </p>
                         <div className="flex items-center space-x-2 ml-2">
                           {conversation.unreadCount > 0 && (
-                            <Badge className="text-xs bg-educhat-primary text-white hover:bg-educhat-primary/80">
+                            <Badge variant="destructive" className="text-xs">
                               {conversation.unreadCount}
                             </Badge>
                           )}
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-xs ${STATUS_CONFIG[conversation.status as ConversationStatus]?.bgColor} ${STATUS_CONFIG[conversation.status as ConversationStatus]?.color}`}
+                          >
+                            {STATUS_CONFIG[conversation.status as ConversationStatus]?.label || conversation.status}
+                          </Badge>
                         </div>
                       </div>
                     </div>

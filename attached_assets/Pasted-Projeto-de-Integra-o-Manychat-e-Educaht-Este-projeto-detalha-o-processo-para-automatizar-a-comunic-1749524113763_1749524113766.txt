@@ -1,0 +1,103 @@
+Projeto de Integração: Manychat e Educaht
+Este projeto detalha o processo para automatizar a comunicação e a troca de dados entre o Manychat, sua plataforma de automação de marketing em redes sociais, e o Educaht, seu sistema de gestão educacional.
+
+Objetivo Principal
+Automatizar a transferência de informações de alunos e leads entre o Manychat e o Educaht para otimizar processos de captação, matrícula e comunicação, resultando em maior eficiência e uma melhor experiência para o usuário.
+
+Fase 1: Descoberta e Planejamento (Ação Crítica)
+Esta é a fase mais importante. O sucesso de todo o projeto depende da qualidade das informações que você coletar aqui.
+
+Passo 1: Obter a Documentação da API do Educaht ❗
+Você precisa entrar em contato com o suporte técnico ou comercial do seu sistema Educaht e solicitar a documentação da API (API Documentation). Sem isso, a integração não é possível.
+
+Ao receber a documentação, procure pelas seguintes informações:
+
+Método de Autenticação: Como o Manychat (ou o intermediário) irá provar que tem permissão para acessar o Educaht?
+Exemplos: Chave de API (API Key), Token de Autenticação (Bearer Token), OAuth2.
+Endpoints da API: Quais são as URLs específicas para cada ação?
+Exemplo de Endpoints:
+POST /api/v1/alunos (para criar um novo aluno/lead)
+GET /api/v1/alunos/{id} (para buscar os dados de um aluno específico)
+PUT /api/v1/alunos/{id} (para atualizar os dados de um aluno)
+GET /api/v1/cursos (para listar os cursos disponíveis)
+Estrutura dos Dados (JSON): Qual o formato exato dos dados que você precisa enviar (request) e que irá receber (response)?
+Exemplo de body para criar um aluno:
+JSON
+
+{
+  "nome_completo": "José da Silva",
+  "email_principal": "jose.silva@example.com",
+  "telefone_whatsapp": "+5511999998888",
+  "origem": "Manychat"
+}
+Limites de Requisições (Rate Limits): Quantas chamadas à API são permitidas por minuto/hora? Isso é importante para evitar bloqueios.
+Passo 2: Definir os Fluxos de Automação
+Decida quais processos você quer automatizar. Comece com o mais importante para o seu negócio.
+
+Exemplo 1 (Captação): Um usuário se cadastra em um fluxo no Manychat para receber informações sobre um curso. Seus dados (nome, e-mail, curso de interesse) são enviados automaticamente para o Educaht, criando um novo "Lead" ou "Aluno em Potencial".
+Exemplo 2 (Matrícula): Um aluno efetua o pagamento da matrícula no Educaht. O status dele é atualizado, e isso dispara uma mensagem de boas-vindas e próximos passos via Manychat.
+Exemplo 3 (Comunicação): Ao adicionar um aviso importante na ficha de um aluno no Educaht, uma notificação é enviada para ele via Manychat.
+Passo 3: Escolher a Ferramenta de Conexão (Middleware)
+A conexão direta entre Manychat e uma API externa exige programação. A forma mais simples e recomendada é usar uma plataforma de integração (iPaaS).
+
+Recomendação Principal: Make (antigo Integromat). É extremamente poderoso, visual e flexível para lidar com APIs.
+Alternativa: Zapier. É mais simples para iniciantes, mas pode ser mais limitado ou caro dependendo da complexidade.
+Fase 2: Configuração e Desenvolvimento
+Com a documentação da API em mãos, vamos para a prática. O exemplo abaixo usará o Make.
+
+Cenário de Exemplo: Enviar um novo Lead do Manychat para o Educaht
+Passo 1: Preparar o Gatilho no Make
+Crie um novo cenário no Make.
+Como primeiro módulo, adicione o "Custom webhook".
+Clique em "Add" para criar um novo webhook. Dê um nome a ele (ex: "Leads do Manychat") e salve.
+O Make irá gerar uma URL única para esse webhook. Copie-a.
+Passo 2: Configurar a Ação no Manychat
+Vá para o seu fluxo do Manychat onde você captura os dados do lead.
+Após o passo onde o usuário fornece as informações, adicione uma nova Ação (Action).
+Selecione a opção "External Request".
+Configure da seguinte forma:
+Request Type: POST
+Request URL: Cole a URL do webhook que você copiou do Make.
+Body: Aqui você monta o JSON que o Manychat enviará para o Make. Mapeie as variáveis do Manychat.
+Clique em "Add Full Subscriber Data" para ver todos os dados disponíveis ou selecione campos específicos (Add Custom Field).
+Exemplo de Body:
+JSON
+
+{
+  "nome": "{first_name} {last_name}",
+  "email": "{email}",
+  "whatsapp": "{phone}",
+  "curso_interesse": "{nome_do_campo_personalizado}"
+}
+Headers: Deixe em branco.
+Salve a ação.
+Passo 3: Testar o Gatilho
+No Make, clique em "Run once".
+No Manychat, use a função de "Preview" e passe pelo fluxo como se fosse um usuário.
+Quando a ação "External Request" for executada, o Make deverá capturar os dados. Você verá uma bolha com o número "1" sobre o módulo do webhook, indicando que os dados foram recebidos com sucesso.
+Passo 4: Configurar a Ação no Educaht
+No Make, adicione um novo módulo após o webhook. Procure por "HTTP" e selecione a ação "Make a request".
+Agora, você usará a documentação da API do Educaht que você conseguiu na Fase 1.
+URL: Cole a URL do endpoint para criar um novo aluno no Educaht (ex: https://api.educaht.com/api/v1/alunos).
+Method: POST.
+Headers: Se a API do Educaht exigir autenticação por header (como Authorization: Bearer SEU_TOKEN), adicione aqui.
+Body type: Raw.
+Content type: JSON (application/json).
+Request content: Aqui você irá montar o JSON que a API do Educaht espera, mas usando os dados que vieram do Manychat (do primeiro módulo).
+Exemplo:
+JSON
+
+{
+  "nome_completo": "{{1.nome}}",
+  "email_principal": "{{1.email}}",
+  "telefone_whatsapp": "{{1.whatsapp}}",
+  "origem": "Manychat"
+}
+Passo 5: Teste Final e Ativação
+Clique em "Run once" novamente no Make. Ele irá reprocessar os dados do último teste, mas agora enviando-os para a API do Educaht.
+Verifique no seu sistema Educaht se o novo lead foi criado corretamente.
+Se tudo funcionou, ative o cenário no botão de ligar/desligar no canto inferior esquerdo da tela do Make.
+Fase 3: Manutenção e Expansão
+Monitore as Execuções: Verifique periodicamente no Make se há erros nas execuções dos cenários.
+Desenvolva Novos Fluxos: Com o primeiro cenário funcionando, expanda a integração para outros fluxos definidos na Fase 1 (confirmação de matrícula, envio de avisos, etc.). O processo será semelhante, podendo mudar o tipo de requisição (GET, PUT) e os endpoints.
+Ao seguir este projeto, você terá um caminho claro para realizar uma integração robusta e eficiente entre o Educaht e o Manychat. Lembre-se: o ponto de partida é conseguir a documentação da API do Educaht.

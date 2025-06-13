@@ -1,17 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useApiResource, resourceConfigs } from './useApiResource';
 import type { Message, InsertMessage } from '@shared/schema';
 
 export function useMessages(conversationId: number | null, limit = 50) {
-  return useApiResource<Message[]>({
+  return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`, { limit }],
-    endpoint: `/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`,
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+      const messages = await response.json();
+      // Retornar em ordem cronológica (mais antigas primeiro para compatibilidade com scroll)
+      return messages;
+    },
     enabled: !!conversationId,
-    // Configuração específica para mensagens - sem polling automático
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    // Remover polling automático - usar apenas WebSocket para tempo real
     refetchInterval: false,
-    refetchOnWindowFocus: false
+    refetchIntervalInBackground: false,
+    // Manter dados em cache por mais tempo para melhor performance
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 

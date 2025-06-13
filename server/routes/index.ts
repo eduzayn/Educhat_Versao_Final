@@ -1,18 +1,18 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth/auth";
 
-// Import all working routes
+// Import modular routes
 import { registerAuthRoutes } from "./auth/index";
-import { registerWebhookRoutes } from "./webhooks/index";
 import { registerAdminRoutes } from "./admin/index";
+import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
 import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
 import { registerContactRoutes } from "./contacts/index";
 import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
+import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
 import { registerDealsRoutes } from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics/index";
@@ -25,9 +25,7 @@ import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
-import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
-
-// Import router-based routes
+// Teams are now managed through dedicated team management system
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
 import documentsRouter from "./documents/index";
@@ -37,19 +35,16 @@ import handoffsRouter from "./handoffs/index";
 import dashboardRouter from "./dashboard/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication first
+  // Setup do sistema de autenticação próprio PRIMEIRO
   setupAuth(app);
   
-  // Register critical webhook routes first
+  // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
   
-  // Register authentication routes
+  // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
-  
-  // Register administrative routes
   registerAdminRoutes(app);
-  
-  // Register core system routes
+  registerTeamsIntegratedChatRoutes(app);
   registerMediaRoutes(app);
   registerInboxRoutes(app);
   registerMessageRoutes(app);
@@ -57,8 +52,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerChannelRoutes(app);
   registerConversationDetailsRoutes(app);
-  
-  // Register business logic routes
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
@@ -69,9 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
   registerFunnelRoutes(app);
-  registerTeamsIntegratedChatRoutes(app);
-
-  // Register router-based routes
+  // Sistema de detecção migrado para IA com equipes unificadas
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
   app.use('/api/ia', aiConfigRouter);
@@ -80,7 +71,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/handoffs', handoffsRouter);
   app.use('/api/dashboard', dashboardRouter);
 
-  // Configure Socket.IO and return server
+  // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
+
   return httpServer;
 }

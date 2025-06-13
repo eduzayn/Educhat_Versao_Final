@@ -46,17 +46,15 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // 🔒 PROTEGIDO: Busca otimizada de prévias - incluir metadados para prévias corretas
+    // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
     const conversationIds = conversationsData.map(conv => conv.id);
     const lastMessages = conversationIds.length > 0 ? await this.db
       .select({
-        id: messages.id,
         conversationId: messages.conversationId,
         content: messages.content,
         messageType: messages.messageType,
         isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt,
-        metadata: messages.metadata
+        sentAt: messages.sentAt
       })
       .from(messages)
       .where(

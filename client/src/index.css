@@ -2,13 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Correção definitiva para eliminar espaços em branco */
-html, body, #root {
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
 /* Scrollbar personalizado unificado */
 .scrollbar-thin,
 .custom-scrollbar,
@@ -40,29 +33,6 @@ html, body, #root {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .deals-column-scroll::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
-}
-
-/* Layout responsivo para caixa de entrada - elimina espaço em branco inferior */
-.mobile-full-height {
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height para mobile */
-}
-
-.mobile-full-width {
-  width: 100%;
-}
-
-.mobile-hide {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .mobile-hide {
-    display: flex;
-  }
-  .mobile-full-width {
-    width: auto;
-  }
 }
 
 /* Animações elegantes para emoji picker */

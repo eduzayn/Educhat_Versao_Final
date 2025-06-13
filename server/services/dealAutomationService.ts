@@ -1,16 +1,16 @@
-
+// DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
+// Mantido para compatibilidade durante migração
 import { storage } from '../core/storage';
 import { funnelService } from './funnelService';
 
 /**
- * Serviço de automação de deals - Responsabilidade única: criação automática de deals
- * Consolidado para eliminar sobreposições com crmService e funnelService
+ * Serviço de automação de deals - Sistema simplificado
+ * Cria deals automaticamente quando conversas são atribuídas a equipes
  */
 export class DealAutomationService {
   
   /**
    * Executa automação quando conversa é atribuída a equipe
-   * Responsabilidade: Apenas criação de deals automáticos
    */
   async onConversationAssigned(conversationId: number, teamId: number, assignmentMethod: 'manual' | 'automatic') {
     try {
@@ -35,13 +35,6 @@ export class DealAutomationService {
 
       console.log(`📋 Dados para automação: contato=${conversation.contactId}, canal=${canalOrigem}, teamType=${teamType}`);
 
-      // Verificar se deve criar deal (evitar duplicação)
-      const shouldCreate = await this.shouldCreateAutomaticDeal(conversation.contactId, teamType);
-      if (!shouldCreate) {
-        console.log(`⚠️ Deal automático não criado - já existe deal ativo para contato ${conversation.contactId} no setor ${teamType}`);
-        return null;
-      }
-
       // Buscar estágio inicial correto do funil da equipe
       const initialStage = await funnelService.getInitialStageForTeamType(teamType);
       
@@ -64,8 +57,24 @@ export class DealAutomationService {
   }
 
   /**
+   * Mapear estágios iniciais por teamType
+   */
+  private getInitialStageByTeamType(teamType: string): string {
+    const stageMapping: { [key: string]: string } = {
+      'comercial': 'prospecting',
+      'suporte': 'atendimento-inicial',
+      'cobranca': 'pendencia-identificada', 
+      'secretaria': 'solicitacao-recebida',
+      'tutoria': 'duvida-identificada',
+      'financeiro': 'analise-inicial',
+      'secretaria_pos': 'documentos-inicial'
+    };
+
+    return stageMapping[teamType] || 'prospecting';
+  }
+
+  /**
    * Verificar se deve criar deal automático
-   * Responsabilidade: Validação de duplicação
    */
   async shouldCreateAutomaticDeal(contactId: number, teamType: string): Promise<boolean> {
     try {
@@ -86,7 +95,6 @@ export class DealAutomationService {
 
   /**
    * Método para compatibilidade com handoffs
-   * Responsabilidade: Interface para sistema de handoffs
    */
   async handleTeamAssignment(conversation: any, teamId: number) {
     return this.onConversationAssigned(conversation.id, teamId, 'manual');

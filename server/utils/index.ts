@@ -6,6 +6,7 @@
 // Re-exports organizados por categoria
 export * from './api';
 export * from './validation';
+export * from './formatting';
 export * from './course';
 export * from './zapi';
 export * from './date';
@@ -16,4 +17,4 @@ export * from './auth';
 export { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from './zapi';
 export { detectCourses, getCourseCategories, getCoursesByCategory } from './course';
 export { isValidEmail, normalizePhoneNumber, isValidCPF } from './validation';
-export { formatPhoneForDisplay, formatCurrency, formatDateBR } from '../../shared/formatters';
+export { formatPhoneForDisplay, formatCurrency, formatDateBR } from './formatting';

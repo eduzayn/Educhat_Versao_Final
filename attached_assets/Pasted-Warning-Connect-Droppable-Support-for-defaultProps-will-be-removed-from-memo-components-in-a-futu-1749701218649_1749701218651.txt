@@ -1,0 +1,72 @@
+Warning: Connect(Droppable): Support for defaultProps will be removed from memo components in a future major release. Use JavaScript default parameters instead.
+    at div
+    at div
+    at div
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-beautiful-dnd.js?v=2e971afc:945:20)
+    at App (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-beautiful-dnd.js?v=2e971afc:7462:25)
+    at ErrorBoundary2 (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-beautiful-dnd.js?v=2e971afc:1959:35)
+    at DragDropContext (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-beautiful-dnd.js?v=2e971afc:7582:19)
+    at div
+    at div
+    at DealsModule (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/pages/CRM/modules/DealsModule.tsx:46:31)
+    at div
+    at div
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=2e971afc:42:13
+    at Presence (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-E4UC4BFD.js?v=2e971afc:24:11)
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2e971afc:176:13
+    at _c5 (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/shared/ui/tabs.tsx:68:12)
+    at div
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=2e971afc:42:13
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=2e971afc:38:15)
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2e971afc:54:7
+    at div
+    at div
+    at CRMPage (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/pages/CRM/CRMPage.tsx:55:43)
+    at Route (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2e971afc:323:16)
+    at Switch (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2e971afc:379:17)
+    at Router (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/App.tsx?v=v4fVAd9LjoAqwB0damH_1:49:42)
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=2e971afc:38:15)
+    at TooltipProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2e971afc:64:5)
+    at QueryClientProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2e971afc:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61
+printWarning @ chunk-RPCDYKBN.js?v=2e971afc:521
+error @ chunk-RPCDYKBN.js?v=2e971afc:505
+updateMemoComponent @ chunk-RPCDYKBN.js?v=2e971afc:14382
+beginWork @ chunk-RPCDYKBN.js?v=2e971afc:15977
+beginWork$1 @ chunk-RPCDYKBN.js?v=2e971afc:19753
+performUnitOfWork @ chunk-RPCDYKBN.js?v=2e971afc:19198
+workLoopSync @ chunk-RPCDYKBN.js?v=2e971afc:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=2e971afc:19116
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=2e971afc:18874
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=2e971afc:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=2e971afc:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=2e971afc:555
+flush @ @tanstack_react-query.js?v=2e971afc:569
+batch @ @tanstack_react-query.js?v=2e971afc:587
+dispatch_fn @ @tanstack_react-query.js?v=2e971afc:996
+setData @ @tanstack_react-query.js?v=2e971afc:696
+onSuccess @ @tanstack_react-query.js?v=2e971afc:897
+resolve @ @tanstack_react-query.js?v=2e971afc:456
+Promise.then
+run @ @tanstack_react-query.js?v=2e971afc:498
+start @ @tanstack_react-query.js?v=2e971afc:536
+fetch @ @tanstack_react-query.js?v=2e971afc:926
+executeFetch_fn @ @tanstack_react-query.js?v=2e971afc:2211
+onSubscribe @ @tanstack_react-query.js?v=2e971afc:1898
+subscribe @ @tanstack_react-query.js?v=2e971afc:24
+(anonymous) @ @tanstack_react-query.js?v=2e971afc:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=2e971afc:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=2e971afc:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=2e971afc:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=2e971afc:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=2e971afc:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=2e971afc:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=2e971afc:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=2e971afc:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=2e971afc:19416
+commitRoot @ chunk-RPCDYKBN.js?v=2e971afc:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=2e971afc:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=2e971afc:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=2e971afc:18627Understand this error

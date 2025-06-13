@@ -117,63 +117,26 @@ export function LazyMediaContent({
     secureLog.debug(`Carregando ${messageType}`, { messageId });
 
     try {
-      // Verificar se já temos conteúdo inicial válido
-      if (realInitialContent && messageType === 'image') {
+      // Para imagens, usar o conteúdo inicial com proxy se disponível
+      if (messageType === 'image' && realInitialContent) {
         const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(realInitialContent)}`;
         setContent(proxiedUrl);
         setLoaded(true);
         secureLog.debug("Imagem carregada via proxy", { messageId });
       } else {
-        // Buscar através da API de mídia
+        // Para outros tipos de mídia, usar API tradicional
         const response = await fetch(`/api/messages/${messageId}/media`);
         if (response.ok) {
           const data = await response.json();
-          
-          // Para imagens, usar proxy para URLs externas
-          if (messageType === 'image' && data.content && !data.content.startsWith('/api/media/proxy')) {
-            const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(data.content)}`;
-            setContent(proxiedUrl);
-          } else {
-            setContent(data.content);
-          }
-          
+          setContent(data.content);
           setLoaded(true);
           secureLog.debug(`${messageType} carregado`, { messageId });
         } else {
-          const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-          secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`, errorData);
-          
-          // Fallback: tentar usar conteúdo inicial se disponível
-          if (realInitialContent) {
-            if (messageType === 'image') {
-              const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(realInitialContent)}`;
-              setContent(proxiedUrl);
-            } else {
-              setContent(realInitialContent);
-            }
-            setLoaded(true);
-            secureLog.debug(`${messageType} carregado via fallback`, { messageId });
-          }
+          secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
         }
       }
     } catch (error) {
       secureLog.error(`Erro ao carregar ${messageType}`, error);
-      
-      // Fallback: tentar usar conteúdo inicial se disponível
-      if (realInitialContent) {
-        try {
-          if (messageType === 'image') {
-            const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(realInitialContent)}`;
-            setContent(proxiedUrl);
-          } else {
-            setContent(realInitialContent);
-          }
-          setLoaded(true);
-          secureLog.debug(`${messageType} carregado via fallback após erro`, { messageId });
-        } catch (fallbackError) {
-          secureLog.error(`Fallback também falhou para ${messageType}`, fallbackError);
-        }
-      }
     } finally {
       setLoading(false);
     }
@@ -211,16 +174,15 @@ export function LazyMediaContent({
         }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Image className="w-5 h-5 text-blue-600" />
+            <Image className="w-5 h-5" />
             <span className="text-sm">Imagem: {fileName}</span>
             <Button
               variant="outline"
               size="sm"
               onClick={loadMediaContent}
               disabled={loading}
-              className="bg-educhat-primary text-white hover:bg-educhat-primary/80 border-educhat-primary"
             >
-              {loading ? "Carregando..." : "Ver imagem"}
+              {loading ? "Carregando..." : "Visualizar"}
             </Button>
           </div>
         );
@@ -241,7 +203,7 @@ export function LazyMediaContent({
         }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Play className="w-5 h-5 text-green-600" />
+            <Play className="w-5 h-5" />
             <span className="text-sm">
               Áudio: {metadata?.duration || "Duração desconhecida"}
             </span>
@@ -250,7 +212,6 @@ export function LazyMediaContent({
               size="sm"
               onClick={loadMediaContent}
               disabled={loading}
-              className="bg-educhat-primary text-white hover:bg-educhat-primary/80 border-educhat-primary"
             >
               {loading ? "Carregando..." : "Reproduzir"}
             </Button>
@@ -283,16 +244,15 @@ export function LazyMediaContent({
         }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Play className="w-5 h-5 text-purple-600" />
+            <Play className="w-5 h-5" />
             <span className="text-sm">Vídeo: {fileName}</span>
             <Button
               variant="outline"
               size="sm"
               onClick={loadMediaContent}
               disabled={loading}
-              className="bg-educhat-primary text-white hover:bg-educhat-primary/80 border-educhat-primary"
             >
-              {loading ? "Carregando..." : "Reproduzir"}
+              {loading ? "Carregando..." : "Visualizar"}
             </Button>
           </div>
         );
@@ -324,14 +284,13 @@ export function LazyMediaContent({
         }
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <FileText className="w-5 h-5 text-orange-600" />
+            <FileText className="w-5 h-5" />
             <span className="text-sm">Documento: {fileName}</span>
             <Button
               variant="outline"
               size="sm"
               onClick={loadMediaContent}
               disabled={loading}
-              className="bg-educhat-primary text-white hover:bg-educhat-primary/80 border-educhat-primary"
             >
               {loading ? "Carregando..." : "Visualizar"}
             </Button>
@@ -341,14 +300,13 @@ export function LazyMediaContent({
       default:
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <FileText className="w-5 h-5 text-gray-600" />
+            <FileText className="w-5 h-5" />
             <span className="text-sm">Arquivo: {fileName}</span>
             <Button
               variant="outline"
               size="sm"
               onClick={loadMediaContent}
               disabled={loading}
-              className="bg-educhat-primary text-white hover:bg-educhat-primary/80 border-educhat-primary"
             >
               {loading ? "Carregando..." : "Visualizar"}
             </Button>

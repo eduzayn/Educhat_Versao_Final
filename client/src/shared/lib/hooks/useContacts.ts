@@ -1,23 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { 
-  usePaginatedApiResource, 
-  useApiResource, 
-  useCreateResource, 
-  useUpdateResource, 
-  useDeleteResource,
-  resourceConfigs 
-} from './useApiResource';
 import type { Contact, ContactWithTags, InsertContact } from '@shared/schema';
 
 export function useContacts(params?: { search?: string; page?: number; limit?: number }) {
-  return usePaginatedApiResource<Contact>({
-    queryKey: ['/api/contacts'],
-    endpoint: '/api/contacts',
-    ...resourceConfigs.stable
-  }, params, {
-    select: (data) => {
+  return useQuery<{ data: Contact[]; total: number }>({
+    queryKey: ['/api/contacts', params],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      
+      const url = `/api/contacts${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch contacts');
+      
+      const data = await response.json();
+      
       // Se a resposta é um array (formato antigo), converte para o novo formato
       if (Array.isArray(data)) {
         return {
@@ -25,39 +25,67 @@ export function useContacts(params?: { search?: string; page?: number; limit?: n
           total: data.length
         };
       }
+      
       return data;
     }
   });
 }
 
 export function useContact(id: number | null) {
-  return useApiResource<ContactWithTags>({
+  return useQuery<ContactWithTags>({
     queryKey: ['/api/contacts', id],
-    endpoint: `/api/contacts/${id}`,
-    enabled: !!id,
-    ...resourceConfigs.stable
+    queryFn: async () => {
+      if (!id) throw new Error('Contact ID is required');
+      const response = await fetch(`/api/contacts/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch contact');
+      return response.json();
+    },
+    enabled: !!id
   });
 }
 
 export function useCreateContact() {
-  return useCreateResource<Contact, InsertContact>(
-    '/api/contacts',
-    [['/api/contacts']]
-  );
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (contact: InsertContact) => {
+      const response = await apiRequest('POST', '/api/contacts', contact);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+    }
+  });
 }
 
 export function useUpdateContact() {
-  return useUpdateResource<Contact, { id: number; name: string; email: string; phone: string }>(
-    ({ id }) => `/api/contacts/${id}`,
-    ({ id }) => [['/api/contacts'], ['/api/contacts', id]]
-  );
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: { id: number; name: string; email: string; phone: string }) => {
+      const { id, ...contact } = data;
+      const response = await apiRequest('PUT', `/api/contacts/${id}`, contact);
+      return response.json();
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts', id] });
+    }
+  });
 }
 
 export function useDeleteContact() {
-  return useDeleteResource<number>(
-    (id) => `/api/contacts/${id}`,
-    [['/api/contacts']]
-  );
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/contacts/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+    }
+  });
 }
 
 // Z-API specific hooks (mantidas para configurações avançadas)

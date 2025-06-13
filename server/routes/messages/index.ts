@@ -105,31 +105,16 @@ export function registerMessageRoutes(app: Express) {
   app.get('/api/messages/:id/media', async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      
-      if (isNaN(messageId)) {
-        return res.status(400).json({ 
-          error: 'ID da mensagem inválido',
-          details: 'O ID deve ser um número válido'
-        });
-      }
-
       const message = await storage.getMessage(messageId);
       
       if (!message) {
-        return res.status(404).json({ 
-          error: 'Mensagem não encontrada',
-          details: `Mensagem com ID ${messageId} não existe`
-        });
+        return res.status(404).json({ error: 'Mensagem não encontrada' });
       }
 
       // Verificar se é uma mensagem de mídia
       const mediaTypes = ['image', 'audio', 'video', 'document'];
       if (!message.messageType || !mediaTypes.includes(message.messageType as string)) {
-        return res.status(400).json({ 
-          error: 'Mensagem não é de mídia',
-          details: `Tipo de mensagem '${message.messageType}' não é suportado para carregamento de mídia`,
-          supportedTypes: mediaTypes
-        });
+        return res.status(400).json({ error: 'Mensagem não é de mídia' });
       }
 
       // Usar o utilitário centralizado para extrair URLs de mídia
@@ -139,37 +124,8 @@ export function registerMessageRoutes(app: Express) {
         message.metadata
       );
 
-      // Melhor debugging para URLs não encontradas
-      if (!mediaInfo.mediaUrl) {
-        console.log('❌ URL de mídia não encontrada:', {
-          messageId,
-          messageType: message.messageType,
-          content: message.content,
-          metadata: message.metadata,
-          extractedInfo: mediaInfo
-        });
-        
-        return res.status(404).json({ 
-          error: 'URL da mídia não encontrada',
-          details: 'Não foi possível extrair a URL da mídia dos metadados ou conteúdo da mensagem',
-          messageType: message.messageType,
-          hasContent: !!message.content,
-          hasMetadata: !!message.metadata
-        });
-      }
-
-      if (!isValidMediaUrl(mediaInfo.mediaUrl)) {
-        console.log('❌ URL de mídia inválida:', {
-          messageId,
-          url: mediaInfo.mediaUrl,
-          messageType: message.messageType
-        });
-        
-        return res.status(400).json({ 
-          error: 'URL da mídia inválida',
-          details: 'A URL extraída não é válida ou acessível',
-          url: mediaInfo.mediaUrl
-        });
+      if (!mediaInfo.mediaUrl || !isValidMediaUrl(mediaInfo.mediaUrl)) {
+        return res.status(404).json({ error: 'URL da mídia não encontrada ou inválida' });
       }
 
       // Configurar headers para permitir visualização inline e evitar bloqueio do Chrome
@@ -182,16 +138,9 @@ export function registerMessageRoutes(app: Express) {
         'Cache-Control': 'public, max-age=3600'
       });
 
-      console.log('✅ Mídia carregada com sucesso:', {
-        messageId,
-        messageType: message.messageType,
-        fileName: mediaInfo.fileName,
-        hasUrl: !!mediaInfo.mediaUrl
-      });
-
       res.json({
         content: mediaInfo.mediaUrl,
-        fileName: mediaInfo.fileName || `${message.messageType}.file`,
+        fileName: mediaInfo.fileName,
         mimeType: mediaInfo.mimeType,
         duration: mediaInfo.duration,
         messageType: message.messageType,
@@ -199,16 +148,8 @@ export function registerMessageRoutes(app: Express) {
       });
 
     } catch (error) {
-      console.error('❌ Erro ao buscar mídia:', {
-        messageId: req.params.id,
-        error: error instanceof Error ? error.message : 'Erro desconhecido',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      
-      res.status(500).json({ 
-        error: 'Erro interno do servidor',
-        details: error instanceof Error ? error.message : 'Falha inesperada ao processar mídia'
-      });
+      console.error('Erro ao buscar mídia:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 

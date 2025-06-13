@@ -142,22 +142,8 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           phone: phone,
           name: webhookData.senderName || `WhatsApp ${phone}`,
           canalOrigem: 'whatsapp',
-          userIdentity: phone,
-          profileImageUrl: webhookData.senderPhoto || webhookData.photo || null
+          userIdentity: phone
         });
-      } else {
-        // Atualizar foto do contato se recebida no webhook e ainda não tiver uma
-        if (webhookData.senderPhoto && (!contact.profileImageUrl || contact.profileImageUrl.includes('attached_assets'))) {
-          try {
-            await storage.updateContact(contact.id, {
-              profileImageUrl: webhookData.senderPhoto,
-              name: webhookData.senderName || contact.name // Atualizar nome também se mudou
-            });
-            console.log(`📸 Foto de perfil atualizada para ${contact.name} (${phone})`);
-          } catch (photoError) {
-            console.log(`⚠️ Erro ao atualizar foto do contato ${contact.id}:`, photoError);
-          }
-        }
       }
       
       // Buscar ou criar conversa

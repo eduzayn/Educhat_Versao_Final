@@ -56,7 +56,7 @@ const EMOJI_CATEGORIES = {
   "Gestos": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "👊", "✊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏"],
   "Objetos": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚡", "💥", "💫", "⭐", "🌟", "✨", "🔥", "💯", "💢", "💨", "💦", "💤"],
   "Natureza": ["🌍", "🌎", "🌏", "🌐", "🗺️", "🗾", "🧭", "🏔️", "⛰️", "🌋", "🗻", "🏕️", "🏖️", "🏜️", "🏝️", "🏞️", "🏟️", "🏛️", "🏗️", "🧱", "🏘️", "🏚️", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽", "⛪", "🕌", "🛕", "🕍", "⛩️", "🕋"],
-  "Comida": ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", " waffles", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕"]
+  "Comida": ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕"]
 };
 
 export function InputArea() {
@@ -93,7 +93,7 @@ export function InputArea() {
 
   // Query para buscar usuário atual (para notas internas)
   const { data: currentUser } = useQuery({
-    queryKey: ['/api/auth/user'],
+    queryKey: ['/api/user'],
     retry: false,
     staleTime: 1000 * 60 * 10, // 10 minutos
     enabled: isInternalNote // Só busca quando necessário
@@ -179,7 +179,7 @@ export function InputArea() {
       if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
         const authorName = (currentUser as any)?.displayName || (currentUser as any)?.username || 'Usuário';
-
+        
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
           message: {
@@ -192,7 +192,7 @@ export function InputArea() {
           },
           contact: activeConversation.contact,
         });
-
+        
         setIsInternalNote(false); // Reset nota interna state
       } else {
         // Enviar mensagem normal
@@ -430,7 +430,7 @@ export function InputArea() {
         return response.json();
       } catch (error) {
         clearTimeout(timeoutId);
-
+        
         // Tratamento específico para diferentes tipos de erro
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
@@ -441,7 +441,7 @@ export function InputArea() {
             throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
           }
         }
-
+        
         throw error;
       }
     },
@@ -534,7 +534,7 @@ export function InputArea() {
         return result;
       } catch (error) {
         console.error("💥 Erro no processo de envio:", error);
-
+        
         // Tratamento específico para diferentes tipos de erro
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
@@ -545,7 +545,7 @@ export function InputArea() {
             throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
           }
         }
-
+        
         throw error;
       }
     },
@@ -634,7 +634,7 @@ export function InputArea() {
       } catch (error) {
         clearTimeout(timeoutId);
         console.error("💥 Erro no processo de envio:", error);
-
+        
         // Tratamento específico para diferentes tipos de erro
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
@@ -645,7 +645,7 @@ export function InputArea() {
             throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
           }
         }
-
+        
         throw error;
       }
     },
@@ -722,7 +722,7 @@ export function InputArea() {
   // Função para upload de arquivos do MediaAttachmentModal
   const handleFileUpload = (file: File, caption?: string) => {
     const fileType = file.type;
-
+    
     if (fileType.startsWith('image/')) {
       sendImageMutation.mutate(file);
     } else if (fileType.startsWith('video/')) {
@@ -947,7 +947,7 @@ export function InputArea() {
             className="min-h-[48px] max-h-[140px] resize-none pr-20 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent text-base"
             rows={1}
           />
-
+          
           {/* Botões de toggle entre Mensagem e Nota Interna - movidos para a direita */}
           <div className="absolute right-2 top-2.5 flex items-center gap-1.5">
             <TooltipProvider>
@@ -970,7 +970,7 @@ export function InputArea() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
+            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

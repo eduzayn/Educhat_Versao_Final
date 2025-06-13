@@ -52,7 +52,7 @@ import { ConversationAssignmentDropdown } from './components/ConversationAssignm
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
 import { ConversationListHeader } from './components/ConversationListHeader';
-
+import { ConversationList } from './components/ConversationList';
 import { InfiniteConversationList } from './components/InfiniteConversationList';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
@@ -314,7 +314,7 @@ export function InboxPage() {
   // Loading is now handled by InfiniteConversationList component
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
@@ -343,10 +343,10 @@ export function InboxPage() {
       </div>
 
       {/* Área de Mensagens */}
-      <div className={`flex-1 flex flex-col h-full ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
+      <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
-            {/* Header da Conversa - fixo no topo */}
+            {/* Header da Conversa */}
             <ChatHeader
               activeConversation={activeConversation}
               showMobileChat={showMobileChat}
@@ -355,18 +355,16 @@ export function InboxPage() {
               getChannelInfo={getChannelInfo}
             />
 
-            {/* Mensagens - área flexível que cresce */}
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <MessagesArea
-                messages={messages || []}
-                isLoadingMessages={isLoadingMessages}
-                activeConversation={activeConversation}
-                getChannelInfo={getChannelInfo}
-              />
-            </div>
+            {/* Mensagens */}
+            <MessagesArea
+              messages={messages || []}
+              isLoadingMessages={isLoadingMessages}
+              activeConversation={activeConversation}
+              getChannelInfo={getChannelInfo}
+            />
 
-            {/* Área de Input - fixo na parte inferior */}
-            <div className="bg-white border-t border-gray-200" style={{ padding: '12px', flexShrink: 0 }}>
+            {/* Área de Input */}
+            <div className="bg-white border-t border-gray-200 p-4">
               <InputArea />
             </div>
           </>

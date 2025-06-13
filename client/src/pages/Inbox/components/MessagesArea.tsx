@@ -60,13 +60,7 @@ export function MessagesArea({
   }, [messages.length > 0, isLoadingMessages]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="flex-1 overflow-y-auto px-4 py-2"
-      style={{ 
-        scrollBehavior: 'smooth'
-      }}
-    >
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
       {(messages || []).length === 0 && !isLoadingMessages ? (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
@@ -76,7 +70,7 @@ export function MessagesArea({
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <>
           {/* Loading inicial */}
           {isLoadingMessages && (
             <div className="p-6 text-center text-gray-500">
@@ -116,8 +110,8 @@ export function MessagesArea({
           ))}
           
           {/* Elemento invisível para scroll automático */}
-          <div ref={messagesEndRef} className="h-1" />
-        </div>
+          <div ref={messagesEndRef} />
+        </>
       )}
     </div>
   );

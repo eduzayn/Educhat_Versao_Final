@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
-import { validateZApiCredentials } from "../../utils/zapi";
 import { pool } from "../../db";
 
 /**
@@ -61,14 +60,36 @@ export function registerContactRoutes(app: Express) {
       
       const pageNum = parseInt(page as string) || 1;
       const limitNum = parseInt(limit as string) || 50;
+      const offset = (pageNum - 1) * limitNum;
       
-      const result = await storage.getContactsPaginated({
-        search: search as string,
+      let whereClause = '';
+      let params: any[] = [];
+      
+      // Se há uma pesquisa, aplicar filtros
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        const searchTerm = `%${search.trim()}%`;
+        whereClause = ' WHERE (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1)';
+        params.push(searchTerm);
+      }
+      
+      // Query para contar total
+      const countQuery = `SELECT COUNT(*) as total FROM contacts${whereClause}`;
+      const countResult = await pool.query(countQuery, params);
+      const total = parseInt(countResult.rows[0].total);
+      
+      // Query para buscar dados com paginação
+      const dataQuery = `SELECT * FROM contacts${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      params.push(limitNum, offset);
+      
+      const dataResult = await pool.query(dataQuery, params);
+      
+      res.json({
+        data: dataResult.rows,
+        total: total,
         page: pageNum,
-        limit: limitNum
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
       });
-      
-      res.json(result);
     } catch (error) {
       console.error('Error fetching contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
@@ -193,159 +214,18 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
-  // Update profile pictures from Z-API
-  app.post('/api/contacts/update-photos', async (req, res) => {
+  // Migration endpoint for existing contacts
+  app.post('/api/contacts/migrate', async (req, res) => {
     try {
-      console.log('📸 Iniciando atualização de fotos de perfil...');
-      
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
-      }
-
-      const { instanceId, token, clientToken } = credentials;
-      
-      // Buscar contatos via SQL simples para evitar problemas de tipos
-      const result = await pool.query(`
-        SELECT id, name, phone 
-        FROM contacts 
-        WHERE phone IS NOT NULL 
-        AND (profile_image_url IS NULL OR profile_image_url = '' OR profile_image_url LIKE '%attached_assets%')
-        ORDER BY created_at DESC
-        LIMIT 50
-      `);
-      
-      const contacts = result.rows;
-      console.log(`📊 Encontrados ${contacts.length} contatos sem foto de perfil`);
-      
-      let updated = 0;
-      let errors = 0;
-      
-      // Processar em lotes pequenos
-      for (const contact of contacts) {
-        try {
-          if (!contact.phone) continue;
-          
-          const cleanPhone = contact.phone.replace(/\D/g, '');
-          
-          // Formato correto da URL usando query parameter
-          const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-picture?phone=${cleanPhone}`;
-          
-          console.log(`🔍 Buscando foto para ${contact.name} (${cleanPhone})`);
-          
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Client-Token': clientToken || '',
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            console.log(`❌ Erro HTTP ${response.status} para ${cleanPhone}: ${response.statusText}`);
-            errors++;
-            continue;
-          }
-
-          const data = await response.json();
-          console.log(`📋 Resposta Z-API para ${cleanPhone}:`, JSON.stringify(data, null, 2));
-          
-          // Verificar se há URL da foto na resposta (conforme exemplo fornecido)
-          let profilePictureUrl = null;
-          
-          if (data.link) {
-            profilePictureUrl = data.link;
-          } else if (data.profilePictureUrl) {
-            profilePictureUrl = data.profilePictureUrl;
-          } else if (data.value?.profilePictureUrl) {
-            profilePictureUrl = data.value.profilePictureUrl;
-          } else if (data.profilePicUrl) {
-            profilePictureUrl = data.profilePicUrl;
-          }
-          
-          if (profilePictureUrl && profilePictureUrl.startsWith('http') && profilePictureUrl !== contact.profile_image_url) {
-            // Atualizar usando SQL direto
-            await pool.query(
-              'UPDATE contacts SET profile_image_url = $1, updated_at = NOW() WHERE id = $2',
-              [profilePictureUrl, contact.id]
-            );
-            
-            console.log(`✅ Foto atualizada para ${contact.name} (${cleanPhone}): ${profilePictureUrl}`);
-            updated++;
-          } else {
-            console.log(`⚠️ Nenhuma foto encontrada para ${contact.name} (${cleanPhone})`);
-          }
-          
-          // Pausa entre requisições
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-        } catch (error) {
-          console.error(`❌ Erro ao processar contato ${contact.id}:`, error);
-          errors++;
-        }
-      }
-
-      const summary = {
-        total: contacts.length,
-        updated,
-        errors,
-        message: updated > 0 ? `${updated} fotos atualizadas com sucesso` : 'Nenhuma foto foi atualizada',
-        warning: updated === 0 ? 'Client-Token não possui permissão para acessar fotos de perfil da Z-API' : null,
-        info: 'As fotos são capturadas automaticamente via webhooks quando contatos enviam mensagens',
-        recommendation: 'Para ativar sincronização manual, solicite ao suporte da Z-API as permissões de profile-picture'
-      };
-
-      console.log('✅ Atualização de fotos concluída:', summary);
-      res.json(summary);
-      
-    } catch (error) {
-      console.error('❌ Erro na atualização de fotos:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      const { migrateExistingContacts } = await import('./migration');
+      const result = await migrateExistingContacts();
+      res.json({
+        message: 'Migração de contatos concluída',
+        ...result
       });
+    } catch (error) {
+      console.error('Error running contact migration:', error);
+      res.status(500).json({ message: 'Erro ao executar migração de contatos' });
     }
   });
-
-  // Get profile picture from Z-API for specific contact
-  app.get('/api/zapi/profile-picture', async (req, res) => {
-    try {
-      const phone = req.query.phone as string;
-      
-      if (!phone) {
-        return res.status(400).json({ error: 'Phone number is required' });
-      }
-
-      const credentials = validateZApiCredentials();
-      if (!credentials.valid) {
-        return res.status(400).json({ error: credentials.error });
-      }
-
-      const { instanceId, token, clientToken } = credentials;
-      const cleanPhone = phone.replace(/\D/g, '');
-      
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/contacts/${cleanPhone}/profile-picture`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Z-API error: ${response.status} - ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      res.json(data);
-      
-    } catch (error) {
-      console.error('Erro ao buscar foto de perfil:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
-
 }

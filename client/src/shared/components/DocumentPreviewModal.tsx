@@ -60,44 +60,23 @@ export function DocumentPreviewModal({
     
     if (isImage) {
       return (
-        <div className="flex justify-center items-center max-h-[600px] min-h-[200px]">
+        <div className="flex justify-center items-center max-h-[600px]">
           <img
             src={documentUrl}
             alt={fileName}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+            className="max-w-full max-h-full object-contain rounded-lg"
             crossOrigin="anonymous"
             referrerPolicy="strict-origin-when-cross-origin"
-            style={{ minHeight: '100px', minWidth: '100px' }}
             onError={(e) => {
-              secureLog.error("❌ Erro ao carregar imagem", { fileName, url: documentUrl });
+              secureLog.error("Erro ao carregar imagem", { fileName, url: documentUrl });
+              // Tentar carregar através de proxy se falhar diretamente
               const target = e.target as HTMLImageElement;
-              
-              // Se a URL já não contém o proxy, tentar via proxy
-              if (!target.src.includes('/api/media/proxy')) {
-                const proxyUrl = `/api/media/proxy?url=${encodeURIComponent(documentUrl)}`;
-                secureLog.debug("🔄 Tentando carregar via proxy", { originalUrl: documentUrl, proxyUrl });
-                target.src = proxyUrl;
-              } else {
-                // Se o proxy também falhou, mostrar erro visual
-                target.style.display = 'none';
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'flex flex-col items-center justify-center p-8 text-gray-500';
-                errorDiv.innerHTML = `
-                  <div class="text-center">
-                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-                      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                    </div>
-                    <p class="text-sm font-medium">Não foi possível carregar a imagem</p>
-                    <p class="text-xs text-gray-400 mt-1">Tente fazer o download do arquivo</p>
-                  </div>
-                `;
-                target.parentNode?.appendChild(errorDiv);
+              if (!target.src.includes('/api/proxy/image/')) {
+                target.src = `/api/proxy/image/${encodeURIComponent(documentUrl)}`;
               }
             }}
             onLoad={() => {
-              secureLog.debug("✅ Imagem carregada com sucesso", { fileName, url: documentUrl });
+              secureLog.debug("Imagem carregada com sucesso", { fileName });
             }}
           />
         </div>

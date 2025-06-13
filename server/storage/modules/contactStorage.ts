@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { contacts, contactTags, type Contact, type InsertContact, type ContactTag, type InsertContactTag, type ContactWithTags } from "../../../shared/schema";
-import { eq, desc, ilike, or, and, sql } from "drizzle-orm";
+import { eq, desc, ilike, or, and } from "drizzle-orm";
 
 /**
  * Contact storage module - manages contacts and contact tags
@@ -99,8 +99,6 @@ export class ContactStorage extends BaseStorage {
     return contact;
   }
 
-
-
   async getContactByUserIdentity(userIdentity: string): Promise<Contact | undefined> {
     const [contact] = await this.db.select().from(contacts).where(eq(contacts.userIdentity, userIdentity));
     return contact;
@@ -150,62 +148,5 @@ export class ContactStorage extends BaseStorage {
       ));
   }
 
-  async getContactsPaginated(options: {
-    search?: string;
-    page?: number;
-    limit?: number;
-  } = {}): Promise<{
-    data: Contact[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
-    const { search, page = 1, limit = 50 } = options;
-    const offset = (page - 1) * limit;
-
-    // Build where condition
-    let whereCondition;
-    if (search && search.trim() !== '') {
-      whereCondition = or(
-        ilike(contacts.name, `%${search}%`),
-        ilike(contacts.phone, `%${search}%`),
-        ilike(contacts.email, `%${search}%`)
-      );
-    }
-
-    // Get total count
-    let totalCount = 0;
-    if (whereCondition) {
-      const countResult = await this.db.select({ count: sql<number>`count(*)` }).from(contacts).where(whereCondition);
-      totalCount = Number(countResult[0].count);
-    } else {
-      const countResult = await this.db.select({ count: sql<number>`count(*)` }).from(contacts);
-      totalCount = Number(countResult[0].count);
-    }
-
-    // Get paginated data
-    let data: Contact[];
-    if (whereCondition) {
-      data = await this.db.select().from(contacts)
-        .where(whereCondition)
-        .orderBy(desc(contacts.createdAt))
-        .limit(limit)
-        .offset(offset);
-    } else {
-      data = await this.db.select().from(contacts)
-        .orderBy(desc(contacts.createdAt))
-        .limit(limit)
-        .offset(offset);
-    }
-
-    return {
-      data,
-      total: totalCount,
-      page,
-      limit,
-      totalPages: Math.ceil(totalCount / limit)
-    };
-  }
 
 }
