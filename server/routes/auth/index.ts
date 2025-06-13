@@ -26,9 +26,8 @@ export function registerAuthRoutes(app: Express) {
     console.log("🏥 Health check de autenticação:", sessionHealth);
     res.json(sessionHealth);
   });
-
-  // Login endpoint - CONSOLIDADO COM PREFIXO /api/auth/
-  app.post("/api/auth/login", async (req: Request, res: Response, next) => {
+  // Login endpoint
+  app.post("/api/login", async (req: Request, res: Response, next) => {
     try {
       console.log("🔐 Tentativa de login recebida:", { 
         email: req.body.email, 
@@ -89,8 +88,8 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Logout endpoint - CONSOLIDADO COM PREFIXO /api/auth/
-  app.post("/api/auth/logout", (req: Request, res: Response) => {
+  // Logout endpoint
+  app.post("/api/logout", (req: Request, res: Response) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ message: "Erro ao fazer logout" });
@@ -99,8 +98,8 @@ export function registerAuthRoutes(app: Express) {
     });
   });
 
-  // Get current user endpoint - CONSOLIDADO COM PREFIXO /api/auth/
-  app.get("/api/auth/user", (req: Request, res: Response) => {
+  // Get current user endpoint
+  app.get("/api/user", (req: Request, res: Response) => {
     if (process.env.NODE_ENV === 'development') {
       console.log("🔍 Verificação de autenticação:", {
         sessionID: req.sessionID,
@@ -124,8 +123,8 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
-  // Register endpoint - CONSOLIDADO COM PREFIXO /api/auth/
-  app.post("/api/auth/register", async (req: Request, res: Response) => {
+  // Register endpoint
+  app.post("/api/register", async (req: Request, res: Response) => {
     try {
       const { firstName, lastName, email, password } = req.body;
       
@@ -185,32 +184,5 @@ export function registerAuthRoutes(app: Express) {
       console.error("Erro no registro:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
-  });
-
-  // ROTAS DE COMPATIBILIDADE TEMPORÁRIAS - Redirecionam para as novas rotas /api/auth/*
-  // Estas serão removidas após atualização completa do frontend
-
-  // Compatibilidade: /api/login -> /api/auth/login
-  app.post("/api/login", (req: Request, res: Response, next) => {
-    req.url = "/api/auth/login";
-    app._router.handle(req, res, next);
-  });
-
-  // Compatibilidade: /api/logout -> /api/auth/logout
-  app.post("/api/logout", (req: Request, res: Response, next) => {
-    req.url = "/api/auth/logout";
-    app._router.handle(req, res, next);
-  });
-
-  // Compatibilidade: /api/user -> /api/auth/user
-  app.get("/api/user", (req: Request, res: Response, next) => {
-    req.url = "/api/auth/user";
-    app._router.handle(req, res, next);
-  });
-
-  // Compatibilidade: /api/register -> /api/auth/register
-  app.post("/api/register", (req: Request, res: Response, next) => {
-    req.url = "/api/auth/register";
-    app._router.handle(req, res, next);
   });
 }
