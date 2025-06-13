@@ -72,9 +72,9 @@ export const TeamsTab = () => {
 
   // Buscar usuários disponíveis
   const { data: systemUsers = [] } = useQuery({
-    queryKey: ['/api/system-users'],
+    queryKey: ['/api/admin/users'],
     queryFn: async () => {
-      const response = await fetch('/api/system-users');
+      const response = await fetch('/api/admin/users');
       if (!response.ok) {
         throw new Error('Erro ao carregar usuários');
       }
