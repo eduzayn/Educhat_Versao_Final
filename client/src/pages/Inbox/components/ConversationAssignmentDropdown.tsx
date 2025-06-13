@@ -64,6 +64,7 @@ export function ConversationAssignmentDropdown({
         const response = await fetch(`/api/teams/${currentTeamId}/users`);
         if (response.ok) {
           const teamUsersData = await response.json();
+          console.log('Usuários da equipe carregados:', teamUsersData);
           setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
         }
       } catch (error) {
@@ -153,25 +154,46 @@ export function ConversationAssignmentDropdown({
           value={currentTeamId ? currentTeamId.toString() : 'none'}
           onValueChange={handleTeamAssignment}
         >
-          <SelectTrigger className="h-7 min-w-[120px] text-xs border-gray-300">
-            <SelectValue>
-              {currentTeam ? (
-                <Badge 
-                  variant="secondary" 
-                  className="text-xs px-2 py-0.5"
-                  style={{ backgroundColor: currentTeam.color + '20', color: currentTeam.color }}
-                  title={teamUsers.length > 0 ? 
-                    `Membros: ${teamUsers.filter(user => user.isActive).map(user => user.displayName).join(', ')}` : 
-                    'Nenhum membro ativo'
-                  }
-                >
-                  {currentTeam.name}
-                </Badge>
-              ) : (
-                <span className="text-gray-500">Sem grupo</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SelectTrigger className="h-7 min-w-[120px] text-xs border-gray-300">
+                  <SelectValue>
+                    {currentTeam ? (
+                      <Badge 
+                        variant="secondary" 
+                        className="text-xs px-2 py-0.5"
+                        style={{ backgroundColor: currentTeam.color + '20', color: currentTeam.color }}
+                      >
+                        {currentTeam.name}
+                      </Badge>
+                    ) : (
+                      <span className="text-gray-500">Sem grupo</span>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+              </TooltipTrigger>
+              {currentTeam && (
+                <TooltipContent>
+                  <div className="text-sm">
+                    <div className="font-medium mb-1">Membros da equipe:</div>
+                    {teamUsers.length > 0 ? (
+                      <div className="space-y-1">
+                        {teamUsers.filter(user => user.isActive).map(user => (
+                          <div key={user.id} className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <span>{user.displayName}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">Nenhum membro ativo</span>
+                    )}
+                  </div>
+                </TooltipContent>
               )}
-            </SelectValue>
-          </SelectTrigger>
+            </Tooltip>
+          </TooltipProvider>
           <SelectContent>
             <SelectItem value="none">
               <span className="text-gray-500">Sem grupo (Fila neutra)</span>
