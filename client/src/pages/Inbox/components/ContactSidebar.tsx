@@ -235,7 +235,7 @@ export function ContactSidebar({
         {/* 👤 Informações do Contato */}
         <div className="text-center">
           <Avatar className="w-16 h-16 mx-auto mb-3">
-            <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
+            <AvatarImage src={proxiedProfileImageUrl || ''} />
             <AvatarFallback className="text-lg font-semibold">
               {activeConversation.contact.name.charAt(0).toUpperCase()}
             </AvatarFallback>
