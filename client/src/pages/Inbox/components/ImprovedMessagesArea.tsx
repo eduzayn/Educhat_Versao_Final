@@ -1,8 +1,8 @@
 import { useRef, useEffect } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { MessageBubble } from '../../../shared/components/MessageBubble';
-import { Skeleton } from '../../../components/ui/skeleton';
+import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
+import { Skeleton } from '../../../shared/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 import type { Message } from '@shared/schema';
 

@@ -40,7 +40,7 @@ export function InfiniteConversationList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteConversations(50);
+  } = useInfiniteConversations(100);
 
   const observer = useRef<IntersectionObserver>();
   const lastConversationElementRef = useCallback((node: HTMLDivElement) => {
