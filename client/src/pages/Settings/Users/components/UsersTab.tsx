@@ -117,7 +117,9 @@ export const UsersTab = () => {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showCreateSuccessDialog, setShowCreateSuccessDialog] = useState(false);
   const [deletedUserName, setDeletedUserName] = useState<string>("");
+  const [createdUserName, setCreatedUserName] = useState<string>("");
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [transferToUserId, setTransferToUserId] = useState<string>("");
@@ -168,6 +170,8 @@ export const UsersTab = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowUserDialog(false);
+      setCreatedUserName(formData.name);
+      setShowCreateSuccessDialog(true);
       setFormData({
         name: '',
         email: '',
@@ -853,6 +857,29 @@ export const UsersTab = () => {
           <AlertDialogFooter>
             <AlertDialogAction
               onClick={() => setShowSuccessDialog(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de Sucesso - Criação de Usuário */}
+      <AlertDialog open={showCreateSuccessDialog} onOpenChange={setShowCreateSuccessDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              Usuário Criado com Sucesso
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              O usuário <strong className="text-foreground">{createdUserName}</strong> foi criado com sucesso no sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowCreateSuccessDialog(false)}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               Entendi
