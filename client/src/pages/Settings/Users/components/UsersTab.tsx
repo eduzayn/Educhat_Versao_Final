@@ -28,6 +28,7 @@ import {
   Trash, 
   Mail, 
   Building2,
+  CheckCircle,
   Upload,
   Download
 } from 'lucide-react';
@@ -115,6 +116,8 @@ export const UsersTab = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [deletedUserName, setDeletedUserName] = useState<string>("");
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [transferToUserId, setTransferToUserId] = useState<string>("");
@@ -212,9 +215,11 @@ export const UsersTab = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setDeletedUserName(userToDelete?.displayName || userToDelete?.name || "Usuário");
       setShowDeleteDialog(false);
       setUserToDelete(null);
       setTransferToUserId("");
+      setShowSuccessDialog(true);
     }
   });
 
@@ -818,6 +823,29 @@ export const UsersTab = () => {
                   Excluir Usuário
                 </div>
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de Sucesso */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              Usuário Excluído com Sucesso
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              O usuário <strong className="text-foreground">{deletedUserName}</strong> foi excluído com sucesso do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowSuccessDialog(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
