@@ -214,6 +214,88 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  // Update all contact photos from Z-API
+  app.post('/api/contacts/update-photos', async (req, res) => {
+    try {
+      const instanceId = process.env.ZAPI_INSTANCE_ID;
+      const token = process.env.ZAPI_TOKEN;
+      const clientToken = process.env.ZAPI_CLIENT_TOKEN;
+      
+      if (!instanceId || !token || !clientToken) {
+        return res.status(400).json({ 
+          message: 'Credenciais Z-API não configuradas',
+          error: 'ZAPI_CREDENTIALS_MISSING'
+        });
+      }
+
+      // Get all contacts from database
+      const contacts = await storage.getAllContacts();
+      let updatedCount = 0;
+      let errorCount = 0;
+
+      console.log(`🔄 Iniciando atualização de fotos para ${contacts.length} contatos`);
+
+      for (const contact of contacts) {
+        try {
+          if (!contact.phone) {
+            continue;
+          }
+
+          const phoneNumber = contact.phone.replace(/\D/g, '');
+          if (!phoneNumber || phoneNumber.length < 10) {
+            continue;
+          }
+
+          // Get profile photo from Z-API
+          const photoUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/profile-pic`;
+          const photoResponse = await fetch(`${photoUrl}?phone=${phoneNumber}`, {
+            method: 'GET',
+            headers: {
+              'Client-Token': clientToken
+            }
+          });
+
+          if (photoResponse.ok) {
+            const photoData = await photoResponse.json();
+            
+            if (photoData.profilePicUrl && photoData.profilePicUrl !== contact.profileImageUrl) {
+              // Update contact with new profile image URL
+              await storage.updateContact(contact.id, {
+                profileImageUrl: photoData.profilePicUrl
+              });
+              
+              console.log(`✅ Foto atualizada para ${contact.name} (${phoneNumber})`);
+              updatedCount++;
+            }
+          }
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+        } catch (contactError) {
+          console.error(`❌ Erro ao atualizar foto do contato ${contact.name}:`, contactError);
+          errorCount++;
+        }
+      }
+
+      console.log(`📊 Atualização concluída: ${updatedCount} fotos atualizadas, ${errorCount} erros`);
+
+      res.json({
+        success: true,
+        updated: updatedCount,
+        errors: errorCount,
+        total: contacts.length
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao atualizar fotos dos contatos:', error);
+      res.status(500).json({ 
+        message: 'Erro interno ao atualizar fotos dos contatos',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Migration endpoint for existing contacts
   app.post('/api/contacts/migrate', async (req, res) => {
     res.status(501).json({ message: 'Migration functionality not available' });
