@@ -55,7 +55,7 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 
 import { InfiniteConversationList } from './components/InfiniteConversationList';
 import { ChatHeader } from './components/ChatHeader';
-import { MessagesArea } from './components/MessagesArea';
+import { InfiniteMessagesArea } from './components/InfiniteMessagesArea';
 
 
 export function InboxPage() {
