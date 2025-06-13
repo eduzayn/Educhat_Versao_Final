@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -18,7 +18,8 @@ import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
 
 export function ContactsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [viewingContact, setViewingContact] = useState<Contact | null>(null);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
@@ -36,9 +37,19 @@ export function ContactsPage() {
   const { toast } = useToast();
   const contactsPerPage = 10;
 
+  // Implementar debounce para busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setCurrentPage(1); // Reset para primeira página quando buscar
+    }, 500); // 500ms de delay
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // Hooks
   const { data: contacts, isLoading, refetch } = useContacts({ 
-    search: searchTerm,
+    search: debouncedSearch,
     page: currentPage,
     limit: contactsPerPage 
   });
@@ -341,8 +352,8 @@ export function ContactsPage() {
 
         {/* Filtros e Ações */}
         <ContactFilters
-          searchQuery={searchTerm}
-          onSearchChange={setSearchTerm}
+          searchQuery={searchInput}
+          onSearchChange={setSearchInput}
           selectedContacts={selectedContacts}
           isWhatsAppAvailable={isWhatsAppAvailable}
           onSyncContacts={handleSyncContacts}
