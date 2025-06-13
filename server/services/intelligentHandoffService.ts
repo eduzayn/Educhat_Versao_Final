@@ -1,7 +1,7 @@
 // DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
 // Mantido para compatibilidade durante migração
 import { db } from '../core/db';
-import { eq, and, desc, asc, or, count, isNull } from 'drizzle-orm';
+import { eq, and, desc, asc, or, count, isNull, gte, sql } from 'drizzle-orm';
 import { 
   handoffs, 
   conversations, 
@@ -304,8 +304,78 @@ export class IntelligentHandoffService {
       // Se nenhum usuário online, usar todos os usuários ordenados por carga
       return usersWithLoad.sort((a, b) => a.currentConversations - b.currentConversations);
     } else {
-      // Fora do horário comercial: distribuir equilibradamente entre todos
+      // Fora do horário comercial: implementar rodízio para distribuição equilibrada
+      console.log('🌙 Fora do horário comercial - aplicando distribuição em rodízio');
+      
+      // Verificar se há usuários online
+      const onlineUsers = usersWithLoad.filter(user => user.isOnline);
+      
+      if (onlineUsers.length === 0) {
+        console.log('⏰ Nenhum usuário online - distribuindo em rodízio para próximo dia útil');
+        
+        // Implementar rodízio real baseado em histórico de distribuições
+        return await this.applyRoundRobinDistribution(usersWithLoad, teamId);
+      }
+      
+      // Se há usuários online mesmo fora do horário, usar distribuição normal
       return usersWithLoad.sort((a, b) => a.currentConversations - b.currentConversations);
+    }
+  }
+
+  /**
+   * Aplica distribuição em rodízio real para equipes fora do horário comercial
+   */
+  private async applyRoundRobinDistribution(users: UserAvailability[], teamId: number): Promise<UserAvailability[]> {
+    try {
+      // Buscar histórico de distribuições recentes para esta equipe
+      const recentDistributions = await db
+        .select({
+          toUserId: handoffs.toUserId,
+          count: sql<number>`count(*)`.as('count')
+        })
+        .from(handoffs)
+        .where(
+          and(
+            eq(handoffs.toTeamId, teamId),
+            gte(handoffs.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) // Últimos 7 dias
+          )
+        )
+        .groupBy(handoffs.toUserId);
+
+      // Criar mapa de distribuições por usuário
+      const distributionMap = new Map<number, number>();
+      recentDistributions.forEach((dist: any) => {
+        if (dist.toUserId) {
+          distributionMap.set(dist.toUserId, dist.count);
+        }
+      });
+
+      // Ordenar usuários por menor número de distribuições recentes (rodízio real)
+      const sortedUsers = users.sort((a, b) => {
+        const aDistributions = distributionMap.get(a.userId) || 0;
+        const bDistributions = distributionMap.get(b.userId) || 0;
+        
+        // Primeiro critério: menor número de distribuições
+        if (aDistributions !== bDistributions) {
+          return aDistributions - bDistributions;
+        }
+        
+        // Segundo critério: menor carga atual
+        return a.currentConversations - b.currentConversations;
+      });
+
+      console.log('🎯 Rodízio aplicado:', {
+        teamId,
+        totalUsers: users.length,
+        distributionHistory: Object.fromEntries(distributionMap),
+        nextUser: sortedUsers[0]?.displayName
+      });
+
+      return sortedUsers;
+    } catch (error) {
+      console.error('❌ Erro ao aplicar rodízio:', error);
+      // Fallback para distribuição simples por carga
+      return users.sort((a, b) => a.currentConversations - b.currentConversations);
     }
   }
 
