@@ -343,28 +343,32 @@ export function InboxPage() {
       </div>
 
       {/* Área de Mensagens */}
-      <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
+      <div className={`flex-1 flex flex-col h-full ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
-            {/* Header da Conversa */}
-            <ChatHeader
-              activeConversation={activeConversation}
-              showMobileChat={showMobileChat}
-              onMobileBackClick={() => setShowMobileChat(false)}
-              onStatusChange={handleStatusChange}
-              getChannelInfo={getChannelInfo}
-            />
+            {/* Header da Conversa - fixo no topo */}
+            <div className="flex-shrink-0">
+              <ChatHeader
+                activeConversation={activeConversation}
+                showMobileChat={showMobileChat}
+                onMobileBackClick={() => setShowMobileChat(false)}
+                onStatusChange={handleStatusChange}
+                getChannelInfo={getChannelInfo}
+              />
+            </div>
 
-            {/* Mensagens */}
-            <MessagesArea
-              messages={messages || []}
-              isLoadingMessages={isLoadingMessages}
-              activeConversation={activeConversation}
-              getChannelInfo={getChannelInfo}
-            />
+            {/* Mensagens - área flexível que cresce */}
+            <div className="flex-1 overflow-hidden">
+              <MessagesArea
+                messages={messages || []}
+                isLoadingMessages={isLoadingMessages}
+                activeConversation={activeConversation}
+                getChannelInfo={getChannelInfo}
+              />
+            </div>
 
-            {/* Área de Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
+            {/* Área de Input - fixo na parte inferior */}
+            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
               <InputArea />
             </div>
           </>

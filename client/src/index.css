@@ -35,6 +35,29 @@
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Layout responsivo para caixa de entrada - elimina espaço em branco inferior */
+.mobile-full-height {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height para mobile */
+}
+
+.mobile-full-width {
+  width: 100%;
+}
+
+.mobile-hide {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-hide {
+    display: flex;
+  }
+  .mobile-full-width {
+    width: auto;
+  }
+}
+
 /* Animações elegantes para emoji picker */
 @keyframes emoji-fadeIn {
   from {
