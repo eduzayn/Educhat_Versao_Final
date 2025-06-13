@@ -4,16 +4,15 @@
 
 /* Correção definitiva para eliminar espaços em branco */
 html, body, #root {
-  height: 100%;
+  height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
 }
 
-body {
-  position: fixed;
-  width: 100%;
-  height: 100%;
+/* Força altura total na estrutura da aplicação */
+#root > div {
+  height: 100vh;
 }
 
 /* Scrollbar personalizado unificado */
