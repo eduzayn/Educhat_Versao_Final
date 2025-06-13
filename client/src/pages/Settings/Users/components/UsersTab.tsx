@@ -347,7 +347,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
     if (userToDelete) {
       deleteUserMutation.mutate({
         userId: userToDelete.id,
-        transferToUserId: transferToUserId ? parseInt(transferToUserId) : undefined
+        transferToUserId: transferToUserId && transferToUserId !== "none" ? parseInt(transferToUserId) : undefined
       });
     }
   };
@@ -923,7 +923,7 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
                   <div className="text-destructive mt-0.5">⚠️</div>
                   <div className="text-sm">
                     <strong>Esta ação não pode ser desfeita.</strong><br />
-                    O usuário será permanentemente removido do sistema. {transferToUserId ? 'Os contatos serão transferidos para o usuário selecionado.' : 'Os contatos ficarão sem atribuição.'}
+                    O usuário será permanentemente removido do sistema. {transferToUserId && transferToUserId !== "none" ? 'Os contatos serão transferidos para o usuário selecionado.' : 'Os contatos ficarão sem atribuição.'}
                   </div>
                 </div>
               </div>
