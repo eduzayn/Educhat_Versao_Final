@@ -289,7 +289,7 @@ export function registerAdminRoutes(app: Express) {
             team: systemUsers.team,
             dataKey: systemUsers.dataKey,
             channels: systemUsers.channels,
-            teams: systemUsers.teams,
+            teamTypes: systemUsers.teamTypes,
             isActive: systemUsers.isActive,
             status: systemUsers.status,
             isOnline: systemUsers.isOnline,
