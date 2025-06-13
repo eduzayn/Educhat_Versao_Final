@@ -110,9 +110,10 @@ export function setupAuthWithRoutes(app: Express) {
     }),
   );
 
-  // Middleware de debugging para sessões (apenas para endpoints críticos)
+  // Middleware de debugging para sessões (apenas quando necessário)
   app.use((req, res, next) => {
-    if (req.path === '/api/user' || req.path.includes('/api/admin/role-permissions')) {
+    // Debug apenas em casos de falha de autenticação ou para endpoints administrativos específicos
+    if (req.path.includes('/api/admin/role-permissions') && process.env.NODE_ENV === 'development') {
       console.log("🔍 Debug de sessão:", {
         path: req.path,
         method: req.method,
@@ -171,8 +172,8 @@ export function setupAuthWithRoutes(app: Express) {
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
             channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-            teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
-            teamTypes: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
+            teams: Array.isArray(systemUser.teams) ? systemUser.teams : [],
+            teamTypes: Array.isArray(systemUser.teams) ? systemUser.teams : [],
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };
@@ -212,8 +213,8 @@ export function setupAuthWithRoutes(app: Express) {
         roleId: user.roleId || 1,
         dataKey: user.dataKey || undefined,
         channels: Array.isArray(user.channels) ? user.channels : [],
-        teams: Array.isArray(user.teamTypes) ? user.teamTypes : [],
-        teamTypes: Array.isArray(user.teamTypes) ? user.teamTypes : [],
+        teams: Array.isArray(user.teams) ? user.teams : [],
+        teamTypes: Array.isArray(user.teams) ? user.teams : [],
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };
@@ -326,25 +327,24 @@ export function setupAuthWithRoutes(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req: Request, res: Response) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log("🔍 Verificação de autenticação:", {
+    const isAuthenticated = req.isAuthenticated();
+    
+    // Debug apenas quando há falha de autenticação
+    if (!isAuthenticated && process.env.NODE_ENV === 'development') {
+      console.log("🔍 Debug de sessão:", {
+        path: req.path,
+        method: req.method,
         sessionID: req.sessionID,
-        isAuthenticated: req.isAuthenticated(),
         hasSession: !!req.session,
-        sessionData: req.session ? Object.keys(req.session) : 'no session',
-        hasUser: !!req.user
+        isAuthenticated: req.isAuthenticated(),
+        hasUser: !!req.user,
+        cookies: !!req.headers.cookie
       });
     }
 
-    if (req.isAuthenticated()) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("✅ Usuário autenticado:", { userId: req.user?.id, email: req.user?.email });
-      }
+    if (isAuthenticated) {
       res.json(req.user);
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("❌ Usuário não autenticado");
-      }
       res.status(401).json({ message: "Não autenticado" });
     }
   });
