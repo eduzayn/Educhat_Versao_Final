@@ -9,6 +9,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
@@ -317,10 +318,32 @@ export const TeamsTab = () => {
                     <Building2 className="h-5 w-5" />
                     <CardTitle className="text-lg">{team.name}</CardTitle>
                   </div>
-                  <Badge variant="outline" className={getTeamColorClass(team.color || '')}>
-                    <Users className="h-3 w-3 mr-1" />
-                    {teamMembers[team.id]?.length || 0}
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className={getTeamColorClass(team.color || '') + ' cursor-help'}>
+                        <Users className="h-3 w-3 mr-1" />
+                        {teamMembers[team.id]?.length || 0}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-sm">
+                        <div className="font-medium mb-1">Membros da equipe:</div>
+                        {teamMembers[team.id] && teamMembers[team.id].length > 0 ? (
+                          <div className="space-y-1">
+                            {teamMembers[team.id].map(member => (
+                              <div key={member.id} className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                <span>{member.displayName}</span>
+                                <span className="text-xs text-gray-500">({member.role})</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">Nenhum membro na equipe</span>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <CardDescription>{team.description}</CardDescription>
               </CardHeader>
