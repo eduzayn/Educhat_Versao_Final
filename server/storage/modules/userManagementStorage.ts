@@ -165,7 +165,7 @@ export class UserManagementStorage extends BaseStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    const users = await this.db.select().from(systemUsers);
+    const users = await this.db.select().from(systemUsers).where(eq(systemUsers.isActive, true));
     return users.map(user => ({
       id: user.id,
       email: user.email,

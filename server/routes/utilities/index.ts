@@ -51,11 +51,6 @@ export function registerUtilitiesRoutes(app: Express) {
   app.delete('/api/system-users/:id', async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      console.log('Tentando desativar usuário ID:', userId);
-      console.log('Métodos disponíveis no storage:', Object.getOwnPropertyNames(storage));
-      console.log('Métodos no userManagement:', Object.getOwnPropertyNames(storage.userManagement));
-      
-      // Usar diretamente o método do userManagement
       await storage.userManagement.deleteSystemUser(userId);
       res.json({ message: 'Usuário desativado com sucesso' });
     } catch (error) {
