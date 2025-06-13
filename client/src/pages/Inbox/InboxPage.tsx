@@ -31,7 +31,7 @@ import {
   User,
   Plus
 } from 'lucide-react';
-import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
@@ -50,9 +50,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { ContactSidebar } from './components/ContactSidebar';
-import { ConversationFilters } from './components/ConversationFilters';
-import { ConversationListHeader } from './components/ConversationListHeader';
-import { ConversationList } from './components/ConversationList';
+import { ConversationListVirtualized } from './components/ConversationListVirtualized';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
 
@@ -85,15 +83,20 @@ export function InboxPage() {
   useWebSocket();
   
   const { 
-    data: conversations, 
+    data, 
     isLoading: isLoadingConversations, 
+    hasNextPage,
+    fetchNextPage,
     refetch 
-  } = useConversations(50, { 
-    refetchInterval: 2000, // Polling mais frequente para garantir atualização
-    staleTime: 1000, // Cache menor para dados mais frescos
+  } = useInfiniteConversations(50, { 
+    refetchInterval: 10000, // Reduzido para evitar sobrecarga
+    staleTime: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
+
+  // Flattened conversations from all pages
+  const conversations = data?.pages.flatMap(page => page.conversations) || [];
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -234,43 +237,7 @@ export function InboxPage() {
 
 
 
-  // Filtrar conversas baseado nos filtros disponíveis
-  const filteredConversations = (conversations || []).filter(conversation => {
-    
-    // Filtro por busca - pesquisar em nome e telefone do contato
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const nameMatch = conversation.contact.name?.toLowerCase().includes(searchLower) || false;
-      const phoneMatch = conversation.contact.phone?.toLowerCase()?.includes(searchLower) || false;
-      const emailMatch = conversation.contact.email?.toLowerCase()?.includes(searchLower) || false;
-      
-      if (!nameMatch && !phoneMatch && !emailMatch) {
-        return false;
-      }
-    }
-    
-    // Filtro por status
-    if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
-    
-    // Filtro por canal - implementação escalável para canais específicos
-    if (channelFilter !== 'all') {
-      // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
-      if (channelFilter === conversation.channel) {
-        return true;
-      }
-      
-      // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
-      if (channelFilter.startsWith('whatsapp-')) {
-        const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-      }
-      
-      // Se não corresponde a nenhum filtro específico, excluir
-      return false;
-    }
-    
-    return true;
-  });
+
 
   const getStatusBadge = (status: string) => {
     const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
@@ -357,132 +324,22 @@ export function InboxPage() {
     <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
-        {/* Header */}
-        <ConversationListHeader
+        {/* Lista de Conversas com Scroll Infinito */}
+        <ConversationListVirtualized
+          conversations={conversations}
+          isLoading={isLoadingConversations}
+          hasNextPage={hasNextPage || false}
           searchTerm={searchTerm}
-          isWhatsAppAvailable={isWhatsAppAvailable}
-          onSearchChange={setSearchTerm}
-          onNewContactClick={() => setIsModalOpen(true)}
-          onRefresh={() => refetch()}
-        />
-
-        {/* Filtros compactos */}
-        <ConversationFilters
+          setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
           channelFilter={channelFilter}
-          onStatusFilterChange={setStatusFilter}
-          onChannelFilterChange={setChannelFilter}
+          setChannelFilter={setChannelFilter}
+          activeConversation={activeConversation}
+          onSelectConversation={handleSelectConversation}
+          onLoadMore={() => fetchNextPage()}
           channels={channels}
         />
-
-        {/* Lista de Conversas */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation, index) => (
-            <div
-              key={`conversation-${conversation.id}-${index}`}
-              onClick={() => handleSelectConversation(conversation)}
-              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 ${
-                activeConversation?.id === conversation.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                {/* Avatar do contato */}
-                <div className="relative flex-shrink-0">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage 
-                      src={conversation.contact?.profileImageUrl || ''} 
-                      alt={conversation.contact?.name || 'Contato'} 
-                    />
-                    <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">
-                      {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  {/* Ícone de canal pequeno */}
-                  <div className="absolute -bottom-1 -right-1">
-                    <div className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${
-                      conversation.channel === 'whatsapp' ? 'text-green-600 bg-green-50' :
-                      conversation.channel === 'instagram' ? 'text-pink-600 bg-pink-50' :
-                      conversation.channel === 'facebook' ? 'text-blue-600 bg-blue-50' :
-                      'text-gray-600 bg-gray-50'
-                    }`}>
-                      <MessageSquare className="w-3 h-3" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {/* Nome e timestamp */}
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-gray-500 flex-shrink-0">
-                        {conversation.lastMessageAt ? formatTime(conversation.lastMessageAt) : ''}
-                      </span>
-                      <ConversationActionsDropdown 
-                        conversationId={conversation.id}
-                        contactId={conversation.contactId}
-                        currentStatus={conversation.status || 'open'}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Badge de mensagens não lidas */}
-                  <div className="flex items-center justify-end mb-1">
-                    {(conversation.unreadCount || 0) > 0 && (
-                      <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                        {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Preview da última mensagem */}
-                  <p className="text-sm text-gray-500 truncate">
-                    {conversation.messages?.[0] ? (
-                      <>
-                        {conversation.messages[0].isFromContact ? '' : 'Você: '}
-                        {(() => {
-                          const lastMessage = conversation.messages[0];
-                          
-                          if (lastMessage.messageType === 'image') {
-                            return '📷 Imagem';
-                          } else if (lastMessage.messageType === 'audio') {
-                            return '🎵 Áudio';
-                          } else if (lastMessage.messageType === 'video') {
-                            return '🎥 Vídeo';
-                          } else if (lastMessage.messageType === 'document') {
-                            return '📄 Documento';
-                          } else {
-                            return lastMessage.content || 'Mensagem';
-                          }
-                        })()}
-                      </>
-                    ) : (
-                      'Sem mensagens'
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          {filteredConversations.length === 0 && !isLoadingConversations && (
-            <div className="p-6 text-center text-gray-500">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">Nenhuma conversa encontrada</p>
-            </div>
-          )}
-          
-          {/* Loading inicial */}
-          {isLoadingConversations && (
-            <div className="p-6 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
-              <p className="text-sm">Carregando contatos...</p>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Área de Mensagens */}
