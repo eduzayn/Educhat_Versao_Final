@@ -64,7 +64,6 @@ export function ConversationAssignmentDropdown({
         const response = await fetch(`/api/teams/${currentTeamId}/users`);
         if (response.ok) {
           const teamUsersData = await response.json();
-          console.log('Usuários da equipe carregados:', teamUsersData);
           setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
         }
       } catch (error) {
