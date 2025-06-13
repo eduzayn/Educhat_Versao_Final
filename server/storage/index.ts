@@ -388,6 +388,37 @@ export class CentralStorage {
   async getContactNotes(contactId: number) {
     return this.notes.getContactNotes(contactId);
   }
+
+  // ==================== MISSING CONTACT METHODS ====================
+  async getContactWithTags(id: number) {
+    return this.contact.getContactWithTags ? this.contact.getContactWithTags(id) : this.contact.getContact(id);
+  }
+
+  async getContactTags(contactId: number) {
+    return this.contact.getContactTags ? this.contact.getContactTags(contactId) : [];
+  }
+
+  async addContactTag(contactId: number, tagData: any) {
+    return this.contact.addContactTag ? this.contact.addContactTag(contactId, tagData) : null;
+  }
+
+  async removeContactTag(contactId: number, tagId: string) {
+    return this.contact.removeContactTag ? this.contact.removeContactTag(contactId, tagId) : null;
+  }
+
+  // ==================== MISSING DEAL METHODS ====================
+  async addDealNote(dealId: number, noteData: any) {
+    return this.deal.addDealNote ? this.deal.addDealNote(dealId, noteData) : null;
+  }
+
+  async getDealNotes(dealId: number) {
+    return this.deal.getDealNotes ? this.deal.getDealNotes(dealId) : [];
+  }
+
+  // ==================== MISSING CONTACT INTEREST METHODS ====================
+  async getContactInterests(contactId: number) {
+    return this.contact.getContactInterests ? this.contact.getContactInterests(contactId) : [];
+  }
 }
 
 export const storage = new CentralStorage();

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../../core/storage";
+import { storage } from "../../storage";
 import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
 import { pool } from "../../db";
 
