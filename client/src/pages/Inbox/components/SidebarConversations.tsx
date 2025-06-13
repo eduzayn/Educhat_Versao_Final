@@ -22,7 +22,8 @@ export function SidebarConversations({
     data, 
     isLoading, 
     hasNextPage,
-    fetchNextPage 
+    fetchNextPage,
+    isFetchingNextPage
   } = useInfiniteConversations(50);
 
   const conversations = data?.pages.flatMap(page => page.conversations) || [];
@@ -33,7 +34,7 @@ export function SidebarConversations({
       {/* Lista de conversas com scroll infinito */}
       <ConversationListVirtualized
         conversations={conversations}
-        isLoading={isLoading}
+        isLoading={isLoading || isFetchingNextPage}
         hasNextPage={hasNextPage || false}
         searchTerm={searchTerm}
         setSearchTerm={onSearchChange}
@@ -43,7 +44,11 @@ export function SidebarConversations({
         setChannelFilter={setChannelFilter}
         activeConversation={activeConversation}
         onSelectConversation={(conversation) => onConversationSelect(conversation.id)}
-        onLoadMore={() => fetchNextPage()}
+        onLoadMore={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
         channels={[]}
       />
     </div>

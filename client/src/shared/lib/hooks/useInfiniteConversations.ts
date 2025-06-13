@@ -30,13 +30,13 @@ export function useInfiniteConversations(limit = 50, options = {}) {
       return data;
     },
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasNextPage) return undefined;
+      if (!lastPage.hasNextPage || lastPage.conversations.length < limit) return undefined;
       return allPages.length * limit;
     },
     initialPageParam: 0,
-    staleTime: 5000,
-    refetchInterval: 10000,
-    refetchOnWindowFocus: true,
+    staleTime: 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     ...options
   });
 }

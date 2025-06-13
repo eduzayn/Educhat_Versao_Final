@@ -90,16 +90,19 @@ export function ConversationListVirtualized({
     if (!container) return;
 
     const { scrollTop, scrollHeight, clientHeight } = container;
-    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
 
+    // Carregar mais itens da lista atual
     if (isNearBottom && displayCount < filteredConversations.length) {
       setDisplayCount(prev => Math.min(prev + 25, filteredConversations.length));
+      return;
     }
 
-    if (isNearBottom && hasNextPage && filteredConversations.length > 0) {
+    // Carregar próxima página se chegou ao fim e tem mais páginas
+    if (isNearBottom && hasNextPage && !isLoading) {
       onLoadMore();
     }
-  }, [displayCount, filteredConversations.length, hasNextPage, onLoadMore]);
+  }, [displayCount, filteredConversations.length, hasNextPage, isLoading, onLoadMore]);
 
   // Throttle do scroll
   const throttledHandleScroll = useCallback(() => {
@@ -358,7 +361,7 @@ export function ConversationListVirtualized({
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto"
-        style={{ maxHeight: 'calc(100vh - 200px)' }}
+        style={{ height: 'calc(100vh - 160px)' }}
       >
         {isLoading && filteredConversations.length === 0 ? (
           <div className="p-6 text-center">
