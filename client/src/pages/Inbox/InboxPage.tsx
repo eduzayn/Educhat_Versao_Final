@@ -357,8 +357,6 @@ export function InboxPage() {
 
             {/* Mensagens */}
             <MessagesArea
-              messages={messages || []}
-              isLoadingMessages={isLoadingMessages}
               activeConversation={activeConversation}
               getChannelInfo={getChannelInfo}
             />

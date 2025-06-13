@@ -15,6 +15,7 @@ export function MessagesArea({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
+  const prevMessageCount = useRef<number>(0);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
   // Use infinite scroll hook for messages
