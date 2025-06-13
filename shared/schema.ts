@@ -14,7 +14,8 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for auth
+// DEPRECATED: User storage table for auth - Use systemUsers instead
+// This table is kept for backward compatibility but should be phased out
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique().notNull(),
@@ -211,7 +212,8 @@ export const channels = pgTable("channels", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// System Users table (for user management settings)
+// Main Users table (unified user management)
+// This is now the primary table for all user operations
 export const systemUsers = pgTable("system_users", {
   id: serial("id").primaryKey(),
   username: varchar("username", { length: 50 }).unique().notNull(),
@@ -235,6 +237,9 @@ export const systemUsers = pgTable("system_users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Alias for backward compatibility - systemUsers is the main table
+export const mainUsers = systemUsers;
 
 // Contact notes table for internal annotations
 export const contactNotes = pgTable("contact_notes", {

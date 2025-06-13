@@ -19,6 +19,7 @@ declare global {
       dataKey?: string;
       channels: string[];
       teams: string[];
+      teamTypes: string[];
       teamId?: number | null;
       team?: string | null;
     }
