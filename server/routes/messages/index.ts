@@ -1,7 +1,10 @@
 import type { Express } from "express";
 import { storage } from "../../storage";
 import { insertMessageSchema } from "@shared/schema";
-import type { AuthenticatedRequest } from "../admin/permissions";
+// Temporary type for authenticated requests
+interface AuthenticatedRequest extends Request {
+  user?: { id: number; email: string; };
+}
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
 
 export function registerMessageRoutes(app: Express) {

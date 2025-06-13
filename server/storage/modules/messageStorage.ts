@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { messages, conversations, users, systemUsers, type Message, type InsertMessage } from "../../../shared/schema";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, lt } from "drizzle-orm";
 
 /**
  * Message storage module - manages messages and media handling
@@ -26,8 +26,22 @@ export class MessageStorage extends BaseStorage {
       .offset(offset);
   }
 
-  async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0): Promise<any[]> {
-    const baseMessages = await this.getMessages(conversationId, limit, offset);
+  async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0, cursor?: string): Promise<any[]> {
+    let baseMessages;
+    
+    if (cursor) {
+      // Cursor-based pagination: get messages older than the cursor ID
+      baseMessages = await this.db.select().from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false),
+          lt(messages.id, parseInt(cursor)) // Get messages older than cursor
+        ))
+        .orderBy(desc(messages.sentAt)) // Newest first for proper infinite scroll
+        .limit(limit);
+    } else {
+      baseMessages = await this.getMessages(conversationId, limit, offset);
+    }
     
     // Para cada mensagem que foi deletada pelo usuário, buscar info do usuário
     const messagesWithUserInfo = await Promise.all(

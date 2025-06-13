@@ -1,31 +1,61 @@
-import { useEffect, useRef } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { MessageSquare, Loader2 } from 'lucide-react';
 import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
+import { useInfiniteMessages } from '@/shared/lib/hooks/useInfiniteMessages';
 
 interface MessagesAreaProps {
-  messages: any[];
-  isLoadingMessages: boolean;
   activeConversation: any;
   getChannelInfo: (channel: string) => { icon: string; color: string; label: string };
 }
 
 export function MessagesArea({
-  messages,
-  isLoadingMessages,
   activeConversation,
   getChannelInfo
 }: MessagesAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
-  const prevMessageCount = useRef<number>(0);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  // Use infinite scroll hook for messages
+  const {
+    data,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage
+  } = useInfiniteMessages(activeConversation?.id || 0, 50);
+
+  // Flatten all message pages
+  const messages = data?.pages.flatMap(page => page.messages) || [];
 
   // Função para rolar para o final
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  };
+  }, []);
+
+  // Handle scroll to load more messages
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || !hasNextPage || isFetchingNextPage) return;
+    
+    const { scrollTop } = containerRef.current;
+    
+    // Load more when scrolled near the top
+    if (scrollTop < 100) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Scroll event listener
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   // Rolar para o final quando a conversa mudar
   useEffect(() => {
@@ -52,16 +82,24 @@ export function MessagesArea({
 
   // Rolar para o final no carregamento inicial
   useEffect(() => {
-    if (messages.length > 0 && !isLoadingMessages) {
+    if (messages.length > 0 && !isLoading) {
       setTimeout(() => {
         scrollToBottom();
       }, 200);
     }
-  }, [messages.length > 0, isLoadingMessages]);
+  }, [messages.length > 0, isLoading, scrollToBottom]);
 
   return (
     <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-      {(messages || []).length === 0 && !isLoadingMessages ? (
+      {/* Loading indicator for fetching older messages */}
+      {isFetchingNextPage && (
+        <div className="p-4 text-center">
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-gray-400" />
+          <p className="text-xs text-gray-500">Carregando mensagens anteriores...</p>
+        </div>
+      )}
+
+      {(messages || []).length === 0 && !isLoading ? (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
             <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -72,15 +110,15 @@ export function MessagesArea({
       ) : (
         <>
           {/* Loading inicial */}
-          {isLoadingMessages && (
+          {isLoading && messages.length === 0 && (
             <div className="p-6 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-purple-500" />
               <p className="text-sm">Carregando mensagens...</p>
             </div>
           )}
           
           {/* Lista de mensagens em ordem cronológica */}
-          {(messages || []).map((message) => (
+          {(messages || []).map((message: any) => (
             <MessageBubble 
               key={message.id} 
               message={message} 
