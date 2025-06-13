@@ -27,6 +27,7 @@ import { registerIntegrationRoutes } from "./integrations/index";
 import { registerSettingsRoutes } from "./settings/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
+import conversationsRouter from "./conversations/index";
 // Teams are now managed through dedicated team management system
 import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
@@ -53,6 +54,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerChannelRoutes(app);
   registerConversationDetailsRoutes(app);
+  // Registrar rotas de atribuição manual para conversas
+  app.use('/api/conversations', conversationsRouter);
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
