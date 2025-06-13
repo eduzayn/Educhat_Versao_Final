@@ -31,7 +31,7 @@ import iaRouter from "./ia/index";
 import iaMemoryRouter from "./ia/memory";
 import documentsRouter from "./documents/index";
 import webCaptureRouter from "./web-capture/index";
-import aiConfigRouter from "./ai-config/index";
+
 import handoffsRouter from "./handoffs/index";
 import dashboardRouter from "./dashboard/index";
 
