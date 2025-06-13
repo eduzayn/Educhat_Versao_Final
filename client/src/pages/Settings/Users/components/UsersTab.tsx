@@ -246,66 +246,7 @@ export const UsersTab = () => {
     setShowEditDialog(true);
   };
 
-  const handleImportUsers = () => {
-    try {
-      // Parse dos dados da importação (formato JSON ou texto estruturado)
-      const lines = importData.trim().split('\n').filter(line => line.trim());
-      const usersToImport = [];
 
-      for (const line of lines) {
-        // Se for JSON
-        if (line.trim().startsWith('{')) {
-          try {
-            const userData = JSON.parse(line);
-            usersToImport.push(userData);
-          } catch (e) {
-            console.error('Erro ao parsear JSON:', e);
-          }
-        } else {
-          // Se for formato CSV/TSV (nome;email;função;equipe)
-          const parts = line.split(';').map(p => p.trim());
-          if (parts.length >= 3) {
-            const [name, email, role, team = ''] = parts;
-            const username = email.split('@')[0]; // Gerar username do email
-            const password = 'senha123'; // Senha padrão
-            
-            usersToImport.push({
-              displayName: name,
-              email,
-              username,
-              password,
-              role: role.toLowerCase(),
-              team,
-              isActive: true
-            });
-          }
-        }
-      }
-
-      if (usersToImport.length > 0) {
-        importUsersMutation.mutate(usersToImport);
-      } else {
-        alert('Nenhum usuário válido encontrado nos dados de importação');
-      }
-    } catch (error) {
-      console.error('Erro na importação:', error);
-      alert('Erro ao processar dados de importação');
-    }
-  };
-
-  const generateSampleData = () => {
-    const sampleUsers = `Ana Silva;ana.silva@educhat.com;atendente;Atendimento
-João Santos;joao.santos@educhat.com;gerente;Vendas
-Maria Costa;maria.costa@educhat.com;atendente;Suporte
-Pedro Oliveira;pedro.oliveira@educhat.com;supervisor;Tutoria
-Carla Ferreira;carla.ferreira@educhat.com;atendente;Secretaria
-Lucas Almeida;lucas.almeida@educhat.com;gerente;Financeiro
-Camila Rodrigues;camila.rodrigues@educhat.com;atendente;Cobrança
-Rafael Lima;rafael.lima@educhat.com;supervisor;Comercial
-Juliana Martins;juliana.martins@educhat.com;atendente;Atendimento
-Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
-    setImportData(sampleUsers);
-  };
 
   const handleUpdateUser = () => {
     if (!editingUser || !formData.name || !formData.email || !formData.username || !formData.role) {
@@ -461,10 +402,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
           <div className="flex items-center justify-between">
             <CardTitle>Lista de Usuários</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowImportDialog(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Importar Usuários
-              </Button>
+
               <Button onClick={() => setShowUserDialog(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Usuário
@@ -809,67 +747,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de Importação de Usuários */}
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Importar Usuários em Lote</DialogTitle>
-            <DialogDescription>
-              Importe múltiplos usuários de uma vez usando o formato: Nome;Email;Função;Equipe (um por linha)
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="import-data">Dados dos Usuários</Label>
-              <Textarea
-                id="import-data"
-                placeholder="Ana Silva;ana.silva@educhat.com;atendente;Atendimento
-João Santos;joao.santos@educhat.com;gerente;Vendas
-Maria Costa;maria.costa@educhat.com;atendente;Suporte"
-                value={importData}
-                onChange={(e) => setImportData(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
-              />
-            </div>
-            
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Formato aceito:</h4>
-              <p className="text-sm text-muted-foreground mb-2">
-                Nome Completo;email@dominio.com;função;equipe
-              </p>
-              <div className="text-xs space-y-1">
-                <p><strong>Funções válidas:</strong> admin, gerente, atendente, supervisor</p>
-                <p><strong>Equipes válidas:</strong> Atendimento, Vendas, Suporte, Tutoria, Secretaria, Financeiro, Cobrança, Comercial, Operações</p>
-                <p><strong>Senha padrão:</strong> senha123 (usuários devem alterar no primeiro acesso)</p>
-              </div>
-            </div>
 
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={generateSampleData}
-                className="flex-1"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Carregar Exemplo
-              </Button>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleImportUsers}
-              disabled={!importData.trim() || importUsersMutation.isPending}
-            >
-              {importUsersMutation.isPending ? 'Importando...' : 'Importar Usuários'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Diálogo de Confirmação de Exclusão */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
