@@ -194,8 +194,7 @@ router.post('/:id/assign-user', requireAuth, async (req: AuthenticatedRequest, r
     }
 
     // Verificar se o usuário existe
-    const users = await storage.getUsers();
-    const user = users.find(u => u.id === userId);
+    const user = await storage.getUser(userId);
     if (!user) {
       return res.status(404).json({ 
         success: false, 

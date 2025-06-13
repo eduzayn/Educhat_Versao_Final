@@ -69,6 +69,18 @@ export function registerTeamsRoutes(app: Express) {
     }
   });
 
+  // Get team members - REST: GET /api/teams/:teamId/users
+  app.get('/api/teams/:teamId/users', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error('Erro ao buscar membros da equipe:', error);
+      res.status(500).json({ message: 'Erro ao buscar membros da equipe' });
+    }
+  });
+
   // Get teams by type - REST: GET /api/teams/type/:teamType
   app.get('/api/teams/type/:teamType', requirePermission('teams:read'), async (req: AuthenticatedRequest, res: Response) => {
     try {

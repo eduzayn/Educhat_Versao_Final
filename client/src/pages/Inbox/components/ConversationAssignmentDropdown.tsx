@@ -61,7 +61,7 @@ export function ConversationAssignmentDropdown({
       }
 
       try {
-        const response = await fetch(`/api/user-teams/${currentTeamId}`);
+        const response = await fetch(`/api/teams/${currentTeamId}/users`);
         if (response.ok) {
           const teamUsersData = await response.json();
           setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
@@ -162,7 +162,7 @@ export function ConversationAssignmentDropdown({
                       <Badge 
                         variant="secondary" 
                         className="text-xs px-2 py-0.5"
-                        style={{ backgroundColor: currentTeam.color + '20', color: currentTeam.color }}
+                        style={{ backgroundColor: currentTeam.color ? currentTeam.color + '20' : '#f3f4f6', color: currentTeam.color || '#6b7280' }}
                       >
                         {currentTeam.name}
                       </Badge>
