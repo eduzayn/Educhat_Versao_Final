@@ -7,7 +7,9 @@ import {
   rolePermissions, 
   customRules, 
   auditLogs,
-  teams
+  teams,
+  userTeams,
+  conversations
 } from '../../../shared/schema';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
@@ -398,6 +400,11 @@ export function registerAdminRoutes(app: Express) {
         if (userId === req.user!.id) {
           return res.status(400).json({ message: 'Não é possível excluir seu próprio usuário' });
         }
+
+        // Primeiro, remover todas as vinculações do usuário com equipes
+        await db
+          .delete(userTeams)
+          .where(eq(userTeams.userId, userId));
 
         // Realizar a exclusão física do usuário
         await db

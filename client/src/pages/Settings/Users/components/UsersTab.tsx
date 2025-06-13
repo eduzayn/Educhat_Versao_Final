@@ -129,8 +129,8 @@ export const UsersTab = () => {
 
   // Fetch users from API
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ['/api/system-users'],
-    queryFn: () => fetch('/api/system-users').then(res => res.json())
+    queryKey: ['/api/admin/users'],
+    queryFn: () => fetch('/api/admin/users').then(res => res.json())
   });
 
   // Ensure users is always an array
@@ -147,7 +147,7 @@ export const UsersTab = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: (userData: any) => 
-      fetch('/api/system-users', {
+      fetch('/api/admin/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ export const UsersTab = () => {
         })
       }).then(res => res.json()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowUserDialog(false);
       setFormData({
         name: '',
@@ -178,7 +178,7 @@ export const UsersTab = () => {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: ({ id, userData }: { id: number; userData: any }) => 
-      fetch(`/api/system-users/${id}`, {
+      fetch(`/api/admin/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export const UsersTab = () => {
         })
       }).then(res => res.json()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowEditDialog(false);
       setEditingUser(null);
     }
