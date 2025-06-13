@@ -136,7 +136,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       }
       
       // Buscar ou criar contato
-      let contact = await storage.contacts.getContactByPhone(phone);
+      let contact = await storage.getContactByPhone(phone);
       if (!contact) {
         contact = await storage.createContact({
           phone: phone,

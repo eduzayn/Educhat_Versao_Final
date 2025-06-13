@@ -537,16 +537,8 @@ export function ContactsPage() {
                     <p className="mt-1">{viewingContact.phone || 'Não informado'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Tipo</label>
-                    <p className="mt-1">{viewingContact.contactType || 'Não definido'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Empresa</label>
-                    <p className="mt-1">{viewingContact.company || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Endereço</label>
-                    <p className="mt-1">{viewingContact.address || 'Não informado'}</p>
+                    <label className="text-sm font-medium text-gray-700">Localização</label>
+                    <p className="mt-1">{viewingContact.location || 'Não informado'}</p>
                   </div>
                 </div>
                 

@@ -39,79 +39,7 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
-// Endpoint direto para contatos (sem autenticação)
-app.get('/api/contacts', async (req: Request, res: Response) => {
-  try {
-    const { search } = req.query;
-    let query = 'SELECT * FROM contacts';
-    let params: any[] = [];
-    
-    // Se há uma pesquisa, aplicar filtros
-    if (search && typeof search === 'string' && search.trim() !== '') {
-      const searchTerm = `%${search.trim()}%`;
-      query += ' WHERE (name ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1)';
-      params.push(searchTerm);
-    }
-    
-    // Ordenar por data de criação (mais recentes primeiro) e limitar a 1000
-    query += ' ORDER BY created_at DESC LIMIT 1000';
-    
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching contacts:', error);
-    res.status(500).json({ message: 'Failed to fetch contacts' });
-  }
-});
 
-// Endpoint POST para criação de contatos com integração Z-API
-app.post('/api/contacts', async (req: Request, res: Response) => {
-  try {
-    // Validar dados básicos do contato
-    const { name, phone, email, empresa, endereco, tipo, tags, notas } = req.body;
-    
-    if (!name || !phone) {
-      return res.status(400).json({ message: 'Nome e telefone são obrigatórios' });
-    }
-    
-    // Limpar e validar número de telefone
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (!cleanPhone.startsWith('55') || cleanPhone.length < 12) {
-      return res.status(400).json({ message: 'Telefone deve estar em formato brasileiro válido (+55)' });
-    }
-    
-    // Criar contato no banco
-    const insertQuery = `
-      INSERT INTO contacts (name, phone, email, company, contact_type, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-      RETURNING *
-    `;
-    
-    const result = await pool.query(insertQuery, [
-      name,
-      cleanPhone,
-      email || null,
-      empresa || null,
-      tipo || 'Lead'
-    ]);
-    
-    const newContact = result.rows[0];
-    
-    // Nota: A Z-API permite mensagens ativas para qualquer número válido do WhatsApp
-    // Não é necessário "adicionar" o contato previamente à instância Z-API
-    // O contato foi salvo no banco local e estará disponível para envio de mensagens
-    console.log(`✅ Contato ${name} (${cleanPhone}) criado e disponível para mensagens ativas via WhatsApp`);
-    
-    res.status(201).json({
-      ...newContact,
-      message: 'Contato criado com sucesso e sincronizado com WhatsApp para mensagens ativas'
-    });
-    
-  } catch (error) {
-    console.error('Error creating contact:', error);
-    res.status(500).json({ message: 'Failed to create contact' });
-  }
-});
 
 // Endpoints para cursos e categorias
 app.get('/api/courses/categories', async (req: Request, res: Response) => {
