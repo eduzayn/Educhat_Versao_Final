@@ -17,6 +17,7 @@ import { registerRealtimeConfig } from "./realtime/index";
 import { registerDealsRoutes } from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics/index";
 import { registerTeamsRoutes } from "./teams/index";
+import { registerUserTeamsRoutes } from "./user-teams/index";
 import { registerQuickRepliesRoutes } from "./quick-replies/index";
 import { registerUtilitiesRoutes } from "./utilities/index";
 import { registerBIRoutes } from "./bi/index";
@@ -55,6 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
+  registerUserTeamsRoutes(app);
   registerQuickRepliesRoutes(app);
   registerUtilitiesRoutes(app);
   registerBIRoutes(app);

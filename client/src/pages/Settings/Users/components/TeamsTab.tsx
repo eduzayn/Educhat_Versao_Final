@@ -202,10 +202,17 @@ export const TeamsTab = () => {
       return;
     }
 
-    addMemberMutation.mutate({
-      userId: parseInt(selectedUserId),
-      teamId: selectedTeam.id
-    });
+    // Encontrar nome do usuário selecionado
+    const selectedUser = systemUsersList.find(user => user.id.toString() === selectedUserId);
+    const userName = selectedUser ? selectedUser.displayName || selectedUser.username : 'usuário selecionado';
+
+    // Mostrar diálogo de confirmação
+    if (window.confirm(`Tem certeza que deseja adicionar ${userName} à equipe ${selectedTeam.name}?`)) {
+      addMemberMutation.mutate({
+        userId: parseInt(selectedUserId),
+        teamId: selectedTeam.id
+      });
+    }
   };
 
   const handleUpdateTeam = () => {
