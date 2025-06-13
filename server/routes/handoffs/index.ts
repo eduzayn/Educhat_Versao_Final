@@ -328,7 +328,7 @@ router.post('/auto-create', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const days = req.query.days ? parseInt(req.query.days as string) : 7;
-    const stats = await handoffService.getHandoffStats(days);
+    const stats = await handoffService.getHandoffStats();
     
     res.json({
       success: true,
@@ -467,7 +467,7 @@ router.post('/intelligent/execute', (req, res, next) => {
         
         await dealAutomationService.onConversationAssigned(
           conversationId,
-          recommendation.teamId,
+          recommendation.teamId || 0,
           type === 'manual' ? 'manual' : 'automatic'
         );
         
