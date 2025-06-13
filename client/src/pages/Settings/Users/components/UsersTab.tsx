@@ -154,8 +154,8 @@ export const UsersTab = () => {
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: (userData: any) => 
-      fetch('/api/admin/users', {
+    mutationFn: async (userData: any) => {
+      const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,15 @@ export const UsersTab = () => {
           role: userData.role,
           team: userData.team
         })
-      }).then(res => res.json()),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || `Erro ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowUserDialog(false);
@@ -182,6 +190,10 @@ export const UsersTab = () => {
         role: '',
         team: ''
       });
+    },
+    onError: (error: Error) => {
+      console.error('Erro ao criar usuário:', error);
+      alert(`Erro ao criar usuário: ${error.message}`);
     }
   });
 
