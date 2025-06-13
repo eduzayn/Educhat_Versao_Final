@@ -9,12 +9,20 @@ export function registerInboxRoutes(app: Express) {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const offset = parseInt(req.query.offset as string) || 0;
+      const search = req.query.search as string;
       
       // Log para diagnóstico de performance
       const startTime = Date.now();
-      console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}`);
+      console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}`);
       
-      const conversations = await storage.getConversations(limit, offset);
+      let conversations;
+      if (search && search.trim()) {
+        // Busca direta no banco para encontrar conversas antigas
+        conversations = await storage.searchConversations(search.trim(), limit);
+      } else {
+        // Busca normal paginada
+        conversations = await storage.getConversations(limit, offset);
+      }
       
       const endTime = Date.now();
       console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);

@@ -1,7 +1,7 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
 import { deals } from "../../../shared/schema";
-import { eq, desc, and, count, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, count, sql, inArray, or, ilike } from "drizzle-orm";
 
 /**
  * Conversation storage module - manages conversations and assignments
@@ -750,5 +750,76 @@ export class ConversationStorage extends BaseStorage {
       messages: [],
       _count: { messages: result.unreadCount || 0 }
     } as ConversationWithContact;
+  }
+
+  /**
+   * Busca conversas diretamente no banco de dados - independente do scroll infinito
+   * Para encontrar conversas antigas com 400+ conversas diárias
+   */
+  async searchConversations(searchTerm: string, limit: number = 200): Promise<ConversationWithContact[]> {
+    const conversationsData = await this.db
+      .select({
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        teamType: conversations.teamType,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        assignmentMethod: conversations.assignmentMethod,
+        assignedAt: conversations.assignedAt,
+        isRead: conversations.isRead,
+        priority: conversations.priority,
+        tags: conversations.tags,
+        metadata: conversations.metadata,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          location: contacts.location,
+          age: contacts.age,
+          isOnline: contacts.isOnline,
+          lastSeenAt: contacts.lastSeenAt,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          assignedUserId: contacts.assignedUserId,
+          tags: contacts.tags,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(
+        or(
+          ilike(contacts.name, `%${searchTerm}%`),
+          ilike(contacts.phone, `%${searchTerm}%`),
+          ilike(contacts.email, `%${searchTerm}%`)
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(limit);
+
+    return conversationsData.map(conv => ({
+      ...conv,
+      contact: {
+        ...conv.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: [],
+      _count: { messages: conv.unreadCount || 0 }
+    } as ConversationWithContact));
   }
 }

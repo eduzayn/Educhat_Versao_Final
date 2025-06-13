@@ -135,6 +135,10 @@ export class CentralStorage {
     return this.conversation.getConversationsByUser(userId);
   }
 
+  async searchConversations(searchTerm: string, limit?: number) {
+    return this.conversation.searchConversations(searchTerm, limit);
+  }
+
   async assignConversationToUser(conversationId: number, userId: number) {
     return this.conversation.assignConversationToUser(conversationId, userId);
   }
