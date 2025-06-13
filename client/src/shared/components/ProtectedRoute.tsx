@@ -20,10 +20,10 @@ interface ProtectedRouteProps {
 
 // Mapeamento de roles do português para inglês para compatibilidade
 const roleMapping: Record<string, string[]> = {
-  'admin': ['Administrador', 'admin'],
-  'gerente': ['Gerente', 'gerente'],
-  'superadmin': ['SuperAdministrador', 'superadmin'],
-  'atendente': ['Atendente', 'atendente']
+  'admin': ['Administrador', 'admin', 'administrador', 'Administrator'],
+  'gerente': ['Gerente', 'gerente', 'manager', 'Manager'],
+  'superadmin': ['SuperAdministrador', 'superadmin', 'SuperAdmin'],
+  'atendente': ['Atendente', 'atendente', 'agent', 'Agent']
 };
 
 export function ProtectedRoute({ children, requiredRole = 'admin', component: Component }: ProtectedRouteProps) {
