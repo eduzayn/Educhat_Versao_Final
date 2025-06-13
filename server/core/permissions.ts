@@ -58,8 +58,11 @@ export class PermissionService {
 
       if (!userWithRole) return false;
 
-      // Admins têm todas as permissões
-      if (userWithRole.role === 'admin') return true;
+      // Admins têm todas as permissões - incluindo variações em português
+      if (userWithRole.role === 'admin' || 
+          userWithRole.role === 'Administrador' || 
+          userWithRole.role === 'administrador' || 
+          userWithRole.role === 'Administrator') return true;
 
       // Verificar permissão específica através do role
       const userPermissions = await db
@@ -151,7 +154,10 @@ export class PermissionService {
         .from(systemUsers)
         .where(eq(systemUsers.id, userId));
       
-      return user?.role === 'admin';
+      return user?.role === 'admin' || 
+             user?.role === 'Administrador' || 
+             user?.role === 'administrador' || 
+             user?.role === 'Administrator';
     } catch (error) {
       console.error('Erro ao verificar se é admin:', error);
       return false;
@@ -186,7 +192,10 @@ export class PermissionService {
         .where(eq(systemUsers.id, userId));
 
       if (!user) return [];
-      if (user.role === 'admin') return ['*']; // Admin tem todas
+      if (user.role === 'admin' || 
+          user.role === 'Administrador' || 
+          user.role === 'administrador' || 
+          user.role === 'Administrator') return ['*']; // Admin tem todas
 
       const userPermissions = await db
         .select({ name: permissions.name })
