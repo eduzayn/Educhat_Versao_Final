@@ -41,19 +41,26 @@ export interface AIResponse {
 export class AIService {
   
   /**
-   * Classifica intenção e sentimento de uma mensagem
+   * Classifica intenção e sentimento de uma mensagem (sobrecarga para handoffs)
    */
+  async classifyMessage(message: string): Promise<MessageClassification>;
   async classifyMessage(
     message: string, 
     contactId: number, 
     conversationId: number,
     contactHistory?: any[]
+  ): Promise<MessageClassification>;
+  async classifyMessage(
+    message: string, 
+    contactId?: number, 
+    conversationId?: number,
+    contactHistory?: any[]
   ): Promise<MessageClassification> {
     const startTime = Date.now();
     
     try {
-      // Buscar contexto da conversa anterior
-      const previousContext = await this.getConversationContext(conversationId);
+      // Buscar contexto da conversa anterior (opcional para handoffs)
+      const previousContext = conversationId ? await this.getConversationContext(conversationId) : null;
       
       // Preparar prompt para classificação
       const classificationPrompt = this.buildClassificationPrompt(message, contactHistory, previousContext);
@@ -103,20 +110,27 @@ export class AIService {
 
       const classification = JSON.parse(response.choices[0].message.content || '{}');
       
-      // Extrair e salvar memórias da mensagem
-      await this.extractAndSaveMemories(message, classification, conversationId, contactId);
+      // Extrair e salvar memórias da mensagem (apenas se fornecido parâmetros)
+      if (conversationId && contactId) {
+        try {
+          await this.extractAndSaveMemories(message, classification, conversationId, contactId);
 
-      // Log da classificação
-      await this.logInteraction({
-        conversationId,
-        contactId,
-        userMessage: message,
-        classification: classification.intent,
-        sentiment: classification.sentiment,
-        confidenceScore: classification.confidence,
-        processingTime: Date.now() - startTime,
-        aiResponse: JSON.stringify(classification)
-      });
+          // Log da classificação
+          await this.logInteraction({
+            conversationId,
+            contactId,
+            userMessage: message,
+            classification: classification.intent,
+            sentiment: classification.sentiment,
+            confidenceScore: classification.confidence,
+            processingTime: Date.now() - startTime,
+            aiResponse: JSON.stringify(classification)
+          });
+        } catch (logError) {
+          // Falha no log não deve impedir a classificação
+          console.warn('Erro ao salvar logs da classificação:', logError);
+        }
+      }
 
       return classification;
       

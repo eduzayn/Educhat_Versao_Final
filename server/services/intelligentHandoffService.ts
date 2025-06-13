@@ -594,7 +594,7 @@ export class IntelligentHandoffService {
   async evaluateForAutoHandoff(conversationId: number, messageContent: string): Promise<boolean> {
     try {
       const classification = await this.aiService.classifyMessage(messageContent);
-      return classification.confidence > 0.8 && classification.intent !== 'general_chat';
+      return classification.confidence > 80 && classification.intent !== 'general_info';
     } catch (error) {
       console.error('Erro ao avaliar handoff automático:', error);
       return false;
