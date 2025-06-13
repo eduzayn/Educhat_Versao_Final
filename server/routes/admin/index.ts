@@ -9,7 +9,8 @@ import {
   auditLogs,
   teams,
   userTeams,
-  conversations
+  conversations,
+  handoffs
 } from '../../../shared/schema';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
@@ -434,6 +435,17 @@ export function registerAdminRoutes(app: Express) {
             .set({ assignedUserId: null })
             .where(eq(conversations.assignedUserId, userId));
         }
+
+        // Limpar referências em handoffs antes da exclusão
+        await db
+          .update(handoffs)
+          .set({ fromUserId: null })
+          .where(eq(handoffs.fromUserId, userId));
+          
+        await db
+          .update(handoffs)
+          .set({ toUserId: null })
+          .where(eq(handoffs.toUserId, userId));
 
         // Realizar a exclusão física do usuário
         await db
