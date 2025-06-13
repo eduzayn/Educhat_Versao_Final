@@ -11,7 +11,7 @@ import { Login } from "@/pages/Auth/Login";
 import { InboxPage } from "@/pages/Inbox/InboxPage";
 import { ContactsPage } from "@/pages/Contacts/ContactsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
-import IntegrationsPage from "@/pages/Settings/Integrations/IntegrationsPage";
+// Integrações agora consolidadas - redirecionar para a página existente
 import FacebookIntegrationPage from "@/pages/Settings/Integrations/FacebookIntegrationPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/Channels";
@@ -72,7 +72,7 @@ function Router() {
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
-                component={IntegrationsPage}
+                component={FacebookIntegrationPage}
               />
             )}
           </Route>
@@ -80,7 +80,23 @@ function Router() {
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
-                component={IntegrationsPage}
+                component={FacebookIntegrationPage}
+              />
+            )}
+          </Route>
+          <Route path="/settings/ai-detection">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={FacebookIntegrationPage}
+              />
+            )}
+          </Route>
+          <Route path="/ia/config">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={ConfigPage}
               />
             )}
           </Route>
