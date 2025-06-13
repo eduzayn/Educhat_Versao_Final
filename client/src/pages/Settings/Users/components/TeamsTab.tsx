@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/alert-dialog';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
@@ -31,7 +32,10 @@ export const TeamsTab = () => {
   const [showTeamDialog, setShowTeamDialog] = useState(false);
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [showConfirmAddMember, setShowConfirmAddMember] = useState(false);
+  const [showConfirmDeleteTeam, setShowConfirmDeleteTeam] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
   
   // Estados do formulário de nova equipe
   const [newTeamForm, setNewTeamForm] = useState({
@@ -202,16 +206,16 @@ export const TeamsTab = () => {
       return;
     }
 
-    // Encontrar nome do usuário selecionado
-    const selectedUser = systemUsersList.find(user => user.id.toString() === selectedUserId);
-    const userName = selectedUser ? selectedUser.displayName || selectedUser.username : 'usuário selecionado';
+    setShowConfirmAddMember(true);
+  };
 
-    // Mostrar diálogo de confirmação
-    if (window.confirm(`Tem certeza que deseja adicionar ${userName} à equipe ${selectedTeam.name}?`)) {
+  const confirmAddMember = () => {
+    if (selectedUserId && selectedTeam) {
       addMemberMutation.mutate({
         userId: parseInt(selectedUserId),
         teamId: selectedTeam.id
       });
+      setShowConfirmAddMember(false);
     }
   };
 
@@ -564,6 +568,39 @@ export const TeamsTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de confirmação para adicionar membro */}
+      <AlertDialog open={showConfirmAddMember} onOpenChange={setShowConfirmAddMember}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Adição de Membro</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedUserId && selectedTeam && (
+                <>
+                  Tem certeza que deseja adicionar{' '}
+                  <strong>
+                    {systemUsersList.find(user => user.id.toString() === selectedUserId)?.displayName || 
+                     systemUsersList.find(user => user.id.toString() === selectedUserId)?.username || 'usuário selecionado'}
+                  </strong>{' '}
+                  à equipe <strong>{selectedTeam.name}</strong>?
+                  <br /><br />
+                  Esta ação dará ao usuário acesso às conversas e recursos desta equipe.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmAddMember}
+              disabled={addMemberMutation.isPending}
+            >
+              {addMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Adicionar Membro
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
