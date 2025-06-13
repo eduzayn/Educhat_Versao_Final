@@ -117,6 +117,7 @@ export const UsersTab = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [transferToUserId, setTransferToUserId] = useState<string>("");
   const [importData, setImportData] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -201,14 +202,19 @@ export const UsersTab = () => {
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => 
+    mutationFn: ({ userId, transferToUserId }: { userId: number; transferToUserId?: number }) => 
       fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transferToUserId })
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowDeleteDialog(false);
       setUserToDelete(null);
+      setTransferToUserId("");
     }
   });
 
@@ -333,6 +339,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
   const handleDeleteUser = (user: any) => {
     setUserToDelete(user);
+    setTransferToUserId("");
     setShowDeleteDialog(true);
   };
 

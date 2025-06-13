@@ -380,6 +380,7 @@ export function registerAdminRoutes(app: Express) {
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const userId = parseInt(req.params.id);
+        const { transferToUserId } = req.body;
 
         if (!userId || isNaN(userId)) {
           return res.status(400).json({ message: 'ID do usuário inválido' });
@@ -401,16 +402,38 @@ export function registerAdminRoutes(app: Express) {
           return res.status(400).json({ message: 'Não é possível excluir seu próprio usuário' });
         }
 
+        // Verificar se o usuário de transferência existe (se fornecido)
+        if (transferToUserId) {
+          const [transferUser] = await db
+            .select()
+            .from(systemUsers)
+            .where(eq(systemUsers.id, transferToUserId))
+            .limit(1);
+
+          if (!transferUser) {
+            return res.status(400).json({ message: 'Usuário de transferência não encontrado' });
+          }
+        }
+
         // Primeiro, remover todas as vinculações do usuário com equipes
         await db
           .delete(userTeams)
           .where(eq(userTeams.userId, userId));
 
-        // Atualizar conversas atribuídas ao usuário (definir assignedUserId como null)
-        await db
-          .update(conversations)
-          .set({ assignedUserId: null })
-          .where(eq(conversations.assignedUserId, userId));
+        // Transferir ou remover conversas atribuídas ao usuário
+        if (transferToUserId) {
+          // Transferir conversas para o usuário especificado
+          await db
+            .update(conversations)
+            .set({ assignedUserId: transferToUserId })
+            .where(eq(conversations.assignedUserId, userId));
+        } else {
+          // Remover atribuição das conversas (definir assignedUserId como null)
+          await db
+            .update(conversations)
+            .set({ assignedUserId: null })
+            .where(eq(conversations.assignedUserId, userId));
+        }
 
         // Realizar a exclusão física do usuário
         await db
@@ -436,9 +459,13 @@ export function registerAdminRoutes(app: Express) {
 
         console.log(`🗑️ Usuário ${existingUser.displayName} (ID: ${userId}) excluído com sucesso por ${req.user!.displayName}`);
 
+        const message = transferToUserId 
+          ? 'Usuário excluído com sucesso e contatos transferidos'
+          : 'Usuário excluído com sucesso';
+
         res.json({ 
           success: true, 
-          message: 'Usuário excluído com sucesso',
+          message,
           deletedUser: {
             id: existingUser.id,
             displayName: existingUser.displayName,
