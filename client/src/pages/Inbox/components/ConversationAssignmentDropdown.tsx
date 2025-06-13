@@ -256,7 +256,7 @@ export function ConversationAssignmentDropdown({
                     {teamUsers.length > 0 ? (
                       <div className="space-y-1">
                         {teamUsers.filter(user => user.isActive).map(user => (
-                          <div key={user.id} className="flex items-center gap-2">
+                          <div key={`tooltip-user-${user.id}`} className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
                             <span>{user.displayName}</span>
                           </div>
@@ -275,7 +275,7 @@ export function ConversationAssignmentDropdown({
               <span className="text-gray-500">Sem grupo (Fila neutra)</span>
             </SelectItem>
             {teams.map(team => (
-              <SelectItem key={team.id} value={team.id.toString()}>
+              <SelectItem key={`team-${team.id}`} value={team.id.toString()}>
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
@@ -316,8 +316,8 @@ export function ConversationAssignmentDropdown({
             <SelectItem value="none">
               <span className="text-gray-500">Não atribuído</span>
             </SelectItem>
-            {(currentTeamId ? teamUsers : users).filter(user => user.isActive).map(user => (
-              <SelectItem key={user.id} value={user.id.toString()}>
+            {(currentTeamId ? teamUsers : users).filter(user => user.isActive).map((user, index) => (
+              <SelectItem key={`${conversationId}-user-${user.id}-${currentTeamId || 'all'}-${index}`} value={user.id.toString()}>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
                   {user.displayName}
