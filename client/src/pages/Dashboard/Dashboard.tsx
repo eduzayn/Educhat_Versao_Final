@@ -137,11 +137,13 @@ export function Dashboard() {
   // Filtrar itens do menu baseado no role do usuário
   const menuItems = allMenuItems.filter(item => {
     if (item.adminOnly) {
-      return (user as any)?.role === 'admin';
+      const userRole = (user as any)?.role;
+      return userRole === 'admin' || userRole === 'Administrador' || userRole === 'administrador';
     }
     if (item.managerOrAdminOnly) {
       const userRole = (user as any)?.role;
-      return userRole === 'admin' || userRole === 'gerente';
+      return userRole === 'admin' || userRole === 'Administrador' || userRole === 'administrador' || 
+             userRole === 'gerente' || userRole === 'Gerente';
     }
     return true;
   });
