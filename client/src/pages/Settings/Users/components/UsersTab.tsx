@@ -596,10 +596,10 @@ export const UsersTab = () => {
                   <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="manager">Gerente</SelectItem>
-                  <SelectItem value="agent">Agente</SelectItem>
-                  <SelectItem value="viewer">Visualizador</SelectItem>
+                  <SelectItem value="Administrador">Administrador</SelectItem>
+                  <SelectItem value="Gerente">Gerente</SelectItem>
+                  <SelectItem value="Atendente">Atendente</SelectItem>
+                  <SelectItem value="Visualizador">Visualizador</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -707,10 +707,10 @@ export const UsersTab = () => {
                   <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="manager">Gerente</SelectItem>
-                  <SelectItem value="agent">Agente</SelectItem>
-                  <SelectItem value="viewer">Visualizador</SelectItem>
+                  <SelectItem value="Administrador">Administrador</SelectItem>
+                  <SelectItem value="Gerente">Gerente</SelectItem>
+                  <SelectItem value="Atendente">Atendente</SelectItem>
+                  <SelectItem value="Visualizador">Visualizador</SelectItem>
                 </SelectContent>
               </Select>
             </div>
