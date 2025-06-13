@@ -10,28 +10,23 @@ export function registerUtilitiesRoutes(app: Express) {
   // Rotas de compatibilidade para gestão de usuários
   app.get('/api/system-users', async (req, res) => {
     try {
-      const { db } = await import('../../core/db');
-      const result = await db.query(`
-        SELECT 
-          id, 
-          email, 
-          username, 
-          display_name as "displayName", 
-          role, 
-          is_active as "isActive",
-          is_online as "isOnline",
-          team,
-          team_id as "teamId",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-        FROM system_users 
-        WHERE is_active = true 
-        ORDER BY display_name
-      `);
-      res.json(result.rows);
+      // Usando a mesma estrutura das rotas administrativas
+      const { systemUsers } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      const { db } = storage;
+      
+      const users = await db.select().from(systemUsers).where(eq(systemUsers.isActive, true));
+      res.json(users);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      res.json([]);
+      console.error('Erro ao buscar usuários via Drizzle:', error);
+      // Fallback usando método direto do storage
+      try {
+        const users = await storage.getAllUsers();
+        res.json(users);
+      } catch (fallbackError) {
+        console.error('Erro no fallback:', fallbackError);
+        res.json([]);
+      }
     }
   });
 
