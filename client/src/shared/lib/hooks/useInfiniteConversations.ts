@@ -7,7 +7,7 @@ interface ConversationsResponse {
   total: number;
 }
 
-export function useInfiniteConversations(limit = 50, options = {}) {
+export function useInfiniteConversations(limit = 100, options = {}) {
   return useInfiniteQuery<ConversationsResponse>({
     queryKey: ['/api/conversations/infinite', { limit }],
     queryFn: async ({ pageParam = 0 }) => {
@@ -34,7 +34,7 @@ export function useInfiniteConversations(limit = 50, options = {}) {
       return allPages.length * limit;
     },
     initialPageParam: 0,
-    staleTime: 1000,
+    staleTime: 5000,
     refetchInterval: false,
     refetchOnWindowFocus: false,
     ...options
