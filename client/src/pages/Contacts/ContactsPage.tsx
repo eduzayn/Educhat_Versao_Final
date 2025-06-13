@@ -48,7 +48,7 @@ export function ContactsPage() {
   }, [searchInput]);
 
   // Hooks
-  const { data: contacts, isLoading, refetch } = useContacts({ 
+  const { data: contacts, isLoading, isFetching, refetch } = useContacts({ 
     search: debouncedSearch,
     page: currentPage,
     limit: contactsPerPage 
@@ -312,7 +312,7 @@ export function ContactsPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !contacts) {
     return (
       <div className="min-h-screen bg-educhat-light flex items-center justify-center">
         <div className="text-center">

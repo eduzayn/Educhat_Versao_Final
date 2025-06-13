@@ -27,7 +27,10 @@ export function useContacts(params?: { search?: string; page?: number; limit?: n
       }
       
       return data;
-    }
+    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 5000,
+    refetchOnWindowFocus: false
   });
 }
 
