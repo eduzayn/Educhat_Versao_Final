@@ -26,6 +26,7 @@ import { requirePermission, PermissionService, AuthenticatedRequest, updateLastA
  * - Configurações administrativas
  */
 export function registerAdminRoutes(app: Express) {
+  console.log('🔧 Registrando rotas administrativas...');
 
   // ==================== GESTÃO DE PERMISSÕES ====================
 
@@ -317,6 +318,96 @@ export function registerAdminRoutes(app: Express) {
         res.json(filteredUsers);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
+  // Criar novo usuário
+  app.post('/api/admin/users', 
+    updateLastActivity(),
+    requirePermission('usuario:criar'), 
+    async (req: AuthenticatedRequest, res: Response) => {
+      console.log('🔥 POST /api/admin/users endpoint hit:', req.body);
+      try {
+        const { 
+          displayName, 
+          username,
+          email,
+          password,
+          role,
+          team,
+          roleId, 
+          teamId, 
+          dataKey, 
+          channels, 
+          teams 
+        } = req.body;
+
+        // Validar campos obrigatórios
+        if (!displayName || !username || !email || !password) {
+          return res.status(400).json({ 
+            message: 'Nome, usuário, email e senha são obrigatórios' 
+          });
+        }
+
+        // Verificar se email já existe
+        const [existingUser] = await db
+          .select()
+          .from(systemUsers)
+          .where(eq(systemUsers.email, email))
+          .limit(1);
+
+        if (existingUser) {
+          return res.status(400).json({ 
+            message: 'Este email já está em uso' 
+          });
+        }
+
+        // Hash da senha
+        const bcrypt = require('bcryptjs');
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Criar usuário
+        const [newUser] = await db
+          .insert(systemUsers)
+          .values({
+            displayName,
+            username,
+            email,
+            password: passwordHash,
+            role: role || 'user',
+            team: team || null,
+            roleId: roleId || 1,
+            teamId: teamId || null,
+            dataKey: dataKey || null,
+            channels: channels || [],
+            teamTypes: teams || [],
+            isActive: true,
+            status: 'active'
+          })
+          .returning();
+
+        await PermissionService.logAction({
+          userId: req.user!.id,
+          action: 'create',
+          resource: 'user',
+          resourceId: newUser.id.toString(),
+          details: {
+            displayName,
+            username,
+            email,
+            role: role || 'user'
+          },
+          result: 'success'
+        });
+
+        // Não retornar o hash da senha na resposta
+        const { password: _, ...userResponse } = newUser;
+
+        res.status(201).json(userResponse);
+      } catch (error) {
+        console.error('Erro ao criar usuário:', error);
         res.status(500).json({ message: 'Erro interno do servidor' });
       }
     }
