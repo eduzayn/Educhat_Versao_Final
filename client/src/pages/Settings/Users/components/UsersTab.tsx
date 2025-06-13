@@ -118,8 +118,10 @@ export const UsersTab = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showCreateSuccessDialog, setShowCreateSuccessDialog] = useState(false);
+  const [showEditSuccessDialog, setShowEditSuccessDialog] = useState(false);
   const [deletedUserName, setDeletedUserName] = useState<string>("");
   const [createdUserName, setCreatedUserName] = useState<string>("");
+  const [editedUserName, setEditedUserName] = useState<string>("");
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [transferToUserId, setTransferToUserId] = useState<string>("");
@@ -197,13 +199,33 @@ export const UsersTab = () => {
           email: userData.email,
           role: userData.role,
           team: userData.team,
-          isActive: userData.isActive
+          isActive: userData.isActive,
+          ...(userData.password && { password: userData.password })
         })
-      }).then(res => res.json()),
-    onSuccess: () => {
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Erro ao atualizar usuário');
+        }
+        return res.json();
+      }),
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setEditedUserName(formData.name);
       setShowEditDialog(false);
       setEditingUser(null);
+      setShowEditSuccessDialog(true);
+      setFormData({
+        name: '',
+        email: '',
+        username: '',
+        password: '',
+        role: '',
+        team: ''
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar usuário:', error);
+      alert('Erro ao salvar alterações. Tente novamente.');
     }
   });
 
@@ -880,6 +902,29 @@ export const UsersTab = () => {
           <AlertDialogFooter>
             <AlertDialogAction
               onClick={() => setShowCreateSuccessDialog(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de Sucesso - Edição de Usuário */}
+      <AlertDialog open={showEditSuccessDialog} onOpenChange={setShowEditSuccessDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              Usuário Editado com Sucesso
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              As alterações do usuário <strong className="text-foreground">{editedUserName}</strong> foram salvas com sucesso.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowEditSuccessDialog(false)}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               Entendi
