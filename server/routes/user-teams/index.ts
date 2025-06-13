@@ -13,9 +13,9 @@ export function registerUserTeamsRoutes(app: Express) {
         return res.status(400).json({ message: 'userId e teamId são obrigatórios' });
       }
 
-      // Verificar se o usuário já está na equipe
-      const existingMembers = await storage.getTeamMembers(teamId);
-      const isAlreadyMember = existingMembers.some(member => member.id === parseInt(userId));
+      // Verificar se o usuário já está na equipe usando getUserTeams
+      const userTeams = await storage.getUserTeams(parseInt(userId));
+      const isAlreadyMember = userTeams.some(team => team.id === parseInt(teamId));
       
       if (isAlreadyMember) {
         return res.status(400).json({ message: 'Usuário já é membro desta equipe' });
