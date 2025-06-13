@@ -7,56 +7,22 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../cor
 
 export function registerUtilitiesRoutes(app: Express) {
   
-  // Rotas de compatibilidade para gestão de usuários
-  app.get('/api/system-users', async (req, res) => {
-    try {
-      const users = await storage.getAllUsers();
-      res.json(users);
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      res.json([]);
-    }
+  // ✅ CONSOLIDADO: Rotas de usuários migradas para /api/admin/users
+  // Redirecionamentos para compatibilidade com frontend existente
+  app.get('/api/system-users', (req, res) => {
+    res.redirect(308, '/api/admin/users');
   });
 
-  app.post('/api/system-users', async (req, res) => {
-    try {
-      const { username, email, displayName, password, role, team } = req.body;
-      const newUser = await storage.createUser({
-        username,
-        email,
-        displayName,
-        password,
-        role,
-        team
-      });
-      res.json(newUser);
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+  app.post('/api/system-users', (req, res) => {
+    res.redirect(308, '/api/admin/users');
   });
 
-  app.put('/api/system-users/:id', async (req, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const updateData = req.body;
-      const updatedUser = await storage.updateUser(userId, updateData);
-      res.json(updatedUser);
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+  app.put('/api/system-users/:id', (req, res) => {
+    res.redirect(308, `/api/admin/users/${req.params.id}`);
   });
 
-  app.delete('/api/system-users/:id', async (req, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      await storage.userManagement.deleteSystemUser(userId);
-      res.json({ message: 'Usuário desativado com sucesso' });
-    } catch (error) {
-      console.error('Erro ao desativar usuário:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+  app.delete('/api/system-users/:id', (req, res) => {
+    res.redirect(308, `/api/admin/users/${req.params.id}`);
   });
   
   // Cache para o status Z-API (10 segundos)
