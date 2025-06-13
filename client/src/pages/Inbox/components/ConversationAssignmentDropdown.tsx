@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Users, User, ArrowRight } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team, SystemUser } from '@shared/schema';
@@ -159,6 +160,10 @@ export function ConversationAssignmentDropdown({
                   variant="secondary" 
                   className="text-xs px-2 py-0.5"
                   style={{ backgroundColor: currentTeam.color + '20', color: currentTeam.color }}
+                  title={teamUsers.length > 0 ? 
+                    `Membros: ${teamUsers.filter(user => user.isActive).map(user => user.displayName).join(', ')}` : 
+                    'Nenhum membro ativo'
+                  }
                 >
                   {currentTeam.name}
                 </Badge>
