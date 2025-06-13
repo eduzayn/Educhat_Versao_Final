@@ -24,7 +24,7 @@ import { ConfigPage } from "@/pages/IA/ConfigPage";
 
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
-import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
+// Removido AIDetectionSettingsPage - agora consolidado em IntegrationsPage
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import { HandoffsPage } from "@/pages/Handoffs/HandoffsPage";
@@ -122,11 +122,11 @@ function Router() {
               />
             )}
           </Route>
-          <Route path="/settings/ai-detection">
+          <Route path="/settings/integrations">
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
-                component={AIDetectionSettingsPage}
+                component={IntegrationsPage}
               />
             )}
           </Route>

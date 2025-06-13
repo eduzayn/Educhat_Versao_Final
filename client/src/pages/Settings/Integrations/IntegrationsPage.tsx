@@ -1,683 +1,605 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { Switch } from '@/shared/ui/switch';
-import { Badge } from '@/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Textarea } from '@/shared/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
-import { BackButton } from '@/shared/components/BackButton';
-import { useToast } from '@/shared/lib/hooks/use-toast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/ui/back-button";
 import { 
+  Settings, 
   Zap, 
+  Facebook, 
   MessageSquare, 
-  Webhook, 
-  Mail, 
-  Calendar,
-  Bot,
-  Settings,
-  TestTube,
-  Copy,
-  Check,
-  ExternalLink,
-  Info,
-  AlertCircle,
-  CheckCircle,
-  Facebook,
-  Instagram
-} from 'lucide-react';
+  Brain, 
+  Bot, 
+  Activity,
+  Plus,
+  Test,
+  Save
+} from "lucide-react";
 
-interface ManychatIntegration {
-  id?: number;
+interface Integration {
+  id: number;
   name: string;
-  apiKey: string;
-  webhookUrl: string;
+  type: string;
   isActive: boolean;
-  syncEnabled: boolean;
-  leadSyncEnabled: boolean;
-  enrollmentSyncEnabled: boolean;
-  notificationSyncEnabled: boolean;
-  configuration?: {
-    defaultCourse?: string;
-    leadSource?: string;
-    autoAssignTeam?: string;
-  };
+  description?: string;
+  lastSync?: string;
+  errorCount?: number;
 }
 
-export function IntegrationsPage() {
+interface AIConfig {
+  id: number;
+  enabledFeatures: {
+    webSearch: boolean;
+    voiceSynthesis: boolean;
+    imageAnalysis: boolean;
+    contextualMemory: boolean;
+  };
+  responseSettings: {
+    maxTokens: number;
+    temperature: number;
+    model: string;
+  };
+  isActive: boolean;
+  openaiApiKey?: string;
+  perplexityApiKey?: string;
+  elevenlabsApiKey?: string;
+  anthropicApiKey?: string;
+}
+
+interface SystemSetting {
+  id: number;
+  key: string;
+  value: string;
+  type: string;
+  description: string;
+  category: string;
+}
+
+export const IntegrationsPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
-  const [testResult, setTestResult] = useState<any>(null);
-  const [urlCopied, setUrlCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
-  // Estados para formulário do Manychat
-  const [manychatConfig, setManychatConfig] = useState({
-    name: 'Manychat Principal',
-    apiKey: '',
-    webhookUrl: '',
-    isActive: false,
-    syncEnabled: true,
-    leadSyncEnabled: true,
-    enrollmentSyncEnabled: true,
-    notificationSyncEnabled: false,
-    configuration: {
-      defaultCourse: '',
-      leadSource: 'Manychat',
-      autoAssignTeam: 'comercial'
-    }
-  });
-
-  // Gerar URL do webhook automaticamente
-  const generateWebhookUrl = () => {
-    const currentUrl = window.location.origin;
-    return `${currentUrl}/api/integrations/manychat/webhook`;
-  };
-
-  const copyWebhookUrl = async () => {
-    const url = generateWebhookUrl();
-    try {
-      await navigator.clipboard.writeText(url);
-      setUrlCopied(true);
-      toast({
-        title: "URL copiada!",
-        description: "A URL do webhook foi copiada para a área de transferência."
-      });
-      setTimeout(() => setUrlCopied(false), 2000);
-    } catch (err) {
-      toast({
-        title: "Erro ao copiar",
-        description: "Não foi possível copiar a URL. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Query para buscar configurações existentes
-  const { data: integrations, isLoading } = useQuery({
-    queryKey: ['/api/integrations/manychat'],
+  // Fetch integrations overview
+  const { data: integrationsOverview, isLoading: isLoadingOverview } = useQuery({
+    queryKey: ['/api/settings/integrations'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/integrations/manychat');
-        if (response.ok) {
-          return response.json();
-        }
-        return [];
-      } catch (error) {
-        return [];
-      }
+      const response = await fetch('/api/settings/integrations');
+      if (!response.ok) throw new Error('Falha ao carregar integrações');
+      return response.json();
     }
   });
 
-  // Mutation para salvar configurações
-  const saveConfigMutation = useMutation({
-    mutationFn: (data: any) => 
-      apiRequest('POST', '/api/integrations/manychat', data),
+  // Fetch AI configuration
+  const { data: aiConfig, isLoading: isLoadingAI } = useQuery({
+    queryKey: ['/api/settings/integrations/ai/config'],
+    queryFn: async () => {
+      const response = await fetch('/api/settings/integrations/ai/config');
+      if (!response.ok) throw new Error('Falha ao carregar configuração IA');
+      return response.json() as Promise<AIConfig>;
+    }
+  });
+
+  // Fetch AI detection settings
+  const { data: aiDetectionSettings, isLoading: isLoadingDetection } = useQuery({
+    queryKey: ['/api/settings/integrations/ai/detection'],
+    queryFn: async () => {
+      const response = await fetch('/api/settings/integrations/ai/detection');
+      if (!response.ok) throw new Error('Falha ao carregar configurações de detecção');
+      return response.json() as Promise<SystemSetting[]>;
+    }
+  });
+
+  // Update AI configuration mutation
+  const updateAIConfigMutation = useMutation({
+    mutationFn: async (data: Partial<AIConfig>) => {
+      const response = await fetch('/api/settings/integrations/ai/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Falha ao salvar configuração IA');
+      return response.json();
+    },
     onSuccess: () => {
-      toast({
-        title: "Configuração salva!",
-        description: "A integração com o Manychat foi configurada com sucesso."
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/integrations/manychat'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/integrations/ai/config'] });
+      toast({ title: "Configuração IA salva com sucesso" });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao salvar",
-        description: error.message || "Não foi possível salvar a configuração.",
-        variant: "destructive"
-      });
+    onError: () => {
+      toast({ title: "Erro ao salvar configuração IA", variant: "destructive" });
     }
   });
 
-  // Mutation para testar conexão
-  const testConnectionMutation = useMutation({
-    mutationFn: () => 
-      apiRequest('POST', '/api/integrations/manychat/test', {
-        apiKey: manychatConfig.apiKey
-      }),
+  // Test AI connection mutation
+  const testAIConnectionMutation = useMutation({
+    mutationFn: async (anthropicApiKey: string) => {
+      const response = await fetch('/api/settings/integrations/ai/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anthropicApiKey }),
+      });
+      if (!response.ok) throw new Error('Falha ao testar conexão');
+      return response.json();
+    },
     onSuccess: (data) => {
-      setTestResult(data);
-      setIsTestDialogOpen(true);
-      toast({
-        title: "Teste concluído!",
-        description: "Verifique os resultados na janela de teste."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro no teste",
-        description: error.message || "Falha ao testar a conexão.",
-        variant: "destructive"
+      toast({ 
+        title: data.success ? "Conexão IA testada com sucesso" : "Falha na conexão IA",
+        variant: data.success ? "default" : "destructive"
       });
     }
   });
 
-  const handleSaveConfig = () => {
-    if (!manychatConfig.apiKey) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha a API Key do Manychat.",
-        variant: "destructive"
+  // Update AI detection setting mutation
+  const updateDetectionSettingMutation = useMutation({
+    mutationFn: async (setting: Partial<SystemSetting>) => {
+      const response = await fetch('/api/settings/integrations/ai/detection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(setting),
       });
-      return;
+      if (!response.ok) throw new Error('Falha ao salvar configuração');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/integrations/ai/detection'] });
+      toast({ title: "Configuração salva com sucesso" });
     }
+  });
 
-    const configWithWebhook = {
-      ...manychatConfig,
-      webhookUrl: generateWebhookUrl()
-    };
-
-    saveConfigMutation.mutate(configWithWebhook);
+  const handleAIConfigSave = (updatedConfig: Partial<AIConfig>) => {
+    updateAIConfigMutation.mutate(updatedConfig);
   };
+
+  const handleTestAIConnection = () => {
+    if (aiConfig?.anthropicApiKey && aiConfig.anthropicApiKey !== '***CONFIGURED***') {
+      testAIConnectionMutation.mutate(aiConfig.anthropicApiKey);
+    } else {
+      toast({ title: "Configure a chave da API Anthropic primeiro", variant: "destructive" });
+    }
+  };
+
+  const handleDetectionSettingChange = (key: string, value: string, type: string, description: string) => {
+    updateDetectionSettingMutation.mutate({
+      key,
+      value,
+      type,
+      description,
+      category: 'ai'
+    });
+  };
+
+  if (isLoadingOverview || isLoadingAI || isLoadingDetection) {
+    return (
+      <div className="min-h-screen bg-educhat-light">
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <BackButton to="/settings" label="Voltar às Configurações" />
+            <div>
+              <h2 className="text-2xl font-bold">Integrações</h2>
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6">
-        <BackButton to="/" label="Voltar ao Dashboard" />
-        
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Integrações
-            </h1>
-            <p className="text-gray-600">
-              Configure integrações com serviços externos para automatizar seus processos educacionais
+    <div className="min-h-screen bg-educhat-light">
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <BackButton to="/settings" label="Voltar às Configurações" />
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold">Central de Integrações</h2>
+            <p className="text-muted-foreground">
+              Gerencie todas as integrações e configurações de IA em um só lugar
             </p>
           </div>
-
-          <Tabs defaultValue="manychat" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="manychat" className="flex items-center gap-2">
-                <Bot className="h-4 w-4" />
-                Manychat
-              </TabsTrigger>
-              <TabsTrigger value="facebook" className="flex items-center gap-2">
-                <Facebook className="h-4 w-4" />
-                Facebook
-              </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                WhatsApp
-              </TabsTrigger>
-              <TabsTrigger value="webhooks" className="flex items-center gap-2">
-                <Webhook className="h-4 w-4" />
-                Webhooks
-              </TabsTrigger>
-              <TabsTrigger value="outros" className="flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Outros
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="manychat" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bot className="h-6 w-6 text-purple-600" />
-                    Integração Manychat
-                  </CardTitle>
-                  <CardDescription>
-                    Configure a integração com o Manychat para automatizar a captação de leads e comunicação com alunos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Status da Integração */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${manychatConfig.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
-                      <div>
-                        <p className="font-medium">Status da Integração</p>
-                        <p className="text-sm text-gray-600">
-                          {manychatConfig.isActive ? 'Ativa e funcionando' : 'Inativa'}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant={manychatConfig.isActive ? 'default' : 'secondary'}>
-                      {manychatConfig.isActive ? 'Conectado' : 'Desconectado'}
-                    </Badge>
-                  </div>
-
-                  {/* Configurações Básicas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="manychat-name">Nome da Integração</Label>
-                        <Input
-                          id="manychat-name"
-                          value={manychatConfig.name}
-                          onChange={(e) => setManychatConfig(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Ex: Manychat Principal"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="manychat-api-key">
-                          API Key do Manychat
-                          <span className="text-red-500 ml-1">*</span>
-                        </Label>
-                        <Input
-                          id="manychat-api-key"
-                          type="password"
-                          value={manychatConfig.apiKey}
-                          onChange={(e) => setManychatConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                          placeholder="Insira sua API Key do Manychat"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Encontre sua API Key no painel do Manychat: Settings {'>'} API {'>'} Generate API Key
-                        </p>
-                        <p className="text-xs text-amber-600 mt-1">
-                          ⚠️ Se receber erro 401, gere uma nova API Key no Manychat (tokens podem expirar)
-                        </p>
-                      </div>
-
-
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>URL do Webhook</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={generateWebhookUrl()}
-                            readOnly
-                            className="bg-gray-50"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={copyWebhookUrl}
-                            className="shrink-0"
-                          >
-                            {urlCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Use esta URL no seu painel do Manychat para configurar o webhook
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="default-course">Curso Padrão</Label>
-                        <Select
-                          value={manychatConfig.configuration?.defaultCourse || ''}
-                          onValueChange={(value) => setManychatConfig(prev => ({
-                            ...prev,
-                            configuration: { ...prev.configuration, defaultCourse: value }
-                          }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um curso padrão" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="graduacao">Graduação</SelectItem>
-                            <SelectItem value="pos-graduacao">Pós-graduação</SelectItem>
-                            <SelectItem value="tecnico">Técnico</SelectItem>
-                            <SelectItem value="livre">Curso Livre</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="auto-assign-team">Equipe de Atribuição Automática</Label>
-                        <Select
-                          value={manychatConfig.configuration?.autoAssignTeam || 'comercial'}
-                          onValueChange={(value) => setManychatConfig(prev => ({
-                            ...prev,
-                            configuration: { ...prev.configuration, autoAssignTeam: value }
-                          }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="comercial">Comercial</SelectItem>
-                            <SelectItem value="suporte">Suporte</SelectItem>
-                            <SelectItem value="secretaria">Secretaria</SelectItem>
-                            <SelectItem value="tutoria">Tutoria</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Configurações de Sincronização */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Configurações de Sincronização</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <Label>Sincronização de Leads</Label>
-                          <p className="text-sm text-gray-600">
-                            Transferir leads do Manychat para o EduChat automaticamente
-                          </p>
-                        </div>
-                        <Switch
-                          checked={manychatConfig.leadSyncEnabled}
-                          onCheckedChange={(checked) => setManychatConfig(prev => ({ ...prev, leadSyncEnabled: checked }))}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <Label>Sincronização de Matrículas</Label>
-                          <p className="text-sm text-gray-600">
-                            Notificar o Manychat sobre novas matrículas
-                          </p>
-                        </div>
-                        <Switch
-                          checked={manychatConfig.enrollmentSyncEnabled}
-                          onCheckedChange={(checked) => setManychatConfig(prev => ({ ...prev, enrollmentSyncEnabled: checked }))}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <Label>Notificações Automáticas</Label>
-                          <p className="text-sm text-gray-600">
-                            Enviar avisos e lembretes via Manychat
-                          </p>
-                        </div>
-                        <Switch
-                          checked={manychatConfig.notificationSyncEnabled}
-                          onCheckedChange={(checked) => setManychatConfig(prev => ({ ...prev, notificationSyncEnabled: checked }))}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <Label>Integração Ativa</Label>
-                          <p className="text-sm text-gray-600">
-                            Ativar/desativar toda a integração
-                          </p>
-                        </div>
-                        <Switch
-                          checked={manychatConfig.isActive}
-                          onCheckedChange={(checked) => setManychatConfig(prev => ({ ...prev, isActive: checked }))}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex gap-4 pt-4 border-t">
-                    <Button 
-                      onClick={handleSaveConfig}
-                      disabled={saveConfigMutation.isPending}
-                      className="flex items-center gap-2"
-                    >
-                      <Settings className="h-4 w-4" />
-                      {saveConfigMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      onClick={() => testConnectionMutation.mutate()}
-                      disabled={testConnectionMutation.isPending || !manychatConfig.apiKey}
-                      className="flex items-center gap-2"
-                    >
-                      <TestTube className="h-4 w-4" />
-                      {testConnectionMutation.isPending ? 'Testando...' : 'Testar Conexão'}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      onClick={() => window.open('https://api.manychat.com/swagger?urls.primaryName=Page%20API', '_blank')}
-                      className="flex items-center gap-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Documentação API
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card de Instruções */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-blue-600" />
-                    Como Configurar a Integração
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold">1. Obter Credenciais do Manychat</h4>
-                      <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                        <li>Acesse o painel do Manychat</li>
-                        <li>Vá em Settings {'>'} API</li>
-                        <li>Copie a API Key</li>
-                        <li>Obtenha o Page Access Token da sua página do Facebook</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <h4 className="font-semibold">2. Configurar Webhook no Manychat</h4>
-                      <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                        <li>Copie a URL do webhook acima</li>
-                        <li>No Manychat, vá em Settings {'>'} Webhooks</li>
-                        <li>Cole a URL e configure os eventos</li>
-                        <li>Teste a conexão usando o botão "Testar Conexão"</li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                      <div className="text-sm">
-                        <p className="font-medium text-blue-800">Importante:</p>
-                        <p className="text-blue-700">
-                          A integração permite automatizar a transferência de leads entre o Manychat e o EduChat, 
-                          facilitando o processo de captação e matrícula de alunos.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="whatsapp">
-              {/* Usar o componente existente */}
-              <div className="text-center py-12">
-                <MessageSquare className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Integração WhatsApp</h3>
-                <p className="text-gray-600 mb-4">
-                  A integração com WhatsApp já está disponível na seção de Canais
-                </p>
-                <Button variant="outline" onClick={() => window.location.href = '/settings/channels'}>
-                  Gerenciar Canais WhatsApp
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="facebook" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <Facebook className="h-6 w-6 text-blue-600" />
-                      <Instagram className="h-6 w-6 text-pink-600" />
-                    </div>
-                    Integração Facebook & Instagram
-                  </CardTitle>
-                  <CardDescription>
-                    Configure a integração com Facebook Messenger e Instagram Direct para receber mensagens diretamente na plataforma
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Status da Integração */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gray-400" />
-                      <div>
-                        <p className="font-medium">Status da Integração</p>
-                        <p className="text-sm text-gray-600">
-                          Configure suas credenciais para ativar
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">
-                      Aguardando Configuração
-                    </Badge>
-                  </div>
-
-                  {/* Informações da Configuração */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Recursos Inclusos:</h4>
-                        <ul className="text-sm space-y-1 text-gray-600">
-                          <li>• Recebimento de mensagens do Facebook Messenger</li>
-                          <li>• Integração com Instagram Direct</li>
-                          <li>• Processamento automático de mensagens</li>
-                          <li>• Resposta automática integrada</li>
-                          <li>• Webhook em tempo real</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Requisitos:</h4>
-                        <ul className="text-sm space-y-1 text-gray-600">
-                          <li>• Página do Facebook Business</li>
-                          <li>• App no Facebook Developer Console</li>
-                          <li>• Token de acesso da página</li>
-                          <li>• Configuração de webhook</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex gap-4 pt-4 border-t">
-                    <Button 
-                      onClick={() => window.location.href = '/settings/integrations/facebook'}
-                      className="flex items-center gap-2"
-                    >
-                      <Settings className="h-4 w-4" />
-                      Configurar Integração
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      onClick={() => window.open('https://developers.facebook.com/docs/messenger-platform', '_blank')}
-                      className="flex items-center gap-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Documentação Facebook
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card de Instruções */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-blue-600" />
-                    Guia de Configuração
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <h4 className="font-medium">1. Criar App no Facebook</h4>
-                      <ul className="text-sm space-y-1 text-gray-600">
-                        <li>• Acesse developers.facebook.com</li>
-                        <li>• Crie um novo app Business</li>
-                        <li>• Adicione o produto Messenger</li>
-                        <li>• Configure permissões necessárias</li>
-                      </ul>
-                    </div>
-                    <div className="space-y-3">
-                      <h4 className="font-medium">2. Configurar Webhook</h4>
-                      <ul className="text-sm space-y-1 text-gray-600">
-                        <li>• Configure a URL do webhook</li>
-                        <li>• Defina token de verificação</li>
-                        <li>• Subscreva eventos de mensagem</li>
-                        <li>• Teste a conexão</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="webhooks">
-              <div className="text-center py-12">
-                <Webhook className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Webhooks Personalizados</h3>
-                <p className="text-gray-600">
-                  Em desenvolvimento - Webhooks personalizados para integrações avançadas
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="outros">
-              <div className="text-center py-12">
-                <Zap className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Outras Integrações</h3>
-                <p className="text-gray-600">
-                  Em breve: Integração com CRM externos, sistemas de pagamento e mais
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-green-500" />
+            <span className="text-sm font-medium">
+              {integrationsOverview?.totalActive || 0} Ativas
+            </span>
+          </div>
         </div>
 
-        {/* Dialog de Teste de Conexão */}
-        <Dialog open={isTestDialogOpen} onOpenChange={setIsTestDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Resultado do Teste de Conexão</DialogTitle>
-              <DialogDescription>
-                Verifique se a conexão com o Manychat está funcionando corretamente
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              {testResult && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    {testResult.success ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    )}
-                    <span className={`font-medium ${testResult.success ? 'text-green-800' : 'text-red-800'}`}>
-                      {testResult.success ? 'Conexão bem-sucedida!' : 'Falha na conexão'}
-                    </span>
-                  </div>
-                  
-                  {testResult.data && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                        {JSON.stringify(testResult.data, null, 2)}
-                      </pre>
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Manychat</p>
+                  <p className="text-lg font-semibold">
+                    {integrationsOverview?.manychat?.length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Facebook className="h-8 w-8 text-blue-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Facebook</p>
+                  <p className="text-lg font-semibold">
+                    {integrationsOverview?.facebook?.length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Brain className="h-8 w-8 text-purple-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">IA</p>
+                  <Badge variant={aiConfig?.isActive ? "default" : "secondary"}>
+                    {aiConfig?.isActive ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Zap className="h-8 w-8 text-yellow-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Ativas</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    {integrationsOverview?.totalActive || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="manychat">Manychat</TabsTrigger>
+            <TabsTrigger value="ai-config">Configuração IA</TabsTrigger>
+            <TabsTrigger value="ai-detection">Detecção IA</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Status das Integrações</CardTitle>
+                <CardDescription>
+                  Visão geral do status de todas as integrações configuradas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Manychat Integrations */}
+                  {integrationsOverview?.manychat?.map((integration: Integration) => (
+                    <div key={integration.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <MessageSquare className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">{integration.name}</p>
+                          <p className="text-sm text-muted-foreground">Manychat Integration</p>
+                        </div>
+                      </div>
+                      <Badge variant={integration.isActive ? "default" : "secondary"}>
+                        {integration.isActive ? "Ativa" : "Inativa"}
+                      </Badge>
                     </div>
-                  )}
+                  ))}
                   
-                  {testResult.error && (
-                    <div className="bg-red-50 p-4 rounded-lg">
-                      <p className="text-sm text-red-700">{testResult.error}</p>
+                  {/* AI Configuration */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-5 w-5" />
+                      <div>
+                        <p className="font-medium">Configuração de IA</p>
+                        <p className="text-sm text-muted-foreground">Sistema de IA integrado</p>
+                      </div>
+                    </div>
+                    <Badge variant={aiConfig?.isActive ? "default" : "secondary"}>
+                      {aiConfig?.isActive ? "Ativa" : "Inativa"}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="manychat" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Integrações Manychat
+                </CardTitle>
+                <CardDescription>
+                  Gerencie suas integrações com o Manychat
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {integrationsOverview?.manychat?.length > 0 ? (
+                    integrationsOverview.manychat.map((integration: Integration) => (
+                      <div key={integration.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium">{integration.name}</h4>
+                          <Badge variant={integration.isActive ? "default" : "secondary"}>
+                            {integration.isActive ? "Ativa" : "Inativa"}
+                          </Badge>
+                        </div>
+                        {integration.description && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {integration.description}
+                          </p>
+                        )}
+                        {integration.lastSync && (
+                          <p className="text-xs text-muted-foreground">
+                            Última sincronização: {new Date(integration.lastSync).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Nenhuma integração Manychat configurada</p>
+                      <Button className="mt-4">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar Integração
+                      </Button>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-config" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5" />
+                  Configuração de IA
+                </CardTitle>
+                <CardDescription>
+                  Configure as funcionalidades e parâmetros da IA
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {aiConfig && (
+                  <>
+                    {/* Main Toggle */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="ai-active">Sistema de IA</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Ativar ou desativar todas as funcionalidades de IA
+                        </p>
+                      </div>
+                      <Switch
+                        id="ai-active"
+                        checked={aiConfig.isActive}
+                        onCheckedChange={(checked) => 
+                          handleAIConfigSave({ isActive: checked })
+                        }
+                      />
+                    </div>
+
+                    {/* Features */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Funcionalidades</h4>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Busca na Web</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Permite que a IA faça buscas na internet
+                          </p>
+                        </div>
+                        <Switch
+                          checked={aiConfig.enabledFeatures.webSearch}
+                          onCheckedChange={(checked) => 
+                            handleAIConfigSave({
+                              enabledFeatures: {
+                                ...aiConfig.enabledFeatures,
+                                webSearch: checked
+                              }
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Análise de Imagens</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Capacidade de analisar e descrever imagens
+                          </p>
+                        </div>
+                        <Switch
+                          checked={aiConfig.enabledFeatures.imageAnalysis}
+                          onCheckedChange={(checked) => 
+                            handleAIConfigSave({
+                              enabledFeatures: {
+                                ...aiConfig.enabledFeatures,
+                                imageAnalysis: checked
+                              }
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Memória Contextual</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Manter contexto das conversas anteriores
+                          </p>
+                        </div>
+                        <Switch
+                          checked={aiConfig.enabledFeatures.contextualMemory}
+                          onCheckedChange={(checked) => 
+                            handleAIConfigSave({
+                              enabledFeatures: {
+                                ...aiConfig.enabledFeatures,
+                                contextualMemory: checked
+                              }
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* API Keys */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Chaves de API</h4>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="anthropic-key">Chave Anthropic</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="anthropic-key"
+                            type="password"
+                            placeholder={aiConfig.anthropicApiKey === '***CONFIGURED***' ? 'Configurada' : 'Digite a chave da API'}
+                            value={aiConfig.anthropicApiKey === '***CONFIGURED***' ? '' : aiConfig.anthropicApiKey || ''}
+                            onChange={(e) => 
+                              handleAIConfigSave({ anthropicApiKey: e.target.value })
+                            }
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={handleTestAIConnection}
+                            disabled={testAIConnectionMutation.isPending}
+                          >
+                            <Test className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Response Settings */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Configurações de Resposta</h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="max-tokens">Máximo de Tokens</Label>
+                          <Input
+                            id="max-tokens"
+                            type="number"
+                            value={aiConfig.responseSettings.maxTokens}
+                            onChange={(e) => 
+                              handleAIConfigSave({
+                                responseSettings: {
+                                  ...aiConfig.responseSettings,
+                                  maxTokens: parseInt(e.target.value)
+                                }
+                              })
+                            }
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="temperature">Temperatura</Label>
+                          <Input
+                            id="temperature"
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="1"
+                            value={aiConfig.responseSettings.temperature}
+                            onChange={(e) => 
+                              handleAIConfigSave({
+                                responseSettings: {
+                                  ...aiConfig.responseSettings,
+                                  temperature: parseFloat(e.target.value)
+                                }
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-detection" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  Sistema de Detecção IA
+                </CardTitle>
+                <CardDescription>
+                  Configure as funcionalidades de detecção automática
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {aiDetectionSettings && aiDetectionSettings.map((setting) => (
+                  <div key={setting.id} className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label htmlFor={setting.key}>{setting.description}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Chave: {setting.key}
+                      </p>
+                    </div>
+                    {setting.type === 'boolean' ? (
+                      <Switch
+                        id={setting.key}
+                        checked={setting.value === 'true'}
+                        onCheckedChange={(checked) => 
+                          handleDetectionSettingChange(
+                            setting.key,
+                            checked ? 'true' : 'false',
+                            setting.type,
+                            setting.description
+                          )
+                        }
+                      />
+                    ) : (
+                      <Input
+                        id={setting.key}
+                        type={setting.type === 'number' ? 'number' : 'text'}
+                        value={setting.value}
+                        className="w-32"
+                        onChange={(e) => 
+                          handleDetectionSettingChange(
+                            setting.key,
+                            e.target.value,
+                            setting.type,
+                            setting.description
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
-}
-
-export default IntegrationsPage;
+};

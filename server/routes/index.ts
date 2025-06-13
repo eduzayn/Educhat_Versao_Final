@@ -23,6 +23,7 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
+import { registerSettingsRoutes } from "./settings/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
 // Teams are now managed through dedicated team management system
@@ -60,11 +61,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
+  registerSettingsRoutes(app);
   registerFunnelRoutes(app);
   // Sistema de detecção migrado para IA com equipes unificadas
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
-  app.use('/api/ia', aiConfigRouter);
+  // Removido aiConfigRouter - agora consolidado em /api/settings/integrations/ai/config
   app.use('/api/documents', documentsRouter);
   app.use('/api/web-capture', webCaptureRouter);
   app.use('/api/handoffs', handoffsRouter);
