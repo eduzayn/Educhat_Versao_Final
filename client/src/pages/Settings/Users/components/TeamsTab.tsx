@@ -320,10 +320,12 @@ export const TeamsTab = () => {
                   </div>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Badge variant="outline" className={getTeamColorClass(team.color || '') + ' cursor-help'}>
-                        <Users className="h-3 w-3 mr-1" />
-                        {teamMembers[team.id]?.length || 0}
-                      </Badge>
+                      <div className="cursor-help">
+                        <Badge variant="outline" className={getTeamColorClass(team.color || '')}>
+                          <Users className="h-3 w-3 mr-1" />
+                          {teamMembers[team.id]?.length || 0}
+                        </Badge>
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent>
                       <div className="text-sm">
