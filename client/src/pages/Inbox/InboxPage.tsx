@@ -432,7 +432,13 @@ export function InboxPage() {
       <ContactDialog 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => refetch()}
+        onSuccess={() => {
+          if (debouncedSearchTerm) {
+            searchQuery.refetch();
+          } else {
+            infiniteQuery.refetch();
+          }
+        }}
       />
     </div>
   );
