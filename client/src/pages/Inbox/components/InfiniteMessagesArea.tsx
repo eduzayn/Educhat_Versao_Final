@@ -20,15 +20,13 @@ export function InfiniteMessagesArea({
     data: allMessages = [],
     isLoading,
     isError,
-    error,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage
-  } = useInfiniteMessages(activeConversation?.id || null, 200);
+    error
+  } = useMessages(activeConversation?.id || null, 200);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
+  const observer = useRef<IntersectionObserver | null>(null);
 
   // Group messages by date
   const groupMessagesByDate = (messages: Message[]) => {
@@ -57,22 +55,10 @@ export function InfiniteMessagesArea({
 
   const messageGroups = groupMessagesByDate(allMessages);
 
-  // Intersection Observer for loading more messages at the top
+  // Simplified loading - no infinite scroll for now
   const topSentinelRef = useCallback((node: HTMLDivElement | null) => {
-    if (isLoading) return;
-    if (observer.current) observer.current.disconnect();
-    
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    }, {
-      threshold: 0.1,
-      rootMargin: '100px 0px 0px 0px'
-    });
-    
-    if (node) observer.current.observe(node);
-  }, [isLoading, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    // Placeholder for future infinite scroll implementation
+  }, [isLoading]);
 
   // Auto scroll to bottom when conversation changes
   useEffect(() => {
@@ -94,7 +80,7 @@ export function InfiniteMessagesArea({
     }
   };
 
-  if (isLoading && !data) {
+  if (isLoading && !allMessages.length) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center text-gray-500">
@@ -131,15 +117,15 @@ export function InfiniteMessagesArea({
   return (
     <div className="flex-1 flex flex-col relative">
       <div ref={containerRef} className="flex-1 overflow-y-auto px-4 pt-4">
-        {/* Top loading indicator and sentinel */}
+        {/* Top loading indicator */}
         <div ref={topSentinelRef} className="h-4">
-          {isFetchingNextPage && (
+          {isLoading && (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
               <span className="ml-2 text-sm text-gray-500">Carregando mensagens anteriores...</span>
             </div>
           )}
-          {!hasNextPage && allMessages.length > 50 && (
+          {allMessages.length > 50 && (
             <div className="text-center py-4 text-gray-500 text-sm">
               Início da conversa
             </div>
