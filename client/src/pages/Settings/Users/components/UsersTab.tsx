@@ -345,9 +345,10 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
   const handleConfirmDelete = () => {
     if (userToDelete) {
-      deleteUserMutation.mutate(userToDelete.id);
-      setShowDeleteDialog(false);
-      setUserToDelete(null);
+      deleteUserMutation.mutate({
+        userId: userToDelete.id,
+        transferToUserId: transferToUserId ? parseInt(transferToUserId) : undefined
+      });
     }
   };
 
@@ -895,17 +896,38 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
             </AlertDialogTitle>
             <AlertDialogDescription className="text-left">
               Tem certeza que deseja excluir o usuário <strong className="text-foreground">{userToDelete?.displayName || userToDelete?.name}</strong>?
-              <br /><br />
+            </AlertDialogDescription>
+            
+            <div className="space-y-4 pt-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="transfer-user" className="text-right text-sm">
+                  Transferir contatos para:
+                </Label>
+                <Select value={transferToUserId} onValueChange={setTransferToUserId}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecione um usuário (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não transferir (remover atribuição)</SelectItem>
+                    {usersList?.filter((user: any) => user.id !== userToDelete?.id && user.isActive).map((user: any) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.displayName} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <div className="bg-muted p-3 rounded-md border-l-4 border-destructive">
                 <div className="flex items-start gap-2">
                   <div className="text-destructive mt-0.5">⚠️</div>
                   <div className="text-sm">
                     <strong>Esta ação não pode ser desfeita.</strong><br />
-                    Todos os dados relacionados a este usuário serão permanentemente removidos do sistema.
+                    O usuário será permanentemente removido do sistema. {transferToUserId ? 'Os contatos serão transferidos para o usuário selecionado.' : 'Os contatos ficarão sem atribuição.'}
                   </div>
                 </div>
               </div>
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel 
