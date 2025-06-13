@@ -172,6 +172,7 @@ export function setupAuthWithRoutes(app: Express) {
             dataKey: systemUser.dataKey || undefined,
             channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
             teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
+            teamTypes: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };
@@ -212,6 +213,7 @@ export function setupAuthWithRoutes(app: Express) {
         dataKey: user.dataKey || undefined,
         channels: Array.isArray(user.channels) ? user.channels : [],
         teams: Array.isArray(user.teamTypes) ? user.teamTypes : [],
+        teamTypes: Array.isArray(user.teamTypes) ? user.teamTypes : [],
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };
