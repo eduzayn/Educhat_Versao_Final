@@ -31,7 +31,8 @@ import {
   User,
   Plus
 } from 'lucide-react';
-import { useConversationsWithSearch } from '@/shared/lib/hooks/useConversationsWithSearch';
+import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
+import { useQuery } from '@tanstack/react-query';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
@@ -43,7 +44,6 @@ import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationR
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/textarea';
 import { STATUS_CONFIG } from '@/types/chat';
-import { useQuery } from '@tanstack/react-query';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 
@@ -82,16 +82,61 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real
   useWebSocket();
   
-  const { 
-    data: conversations, 
-    isLoading: isLoadingConversations, 
-    hasNextPage,
-    fetchNextPage,
-    isSearchMode
-  } = useConversationsWithSearch({ 
-    searchTerm: searchTerm.trim(),
-    limit: 100
+  // Estado para debounce da busca
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce do termo de busca - aguarda 500ms após parar de digitar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Busca no servidor quando há termo de busca (após debounce)
+  const searchQuery = useQuery({
+    queryKey: ['/api/conversations/search', debouncedSearchTerm],
+    queryFn: async () => {
+      if (!debouncedSearchTerm) return [];
+      
+      const response = await fetch(`/api/conversations?search=${encodeURIComponent(debouncedSearchTerm)}&limit=200`);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar conversas');
+      }
+      
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!debouncedSearchTerm,
+    staleTime: 30000,
   });
+
+  // Scroll infinito normal quando não há busca
+  const infiniteQuery = useInfiniteConversations(100, {
+    enabled: !debouncedSearchTerm,
+    refetchInterval: 10000,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
+  });
+
+  // Determinar dados a usar baseado no estado
+  const conversations = debouncedSearchTerm 
+    ? (searchQuery.data || [])
+    : (infiniteQuery.data?.pages.flatMap(page => page.conversations) || []);
+  
+  const isLoadingConversations = debouncedSearchTerm 
+    ? searchQuery.isLoading 
+    : infiniteQuery.isLoading;
+    
+  const hasNextPage = debouncedSearchTerm 
+    ? false 
+    : infiniteQuery.hasNextPage;
+    
+  const fetchNextPage = debouncedSearchTerm 
+    ? () => {} 
+    : infiniteQuery.fetchNextPage;
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -289,8 +334,12 @@ export function InboxPage() {
         });
       }
 
-      // Recarregar conversas para manter sincronização
-      refetch();
+      // Invalidar cache para recarregar conversas
+      if (debouncedSearchTerm) {
+        searchQuery.refetch();
+      } else {
+        infiniteQuery.refetch();
+      }
       
       toast({
         title: "Status atualizado",
