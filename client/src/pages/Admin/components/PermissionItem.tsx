@@ -1,6 +1,6 @@
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Label } from '@/shared/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 
 interface Permission {
@@ -138,30 +138,28 @@ export function PermissionItem({ permission, checked, onCheckedChange, displayNa
   };
 
   return (
-    <TooltipProvider>
-      <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg">
-        <Checkbox
-          id={permission.name}
-          checked={checked}
-          onCheckedChange={onCheckedChange}
-        />
-        <div className="flex-1 flex items-center space-x-2">
-          <Label 
-            htmlFor={permission.name} 
-            className="text-sm font-medium cursor-pointer"
-          >
-            {getDisplayName()}
-          </Label>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs">
-              <p className="text-sm">{permission.description}</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+    <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg">
+      <Checkbox
+        id={permission.name}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+      />
+      <div className="flex-1 flex items-center space-x-2">
+        <Label 
+          htmlFor={permission.name} 
+          className="text-sm font-medium cursor-pointer"
+        >
+          {getDisplayName()}
+        </Label>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="text-sm">{permission.description}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
