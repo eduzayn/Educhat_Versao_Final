@@ -7,9 +7,8 @@ export function registerInboxRoutes(app: Express) {
   // Conversations endpoints
   app.get('/api/conversations', async (req, res) => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50; // Reduzido para melhor performance
-      const offset = (page - 1) * limit;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
       
       // Log para diagnóstico de performance
       const startTime = Date.now();
