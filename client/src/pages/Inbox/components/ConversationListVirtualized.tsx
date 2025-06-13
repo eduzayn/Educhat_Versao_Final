@@ -8,6 +8,7 @@ import { Search, Filter, X, MessageSquare } from 'lucide-react';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
+import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';
 
 interface ConversationListVirtualizedProps {
   conversations: ConversationWithContact[];
@@ -214,6 +215,7 @@ export function ConversationListVirtualized({
   const ConversationItem = useCallback(({ conversation, index }: { conversation: ConversationWithContact; index: number }) => {
     const isActive = activeConversation?.id === conversation.id;
     const unreadCount = conversation.unreadCount || 0;
+    const proxiedImageUrl = useMediaUrl(conversation.contact?.profileImageUrl);
     
     return (
       <div
@@ -228,7 +230,7 @@ export function ConversationListVirtualized({
           <div className="relative flex-shrink-0">
             <Avatar className="w-12 h-12">
               <AvatarImage 
-                src={conversation.contact?.profileImageUrl || ''} 
+                src={proxiedImageUrl || ''} 
                 alt={conversation.contact?.name || 'Contato'} 
               />
               <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">

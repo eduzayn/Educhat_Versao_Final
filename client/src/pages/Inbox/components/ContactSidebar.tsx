@@ -8,6 +8,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';
 import { 
   Phone, 
   Mail, 
@@ -106,6 +107,7 @@ export function ContactSidebar({
   const [filteredCourses, setFilteredCourses] = useState<string[]>([]);
   
   const queryClient = useQueryClient();
+  const proxiedProfileImageUrl = useMediaUrl(activeConversation?.contact?.profileImageUrl);
 
   // Buscar categorias e cursos quando o componente monta
   useEffect(() => {
