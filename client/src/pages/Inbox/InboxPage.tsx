@@ -314,7 +314,7 @@ export function InboxPage() {
   // Loading is now handled by InfiniteConversationList component
 
   return (
-    <div className="flex bg-gray-50" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Lista de Conversas */}
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
@@ -343,7 +343,7 @@ export function InboxPage() {
       </div>
 
       {/* Área de Mensagens */}
-      <div className={`flex-1 ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`} style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className={`flex-1 flex flex-col h-full ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
             {/* Header da Conversa - fixo no topo */}

@@ -62,12 +62,9 @@ export function MessagesArea({
   return (
     <div 
       ref={containerRef} 
+      className="flex-1 overflow-y-auto px-4 py-2"
       style={{ 
-        height: '100%',
-        overflowY: 'auto',
-        padding: '8px 16px',
-        scrollBehavior: 'smooth',
-        flex: 1
+        scrollBehavior: 'smooth'
       }}
     >
       {(messages || []).length === 0 && !isLoadingMessages ? (

@@ -7,12 +7,6 @@ html, body, #root {
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-}
-
-/* Força altura total na estrutura da aplicação */
-#root > div {
-  height: 100vh;
 }
 
 /* Scrollbar personalizado unificado */
