@@ -31,7 +31,7 @@ import {
   User,
   Plus
 } from 'lucide-react';
-import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
+import { useConversationsWithSearch } from '@/shared/lib/hooks/useConversationsWithSearch';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
@@ -83,20 +83,15 @@ export function InboxPage() {
   useWebSocket();
   
   const { 
-    data, 
+    data: conversations, 
     isLoading: isLoadingConversations, 
     hasNextPage,
     fetchNextPage,
-    refetch 
-  } = useInfiniteConversations(50, { 
-    refetchInterval: 10000, // Reduzido para evitar sobrecarga
-    staleTime: 5000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+    isSearchMode
+  } = useConversationsWithSearch({ 
+    searchTerm: searchTerm.trim(),
+    limit: 100
   });
-
-  // Flattened conversations from all pages
-  const conversations = data?.pages.flatMap(page => page.conversations) || [];
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
