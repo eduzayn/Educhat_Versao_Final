@@ -6,14 +6,37 @@ import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor"
 
 export function registerMessageRoutes(app: Express) {
   
-  // Messages endpoints
+  // Messages endpoints with infinite scroll support
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-      const messages = await storage.messages.getMessagesWithDeletedByInfo(id, limit, offset);
-      res.json(messages); // Return in descending order (newest first for pagination)
+      const cursor = req.query.cursor as string;
+      
+      // For backward compatibility, still support offset-based pagination
+      if (req.query.offset) {
+        const offset = parseInt(req.query.offset as string);
+        const messages = await storage.messages.getMessagesWithDeletedByInfo(id, limit, offset);
+        return res.json(messages);
+      }
+      
+      // New cursor-based pagination for infinite scroll
+      const messages = await storage.messages.getMessagesWithDeletedByInfo(id, limit + 1, 0, cursor);
+      
+      // Check if there are more messages
+      const hasMore = messages.length > limit;
+      const responseMessages = hasMore ? messages.slice(0, limit) : messages;
+      
+      // Generate next cursor from the oldest message ID in current page
+      const nextCursor = hasMore && responseMessages.length > 0 
+        ? responseMessages[responseMessages.length - 1].id.toString()
+        : undefined;
+
+      res.json({
+        messages: responseMessages,
+        hasMore,
+        nextCursor
+      });
     } catch (error) {
       console.error('Error fetching messages:', error);
       res.status(500).json({ message: 'Failed to fetch messages' });

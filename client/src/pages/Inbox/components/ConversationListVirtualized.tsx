@@ -373,7 +373,7 @@ export function ConversationListVirtualized({
           <div className="divide-y divide-gray-100">
             {visibleConversations.map((conversation, index) => (
               <ConversationItem 
-                key={conversation.id}
+                key={`conversation-${conversation.id}-${index}`}
                 conversation={conversation}
                 index={index}
               />
