@@ -61,7 +61,7 @@ export function ConversationAssignmentDropdown({
       }
 
       try {
-        const response = await fetch(`/api/teams/${currentTeamId}/users`);
+        const response = await fetch(`/api/user-teams/${currentTeamId}`);
         if (response.ok) {
           const teamUsersData = await response.json();
           setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
