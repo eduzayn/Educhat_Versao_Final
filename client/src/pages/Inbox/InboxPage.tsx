@@ -55,7 +55,7 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 
 import { InfiniteConversationList } from './components/InfiniteConversationList';
 import { ChatHeader } from './components/ChatHeader';
-import { InfiniteMessagesArea } from './components/InfiniteMessagesArea';
+import { ImprovedMessagesArea } from './components/ImprovedMessagesArea';
 
 
 export function InboxPage() {
@@ -356,9 +356,7 @@ export function InboxPage() {
             />
 
             {/* Mensagens */}
-            <MessagesArea
-              messages={messages || []}
-              isLoadingMessages={isLoadingMessages}
+            <ImprovedMessagesArea
               activeConversation={activeConversation}
               getChannelInfo={getChannelInfo}
             />

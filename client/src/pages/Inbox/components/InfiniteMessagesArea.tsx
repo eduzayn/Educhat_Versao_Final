@@ -17,22 +17,15 @@ export function InfiniteMessagesArea({
   getChannelInfo
 }: InfiniteMessagesAreaProps) {
   const {
-    data,
+    data: allMessages = [],
     isLoading,
     isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useInfiniteMessages(activeConversation?.id || null, 50);
+    error
+  } = useInfiniteMessages(activeConversation?.id || null, 200);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
-  const observer = useRef<IntersectionObserver>();
-
-  // Flatten all pages into a single array and reverse for chronological order
-  const allMessages = data?.pages.flatMap((page: any) => page.messages) || [];
 
   // Group messages by date
   const groupMessagesByDate = (messages: Message[]) => {
