@@ -355,7 +355,7 @@ export function ContactsPage() {
           searchQuery={searchInput}
           onSearchChange={setSearchInput}
           selectedContacts={selectedContacts}
-          isWhatsAppAvailable={isWhatsAppAvailable}
+          isWhatsAppAvailable={!!isWhatsAppAvailable}
           onSyncContacts={handleSyncContacts}
           onUpdateAllPhotos={handleUpdateAllPhotos}
           onExportContacts={handleExportContacts}
@@ -542,12 +542,20 @@ export function ContactsPage() {
                   </div>
                 </div>
                 
-                {viewingContact.notes && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Observações</label>
-                    <p className="mt-1 text-gray-600">{viewingContact.notes}</p>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Tags</label>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {viewingContact.tags && viewingContact.tags.length > 0 ? (
+                      viewingContact.tags.map((tag, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">Nenhuma tag</span>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             )}
           </DialogContent>
