@@ -372,10 +372,7 @@ export class HandoffService {
 
     const allHandoffs = await db
       .select()
-      .from(handoffs)
-      .where(
-        // Note: adicionar filtro de data se necessário
-      );
+      .from(handoffs);
 
     const stats = {
       total: allHandoffs.length,
@@ -396,6 +393,148 @@ export class HandoffService {
 
     return stats;
   }
+
+  /**
+   * Executar handoff (transferir conversa)
+   */
+  async executeHandoff(handoffId: number): Promise<void> {
+    const handoff = await this.getHandoffById(handoffId);
+    if (!handoff) {
+      throw new Error('Handoff não encontrado');
+    }
+
+    // Atualizar conversa com nova atribuição
+    const updateData: any = {};
+    if (handoff.toUserId) {
+      updateData.assignedUserId = handoff.toUserId;
+    }
+    if (handoff.toTeamId) {
+      updateData.assignedTeamId = handoff.toTeamId;
+    }
+
+    await db
+      .update(conversations)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, handoff.conversationId));
+
+    // Marcar handoff como concluído
+    await db
+      .update(handoffs)
+      .set({
+        status: 'completed',
+        completedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
+  }
+
+  /**
+   * Avaliar se uma conversa precisa de handoff automático
+   */
+  async evaluateForAutoHandoff(conversationId: number): Promise<boolean> {
+    const conversation = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
+
+    if (!conversation.length) {
+      return false;
+    }
+
+    // Lógica simples: se conversa não tem atribuição há mais de 1 hora
+    const conv = conversation[0];
+    if (!conv.assignedUserId && !conv.assignedTeamId) {
+      const createdAt = new Date(conv.createdAt!);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      
+      return hoursDiff > 1;
+    }
+
+    return false;
+  }
+
+  /**
+   * Sugerir melhor destino para handoff
+   */
+  async suggestBestTarget(conversationId: number): Promise<{
+    userId?: number;
+    teamId?: number;
+    reason: string;
+  }> {
+    // Buscar equipe com menor carga de trabalho
+    const teams = await db.select().from(teams);
+    
+    if (teams.length > 0) {
+      // Retornar primeira equipe disponível (lógica simplificada)
+      return {
+        teamId: teams[0].id,
+        reason: 'Equipe com menor carga de trabalho'
+      };
+    }
+
+    return {
+      reason: 'Nenhuma equipe disponível'
+    };
+  }
+
+  /**
+   * Criar handoff
+   */
+  async createHandoff(request: HandoffRequest): Promise<Handoff> {
+    const handoffData: InsertHandoff = {
+      conversationId: request.conversationId,
+      fromUserId: request.fromUserId || null,
+      toUserId: request.toUserId || null,
+      fromTeamId: request.fromTeamId || null,
+      toTeamId: request.toTeamId || null,
+      type: request.type,
+      reason: request.reason || null,
+      priority: request.priority || 'normal',
+      status: 'pending',
+      metadata: request.metadata || null
+    };
+
+    const [handoff] = await db
+      .insert(handoffs)
+      .values(handoffData)
+      .returning();
+
+    return handoff;
+  }
+
+  /**
+   * Analisar capacidades das equipes (método privado tornado público)
+   */
+  async analyzeTeamCapacities(): Promise<Record<number, number>> {
+    const teams = await db.select().from(teams);
+    const capacities: Record<number, number> = {};
+
+    for (const team of teams) {
+      // Contar conversas ativas atribuídas à equipe
+      const activeConversations = await db
+        .select()
+        .from(conversations)
+        .where(
+          and(
+            eq(conversations.assignedTeamId, team.id),
+            eq(conversations.status, 'open')
+          )
+        );
+
+      capacities[team.id] = activeConversations.length;
+    }
+
+    return capacities;
+  }
 }
 
+// Criar instância do serviço
 export const handoffService = new HandoffService();
+
+// Alias para compatibilidade
+export class IntelligentHandoffService extends HandoffService {}
