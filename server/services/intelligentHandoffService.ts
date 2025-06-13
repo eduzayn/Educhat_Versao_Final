@@ -154,7 +154,7 @@ export class IntelligentHandoffService {
   /**
    * Analisa capacidade atual de todas as equipes
    */
-  private async analyzeTeamCapacities(): Promise<TeamCapacity[]> {
+  async analyzeTeamCapacities(): Promise<TeamCapacity[]> {
     const teamCapacities = await db
       .select({
         teamId: teams.id,
@@ -449,7 +449,7 @@ export class IntelligentHandoffService {
       teamId: bestTeam.teamId,
       userId: bestUser?.userId,
       confidence,
-      reason: this.buildRecommendationReason(aiClassification, bestTeam, bestUser),
+      reason: this.buildRecommendationReason(aiClassification, bestTeam, bestUser || undefined),
       priority,
       estimatedWaitTime,
       alternativeOptions
@@ -499,6 +499,195 @@ export class IntelligentHandoffService {
     }
 
     return reasons.join(' • ');
+  }
+
+  /**
+   * Buscar handoffs de uma conversa
+   */
+  async getHandoffsForConversation(conversationId: number, days?: number): Promise<any[]> {
+    let query = db
+      .select()
+      .from(handoffs)
+      .where(eq(handoffs.conversationId, conversationId))
+      .orderBy(desc(handoffs.createdAt));
+
+    // Aplicar filtro de dias se fornecido (simplificado)
+    const result = await query;
+    
+    if (days) {
+      const dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - days);
+      return result.filter(h => h.createdAt && new Date(h.createdAt) >= dateLimit);
+    }
+
+    return result;
+  }
+
+  /**
+   * Buscar handoffs pendentes para usuário
+   */
+  async getPendingHandoffsForUser(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(handoffs)
+      .where(and(
+        eq(handoffs.toUserId, userId),
+        eq(handoffs.status, 'pending')
+      ))
+      .orderBy(desc(handoffs.createdAt));
+  }
+
+  /**
+   * Buscar handoffs pendentes para equipe
+   */
+  async getPendingHandoffsForTeam(teamId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(handoffs)
+      .where(and(
+        eq(handoffs.toTeamId, teamId),
+        eq(handoffs.status, 'pending')
+      ))
+      .orderBy(desc(handoffs.createdAt));
+  }
+
+  /**
+   * Aceitar handoff
+   */
+  async acceptHandoff(handoffId: number, userId: number): Promise<void> {
+    await db
+      .update(handoffs)
+      .set({
+        status: 'accepted',
+        acceptedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
+
+    console.log(`✅ Handoff ${handoffId} aceito pelo usuário ${userId}`);
+  }
+
+  /**
+   * Rejeitar handoff
+   */
+  async rejectHandoff(handoffId: number, userId: number, reason?: string): Promise<void> {
+    const metadata = reason ? { 
+      triggerEvent: 'rejection',
+      escalationReason: reason 
+    } : null;
+
+    await db
+      .update(handoffs)
+      .set({
+        status: 'rejected',
+        metadata,
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
+
+    console.log(`❌ Handoff ${handoffId} rejeitado pelo usuário ${userId}`);
+  }
+
+  /**
+   * Avaliar para handoff automático
+   */
+  async evaluateForAutoHandoff(conversationId: number, messageContent: string): Promise<boolean> {
+    try {
+      const classification = await this.aiService.classifyMessage(messageContent);
+      return classification.confidence > 0.8 && classification.intent !== 'general_chat';
+    } catch (error) {
+      console.error('Erro ao avaliar handoff automático:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Sugerir melhor destino
+   */
+  async suggestBestTarget(conversationId: number, messageContent: string): Promise<any> {
+    try {
+      const classification = await this.aiService.classifyMessage(messageContent);
+      return await this.analyzeAndRecommendHandoff(conversationId, messageContent, classification);
+    } catch (error) {
+      console.error('Erro ao sugerir destino:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Criar handoff
+   */
+  async createHandoff(data: any): Promise<any> {
+    const [newHandoff] = await db
+      .insert(handoffs)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    return newHandoff;
+  }
+
+  /**
+   * Executar handoff
+   */
+  async executeHandoff(handoffId: number): Promise<void> {
+    await db
+      .update(handoffs)
+      .set({
+        status: 'completed',
+        completedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
+
+    console.log(`🔄 Handoff ${handoffId} executado com sucesso`);
+  }
+
+  /**
+   * Buscar estatísticas de handoffs
+   */
+  async getHandoffStats(): Promise<any> {
+    const [totalHandoffs] = await db
+      .select({ count: count() })
+      .from(handoffs);
+
+    const [pendingHandoffs] = await db
+      .select({ count: count() })
+      .from(handoffs)
+      .where(eq(handoffs.status, 'pending'));
+
+    const [completedHandoffs] = await db
+      .select({ count: count() })
+      .from(handoffs)
+      .where(eq(handoffs.status, 'completed'));
+
+    const [rejectedHandoffs] = await db
+      .select({ count: count() })
+      .from(handoffs)
+      .where(eq(handoffs.status, 'rejected'));
+
+    return {
+      totalHandoffs: totalHandoffs.count,
+      pendingHandoffs: pendingHandoffs.count,
+      completedHandoffs: completedHandoffs.count,
+      rejectedHandoffs: rejectedHandoffs.count
+    };
+  }
+
+  /**
+   * Buscar handoff por ID
+   */
+  async getHandoffById(handoffId: number): Promise<any> {
+    const [handoff] = await db
+      .select()
+      .from(handoffs)
+      .where(eq(handoffs.id, handoffId))
+      .limit(1);
+
+    return handoff;
   }
 
   /**
