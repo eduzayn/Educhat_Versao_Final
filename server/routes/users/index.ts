@@ -1,6 +1,6 @@
 import type { Express } from "express";
 
 export function registerUserRoutes(app: Express) {
-  // User routes will be implemented here
-  // Currently handled by existing auth system
+  // ✅ CONSOLIDADO: Todas as rotas de usuários migradas para /api/admin/users
+  // Sistema unificado no módulo administrativo com permissões adequadas
 }
