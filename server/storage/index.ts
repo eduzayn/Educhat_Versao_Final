@@ -97,6 +97,10 @@ export class CentralStorage {
     return this.conversation.createConversation(conversationData);
   }
 
+  async getConversations(limit = 50, offset = 0) {
+    return this.conversation.getConversations(limit, offset);
+  }
+
   async getConversation(id: number) {
     return this.conversation.getConversation(id);
   }
