@@ -172,8 +172,8 @@ export function setupAuthWithRoutes(app: Express) {
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
             channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-            teams: systemUser.team ? [systemUser.team] : [],
-            teamTypes: systemUser.team ? [systemUser.team] : [],
+            teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : (systemUser.team ? [systemUser.team] : []),
+            teamTypes: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : (systemUser.team ? [systemUser.team] : []),
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };

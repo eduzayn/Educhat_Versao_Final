@@ -622,7 +622,7 @@ export function registerAdminRoutes(app: Express) {
           resource: 'user',
           resourceId: req.params.id,
           details: { error: error instanceof Error ? error.message : 'Unknown error' },
-          result: 'error'
+          result: 'failure'
         });
         
         res.status(500).json({ message: 'Erro interno do servidor' });
@@ -1073,7 +1073,7 @@ export function registerAdminRoutes(app: Express) {
           action: 'cleanup',
           resource: 'deals',
           details: { error: error instanceof Error ? error.message : 'Unknown error' },
-          result: 'error'
+          result: 'failure'
         });
         
         res.status(500).json({ 
