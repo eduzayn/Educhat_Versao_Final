@@ -406,6 +406,12 @@ export function registerAdminRoutes(app: Express) {
           .delete(userTeams)
           .where(eq(userTeams.userId, userId));
 
+        // Atualizar conversas atribuídas ao usuário (definir assignedUserId como null)
+        await db
+          .update(conversations)
+          .set({ assignedUserId: null })
+          .where(eq(conversations.assignedUserId, userId));
+
         // Realizar a exclusão física do usuário
         await db
           .delete(systemUsers)

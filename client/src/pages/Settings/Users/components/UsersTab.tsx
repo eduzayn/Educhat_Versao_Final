@@ -202,11 +202,13 @@ export const UsersTab = () => {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => 
-      fetch(`/api/system-users/${userId}`, {
+      fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
     }
   });
 
