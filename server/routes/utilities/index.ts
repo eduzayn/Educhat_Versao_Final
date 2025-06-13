@@ -10,8 +10,25 @@ export function registerUtilitiesRoutes(app: Express) {
   // Rotas de compatibilidade para gestão de usuários
   app.get('/api/system-users', async (req, res) => {
     try {
-      const users = await storage.getAllUsers();
-      res.json(users);
+      const { db } = await import('../../core/db');
+      const result = await db.query(`
+        SELECT 
+          id, 
+          email, 
+          username, 
+          display_name as "displayName", 
+          role, 
+          is_active as "isActive",
+          is_online as "isOnline",
+          team,
+          team_id as "teamId",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM system_users 
+        WHERE is_active = true 
+        ORDER BY display_name
+      `);
+      res.json(result.rows);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       res.json([]);
@@ -20,8 +37,23 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.post('/api/system-users', async (req, res) => {
     try {
-      const newUser = await storage.createUser(req.body);
-      res.json(newUser);
+      const { db } = await import('../../core/db');
+      const { username, email, displayName, password, role, team } = req.body;
+      
+      const result = await db.query(`
+        INSERT INTO system_users (username, email, display_name, password, role, team, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+        RETURNING 
+          id, 
+          email, 
+          username, 
+          display_name as "displayName", 
+          role, 
+          team,
+          is_active as "isActive"
+      `, [username, email, displayName, password, role, team]);
+      
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -30,8 +62,31 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.put('/api/system-users/:id', async (req, res) => {
     try {
-      const updatedUser = await storage.userManagement.updateUser(parseInt(req.params.id), req.body);
-      res.json(updatedUser);
+      const { db } = await import('../../core/db');
+      const userId = parseInt(req.params.id);
+      const { username, email, displayName, role, team } = req.body;
+      
+      const result = await db.query(`
+        UPDATE system_users 
+        SET 
+          username = COALESCE($1, username),
+          email = COALESCE($2, email),
+          display_name = COALESCE($3, display_name),
+          role = COALESCE($4, role),
+          team = COALESCE($5, team),
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING 
+          id, 
+          email, 
+          username, 
+          display_name as "displayName", 
+          role, 
+          team,
+          is_active as "isActive"
+      `, [username, email, displayName, role, team, userId]);
+      
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -40,7 +95,15 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.delete('/api/system-users/:id', async (req, res) => {
     try {
-      await storage.userManagement.deleteUser(parseInt(req.params.id));
+      const { db } = await import('../../core/db');
+      const userId = parseInt(req.params.id);
+      
+      await db.query(`
+        UPDATE system_users 
+        SET is_active = false, updated_at = NOW() 
+        WHERE id = $1
+      `, [userId]);
+      
       res.json({ message: 'Usuário desativado com sucesso' });
     } catch (error) {
       console.error('Erro ao desativar usuário:', error);
