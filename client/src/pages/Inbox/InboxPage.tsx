@@ -314,7 +314,7 @@ export function InboxPage() {
   // Loading is now handled by InfiniteConversationList component
 
   return (
-    <div className="flex h-screen bg-gray-50 mobile-full-height">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Lista de Conversas */}
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
@@ -368,7 +368,7 @@ export function InboxPage() {
             </div>
 
             {/* Área de Input - fixo na parte inferior */}
-            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-3">
               <InputArea />
             </div>
           </>

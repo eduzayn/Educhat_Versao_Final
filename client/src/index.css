@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Correção definitiva para eliminar espaços em branco */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
 /* Scrollbar personalizado unificado */
 .scrollbar-thin,
 .custom-scrollbar,

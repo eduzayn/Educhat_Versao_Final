@@ -62,7 +62,7 @@ export function MessagesArea({
   return (
     <div 
       ref={containerRef} 
-      className="h-full overflow-y-auto px-4 pt-4"
+      className="h-full overflow-y-auto px-4 py-2"
       style={{ 
         scrollBehavior: 'smooth'
       }}
@@ -115,8 +115,8 @@ export function MessagesArea({
             />
           ))}
           
-          {/* Elemento invisível para scroll automático - removido padding inferior excessivo */}
-          <div ref={messagesEndRef} className="h-2" />
+          {/* Elemento invisível para scroll automático */}
+          <div ref={messagesEndRef} className="h-1" />
         </div>
       )}
     </div>
