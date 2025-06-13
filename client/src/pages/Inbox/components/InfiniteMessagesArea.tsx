@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { MessageSquare, ChevronUp } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
-import { useInfiniteMessages } from '@/shared/lib/hooks/useInfiniteMessages';
+import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Message } from '@shared/schema';
@@ -20,7 +20,10 @@ export function InfiniteMessagesArea({
     data: allMessages = [],
     isLoading,
     isError,
-    error
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage
   } = useInfiniteMessages(activeConversation?.id || null, 200);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
