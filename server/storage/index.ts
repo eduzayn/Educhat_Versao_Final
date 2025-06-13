@@ -364,6 +364,30 @@ export class CentralStorage {
     return this.team.testTeamDetection(message);
   }
 
+  async getUserTeams(userId: number) {
+    return this.team.getUserTeams(userId);
+  }
+
+  async addUserToTeam(userTeam: any) {
+    return this.team.addUserToTeam(userTeam);
+  }
+
+  async removeUserFromTeam(userId: number, teamId: number) {
+    return this.team.removeUserFromTeam(userId, teamId);
+  }
+
+  async getTeamMembers(teamId: number) {
+    return this.team.getTeamMembers(teamId);
+  }
+
+  async updateTeamMemberRole(userId: number, teamId: number, role: string) {
+    return this.team.updateTeamMemberRole(userId, teamId, role);
+  }
+
+  async getTeamStatistics(teamId: number) {
+    return this.team.getTeamStatistics(teamId);
+  }
+
   // ==================== MESSAGE OPERATIONS ====================
   async createMessage(messageData: any) {
     return this.message.createMessage(messageData);
