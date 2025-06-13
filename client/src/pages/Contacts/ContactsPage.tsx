@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useContacts, useUpdateContact, useDeleteContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useActiveWhatsAppChannels } from '@/shared/lib/hooks/useChannels';
-import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+
 import { ContactFilters } from './components/ContactFilters';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';

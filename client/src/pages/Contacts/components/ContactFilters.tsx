@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Search, Filter, Download, RefreshCw, Camera } from 'lucide-react';
-import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+
 
 interface ContactFiltersProps {
   searchQuery: string;
@@ -60,8 +60,9 @@ export function ContactFilters({
         {/* Status e ações */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">WhatsApp:</span>
-            <ZApiStatusIndicator />
+            <span className="text-sm text-gray-600">
+              WhatsApp: {isWhatsAppAvailable ? 'Conectado' : 'Desconectado'}
+            </span>
           </div>
           
           <div className="flex gap-2">

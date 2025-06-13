@@ -493,7 +493,7 @@ export function registerAdminRoutes(app: Express) {
         });
 
         // Não retornar o hash da senha na resposta
-        const { passwordHash, ...userResponse } = updatedUser;
+        const { password: _, ...userResponse } = updatedUser;
 
         res.json(userResponse);
       } catch (error) {
