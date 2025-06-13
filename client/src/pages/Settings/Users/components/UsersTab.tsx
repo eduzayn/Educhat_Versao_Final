@@ -138,7 +138,7 @@ export const UsersTab = () => {
   // Fetch users from API
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['/api/admin/users'],
-    queryFn: () => fetch('/api/admin/users').then(res => res.json())
+    queryFn: () => fetch('/api/admin/users', { credentials: 'include' }).then(res => res.json())
   });
 
   // Ensure users is always an array
@@ -160,6 +160,7 @@ export const UsersTab = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: userData.username,
           displayName: userData.name,

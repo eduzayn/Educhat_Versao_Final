@@ -352,15 +352,28 @@ export function registerAdminRoutes(app: Express) {
         }
 
         // Verificar se email já existe
-        const [existingUser] = await db
+        const [existingEmail] = await db
           .select()
           .from(systemUsers)
           .where(eq(systemUsers.email, email))
           .limit(1);
 
-        if (existingUser) {
+        if (existingEmail) {
           return res.status(400).json({ 
             message: 'Este email já está em uso' 
+          });
+        }
+
+        // Verificar se username já existe
+        const [existingUsername] = await db
+          .select()
+          .from(systemUsers)
+          .where(eq(systemUsers.username, username))
+          .limit(1);
+
+        if (existingUsername) {
+          return res.status(400).json({ 
+            message: 'Este nome de usuário já está em uso' 
           });
         }
 
@@ -382,7 +395,7 @@ export function registerAdminRoutes(app: Express) {
             teamId: teamId || null,
             dataKey: dataKey || null,
             channels: channels || [],
-            teamTypes: teams || [],
+            teamTypes: Array.isArray(teams) ? teams : [],
             isActive: true,
             status: 'active'
           })
@@ -408,7 +421,12 @@ export function registerAdminRoutes(app: Express) {
         res.status(201).json(userResponse);
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
-        res.status(500).json({ message: 'Erro interno do servidor' });
+        console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+        console.error('Request body:', req.body);
+        res.status(500).json({ 
+          message: 'Erro interno do servidor',
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
       }
     }
   );
