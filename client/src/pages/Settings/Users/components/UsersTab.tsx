@@ -634,8 +634,18 @@ export const UsersTab = () => {
             <Button variant="outline" onClick={() => setShowUserDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateUser}>
-              Criar Usuário
+            <Button 
+              onClick={handleCreateUser}
+              disabled={createUserMutation.isPending || !formData.name || !formData.email || !formData.username || !formData.password || !formData.role}
+            >
+              {createUserMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Criando...
+                </div>
+              ) : (
+                "Criar Usuário"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
