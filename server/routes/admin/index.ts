@@ -331,23 +331,51 @@ export function registerAdminRoutes(app: Express) {
         const userId = parseInt(req.params.id);
         const { 
           displayName, 
+          username,
+          email,
+          role,
+          team,
+          password,
           roleId, 
           teamId, 
           dataKey, 
           channels, 
           teams, 
-          status 
+          status,
+          isActive
         } = req.body;
+
+        // Verificar se o usuário existe
+        const [existingUser] = await db
+          .select()
+          .from(systemUsers)
+          .where(eq(systemUsers.id, userId))
+          .limit(1);
+
+        if (!existingUser) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
 
         const updateData: any = {};
         
         if (displayName !== undefined) updateData.displayName = displayName;
+        if (username !== undefined) updateData.username = username;
+        if (email !== undefined) updateData.email = email;
+        if (role !== undefined) updateData.role = role;
+        if (team !== undefined) updateData.team = team;
         if (roleId !== undefined) updateData.roleId = roleId;
         if (teamId !== undefined) updateData.teamId = teamId;
         if (dataKey !== undefined) updateData.dataKey = dataKey;
         if (channels !== undefined) updateData.channels = channels;
         if (teams !== undefined) updateData.teams = teams;
         if (status !== undefined) updateData.status = status;
+        if (isActive !== undefined) updateData.isActive = isActive;
+
+        // Atualizar senha se fornecida
+        if (password && password.trim() !== '') {
+          const bcrypt = require('bcryptjs');
+          updateData.passwordHash = await bcrypt.hash(password, 10);
+        }
 
         updateData.updatedAt = new Date();
 
@@ -362,11 +390,21 @@ export function registerAdminRoutes(app: Express) {
           action: 'update',
           resource: 'user',
           resourceId: userId.toString(),
-          details: updateData,
+          details: {
+            displayName: updateData.displayName,
+            username: updateData.username,
+            email: updateData.email,
+            role: updateData.role,
+            team: updateData.team,
+            passwordChanged: !!password
+          },
           result: 'success'
         });
 
-        res.json(updatedUser);
+        // Não retornar o hash da senha na resposta
+        const { passwordHash, ...userResponse } = updatedUser;
+
+        res.json(userResponse);
       } catch (error) {
         console.error('Erro ao atualizar usuário:', error);
         res.status(500).json({ message: 'Erro interno do servidor' });
