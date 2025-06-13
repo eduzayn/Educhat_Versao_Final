@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth/auth";
+import { setupAuthWithRoutes } from "./auth/auth";
 
 // Import modular routes
-import { registerAuthRoutes } from "./auth/index";
+// registerAuthRoutes removed - now unified with setupAuthWithRoutes
 import { registerAdminRoutes } from "./admin/index";
 import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
 import { registerMediaRoutes } from "./media/index";
@@ -35,14 +35,13 @@ import handoffsRouter from "./handoffs/index";
 import dashboardRouter from "./dashboard/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup do sistema de autenticação próprio PRIMEIRO
-  setupAuth(app);
+  // Setup do sistema de autenticação consolidado PRIMEIRO
+  setupAuthWithRoutes(app);
   
   // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
   
-  // Registrar rotas de autenticação após webhooks
-  registerAuthRoutes(app);
+  // Authentication routes now integrated in setupAuthWithRoutes
   registerAdminRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
   registerMediaRoutes(app);
