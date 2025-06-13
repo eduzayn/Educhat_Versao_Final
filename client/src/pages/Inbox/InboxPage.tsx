@@ -86,7 +86,7 @@ export function InboxPage() {
   
   const { 
     data: conversations, 
-    isLoading, 
+    isLoading: isLoadingConversations, 
     refetch 
   } = useConversations(50, { 
     refetchInterval: 2000, // Polling mais frequente para garantir atualização
@@ -345,7 +345,7 @@ export function InboxPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingConversations) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-educhat-primary"></div>
@@ -468,7 +468,7 @@ export function InboxPage() {
             </div>
           ))}
           
-          {filteredConversations.length === 0 && !isLoading && (
+          {filteredConversations.length === 0 && !isLoadingConversations && (
             <div className="p-6 text-center text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">Nenhuma conversa encontrada</p>
@@ -476,7 +476,7 @@ export function InboxPage() {
           )}
           
           {/* Loading inicial */}
-          {isLoading && (
+          {isLoadingConversations && (
             <div className="p-6 text-center text-gray-500">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
               <p className="text-sm">Carregando contatos...</p>
