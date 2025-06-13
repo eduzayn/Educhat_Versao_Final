@@ -10,10 +10,7 @@ export function registerUtilitiesRoutes(app: Express) {
   // Rotas de compatibilidade para gestão de usuários
   app.get('/api/system-users', async (req, res) => {
     try {
-      const { systemUsers } = await import('../../shared/schema');
-      const { storage } = await import('../storage');
-      const { eq } = await import('drizzle-orm');
-      const users = await storage.db.select().from(systemUsers).where(eq(systemUsers.isActive, true));
+      const users = await storage.getAllUsers();
       res.json(users);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
@@ -23,14 +20,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.post('/api/system-users', async (req, res) => {
     try {
-      const { systemUsers } = await import('../../shared/schema');
-      const { storage } = await import('../storage');
-      const [newUser] = await storage.db.insert(systemUsers).values({
-        ...req.body,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+      const newUser = await storage.createUser(req.body);
       res.json(newUser);
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
@@ -40,13 +30,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.put('/api/system-users/:id', async (req, res) => {
     try {
-      const { systemUsers } = await import('../../shared/schema');
-      const { storage } = await import('../storage');
-      const { eq } = await import('drizzle-orm');
-      const [updatedUser] = await storage.db.update(systemUsers)
-        .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(systemUsers.id, parseInt(req.params.id)))
-        .returning();
+      const updatedUser = await storage.userManagement.updateUser(parseInt(req.params.id), req.body);
       res.json(updatedUser);
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
@@ -56,12 +40,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
   app.delete('/api/system-users/:id', async (req, res) => {
     try {
-      const { systemUsers } = await import('../../shared/schema');
-      const { storage } = await import('../storage');
-      const { eq } = await import('drizzle-orm');
-      await storage.db.update(systemUsers)
-        .set({ isActive: false, updatedAt: new Date() })
-        .where(eq(systemUsers.id, parseInt(req.params.id)));
+      await storage.userManagement.deleteUser(parseInt(req.params.id));
       res.json({ message: 'Usuário desativado com sucesso' });
     } catch (error) {
       console.error('Erro ao desativar usuário:', error);
