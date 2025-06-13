@@ -200,66 +200,8 @@ export function registerTeamsRoutes(app: Express) {
     }
   });
 
-  // Add user to team - REST: POST /api/user-teams
-  app.post('/api/user-teams', requirePermission('teams:manage'), async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { userId, teamId, role = 'agent' } = req.body;
-      
-      if (!userId || !teamId) {
-        return res.status(400).json({ message: 'userId e teamId são obrigatórios' });
-      }
-
-      // Validar se o usuário e equipe existem
-      const userExists = await storage.getUser(parseInt(userId));
-      if (!userExists) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-
-      const teamExists = await storage.getTeam(parseInt(teamId));
-      if (!teamExists) {
-        return res.status(404).json({ message: 'Equipe não encontrada' });
-      }
-
-      // Verificar se o usuário já está na equipe
-      const userTeams = await storage.getUserTeams(parseInt(userId));
-      const alreadyInTeam = userTeams.some(team => team.id === parseInt(teamId));
-      
-      if (alreadyInTeam) {
-        return res.status(409).json({ message: 'Usuário já está nesta equipe' });
-      }
-
-      const userTeam = await storage.addUserToTeam({
-        userId: parseInt(userId),
-        teamId: parseInt(teamId),
-        role,
-        isActive: true
-      });
-
-      console.log(`👥 Usuário ${userId} adicionado à equipe ${teamId} com role: ${role}`);
-      res.status(201).json(userTeam);
-    } catch (error) {
-      console.error('Erro ao adicionar usuário à equipe:', error);
-      res.status(500).json({ message: 'Erro ao adicionar usuário à equipe' });
-    }
-  });
-
-  // Remove user from team - REST: DELETE /api/user-teams
-  app.delete('/api/user-teams', requirePermission('teams:manage'), async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { userId, teamId } = req.body;
-      
-      if (!userId || !teamId) {
-        return res.status(400).json({ message: 'userId e teamId são obrigatórios' });
-      }
-
-      await storage.removeUserFromTeam(parseInt(userId), parseInt(teamId));
-      console.log(`🗑️ Usuário ${userId} removido da equipe ${teamId}`);
-      res.json({ message: 'Usuário removido da equipe com sucesso' });
-    } catch (error) {
-      console.error('Erro ao remover usuário da equipe:', error);
-      res.status(500).json({ message: 'Erro ao remover usuário da equipe' });
-    }
-  });
+  // ❌ DUPLICAÇÃO ELIMINADA: Funcionalidade consolidada em /api/teams/:teamId/members
+  // Usar /api/teams/:teamId/members (POST/DELETE/PATCH) para gestão unificada de membros
 
   // Assign conversation to team - REST: POST /api/teams/:teamId/assign-conversation
   app.post('/api/teams/:teamId/assign-conversation', requirePermission('teams:manage'), async (req: AuthenticatedRequest, res: Response) => {

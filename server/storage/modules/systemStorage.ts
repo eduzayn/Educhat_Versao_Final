@@ -1,53 +1,17 @@
-// DEPRECATED: Este módulo foi consolidado em userManagementStorage.ts
-// Mantido para compatibilidade durante migração
+// ✅ CONSOLIDADO: System Users migrados para userManagementStorage.ts
+// Settings e Roles mantidos aqui por serem específicos do sistema
+
 import { BaseStorage } from "../base/BaseStorage";
-import { systemUsers, systemSettings, roles, type SystemUser, type InsertSystemUser, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "../../../shared/schema";
+import { systemSettings, roles, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "../../../shared/schema";
 import { eq, desc, ilike, or } from "drizzle-orm";
 
 /**
- * System storage module - manages system users, settings and roles
+ * System storage module - manages system settings and roles only
+ * System Users foram consolidados em UserManagementStorage
  */
 export class SystemStorage extends BaseStorage {
-  // ==================== SYSTEM USERS ====================
-  async getSystemUsers(): Promise<SystemUser[]> {
-    return this.db.select().from(systemUsers).orderBy(desc(systemUsers.createdAt));
-  }
-
-  async getSystemUser(id: number): Promise<SystemUser | undefined> {
-    const [user] = await this.db.select().from(systemUsers).where(eq(systemUsers.id, id));
-    return user;
-  }
-
-  async createSystemUser(user: InsertSystemUser): Promise<SystemUser> {
-    const [newUser] = await this.db.insert(systemUsers).values(user).returning();
-    return newUser;
-  }
-
-  async updateSystemUser(id: number, userData: Partial<InsertSystemUser>): Promise<SystemUser> {
-    const [updated] = await this.db.update(systemUsers)
-      .set({ ...userData, updatedAt: new Date() })
-      .where(eq(systemUsers.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteSystemUser(id: number): Promise<void> {
-    await this.db.update(systemUsers)
-      .set({ isActive: false, updatedAt: new Date() })
-      .where(eq(systemUsers.id, id));
-  }
-
-  async searchSystemUsers(query: string): Promise<SystemUser[]> {
-    return this.db.select().from(systemUsers)
-      .where(
-        or(
-          ilike(systemUsers.username, `%${query}%`),
-          ilike(systemUsers.displayName, `%${query}%`),
-          ilike(systemUsers.email, `%${query}%`)
-        )
-      )
-      .orderBy(desc(systemUsers.createdAt));
-  }
+  // ✅ CONSOLIDAÇÃO COMPLETA: Todas as funções de usuários migradas para UserManagementStorage
+  // Mantém apenas funcionalidades específicas de configurações e roles do sistema
 
   // ==================== SYSTEM SETTINGS ====================
   async getSystemSetting(key: string): Promise<SystemSetting | null> {

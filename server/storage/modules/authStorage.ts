@@ -1,33 +1,21 @@
-// DEPRECATED: Este módulo foi consolidado em userManagementStorage.ts
-// Mantido para compatibilidade durante migração
+// ✅ CONSOLIDADO: Funcionalidades migradas para userManagementStorage.ts
+// Mantém compatibilidade através de delegação
+
 import { BaseStorage } from "../base/BaseStorage";
 import { systemUsers, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 
 /**
- * Auth storage module - manages user authentication operations
+ * Auth storage module - delegates to UserManagementStorage
+ * @deprecated Use UserManagementStorage directly
  */
 export class AuthStorage extends BaseStorage {
-  /**
-   * Get user by ID for authentication
-   */
+  // Delegation methods - redirect to UserManagementStorage
   async getUser(id: string): Promise<User | undefined> {
-    const [systemUser] = await this.db.select().from(systemUsers).where(eq(systemUsers.id, parseInt(id)));
-    if (!systemUser) return undefined;
-    
-    return {
-      id: systemUser.id,
-      email: systemUser.email,
-      username: systemUser.username,
-      displayName: systemUser.displayName,
-      role: systemUser.role,
-      roleId: systemUser.roleId || 1,
-      dataKey: systemUser.dataKey || undefined,
-      channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-      teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : [],
-      teamId: systemUser.teamId || undefined,
-      team: systemUser.team || undefined
-    };
+    // Delegate to main implementation
+    const { UserManagementStorage } = await import('./userManagementStorage');
+    const userMgmt = new UserManagementStorage();
+    return userMgmt.getUser(id);
   }
 
   /**
