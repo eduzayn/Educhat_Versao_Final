@@ -82,6 +82,34 @@ export const TeamsTab = () => {
     }
   });
 
+  // Buscar membros de cada equipe
+  const { data: teamMembers = {} } = useQuery({
+    queryKey: ['/api/team-members'],
+    queryFn: async () => {
+      if (!teams || teams.length === 0) return {};
+      
+      const membersData: Record<number, any[]> = {};
+      
+      await Promise.all(
+        teams.map(async (team) => {
+          try {
+            const response = await fetch(`/api/user-teams/${team.id}`);
+            if (response.ok) {
+              membersData[team.id] = await response.json();
+            } else {
+              membersData[team.id] = [];
+            }
+          } catch (error) {
+            membersData[team.id] = [];
+          }
+        })
+      );
+      
+      return membersData;
+    },
+    enabled: !!teams && teams.length > 0
+  });
+
   // Ensure systemUsers is always an array
   const systemUsersList = Array.isArray(systemUsers) ? systemUsers : [];
 
@@ -291,7 +319,7 @@ export const TeamsTab = () => {
                   </div>
                   <Badge variant="outline" className={getTeamColorClass(team.color || '')}>
                     <Users className="h-3 w-3 mr-1" />
-                    0
+                    {teamMembers[team.id]?.length || 0}
                   </Badge>
                 </div>
                 <CardDescription>{team.description}</CardDescription>
