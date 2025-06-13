@@ -371,6 +371,84 @@ export function registerAdminRoutes(app: Express) {
     }
   );
 
+  // Excluir usuário
+  app.delete('/api/admin/users/:id', 
+    updateLastActivity(),
+    requirePermission('usuario:excluir'), 
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const userId = parseInt(req.params.id);
+
+        if (!userId || isNaN(userId)) {
+          return res.status(400).json({ message: 'ID do usuário inválido' });
+        }
+
+        // Verificar se o usuário existe
+        const [existingUser] = await db
+          .select()
+          .from(systemUsers)
+          .where(eq(systemUsers.id, userId))
+          .limit(1);
+
+        if (!existingUser) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        // Não permitir que o usuário exclua a si mesmo
+        if (userId === req.user!.id) {
+          return res.status(400).json({ message: 'Não é possível excluir seu próprio usuário' });
+        }
+
+        // Realizar a exclusão física do usuário
+        await db
+          .delete(systemUsers)
+          .where(eq(systemUsers.id, userId));
+
+        // Log da ação
+        await PermissionService.logAction({
+          userId: req.user!.id,
+          action: 'delete',
+          resource: 'user',
+          resourceId: userId.toString(),
+          details: { 
+            deletedUser: {
+              id: existingUser.id,
+              username: existingUser.username,
+              displayName: existingUser.displayName,
+              email: existingUser.email
+            }
+          },
+          result: 'success'
+        });
+
+        console.log(`🗑️ Usuário ${existingUser.displayName} (ID: ${userId}) excluído com sucesso por ${req.user!.displayName}`);
+
+        res.json({ 
+          success: true, 
+          message: 'Usuário excluído com sucesso',
+          deletedUser: {
+            id: existingUser.id,
+            displayName: existingUser.displayName,
+            email: existingUser.email
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        
+        await PermissionService.logAction({
+          userId: req.user!.id,
+          action: 'delete',
+          resource: 'user',
+          resourceId: req.params.id,
+          details: { error: error instanceof Error ? error.message : 'Unknown error' },
+          result: 'error'
+        });
+        
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
   // ==================== LOGS DE AUDITORIA ====================
 
   // Buscar logs de auditoria
