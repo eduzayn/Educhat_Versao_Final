@@ -21,7 +21,7 @@ export class MessageStorage extends BaseStorage {
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(messages.sentAt) // Ordem cronológica: mensagens mais antigas primeiro
+      .orderBy(desc(messages.sentAt)) // Ordem decrescente para scroll infinito
       .limit(limit)
       .offset(offset);
   }
