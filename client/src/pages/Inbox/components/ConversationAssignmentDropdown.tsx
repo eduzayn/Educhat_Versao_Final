@@ -22,6 +22,7 @@ export function ConversationAssignmentDropdown({
   const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
+  const [teamUsers, setTeamUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(true);
 
 
@@ -49,6 +50,29 @@ export function ConversationAssignmentDropdown({
 
     loadData();
   }, []);
+
+  // Carregar usuários da equipe quando currentTeamId mudar
+  useEffect(() => {
+    const loadTeamUsers = async () => {
+      if (!currentTeamId) {
+        setTeamUsers([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/teams/${currentTeamId}/users`);
+        if (response.ok) {
+          const teamUsersData = await response.json();
+          setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuários da equipe:', error);
+        setTeamUsers([]);
+      }
+    };
+
+    loadTeamUsers();
+  }, [currentTeamId]);
 
   const handleTeamAssignment = async (teamId: string) => {
     try {
@@ -189,7 +213,7 @@ export function ConversationAssignmentDropdown({
             <SelectItem value="none">
               <span className="text-gray-500">Não atribuído</span>
             </SelectItem>
-            {users.filter(user => user.isActive).map(user => (
+            {(currentTeamId ? teamUsers : users).filter(user => user.isActive).map(user => (
               <SelectItem key={user.id} value={user.id.toString()}>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
