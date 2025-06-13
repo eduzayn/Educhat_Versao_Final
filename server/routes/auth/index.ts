@@ -3,7 +3,7 @@ import passport from "passport";
 
 export function registerAuthRoutes(app: Express) {
   // Health check endpoint para sessões
-  app.get("/api/auth/health", (req: Request, res: Response) => {
+  app.get("/api/auth-health", (req: Request, res: Response) => {
     const sessionHealth = {
       sessionID: req.sessionID,
       hasSession: !!req.session,
