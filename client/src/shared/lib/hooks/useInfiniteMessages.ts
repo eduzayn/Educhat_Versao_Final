@@ -7,7 +7,7 @@ interface MessagesResponse {
   nextCursor?: string;
 }
 
-export function useInfiniteMessages(conversationId: number, pageSize: number = 50) {
+export function useInfiniteMessages(conversationId: number, pageSize: number = 100) {
   return useInfiniteQuery<MessagesResponse>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     queryFn: async ({ pageParam }) => {

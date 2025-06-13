@@ -16,7 +16,7 @@ export class ConversationStorage extends BaseStorage {
    * - Índices de banco obrigatórios
    * - Busca otimizada de prévias
    */
-  async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
     const startTime = Date.now();
 
     // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
