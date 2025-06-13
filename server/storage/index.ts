@@ -67,9 +67,7 @@ export class CentralStorage {
     return this.userManagement.updateSystemUser(id, userData);
   }
 
-  async deleteUser(id: number) {
-    return this.userManagement.deleteSystemUser(id);
-  }
+
 
   // ==================== CONTACT OPERATIONS ====================
   async createContact(contactData: any) {

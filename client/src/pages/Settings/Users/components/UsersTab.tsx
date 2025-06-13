@@ -113,12 +113,12 @@ export const UsersTab = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [transferToUserId, setTransferToUserId] = useState<string>("");
-  const [importData, setImportData] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -218,22 +218,7 @@ export const UsersTab = () => {
     }
   });
 
-  // Import users mutation
-  const importUsersMutation = useMutation({
-    mutationFn: (usersData: any[]) => 
-      fetch('/api/system-users/bulk-import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ users: usersData })
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
-      setShowImportDialog(false);
-      setImportData('');
-    }
-  });
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

@@ -7,23 +7,7 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../cor
 
 export function registerUtilitiesRoutes(app: Express) {
   
-  // ✅ CONSOLIDADO: Rotas de usuários migradas para /api/admin/users
-  // Redirecionamentos para compatibilidade com frontend existente
-  app.get('/api/system-users', (req, res) => {
-    res.redirect(308, '/api/admin/users');
-  });
 
-  app.post('/api/system-users', (req, res) => {
-    res.redirect(308, '/api/admin/users');
-  });
-
-  app.put('/api/system-users/:id', (req, res) => {
-    res.redirect(308, `/api/admin/users/${req.params.id}`);
-  });
-
-  app.delete('/api/system-users/:id', (req, res) => {
-    res.redirect(308, `/api/admin/users/${req.params.id}`);
-  });
   
   // Cache para o status Z-API (10 segundos)
   let statusCache: { data: any; timestamp: number } | null = null;

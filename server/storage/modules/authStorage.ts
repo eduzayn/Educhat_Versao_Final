@@ -177,9 +177,7 @@ export class AuthStorage extends BaseStorage {
     };
   }
 
-  async deleteUser(id: number): Promise<void> {
-    await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
-  }
+
 
   async validateUser(email: string, password: string): Promise<User | undefined> {
     const user = await this.getUserByEmail(email);
