@@ -9,7 +9,7 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
-import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+
 
 interface ConversationListHeaderProps {
   searchTerm: string;
@@ -34,7 +34,6 @@ export function ConversationListHeader({
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-lg font-semibold text-educhat-dark">Conversas</h1>
         <div className="flex items-center gap-2">
-          <ZApiStatusIndicator />
           {onRefresh && (
             <Button 
               size="sm" 
