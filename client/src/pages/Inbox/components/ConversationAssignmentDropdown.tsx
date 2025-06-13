@@ -27,21 +27,76 @@ export function ConversationAssignmentDropdown({
   const [loading, setLoading] = useState(true);
 
 
-  // Carregar dados iniciais
+  // Carregar dados iniciais com cache
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [teamsResponse, usersResponse] = await Promise.all([
-          fetch('/api/teams'),
-          fetch('/api/system-users')
-        ]);
+        // Verificar cache para teams
+        const teamsCacheKey = 'assignment-teams';
+        const usersCacheKey = 'assignment-users';
+        const cachedTeams = sessionStorage.getItem(teamsCacheKey);
+        const cachedUsers = sessionStorage.getItem(usersCacheKey);
+        
+        let teamsData = [];
+        let usersData = [];
+        let needsFetch = false;
 
-        if (teamsResponse.ok && usersResponse.ok) {
-          const teamsData = await teamsResponse.json();
-          const usersData = await usersResponse.json();
-          setTeams(Array.isArray(teamsData) ? teamsData : []);
-          setUsers(Array.isArray(usersData) ? usersData : []);
+        // Verificar cache de teams
+        if (cachedTeams) {
+          try {
+            const teamsCache = JSON.parse(cachedTeams);
+            if (Date.now() - teamsCache.timestamp < 300000) { // 5 minutos
+              teamsData = teamsCache.data;
+            } else {
+              needsFetch = true;
+            }
+          } catch (e) {
+            needsFetch = true;
+          }
+        } else {
+          needsFetch = true;
         }
+
+        // Verificar cache de users
+        if (cachedUsers && !needsFetch) {
+          try {
+            const usersCache = JSON.parse(cachedUsers);
+            if (Date.now() - usersCache.timestamp < 300000) { // 5 minutos
+              usersData = usersCache.data;
+            } else {
+              needsFetch = true;
+            }
+          } catch (e) {
+            needsFetch = true;
+          }
+        } else {
+          needsFetch = true;
+        }
+
+        if (needsFetch) {
+          const [teamsResponse, usersResponse] = await Promise.all([
+            fetch('/api/teams'),
+            fetch('/api/system-users')
+          ]);
+
+          if (teamsResponse.ok && usersResponse.ok) {
+            teamsData = await teamsResponse.json();
+            usersData = await usersResponse.json();
+            
+            // Salvar no cache
+            sessionStorage.setItem(teamsCacheKey, JSON.stringify({
+              data: teamsData,
+              timestamp: Date.now()
+            }));
+            sessionStorage.setItem(usersCacheKey, JSON.stringify({
+              data: usersData,
+              timestamp: Date.now()
+            }));
+          }
+        }
+
+        setTeams(Array.isArray(teamsData) ? teamsData : []);
+        setUsers(Array.isArray(usersData) ? usersData : []);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -60,11 +115,33 @@ export function ConversationAssignmentDropdown({
         return;
       }
 
+      // Cache simples para evitar recarregamentos desnecessários
+      const cacheKey = `team-users-${currentTeamId}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const cachedData = JSON.parse(cached);
+          if (Date.now() - cachedData.timestamp < 300000) { // 5 minutos
+            setTeamUsers(cachedData.data);
+            return;
+          }
+        } catch (e) {
+          // Cache inválido, continuar com fetch
+        }
+      }
+
       try {
         const response = await fetch(`/api/teams/${currentTeamId}/users`);
         if (response.ok) {
           const teamUsersData = await response.json();
-          setTeamUsers(Array.isArray(teamUsersData) ? teamUsersData : []);
+          const data = Array.isArray(teamUsersData) ? teamUsersData : [];
+          setTeamUsers(data);
+          
+          // Salvar no cache
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            data,
+            timestamp: Date.now()
+          }));
         }
       } catch (error) {
         console.error('Erro ao carregar usuários da equipe:', error);
