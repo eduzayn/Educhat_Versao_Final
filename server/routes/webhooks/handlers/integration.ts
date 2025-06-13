@@ -4,7 +4,7 @@
  */
 
 import type { Request, Response, Express } from "express";
-import { storage } from "../../storage"";
+import { storage } from "../../storage";
 
 /**
  * Handler para webhook Manychat

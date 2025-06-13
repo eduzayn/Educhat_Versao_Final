@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import crypto from 'crypto';
-import { storage } from "../../storage"';
+import { storage } from "../../storage";
 
 const router = Router();
 
