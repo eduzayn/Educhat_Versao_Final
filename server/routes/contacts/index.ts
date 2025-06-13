@@ -169,7 +169,7 @@ export function registerContactRoutes(app: Express) {
         contactId,
       });
       
-      const tag = await storage.addContactTag(validatedData);
+      const tag = await storage.addContactTag(contactId, validatedData);
       res.status(201).json(tag);
     } catch (error) {
       console.error('Error adding contact tag:', error);
@@ -216,16 +216,6 @@ export function registerContactRoutes(app: Express) {
 
   // Migration endpoint for existing contacts
   app.post('/api/contacts/migrate', async (req, res) => {
-    try {
-      const { migrateExistingContacts } = await import('./migration');
-      const result = await migrateExistingContacts();
-      res.json({
-        message: 'Migração de contatos concluída',
-        ...result
-      });
-    } catch (error) {
-      console.error('Error running contact migration:', error);
-      res.status(500).json({ message: 'Erro ao executar migração de contatos' });
-    }
+    res.status(501).json({ message: 'Migration functionality not available' });
   });
 }

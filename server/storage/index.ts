@@ -399,7 +399,7 @@ export class CentralStorage {
   }
 
   async addContactTag(contactId: number, tagData: any) {
-    return this.contact.addContactTag ? this.contact.addContactTag(contactId, tagData) : null;
+    return this.contact.addContactTag ? this.contact.addContactTag(tagData) : null;
   }
 
   async removeContactTag(contactId: number, tagId: string) {

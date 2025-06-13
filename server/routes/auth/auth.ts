@@ -5,7 +5,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import ConnectPgSimple from "connect-pg-simple";
 import { pool } from "../../core/db";
-import { storage } from "../../core/storage";
+import { storage } from "../../storage";
 
 declare global {
   namespace Express {
