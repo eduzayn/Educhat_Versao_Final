@@ -173,12 +173,11 @@ function InternalAudioPlayer({
 
 export function ChatMessages() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { activeChannel, getChannelMessages, addReaction, removeReaction } =
-    useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const activeChannel = store.internal.activeChannel;
+  const messages = activeChannel ? store.internal.messages[activeChannel] || [] : [];
   const { user } = useAuth();
   const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
-
-  const messages = activeChannel ? getChannelMessages(activeChannel) : [];
 
   // Auto scroll para última mensagem
   useEffect(() => {

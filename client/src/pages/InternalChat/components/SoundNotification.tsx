@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 
 export function SoundNotification() {
-  const { soundEnabled } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const soundEnabled = store.soundEnabled;
   const audioRef = useRef<HTMLAudioElement>(null);
   const lastMessageCountRef = useRef(0);
 
@@ -19,11 +20,11 @@ export function SoundNotification() {
 
   // Monitorar novas mensagens e tocar som
   useEffect(() => {
-    const unsubscribe = useInternalChatStore.subscribe(
-      (state) => state.messages,
+    const unsubscribe = useUnifiedChatStore.subscribe(
+      (state) => state.internal.messages,
       (messages) => {
         const totalMessages = Object.values(messages).reduce(
-          (total, channelMessages) => total + channelMessages.length,
+          (total: number, channelMessages: any[]) => total + channelMessages.length,
           0,
         );
 

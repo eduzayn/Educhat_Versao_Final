@@ -18,21 +18,16 @@ import { PrivateMessageModal } from "./PrivateMessageModal";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 export function InfoPanel() {
-  const { channels, activeChannel, channelUsers, loadChannelUsers } =
-    useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const channels = store.internal.channels;
+  const activeChannel = store.internal.activeChannel;
   const [memberSearch, setMemberSearch] = useState("");
   const [selectedUserForPrivateChat, setSelectedUserForPrivateChat] =
     useState<any>(null);
   const { user } = useAuth();
 
   const channel = channels.find((c) => c.id === activeChannel);
-  const members = activeChannel ? channelUsers[activeChannel] || [] : [];
-
-  useEffect(() => {
-    if (activeChannel) {
-      loadChannelUsers(activeChannel);
-    }
-  }, [activeChannel, loadChannelUsers]);
+  const members = activeChannel ? store.internal.channelUsers[activeChannel] || [] : [];
 
   if (!channel) {
     return (

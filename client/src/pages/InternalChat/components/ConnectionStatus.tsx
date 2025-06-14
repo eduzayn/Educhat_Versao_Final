@@ -4,7 +4,9 @@ import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 
 export function ConnectionStatus() {
-  const { isConnected, setConnected } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const isConnected = store.isConnected;
+  const setConnected = store.setConnectionStatus;
   const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
