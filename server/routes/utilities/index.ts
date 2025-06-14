@@ -705,7 +705,7 @@ export function registerUtilitiesRoutes(app: Express) {
         return res.status(400).json({ error: 'URL é obrigatória' });
       }
 
-      console.log(`🔄 Proxy de mídia: ${url}`);
+
 
       // Fazer requisição para a URL original
       const response = await fetch(url, {
