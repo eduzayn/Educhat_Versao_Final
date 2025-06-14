@@ -5,7 +5,6 @@ import { MessageSquare } from 'lucide-react';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
 import { useQuery } from '@tanstack/react-query';
-import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
@@ -77,7 +76,7 @@ export function InboxPage() {
   const isLoadingConversations = conversationsQuery.isLoading;
   const hasNextPage = conversationsQuery.hasNextPage;
   const fetchNextPage = conversationsQuery.fetchNextPage;
-  const { activeConversation, setActiveConversation, messages: storeMessages } = useChatStore();
+  const { activeConversation, setActiveConversation, messages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
@@ -86,11 +85,6 @@ export function InboxPage() {
     markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
-  
-  const { 
-    data: messages, 
-    isLoading: isLoadingMessages
-  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
   
 
   const { toast } = useToast();
