@@ -70,12 +70,15 @@ export function useWebSocket() {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
         
-        // Invalidação otimizada - apenas invalidar, não refetch duplo
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        // Invalidação consolidada em lote para evitar múltiplos requests
         queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+          predicate: (query) => {
+            const key = query.queryKey[0] as string;
+            return key === '/api/conversations' || 
+                   key === `/api/conversations/${data.conversationId}/messages` ||
+                   key === '/api/conversations/unread-count';
+          }
         });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
         
         return;
       }
@@ -123,9 +126,13 @@ export function useWebSocket() {
               teamType: data.teamType
             });
             
-            // Invalidar queries do CRM para forçar recarregamento
-            queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            // Invalidação consolidada para CRM
+            queryClient.invalidateQueries({ 
+              predicate: (query) => {
+                const key = query.queryKey[0] as string;
+                return key === '/api/deals' || key === '/api/conversations';
+              }
+            });
           }
           break;
         case 'conversation_assigned':
@@ -140,9 +147,13 @@ export function useWebSocket() {
               method: data.method
             });
             
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            // Invalidação consolidada para conversas
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+              predicate: (query) => {
+                const key = query.queryKey[0] as string;
+                return key === '/api/conversations' || 
+                       key === `/api/conversations/${data.conversationId}`;
+              }
             });
           }
           break;
@@ -154,9 +165,13 @@ export function useWebSocket() {
               action: data.action
             });
             
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            // Invalidação consolidada
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+              predicate: (query) => {
+                const key = query.queryKey[0] as string;
+                return key === '/api/conversations' || 
+                       key === `/api/conversations/${data.conversationId}`;
+              }
             });
           }
           break;
@@ -169,10 +184,13 @@ export function useWebSocket() {
               status: data.conversation.status
             });
             
-            // Invalidação otimizada
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            // Invalidação consolidada
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+              predicate: (query) => {
+                const key = query.queryKey[0] as string;
+                return key === '/api/conversations' || 
+                       key === `/api/conversations/${data.conversationId}`;
+              }
             });
           }
           break;
@@ -184,10 +202,13 @@ export function useWebSocket() {
               assignedUserName: data.conversation.assignedUserName
             });
             
-            // Invalidação otimizada
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            // Invalidação consolidada
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+              predicate: (query) => {
+                const key = query.queryKey[0] as string;
+                return key === '/api/conversations' || 
+                       key === `/api/conversations/${data.conversationId}`;
+              }
             });
           }
           break;

@@ -7,8 +7,10 @@ interface UnreadCountResponse {
 export function useUnreadCount() {
   return useQuery<UnreadCountResponse>({
     queryKey: ['/api/conversations/unread-count'],
-    refetchInterval: 3000, // Atualizar a cada 3 segundos
-    staleTime: 1000, // Considerar dados obsoletos após 1 segundo
-    gcTime: 5000, // Manter cache por 5 segundos
+    refetchInterval: 30000, // Reduzido para 30 segundos para evitar requests excessivos
+    staleTime: 15000, // Cache válido por 15 segundos
+    gcTime: 60000, // Manter cache por 1 minuto
+    refetchOnWindowFocus: false, // Evitar refetch ao focar janela
+    refetchIntervalInBackground: false, // Parar polling em aba inativa
   });
 }
