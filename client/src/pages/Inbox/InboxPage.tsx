@@ -13,6 +13,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels } from '@/shared/lib/hooks/useChannels';
+import { useContactData } from '@/shared/lib/hooks/useContactData';
 import { STATUS_CONFIG } from '@/types/chat';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
