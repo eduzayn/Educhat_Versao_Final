@@ -4,7 +4,8 @@ import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Search, Filter, X, MessageSquare } from 'lucide-react';
+import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
+import { Link } from 'wouter';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
@@ -24,6 +25,8 @@ interface ConversationListVirtualizedProps {
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
   channels: any[];
+  onRefresh?: () => void;
+  onNewContact?: () => void;
 }
 
 export function ConversationListVirtualized({
@@ -39,7 +42,9 @@ export function ConversationListVirtualized({
   activeConversation,
   onSelectConversation,
   onLoadMore,
-  channels = []
+  channels = [],
+  onRefresh,
+  onNewContact
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
