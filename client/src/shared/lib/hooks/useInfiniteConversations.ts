@@ -7,11 +7,34 @@ interface ConversationsResponse {
   total: number;
 }
 
-export function useInfiniteConversations(limit = 100, options = {}) {
+interface UseInfiniteConversationsOptions {
+  searchTerm?: string;
+  enabled?: boolean;
+  refetchInterval?: number | false;
+  staleTime?: number;
+  refetchOnWindowFocus?: boolean;
+  refetchOnMount?: boolean;
+}
+
+export function useInfiniteConversations(
+  limit = 100, 
+  options: UseInfiniteConversationsOptions = {}
+) {
+  const { searchTerm, ...queryOptions } = options;
+  
   return useInfiniteQuery<ConversationsResponse>({
-    queryKey: ['/api/conversations/infinite', { limit }],
+    queryKey: ['/api/conversations/infinite', { limit, searchTerm }],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await fetch(`/api/conversations?limit=${limit}&offset=${pageParam}`);
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: pageParam.toString()
+      });
+      
+      if (searchTerm?.trim()) {
+        params.append('search', searchTerm.trim());
+      }
+      
+      const response = await fetch(`/api/conversations?${params}`);
       if (!response.ok) {
         throw new Error('Erro ao carregar conversas');
       }
@@ -30,13 +53,16 @@ export function useInfiniteConversations(limit = 100, options = {}) {
       return data;
     },
     getNextPageParam: (lastPage, allPages) => {
+      // Para busca, desabilita paginação infinita (carrega tudo de uma vez)
+      if (searchTerm?.trim()) return undefined;
+      
       if (!lastPage.hasNextPage || lastPage.conversations.length < limit) return undefined;
       return allPages.length * limit;
     },
     initialPageParam: 0,
-    staleTime: 5000,
+    staleTime: searchTerm?.trim() ? 30000 : 5000, // Cache mais longo para buscas
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    ...options
+    ...queryOptions
   });
 }
