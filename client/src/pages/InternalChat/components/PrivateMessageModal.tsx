@@ -113,7 +113,7 @@ export function PrivateMessageModal({
       };
 
       setMessages((prev) => [...prev, newMessage]);
-      playNotificationSound("send");
+      // Audio notification placeholder
       setShowAudioRecorder(false);
       setIsRecording(false);
 
@@ -158,7 +158,7 @@ export function PrivateMessageModal({
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    playNotificationSound("send");
+    // Audio notification placeholder
 
     toast({
       title: "Arquivo enviado",
@@ -214,7 +214,7 @@ export function PrivateMessageModal({
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    playNotificationSound("send");
+    // Audio notification placeholder
     setMessage("");
 
     // Reset textarea height
