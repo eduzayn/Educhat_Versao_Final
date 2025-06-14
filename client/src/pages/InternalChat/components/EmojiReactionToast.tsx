@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useInternalChat } from "@/shared/store/unifiedChatStore";
 
 interface ReactionToast {
   id: string;
@@ -11,55 +11,12 @@ interface ReactionToast {
 
 export function EmojiReactionToast() {
   const [toasts, setToasts] = useState<ReactionToast[]>([]);
+  const internalChat = useInternalChat();
 
   useEffect(() => {
-    const unsubscribe = useInternalChatStore.subscribe(
-      (state) => state.messages,
-      (messages, previousMessages) => {
-        // Detectar novas reações comparando com estado anterior
-        Object.entries(messages).forEach(([channelId, channelMessages]) => {
-          const previousChannelMessages = previousMessages?.[channelId] || [];
-
-          channelMessages.forEach((message, index) => {
-            const previousMessage = previousChannelMessages[index];
-
-            if (previousMessage) {
-              Object.entries(message.reactions).forEach(([emoji, userIds]) => {
-                const previousUserIds = previousMessage.reactions[emoji] || [];
-                const newUserIds = userIds.filter(
-                  (id) => !previousUserIds.includes(id),
-                );
-
-                newUserIds.forEach((userId) => {
-                  // Simular nome do usuário (em um cenário real, buscar do sistema)
-                  const userName = `Usuário ${userId}`;
-
-                  const newToast: ReactionToast = {
-                    id: `${message.id}-${emoji}-${userId}-${Date.now()}`,
-                    emoji,
-                    userName,
-                    messageId: message.id,
-                    timestamp: new Date(),
-                  };
-
-                  setToasts((prev) => [...prev, newToast]);
-
-                  // Auto remover após 3 segundos
-                  setTimeout(() => {
-                    setToasts((prev) =>
-                      prev.filter((t) => t.id !== newToast.id),
-                    );
-                  }, 3000);
-                });
-              });
-            }
-          });
-        });
-      },
-    );
-
-    return unsubscribe;
-  }, []);
+    // Simplified implementation - reactions will be handled by other components
+    // This component is temporarily disabled during store migration
+  }, [internalChat.messages]);
 
   if (toasts.length === 0) {
     return null;

@@ -28,7 +28,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Badge } from "@/shared/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useInternalChat } from "@/shared/store/unifiedChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import {
