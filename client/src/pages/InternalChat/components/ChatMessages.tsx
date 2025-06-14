@@ -28,9 +28,21 @@ interface InternalChatMessage {
   content: string;
   userId: number;
   userName: string;
+  userAvatar?: string;
   timestamp: Date;
-  type: 'text' | 'image' | 'file' | 'audio';
+  type?: string;
+  messageType?: string;
   metadata?: any;
+  edited?: boolean;
+  editedAt?: Date;
+  isImportant?: boolean;
+  reminderDate?: Date;
+  replyTo?: string;
+  reactions?: Array<{
+    emoji: string;
+    userIds: number[];
+    count: number;
+  }>;
 }
 
 // Componente para exibir arquivos no chat interno
@@ -328,18 +340,18 @@ export function ChatMessages() {
               )}
 
               {/* Reactions */}
-              {Object.keys(message.reactions).length > 0 && (
+              {message.reactions && message.reactions.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {Object.entries(message.reactions).map(([emoji, userIds]) => (
+                  {message.reactions.map((reaction) => (
                     <Button
-                      key={emoji}
+                      key={reaction.emoji}
                       variant="ghost"
                       size="sm"
                       className="h-6 px-2 text-xs hover:bg-accent"
-                      onClick={() => handleReaction(message.id, emoji)}
+                      onClick={() => handleReaction(message.id, reaction.emoji)}
                     >
-                      <span className="mr-1">{emoji}</span>
-                      <span>{userIds.length}</span>
+                      <span className="mr-1">{reaction.emoji}</span>
+                      <span>{reaction.count}</span>
                     </Button>
                   ))}
                 </div>

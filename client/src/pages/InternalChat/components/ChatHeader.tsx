@@ -72,7 +72,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
       {/* Channel Info */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          {getChannelIcon(channel.type)}
+          {getChannelIcon(channel.type || 'team')}
           <div>
             <h3 className="font-semibold text-foreground">{channel.name}</h3>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -86,7 +86,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
                   </div>
                 </>
               )}
-              {channel.participants.length > 0 && (
+              {channel.participants && channel.participants.length > 0 && (
                 <>
                   <span>•</span>
                   <span>{channel.participants.length} membros</span>

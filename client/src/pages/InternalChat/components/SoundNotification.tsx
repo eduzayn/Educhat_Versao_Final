@@ -1,25 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 
 export function SoundNotification() {
   const store = useUnifiedChatStore();
   const soundEnabled = store.soundEnabled;
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const lastMessageCountRef = useRef(0);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
 
-  // Criar áudio de notificação usando Web Audio API
+  // Criar áudio de notificação
   useEffect(() => {
-    if (!audioRef.current) {
-      const audio = new Audio();
-      // Som de notificação simples usando data URI
-      audio.src =
-        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBziNze3HnTELJHfJ8N2QPAkTXrPo66hWEwlEneDyvWMcBzmDwvW+nTELJXLH7N2QQAoUXrPo66hWEwlEneDyvWMcBzeGwfS+nTELJXPH7d2SPAoTYfPo66hWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTAL";
-      audioRef.current = audio;
-    }
+    const newAudio = new Audio();
+    newAudio.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBziNze3HnTELJHfJ8N2QPAkTXrPo66hWEwlEneDyvWMcBzmDwvW+nTELJXLH7N2QQAoUXrPo66hWEwlEneDyvWMcBzeGwfS+nTELJXPH7d2SPAoTYfPo66hWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTALJXPH7d2SPAoUX7Pm66dWEwlEm+DyvWMcBzeGwfS+nTAL";
+    setAudio(newAudio);
   }, []);
 
   // Monitorar novas mensagens e tocar som
   useEffect(() => {
+    if (!soundEnabled || !audio) return;
+
     const unsubscribe = useUnifiedChatStore.subscribe(
       (state) => state.internal.messages,
       (messages) => {
@@ -28,14 +26,10 @@ export function SoundNotification() {
           0,
         );
 
-        if (
-          totalMessages > lastMessageCountRef.current &&
-          soundEnabled &&
-          audioRef.current
-        ) {
+        if (totalMessages > lastMessageCount && lastMessageCount > 0) {
           try {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(() => {
+            audio.currentTime = 0;
+            audio.play().catch(() => {
               // Ignorar erro se o usuário não interagiu ainda com a página
             });
           } catch (error) {
@@ -43,12 +37,12 @@ export function SoundNotification() {
           }
         }
 
-        lastMessageCountRef.current = totalMessages;
+        setLastMessageCount(totalMessages);
       },
     );
 
     return unsubscribe;
-  }, [soundEnabled]);
+  }, [soundEnabled, audio, lastMessageCount]);
 
   return null;
 }
