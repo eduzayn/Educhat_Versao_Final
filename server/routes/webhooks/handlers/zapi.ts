@@ -413,6 +413,146 @@ export async function handleSendVideo(req: Request, res: Response) {
   }
 }
 
+// Configuração do multer para documentos
+const uploadDocument = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB máximo para documentos
+    fieldSize: 20 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de documento não permitido'));
+    }
+  }
+});
+
+/**
+ * Handler para envio de documentos via Z-API
+ */
+export async function handleSendDocument(req: Request, res: Response) {
+  try {
+    console.log('📄 Recebendo solicitação de envio de documento:', {
+      hasPhone: !!req.body.phone,
+      hasFile: !!req.file,
+      contentType: req.headers['content-type']
+    });
+    
+    const phone = req.body.phone;
+    const conversationId = req.body.conversationId;
+    
+    if (!phone || !req.file) {
+      return res.status(400).json({ 
+        error: 'Phone e arquivo de documento são obrigatórios' 
+      });
+    }
+
+    const credentials = validateZApiCredentials();
+    if (!credentials.valid) {
+      return res.status(400).json({ error: credentials.error });
+    }
+
+    const { instanceId, token, clientToken } = credentials;
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Converter documento para base64
+    const documentBase64 = req.file.buffer.toString('base64');
+    const dataUrl = `data:${req.file.mimetype};base64,${documentBase64}`;
+    
+    const payload = {
+      phone: cleanPhone,
+      document: dataUrl,
+      fileName: req.file.originalname
+    };
+
+    const url = buildZApiUrl(instanceId, token, 'send-document');
+    console.log('📄 Enviando documento para Z-API:', { 
+      url: url.replace(token, '****'), 
+      phone: cleanPhone,
+      fileName: req.file.originalname,
+      fileSize: req.file.buffer.length,
+      mimeType: req.file.mimetype
+    });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getZApiHeaders(clientToken),
+      body: JSON.stringify(payload)
+    });
+
+    const responseText = await response.text();
+    console.log('📥 Resposta Z-API (documento):', {
+      status: response.status,
+      statusText: response.statusText,
+      body: responseText.substring(0, 200) + '...'
+    });
+
+    if (!response.ok) {
+      console.error('❌ Erro na Z-API (documento):', responseText);
+      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Erro ao parsear resposta JSON (documento):', parseError);
+      throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+    }
+
+    console.log('✅ Documento enviado com sucesso via Z-API:', data);
+    
+    // Salvar mensagem no banco de dados se conversationId foi fornecido
+    if (conversationId) {
+      try {
+        await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: `📄 ${req.file.originalname}`,
+          isFromContact: false,
+          messageType: 'document',
+          sentAt: new Date(),
+          metadata: {
+            zaapId: data.messageId || data.id,
+            documentSent: true,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            mimeType: req.file.mimetype,
+            mediaUrl: dataUrl,
+            originalContent: `📄 ${req.file.originalname}`
+          }
+        });
+
+        // Broadcast para WebSocket
+        const { broadcast } = await import('../../realtime');
+        broadcast(parseInt(conversationId), {
+          type: 'message_sent',
+          conversationId: parseInt(conversationId)
+        });
+      } catch (dbError) {
+        console.error('❌ Erro ao salvar mensagem de documento no banco:', dbError);
+      }
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Erro ao enviar documento via Z-API:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+}
+
 /**
  * Registra rotas Z-API relacionadas a mídia
  */
@@ -420,4 +560,5 @@ export function registerZApiMediaRoutes(app: Express) {
   app.post('/api/zapi/send-image', uploadImage.single('image'), handleSendImage);
   app.post('/api/zapi/send-audio', uploadAudio.single('audio'), handleSendAudio);
   app.post('/api/zapi/send-video', uploadVideo.single('video'), handleSendVideo);
+  app.post('/api/zapi/send-document', uploadDocument.single('document'), handleSendDocument);
 }
