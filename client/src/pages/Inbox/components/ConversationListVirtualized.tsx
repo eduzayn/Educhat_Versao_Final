@@ -346,7 +346,7 @@ export function ConversationListVirtualized({
         className="flex-1 overflow-y-auto"
         style={{ height: 'calc(100vh - 160px)' }}
       >
-        {isLoading && filteredConversations.length === 0 ? (
+        {isLoading && searchFilteredConversations.length === 0 ? (
           <div className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Carregando conversas...</p>
