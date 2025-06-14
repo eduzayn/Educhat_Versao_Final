@@ -10,6 +10,27 @@ export interface UnifiedMessage extends Message {
   channelId?: string; // Para chat interno
 }
 
+export interface InternalChatMessage {
+  id: string;
+  content: string;
+  userId: number;
+  username: string;
+  timestamp: Date;
+  channelId: string;
+  messageType?: string;
+  userAvatar?: string;
+  edited?: boolean;
+  editedAt?: Date;
+  isImportant?: boolean;
+  reminderDate?: Date;
+  replyTo?: string;
+  reactions?: Array<{
+    emoji: string;
+    userIds: number[];
+    count: number;
+  }>;
+}
+
 export interface UnifiedConversation {
   conversation: ConversationWithContact;
   chatType: ChatType;
@@ -30,6 +51,8 @@ export interface ChatUser {
   email: string;
   isOnline: boolean;
   lastSeen?: Date;
+  avatar?: string;
+  roleName?: string;
 }
 
 export interface InternalChannel {
@@ -41,6 +64,8 @@ export interface InternalChannel {
   unreadCount: number;
   lastActivity: Date;
   users: ChatUser[];
+  type?: string; // 'direct', 'group', 'team'
+  participants?: ChatUser[]; // Alias para users
 }
 
 interface UnifiedChatState {
