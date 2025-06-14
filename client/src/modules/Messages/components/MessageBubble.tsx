@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
