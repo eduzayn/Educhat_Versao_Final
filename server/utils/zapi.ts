@@ -2,7 +2,9 @@
  * Utilitários Z-API - Consolidado de server/core/zapi-utils.ts
  */
 
-export function validateZApiCredentials() {
+export function validateZApiCredentials(): 
+  | { valid: false; error: string }
+  | { valid: true; instanceId: string; token: string; clientToken: string } {
   const instanceId = process.env.ZAPI_INSTANCE_ID;
   const token = process.env.ZAPI_TOKEN;
   const clientToken = process.env.ZAPI_CLIENT_TOKEN;

@@ -475,6 +475,10 @@ export async function handleSendDocument(req: Request, res: Response) {
       return res.status(400).json({ error: credentials.error });
     }
 
+    if (!credentials.instanceId || !credentials.token || !credentials.clientToken) {
+      return res.status(400).json({ error: 'Credenciais Z-API incompletas' });
+    }
+
     const { instanceId, token, clientToken } = credentials;
     const cleanPhone = phone.replace(/\D/g, '');
     
