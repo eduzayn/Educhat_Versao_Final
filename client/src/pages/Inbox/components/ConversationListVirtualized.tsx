@@ -24,6 +24,7 @@ interface ConversationListVirtualizedProps {
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
   channels: any[];
+  isSearching?: boolean;
 }
 
 export function ConversationListVirtualized({
@@ -39,7 +40,8 @@ export function ConversationListVirtualized({
   activeConversation,
   onSelectConversation,
   onLoadMore,
-  channels = []
+  channels = [],
+  isSearching = false
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -332,7 +334,11 @@ export function ConversationListVirtualized({
         className="flex-1 overflow-y-auto"
         style={{ height: 'calc(100vh - 160px)' }}
       >
-        {isLoading && conversations.length === 0 ? (
+        {isSearching ? (
+          <div className="p-6 text-center text-gray-500">
+            <p className="text-sm">Digite pelo menos 3 caracteres para buscar</p>
+          </div>
+        ) : isLoading && conversations.length === 0 ? (
           <div className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Carregando conversas...</p>

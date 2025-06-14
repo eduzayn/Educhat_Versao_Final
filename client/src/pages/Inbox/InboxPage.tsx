@@ -32,6 +32,7 @@ export function InboxPage() {
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
@@ -53,11 +54,23 @@ export function InboxPage() {
   // Estado para debounce da busca
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-  // Debounce do termo de busca - aguarda 500ms após parar de digitar
+  // Debounce do termo de busca - aguarda 1200ms após parar de digitar
   useEffect(() => {
+    // Controlar estado de busca
+    if (searchTerm.length > 0 && searchTerm.length < 3) {
+      setIsSearching(true);
+    } else {
+      setIsSearching(false);
+    }
+
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm.trim());
-    }, 500);
+      const trimmed = searchTerm.trim();
+      // Só atualiza se mudou significativamente ou está vazio
+      if (trimmed.length === 0 || trimmed.length >= 3) {
+        setDebouncedSearchTerm(trimmed);
+        setIsSearching(false);
+      }
+    }, 1200);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -65,10 +78,10 @@ export function InboxPage() {
   // Hook unificado para conversas com busca integrada
   const conversationsQuery = useInfiniteConversations(100, {
     searchTerm: debouncedSearchTerm,
-    refetchInterval: debouncedSearchTerm ? false : 10000,
-    staleTime: 5000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchInterval: debouncedSearchTerm ? false : 15000,
+    staleTime: debouncedSearchTerm ? 60000 : 10000, // Cache mais longo para buscas
+    refetchOnWindowFocus: false, // Evita refetch ao focar
+    refetchOnMount: false // Evita refetch desnecessário
   });
 
   // Dados consolidados com filtragem
@@ -285,6 +298,7 @@ export function InboxPage() {
           onSelectConversation={handleSelectConversation}
           onLoadMore={() => fetchNextPage()}
           channels={channels}
+          isSearching={isSearching}
         />
       </div>
 
