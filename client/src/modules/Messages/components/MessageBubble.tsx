@@ -50,15 +50,16 @@ const renderTextWithLinks = (text: string | null) => {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-700 underline break-all inline-flex items-center gap-1"
+          className="text-blue-600 hover:text-blue-800 underline decoration-blue-600 underline-offset-2 break-all inline-flex items-center gap-1 font-medium"
+          style={{ color: '#2563eb', textDecoration: 'underline' }}
           onClick={(e) => e.stopPropagation()}
         >
           {part}
-          <ExternalLink className="w-3 h-3 flex-shrink-0" />
+          <ExternalLink className="w-3 h-3 flex-shrink-0 text-blue-600" />
         </a>
       );
     }
-    return part;
+    return <span key={index}>{part}</span>;
   });
 };
 
