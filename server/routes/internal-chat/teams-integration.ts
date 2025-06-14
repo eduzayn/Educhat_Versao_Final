@@ -314,5 +314,57 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
   // Exportar função para uso em outras partes do sistema
   (global as any).createTeamChannel = createTeamChannel;
 
+  // Rota para upload de arquivos no chat interno
+  app.post('/api/internal-chat/upload', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'Nenhum arquivo foi enviado' });
+      }
+
+      const { channelId, userId } = req.body;
+
+      if (!channelId) {
+        return res.status(400).json({ error: 'Canal é obrigatório' });
+      }
+
+      // Gerar URL do arquivo
+      const fileUrl = `/uploads/internal-chat/${req.file.filename}`;
+
+      // Retornar informações do arquivo
+      const fileInfo = {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype,
+        fileUrl: fileUrl,
+        uploadedAt: new Date(),
+        uploadedBy: req.user.id,
+        channelId: channelId
+      };
+
+      console.log(`📎 Arquivo enviado no chat interno:`, {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        channel: channelId,
+        user: req.user.displayName || req.user.username
+      });
+
+      res.json({
+        success: true,
+        fileUrl: fileUrl,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype
+      });
+
+    } catch (error) {
+      console.error('Erro no upload de arquivo:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   console.log('✅ Chat interno integrado com sistema de equipes e usuários');
 }
