@@ -19,50 +19,64 @@ export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
     const startTime = Date.now();
 
-    // 🔒 PROTEGIDO: Query ultra-otimizada com LEFT JOIN para última mensagem
-    const conversationsData = await this.db.execute(sql`
-      WITH last_messages AS (
-        SELECT DISTINCT ON (m.conversation_id)
-          m.conversation_id,
-          m.content,
-          m.message_type,
-          m.is_from_contact,
-          m.sent_at
-        FROM ${messages} m
-        WHERE m.is_deleted = false
-        ORDER BY m.conversation_id, m.sent_at DESC
+    // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
+    const conversationsData = await this.db
+      .select({
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        isRead: conversations.isRead,
+        priority: conversations.priority,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        // Apenas campos essenciais do contato
+        contactName: contacts.name,
+        contactPhone: contacts.phone,
+        contactProfileImage: contacts.profileImageUrl
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(limit)
+      .offset(offset);
+
+    // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
+    const conversationIds = conversationsData.map(conv => conv.id);
+    const lastMessages = conversationIds.length > 0 ? await this.db
+      .select({
+        conversationId: messages.conversationId,
+        content: messages.content,
+        messageType: messages.messageType,
+        isFromContact: messages.isFromContact,
+        sentAt: messages.sentAt
+      })
+      .from(messages)
+      .where(
+        and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.isDeleted, false)
+        )
       )
-      SELECT 
-        c.id,
-        c.contact_id,
-        c.channel,
-        c.status,
-        c.last_message_at,
-        c.unread_count,
-        c.assigned_team_id,
-        c.assigned_user_id,
-        c.is_read,
-        c.priority,
-        c.created_at,
-        c.updated_at,
-        ct.name as contact_name,
-        ct.phone as contact_phone,
-        ct.profile_image_url as contact_profile_image,
-        lm.content as last_message_content,
-        lm.message_type as last_message_type,
-        lm.is_from_contact as last_message_from_contact,
-        lm.sent_at as last_message_sent_at
-      FROM ${conversations} c
-      INNER JOIN ${contacts} ct ON c.contact_id = ct.id
-      LEFT JOIN last_messages lm ON c.id = lm.conversation_id
-      ORDER BY c.last_message_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `);
+      .orderBy(desc(messages.sentAt)) : [];
+
+    // Agrupar mensagens por conversa (apenas a última de cada)
+    const messagesByConversation = new Map();
+    for (const msg of lastMessages) {
+      if (!messagesByConversation.has(msg.conversationId)) {
+        messagesByConversation.set(msg.conversationId, msg);
+      }
+    }
 
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados com prévias das mensagens otimizadas
+    // Retornar dados com prévias das mensagens
     return conversationsData.map(conv => ({
       id: conv.id,
       contactId: conv.contactId,
@@ -103,13 +117,9 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: conv.lastMessageContent ? [{
-        conversationId: conv.id,
-        content: conv.lastMessageContent,
-        messageType: conv.lastMessageType,
-        isFromContact: conv.lastMessageFromContact,
-        sentAt: conv.lastMessageSentAt
-      }] : [],
+      messages: messagesByConversation.has(conv.id) ? 
+        [messagesByConversation.get(conv.id)] : 
+        [],
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
