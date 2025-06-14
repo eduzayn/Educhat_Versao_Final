@@ -109,7 +109,8 @@ export function MessageBubble({
     // Mensagens enviadas pelo agente podem ser deletadas via Z-API em até 7 minutos
     // Verificar se tem metadados Z-API (messageId ou zaapId)
     const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
-    const hasZapiId = metadata.messageId || metadata.zaapId || metadata.id;
+    const metadataAny = metadata as any;
+    const hasZapiId = metadataAny?.messageId || metadataAny?.zaapId || metadataAny?.id;
     
     return timeDifference <= sevenMinutesInMs && !!hasZapiId;
   };
@@ -505,13 +506,12 @@ export function MessageBubble({
 
     if (message.messageType === 'unsupported') {
       return (
-        <div className={`px-4 py-3 rounded-lg border-2 border-dashed border-yellow-300 bg-yellow-50 ${isFromContact ? 'border-l-4 border-l-yellow-500' : 'border-r-4 border-r-yellow-500'}`}>
-          <div className="flex items-center gap-2 text-sm text-yellow-800">
+        <div className={`px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 ${isFromContact ? 'border-l-4 border-l-gray-400' : 'border-r-4 border-r-gray-400'}`}>
+          <div className="flex items-center gap-2 text-sm text-gray-700">
             <AlertTriangle className="h-4 w-4" />
-            <span className="font-medium">Tipo de mensagem não suportado</span>
+            <span className="font-medium">Conteúdo não disponível</span>
           </div>
-          <p className="text-sm mt-1 text-yellow-700">{message.content}</p>
-          <p className="text-xs mt-2 text-yellow-600">Este tipo de conteúdo ainda não é totalmente suportado pelo sistema</p>
+          <p className="text-sm mt-1 text-gray-600">Este tipo de mensagem não pode ser exibido no momento.</p>
         </div>
       );
     }
