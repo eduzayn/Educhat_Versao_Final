@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -71,30 +71,12 @@ export function useWebSocket() {
         addMessage(data.conversationId, data.message);
         updateConversationLastMessage(data.conversationId, data.message);
         
-        // Invalidação imediata para atualização em tempo real
+        // Invalidação otimizada - apenas invalidar, não refetch duplo
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
           queryKey: [`/api/conversations/${data.conversationId}/messages`] 
         });
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-        
-        // Force refetch prioritário
-        Promise.all([
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations'], 
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: [`/api/conversations/${data.conversationId}/messages`],
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations/unread-count'],
-            type: 'active'
-          })
-        ]).catch(error => {
-          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
-        });
         
         return;
       }
@@ -174,7 +156,6 @@ export function useWebSocket() {
             });
             
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-            queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
             });
@@ -189,24 +170,10 @@ export function useWebSocket() {
               status: data.conversation.status
             });
             
-            // Invalidar e recarregar queries relacionadas à conversa
+            // Invalidação otimizada
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
-            });
-            
-            // Force refetch imediato para atualizar o cabeçalho
-            Promise.all([
-              queryClient.refetchQueries({ 
-                queryKey: ['/api/conversations'], 
-                type: 'active'
-              }),
-              queryClient.refetchQueries({ 
-                queryKey: [`/api/conversations/${data.conversationId}`],
-                type: 'active'
-              })
-            ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após atualização da conversa:', error);
             });
           }
           break;
@@ -218,24 +185,10 @@ export function useWebSocket() {
               assignedUserName: data.conversation.assignedUserName
             });
             
-            // Invalidar cache para atualizar a interface
+            // Invalidação otimizada
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
-            });
-            
-            // Force refetch para atualização imediata
-            Promise.all([
-              queryClient.refetchQueries({ 
-                queryKey: ['/api/conversations'], 
-                type: 'active'
-              }),
-              queryClient.refetchQueries({ 
-                queryKey: [`/api/conversations/${data.conversationId}`],
-                type: 'active'
-              })
-            ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após atribuição:', error);
             });
           }
           break;
@@ -247,24 +200,10 @@ export function useWebSocket() {
               previousUserName: data.previousUserName
             });
             
-            // Invalidar cache para atualizar a interface
+            // Invalidação otimizada
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
-            });
-            
-            // Force refetch para atualização imediata
-            Promise.all([
-              queryClient.refetchQueries({ 
-                queryKey: ['/api/conversations'], 
-                type: 'active'
-              }),
-              queryClient.refetchQueries({ 
-                queryKey: [`/api/conversations/${data.conversationId}`],
-                type: 'active'
-              })
-            ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após remoção:', error);
             });
           }
           break;
