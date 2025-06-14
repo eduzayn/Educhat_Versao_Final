@@ -10,10 +10,15 @@ import { TypingIndicatorGlobal } from './components/TypingIndicatorGlobal';
 import { SoundNotification } from './components/SoundNotification';
 import { EmojiReactionToast } from './components/EmojiReactionToast';
 import { useUnifiedChatStore } from '@/shared/store/unifiedChatStore';
+import { useUserActivity } from '@/shared/lib/hooks/useUserActivity';
+
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);
   const store = useUnifiedChatStore();
   const activeChannel = store.internal.activeChannel;
+  
+  // Ativar sistema de status online
+  useUserActivity();
 
   // Carregar canais baseados nas equipes do usuário na inicialização
   useEffect(() => {
