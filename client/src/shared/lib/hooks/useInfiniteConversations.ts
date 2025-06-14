@@ -24,10 +24,11 @@ export function useInfiniteConversations(
   
   return useInfiniteQuery<ConversationsResponse>({
     queryKey: ['/api/conversations/infinite', { limit, searchTerm }],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam = 0 }: { pageParam: unknown }) => {
+      const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({
         limit: limit.toString(),
-        offset: pageParam.toString()
+        offset: offset.toString()
       });
       
       if (searchTerm?.trim()) {

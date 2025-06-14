@@ -94,49 +94,20 @@ export function InboxPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Busca no servidor quando há termo de busca (após debounce)
-  const searchQuery = useQuery({
-    queryKey: ['/api/conversations/search', debouncedSearchTerm],
-    queryFn: async () => {
-      if (!debouncedSearchTerm) return [];
-      
-      const response = await fetch(`/api/conversations?search=${encodeURIComponent(debouncedSearchTerm)}&limit=200`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar conversas');
-      }
-      
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    },
-    enabled: !!debouncedSearchTerm,
-    staleTime: 30000,
-  });
-
-  // Scroll infinito normal quando não há busca
-  const infiniteQuery = useInfiniteConversations(100, {
-    enabled: !debouncedSearchTerm,
-    refetchInterval: 10000,
+  // Hook unificado para conversas com busca integrada
+  const conversationsQuery = useInfiniteConversations(100, {
+    searchTerm: debouncedSearchTerm,
+    refetchInterval: debouncedSearchTerm ? false : 10000,
     staleTime: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
 
-  // Determinar dados a usar baseado no estado
-  const conversations = debouncedSearchTerm 
-    ? (searchQuery.data || [])
-    : (infiniteQuery.data?.pages.flatMap(page => page.conversations) || []);
-  
-  const isLoadingConversations = debouncedSearchTerm 
-    ? searchQuery.isLoading 
-    : infiniteQuery.isLoading;
-    
-  const hasNextPage = debouncedSearchTerm 
-    ? false 
-    : infiniteQuery.hasNextPage;
-    
-  const fetchNextPage = debouncedSearchTerm 
-    ? () => {} 
-    : infiniteQuery.fetchNextPage;
+  // Dados consolidados
+  const conversations = conversationsQuery.data?.pages.flatMap(page => page.conversations) || [];
+  const isLoadingConversations = conversationsQuery.isLoading;
+  const hasNextPage = conversationsQuery.hasNextPage;
+  const fetchNextPage = conversationsQuery.fetchNextPage;
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -335,11 +306,7 @@ export function InboxPage() {
       }
 
       // Invalidar cache para recarregar conversas
-      if (debouncedSearchTerm) {
-        searchQuery.refetch();
-      } else {
-        infiniteQuery.refetch();
-      }
+      conversationsQuery.refetch();
       
       toast({
         title: "Status atualizado",
@@ -433,11 +400,7 @@ export function InboxPage() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
-          if (debouncedSearchTerm) {
-            searchQuery.refetch();
-          } else {
-            infiniteQuery.refetch();
-          }
+          conversationsQuery.refetch();
         }}
       />
     </div>
