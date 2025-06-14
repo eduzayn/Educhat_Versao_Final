@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useLocation } from "wouter";
 import { ChatSettings } from "./ChatSettings";
 

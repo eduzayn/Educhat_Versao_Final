@@ -11,7 +11,9 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 export function ChannelSidebar() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { channels, activeChannel, setActiveChannel } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const channels = store.internal.channels;
+  const activeChannel = store.internal.activeChannel;
   const { user } = useAuth();
 
   const filteredChannels = channels.filter(
@@ -21,20 +23,17 @@ export function ChannelSidebar() {
   );
 
   const handleChannelSelect = (channelId: string) => {
-    setActiveChannel(channelId);
+    store.setActiveChannel(channelId);
   };
 
-  const getChannelIcon = (type: string) => {
-    switch (type) {
-      case "general":
-        return <Hash className="h-4 w-4" />;
-      case "team":
-        return <Users className="h-4 w-4" />;
-      case "direct":
-        return <div className="h-2 w-2 bg-green-500 rounded-full" />;
-      default:
-        return <Hash className="h-4 w-4" />;
+  const getChannelIcon = (channel: any) => {
+    if (channel.isPrivate) {
+      return <MessageCircle className="h-4 w-4" />;
     }
+    if (channel.teamId) {
+      return <Users className="h-4 w-4" />;
+    }
+    return <Hash className="h-4 w-4" />;
   };
 
   const formatLastActivity = (date: Date) => {
