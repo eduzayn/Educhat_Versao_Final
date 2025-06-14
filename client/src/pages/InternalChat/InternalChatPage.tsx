@@ -10,8 +10,6 @@ import { TypingIndicatorGlobal } from './components/TypingIndicatorGlobal';
 import { SoundNotification } from './components/SoundNotification';
 import { EmojiReactionToast } from './components/EmojiReactionToast';
 import { useUnifiedChatStore } from '@/shared/store/unifiedChatStore';
-import { useOnlineStatus } from '@/shared/lib/hooks/useOnlineStatus';
-
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);
   const store = useUnifiedChatStore();

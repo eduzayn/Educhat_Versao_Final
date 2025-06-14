@@ -291,7 +291,7 @@ export function setupAuthWithRoutes(app: Express) {
           return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
         }
 
-        req.login(user, (loginErr) => {
+        req.login(user, async (loginErr) => {
           if (loginErr) {
             console.error("❌ Erro ao estabelecer sessão:", loginErr);
             console.error("Session error stack:", loginErr.stack);
@@ -304,6 +304,13 @@ export function setupAuthWithRoutes(app: Express) {
             sessionId: req.sessionID,
             sessionSaved: !!req.session
           });
+
+          // Marcar usuário como online no login
+          try {
+            await storage.updateUserOnlineStatus(user.id, true);
+          } catch (updateError) {
+            console.error("⚠️ Erro ao atualizar status online:", updateError);
+          }
           
           res.json(user);
         });

@@ -7,7 +7,7 @@ export function useOnlineStatus() {
   const isOnlineRef = useRef(false);
 
   const updateUserStatus = async (isOnline: boolean) => {
-    if (!user?.id || isOnlineRef.current === isOnline) return;
+    if (!user || isOnlineRef.current === isOnline) return;
 
     try {
       await fetch('/api/internal-chat/user/status', {
@@ -25,7 +25,7 @@ export function useOnlineStatus() {
   };
 
   const sendHeartbeat = async () => {
-    if (!user?.id) return;
+    if (!user) return;
 
     try {
       await fetch('/api/internal-chat/user/heartbeat', {
@@ -55,7 +55,7 @@ export function useOnlineStatus() {
   };
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
 
     // Marcar como online quando o componente monta
     updateUserStatus(true);
@@ -101,7 +101,7 @@ export function useOnlineStatus() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [user?.id]);
+  }, [user]);
 
   return {
     updateUserStatus,
