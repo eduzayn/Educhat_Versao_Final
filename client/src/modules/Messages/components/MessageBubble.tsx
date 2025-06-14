@@ -570,7 +570,9 @@ export function MessageBubble({
           </div>
         )}
         {message.content ? (
-          <p className="text-sm">{renderTextWithLinks(message.content)}</p>
+          <div className="text-sm">
+            <TextWithLinksAndPreviews text={message.content} />
+          </div>
         ) : (
           <div className="text-sm text-gray-500 italic">
             <p>Mensagem sem conteúdo de texto</p>
