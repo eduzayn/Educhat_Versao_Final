@@ -357,14 +357,32 @@ export function MessageBubble({
 
     // Renderizar figurinha
     if (message.messageType === 'sticker') {
+      const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
+      let stickerUrl = null;
+
+      // Tentar obter URL da figurinha dos metadados
+      if ('sticker' in metadata && metadata.sticker) {
+        const stickerData = metadata.sticker as any;
+        stickerUrl = stickerData.stickerUrl || stickerData.url;
+      }
+      
+      // Se não tiver nos metadados, verificar se está no content
+      if (!stickerUrl && message.content) {
+        if (message.content.startsWith('data:') || message.content.startsWith('http')) {
+          stickerUrl = message.content;
+        }
+      }
+
       return (
         <div className="max-w-xs">
-          {message.content && message.content.startsWith('data:') ? (
-            <img
-              src={message.content}
-              alt="Figurinha"
-              className="max-w-full h-auto rounded-lg"
-              style={{ maxHeight: '200px', maxWidth: '200px' }}
+          {stickerUrl ? (
+            <LazyMediaContent
+              messageId={message.id}
+              messageType="image"
+              conversationId={conversationId}
+              isFromContact={isFromContact}
+              metadata={message.metadata}
+              initialContent={stickerUrl}
             />
           ) : (
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-100">
@@ -373,6 +391,20 @@ export function MessageBubble({
             </div>
           )}
         </div>
+      );
+    }
+
+    // Renderizar GIFs
+    if (message.messageType === 'gif') {
+      return (
+        <LazyMediaContent
+          messageId={message.id}
+          messageType="image"
+          conversationId={conversationId}
+          isFromContact={isFromContact}
+          metadata={message.metadata}
+          initialContent={message.content}
+        />
       );
     }
 

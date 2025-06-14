@@ -77,9 +77,18 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         messageType = 'image';
         // Para imagens, armazenar a URL no content para exibição direta
         const imageUrl = webhookData.image.imageUrl || webhookData.image.url;
-        messageContent = imageUrl || `📷 ${webhookData.image.caption || 'Imagem'}`;
+        let finalFileName = webhookData.image.fileName || 'image.jpg';
+        
+        // Detectar GIFs baseado no tipo MIME ou extensão do arquivo
+        if (webhookData.image.mimeType === 'image/gif' || finalFileName.toLowerCase().endsWith('.gif')) {
+          messageType = 'gif';
+          messageContent = imageUrl || `🎬 ${webhookData.image.caption || 'GIF'}`;
+        } else {
+          messageContent = imageUrl || `📷 ${webhookData.image.caption || 'Imagem'}`;
+        }
+        
         mediaUrl = imageUrl;
-        fileName = webhookData.image.fileName || 'image.jpg';
+        fileName = finalFileName;
       } else if (webhookData.audio) {
         messageType = 'audio';
         const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
@@ -206,6 +215,14 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
               url: webhookData.document.documentUrl || webhookData.document.url,
               fileName: webhookData.document.fileName || 'document.pdf',
               mimeType: webhookData.document.mimeType || 'application/pdf'
+            }
+          } : {}),
+          ...(messageType === 'sticker' && webhookData.sticker ? {
+            sticker: {
+              stickerUrl: webhookData.sticker.stickerUrl || webhookData.sticker.url,
+              url: webhookData.sticker.stickerUrl || webhookData.sticker.url,
+              fileName: webhookData.sticker.fileName || 'sticker.webp',
+              mimeType: webhookData.sticker.mimeType || 'image/webp'
             }
           } : {})
         }
