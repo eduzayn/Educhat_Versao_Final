@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Badge } from '@/shared/ui/badge';
 import { ContactDialog } from '@/shared/components/ContactDialog';
 import { MessageSquare } from 'lucide-react';
@@ -71,8 +71,40 @@ export function InboxPage() {
     refetchOnMount: true
   });
 
-  // Dados consolidados
-  const conversations = conversationsQuery.data?.pages.flatMap(page => page.conversations) || [];
+  // Dados consolidados com filtragem
+  const allConversations = conversationsQuery.data?.pages.flatMap(page => page.conversations) || [];
+  
+  // Aplicar filtros no componente pai
+  const filteredConversations = useMemo(() => {
+    return allConversations.filter(conversation => {
+      // Filtro por status
+      if (statusFilter !== 'all' && conversation.status !== statusFilter) {
+        return false;
+      }
+      
+      // Filtro por canal
+      if (channelFilter !== 'all') {
+        if (channelFilter.startsWith('whatsapp-')) {
+          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
+          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
+        }
+        return conversation.channel === channelFilter;
+      }
+      
+      // Filtro por canal origem
+      if (canalOrigemFilter !== 'all' && conversation.contact?.canalOrigem !== canalOrigemFilter) {
+        return false;
+      }
+      
+      // Filtro por nome do canal
+      if (nomeCanalFilter !== 'all' && conversation.contact?.nomeCanal !== nomeCanalFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [allConversations, statusFilter, channelFilter, canalOrigemFilter, nomeCanalFilter]);
+  
   const isLoadingConversations = conversationsQuery.isLoading;
   const hasNextPage = conversationsQuery.hasNextPage;
   const fetchNextPage = conversationsQuery.fetchNextPage;
@@ -240,7 +272,7 @@ export function InboxPage() {
       <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Lista de Conversas com Scroll Infinito */}
         <ConversationListVirtualized
-          conversations={conversations}
+          conversations={filteredConversations}
           isLoading={isLoadingConversations}
           hasNextPage={hasNextPage || false}
           searchTerm={searchTerm}

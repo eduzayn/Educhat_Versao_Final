@@ -45,45 +45,26 @@ export function ConversationListVirtualized({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [displayCount, setDisplayCount] = useState(50);
 
-  // Filtrar conversas de forma otimizada
-  const filteredConversations = useMemo(() => {
+  // Aplicar filtro de busca apenas (outros filtros já aplicados no pai)
+  const searchFilteredConversations = useMemo(() => {
     if (!conversations) return [];
     
+    if (!searchTerm) return conversations;
+    
+    const searchLower = searchTerm.toLowerCase();
     return conversations.filter(conversation => {
-      // Filtro por busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const nameMatch = conversation.contact?.name?.toLowerCase().includes(searchLower);
-        const phoneMatch = conversation.contact?.phone?.includes(searchTerm);
-        const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower);
-        
-        if (!nameMatch && !phoneMatch && !emailMatch) {
-          return false;
-        }
-      }
+      const nameMatch = conversation.contact?.name?.toLowerCase().includes(searchLower);
+      const phoneMatch = conversation.contact?.phone?.includes(searchTerm);
+      const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower);
       
-      // Filtro por status
-      if (statusFilter !== 'all' && conversation.status !== statusFilter) {
-        return false;
-      }
-      
-      // Filtro por canal
-      if (channelFilter !== 'all') {
-        if (channelFilter.startsWith('whatsapp-')) {
-          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-        }
-        return conversation.channel === channelFilter;
-      }
-      
-      return true;
+      return nameMatch || phoneMatch || emailMatch;
     });
-  }, [conversations, searchTerm, statusFilter, channelFilter]);
+  }, [conversations, searchTerm]);
 
   // Conversas visíveis (limitadas para performance)
   const visibleConversations = useMemo(() => {
-    return filteredConversations.slice(0, displayCount);
-  }, [filteredConversations, displayCount]);
+    return searchFilteredConversations.slice(0, displayCount);
+  }, [searchFilteredConversations, displayCount]);
 
   // Detectar scroll para carregar mais
   const handleScroll = useCallback(() => {
@@ -94,8 +75,8 @@ export function ConversationListVirtualized({
     const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
 
     // Carregar mais itens da lista atual
-    if (isNearBottom && displayCount < filteredConversations.length) {
-      setDisplayCount(prev => Math.min(prev + 25, filteredConversations.length));
+    if (isNearBottom && displayCount < searchFilteredConversations.length) {
+      setDisplayCount(prev => Math.min(prev + 25, searchFilteredConversations.length));
       return;
     }
 
@@ -103,7 +84,7 @@ export function ConversationListVirtualized({
     if (isNearBottom && hasNextPage && !isLoading) {
       onLoadMore();
     }
-  }, [displayCount, filteredConversations.length, hasNextPage, isLoading, onLoadMore]);
+  }, [displayCount, searchFilteredConversations.length, hasNextPage, isLoading, onLoadMore]);
 
   // Throttle do scroll
   const throttledHandleScroll = useCallback(() => {
@@ -370,7 +351,7 @@ export function ConversationListVirtualized({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Carregando conversas...</p>
           </div>
-        ) : filteredConversations.length === 0 ? (
+        ) : searchFilteredConversations.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             <p>Nenhuma conversa encontrada</p>
           </div>
@@ -385,7 +366,7 @@ export function ConversationListVirtualized({
             ))}
             
             {/* Indicador de carregamento para mais conversas */}
-            {(displayCount < filteredConversations.length || hasNextPage) && (
+            {(displayCount < searchFilteredConversations.length || hasNextPage) && (
               <div className="p-4 text-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
                 <p className="text-xs text-gray-500">Carregando mais conversas...</p>
