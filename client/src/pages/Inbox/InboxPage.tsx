@@ -1,51 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Input } from '@/shared/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Separator } from '@/shared/ui/separator';
-import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
-import { Link } from 'wouter';
-import { 
-  Search, 
-  Filter,
-  X, 
-  MoreVertical, 
-  Send, 
-  Paperclip, 
-  Smile,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  Tag,
-  MessageSquare,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  User,
-  Plus
-} from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import { InputArea } from '@/modules/Messages/components/InputArea';
 import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
 import { useQuery } from '@tanstack/react-query';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
-import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
-import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
-import { Textarea } from '@/shared/ui/textarea';
+import { useChannels } from '@/shared/lib/hooks/useChannels';
 import { STATUS_CONFIG } from '@/types/chat';
-import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
-import { InputArea } from '@/modules/Messages/components/InputArea';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';

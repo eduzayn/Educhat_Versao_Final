@@ -11,7 +11,7 @@ interface ChatStore extends ChatState {
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
-  conversations: [], // Mantido por compatibilidade, mas será removido gradualmente
+  conversations: [], // Propriedade mantida apenas para compatibilidade de tipos
   activeConversation: null,
   messages: {},
   typingIndicators: {},
