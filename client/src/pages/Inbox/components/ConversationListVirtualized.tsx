@@ -5,6 +5,7 @@ import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
@@ -50,6 +51,7 @@ export function ConversationListVirtualized({
   const [showFilters, setShowFilters] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [displayCount, setDisplayCount] = useState(50);
+  const [, setLocation] = useLocation();
 
   // Conversas visíveis (limitadas para performance)
   // Busca já processada no backend via useInfiniteConversations
@@ -268,7 +270,12 @@ export function ConversationListVirtualized({
         {/* Linha superior com Dashboard e ações */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:text-gray-800"
+              onClick={() => setLocation('/')}
+            >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Dashboard
             </Button>
