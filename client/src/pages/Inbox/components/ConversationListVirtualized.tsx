@@ -25,6 +25,8 @@ interface ConversationListVirtualizedProps {
   onLoadMore: () => void;
   channels: any[];
   isSearching?: boolean;
+  onAddContact?: () => void;
+  onRefresh?: () => void;
 }
 
 export function ConversationListVirtualized({
@@ -41,7 +43,9 @@ export function ConversationListVirtualized({
   onSelectConversation,
   onLoadMore,
   channels = [],
-  isSearching = false
+  isSearching = false,
+  onAddContact,
+  onRefresh
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -270,10 +274,20 @@ export function ConversationListVirtualized({
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:text-gray-800"
+              onClick={onRefresh}
+            >
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:text-gray-800"
+              onClick={onAddContact}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>

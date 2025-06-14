@@ -306,6 +306,8 @@ export function InboxPage() {
           onLoadMore={() => fetchNextPage()}
           channels={channels}
           isSearching={uiState.isSearching}
+          onAddContact={() => setIsModalOpen(true)}
+          onRefresh={() => conversationsQuery.refetch()}
         />
       </div>
 
