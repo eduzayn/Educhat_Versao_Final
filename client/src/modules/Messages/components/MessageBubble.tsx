@@ -30,6 +30,38 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
+// Função para detectar e renderizar links em texto
+const renderTextWithLinks = (text: string | null) => {
+  if (!text) return text;
+  
+  // Regex para detectar URLs (http, https, www)
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+  
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      // Garantir que URLs com www tenham https://
+      const href = part.startsWith('www.') ? `https://${part}` : part;
+      
+      return (
+        <a
+          key={index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-700 underline break-all inline-flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+          <ExternalLink className="w-3 h-3 flex-shrink-0" />
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 export function MessageBubble({
   message,
   contact,
@@ -526,7 +558,7 @@ export function MessageBubble({
           </div>
         )}
         {message.content ? (
-          <p className="text-sm">{message.content}</p>
+          <p className="text-sm">{renderTextWithLinks(message.content)}</p>
         ) : (
           <div className="text-sm text-gray-500 italic">
             <p>Mensagem sem conteúdo de texto</p>
@@ -631,10 +663,9 @@ export function MessageBubble({
         </div>
 
         <MessageReactions
-          messageId={message.id}
+          message={message}
           conversationId={conversationId || 0}
-          contactPhone={contact.phone}
-          isFromContact={isFromContact}
+          contactPhone={contact.phone ?? ''}
         />
       </div>
     </div>
