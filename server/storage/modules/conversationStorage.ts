@@ -46,22 +46,33 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // Buscar apenas últimas mensagens das conversas carregadas - otimizado
+    // Buscar últimas mensagens otimizada - uma por conversa
     const conversationIds = conversationsData.map(conv => conv.id);
     const lastMessages = new Map();
     
     if (conversationIds.length > 0) {
-      const messageResults = await this.db.execute(sql`
-        SELECT DISTINCT ON (conversation_id) 
-          conversation_id, content, message_type, is_from_contact, sent_at
-        FROM ${messages} 
-        WHERE conversation_id = ANY(${conversationIds}) 
-        AND is_deleted = false
-        ORDER BY conversation_id, sent_at DESC
-      `);
+      const messageResults = await this.db
+        .select({
+          conversationId: messages.conversationId,
+          content: messages.content,
+          messageType: messages.messageType,
+          isFromContact: messages.isFromContact,
+          sentAt: messages.sentAt
+        })
+        .from(messages)
+        .where(
+          and(
+            inArray(messages.conversationId, conversationIds),
+            eq(messages.isDeleted, false)
+          )
+        )
+        .orderBy(desc(messages.sentAt));
       
-      (messageResults.rows as any[]).forEach((msg: any) => {
-        lastMessages.set(msg.conversation_id, msg);
+      // Manter apenas a primeira (mais recente) mensagem por conversa
+      messageResults.forEach(msg => {
+        if (!lastMessages.has(msg.conversationId)) {
+          lastMessages.set(msg.conversationId, msg);
+        }
       });
     }
 
@@ -114,10 +125,10 @@ export class ConversationStorage extends BaseStorage {
         metadata: {},
         conversationId: conv.id,
         content: lastMessages.get(conv.id).content,
-        isFromContact: lastMessages.get(conv.id).is_from_contact,
-        messageType: lastMessages.get(conv.id).message_type,
+        isFromContact: lastMessages.get(conv.id).isFromContact,
+        messageType: lastMessages.get(conv.id).messageType,
         isDeleted: false,
-        sentAt: lastMessages.get(conv.id).sent_at,
+        sentAt: lastMessages.get(conv.id).sentAt,
         deliveredAt: null,
         readAt: null,
         whatsappMessageId: null,
