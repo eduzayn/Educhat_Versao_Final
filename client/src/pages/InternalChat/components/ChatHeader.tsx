@@ -132,22 +132,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
           </>
         )}
 
-        {/* Back to Dashboard */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBackToDashboard}
-              className="h-8 w-8"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Voltar ao Dashboard</p>
-          </TooltipContent>
-        </Tooltip>
+
 
         {/* Chat Settings */}
         <AdvancedChatSettings />

@@ -368,7 +368,7 @@ export function ChatInput() {
       {showAudioRecorder && (
         <div className="mb-2">
           <AudioRecorder
-            onAudioRecorded={handleAudioRecorded}
+            onSendAudio={handleAudioRecorded}
             onCancel={handleCancelAudio}
             className="w-full"
           />
