@@ -19,10 +19,8 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
 } from "lucide-react";
-import {
-  useInternalChatStore,
-  type InternalChatMessage,
-} from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
+import type { InternalChatMessage } from "../store/internalChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 // Componente para exibir arquivos no chat interno

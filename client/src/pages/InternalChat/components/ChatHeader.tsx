@@ -26,7 +26,9 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
-  const { channels, activeChannel } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const channels = store.internal.channels;
+  const activeChannel = store.internal.activeChannel;
   const [, setLocation] = useLocation();
 
   const channel = channels.find((c) => c.id === activeChannel);

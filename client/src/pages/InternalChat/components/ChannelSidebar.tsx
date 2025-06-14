@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Hash, Users, Search, Bell, BellOff, Settings } from "lucide-react";
+import { Hash, Users, Search, Bell, BellOff, Settings, MessageCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
@@ -127,7 +127,7 @@ export function ChannelSidebar() {
                 `}
               >
                 <div className="flex-shrink-0">
-                  {getChannelIcon(channel.type)}
+                  {getChannelIcon(channel)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -150,15 +150,7 @@ export function ChannelSidebar() {
                       </span>
                     </div>
                   </div>
-                  {channel.lastMessage && (
-                    <p className="text-xs text-muted-foreground truncate mt-1">
-                      <span className="font-medium">
-                        {channel.lastMessage.userName}:
-                      </span>{" "}
-                      {channel.lastMessage.content}
-                    </p>
-                  )}
-                  {channel.description && !channel.lastMessage && (
+                  {channel.description && (
                     <p className="text-xs text-muted-foreground truncate mt-1">
                       {channel.description}
                     </p>

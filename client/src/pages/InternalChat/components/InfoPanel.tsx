@@ -13,7 +13,7 @@ import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Separator } from "@/shared/ui/separator";
 import { Button } from "@/shared/ui/button";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { PrivateMessageModal } from "./PrivateMessageModal";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 
