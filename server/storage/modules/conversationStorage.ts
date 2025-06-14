@@ -48,22 +48,26 @@ export class ConversationStorage extends BaseStorage {
 
     // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
     const conversationIds = conversationsData.map(conv => conv.id);
-    const lastMessages = conversationIds.length > 0 ? await this.db
-      .select({
-        conversationId: messages.conversationId,
-        content: messages.content,
-        messageType: messages.messageType,
-        isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt
-      })
-      .from(messages)
-      .where(
-        and(
-          inArray(messages.conversationId, conversationIds),
-          eq(messages.isDeleted, false)
+    let lastMessages = [];
+    
+    if (conversationIds.length > 0) {
+      lastMessages = await this.db
+        .select({
+          conversationId: messages.conversationId,
+          content: messages.content,
+          messageType: messages.messageType,
+          isFromContact: messages.isFromContact,
+          sentAt: messages.sentAt
+        })
+        .from(messages)
+        .where(
+          and(
+            inArray(messages.conversationId, conversationIds),
+            eq(messages.isDeleted, false)
+          )
         )
-      )
-      .orderBy(desc(messages.sentAt)) : [];
+        .orderBy(desc(messages.sentAt));
+    }
 
     // Agrupar mensagens por conversa (apenas a última de cada)
     const messagesByConversation = new Map();
