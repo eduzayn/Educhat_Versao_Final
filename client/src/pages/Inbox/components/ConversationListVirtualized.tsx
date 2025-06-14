@@ -4,7 +4,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Search, Filter, X, MessageSquare } from 'lucide-react';
+import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
@@ -259,6 +259,30 @@ export function ConversationListVirtualized({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Cabeçalho principal */}
+      <div className="p-4 border-b border-gray-200">
+        {/* Linha superior com Dashboard e ações */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Dashboard
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Título */}
+        <h1 className="text-xl font-semibold text-gray-900 mb-4">Conversas</h1>
+      </div>
+
       {/* Header com busca e filtros */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-2 mb-3">
@@ -281,51 +305,49 @@ export function ConversationListVirtualized({
           </Button>
         </div>
 
-        {/* Filtros expandidos */}
-        {showFilters && (
-          <div className="flex gap-2 text-sm">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="open">Aberto</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="resolved">Resolvido</SelectItem>
-                <SelectItem value="closed">Fechado</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Filtros sempre visíveis */}
+        <div className="flex gap-2 text-sm">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="open">Aberto</SelectItem>
+              <SelectItem value="pending">Pendente</SelectItem>
+              <SelectItem value="resolved">Resolvido</SelectItem>
+              <SelectItem value="closed">Fechado</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Canal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-                {channels.map(channel => (
-                  <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
-                    {channel.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={channelFilter} onValueChange={setChannelFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Todos os..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os canais</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="facebook">Facebook</SelectItem>
+              {channels.map(channel => (
+                <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
+                  {channel.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            {(searchTerm || statusFilter !== 'all' || channelFilter !== 'all') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-gray-500"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        )}
+          {(searchTerm || statusFilter !== 'all' || channelFilter !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-gray-500"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Lista com scroll infinito nativo */}
