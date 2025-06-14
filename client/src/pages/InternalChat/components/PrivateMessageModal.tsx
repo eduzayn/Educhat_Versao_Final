@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/shared/ui/dropdown-menu";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import {
@@ -72,7 +72,7 @@ export function PrivateMessageModal({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { playNotificationSound } = useInternalChatStore();
+  const store = useUnifiedChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
