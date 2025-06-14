@@ -119,7 +119,7 @@ export function LazyMediaContent({
     try {
       // Para imagens, usar o conteúdo inicial com proxy se disponível
       if (messageType === 'image' && realInitialContent) {
-        const proxiedUrl = `/api/media/proxy?url=${encodeURIComponent(realInitialContent)}`;
+        const proxiedUrl = `/api/proxy/media?url=${encodeURIComponent(realInitialContent)}`;
         setContent(proxiedUrl);
         setLoaded(true);
         secureLog.debug("Imagem carregada via proxy", { messageId });

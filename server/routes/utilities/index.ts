@@ -696,6 +696,54 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
+  // Endpoint de proxy genérico para mídia - REST: GET /api/proxy/media
+  app.get('/api/proxy/media', async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL é obrigatória' });
+      }
+
+      console.log(`🔄 Proxy de mídia: ${url}`);
+
+      // Fazer requisição para a URL original
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'image/*,*/*',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        timeout: 30000
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      const buffer = await response.arrayBuffer();
+
+      // Configurar headers de resposta
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Content-Length', buffer.byteLength);
+
+      res.send(Buffer.from(buffer));
+
+    } catch (error) {
+      console.error('❌ Erro no proxy de mídia:', error);
+      res.status(500).json({ 
+        error: 'Falha ao carregar mídia',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
   // ✅ CONSOLIDAÇÃO: System Users migrados para /api/admin/users
   // Todas as operações CRUD de usuários foram consolidadas no módulo administrativo
 
