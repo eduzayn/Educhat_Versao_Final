@@ -69,7 +69,6 @@ export function useWebSocket() {
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
-        updateConversationLastMessage(data.conversationId, data.message);
         
         // Invalidação otimizada - apenas invalidar, não refetch duplo
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
@@ -227,7 +226,7 @@ export function useWebSocket() {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
     });
-  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage, queryClient]);
+  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.connected) {
