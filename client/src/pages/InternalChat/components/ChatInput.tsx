@@ -28,7 +28,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Badge } from "@/shared/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { useInternalChat } from "@/shared/store/unifiedChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import {
@@ -79,13 +79,12 @@ export function ChatInput() {
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    activeChannel,
-    addMessage,
-    setTyping,
-    removeTyping,
-    playNotificationSound,
-  } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const activeChannel = store.internal.activeChannel;
+  const addMessage = store.addInternalMessage;
+  const setTyping = store.setInternalTyping;
+  const removeTyping = store.removeInternalTyping;
+  const playNotificationSound = () => {}; // Placeholder for audio functionality
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -186,7 +185,7 @@ export function ChatInput() {
         removeTyping(currentUser.id, activeChannel);
       }
     };
-  }, [message, activeChannel, currentUser]);
+  }, [message, activeChannel, currentUser, setTyping, removeTyping]);
 
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
     if (!activeChannel || !currentUser) return;
