@@ -35,6 +35,7 @@ import webCaptureRouter from "./web-capture/index";
 
 import handoffsRouter from "./handoffs/index";
 import dashboardRouter from "./dashboard/index";
+import { registerLinksRoutes } from "./links/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
@@ -73,6 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/web-capture', webCaptureRouter);
   app.use('/api/handoffs', handoffsRouter);
   app.use('/api/dashboard', dashboardRouter);
+  registerLinksRoutes(app);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);

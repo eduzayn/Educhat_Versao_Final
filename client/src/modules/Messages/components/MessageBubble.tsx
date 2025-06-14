@@ -16,6 +16,7 @@ import {
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";
+import { LinkPreview } from "./LinkPreview";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatTime } from "@/shared/lib/utils/formatters";
@@ -30,19 +31,20 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
-// Função para detectar e renderizar links em texto
-const renderTextWithLinks = (text: string | null) => {
-  if (!text) return text;
+// Componente para renderizar texto com links e previews
+const TextWithLinksAndPreviews = ({ text }: { text: string | null }) => {
+  if (!text) return <span>{text}</span>;
   
   // Regex para detectar URLs (http, https, www)
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-  
   const parts = text.split(urlRegex);
+  const urls: string[] = [];
   
-  return parts.map((part, index) => {
+  const textElements = parts.map((part, index) => {
     if (part.match(urlRegex)) {
       // Garantir que URLs com www tenham https://
       const href = part.startsWith('www.') ? `https://${part}` : part;
+      urls.push(href);
       
       return (
         <a
@@ -61,6 +63,15 @@ const renderTextWithLinks = (text: string | null) => {
     }
     return <span key={index}>{part}</span>;
   });
+
+  return (
+    <div>
+      <div>{textElements}</div>
+      {urls.map((url, index) => (
+        <LinkPreview key={`preview-${index}`} url={url} className="mt-2" />
+      ))}
+    </div>
+  );
 };
 
 export function MessageBubble({
