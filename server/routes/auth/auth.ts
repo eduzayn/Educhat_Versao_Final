@@ -305,12 +305,7 @@ export function setupAuthWithRoutes(app: Express) {
             sessionSaved: !!req.session
           });
 
-          // Marcar usuário como online no login
-          try {
-            await storage.updateUserOnlineStatus(user.id, true);
-          } catch (updateError) {
-            console.error("⚠️ Erro ao atualizar status online:", updateError);
-          }
+
           
           res.json(user);
         });

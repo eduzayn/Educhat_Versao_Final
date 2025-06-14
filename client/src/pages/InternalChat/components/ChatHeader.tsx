@@ -66,7 +66,12 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
     if (!activeChannel) return 0;
     
     const channelUsers = store.internal.channelUsers[activeChannel] || [];
-    return channelUsers.filter(user => user.isOnline).length;
+    // Para canais de equipe, contar usuários online reais
+    if (channel.type === "team" && channelUsers.length > 0) {
+      return channelUsers.filter(user => user.isOnline).length;
+    }
+    // Para canal geral, assumir que há pelo menos 1 usuário online (o próprio usuário logado)
+    return Math.max(1, channelUsers.filter(user => user.isOnline).length);
   };
 
   return (

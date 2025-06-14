@@ -235,6 +235,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
         })
         .where(eq(systemUsers.id, req.user.id));
 
+      console.log(`📱 Status do usuário ${req.user.id} atualizado para: ${isOnline ? 'online' : 'offline'}`);
       res.json({ success: true });
     } catch (error) {
       console.error('Erro ao atualizar status do usuário:', error);
