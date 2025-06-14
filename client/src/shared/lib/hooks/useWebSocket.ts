@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -69,15 +69,31 @@ export function useWebSocket() {
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
+        updateConversationLastMessage(data.conversationId, data.message);
         
-        // Invalidação consolidada em lote para evitar múltiplos requests
+        // Invalidação imediata para atualização em tempo real
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            const key = query.queryKey[0] as string;
-            return key === '/api/conversations' || 
-                   key === `/api/conversations/${data.conversationId}/messages` ||
-                   key === '/api/conversations/unread-count';
-          }
+          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+        
+        // Force refetch prioritário
+        Promise.all([
+          queryClient.refetchQueries({ 
+            queryKey: ['/api/conversations'], 
+            type: 'active'
+          }),
+          queryClient.refetchQueries({ 
+            queryKey: [`/api/conversations/${data.conversationId}/messages`],
+            type: 'active'
+          }),
+          queryClient.refetchQueries({ 
+            queryKey: ['/api/conversations/unread-count'],
+            type: 'active'
+          })
+        ]).catch(error => {
+          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
         });
         
         return;
@@ -126,13 +142,9 @@ export function useWebSocket() {
               teamType: data.teamType
             });
             
-            // Invalidação consolidada para CRM
-            queryClient.invalidateQueries({ 
-              predicate: (query) => {
-                const key = query.queryKey[0] as string;
-                return key === '/api/deals' || key === '/api/conversations';
-              }
-            });
+            // Invalidar queries do CRM para forçar recarregamento
+            queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
           }
           break;
         case 'conversation_assigned':
@@ -147,13 +159,9 @@ export function useWebSocket() {
               method: data.method
             });
             
-            // Invalidação consolidada para conversas
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
-              predicate: (query) => {
-                const key = query.queryKey[0] as string;
-                return key === '/api/conversations' || 
-                       key === `/api/conversations/${data.conversationId}`;
-              }
+              queryKey: [`/api/conversations/${data.conversationId}`] 
             });
           }
           break;
@@ -165,13 +173,10 @@ export function useWebSocket() {
               action: data.action
             });
             
-            // Invalidação consolidada
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
-              predicate: (query) => {
-                const key = query.queryKey[0] as string;
-                return key === '/api/conversations' || 
-                       key === `/api/conversations/${data.conversationId}`;
-              }
+              queryKey: [`/api/conversations/${data.conversationId}`] 
             });
           }
           break;
@@ -184,13 +189,24 @@ export function useWebSocket() {
               status: data.conversation.status
             });
             
-            // Invalidação consolidada
+            // Invalidar e recarregar queries relacionadas à conversa
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
-              predicate: (query) => {
-                const key = query.queryKey[0] as string;
-                return key === '/api/conversations' || 
-                       key === `/api/conversations/${data.conversationId}`;
-              }
+              queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch imediato para atualizar o cabeçalho
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após atualização da conversa:', error);
             });
           }
           break;
@@ -202,13 +218,24 @@ export function useWebSocket() {
               assignedUserName: data.conversation.assignedUserName
             });
             
-            // Invalidação consolidada
+            // Invalidar cache para atualizar a interface
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
-              predicate: (query) => {
-                const key = query.queryKey[0] as string;
-                return key === '/api/conversations' || 
-                       key === `/api/conversations/${data.conversationId}`;
-              }
+              queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch para atualização imediata
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após atribuição:', error);
             });
           }
           break;
@@ -220,10 +247,24 @@ export function useWebSocket() {
               previousUserName: data.previousUserName
             });
             
-            // Invalidação otimizada
+            // Invalidar cache para atualizar a interface
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
+            });
+            
+            // Force refetch para atualização imediata
+            Promise.all([
+              queryClient.refetchQueries({ 
+                queryKey: ['/api/conversations'], 
+                type: 'active'
+              }),
+              queryClient.refetchQueries({ 
+                queryKey: [`/api/conversations/${data.conversationId}`],
+                type: 'active'
+              })
+            ]).catch(error => {
+              console.error('❌ Erro ao atualizar cache após remoção:', error);
             });
           }
           break;
@@ -247,7 +288,7 @@ export function useWebSocket() {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
     });
-  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
+  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.connected) {

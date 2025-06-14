@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward, ExternalLink } from "lucide-react";
+import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
@@ -16,7 +16,6 @@ import {
 import { MessageReactions } from "./MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";
-import { LinkPreview } from "./LinkPreview";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatTime } from "@/shared/lib/utils/formatters";
@@ -30,49 +29,6 @@ interface MessageBubbleProps {
   conversationId?: number;
   onReply?: (message: Message) => void;
 }
-
-// Componente para renderizar texto com links e previews
-const TextWithLinksAndPreviews = ({ text }: { text: string | null }) => {
-  if (!text) return <span>{text}</span>;
-  
-  // Regex para detectar URLs (http, https, www)
-  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-  const parts = text.split(urlRegex);
-  const urls: string[] = [];
-  
-  const textElements = parts.map((part, index) => {
-    if (part.match(urlRegex)) {
-      // Garantir que URLs com www tenham https://
-      const href = part.startsWith('www.') ? `https://${part}` : part;
-      urls.push(href);
-      
-      return (
-        <a
-          key={index}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline decoration-blue-600 underline-offset-2 break-all inline-flex items-center gap-1 font-medium"
-          style={{ color: '#2563eb', textDecoration: 'underline' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {part}
-          <ExternalLink className="w-3 h-3 flex-shrink-0 text-blue-600" />
-        </a>
-      );
-    }
-    return <span key={index}>{part}</span>;
-  });
-
-  return (
-    <div>
-      <div>{textElements}</div>
-      {urls.map((url, index) => (
-        <LinkPreview key={`preview-${index}`} url={url} className="mt-2" />
-      ))}
-    </div>
-  );
-};
 
 export function MessageBubble({
   message,
@@ -570,9 +526,7 @@ export function MessageBubble({
           </div>
         )}
         {message.content ? (
-          <div className="text-sm">
-            <TextWithLinksAndPreviews text={message.content} />
-          </div>
+          <p className="text-sm">{message.content}</p>
         ) : (
           <div className="text-sm text-gray-500 italic">
             <p>Mensagem sem conteúdo de texto</p>
@@ -677,9 +631,10 @@ export function MessageBubble({
         </div>
 
         <MessageReactions
-          message={message}
+          messageId={message.id}
           conversationId={conversationId || 0}
-          contactPhone={contact.phone ?? ''}
+          contactPhone={contact.phone}
+          isFromContact={isFromContact}
         />
       </div>
     </div>

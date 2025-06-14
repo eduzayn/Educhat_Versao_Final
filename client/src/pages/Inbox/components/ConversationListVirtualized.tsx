@@ -4,8 +4,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { Search, Filter, X, MessageSquare } from 'lucide-react';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
@@ -25,9 +24,6 @@ interface ConversationListVirtualizedProps {
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
   channels: any[];
-  isSearching?: boolean;
-  onAddContact?: () => void;
-  onRefresh?: () => void;
 }
 
 export function ConversationListVirtualized({
@@ -43,22 +39,51 @@ export function ConversationListVirtualized({
   activeConversation,
   onSelectConversation,
   onLoadMore,
-  channels = [],
-  isSearching = false,
-  onAddContact,
-  onRefresh
+  channels = []
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [displayCount, setDisplayCount] = useState(50);
-  const [, setLocation] = useLocation();
+
+  // Filtrar conversas de forma otimizada
+  const filteredConversations = useMemo(() => {
+    if (!conversations) return [];
+    
+    return conversations.filter(conversation => {
+      // Filtro por busca
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const nameMatch = conversation.contact?.name?.toLowerCase().includes(searchLower);
+        const phoneMatch = conversation.contact?.phone?.includes(searchTerm);
+        const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower);
+        
+        if (!nameMatch && !phoneMatch && !emailMatch) {
+          return false;
+        }
+      }
+      
+      // Filtro por status
+      if (statusFilter !== 'all' && conversation.status !== statusFilter) {
+        return false;
+      }
+      
+      // Filtro por canal
+      if (channelFilter !== 'all') {
+        if (channelFilter.startsWith('whatsapp-')) {
+          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
+          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
+        }
+        return conversation.channel === channelFilter;
+      }
+      
+      return true;
+    });
+  }, [conversations, searchTerm, statusFilter, channelFilter]);
 
   // Conversas visíveis (limitadas para performance)
-  // Busca já processada no backend via useInfiniteConversations
   const visibleConversations = useMemo(() => {
-    if (!conversations) return [];
-    return conversations.slice(0, displayCount);
-  }, [conversations, displayCount]);
+    return filteredConversations.slice(0, displayCount);
+  }, [filteredConversations, displayCount]);
 
   // Detectar scroll para carregar mais
   const handleScroll = useCallback(() => {
@@ -69,8 +94,8 @@ export function ConversationListVirtualized({
     const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
 
     // Carregar mais itens da lista atual
-    if (isNearBottom && displayCount < conversations.length) {
-      setDisplayCount(prev => Math.min(prev + 25, conversations.length));
+    if (isNearBottom && displayCount < filteredConversations.length) {
+      setDisplayCount(prev => Math.min(prev + 25, filteredConversations.length));
       return;
     }
 
@@ -78,7 +103,7 @@ export function ConversationListVirtualized({
     if (isNearBottom && hasNextPage && !isLoading) {
       onLoadMore();
     }
-  }, [displayCount, conversations.length, hasNextPage, isLoading, onLoadMore]);
+  }, [displayCount, filteredConversations.length, hasNextPage, isLoading, onLoadMore]);
 
   // Throttle do scroll
   const throttledHandleScroll = useCallback(() => {
@@ -265,45 +290,6 @@ export function ConversationListVirtualized({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Cabeçalho principal */}
-      <div className="p-4 border-b border-gray-200">
-        {/* Linha superior com Dashboard e ações */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-gray-600 hover:text-gray-800"
-              onClick={() => setLocation('/')}
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Dashboard
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-gray-600 hover:text-gray-800"
-              onClick={onRefresh}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-gray-600 hover:text-gray-800"
-              onClick={onAddContact}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Título */}
-        <h1 className="text-xl font-semibold text-gray-900 mb-4">Conversas</h1>
-      </div>
-
       {/* Header com busca e filtros */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-2 mb-3">
@@ -326,49 +312,51 @@ export function ConversationListVirtualized({
           </Button>
         </div>
 
-        {/* Filtros sempre visíveis */}
-        <div className="flex gap-2 text-sm">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="resolved">Resolvido</SelectItem>
-              <SelectItem value="closed">Fechado</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Filtros expandidos */}
+        {showFilters && (
+          <div className="flex gap-2 text-sm">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="open">Aberto</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="resolved">Resolvido</SelectItem>
+                <SelectItem value="closed">Fechado</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={channelFilter} onValueChange={setChannelFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Todos os..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os canais</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="instagram">Instagram</SelectItem>
-              <SelectItem value="facebook">Facebook</SelectItem>
-              {channels.map(channel => (
-                <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
-                  {channel.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Canal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
+                {channels.map(channel => (
+                  <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
+                    {channel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          {(searchTerm || statusFilter !== 'all' || channelFilter !== 'all') && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="text-gray-500"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
+            {(searchTerm || statusFilter !== 'all' || channelFilter !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-gray-500"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Lista com scroll infinito nativo */}
@@ -377,16 +365,12 @@ export function ConversationListVirtualized({
         className="flex-1 overflow-y-auto"
         style={{ height: 'calc(100vh - 160px)' }}
       >
-        {isSearching ? (
-          <div className="p-6 text-center text-gray-500">
-            <p className="text-sm">Digite pelo menos 3 caracteres para buscar</p>
-          </div>
-        ) : isLoading && conversations.length === 0 ? (
+        {isLoading && filteredConversations.length === 0 ? (
           <div className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
             <p className="text-sm text-gray-500">Carregando conversas...</p>
           </div>
-        ) : conversations.length === 0 ? (
+        ) : filteredConversations.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             <p>Nenhuma conversa encontrada</p>
           </div>
@@ -401,7 +385,7 @@ export function ConversationListVirtualized({
             ))}
             
             {/* Indicador de carregamento para mais conversas */}
-            {(displayCount < conversations.length || hasNextPage) && (
+            {(displayCount < filteredConversations.length || hasNextPage) && (
               <div className="p-4 text-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
                 <p className="text-xs text-gray-500">Carregando mais conversas...</p>

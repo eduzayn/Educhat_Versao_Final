@@ -1,19 +1,51 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Separator } from '@/shared/ui/separator';
+import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
-import { MessageSquare } from 'lucide-react';
-import { InputArea } from '@/modules/Messages/components/InputArea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Link } from 'wouter';
+import { 
+  Search, 
+  Filter,
+  X, 
+  MoreVertical, 
+  Send, 
+  Paperclip, 
+  Smile,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Tag,
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  User,
+  Plus
+} from 'lucide-react';
 import { useInfiniteConversations } from '@/shared/lib/hooks/useInfiniteConversations';
 import { useQuery } from '@tanstack/react-query';
+import { useMessages } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
+import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
-import { useChannels } from '@/shared/lib/hooks/useChannels';
-import { useContactData } from '@/shared/lib/hooks/useContactData';
+import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
+import { Textarea } from '@/shared/ui/textarea';
 import { STATUS_CONFIG } from '@/types/chat';
+import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
+import { InputArea } from '@/modules/Messages/components/InputArea';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
@@ -25,20 +57,13 @@ import { MessagesArea } from './components/MessagesArea';
 
 export function InboxPage() {
 
-  // Consolidar estados relacionados em um único objeto para reduzir re-renders
-  const [filters, setFilters] = useState({
-    searchTerm: '',
-    statusFilter: 'all',
-    channelFilter: 'all',
-    canalOrigemFilter: 'all',
-    nomeCanalFilter: 'all'
-  });
-  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState('all');
+  const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
+  const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
-  const [uiState, setUiState] = useState({
-    showMobileChat: false,
-    isSearching: false
-  });
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
@@ -60,102 +85,103 @@ export function InboxPage() {
   // Estado para debounce da busca
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-  // Debounce do termo de busca - aguarda 1200ms após parar de digitar
+  // Debounce do termo de busca - aguarda 500ms após parar de digitar
   useEffect(() => {
-    const searchTerm = filters.searchTerm;
-    
-    // Controlar estado de busca em uma única atualização
-    const newIsSearching = searchTerm.length > 0 && searchTerm.length < 3;
-    if (uiState.isSearching !== newIsSearching) {
-      setUiState(prev => ({ ...prev, isSearching: newIsSearching }));
-    }
-
     const timer = setTimeout(() => {
-      const trimmed = searchTerm.trim();
-      // Só atualiza se mudou significativamente ou está vazio
-      if (trimmed.length === 0 || trimmed.length >= 3) {
-        setDebouncedSearchTerm(trimmed);
-        setUiState(prev => ({ ...prev, isSearching: false }));
-      }
-    }, 1200);
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [filters.searchTerm, uiState.isSearching]);
+  }, [searchTerm]);
 
   // Hook unificado para conversas com busca integrada
   const conversationsQuery = useInfiniteConversations(100, {
     searchTerm: debouncedSearchTerm,
-    refetchInterval: debouncedSearchTerm ? false : 15000,
-    staleTime: debouncedSearchTerm ? 60000 : 10000, // Cache mais longo para buscas
-    refetchOnWindowFocus: false, // Evita refetch ao focar
-    refetchOnMount: false // Evita refetch desnecessário
+    refetchInterval: debouncedSearchTerm ? false : 10000,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
-  // Dados consolidados com filtragem
-  const allConversations = conversationsQuery.data?.pages.flatMap(page => page.conversations) || [];
-  
-  // Aplicar filtros no componente pai
-  const filteredConversations = useMemo(() => {
-    return allConversations.filter(conversation => {
-      // Filtro por status
-      if (filters.statusFilter !== 'all' && conversation.status !== filters.statusFilter) {
-        return false;
-      }
-      
-      // Filtro por canal
-      if (filters.channelFilter !== 'all') {
-        if (filters.channelFilter.startsWith('whatsapp-')) {
-          const specificChannelId = parseInt(filters.channelFilter.replace('whatsapp-', ''));
-          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-        }
-        return conversation.channel === filters.channelFilter;
-      }
-      
-      // Filtro por canal origem
-      if (filters.canalOrigemFilter !== 'all' && conversation.contact?.canalOrigem !== filters.canalOrigemFilter) {
-        return false;
-      }
-      
-      // Filtro por nome do canal
-      if (filters.nomeCanalFilter !== 'all' && conversation.contact?.nomeCanal !== filters.nomeCanalFilter) {
-        return false;
-      }
-      
-      return true;
-    });
-  }, [allConversations, filters]);
-  
+  // Dados consolidados
+  const conversations = conversationsQuery.data?.pages.flatMap(page => page.conversations) || [];
   const isLoadingConversations = conversationsQuery.isLoading;
   const hasNextPage = conversationsQuery.hasNextPage;
   const fetchNextPage = conversationsQuery.fetchNextPage;
-  const { activeConversation, setActiveConversation, messages } = useChatStore();
+  const { activeConversation, setActiveConversation, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
     // Marcar como lida na API (store local não precisa mais gerenciar isso)
     markAsReadMutation.mutate(conversation.id);
-    setUiState(prev => ({ ...prev, showMobileChat: true })); // Show chat on mobile when conversation is selected
+    setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
+  
+  const { 
+    data: messages, 
+    isLoading: isLoadingMessages
+  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
   
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [contactNotes, setContactNotes] = useState<any[]>([]);
+  const [contactDeals, setContactDeals] = useState<any[]>([]);
+  const [contactInterests, setContactInterests] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
   const [showNoteDialog, setShowNoteDialog] = useState(false);
-
-  // Usar hook consolidado para dados do contato
-  const {
-    notes: contactNotes,
-    deals: contactDeals,
-    interests: contactInterests,
-    refetch: refetchContactData
-  } = useContactData(activeConversation?.contactId || null);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = Boolean(zapiStatus?.connected && zapiStatus?.smartphoneConnected);
 
-  // Dados do contato agora gerenciados pelo hook consolidado useContactData
+  // Buscar negócios, tags e interesses do contato quando a conversa mudar
+  useEffect(() => {
+    if (activeConversation?.contactId) {
+      fetchContactDeals(activeConversation.contactId);
+      fetchContactNotes(activeConversation.contactId);
+      fetchContactInterests(activeConversation.contactId);
+    }
+  }, [activeConversation?.contactId]);
+
+  const fetchContactDeals = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/deals`);
+      if (response.ok) {
+        const data = await response.json();
+        setContactDeals(Array.isArray(data.deals) ? data.deals : []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar negócios do contato:', error);
+      setContactDeals([]);
+    }
+  };
+
+  const fetchContactNotes = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/notes`);
+      if (response.ok) {
+        const notes = await response.json();
+        setContactNotes(Array.isArray(notes) ? notes : []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar notas do contato:', error);
+      setContactNotes([]);
+    }
+  };
+
+  const fetchContactInterests = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/interests`);
+      if (response.ok) {
+        const interests = await response.json();
+        setContactInterests(Array.isArray(interests) ? interests : []);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar interesses do contato:', error);
+      setContactInterests([]);
+    }
+  };
 
 
 
@@ -186,8 +212,8 @@ export function InboxPage() {
       setNewNote('');
       setShowNoteDialog(false);
       
-      // Recarregar os dados do contato
-      refetchContactData();
+      // Recarregar as notas do contato
+      loadContactNotes();
 
     } catch (error) {
       console.error('Erro ao adicionar nota:', error);
@@ -199,7 +225,25 @@ export function InboxPage() {
     }
   };
 
-  // Dados do contato carregados automaticamente pelo hook useContactData
+  // Função para carregar notas do contato
+  const loadContactNotes = async () => {
+    if (!activeConversation?.contactId) return;
+
+    try {
+      const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`);
+      if (response.ok) {
+        const notes = await response.json();
+        setContactNotes(notes);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    }
+  };
+
+  // Carregar notas quando a conversa ativa mudar
+  useEffect(() => {
+    loadContactNotes();
+  }, [activeConversation?.contactId]);
 
 
 
@@ -289,37 +333,34 @@ export function InboxPage() {
   return (
     <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
-      <div className={`w-80 md:w-80 ${uiState.showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
+      <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Lista de Conversas com Scroll Infinito */}
         <ConversationListVirtualized
-          conversations={filteredConversations}
+          conversations={conversations}
           isLoading={isLoadingConversations}
           hasNextPage={hasNextPage || false}
-          searchTerm={filters.searchTerm}
-          setSearchTerm={(term) => setFilters(prev => ({ ...prev, searchTerm: term }))}
-          statusFilter={filters.statusFilter}
-          setStatusFilter={(status) => setFilters(prev => ({ ...prev, statusFilter: status }))}
-          channelFilter={filters.channelFilter}
-          setChannelFilter={(channel) => setFilters(prev => ({ ...prev, channelFilter: channel }))}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          channelFilter={channelFilter}
+          setChannelFilter={setChannelFilter}
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
           onLoadMore={() => fetchNextPage()}
           channels={channels}
-          isSearching={uiState.isSearching}
-          onAddContact={() => setIsModalOpen(true)}
-          onRefresh={() => conversationsQuery.refetch()}
         />
       </div>
 
       {/* Área de Mensagens */}
-      <div className={`flex-1 flex flex-col ${uiState.showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
+      <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
             {/* Header da Conversa */}
             <ChatHeader
               activeConversation={activeConversation}
-              showMobileChat={uiState.showMobileChat}
-              onMobileBackClick={() => setUiState(prev => ({ ...prev, showMobileChat: false }))}
+              showMobileChat={showMobileChat}
+              onMobileBackClick={() => setShowMobileChat(false)}
               onStatusChange={handleStatusChange}
               getChannelInfo={getChannelInfo}
             />

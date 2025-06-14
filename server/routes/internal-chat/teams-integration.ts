@@ -1,8 +1,5 @@
 import { Express, Request, Response } from 'express';
 import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import { db } from '../../core/db';
 import { 
   systemUsers,
@@ -12,31 +9,6 @@ import {
 } from '../../../shared/schema';
 
 // Usando interface padrão do Express sem extensão
-
-// Configuração do multer para upload de arquivos
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads', 'internal-chat');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${uniqueSuffix}${ext}`);
-  }
-});
-
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
-  fileFilter: (req, file, cb) => {
-    // Aceitar todos os tipos de arquivo por enquanto
-    cb(null, true);
-  }
-});
 
 // Sistema de chat interno integrado com equipes e usuários existentes
 export function registerTeamsIntegratedChatRoutes(app: Express) {
@@ -175,9 +147,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
             username: systemUsers.username,
             displayName: systemUsers.displayName,
             avatar: systemUsers.avatar,
-            roleName: roles.name,
-            isOnline: systemUsers.isOnline,
-            lastSeen: systemUsers.lastActivityAt
+            roleName: roles.name
           })
           .from(systemUsers)
           .leftJoin(roles, eq(systemUsers.roleId, roles.id))
@@ -195,9 +165,7 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
             username: systemUsers.username,
             displayName: systemUsers.displayName,
             avatar: systemUsers.avatar,
-            roleName: roles.name,
-            isOnline: systemUsers.isOnline,
-            lastSeen: systemUsers.lastActivityAt
+            roleName: roles.name
           })
           .from(userTeams)
           .leftJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
@@ -214,53 +182,6 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
       }
     } catch (error) {
       console.error('Erro ao buscar usuários do canal:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Endpoint para atualizar status online do usuário
-  app.post('/api/internal-chat/user/status', async (req: Request, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Usuário não autenticado' });
-      }
-
-      const { isOnline } = req.body;
-      
-      await db
-        .update(systemUsers)
-        .set({ 
-          isOnline: Boolean(isOnline),
-          lastActivityAt: new Date()
-        })
-        .where(eq(systemUsers.id, req.user.id));
-
-      console.log(`📱 Status do usuário ${req.user.id} atualizado para: ${isOnline ? 'online' : 'offline'}`);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Erro ao atualizar status do usuário:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-
-  // Endpoint para heartbeat - manter usuário online
-  app.post('/api/internal-chat/user/heartbeat', async (req: Request, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Usuário não autenticado' });
-      }
-
-      await db
-        .update(systemUsers)
-        .set({ 
-          isOnline: true,
-          lastActivityAt: new Date()
-        })
-        .where(eq(systemUsers.id, req.user.id));
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Erro no heartbeat do usuário:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
@@ -364,58 +285,6 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
 
   // Exportar função para uso em outras partes do sistema
   (global as any).createTeamChannel = createTeamChannel;
-
-  // Rota para upload de arquivos no chat interno
-  app.post('/api/internal-chat/upload', upload.single('file'), async (req: Request, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Usuário não autenticado' });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ error: 'Nenhum arquivo foi enviado' });
-      }
-
-      const { channelId, userId } = req.body;
-
-      if (!channelId) {
-        return res.status(400).json({ error: 'Canal é obrigatório' });
-      }
-
-      // Gerar URL do arquivo
-      const fileUrl = `/uploads/internal-chat/${req.file.filename}`;
-
-      // Retornar informações do arquivo
-      const fileInfo = {
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        fileType: req.file.mimetype,
-        fileUrl: fileUrl,
-        uploadedAt: new Date(),
-        uploadedBy: req.user.id,
-        channelId: channelId
-      };
-
-      console.log(`📎 Arquivo enviado no chat interno:`, {
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        channel: channelId,
-        user: req.user.displayName || req.user.username
-      });
-
-      res.json({
-        success: true,
-        fileUrl: fileUrl,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        fileType: req.file.mimetype
-      });
-
-    } catch (error) {
-      console.error('Erro no upload de arquivo:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
 
   console.log('✅ Chat interno integrado com sistema de equipes e usuários');
 }

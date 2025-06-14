@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { Volume2, VolumeX, Play, Settings, Check } from "lucide-react";
-import { useToast } from "@/shared/lib/hooks/use-toast";
 import { Button } from "@/shared/ui/button";
 import { Switch } from "@/shared/ui/switch";
 import { Label } from "@/shared/ui/label";
@@ -18,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from "@/shared/ui/dialog";
 import {
   Card,
@@ -47,9 +45,7 @@ export function ChatSettings() {
     useInternalChatStore();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { toast } = useToast();
 
   const playTestSound = (soundFile: string) => {
     if (!soundFile || !audioSettings.enabled) return;
@@ -81,29 +77,6 @@ export function ChatSettings() {
     }
   };
 
-  const handleSaveSettings = async () => {
-    setIsSaving(true);
-    try {
-      // Simular salvamento (as configurações já são salvas automaticamente)
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      toast({
-        title: "Configurações salvas",
-        description: "Suas preferências de áudio foram atualizadas com sucesso.",
-      });
-      
-      setIsOpen(false);
-    } catch (error) {
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar as configurações. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -115,9 +88,6 @@ export function ChatSettings() {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Configurações do Chat</DialogTitle>
-          <DialogDescription>
-            Configure as preferências de notificação e áudio para o chat interno
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -295,23 +265,6 @@ export function ChatSettings() {
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsOpen(false)}>
               Fechar
-            </Button>
-            <Button 
-              onClick={handleSaveSettings}
-              disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Salvar
-                </>
-              )}
             </Button>
           </div>
         </div>

@@ -291,7 +291,7 @@ export function setupAuthWithRoutes(app: Express) {
           return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
         }
 
-        req.login(user, async (loginErr) => {
+        req.login(user, (loginErr) => {
           if (loginErr) {
             console.error("❌ Erro ao estabelecer sessão:", loginErr);
             console.error("Session error stack:", loginErr.stack);
@@ -304,8 +304,6 @@ export function setupAuthWithRoutes(app: Express) {
             sessionId: req.sessionID,
             sessionSaved: !!req.session
           });
-
-
           
           res.json(user);
         });

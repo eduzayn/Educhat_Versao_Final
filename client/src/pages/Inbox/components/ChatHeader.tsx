@@ -2,11 +2,10 @@ import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Phone, Users } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { STATUS_CONFIG } from '@/types/chat';
 import { ConversationActionsDropdown } from './ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './ConversationAssignmentDropdown';
-import { useQuery } from '@tanstack/react-query';
 
 interface ChatHeaderProps {
   activeConversation: any;
@@ -24,20 +23,6 @@ export function ChatHeader({
   getChannelInfo
 }: ChatHeaderProps) {
   if (!activeConversation) return null;
-
-  // Buscar usuários da equipe responsável pela conversa
-  const { data: teamUsers = [] } = useQuery({
-    queryKey: ['team-users', activeConversation.assignedTeamId],
-    queryFn: async () => {
-      if (!activeConversation.assignedTeamId) return [];
-      const response = await fetch(`/api/internal-chat/channels/team-${activeConversation.assignedTeamId}/users`);
-      if (!response.ok) return [];
-      return response.json();
-    },
-    enabled: !!activeConversation.assignedTeamId
-  });
-
-  const onlineCount = teamUsers.filter((user: any) => user.isOnline).length;
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3 mobile-sticky mobile-p-reduced">
@@ -70,17 +55,9 @@ export function ChatHeader({
                 {getChannelInfo(activeConversation.channel).icon}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-500">
-                {activeConversation.contact.phone && `+${activeConversation.contact.phone.replace(/^\+/, '')}`}
-              </p>
-              {activeConversation.assignedTeamId && onlineCount > 0 && (
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <div className="h-2 w-2 bg-green-500 rounded-full" />
-                  <span>{onlineCount} online</span>
-                </div>
-              )}
-            </div>
+            <p className="text-sm text-gray-500">
+              {activeConversation.contact.phone && `+${activeConversation.contact.phone.replace(/^\+/, '')}`}
+            </p>
           </div>
         </div>
         
