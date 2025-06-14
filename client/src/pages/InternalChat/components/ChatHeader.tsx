@@ -18,7 +18,7 @@ import {
 } from "@/shared/ui/tooltip";
 import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useLocation } from "wouter";
-import { ChatSettings } from "./ChatSettings";
+import { SimplifiedChatSettings } from "./SimplifiedChatSettings";
 
 interface ChatHeaderProps {
   onToggleInfo: () => void;
