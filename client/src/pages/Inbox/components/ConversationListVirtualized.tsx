@@ -295,8 +295,38 @@ export function ConversationListVirtualized({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header com busca e filtros */}
+      {/* Header com botão Dashboard, título e ações */}
       <div className="p-4 border-b border-gray-200">
+        {/* Cabeçalho principal */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Dashboard
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-gray-900">Conversas</h1>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {onRefresh && (
+              <Button variant="ghost" size="sm" onClick={onRefresh}>
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            )}
+            {onNewContact && (
+              <Button variant="ghost" size="sm" onClick={onNewContact}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* Busca */}
         <div className="flex items-center gap-2 mb-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />

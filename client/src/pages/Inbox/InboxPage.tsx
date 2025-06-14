@@ -349,6 +349,8 @@ export function InboxPage() {
           onSelectConversation={handleSelectConversation}
           onLoadMore={() => fetchNextPage()}
           channels={channels}
+          onRefresh={() => conversationsQuery.refetch()}
+          onNewContact={() => setIsModalOpen(true)}
         />
       </div>
 
