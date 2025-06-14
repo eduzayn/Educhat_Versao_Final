@@ -63,8 +63,10 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
   };
 
   const getOnlineCount = () => {
-    // Simular contagem de usuários online
-    return Math.floor(Math.random() * 10) + 1;
+    if (!activeChannel) return 0;
+    
+    const channelUsers = store.internal.channelUsers[activeChannel] || [];
+    return channelUsers.filter(user => user.isOnline).length;
   };
 
   return (

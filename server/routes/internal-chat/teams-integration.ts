@@ -175,7 +175,9 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
             username: systemUsers.username,
             displayName: systemUsers.displayName,
             avatar: systemUsers.avatar,
-            roleName: roles.name
+            roleName: roles.name,
+            isOnline: systemUsers.isOnline,
+            lastSeen: systemUsers.lastActivityAt
           })
           .from(systemUsers)
           .leftJoin(roles, eq(systemUsers.roleId, roles.id))
@@ -193,7 +195,9 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
             username: systemUsers.username,
             displayName: systemUsers.displayName,
             avatar: systemUsers.avatar,
-            roleName: roles.name
+            roleName: roles.name,
+            isOnline: systemUsers.isOnline,
+            lastSeen: systemUsers.lastActivityAt
           })
           .from(userTeams)
           .leftJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
@@ -210,6 +214,52 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
       }
     } catch (error) {
       console.error('Erro ao buscar usuários do canal:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para atualizar status online do usuário
+  app.post('/api/internal-chat/user/status', async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      const { isOnline } = req.body;
+      
+      await db
+        .update(systemUsers)
+        .set({ 
+          isOnline: Boolean(isOnline),
+          lastActivityAt: new Date()
+        })
+        .where(eq(systemUsers.id, req.user.id));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro ao atualizar status do usuário:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Endpoint para heartbeat - manter usuário online
+  app.post('/api/internal-chat/user/heartbeat', async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+
+      await db
+        .update(systemUsers)
+        .set({ 
+          isOnline: true,
+          lastActivityAt: new Date()
+        })
+        .where(eq(systemUsers.id, req.user.id));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro no heartbeat do usuário:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
