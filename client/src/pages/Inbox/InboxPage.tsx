@@ -25,14 +25,20 @@ import { MessagesArea } from './components/MessagesArea';
 
 export function InboxPage() {
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [channelFilter, setChannelFilter] = useState('all');
-  const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
-  const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
+  // Consolidar estados relacionados em um único objeto para reduzir re-renders
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    statusFilter: 'all',
+    channelFilter: 'all',
+    canalOrigemFilter: 'all',
+    nomeCanalFilter: 'all'
+  });
+  
   const { data: channels = [] } = useChannels();
-  const [showMobileChat, setShowMobileChat] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
+  const [uiState, setUiState] = useState({
+    showMobileChat: false,
+    isSearching: false
+  });
   
   // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
@@ -56,11 +62,12 @@ export function InboxPage() {
 
   // Debounce do termo de busca - aguarda 1200ms após parar de digitar
   useEffect(() => {
-    // Controlar estado de busca
-    if (searchTerm.length > 0 && searchTerm.length < 3) {
-      setIsSearching(true);
-    } else {
-      setIsSearching(false);
+    const searchTerm = filters.searchTerm;
+    
+    // Controlar estado de busca em uma única atualização
+    const newIsSearching = searchTerm.length > 0 && searchTerm.length < 3;
+    if (uiState.isSearching !== newIsSearching) {
+      setUiState(prev => ({ ...prev, isSearching: newIsSearching }));
     }
 
     const timer = setTimeout(() => {
@@ -68,12 +75,12 @@ export function InboxPage() {
       // Só atualiza se mudou significativamente ou está vazio
       if (trimmed.length === 0 || trimmed.length >= 3) {
         setDebouncedSearchTerm(trimmed);
-        setIsSearching(false);
+        setUiState(prev => ({ ...prev, isSearching: false }));
       }
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [filters.searchTerm, uiState.isSearching]);
 
   // Hook unificado para conversas com busca integrada
   const conversationsQuery = useInfiniteConversations(100, {
@@ -91,32 +98,32 @@ export function InboxPage() {
   const filteredConversations = useMemo(() => {
     return allConversations.filter(conversation => {
       // Filtro por status
-      if (statusFilter !== 'all' && conversation.status !== statusFilter) {
+      if (filters.statusFilter !== 'all' && conversation.status !== filters.statusFilter) {
         return false;
       }
       
       // Filtro por canal
-      if (channelFilter !== 'all') {
-        if (channelFilter.startsWith('whatsapp-')) {
-          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
+      if (filters.channelFilter !== 'all') {
+        if (filters.channelFilter.startsWith('whatsapp-')) {
+          const specificChannelId = parseInt(filters.channelFilter.replace('whatsapp-', ''));
           return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
         }
-        return conversation.channel === channelFilter;
+        return conversation.channel === filters.channelFilter;
       }
       
       // Filtro por canal origem
-      if (canalOrigemFilter !== 'all' && conversation.contact?.canalOrigem !== canalOrigemFilter) {
+      if (filters.canalOrigemFilter !== 'all' && conversation.contact?.canalOrigem !== filters.canalOrigemFilter) {
         return false;
       }
       
       // Filtro por nome do canal
-      if (nomeCanalFilter !== 'all' && conversation.contact?.nomeCanal !== nomeCanalFilter) {
+      if (filters.nomeCanalFilter !== 'all' && conversation.contact?.nomeCanal !== filters.nomeCanalFilter) {
         return false;
       }
       
       return true;
     });
-  }, [allConversations, statusFilter, channelFilter, canalOrigemFilter, nomeCanalFilter]);
+  }, [allConversations, filters]);
   
   const isLoadingConversations = conversationsQuery.isLoading;
   const hasNextPage = conversationsQuery.hasNextPage;
@@ -128,7 +135,7 @@ export function InboxPage() {
     setActiveConversation(conversation);
     // Marcar como lida na API (store local não precisa mais gerenciar isso)
     markAsReadMutation.mutate(conversation.id);
-    setShowMobileChat(true); // Show chat on mobile when conversation is selected
+    setUiState(prev => ({ ...prev, showMobileChat: true })); // Show chat on mobile when conversation is selected
   };
   
 
@@ -282,35 +289,35 @@ export function InboxPage() {
   return (
     <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
-      <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
+      <div className={`w-80 md:w-80 ${uiState.showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Lista de Conversas com Scroll Infinito */}
         <ConversationListVirtualized
           conversations={filteredConversations}
           isLoading={isLoadingConversations}
           hasNextPage={hasNextPage || false}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          channelFilter={channelFilter}
-          setChannelFilter={setChannelFilter}
+          searchTerm={filters.searchTerm}
+          setSearchTerm={(term) => setFilters(prev => ({ ...prev, searchTerm: term }))}
+          statusFilter={filters.statusFilter}
+          setStatusFilter={(status) => setFilters(prev => ({ ...prev, statusFilter: status }))}
+          channelFilter={filters.channelFilter}
+          setChannelFilter={(channel) => setFilters(prev => ({ ...prev, channelFilter: channel }))}
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
           onLoadMore={() => fetchNextPage()}
           channels={channels}
-          isSearching={isSearching}
+          isSearching={uiState.isSearching}
         />
       </div>
 
       {/* Área de Mensagens */}
-      <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
+      <div className={`flex-1 flex flex-col ${uiState.showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
             {/* Header da Conversa */}
             <ChatHeader
               activeConversation={activeConversation}
-              showMobileChat={showMobileChat}
-              onMobileBackClick={() => setShowMobileChat(false)}
+              showMobileChat={uiState.showMobileChat}
+              onMobileBackClick={() => setUiState(prev => ({ ...prev, showMobileChat: false }))}
               onStatusChange={handleStatusChange}
               getChannelInfo={getChannelInfo}
             />
