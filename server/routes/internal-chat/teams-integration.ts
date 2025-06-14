@@ -1,5 +1,8 @@
 import { Express, Request, Response } from 'express';
 import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { db } from '../../core/db';
 import { 
   systemUsers,
@@ -9,6 +12,31 @@ import {
 } from '../../../shared/schema';
 
 // Usando interface padrão do Express sem extensão
+
+// Configuração do multer para upload de arquivos
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'internal-chat');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (req, file, cb) => {
+    // Aceitar todos os tipos de arquivo por enquanto
+    cb(null, true);
+  }
+});
 
 // Sistema de chat interno integrado com equipes e usuários existentes
 export function registerTeamsIntegratedChatRoutes(app: Express) {

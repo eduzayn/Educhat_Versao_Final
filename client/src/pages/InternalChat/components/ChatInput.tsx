@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Smile } from "lucide-react";
+import { Send, Paperclip, Smile, Upload, X, FileText, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
+import { Input } from "@/shared/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useToast } from "@/shared/lib/hooks/use-toast";
@@ -16,7 +18,12 @@ interface ChatUser {
 export function ChatInput() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showFileDialog, setShowFileDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const store = useUnifiedChatStore();
   const activeChannel = store.internal.activeChannel;
@@ -83,6 +90,130 @@ export function ChatInput() {
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setShowFileDialog(true);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || !activeChannel || !currentUser) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('channelId', activeChannel);
+      formData.append('userId', currentUser.id.toString());
+
+      // Simular progresso de upload
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 100);
+
+      const response = await fetch('/api/internal-chat/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (!response.ok) {
+        throw new Error('Falha no upload do arquivo');
+      }
+
+      const result = await response.json();
+
+      // Criar mensagem com o arquivo
+      const messageId = Math.floor(Date.now() + Math.random() * 1000);
+      const now = new Date();
+      
+      const fileMessage = {
+        id: messageId,
+        conversationId: 0,
+        content: `${selectedFile.name}`,
+        messageType: getFileType(selectedFile.type),
+        isFromContact: false,
+        metadata: {
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          fileType: getFileType(selectedFile.type),
+          fileUrl: result.fileUrl,
+          mimeType: selectedFile.type,
+        },
+        isDeleted: false,
+        sentAt: now,
+        deliveredAt: null,
+        readAt: null,
+        whatsappMessageId: null,
+        zapiStatus: null,
+        isGroup: false,
+        referenceMessageId: null,
+        isInternalNote: false,
+        authorId: currentUser.id,
+        authorName: currentUser.displayName || currentUser.username,
+        isHiddenForUser: false,
+        isDeletedByUser: false,
+        deletedAt: null,
+        deletedBy: null,
+        chatType: 'internal' as const,
+        channelId: activeChannel,
+      };
+
+      store.addInternalMessage(fileMessage);
+
+      toast({
+        title: "Arquivo enviado",
+        description: `${selectedFile.name} foi enviado com sucesso.`,
+      });
+
+      setSelectedFile(null);
+      setShowFileDialog(false);
+      setUploadProgress(0);
+
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Falha ao enviar o arquivo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const getFileType = (mimeType: string): string => {
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
+  const getFileIcon = (fileType: string) => {
+    switch (fileType) {
+      case 'image':
+        return <ImageIcon className="w-8 h-8 text-blue-500" />;
+      case 'video':
+        return <VideoIcon className="w-8 h-8 text-purple-500" />;
+      default:
+        return <FileText className="w-8 h-8 text-gray-500" />;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   if (!activeChannel) {
     return (
       <div className="p-4 border-t bg-muted/10">
@@ -108,7 +239,13 @@ export function ChatInput() {
       </div>
 
       <div className="flex gap-1">
-        <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-10 w-10 p-0"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={!currentUser}
+        >
           <Paperclip className="w-4 h-4" />
         </Button>
         <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
@@ -122,6 +259,91 @@ export function ChatInput() {
           <Send className="w-4 h-4" />
         </Button>
       </div>
+
+      <Input
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileSelect}
+        className="hidden"
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar"
+      />
+
+      {/* Modal de Upload de Arquivo */}
+      <Dialog open={showFileDialog} onOpenChange={setShowFileDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Anexar Arquivo</DialogTitle>
+          </DialogHeader>
+
+          {selectedFile && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                {getFileIcon(getFileType(selectedFile.type))}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setShowFileDialog(false);
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Enviando...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setShowFileDialog(false);
+                  }}
+                  disabled={isUploading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleFileUpload}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Upload className="w-4 h-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Enviar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
