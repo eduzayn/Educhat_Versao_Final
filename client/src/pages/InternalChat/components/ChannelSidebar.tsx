@@ -6,7 +6,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 
 export function ChannelSidebar() {

@@ -9,16 +9,17 @@ import { ConnectionStatus } from './components/ConnectionStatus';
 import { TypingIndicatorGlobal } from './components/TypingIndicatorGlobal';
 import { SoundNotification } from './components/SoundNotification';
 import { EmojiReactionToast } from './components/EmojiReactionToast';
-import { useInternalChatStore } from './store/internalChatStore';
+import { useUnifiedChatStore } from '@/shared/store/unifiedChatStore';
 
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);
-  const { activeChannel, loadChannels } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const activeChannel = store.internal.activeChannel;
 
   // Carregar canais baseados nas equipes do usuário na inicialização
   useEffect(() => {
-    loadChannels();
-  }, [loadChannels]);
+    store.loadChannels();
+  }, [store]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
