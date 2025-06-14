@@ -47,26 +47,38 @@ export class ConversationStorage extends BaseStorage {
       .offset(offset);
 
     // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
-    const conversationIds = conversationsData.map(conv => conv.id);
-    let lastMessages = [];
+    const conversationIds: number[] = conversationsData.map(conv => conv.id);
+    let lastMessages: Array<{
+      conversationId: number;
+      content: string;
+      messageType: string | null;
+      isFromContact: boolean;
+      sentAt: Date | null;
+    }> = [];
     
+    // Verificar se há conversas antes de buscar mensagens
     if (conversationIds.length > 0) {
-      lastMessages = await this.db
-        .select({
-          conversationId: messages.conversationId,
-          content: messages.content,
-          messageType: messages.messageType,
-          isFromContact: messages.isFromContact,
-          sentAt: messages.sentAt
-        })
-        .from(messages)
-        .where(
-          and(
-            inArray(messages.conversationId, conversationIds),
-            eq(messages.isDeleted, false)
+      try {
+        lastMessages = await this.db
+          .select({
+            conversationId: messages.conversationId,
+            content: messages.content,
+            messageType: messages.messageType,
+            isFromContact: messages.isFromContact,
+            sentAt: messages.sentAt
+          })
+          .from(messages)
+          .where(
+            and(
+              inArray(messages.conversationId, conversationIds),
+              eq(messages.isDeleted, false)
+            )
           )
-        )
-        .orderBy(desc(messages.sentAt));
+          .orderBy(desc(messages.sentAt));
+      } catch (error) {
+        console.warn('Erro ao buscar mensagens das conversas:', error);
+        lastMessages = [];
+      }
     }
 
     // Agrupar mensagens por conversa (apenas a última de cada)
