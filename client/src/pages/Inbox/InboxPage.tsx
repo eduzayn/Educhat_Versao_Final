@@ -95,62 +95,21 @@ export function InboxPage() {
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [contactNotes, setContactNotes] = useState<any[]>([]);
-  const [contactDeals, setContactDeals] = useState<any[]>([]);
-  const [contactInterests, setContactInterests] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
   const [showNoteDialog, setShowNoteDialog] = useState(false);
+
+  // Usar hook consolidado para dados do contato
+  const {
+    notes: contactNotes,
+    deals: contactDeals,
+    interests: contactInterests,
+    refetch: refetchContactData
+  } = useContactData(activeConversation?.contactId || null);
 
   // Verificar se WhatsApp está disponível para comunicação
   const isWhatsAppAvailable = Boolean(zapiStatus?.connected && zapiStatus?.smartphoneConnected);
 
-  // Buscar negócios, tags e interesses do contato quando a conversa mudar
-  useEffect(() => {
-    if (activeConversation?.contactId) {
-      fetchContactDeals(activeConversation.contactId);
-      fetchContactNotes(activeConversation.contactId);
-      fetchContactInterests(activeConversation.contactId);
-    }
-  }, [activeConversation?.contactId]);
-
-  const fetchContactDeals = async (contactId: number) => {
-    try {
-      const response = await fetch(`/api/contacts/${contactId}/deals`);
-      if (response.ok) {
-        const data = await response.json();
-        setContactDeals(Array.isArray(data.deals) ? data.deals : []);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar negócios do contato:', error);
-      setContactDeals([]);
-    }
-  };
-
-  const fetchContactNotes = async (contactId: number) => {
-    try {
-      const response = await fetch(`/api/contacts/${contactId}/notes`);
-      if (response.ok) {
-        const notes = await response.json();
-        setContactNotes(Array.isArray(notes) ? notes : []);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar notas do contato:', error);
-      setContactNotes([]);
-    }
-  };
-
-  const fetchContactInterests = async (contactId: number) => {
-    try {
-      const response = await fetch(`/api/contacts/${contactId}/interests`);
-      if (response.ok) {
-        const interests = await response.json();
-        setContactInterests(Array.isArray(interests) ? interests : []);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar interesses do contato:', error);
-      setContactInterests([]);
-    }
-  };
+  // Dados do contato agora gerenciados pelo hook consolidado useContactData
 
 
 
@@ -181,8 +140,8 @@ export function InboxPage() {
       setNewNote('');
       setShowNoteDialog(false);
       
-      // Recarregar as notas do contato
-      loadContactNotes();
+      // Recarregar os dados do contato
+      refetchContactData();
 
     } catch (error) {
       console.error('Erro ao adicionar nota:', error);
@@ -194,25 +153,7 @@ export function InboxPage() {
     }
   };
 
-  // Função para carregar notas do contato
-  const loadContactNotes = async () => {
-    if (!activeConversation?.contactId) return;
-
-    try {
-      const response = await fetch(`/api/contacts/${activeConversation.contactId}/notes`);
-      if (response.ok) {
-        const notes = await response.json();
-        setContactNotes(notes);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar notas:', error);
-    }
-  };
-
-  // Carregar notas quando a conversa ativa mudar
-  useEffect(() => {
-    loadContactNotes();
-  }, [activeConversation?.contactId]);
+  // Dados do contato carregados automaticamente pelo hook useContactData
 
 
 
