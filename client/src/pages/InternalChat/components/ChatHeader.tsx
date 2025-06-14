@@ -150,7 +150,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
         </Tooltip>
 
         {/* Chat Settings */}
-        <ChatSettings />
+        <SimplifiedChatSettings />
 
         {/* Info Panel Toggle */}
         <Tooltip>
