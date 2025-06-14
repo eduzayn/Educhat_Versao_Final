@@ -108,13 +108,12 @@ export function InboxPage() {
   const isLoadingConversations = conversationsQuery.isLoading;
   const hasNextPage = conversationsQuery.hasNextPage;
   const fetchNextPage = conversationsQuery.fetchNextPage;
-  const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+  const { activeConversation, setActiveConversation, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
-    // Marcar como lida tanto no store local quanto na API
-    markConversationAsRead(conversation.id);
+    // Marcar como lida na API (store local não precisa mais gerenciar isso)
     markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
