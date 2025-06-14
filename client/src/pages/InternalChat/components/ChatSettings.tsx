@@ -28,7 +28,7 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 
 // Sons disponíveis para notificações
 const NOTIFICATION_SOUNDS = [
@@ -43,8 +43,8 @@ const NOTIFICATION_SOUNDS = [
 ];
 
 export function ChatSettings() {
-  const { soundEnabled, toggleSound, audioSettings, updateAudioSettings } =
-    useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const soundEnabled = store.soundEnabled;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,33 +52,19 @@ export function ChatSettings() {
   const { toast } = useToast();
 
   const playTestSound = (soundFile: string) => {
-    if (!soundFile || !audioSettings.enabled) return;
+    if (!soundFile || !soundEnabled) return;
 
     try {
       const audio = new Audio(`/sounds/${soundFile}`);
-      audio.volume = audioSettings.volume / 100;
+      audio.volume = 0.5;
       audio.play().catch(console.error);
     } catch (error) {
       console.error("Erro ao reproduzir som:", error);
     }
   };
 
-  const handleVolumeChange = (value: number[]) => {
-    updateAudioSettings({ volume: value[0] });
-  };
-
-  const handleSoundChange = (type: "send" | "receive", soundId: string) => {
-    const sound = NOTIFICATION_SOUNDS.find((s) => s.id === soundId);
-    if (sound) {
-      updateAudioSettings({
-        [type === "send" ? "sendSound" : "receiveSound"]: sound.file,
-      });
-
-      // Testar o som selecionado
-      if (sound.file) {
-        playTestSound(sound.file);
-      }
-    }
+  const handleSoundToggle = () => {
+    store.toggleSound();
   };
 
   const handleSaveSettings = async () => {

@@ -1,8 +1,10 @@
 import { useEffect } from "react";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useUnifiedChatStore } from "@/shared/store/unifiedChatStore";
 
 export function TypingIndicatorGlobal() {
-  const { typingUsers, activeChannel } = useInternalChatStore();
+  const store = useUnifiedChatStore();
+  const typingUsers = store.internal.typingUsers;
+  const activeChannel = store.internal.activeChannel;
 
   const activeTypingUsers = typingUsers.filter(
     (user) => user.channelId === activeChannel,
@@ -14,9 +16,9 @@ export function TypingIndicatorGlobal() {
 
   const getTypingText = () => {
     if (activeTypingUsers.length === 1) {
-      return `${activeTypingUsers[0].userName} está digitando...`;
+      return `${activeTypingUsers[0].username} está digitando...`;
     } else if (activeTypingUsers.length === 2) {
-      return `${activeTypingUsers[0].userName} e ${activeTypingUsers[1].userName} estão digitando...`;
+      return `${activeTypingUsers[0].username} e ${activeTypingUsers[1].username} estão digitando...`;
     } else {
       return `${activeTypingUsers.length} pessoas estão digitando...`;
     }
