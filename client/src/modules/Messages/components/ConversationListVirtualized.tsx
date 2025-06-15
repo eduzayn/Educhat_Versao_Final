@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
 import { Link } from 'wouter';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
-import { ConversationActionsDropdown } from './ConversationActionsDropdown';
+import { ConversationActionsDropdown } from '@/pages/Inbox/components/ConversationActionsDropdown';
 import type { ConversationWithContact } from '@shared/schema';
 import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';
 

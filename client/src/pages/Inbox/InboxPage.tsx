@@ -50,7 +50,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { ContactSidebar } from './components/ContactSidebar';
-import { ConversationListVirtualized } from './components/ConversationListVirtualized';
+import { ConversationListVirtualized } from '@/modules/Messages/components/ConversationListVirtualized';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
 
