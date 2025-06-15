@@ -3,7 +3,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Phone } from "lucide-react";
 import { ConversationActionsDropdown } from "../ConversationActions";
-import { ConversationAssignmentDropdown } from "../../../../pages/Inbox/components/ConversationAssignmentDropdown";
+import { ConversationAssignment } from "../ConversationAssignment";
 
 interface ChatHeaderProps {
   activeConversation: any;
@@ -77,7 +77,7 @@ export function ChatHeader({
 
         {/* Ações */}
         <div className="flex items-center gap-2">
-          <ConversationAssignmentDropdown
+          <ConversationAssignment
             conversationId={id}
             currentTeamId={assignedTeamId}
             currentUserId={assignedUserId}

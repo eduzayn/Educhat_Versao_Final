@@ -48,7 +48,7 @@ import { STATUS_CONFIG } from '@/types/chat';
 import { MessageInput } from '@/modules/Messages/components/MessageInput';
 
 import { ConversationActionsDropdown } from '@/modules/Inbox/components/ConversationActions';
-import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
+import { ConversationAssignment } from '@/modules/Inbox/components/ConversationAssignment';
 import { ContactSidebar } from '@/modules/Contact/components/ContactSidebar';
 import { ConversationListVirtualized } from '@/modules/Inbox/components/ConversationListVirtualized';
 import { ChatHeader } from '@/modules/Inbox/components/ChatHeader';
