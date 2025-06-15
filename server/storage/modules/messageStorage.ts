@@ -27,72 +27,81 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0, cursor?: string): Promise<any[]> {
-    let baseMessages;
-    
-    if (cursor) {
-      // Cursor-based pagination: get messages older than the cursor ID
-      baseMessages = await this.db.select().from(messages)
-        .where(and(
-          eq(messages.conversationId, conversationId),
-          eq(messages.isDeleted, false),
-          lt(messages.id, parseInt(cursor)) // Get messages older than cursor
-        ))
-        .orderBy(desc(messages.sentAt)) // Newest first for proper infinite scroll
-        .limit(limit);
-    } else {
-      baseMessages = await this.getMessages(conversationId, limit, offset);
-    }
-    
-    // Para cada mensagem que foi deletada pelo usuário, buscar info do usuário
-    const messagesWithUserInfo = await Promise.all(
-      baseMessages.map(async (message) => {
-        if (message.isDeletedByUser && message.deletedBy) {
-          try {
-            // Primeiro tenta buscar na tabela systemUsers
-            const [systemUserInfo] = await this.db.select({
-              id: systemUsers.id,
-              displayName: systemUsers.displayName,
-              username: systemUsers.username
-            }).from(systemUsers)
-            .where(eq(systemUsers.id, message.deletedBy))
-            .limit(1);
-            
-            if (systemUserInfo) {
-              return {
-                ...message,
-                deletedByUser: systemUserInfo
-              };
-            }
-            
-            // Se não encontrar em systemUsers, tenta na tabela users (fallback)
-            const [userInfo] = await this.db.select({
-              id: users.id,
-              displayName: users.firstName,
-              username: users.email
-            }).from(users)
-            .where(eq(users.id, String(message.deletedBy)))
-            .limit(1);
-            
-            return {
-              ...message,
-              deletedByUser: userInfo || null
-            };
-          } catch (error) {
-            console.error('Erro ao buscar info do usuário que deletou:', error);
-            return {
-              ...message,
-              deletedByUser: null
-            };
-          }
-        }
-        return {
-          ...message,
-          deletedByUser: null
-        };
+    // ✅ OTIMIZAÇÃO: Buscar todas as mensagens com JOIN único para eliminar N+1 queries
+    const query = this.db
+      .select({
+        // Campos da mensagem
+        id: messages.id,
+        conversationId: messages.conversationId,
+        content: messages.content,
+        isFromContact: messages.isFromContact,
+        messageType: messages.messageType,
+        metadata: messages.metadata,
+        isDeleted: messages.isDeleted,
+        sentAt: messages.sentAt,
+        deliveredAt: messages.deliveredAt,
+        readAt: messages.readAt,
+        whatsappMessageId: messages.whatsappMessageId,
+        zapiStatus: messages.zapiStatus,
+        isGroup: messages.isGroup,
+        referenceMessageId: messages.referenceMessageId,
+        isInternalNote: messages.isInternalNote,
+        authorId: messages.authorId,
+        authorName: messages.authorName,
+        isHiddenForUser: messages.isHiddenForUser,
+        isDeletedByUser: messages.isDeletedByUser,
+        deletedAt: messages.deletedAt,
+        deletedBy: messages.deletedBy,
+        // Campos do usuário que deletou (LEFT JOIN para não perder mensagens)
+        deletedByUserId: systemUsers.id,
+        deletedByUserDisplayName: systemUsers.displayName,
+        deletedByUserUsername: systemUsers.username
       })
-    );
+      .from(messages)
+      .leftJoin(systemUsers, eq(messages.deletedBy, systemUsers.id))
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false),
+        cursor ? lt(messages.id, parseInt(cursor)) : undefined
+      ))
+      .orderBy(desc(messages.sentAt))
+      .limit(limit);
+
+    if (!cursor && offset > 0) {
+      query.offset(offset);
+    }
+
+    const results = await query;
     
-    return messagesWithUserInfo;
+    // Mapear resultados para formato esperado
+    return results.map(row => ({
+      id: row.id,
+      conversationId: row.conversationId,
+      content: row.content,
+      isFromContact: row.isFromContact,
+      messageType: row.messageType,
+      metadata: row.metadata,
+      isDeleted: row.isDeleted,
+      sentAt: row.sentAt,
+      deliveredAt: row.deliveredAt,
+      readAt: row.readAt,
+      whatsappMessageId: row.whatsappMessageId,
+      zapiStatus: row.zapiStatus,
+      isGroup: row.isGroup,
+      referenceMessageId: row.referenceMessageId,
+      isInternalNote: row.isInternalNote,
+      authorId: row.authorId,
+      authorName: row.authorName,
+      isHiddenForUser: row.isHiddenForUser,
+      isDeletedByUser: row.isDeletedByUser,
+      deletedAt: row.deletedAt,
+      deletedBy: row.deletedBy,
+      deletedByUser: row.deletedByUserId ? {
+        id: row.deletedByUserId,
+        displayName: row.deletedByUserDisplayName,
+        username: row.deletedByUserUsername
+      } : null
+    }));
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {

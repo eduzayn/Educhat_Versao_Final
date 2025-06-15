@@ -19,12 +19,13 @@ export function registerMessageRoutes(app: Express) {
       // For backward compatibility, still support offset-based pagination
       if (req.query.offset) {
         const offset = parseInt(req.query.offset as string);
-        const messages = await storage.messages.getMessages(id, limit, offset);
+        // ✅ USAR MÉTODO OTIMIZADO: elimina N+1 queries
+        const messages = await storage.message.getMessagesWithDeletedByInfo(id, limit, offset);
         return res.json(messages);
       }
       
-      // New cursor-based pagination for infinite scroll
-      const messages = await storage.messages.getMessages(id, limit + 1, 0);
+      // ✅ USAR MÉTODO OTIMIZADO para cursor-based pagination
+      const messages = await storage.message.getMessagesWithDeletedByInfo(id, limit + 1, 0, cursor);
       
       // Check if there are more messages
       const hasMore = messages.length > limit;

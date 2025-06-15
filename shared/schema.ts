@@ -101,7 +101,13 @@ export const messages = pgTable("messages", {
   isDeletedByUser: boolean("is_deleted_by_user").default(false), // mensagem deletada mas deve mostrar "Esta mensagem foi apagada"
   deletedAt: timestamp("deleted_at"), // quando foi deletada
   deletedBy: integer("deleted_by").references(() => systemUsers.id), // ID do usuário que deletou a mensagem
-});
+}, (table) => [
+  // 🚀 ÍNDICES CRÍTICOS PARA PERFORMANCE DE MENSAGENS
+  index("idx_messages_conversation_deleted_sent").on(table.conversationId, table.isDeleted, table.sentAt),
+  index("idx_messages_conversation_sent").on(table.conversationId, table.sentAt),
+  index("idx_messages_whatsapp_id").on(table.whatsappMessageId),
+  index("idx_messages_deleted_by").on(table.deletedBy),
+]);
 
 // Contact tags table
 export const contactTags = pgTable("contact_tags", {
