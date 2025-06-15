@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { ConversationListHeader } from './ConversationListHeader';
-import { ConversationItem } from './ConversationItem';
+import ConversationListHeader from '../ConversationListHeader';
+import ConversationItem from '../ConversationItem';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationListVirtualizedProps {
@@ -177,7 +177,7 @@ export function ConversationListVirtualized({
       <div className="flex-1 overflow-hidden">
         {visibleConversations.length > 0 ? (
           <AutoSizer>
-            {({ height, width }) => (
+            {({ height, width }: { height: number; width: number }) => (
               <FixedSizeList
                 ref={listRef}
                 height={height}
