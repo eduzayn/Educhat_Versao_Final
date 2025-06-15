@@ -46,13 +46,41 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // 🚀 OTIMIZAÇÃO CRÍTICA: Remover busca de prévias que causa lentidão de 4 segundos
-    // As prévias serão carregadas sob demanda quando necessário
+    // 🚀 BUSCA OTIMIZADA DE PRÉVIAS: Query rápida e específica
+    const conversationIds = conversationsData.map(conv => conv.id);
+    
+    const lastMessages = conversationIds.length > 0 ? await this.db
+      .select({
+        conversationId: messages.conversationId,
+        content: sql`CASE 
+          WHEN LENGTH(${messages.content}) > 100 
+          THEN SUBSTRING(${messages.content}, 1, 100) || '...'
+          ELSE ${messages.content}
+        END`.as('content'),
+        messageType: messages.messageType,
+        isFromContact: messages.isFromContact,
+        sentAt: messages.sentAt,
+        isInternalNote: messages.isInternalNote
+      })
+      .from(messages)
+      .where(and(
+        inArray(messages.conversationId, conversationIds),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(desc(messages.sentAt)) : [];
+
+    // Agrupar apenas a última mensagem por conversa
+    const messagesByConversation = new Map();
+    for (const msg of lastMessages) {
+      if (!messagesByConversation.has(msg.conversationId)) {
+        messagesByConversation.set(msg.conversationId, msg);
+      }
+    }
 
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados das conversas sem prévias de mensagens para otimização
+    // Retornar dados das conversas com prévias otimizadas
     return conversationsData.map(conv => ({
       id: conv.id,
       contactId: conv.contactId,
@@ -93,7 +121,9 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [], // 🚀 OTIMIZAÇÃO: Prévias carregadas sob demanda
+      messages: messagesByConversation.has(conv.id) ? 
+        [messagesByConversation.get(conv.id)] : 
+        [],
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
