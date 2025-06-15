@@ -52,7 +52,7 @@ import { ConversationAssignmentDropdown } from './components/ConversationAssignm
 import { ContactSidebar } from '@/modules/Contact/components/ContactSidebar';
 import { ConversationListVirtualized } from '@/modules/Inbox/components/ConversationListVirtualized';
 import { ChatHeader } from './components/ChatHeader';
-import { MessagesArea } from './components/MessagesArea';
+import { MessagesArea } from '@/modules/Messages/components/MessagesArea';
 
 
 export function InboxPage() {
