@@ -19,17 +19,11 @@ export function MessagesArea({
   const prevMessageCount = useRef<number>(0);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
-  // Use infinite scroll hook for messages
+  // Use messages hook for loading messages
   const {
-    data,
-    isLoading,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage
-  } = useInfiniteMessages(activeConversation?.id || 0, 50);
-
-  // Flatten all message pages
-  const messages = data?.pages.flatMap(page => page.messages) || [];
+    data: messages = [],
+    isLoading
+  } = useMessages(activeConversation?.id || null, 100);
 
   // Função para rolar para o final
   const scrollToBottom = useCallback(() => {
@@ -38,26 +32,10 @@ export function MessagesArea({
     }
   }, []);
 
-  // Handle scroll to load more messages
+  // Handle scroll for future infinite loading if needed
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || !hasNextPage || isFetchingNextPage) return;
-    
-    const { scrollTop } = containerRef.current;
-    
-    // Load more when scrolled near the top
-    if (scrollTop < 100) {
-      fetchNextPage();
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  // Scroll event listener
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    // Scroll handling placeholder for future infinite scroll implementation
+  }, []);
 
   // Rolar para o final quando a conversa mudar
   useEffect(() => {
