@@ -38,6 +38,13 @@ export const MessageBubble = memo(function MessageBubble({
   conversationId,
   onReply,
 }: MessageBubbleProps) {
+  // Debug logging - Remove after fixing
+  console.log('MessageBubble render:', {
+    messageId: message.id,
+    content: message.content,
+    messageType: message.messageType,
+    isFromContact: message.isFromContact
+  });
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   
@@ -81,7 +88,7 @@ export const MessageBubble = memo(function MessageBubble({
     ? "bg-amber-50 text-amber-900 border border-amber-200"
     : isFromContact
     ? "bg-gray-100 text-gray-900"
-    : "bg-blue-600 text-white";
+    : "bg-blue-500 text-white";
 
   const timeClasses = isFromContact
     ? "text-xs text-gray-400"
@@ -541,123 +548,29 @@ export const MessageBubble = memo(function MessageBubble({
 
     // Mensagem de texto padrão
     return (
-      <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
-        {message.isInternalNote && (
-          <div className="flex items-center gap-1.5 mb-2 text-xs text-amber-700">
-            <StickyNote className="h-3 w-3" />
-            <span className="font-medium">Nota Interna • Visível apenas para a equipe</span>
-          </div>
-        )}
-        {message.content ? (
-          <p className="text-sm">{message.content}</p>
-        ) : (
-          <div className="text-sm text-gray-500 italic">
-            <p>Mensagem sem conteúdo de texto</p>
-            {message.messageType && (
-              <p className="text-xs mt-1">Tipo: {message.messageType}</p>
-            )}
-          </div>
-        )}
-        {message.isInternalNote && message.authorName && (
-          <div className="mt-2 text-xs text-amber-600 font-medium">
-            {message.authorName}
-          </div>
-        )}
+      <div className={`px-4 py-2 rounded-lg ${bubbleClasses} min-h-[40px] flex items-center`}>
+        <span className="text-sm break-words">
+          {message.content || "Mensagem sem conteúdo"}
+        </span>
       </div>
     );
   };
 
-  // Mensagem normal
+  // Mensagem normal - VERSÃO SIMPLIFICADA PARA DEBUG
   return (
-    <div className={containerClasses}>
-      <Avatar className="w-9 h-9 flex-shrink-0">
-        <AvatarImage
-          src={isFromContact ? contact.profileImageUrl || "" : ""}
-          alt={isFromContact ? contact.name : "Agente"}
-        />
-        <AvatarFallback className="text-sm">
-          {avatarFallbackChar}
-        </AvatarFallback>
-      </Avatar>
-
-      <div className="flex-1 min-w-0 max-w-lg">
-        <div className="flex flex-col gap-1">
-          {renderMessageContent()}
-
-          <div className={`flex items-center gap-1 mt-1 ${timeClasses}`}>
-            <span title={new Date(messageTimestamp).toLocaleString()}>
-              {messageTime}
-            </span>
-            {messageStatus}
-            
-            {!message.isInternalNote && onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => onReply(message)}
-                title="Responder"
-              >
-                <Reply className="h-3 w-3" />
-              </Button>
-            )}
-
-            {/* Botão de Encaminhar - sempre visível para mensagens recebidas */}
-            {isFromContact && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 hover:text-blue-600"
-                onClick={handleForwardMessage}
-                disabled={isForwarding}
-                title="Encaminhar mensagem"
-              >
-                <Forward className="h-3 w-3" />
-              </Button>
-            )}
-
-            {canDelete() && conversationId && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
-                    title="Deletar mensagem"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Deletar mensagem</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {isFromContact
-                        ? "Esta ação irá ocultar a mensagem apenas da sua interface. A mensagem ainda será visível para o contato."
-                        : "Esta ação irá deletar a mensagem permanentemente para ambos os lados da conversa."}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteMessage}
-                      disabled={isDeleting}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {isDeleting ? "Deletando..." : "Deletar"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+    <div className="flex items-start gap-3 mb-4 p-2 border border-red-500">
+      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-xs">
+        {isFromContact ? "C" : "A"}
+      </div>
+      <div className="flex-1">
+        <div className={`p-3 rounded-lg ${bubbleClasses} border-2 border-green-500`}>
+          <div className="text-sm font-bold text-red-600">
+            DEBUG: {message.content || "SEM CONTEÚDO"}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            ID: {message.id} | Tipo: {message.messageType}
           </div>
         </div>
-
-        <MessageReactions
-          message={message}
-          conversationId={conversationId || 0}
-          contactPhone={contact.phone || ''}
-        />
       </div>
     </div>
   );
