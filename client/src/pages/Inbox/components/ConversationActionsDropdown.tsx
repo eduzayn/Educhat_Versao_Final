@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
+import { useState } from "react";
+import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/shared/ui/dropdown-menu';
+} from "@/shared/ui/dropdown-menu";
+
 import {
   MoreVertical,
   MailCheck,
@@ -19,16 +20,23 @@ import {
   UserX,
   FileText,
   Search,
-  Info
-} from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-// Hook simples para toast
+  Info,
+} from "lucide-react";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+// TODO: Substituir por hook real
 const useToast = () => ({
-  toast: ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
-    console.log(`${title}: ${description}`);
-    // Implementar toast real posteriormente
-  }
+  toast: ({
+    title,
+    description,
+    variant,
+  }: {
+    title: string;
+    description: string;
+    variant?: string;
+  }) => console.log(`[${variant || "info"}] ${title}: ${description}`),
 });
 
 interface ConversationActionsDropdownProps {
@@ -37,98 +45,67 @@ interface ConversationActionsDropdownProps {
   currentStatus?: string | null;
 }
 
-export function ConversationActionsDropdown({ 
-  conversationId, 
-  contactId, 
-  currentStatus = 'open' 
+export function ConversationActionsDropdown({
+  conversationId,
+  contactId,
+  currentStatus = "open",
 }: ConversationActionsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mutation para atualizar status da conversa
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
-      const response = await fetch(`/api/conversations/${conversationId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus })
+      const res = await fetch(`/api/conversations/${conversationId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
       });
-      if (!response.ok) throw new Error('Erro ao atualizar status');
-      return response.json();
+      if (!res.ok) throw new Error();
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       toast({
         title: "Status atualizado",
-        description: "O status da conversa foi atualizado com sucesso."
+        description: "Conversa atualizada com sucesso.",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o status da conversa.",
-        variant: "destructive"
+        title: "Erro ao atualizar status",
+        description: "Tente novamente.",
+        variant: "destructive",
       });
-    }
+    },
   });
 
-  // Mutation para marcar como não lida
   const markAsUnreadMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/conversations/${conversationId}/mark-unread`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      if (!response.ok) throw new Error('Erro ao marcar como não lida');
-      return response.json();
-    },
-    onMutate: async () => {
-      // Cancelar queries em andamento para evitar conflitos
-      await queryClient.cancelQueries({ queryKey: ['/api/conversations'] });
-
-      // Snapshot do estado anterior
-      const previousConversations = queryClient.getQueryData(['/api/conversations']);
-
-      // Atualização otimista - atualizar cache imediatamente
-      queryClient.setQueryData(['/api/conversations'], (old: any) => {
-        if (!old) return old;
-        
-        return old.map((conv: any) => 
-          conv.id === conversationId 
-            ? { ...conv, unreadCount: 1 }
-            : conv
-        );
-      });
-
-      return { previousConversations };
-    },
-    onError: (err, variables, context) => {
-      // Reverter em caso de erro
-      if (context?.previousConversations) {
-        queryClient.setQueryData(['/api/conversations'], context.previousConversations);
-      }
+      const res = await fetch(
+        `/api/conversations/${conversationId}/mark-unread`,
+        { method: "POST" },
+      );
+      if (!res.ok) throw new Error();
+      return res.json();
     },
     onSuccess: () => {
-      // Atualização otimista para resposta instantânea
-      queryClient.setQueryData(['/api/conversations/unread-count'], (old: any) => {
-        if (!old) return { count: 1 };
-        return { count: old.count + 1 };
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations/unread-count"],
       });
-      
-      // Invalidar imediatamente para resposta instantânea
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-      
       toast({
-        title: "Marcado como não lida",
-        description: "A conversa foi marcada como não lida."
+        title: "Conversa marcada como não lida",
+        description: "Essa conversa voltará para o topo da lista.",
       });
-    }
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao marcar como não lida",
+        description: "Tente novamente.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleStatusChange = (status: string) => {
@@ -141,11 +118,10 @@ export function ConversationActionsDropdown({
     setIsOpen(false);
   };
 
-  const handleAction = (action: string) => {
-    // Implementar outras ações conforme necessário
+  const handlePlaceholderAction = (actionLabel: string) => {
     toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: `A ação "${action}" será implementada em breve.`
+      title: "Função em desenvolvimento",
+      description: `A funcionalidade "${actionLabel}" será implementada em breve.`,
     });
     setIsOpen(false);
   };
@@ -153,76 +129,95 @@ export function ConversationActionsDropdown({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 hover:bg-muted/10"
+          aria-label="Mais ações"
+        >
           <MoreVertical className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent align="end" className="w-56 border border-blue-100 shadow-lg">
-        {/* Status da conversa */}
-        <DropdownMenuItem onClick={() => handleMarkAsUnread()} className="hover:bg-blue-50 focus:bg-blue-50">
+
+      <DropdownMenuContent align="end" className="w-60">
+        {/* Status e leitura */}
+        <DropdownMenuItem onClick={handleMarkAsUnread}>
           <MailCheck className="w-4 h-4 mr-2 text-blue-600" />
           Marcar como não lida
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleStatusChange('pending')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem onClick={() => handleStatusChange("pending")}>
           <Clock className="w-4 h-4 mr-2 text-orange-600" />
           Marcar como pendente
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        {/* Ações do usuário */}
-        <DropdownMenuItem onClick={() => handleAction('seguir')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        {/* Ações */}
+        <DropdownMenuItem onClick={() => handlePlaceholderAction("Seguir")}>
           <UserCheck className="w-4 h-4 mr-2 text-green-600" />
           Seguir
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleAction('executar-bot')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Executar bot")}
+        >
           <Bot className="w-4 h-4 mr-2 text-purple-600" />
           Executar bot
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleAction('agendar-mensagem')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Agendar mensagem")}
+        >
           <Calendar className="w-4 h-4 mr-2 text-blue-600" />
           Agendar mensagem
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        {/* Histórico e transferência */}
-        <DropdownMenuItem onClick={() => handleAction('sincronizar-historico')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        {/* Outros */}
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Sincronizar histórico")}
+        >
           <History className="w-4 h-4 mr-2 text-gray-600" />
           Sincronizar histórico
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleAction('transferir-canal')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Transferir canal")}
+        >
           <ArrowRight className="w-4 h-4 mr-2 text-blue-600" />
           Transferir para outro canal
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        {/* Ações restritivas */}
-        <DropdownMenuItem onClick={() => handleAction('bloquear')} className="hover:bg-red-50 focus:bg-red-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Bloquear contato")}
+        >
           <UserX className="w-4 h-4 mr-2 text-red-600" />
           Bloquear
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleAction('exportar-csv')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Exportar CSV")}
+        >
           <FileText className="w-4 h-4 mr-2 text-gray-600" />
           Exportar para CSV
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        {/* Informações */}
-        <DropdownMenuItem onClick={() => handleAction('pesquisar-mensagem')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Pesquisar mensagem")}
+        >
           <Search className="w-4 h-4 mr-2 text-gray-600" />
           Pesquisar mensagem
         </DropdownMenuItem>
-        
-        <DropdownMenuItem onClick={() => handleAction('ver-informacoes')} className="hover:bg-blue-50 focus:bg-blue-50">
+
+        <DropdownMenuItem
+          onClick={() => handlePlaceholderAction("Ver informações")}
+        >
           <Info className="w-4 h-4 mr-2 text-blue-600" />
           Ver informações
         </DropdownMenuItem>
