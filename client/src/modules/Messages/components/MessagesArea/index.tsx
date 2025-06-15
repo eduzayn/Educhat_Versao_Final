@@ -16,6 +16,7 @@ export function MessagesArea({
   activeConversation,
   getChannelInfo,
 }: MessagesAreaProps) {
+  // SEMPRE chamar todos os hooks primeiro, independente de condições
   const {
     messages,
     isLoading,
@@ -23,6 +24,7 @@ export function MessagesArea({
     handleReply
   } = useMessagesArea(activeConversation);
 
+  // Renderização condicional APÓS todos os hooks
   if (!activeConversation) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
