@@ -6,12 +6,12 @@ export function useMessages(conversationId: number | null, limit = 50) {
   return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     queryFn: async () => {
-      // ✅ OTIMIZAÇÃO: usar método otimizado que elimina N+1 queries
       const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
-      return response.json();
+      const data = await response.json();
+      return data.messages || [];
     },
     enabled: !!conversationId,
     refetchInterval: false,

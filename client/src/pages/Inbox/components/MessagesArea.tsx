@@ -21,9 +21,12 @@ export function MessagesArea({
 
   // Use messages hook for loading messages
   const {
-    data: messages = [],
+    data: messagesData = [],
     isLoading
   } = useMessages(activeConversation?.id || null, 30);
+
+  // Garantir que messages seja sempre um array
+  const messages = Array.isArray(messagesData) ? messagesData : [];
 
   // Função para rolar para o final
   const scrollToBottom = useCallback(() => {
