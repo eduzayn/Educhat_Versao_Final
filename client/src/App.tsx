@@ -16,7 +16,7 @@ import FacebookIntegrationPage from "@/pages/Settings/Integrations/FacebookInteg
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/Channels";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
-import { CRMPage } from "@/pages/CRM/CRMPage";
+import { CRMPage } from "@/modules/CRM/CRMPage";
 import { BIPage } from "@/pages/BI/BIPage";
 import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 import IAPage from "@/pages/IA/IAPage";
@@ -138,15 +138,6 @@ function Router() {
               />
             )}
           </Route>
-          <Route path="/settings/integrations">
-            {() => (
-              <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
-                component={IntegrationsPage}
-              />
-            )}
-          </Route>
-
           <Route path="/admin" component={PermissionsPanel} />
           <Route path="/admin/permissions" component={PermissionsPanel} />
           <Route path="/chat-interno" component={InternalChatPage} />
