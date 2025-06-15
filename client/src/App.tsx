@@ -9,7 +9,7 @@ import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard/Dashboard";
 import { Login } from "@/modules/Auth/Login";
 import { InboxPage } from "@/pages/Inbox/InboxPage";
-import { ContactsPage } from "@/pages/Contacts/ContactsPage";
+import { ContactsPage } from "@/modules/Contacts/ContactsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 // Integrações agora consolidadas - redirecionar para a página existente
 import FacebookIntegrationPage from "@/pages/Settings/Integrations/FacebookIntegrationPage";
