@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -69,7 +69,7 @@ export function useWebSocket() {
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
-        updateConversationLastMessage(data.conversationId, data.message);
+
         
         // Invalidação imediata para atualização em tempo real
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
@@ -288,7 +288,7 @@ export function useWebSocket() {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
     });
-  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage, queryClient]);
+  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.connected) {
