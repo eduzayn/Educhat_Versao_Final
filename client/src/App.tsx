@@ -17,7 +17,7 @@ import SettingsPage from "@/pages/Settings/SettingsPage";
 import ChannelsPage from "@/pages/Settings/Channels";
 import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/modules/CRM/CRMPage";
-import { BIPage } from "@/pages/BI/BIPage";
+import { BIPage } from "@/modules/BI/BIPage";
 import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 import IAPage from "@/pages/IA/IAPage";
 import { ConfigPage } from "@/pages/IA/ConfigPage";
