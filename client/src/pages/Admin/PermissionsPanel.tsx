@@ -121,7 +121,7 @@ export default function PermissionsPanel() {
   // Mutation para atualizar permissões de role
   const updateRolePermissions = useMutation({
     mutationFn: async ({ roleId, permissionIds }: { roleId: number; permissionIds: number[] }) =>
-      await apiRequest(`/api/admin/roles/${roleId}/permissions`, 'PUT', { permissionIds }),
+      await apiRequest('PUT', `/api/admin/roles/${roleId}/permissions`, { permissionIds }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/roles'] });
       toast({

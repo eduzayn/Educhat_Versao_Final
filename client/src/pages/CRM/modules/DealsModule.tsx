@@ -188,10 +188,7 @@ export function DealsModule() {
   // Função para atualizar negócio completo
   const updateFullDealMutation = useMutation({
     mutationFn: async (dealData: any) => {
-      return apiRequest(`/api/deals/${dealData.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(dealData)
-      });
+      return apiRequest('PATCH', `/api/deals/${dealData.id}`, dealData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });

@@ -32,7 +32,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
     
     setIsLoading(true);
     try {
-      await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
+      await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content: content.trim(),
         messageType: 'text',
       });
@@ -80,7 +80,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
     setIsLoading(true);
     try {
       const content = caption ? `${caption}\n\n${url}` : url;
-      await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
+      await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content,
         messageType: 'text',
       });
