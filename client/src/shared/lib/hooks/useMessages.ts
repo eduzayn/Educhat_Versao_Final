@@ -2,27 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 20) {
+export function useMessages(conversationId: number | null, limit = 30) {
   return useQuery<Message[]>({
-    queryKey: [`/api/conversations/${conversationId}/messages`, { limit }],
+    queryKey: [`/api/conversations/${conversationId}/messages`],
     queryFn: async () => {
       const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
-      const messages = await response.json();
-      // Retornar em ordem cronológica (mais antigas primeiro para compatibilidade com scroll)
-      return messages;
+      return response.json();
     },
     enabled: !!conversationId,
-    // Remover polling automático - usar apenas WebSocket para tempo real
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    // Manter dados em cache por mais tempo para melhor performance
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    // Adicionar configuração de retry para casos de erro
-    retry: 2,
-    retryDelay: 1000,
+    staleTime: 1000 * 60 * 10, // 10 minutos
+    gcTime: 1000 * 60 * 15, // 15 minutos
+    retry: 1,
+    retryDelay: 500,
   });
 }
 

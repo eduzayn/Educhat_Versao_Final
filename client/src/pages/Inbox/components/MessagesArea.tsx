@@ -23,7 +23,7 @@ export function MessagesArea({
   const {
     data: messages = [],
     isLoading
-  } = useMessages(activeConversation?.id || null, 100);
+  } = useMessages(activeConversation?.id || null, 30);
 
   // Função para rolar para o final
   const scrollToBottom = useCallback(() => {
