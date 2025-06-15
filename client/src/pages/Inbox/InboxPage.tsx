@@ -49,7 +49,7 @@ import { InputArea } from '@/modules/Messages/components/InputArea';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
-import { ContactSidebar } from './components/ContactSidebar';
+import { ContactSidebar } from '@/modules/Contact/components/ContactSidebar';
 import { ConversationListVirtualized } from '@/modules/Inbox/components/ConversationListVirtualized';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
