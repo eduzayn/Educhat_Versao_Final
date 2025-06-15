@@ -1,6 +1,7 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { messages, conversations, users, systemUsers, type Message, type InsertMessage } from "../../../shared/schema";
 import { eq, desc, and, isNull, lt } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 /**
  * Message storage module - manages messages and media handling
@@ -16,14 +17,43 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    return this.db.select().from(messages)
+    const results = await this.db.select({
+      id: messages.id,
+      conversationId: messages.conversationId,
+      // 🚀 TRUNCAR conteúdo para evitar respostas gigantes de 4.5MB
+      content: sql`CASE 
+        WHEN LENGTH(${messages.content}) > 1000 
+        THEN SUBSTRING(${messages.content}, 1, 1000) || '...[truncado]'
+        ELSE ${messages.content}
+      END`.as('content'),
+      isFromContact: messages.isFromContact,
+      messageType: messages.messageType,
+      metadata: sql`NULL`.as('metadata'), // Remover metadata pesada
+      isDeleted: messages.isDeleted,
+      sentAt: messages.sentAt,
+      deliveredAt: messages.deliveredAt,
+      readAt: messages.readAt,
+      whatsappMessageId: messages.whatsappMessageId,
+      zapiStatus: messages.zapiStatus,
+      isGroup: messages.isGroup,
+      referenceMessageId: messages.referenceMessageId,
+      isInternalNote: messages.isInternalNote,
+      authorId: messages.authorId,
+      authorName: messages.authorName,
+      isHiddenForUser: messages.isHiddenForUser,
+      isDeletedByUser: messages.isDeletedByUser,
+      deletedAt: messages.deletedAt,
+      deletedBy: messages.deletedBy,
+    }).from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt)) // Ordem decrescente para scroll infinito
+      .orderBy(desc(messages.sentAt))
       .limit(limit)
       .offset(offset);
+
+    return results as Message[];
   }
 
   async getMessagesLight(conversationId: number, limit = 20, cursor?: string): Promise<any[]> {
