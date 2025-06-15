@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Badge } from '@/shared/ui/badge';
 import { Eye, Edit, Trash2, Phone, Camera } from 'lucide-react';
+import { ContactAvatar } from '@/shared/ui/ContactAvatar';
 import type { Contact } from '@shared/schema';
 
 interface ContactTableRowProps {
@@ -40,8 +40,9 @@ export function ContactTableRow({
     }
   };
 
-  const getContactTypeBadge = (type: string | null) => {
-    const variants = {
+  const getContactTypeBadge = (tags: string[] | null) => {
+    const type = tags && tags.length > 0 ? tags[0] : null;
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
       'Lead': 'default',
       'Cliente': 'secondary',
       'Parceiro': 'outline',
@@ -49,7 +50,7 @@ export function ContactTableRow({
     };
     
     return (
-      <Badge variant={variants[type as keyof typeof variants] || 'default'}>
+      <Badge variant={variants[type || ''] || 'default'}>
         {type || 'Não definido'}
       </Badge>
     );
@@ -67,12 +68,12 @@ export function ContactTableRow({
       <td className="px-6 py-4">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={contact.profileImageUrl || ''} />
-              <AvatarFallback className="bg-educhat-primary text-white">
-                {contact.name?.charAt(0)?.toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
+            <ContactAvatar
+              src={contact.profileImageUrl}
+              name={contact.name}
+              size="md"
+              className="w-10 h-10"
+            />
             
             {isWhatsAppAvailable && contact.phone && (
               <Button
@@ -90,8 +91,8 @@ export function ContactTableRow({
           
           <div>
             <div className="font-medium text-gray-900">{contact.name}</div>
-            {contact.company && (
-              <div className="text-sm text-gray-500">{contact.company}</div>
+            {contact.location && (
+              <div className="text-sm text-gray-500">{contact.location}</div>
             )}
           </div>
         </div>
@@ -107,17 +108,17 @@ export function ContactTableRow({
             {contact.phone || '-'}
           </span>
           {contact.phone && (
-            <Phone className="w-4 h-4 text-green-500" title="WhatsApp disponível" />
+            <Phone className="w-4 h-4 text-green-500" />
           )}
         </div>
       </td>
       
       <td className="px-6 py-4">
-        {getContactTypeBadge(contact.contactType)}
+        {getContactTypeBadge(contact.tags)}
       </td>
       
       <td className="px-6 py-4">
-        <div className="text-sm text-gray-900">{contact.owner || '-'}</div>
+        <div className="text-sm text-gray-900">{contact.notes || '-'}</div>
       </td>
       
       <td className="px-6 py-4">
