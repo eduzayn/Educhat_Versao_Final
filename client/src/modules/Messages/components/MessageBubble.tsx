@@ -183,7 +183,7 @@ export function MessageBubble({
         ) : (
           <div className="p-3 rounded-lg bg-gray-100">🎭 Figurinha enviada</div>
         );
-      default:
+      case "text":
         return (
           <div
             className={`px-4 py-2 rounded-lg ${message.isInternalNote ? "bg-amber-50 text-amber-900 border border-amber-200" : isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"}`}
@@ -205,6 +205,24 @@ export function MessageBubble({
               <div className="mt-2 text-xs text-amber-600 font-medium">
                 {message.authorName}
               </div>
+            )}
+          </div>
+        );
+      default:
+        // Fallback para tipos desconhecidos
+        return (
+          <div className="px-4 py-2 rounded-lg bg-red-50 text-red-900 border border-red-200">
+            <div className="mb-1 font-semibold text-xs flex items-center gap-1">
+              <span>Tipo de mensagem não suportado:</span>
+              <span className="font-mono bg-red-100 px-2 py-0.5 rounded">{message.messageType || 'desconhecido'}</span>
+            </div>
+            {message.content ? (
+              <p className="text-sm break-words">{message.content}</p>
+            ) : (
+              <p className="text-sm italic">Mensagem sem conteúdo</p>
+            )}
+            {message.metadata && (
+              <pre className="text-xs mt-2 bg-red-100 rounded p-2 overflow-x-auto">{JSON.stringify(message.metadata, null, 2)}</pre>
             )}
           </div>
         );
