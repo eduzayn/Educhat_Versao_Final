@@ -89,7 +89,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   const containerClasses = `flex items-start gap-3 group ${
     isFromContact ? "flex-row" : "flex-row-reverse"
-  } mb-4 relative z-10 visible`;
+  } mb-4`;
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
