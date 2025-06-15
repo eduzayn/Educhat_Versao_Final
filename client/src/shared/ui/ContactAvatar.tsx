@@ -28,7 +28,7 @@ export function ContactAvatar({ src, name, size = 'md', className }: ContactAvat
       .toUpperCase();
   };
 
-  const shouldShowImage = src && !imageError && !src.includes('gravatar.com');
+  const shouldShowImage = src && !imageError && !src.includes('gravatar.com') && src.startsWith('http');
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
