@@ -423,6 +423,25 @@ export function MessageBubble({
       );
     }
 
+    // Verificação adicional para documentos que podem não ter messageType definido
+    if (message.content && message.metadata) {
+      const metadata = message.metadata as any;
+      
+      // Verificar se é um documento baseado nos metadados
+      if (metadata.document || metadata.documentUrl || metadata.fileName) {
+        return (
+          <LazyMediaContent
+            messageId={message.id}
+            messageType="document"
+            conversationId={conversationId}
+            isFromContact={isFromContact}
+            metadata={message.metadata}
+            initialContent={message.content}
+          />
+        );
+      }
+    }
+
     // Tipos de mensagem especiais com formatação específica
     if (message.messageType === 'location') {
       return (

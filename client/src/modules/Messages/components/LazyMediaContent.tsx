@@ -22,6 +22,16 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
+  
+  // Debug log para documentos
+  if (messageType === 'document') {
+    secureLog.debug("LazyMediaContent - Documento detectado", {
+      messageId,
+      hasMetadata: !!metadata,
+      hasInitialContent: !!initialContent,
+      metadata: metadata
+    });
+  }
   // Função para verificar se o conteúdo é uma URL válida
   const isValidUrl = (str: string | null | undefined): str is string => {
     if (!str) return false;
@@ -70,6 +80,14 @@ export function LazyMediaContent({
         }
         if (metadata.documentUrl && isValidUrl(metadata.documentUrl)) {
           return metadata.documentUrl;
+        }
+        // Verificações adicionais para documentos
+        if (metadata.document?.mediaUrl && isValidUrl(metadata.document.mediaUrl)) {
+          return metadata.document.mediaUrl;
+        }
+        // Verificar se o content é uma URL válida para documentos
+        if (typeof metadata.content === 'string' && isValidUrl(metadata.content)) {
+          return metadata.content;
         }
         break;
       case 'audio':
@@ -123,20 +141,41 @@ export function LazyMediaContent({
         setContent(proxiedUrl);
         setLoaded(true);
         secureLog.debug("Imagem carregada via proxy", { messageId });
-      } else {
-        // Para outros tipos de mídia, usar API tradicional
+      } 
+      // Para documentos, tentar usar URL dos metadados primeiro
+      else if (messageType === 'document' && realInitialContent) {
+        setContent(realInitialContent);
+        setLoaded(true);
+        secureLog.debug("Documento carregado via metadados", { messageId, url: realInitialContent });
+      } 
+      else {
+        // Para outros tipos de mídia ou fallback, usar API tradicional
         const response = await fetch(`/api/messages/${messageId}/media`);
         if (response.ok) {
           const data = await response.json();
           setContent(data.content);
           setLoaded(true);
-          secureLog.debug(`${messageType} carregado`, { messageId });
+          secureLog.debug(`${messageType} carregado via API`, { messageId });
         } else {
           secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
+          
+          // Para documentos, tentar carregar mesmo com erro se temos URL nos metadados
+          if (messageType === 'document' && realInitialContent) {
+            setContent(realInitialContent);
+            setLoaded(true);
+            secureLog.debug("Documento carregado via metadados (fallback)", { messageId });
+          }
         }
       }
     } catch (error) {
       secureLog.error(`Erro ao carregar ${messageType}`, error);
+      
+      // Fallback para documentos com URL nos metadados
+      if (messageType === 'document' && realInitialContent) {
+        setContent(realInitialContent);
+        setLoaded(true);
+        secureLog.debug("Documento carregado via metadados (fallback de erro)", { messageId });
+      }
     } finally {
       setLoading(false);
     }
@@ -263,7 +302,14 @@ export function LazyMediaContent({
             <>
               <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
                 <FileText className="w-5 h-5" />
-                <span className="text-sm">{fileName}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium truncate block">{fileName}</span>
+                  {metadata?.fileSize && (
+                    <span className="text-xs text-gray-500">
+                      {(metadata.fileSize / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                  )}
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -282,10 +328,28 @@ export function LazyMediaContent({
             </>
           );
         }
+        
+        // Se não tem conteúdo carregado, mostrar botão para carregar
+        const hasAvailableContent = realInitialContent || getUrlFromMetadata();
+        
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <FileText className="w-5 h-5" />
-            <span className="text-sm">Documento: {fileName}</span>
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium truncate block">
+                {fileName || "Documento"}
+              </span>
+              {metadata?.fileSize && (
+                <span className="text-xs text-gray-500">
+                  {(metadata.fileSize / 1024 / 1024).toFixed(2)} MB
+                </span>
+              )}
+              {!hasAvailableContent && (
+                <span className="text-xs text-amber-600">
+                  Conteúdo via API
+                </span>
+              )}
+            </div>
             <Button
               variant="outline"
               size="sm"
