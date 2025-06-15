@@ -18,8 +18,8 @@ export function useMessages(conversationId: number | null, limit = 50) {
     refetchIntervalInBackground: false,
     staleTime: 0, // Forçar atualização imediata após novas mensagens
     gcTime: 1000 * 60 * 5,
-    retry: 2, // ✅ AUMENTADO: mais tentativas em caso de falha
-    retryDelay: 200, // ✅ REDUZIDO: retry mais rápido
+    retry: 2,
+    retryDelay: 200,
   });
 }
 
