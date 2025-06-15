@@ -2,10 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 30) {
+export function useMessages(conversationId: number | null, limit = 50) {
   return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     queryFn: async () => {
+      // ✅ OTIMIZAÇÃO: usar método otimizado que elimina N+1 queries
       const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
@@ -15,10 +16,10 @@ export function useMessages(conversationId: number | null, limit = 30) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 1000 * 60 * 10, // 10 minutos
-    gcTime: 1000 * 60 * 15, // 15 minutos
-    retry: 1,
-    retryDelay: 500,
+    staleTime: 1000 * 30, // ✅ REDUZIDO: 30 segundos para dados mais atualizados
+    gcTime: 1000 * 60 * 5, // ✅ REDUZIDO: 5 minutos para liberar memória mais cedo
+    retry: 2, // ✅ AUMENTADO: mais tentativas em caso de falha
+    retryDelay: 200, // ✅ REDUZIDO: retry mais rápido
   });
 }
 
