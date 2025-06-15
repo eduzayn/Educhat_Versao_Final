@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Badge } from '@/shared/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { ConversationActionsDropdown } from '@/pages/Inbox/components/ConversationActionsDropdown';
+import { ConversationActionsDropdown } from './ConversationActions';
 import { ChannelIcon } from './ChannelIcon';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';
