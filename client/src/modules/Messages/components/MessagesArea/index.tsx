@@ -23,7 +23,15 @@ export function MessagesArea({
     handleReply
   } = useMessagesArea(activeConversation);
 
-  if (!activeConversation) return null;
+  if (!activeConversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <p>Selecione uma conversa para visualizar as mensagens</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white min-h-0">

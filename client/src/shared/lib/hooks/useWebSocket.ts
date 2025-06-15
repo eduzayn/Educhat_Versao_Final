@@ -71,10 +71,10 @@ export function useWebSocket() {
         addMessage(data.conversationId, data.message);
 
         
-        // Invalidação imediata para atualização em tempo real
+        // Invalidação imediata para atualização em tempo real - usar array consistente
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+          queryKey: ['/api/conversations', data.conversationId, 'messages'] 
         });
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
         
@@ -85,7 +85,7 @@ export function useWebSocket() {
             type: 'active'
           }),
           queryClient.refetchQueries({ 
-            queryKey: [`/api/conversations/${data.conversationId}/messages`],
+            queryKey: ['/api/conversations', data.conversationId, 'messages'],
             type: 'active'
           }),
           queryClient.refetchQueries({ 

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useSendMessage } from '@/shared/lib/hooks/useMessages';
+import { useChatStore } from '@/shared/store/chatStore';
 
 interface UseMessageSenderProps {
   conversationId: number;

@@ -77,9 +77,9 @@ export function useSendMessage() {
       return savedMessage;
     },
     onSuccess: (_, { conversationId }) => {
-      // Forçar refetch imediato das mensagens
+      // Forçar refetch imediato das mensagens - usar array para consistência
       queryClient.refetchQueries({ 
-        queryKey: [`/api/conversations/${conversationId}/messages`] 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
       });
       // Invalidar cache da lista de conversas
       queryClient.invalidateQueries({ 
