@@ -51,7 +51,7 @@ import { ConversationActionsDropdown } from './components/ConversationActionsDro
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { ContactSidebar } from '@/modules/Contact/components/ContactSidebar';
 import { ConversationListVirtualized } from '@/modules/Inbox/components/ConversationListVirtualized';
-import { ChatHeader } from './components/ChatHeader';
+import { ChatHeader } from '@/modules/Inbox/components/ChatHeader';
 import { MessagesArea } from '@/modules/Messages/components/MessagesArea';
 
 
