@@ -10,7 +10,7 @@ interface ContactListProps {
   onViewContact: (contact: Contact) => void;
   onEditContact: (contact: Contact) => void;
   onDeleteContact: (contact: Contact) => void;
-  onUpdatePhoto: (phone: string) => void;
+  onUpdatePhoto: (contactId: number) => void;
   isWhatsAppAvailable: boolean;
 }
 

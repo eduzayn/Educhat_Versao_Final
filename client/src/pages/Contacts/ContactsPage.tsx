@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { ContactAvatar } from '@/shared/ui/ContactAvatar';
 import { Textarea } from '@/shared/ui/textarea';
-import { Search, Plus, Eye, Edit, Trash2, Phone, ChevronRight, MessageCircle, Users, Mail } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, Phone, ChevronRight, MessageCircle, Users, Mail, Camera } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { useContacts, useUpdateContact, useDeleteContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
@@ -273,6 +273,38 @@ export function ContactsPage() {
       });
     } finally {
       setUpdatingAllPhotos(false);
+    }
+  };
+
+  const handleUpdatePhoto = async (contactId: number) => {
+    try {
+      const response = await fetch(`/api/contacts/${contactId}/photo`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar foto do contato');
+      }
+
+      const result = await response.json();
+      
+      if (result.updated) {
+        toast({
+          title: "Foto atualizada",
+          description: "Foto do contato atualizada via WhatsApp",
+        });
+        refetch();
+      } else {
+        toast({
+          title: "Foto não encontrada",
+          description: "Não foi possível obter a foto do WhatsApp para este contato",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar foto do contato. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 

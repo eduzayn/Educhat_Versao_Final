@@ -13,7 +13,7 @@ interface ContactTableRowProps {
   onView: (contact: Contact) => void;
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
-  onUpdatePhoto: (phone: string) => void;
+  onUpdatePhoto: (contactId: number) => void;
   isWhatsAppAvailable: boolean;
 }
 
@@ -34,7 +34,7 @@ export function ContactTableRow({
     
     setUpdatingPhoto(true);
     try {
-      await onUpdatePhoto(contact.phone);
+      await onUpdatePhoto(contact.id);
     } finally {
       setUpdatingPhoto(false);
     }
@@ -118,7 +118,7 @@ export function ContactTableRow({
       </td>
       
       <td className="px-6 py-4">
-        <div className="text-sm text-gray-900">{contact.notes || '-'}</div>
+        <div className="text-sm text-gray-900">{contact.location || '-'}</div>
       </td>
       
       <td className="px-6 py-4">
