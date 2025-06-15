@@ -13,36 +13,33 @@ export function registerMessageRoutes(app: Express) {
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      let limit = req.query.limit ? parseInt(req.query.limit as string) : 20; // Reduzido para 20
       const cursor = req.query.cursor as string;
       
-      // For backward compatibility, still support offset-based pagination
-      if (req.query.offset) {
-        const offset = parseInt(req.query.offset as string);
-        // ✅ USAR MÉTODO OTIMIZADO: elimina N+1 queries
-        const messages = await storage.message.getMessagesWithDeletedByInfo(id, limit, offset);
-        return res.json(messages);
+      // 🚨 PROTEÇÃO CRÍTICA: Limitar ainda mais para evitar timeouts
+      if (limit > 50) {
+        console.warn(`⚠️ Limite reduzido de ${limit} para 50 mensagens para evitar timeout`);
+        limit = 50;
       }
       
-      // ✅ USAR MÉTODO OTIMIZADO para cursor-based pagination
-      const messages = await storage.message.getMessagesWithDeletedByInfo(id, limit + 1, 0, cursor);
+      // ✅ NOVO: Método ultra-rápido para mensagens essenciais
+      const messages = await storage.message.getMessagesLight(id, limit, cursor);
       
       // Check if there are more messages
-      const hasMore = messages.length > limit;
-      const responseMessages = hasMore ? messages.slice(0, limit) : messages;
+      const hasMore = messages.length === limit;
       
       // Generate next cursor from the oldest message ID in current page
-      const nextCursor = hasMore && responseMessages.length > 0 
-        ? responseMessages[responseMessages.length - 1].id.toString()
+      const nextCursor = hasMore && messages.length > 0 
+        ? messages[messages.length - 1].id.toString()
         : undefined;
 
       res.json({
-        messages: responseMessages,
+        messages,
         hasMore,
         nextCursor
       });
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('❌ Erro ao buscar mensagens:', error);
       res.status(500).json({ message: 'Failed to fetch messages' });
     }
   });

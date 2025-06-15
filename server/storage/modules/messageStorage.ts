@@ -27,35 +27,26 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0, cursor?: string): Promise<any[]> {
-    // ✅ OTIMIZAÇÃO: Buscar todas as mensagens com JOIN único para eliminar N+1 queries
+    // 🚀 OTIMIZAÇÃO CRÍTICA: SELECT apenas campos essenciais para reduzir drasticamente o tamanho da resposta
     const query = this.db
       .select({
-        // Campos da mensagem
+        // Campos essenciais da mensagem
         id: messages.id,
         conversationId: messages.conversationId,
         content: messages.content,
         isFromContact: messages.isFromContact,
         messageType: messages.messageType,
-        metadata: messages.metadata,
+        // 🎯 REMOVER metadata que pode ser muito pesada - apenas quando necessário
         isDeleted: messages.isDeleted,
         sentAt: messages.sentAt,
-        deliveredAt: messages.deliveredAt,
-        readAt: messages.readAt,
-        whatsappMessageId: messages.whatsappMessageId,
-        zapiStatus: messages.zapiStatus,
-        isGroup: messages.isGroup,
-        referenceMessageId: messages.referenceMessageId,
+        // Campos para funcionalidades específicas
         isInternalNote: messages.isInternalNote,
-        authorId: messages.authorId,
         authorName: messages.authorName,
-        isHiddenForUser: messages.isHiddenForUser,
         isDeletedByUser: messages.isDeletedByUser,
-        deletedAt: messages.deletedAt,
         deletedBy: messages.deletedBy,
-        // Campos do usuário que deletou (LEFT JOIN para não perder mensagens)
+        // Apenas campos essenciais do usuário que deletou
         deletedByUserId: systemUsers.id,
         deletedByUserDisplayName: systemUsers.displayName,
-        deletedByUserUsername: systemUsers.username
       })
       .from(messages)
       .leftJoin(systemUsers, eq(messages.deletedBy, systemUsers.id))
@@ -73,33 +64,33 @@ export class MessageStorage extends BaseStorage {
 
     const results = await query;
     
-    // Mapear resultados para formato esperado
+    // 🎯 MAPEAR apenas campos que foram selecionados na query
     return results.map(row => ({
       id: row.id,
       conversationId: row.conversationId,
       content: row.content,
       isFromContact: row.isFromContact,
-      messageType: row.messageType,
-      metadata: row.metadata,
+      messageType: row.messageType || 'text',
+      metadata: null, // 🚀 OTIMIZAÇÃO: metadata removida para reduzir tamanho
       isDeleted: row.isDeleted,
       sentAt: row.sentAt,
-      deliveredAt: row.deliveredAt,
-      readAt: row.readAt,
-      whatsappMessageId: row.whatsappMessageId,
-      zapiStatus: row.zapiStatus,
-      isGroup: row.isGroup,
-      referenceMessageId: row.referenceMessageId,
-      isInternalNote: row.isInternalNote,
-      authorId: row.authorId,
+      deliveredAt: null, // 🚀 OTIMIZAÇÃO: campos não selecionados
+      readAt: null,
+      whatsappMessageId: null,
+      zapiStatus: null,
+      isGroup: false,
+      referenceMessageId: null,
+      isInternalNote: row.isInternalNote || false,
+      authorId: null,
       authorName: row.authorName,
-      isHiddenForUser: row.isHiddenForUser,
-      isDeletedByUser: row.isDeletedByUser,
-      deletedAt: row.deletedAt,
+      isHiddenForUser: false,
+      isDeletedByUser: row.isDeletedByUser || false,
+      deletedAt: null,
       deletedBy: row.deletedBy,
       deletedByUser: row.deletedByUserId ? {
         id: row.deletedByUserId,
         displayName: row.deletedByUserDisplayName,
-        username: row.deletedByUserUsername
+        username: '' // 🚀 OTIMIZAÇÃO: campo simplificado
       } : null
     }));
   }
