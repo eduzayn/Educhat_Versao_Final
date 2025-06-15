@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
-import { useInfiniteMessages } from '@/shared/lib/hooks/useInfiniteMessages';
+import { useMessages } from '@/shared/lib/hooks/useMessages';
 
 interface MessagesAreaProps {
   activeConversation: any;

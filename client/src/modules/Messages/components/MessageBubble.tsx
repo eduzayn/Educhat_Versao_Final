@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, memo } from "react";
 import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -30,7 +30,7 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
-export function MessageBubble({
+export const MessageBubble = memo(function MessageBubble({
   message,
   contact,
   channelIcon,
@@ -658,4 +658,4 @@ export function MessageBubble({
       </div>
     </div>
   );
-}
+});

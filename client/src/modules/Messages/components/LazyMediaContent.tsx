@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
@@ -22,7 +22,7 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
-  
+
   // Debug log para documentos
   if (messageType === 'document') {
     secureLog.debug("LazyMediaContent - Documento detectado", {
@@ -41,12 +41,12 @@ export function LazyMediaContent({
   // Função para extrair URL dos metadados
   const getUrlFromMetadata = (): string | null => {
     if (!metadata) return null;
-    
+
     // Verificar mediaUrl diretamente
     if (metadata.mediaUrl && isValidUrl(metadata.mediaUrl)) {
       return metadata.mediaUrl;
     }
-    
+
     // Verificar URLs específicas por tipo
     switch (messageType) {
       case 'image':
@@ -102,7 +102,7 @@ export function LazyMediaContent({
         }
         break;
     }
-    
+
     return null;
   };
 
@@ -158,7 +158,7 @@ export function LazyMediaContent({
           secureLog.debug(`${messageType} carregado via API`, { messageId });
         } else {
           secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
-          
+
           // Para documentos, tentar carregar mesmo com erro se temos URL nos metadados
           if (messageType === 'document' && realInitialContent) {
             setContent(realInitialContent);
@@ -169,7 +169,7 @@ export function LazyMediaContent({
       }
     } catch (error) {
       secureLog.error(`Erro ao carregar ${messageType}`, error);
-      
+
       // Fallback para documentos com URL nos metadados
       if (messageType === 'document' && realInitialContent) {
         setContent(realInitialContent);
@@ -328,10 +328,10 @@ export function LazyMediaContent({
             </>
           );
         }
-        
+
         // Se não tem conteúdo carregado, mostrar botão para carregar
         const hasAvailableContent = realInitialContent || getUrlFromMetadata();
-        
+
         return (
           <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <FileText className="w-5 h-5" />

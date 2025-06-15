@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 50) {
+export function useMessages(conversationId: number | null, limit = 20) {
   return useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`, { limit }],
     queryFn: async () => {
@@ -20,6 +20,9 @@ export function useMessages(conversationId: number | null, limit = 50) {
     refetchIntervalInBackground: false,
     // Manter dados em cache por mais tempo para melhor performance
     staleTime: 1000 * 60 * 5, // 5 minutos
+    // Adicionar configuração de retry para casos de erro
+    retry: 2,
+    retryDelay: 1000,
   });
 }
 
