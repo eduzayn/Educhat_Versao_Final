@@ -20,7 +20,7 @@ export class MessageStorage extends BaseStorage {
     const results = await this.db.select({
       id: messages.id,
       conversationId: messages.conversationId,
-      // 🚀 TRUNCAR conteúdo para evitar respostas gigantes de 4.5MB
+      // Truncar conteúdo para otimizar performance
       content: sql`CASE 
         WHEN LENGTH(${messages.content}) > 1000 
         THEN SUBSTRING(${messages.content}, 1, 1000) || '...[truncado]'
@@ -28,7 +28,7 @@ export class MessageStorage extends BaseStorage {
       END`.as('content'),
       isFromContact: messages.isFromContact,
       messageType: messages.messageType,
-      metadata: sql`NULL`.as('metadata'), // Remover metadata pesada
+      metadata: sql`NULL`.as('metadata'),
       isDeleted: messages.isDeleted,
       sentAt: messages.sentAt,
       deliveredAt: messages.deliveredAt,
