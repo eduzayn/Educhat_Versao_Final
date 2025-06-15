@@ -12,35 +12,58 @@ export function registerMessageRoutes(app: Express) {
   // Messages endpoints with infinite scroll support
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
+      const startTime = Date.now();
       const id = parseInt(req.params.id);
-      let limit = req.query.limit ? parseInt(req.query.limit as string) : 20; // Reduzido para 20
+      let limit = req.query.limit ? parseInt(req.query.limit as string) : 25; // Otimizado para 25
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
       const cursor = req.query.cursor as string;
       
-      // 🚨 PROTEÇÃO CRÍTICA: Limitar ainda mais para evitar timeouts
-      if (limit > 50) {
-        console.warn(`⚠️ Limite reduzido de ${limit} para 50 mensagens para evitar timeout`);
-        limit = 50;
+      // Validação de parâmetros
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID da conversa inválido' });
       }
       
-      // ✅ MÉTODO OTIMIZADO: usar getMessages com limite reduzido
-      const messages = await storage.message.getMessages(id, limit, 0);
+      // Proteção crítica: Limitar para evitar timeouts em conversas com muitas mensagens
+      if (limit > 30) {
+        console.warn(`⚠️ Limite reduzido de ${limit} para 30 mensagens para performance`);
+        limit = 30;
+      }
       
-      // Check if there are more messages
+      console.log(`🔄 Carregando ${limit} mensagens para conversa ${id}`);
+      
+      // Usar método otimizado com seleção de campos específicos
+      const messages = await storage.message.getMessages(id, limit, offset);
+      
+      // Verificar se há mais mensagens de forma eficiente
       const hasMore = messages.length === limit;
       
-      // Generate next cursor from the oldest message ID in current page
+      // Gerar cursor para próxima página baseado no último ID
       const nextCursor = hasMore && messages.length > 0 
         ? messages[messages.length - 1].id.toString()
         : undefined;
 
+      const endTime = Date.now();
+      console.log(`✅ Mensagens carregadas em ${endTime - startTime}ms (${messages.length} itens)`);
+
+      // Cache headers para otimizar requisições subsequentes
+      res.set({
+        'Cache-Control': 'private, max-age=60', // Cache por 1 minuto
+        'ETag': `"messages-${id}-${offset}-${limit}"`,
+      });
+
       res.json({
         messages,
         hasMore,
-        nextCursor
+        nextCursor,
+        total: messages.length,
+        loadTime: endTime - startTime
       });
     } catch (error) {
       console.error('❌ Erro ao buscar mensagens:', error);
-      res.status(500).json({ message: 'Failed to fetch messages' });
+      res.status(500).json({ 
+        error: 'Falha ao carregar mensagens',
+        details: error instanceof Error ? error.message : 'Erro interno'
+      });
     }
   });
 

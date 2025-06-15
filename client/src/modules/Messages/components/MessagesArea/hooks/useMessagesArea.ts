@@ -6,10 +6,12 @@ export function useMessagesArea(activeConversation: any) {
   const prevConversationId = useRef<number | undefined>();
   const prevMessageCount = useRef<number>(0);
   const [hasAutoScrolled, setHasAutoScrolled] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Reduzir limite para melhorar performance inicial
   const { data: messagesData = [], isLoading } = useMessages(
     activeConversation?.id || null,
-    30,
+    25, // Reduzido de 30 para 25
   );
 
   const messages = useMemo(
@@ -17,10 +19,23 @@ export function useMessagesArea(activeConversation: any) {
     [messagesData],
   );
 
+  // Otimização: Scroll mais eficiente com debounce
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
     }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (messagesEndRef.current) {
+        // Usar scrollTop para melhor performance que scrollIntoView
+        const container = messagesEndRef.current.parentElement;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        } else {
+          messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+        }
+      }
+    }, 50); // Debounce de 50ms
   }, []);
 
   const handleReply = useCallback((message: any) => {
@@ -34,30 +49,41 @@ export function useMessagesArea(activeConversation: any) {
     );
   }, []);
 
-  // Scroll on conversation change
+  // Scroll on conversation change - otimizado para evitar scroll redundante
   useEffect(() => {
     if (activeConversation?.id !== prevConversationId.current) {
       prevConversationId.current = activeConversation?.id;
       prevMessageCount.current = messages.length;
       setHasAutoScrolled(true);
-      setTimeout(scrollToBottom, 100);
+      
+      // Scroll imediato para nova conversa sem setTimeout
+      if (messages.length > 0) {
+        scrollToBottom();
+      }
     }
-  }, [activeConversation?.id, messages.length, scrollToBottom]);
+  }, [activeConversation?.id, scrollToBottom]);
 
-  // Scroll on new message if not scrolled manually
+  // Scroll on new message - otimizado para evitar scroll duplo
   useEffect(() => {
-    if (messages.length > prevMessageCount.current && hasAutoScrolled) {
-      setTimeout(scrollToBottom, 50);
+    const shouldScroll = messages.length > prevMessageCount.current && 
+                        hasAutoScrolled && 
+                        !isLoading && 
+                        activeConversation?.id === prevConversationId.current;
+    
+    if (shouldScroll) {
+      scrollToBottom();
     }
     prevMessageCount.current = messages.length;
-  }, [messages.length, hasAutoScrolled, scrollToBottom]);
+  }, [messages.length, hasAutoScrolled, isLoading, activeConversation?.id, scrollToBottom]);
 
-  // Initial scroll
+  // Cleanup timeout on unmount
   useEffect(() => {
-    if (messages.length > 0 && !isLoading) {
-      setTimeout(scrollToBottom, 200);
-    }
-  }, [messages.length, isLoading, scrollToBottom]);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     messages,

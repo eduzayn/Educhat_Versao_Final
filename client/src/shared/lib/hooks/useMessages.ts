@@ -2,24 +2,33 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 50) {
+export function useMessages(conversationId: number | null, limit = 25) {
   return useQuery<Message[]>({
-    queryKey: [`/api/conversations/${conversationId}/messages`],
+    queryKey: ['/api/conversations', conversationId, 'messages'],
     queryFn: async () => {
+      const startTime = Date.now();
+      console.log(`🔄 Carregando mensagens para conversa ${conversationId}`);
+      
       const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
       if (!response.ok) {
-        throw new Error('Failed to fetch messages');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
       const data = await response.json();
+      const endTime = Date.now();
+      console.log(`✅ Frontend: Mensagens carregadas em ${endTime - startTime}ms (${data.messages?.length || 0} itens)`);
+      
       return data.messages || [];
     },
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 0, // Forçar atualização imediata após novas mensagens
-    gcTime: 1000 * 60 * 5,
-    retry: 2,
-    retryDelay: 200,
+    staleTime: 30000, // Cache por 30 segundos para evitar requisições desnecessárias
+    gcTime: 1000 * 60 * 10, // Manter cache por 10 minutos
+    retry: 1, // Reduzir tentativas para acelerar feedback de erro
+    retryDelay: 500,
+    // Otimização: Manter dados anteriores durante carregamento
+    placeholderData: (previousData) => previousData,
   });
 }
 

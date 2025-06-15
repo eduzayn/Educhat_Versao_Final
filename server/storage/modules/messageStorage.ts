@@ -17,7 +17,35 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    const results = await this.db.select().from(messages)
+    // Otimização: Selecionar apenas campos essenciais para reduzir transferência de dados
+    const results = await this.db.select({
+      id: messages.id,
+      conversationId: messages.conversationId,
+      content: messages.content,
+      isFromContact: messages.isFromContact,
+      messageType: messages.messageType,
+      sentAt: messages.sentAt,
+      deliveredAt: messages.deliveredAt,
+      readAt: messages.readAt,
+      whatsappMessageId: messages.whatsappMessageId,
+      zapiStatus: messages.zapiStatus,
+      isGroup: messages.isGroup,
+      referenceMessageId: messages.referenceMessageId,
+      isInternalNote: messages.isInternalNote,
+      authorId: messages.authorId,
+      authorName: messages.authorName,
+      isHiddenForUser: messages.isHiddenForUser,
+      isDeletedByUser: messages.isDeletedByUser,
+      deletedAt: messages.deletedAt,
+      deletedBy: messages.deletedBy,
+      isDeleted: messages.isDeleted,
+      // Excluir metadata para reduzir payload - será carregado sob demanda se necessário
+      metadata: sql<any>`CASE 
+        WHEN ${messages.messageType} IN ('image', 'video', 'audio', 'document') 
+        THEN ${messages.metadata} 
+        ELSE NULL 
+      END`.as('metadata')
+    }).from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
