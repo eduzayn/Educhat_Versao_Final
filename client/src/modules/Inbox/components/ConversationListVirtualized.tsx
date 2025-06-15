@@ -1,15 +1,9 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Input } from '@/shared/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Search, Filter, X, MessageSquare, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
-import { Link } from 'wouter';
-import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
-import { ConversationActionsDropdown } from '@/pages/Inbox/components/ConversationActionsDropdown';
+import { FixedSizeList } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { ConversationListHeader } from './ConversationListHeader';
+import { ConversationItem } from './ConversationItem';
 import type { ConversationWithContact } from '@shared/schema';
-import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';
 
 interface ConversationListVirtualizedProps {
   conversations: ConversationWithContact[];
