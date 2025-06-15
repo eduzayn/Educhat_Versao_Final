@@ -11,12 +11,12 @@ import {
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 // Importar subcomponentes de vendas
-import { SalesDashboard } from "./sales/SalesDashboard";
-import { SalesTargets } from "./sales/SalesTargets";
-import { SalesCommissions } from "./sales/SalesCommissions";
-import { SalesTerritories } from "./sales/SalesTerritories";
-import { SalesLeaderboard } from "./sales/SalesLeaderboard";
-import { SalesCoaching } from "./sales/SalesCoaching";
+import { SalesDashboard } from "../sales/SalesDashboard";
+import { SalesTargets } from "../sales/SalesTargets";
+import { SalesCommissions } from "../sales/SalesCommissions";
+import { SalesTerritories } from "../sales/SalesTerritories";
+import { SalesLeaderboard } from "../sales/SalesLeaderboard";
+import { SalesCoaching } from "../sales/SalesCoaching";
 
 export function SalesModule() {
   const [activeTab, setActiveTab] = useState('dashboard');

@@ -6,28 +6,28 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
-import { Dashboard } from "@/pages/Dashboard/Dashboard";
+import { Dashboard } from "@/modules/Dashboard/Dashboard";
 import { Login } from "@/modules/Auth/Login";
-import { InboxPage } from "@/pages/Inbox/InboxPage";
-import { ContactsPage } from "@/modules/Contacts/ContactsPage";
-import ReportsPage from "@/pages/Reports/ReportsPage";
+import { InboxPage } from "@/modules/Inbox/InboxPage";
+import { ContactsPage } from "@/modules/Contacts/components/ViewContactDialog/ContactsPage";
+import ReportsPage from "@/modules/Reports/ReportsPage";
 // Integrações agora consolidadas - redirecionar para a página existente
-import FacebookIntegrationPage from "@/pages/Settings/Integrations/FacebookIntegrationPage";
-import SettingsPage from "@/pages/Settings/SettingsPage";
-import ChannelsPage from "@/pages/Settings/Channels";
-import { UsersSettingsPage } from "@/pages/Settings/Users/UsersSettingsPage";
+import FacebookIntegrationPage from "@/modules/Settings/Integrations/FacebookIntegrationPage";
+import SettingsPage from "@/modules/Settings/SettingsPage";
+import ChannelsPage from "@/modules/Settings/Channels";
+import { UsersSettingsPage } from "@/modules/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/modules/CRM/CRMPage";
 import { BIPage } from "@/modules/BI/BIPage";
-import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
-import IAPage from "@/pages/IA/IAPage";
-import { ConfigPage } from "@/pages/IA/ConfigPage";
+import InternalChatPage from "@/modules/InternalChat/InternalChatPage";
+import IAPage from "@/modules/IA/IAPage";
+import { ConfigPage } from "@/modules/IA/ConfigPage";
 
-import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
-import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
+import QuickRepliesSettingsPage from "@/modules/Settings/QuickReplies/QuickRepliesSettingsPage";
+import WebhookConfigPage from "@/modules/Settings/Webhooks/WebhookConfigPage";
 // Removido AIDetectionSettingsPage - agora consolidado em IntegrationsPage
 import PermissionsPanel from "@/modules/Admin/PermissionsPanel";
-import { ProfilePage } from "@/pages/Profile/ProfilePage";
-import { HandoffsPage } from "@/pages/Handoffs/HandoffsPage";
+import { ProfilePage } from "@/modules/Profile/ProfilePage";
+import { HandoffsPage } from "@/modules/Handoffs/HandoffsPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
