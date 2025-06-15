@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { FixedSizeList } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { ConversationListHeader } from './ConversationListHeader';
 import { ConversationItem } from './ConversationItem';
 import type { ConversationWithContact } from '@shared/schema';
@@ -41,388 +41,172 @@ export function ConversationListVirtualized({
   onNewContact
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(50);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [displayCount, setDisplayCount] = useState(50);
+  const listRef = useRef<FixedSizeList>(null);
+  const previousScrollTop = useRef<number>(0);
 
-  // Filtrar conversas de forma otimizada
+  // Filtrar conversas
   const filteredConversations = useMemo(() => {
-    if (!conversations) return [];
-    
     return conversations.filter(conversation => {
-      // Filtro por busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const nameMatch = conversation.contact?.name?.toLowerCase().includes(searchLower);
-        const phoneMatch = conversation.contact?.phone?.includes(searchTerm);
-        const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower);
-        
-        if (!nameMatch && !phoneMatch && !emailMatch) {
-          return false;
-        }
-      }
+      const matchesSearch = !searchTerm || 
+        conversation.contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        conversation.contact.phone?.includes(searchTerm) ||
+        conversation.messages?.[0]?.content?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filtro por status
-      if (statusFilter !== 'all' && conversation.status !== statusFilter) {
-        return false;
-      }
+      const matchesStatus = statusFilter === 'all' || conversation.status === statusFilter;
+      const matchesChannel = channelFilter === 'all' || conversation.channelInfo?.type === channelFilter;
       
-      // Filtro por canal
-      if (channelFilter !== 'all') {
-        if (channelFilter.startsWith('whatsapp-')) {
-          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-        }
-        return conversation.channel === channelFilter;
-      }
-      
-      return true;
+      return matchesSearch && matchesStatus && matchesChannel;
     });
   }, [conversations, searchTerm, statusFilter, channelFilter]);
 
-  // Conversas visíveis (limitadas para performance)
+  // Conversas visíveis (para paginação virtual)
   const visibleConversations = useMemo(() => {
-    return filteredConversations.slice(0, displayCount);
-  }, [filteredConversations, displayCount]);
+    return filteredConversations.slice(0, visibleCount);
+  }, [filteredConversations, visibleCount]);
 
-  // Detectar scroll para carregar mais
-  const handleScroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
-
-    // Carregar mais itens da lista atual
-    if (isNearBottom && displayCount < filteredConversations.length) {
-      setDisplayCount(prev => Math.min(prev + 25, filteredConversations.length));
-      return;
+  // Manter posição do scroll ao carregar mais conversas
+  const handleLoadMore = useCallback(() => {
+    if (listRef.current) {
+      previousScrollTop.current = (listRef.current as any).state?.scrollOffset || 0;
     }
+    
+    const newCount = Math.min(visibleCount + 50, filteredConversations.length);
+    setVisibleCount(newCount);
+    
+    // Restaurar posição do scroll após carregamento
+    setTimeout(() => {
+      if (listRef.current) {
+        listRef.current.scrollTo(previousScrollTop.current);
+      }
+    }, 0);
 
-    // Carregar próxima página se chegou ao fim e tem mais páginas
-    if (isNearBottom && hasNextPage && !isLoading) {
+    if (newCount >= filteredConversations.length && hasNextPage) {
       onLoadMore();
     }
-  }, [displayCount, filteredConversations.length, hasNextPage, isLoading, onLoadMore]);
+  }, [visibleCount, filteredConversations.length, hasNextPage, onLoadMore]);
 
-  // Throttle do scroll
-  const throttledHandleScroll = useCallback(() => {
-    requestAnimationFrame(handleScroll);
-  }, [handleScroll]);
+  // Detectar scroll para carregar mais
+  const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: any) => {
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+    
+    if (isNearBottom && !isLoading) {
+      if (visibleCount < filteredConversations.length) {
+        handleLoadMore();
+      } else if (hasNextPage) {
+        onLoadMore();
+      }
+    }
+  }, [isLoading, visibleCount, filteredConversations.length, hasNextPage, handleLoadMore, onLoadMore]);
 
+  // Reset da contagem visível quando filtros mudam
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
+    setVisibleCount(50);
+  }, [searchTerm, statusFilter, channelFilter]);
 
-    container.addEventListener('scroll', throttledHandleScroll);
-    return () => container.removeEventListener('scroll', throttledHandleScroll);
-  }, [throttledHandleScroll]);
+  // Item renderer para virtualização
+  const ItemRenderer = useCallback(({ index, style }: { index: number; style: any }) => {
+    const conversation = visibleConversations[index];
+    
+    if (!conversation) {
+      return <div style={style} />;
+    }
 
-  // Formatação de tempo otimizada
-  const formatTime = useCallback((date: string | Date) => {
-    const dateObj = new Date(date);
-    const now = new Date();
-    const diffInHours = (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 168) { // 7 dias
-      return dateObj.toLocaleDateString('pt-BR', { weekday: 'short' });
-    } else {
-      return dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    }
-  }, []);
-
-  // Extrair texto da última mensagem de forma otimizada
-  const getLastMessageText = useCallback((conversation: ConversationWithContact) => {
-    const lastMessage = conversation.messages?.[0];
-    if (!lastMessage) return 'Sem mensagens';
-    
-    // Filtrar mensagens genéricas inadequadas
-    const isGenericMessage = lastMessage.content && (
-      lastMessage.content === 'Mensagem recebida' ||
-      lastMessage.content === 'Mensagem não identificada' ||
-      lastMessage.content === 'Mensagem em processamento'
-    );
-    
-    // Extrair conteúdo real dos metadados se for mensagem genérica
-    if (isGenericMessage && lastMessage.metadata) {
-      const metadata = lastMessage.metadata as any;
-      
-      if (metadata.text?.message) {
-        return metadata.text.message;
-      }
-      
-      if (metadata.image) {
-        const caption = metadata.image.caption;
-        return caption?.trim() ? caption : '📷 Imagem';
-      }
-      
-      if (metadata.audio) return '🎵 Áudio';
-      if (metadata.video) {
-        const caption = metadata.video.caption;
-        return caption?.trim() ? caption : '🎥 Vídeo';
-      }
-      
-      if (metadata.document) {
-        const fileName = metadata.document.fileName || metadata.fileName;
-        return fileName ? `📄 ${fileName}` : '📄 Documento';
-      }
-    }
-    
-    // Para mensagens de texto válidas
-    if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
-      return lastMessage.content;
-    }
-    
-    // Para outros tipos de mídia
-    switch (lastMessage.messageType) {
-      case 'image': {
-        const caption = (lastMessage.metadata as any)?.image?.caption;
-        return caption?.trim() ? caption : '📷 Imagem';
-      }
-      case 'audio':
-        return '🎵 Áudio';
-      case 'video': {
-        const caption = (lastMessage.metadata as any)?.video?.caption;
-        return caption?.trim() ? caption : '🎥 Vídeo';
-      }
-      case 'document': {
-        const fileName = (lastMessage.metadata as any)?.document?.fileName || 
-                        (lastMessage.metadata as any)?.fileName;
-        return fileName ? `📄 ${fileName}` : '📄 Documento';
-      }
-      default:
-        return lastMessage.content || 'Nova mensagem';
-    }
-  }, []);
-
-  // Renderizar ícone do canal
-  const renderChannelIcon = useCallback((channel: string) => {
-    const iconClass = channel === 'whatsapp' ? 'text-green-600 bg-green-50' :
-                     channel === 'instagram' ? 'text-pink-600 bg-pink-50' :
-                     channel === 'facebook' ? 'text-blue-600 bg-blue-50' :
-                     'text-gray-600 bg-gray-50';
-    
     return (
-      <div className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${iconClass}`}>
-        <MessageSquare className="w-3 h-3" />
+      <div style={style}>
+        <ConversationItem
+          conversation={conversation}
+          isActive={activeConversation?.id === conversation.id}
+          onClick={onSelectConversation}
+        />
       </div>
     );
-  }, []);
+  }, [visibleConversations, activeConversation, onSelectConversation]);
 
-  // Componente de item da conversa
-  const ConversationItem = useCallback(({ conversation, index }: { conversation: ConversationWithContact; index: number }) => {
-    const isActive = activeConversation?.id === conversation.id;
-    const unreadCount = conversation.unreadCount || 0;
-    const proxiedImageUrl = useMediaUrl(conversation.contact?.profileImageUrl);
-    
-    return (
-      <div
-        key={conversation.id}
-        onClick={() => onSelectConversation(conversation)}
-        className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 ${
-          isActive ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          {/* Avatar do contato */}
-          <div className="relative flex-shrink-0">
-            <Avatar className="w-12 h-12">
-              <AvatarImage 
-                src={proxiedImageUrl || ''} 
-                alt={conversation.contact?.name || 'Contato'} 
-              />
-              <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">
-                {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
-              </AvatarFallback>
-            </Avatar>
-            
-            {/* Ícone de canal pequeno */}
-            <div className="absolute -bottom-1 -right-1">
-              {renderChannelIcon(conversation.channel)}
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {/* Nome e timestamp */}
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-medium text-gray-900 truncate">
-                {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
-              </h3>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500 flex-shrink-0">
-                  {conversation.lastMessageAt ? formatTime(conversation.lastMessageAt) : ''}
-                </span>
-                <ConversationActionsDropdown 
-                  conversationId={conversation.id}
-                  contactId={conversation.contactId}
-                  currentStatus={conversation.status || 'open'}
-                />
-              </div>
-            </div>
-
-            {/* Badge de mensagens não lidas */}
-            <div className="flex items-center justify-end mb-1">
-              {unreadCount > 0 && (
-                <Badge className="bg-blue-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
-              )}
-            </div>
-
-            {/* Preview da última mensagem */}
-            <p className="text-sm text-gray-500 truncate">
-              {getLastMessageText(conversation)}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }, [activeConversation, onSelectConversation, formatTime, getLastMessageText, renderChannelIcon]);
-
-  // Limpar filtros
-  const clearFilters = useCallback(() => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setChannelFilter('all');
-  }, [setSearchTerm, setStatusFilter, setChannelFilter]);
+  // Calcular altura total da lista
+  const itemHeight = 88; // Altura aproximada de cada item de conversa
+  const totalHeight = Math.min(visibleConversations.length * itemHeight, 600); // Máximo 600px
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header com botão Dashboard, título e ações */}
-      <div className="p-4 border-b border-gray-200">
-        {/* Cabeçalho principal */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Dashboard
-              </Button>
-            </Link>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-gray-900">Conversas</h1>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {onRefresh && (
-              <Button variant="ghost" size="sm" onClick={onRefresh}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-            )}
-            {onNewContact && (
-              <Button variant="ghost" size="sm" onClick={onNewContact}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {/* Busca */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Buscar conversas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className={showFilters ? 'bg-gray-50 border-gray-200' : ''}
-          >
-            <Filter className="w-4 h-4" />
-          </Button>
-        </div>
+    <div className="flex flex-col h-full bg-white">
+      {/* Header com filtros */}
+      <ConversationListHeader
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        channelFilter={channelFilter}
+        setChannelFilter={setChannelFilter}
+        channels={channels}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+        onRefresh={onRefresh}
+        onNewContact={onNewContact}
+      />
 
-        {/* Filtros expandidos */}
-        {showFilters && (
-          <div className="flex gap-2 text-sm">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="open">Aberto</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="resolved">Resolvido</SelectItem>
-                <SelectItem value="closed">Fechado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Canal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-                {channels.map(channel => (
-                  <SelectItem key={channel.id} value={`whatsapp-${channel.id}`}>
-                    {channel.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {(searchTerm || statusFilter !== 'all' || channelFilter !== 'all') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-gray-500"
+      {/* Lista virtualizada de conversas */}
+      <div className="flex-1 overflow-hidden">
+        {visibleConversations.length > 0 ? (
+          <AutoSizer>
+            {({ height, width }) => (
+              <FixedSizeList
+                ref={listRef}
+                height={height}
+                width={width}
+                itemCount={visibleConversations.length}
+                itemSize={itemHeight}
+                onScroll={handleScroll}
+                overscanCount={5} // Renderizar 5 itens extras para melhor performance
               >
-                <X className="w-4 h-4" />
-              </Button>
+                {ItemRenderer}
+              </FixedSizeList>
             )}
+          </AutoSizer>
+        ) : (
+          // Estado vazio
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {isLoading ? 'Carregando conversas...' : 'Nenhuma conversa encontrada'}
+            </h3>
+            <p className="text-gray-500 max-w-sm">
+              {isLoading 
+                ? 'Aguarde enquanto carregamos suas conversas.' 
+                : searchTerm 
+                  ? 'Tente ajustar os filtros ou termo de busca.'
+                  : 'Quando você receber mensagens, elas aparecerão aqui.'
+              }
+            </p>
           </div>
         )}
       </div>
 
-      {/* Lista com scroll infinito nativo */}
-      <div 
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto"
-        style={{ height: 'calc(100vh - 160px)' }}
-      >
-        {isLoading && filteredConversations.length === 0 ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-500">Carregando conversas...</p>
+      {/* Indicador de carregamento */}
+      {isLoading && visibleConversations.length > 0 && (
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-4 h-4 border-2 border-educhat-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-gray-600">Carregando mais conversas...</span>
           </div>
-        ) : filteredConversations.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <p>Nenhuma conversa encontrada</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {visibleConversations.map((conversation, index) => (
-              <ConversationItem 
-                key={`conversation-${conversation.id}-${index}`}
-                conversation={conversation}
-                index={index}
-              />
-            ))}
-            
-            {/* Indicador de carregamento para mais conversas */}
-            {(displayCount < filteredConversations.length || hasNextPage) && (
-              <div className="p-4 text-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
-                <p className="text-xs text-gray-500">Carregando mais conversas...</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Indicador de fim da lista */}
+      {!hasNextPage && visibleConversations.length > 0 && visibleCount >= filteredConversations.length && (
+        <div className="p-4 border-t border-gray-200 bg-gray-50 text-center">
+          <span className="text-sm text-gray-500">
+            {filteredConversations.length === 1 
+              ? '1 conversa carregada' 
+              : `${filteredConversations.length} conversas carregadas`
+            }
+          </span>
+        </div>
+      )}
     </div>
   );
 }

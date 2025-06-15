@@ -40,10 +40,10 @@ function ConversationItemComponent({
     return STATUS_CONFIG[status as ConversationStatus] || STATUS_CONFIG.open;
   };
 
-  const formatLastMessageTime = (dateString: string | null) => {
+  const formatLastMessageTime = (dateString: string | null | Date) => {
     if (!dateString) return '';
     
-    const date = new Date(dateString);
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
@@ -83,7 +83,7 @@ function ConversationItemComponent({
       <div className="relative mr-3 flex-shrink-0">
         <Avatar className="w-12 h-12">
           <AvatarImage 
-            src={mediaUrl} 
+            src={mediaUrl || undefined} 
             alt={conversation.contact.name}
             className="object-cover"
           />
