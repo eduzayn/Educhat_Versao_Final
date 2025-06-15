@@ -19,14 +19,12 @@ export function AudioMessage({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);
-  const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(audioUrl);
+  const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(
+    audioUrl,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-
-
-
-
 
   // Cache de falhas para evitar requisições repetidas
   const getCacheKey = (messageId: string) => `audio_failed_${messageId}`;
@@ -34,7 +32,7 @@ export function AudioMessage({
   // Buscar áudio via API com cache de falhas
   const fetchAudio = async (): Promise<boolean> => {
     if (!messageIdForFetch || isLoading || fetchedAudioUrl) return false;
-    
+
     // Verificar cache de falhas
     const failedKey = getCacheKey(messageIdForFetch);
     if (sessionStorage.getItem(failedKey)) {
@@ -47,7 +45,7 @@ export function AudioMessage({
 
     try {
       const response = await fetch(`/api/messages/${messageIdForFetch}/audio`);
-      
+
       if (!response.ok) {
         throw new Error("Áudio não encontrado");
       }
@@ -76,7 +74,13 @@ export function AudioMessage({
 
   // Inicializar áudio se necessário
   useEffect(() => {
-    if (!audioUrl && messageIdForFetch && !fetchedAudioUrl && !isLoading && !error) {
+    if (
+      !audioUrl &&
+      messageIdForFetch &&
+      !fetchedAudioUrl &&
+      !isLoading &&
+      !error
+    ) {
       fetchAudio();
     }
   }, [audioUrl, messageIdForFetch, fetchedAudioUrl, isLoading, error]);
@@ -86,9 +90,9 @@ export function AudioMessage({
     if (!fetchedAudioUrl && messageIdForFetch) {
       const success = await fetchAudio();
       if (!success) return;
-      
+
       // Aguardar carregamento
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     if (!fetchedAudioUrl || !audioRef.current) {
@@ -129,7 +133,8 @@ export function AudioMessage({
     setCurrentTime(0);
   };
 
-  const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
+  const progressPercentage =
+    audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
     <div
@@ -172,11 +177,7 @@ export function AudioMessage({
         <div className="flex items-center gap-2 mb-1">
           <Volume2 className="w-3 h-3 opacity-70" />
           <span className="text-xs opacity-70">
-            {isLoading
-              ? "Carregando..."
-              : error
-                ? error
-                : "Áudio"}
+            {isLoading ? "Carregando..." : error ? error : "Áudio"}
           </span>
         </div>
 

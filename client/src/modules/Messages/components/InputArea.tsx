@@ -15,11 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +23,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
@@ -37,7 +38,6 @@ import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { AudioRecorder, AudioRecorderRef } from "./AudioRecorder";
-import { MediaAttachmentModal } from "./MediaAttachmentModal";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,12 +51,287 @@ const QUICK_REPLIES = [
 
 // Emojis organizados por categoria
 const EMOJI_CATEGORIES = {
-  "Frequentes": ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "💯"],
-  "Pessoas": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
-  "Gestos": ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "👊", "✊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏"],
-  "Objetos": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚡", "💥", "💫", "⭐", "🌟", "✨", "🔥", "💯", "💢", "💨", "💦", "💤"],
-  "Natureza": ["🌍", "🌎", "🌏", "🌐", "🗺️", "🗾", "🧭", "🏔️", "⛰️", "🌋", "🗻", "🏕️", "🏖️", "🏜️", "🏝️", "🏞️", "🏟️", "🏛️", "🏗️", "🧱", "🏘️", "🏚️", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽", "⛪", "🕌", "🛕", "🕍", "⛩️", "🕋"],
-  "Comida": ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕"]
+  Frequentes: ["👍", "❤️", "😊", "😂", "🙏", "👏", "🔥", "💯"],
+  Pessoas: [
+    "😀",
+    "😃",
+    "😄",
+    "😁",
+    "😆",
+    "😅",
+    "😂",
+    "🤣",
+    "😊",
+    "😇",
+    "🙂",
+    "🙃",
+    "😉",
+    "😌",
+    "😍",
+    "🥰",
+    "😘",
+    "😗",
+    "😙",
+    "😚",
+    "😋",
+    "😛",
+    "😝",
+    "😜",
+    "🤪",
+    "🤨",
+    "🧐",
+    "🤓",
+    "😎",
+    "🤩",
+    "🥳",
+    "😏",
+    "😒",
+    "😞",
+    "😔",
+    "😟",
+    "😕",
+    "🙁",
+    "☹️",
+    "😣",
+    "😖",
+    "😫",
+    "😩",
+    "🥺",
+    "😢",
+    "😭",
+    "😤",
+    "😠",
+    "😡",
+    "🤬",
+    "🤯",
+    "😳",
+    "🥵",
+    "🥶",
+    "😱",
+    "😨",
+    "😰",
+    "😥",
+    "😓",
+    "🤗",
+    "🤔",
+    "🤭",
+    "🤫",
+    "🤥",
+    "😶",
+    "😐",
+    "😑",
+    "😬",
+    "🙄",
+    "😯",
+    "😦",
+    "😧",
+    "😮",
+    "😲",
+    "🥱",
+    "😴",
+    "🤤",
+    "😪",
+    "😵",
+    "🤐",
+    "🥴",
+    "🤢",
+    "🤮",
+    "🤧",
+    "😷",
+    "🤒",
+    "🤕",
+  ],
+  Gestos: [
+    "👋",
+    "🤚",
+    "🖐️",
+    "✋",
+    "🖖",
+    "👌",
+    "🤌",
+    "🤏",
+    "✌️",
+    "🤞",
+    "🤟",
+    "🤘",
+    "🤙",
+    "👈",
+    "👉",
+    "👆",
+    "🖕",
+    "👇",
+    "☝️",
+    "👍",
+    "👎",
+    "👊",
+    "✊",
+    "🤛",
+    "🤜",
+    "👏",
+    "🙌",
+    "👐",
+    "🤲",
+    "🤝",
+    "🙏",
+  ],
+  Objetos: [
+    "❤️",
+    "🧡",
+    "💛",
+    "💚",
+    "💙",
+    "💜",
+    "🖤",
+    "🤍",
+    "🤎",
+    "💔",
+    "❣️",
+    "💕",
+    "💞",
+    "💓",
+    "💗",
+    "💖",
+    "💘",
+    "💝",
+    "💟",
+    "☮️",
+    "✝️",
+    "☪️",
+    "🕉️",
+    "☸️",
+    "✡️",
+    "🔯",
+    "🕎",
+    "☯️",
+    "☦️",
+    "🛐",
+    "⛎",
+    "♈",
+    "♉",
+    "♊",
+    "♋",
+    "♌",
+    "♍",
+    "♎",
+    "♏",
+    "♐",
+    "♑",
+    "♒",
+    "♓",
+    "🆔",
+    "⚡",
+    "💥",
+    "💫",
+    "⭐",
+    "🌟",
+    "✨",
+    "🔥",
+    "💯",
+    "💢",
+    "💨",
+    "💦",
+    "💤",
+  ],
+  Natureza: [
+    "🌍",
+    "🌎",
+    "🌏",
+    "🌐",
+    "🗺️",
+    "🗾",
+    "🧭",
+    "🏔️",
+    "⛰️",
+    "🌋",
+    "🗻",
+    "🏕️",
+    "🏖️",
+    "🏜️",
+    "🏝️",
+    "🏞️",
+    "🏟️",
+    "🏛️",
+    "🏗️",
+    "🧱",
+    "🏘️",
+    "🏚️",
+    "🏠",
+    "🏡",
+    "🏢",
+    "🏣",
+    "🏤",
+    "🏥",
+    "🏦",
+    "🏨",
+    "🏩",
+    "🏪",
+    "🏫",
+    "🏬",
+    "🏭",
+    "🏯",
+    "🏰",
+    "💒",
+    "🗼",
+    "🗽",
+    "⛪",
+    "🕌",
+    "🛕",
+    "🕍",
+    "⛩️",
+    "🕋",
+  ],
+  Comida: [
+    "🍎",
+    "🍊",
+    "🍋",
+    "🍌",
+    "🍉",
+    "🍇",
+    "🍓",
+    "🫐",
+    "🍈",
+    "🍒",
+    "🍑",
+    "🥭",
+    "🍍",
+    "🥥",
+    "🥝",
+    "🍅",
+    "🍆",
+    "🥑",
+    "🥦",
+    "🥬",
+    "🥒",
+    "🌶️",
+    "🫑",
+    "🌽",
+    "🥕",
+    "🫒",
+    "🧄",
+    "🧅",
+    "🥔",
+    "🍠",
+    "🥐",
+    "🥯",
+    "🍞",
+    "🥖",
+    "🥨",
+    "🧀",
+    "🥚",
+    "🍳",
+    "🧈",
+    "🥞",
+    "🧇",
+    "🥓",
+    "🥩",
+    "🍗",
+    "🍖",
+    "🦴",
+    "🌭",
+    "🍔",
+    "🍟",
+    "🍕",
+  ],
 };
 
 export function InputArea() {
@@ -65,7 +340,9 @@ export function InputArea() {
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [quickReplyFilter, setQuickReplyFilter] = useState("");
   const [selectedQuickReplyIndex, setSelectedQuickReplyIndex] = useState(0);
@@ -83,8 +360,6 @@ export function InputArea() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-
-
   // Buscar respostas rápidas do servidor
   const { data: quickReplies = [] } = useQuery<QuickReply[]>({
     queryKey: ["/api/quick-replies"],
@@ -93,10 +368,10 @@ export function InputArea() {
 
   // Query para buscar usuário atual (para notas internas)
   const { data: currentUser } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ["/api/user"],
     retry: false,
     staleTime: 1000 * 60 * 10, // 10 minutos
-    enabled: isInternalNote // Só busca quando necessário
+    enabled: isInternalNote, // Só busca quando necessário
   });
 
   // Filtrar respostas rápidas baseado no texto após "/"
@@ -178,8 +453,11 @@ export function InputArea() {
     try {
       if (isInternalNote) {
         // Enviar nota interna com nome do usuário atual
-        const authorName = (currentUser as any)?.displayName || (currentUser as any)?.username || 'Usuário';
-        
+        const authorName =
+          (currentUser as any)?.displayName ||
+          (currentUser as any)?.username ||
+          "Usuário";
+
         await sendMessageMutation.mutateAsync({
           conversationId: activeConversation.id,
           message: {
@@ -192,7 +470,7 @@ export function InputArea() {
           },
           contact: activeConversation.contact,
         });
-        
+
         setIsInternalNote(false); // Reset nota interna state
       } else {
         // Enviar mensagem normal
@@ -410,46 +688,23 @@ export function InputArea() {
       formData.append("conversationId", activeConversation.id.toString());
       formData.append("image", file);
 
-      // Criar controller para timeout personalizado
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-      }, 120000); // 2 minutos para imagens
+      const response = await fetch("/api/zapi/send-image", {
+        method: "POST",
+        body: formData,
+      });
 
-      try {
-        const response = await fetch("/api/zapi/send-image", {
-          method: "POST",
-          body: formData,
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao enviar imagem");
-        }
-
-        return response.json();
-      } catch (error) {
-        clearTimeout(timeoutId);
-        
-        // Tratamento específico para diferentes tipos de erro
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
-          } else if (error.message.includes('Failed to fetch')) {
-            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
-          } else if (error.message.includes('NetworkError')) {
-            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
-          }
-        }
-        
-        throw error;
+      if (!response.ok) {
+        throw new Error("Erro ao enviar imagem");
       }
+
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Imagem enviada",
         description: "Sua imagem foi enviada com sucesso!",
       });
+      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -495,25 +750,14 @@ export function InputArea() {
           conversationId: activeConversation.id,
           fileName: file.name,
           fileSize: file.size,
-          fileSizeMB: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
         });
-
-        // Criar controller para timeout personalizado - otimizado para velocidade
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
-        }, 90000); // 1.5 minutos (reduzido de 3 minutos)
 
         const response = await fetch("/api/zapi/send-video", {
           method: "POST",
           body: formData,
-          signal: controller.signal,
-          headers: {
-            // Não definir Content-Type para FormData - deixar o browser definir automaticamente
-          }
+          // Aumentar timeout para arquivos grandes
+          signal: AbortSignal.timeout(180000), // 3 minutos
         });
-
-        clearTimeout(timeoutId);
 
         console.log("📥 Resposta do servidor:", {
           status: response.status,
@@ -534,18 +778,6 @@ export function InputArea() {
         return result;
       } catch (error) {
         console.error("💥 Erro no processo de envio:", error);
-        
-        // Tratamento específico para diferentes tipos de erro
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
-          } else if (error.message.includes('Failed to fetch')) {
-            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
-          } else if (error.message.includes('NetworkError')) {
-            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
-          }
-        }
-        
         throw error;
       }
     },
@@ -554,6 +786,7 @@ export function InputArea() {
         title: "Vídeo enviado",
         description: "Seu vídeo foi enviado com sucesso!",
       });
+      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -601,20 +834,11 @@ export function InputArea() {
       formData.append("conversationId", activeConversation.id.toString());
       formData.append("document", file);
 
-      // Criar controller para timeout personalizado
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-      }, 120000); // 2 minutos para documentos
-
       try {
         const response = await fetch("/api/zapi/send-document", {
           method: "POST",
           body: formData,
-          signal: controller.signal,
         });
-
-        clearTimeout(timeoutId);
 
         console.log("📥 Resposta do servidor:", {
           status: response.status,
@@ -632,20 +856,7 @@ export function InputArea() {
 
         return responseData;
       } catch (error) {
-        clearTimeout(timeoutId);
         console.error("💥 Erro no processo de envio:", error);
-        
-        // Tratamento específico para diferentes tipos de erro
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            throw new Error('Timeout: O arquivo é muito grande ou a conexão está lenta. Tente novamente.');
-          } else if (error.message.includes('Failed to fetch')) {
-            throw new Error('Erro de conexão: Verifique sua internet e tente novamente.');
-          } else if (error.message.includes('NetworkError')) {
-            throw new Error('Erro de rede: Não foi possível conectar ao servidor.');
-          }
-        }
-        
         throw error;
       }
     },
@@ -654,6 +865,7 @@ export function InputArea() {
         title: "Documento enviado",
         description: "Seu documento foi enviado com sucesso!",
       });
+      setIsAttachmentOpen(false);
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -697,6 +909,9 @@ export function InputArea() {
         title: "Link enviado",
         description: "Seu link foi enviado com sucesso!",
       });
+      setIsAttachmentOpen(false);
+      setLinkUrl("");
+      setLinkText("");
 
       // Invalidar cache para atualizar mensagens
       if (activeConversation?.id) {
@@ -715,30 +930,44 @@ export function InputArea() {
     },
   });
 
+  const handleFileSelect = (type: "image" | "video" | "document") => {
+    const input = document.createElement("input");
+    input.type = "file";
 
-
-
-
-  // Função para upload de arquivos do MediaAttachmentModal
-  const handleFileUpload = (file: File, caption?: string) => {
-    const fileType = file.type;
-    
-    if (fileType.startsWith('image/')) {
-      sendImageMutation.mutate(file);
-    } else if (fileType.startsWith('video/')) {
-      sendVideoMutation.mutate(file);
-    } else if (fileType.startsWith('audio/')) {
-      // Para áudio, usar a mesma lógica de documento por enquanto
-      sendDocumentMutation.mutate(file);
-    } else {
-      sendDocumentMutation.mutate(file);
+    if (type === "image") {
+      input.accept = "image/*";
+    } else if (type === "video") {
+      input.accept = "video/*";
+    } else if (type === "document") {
+      input.accept = ".pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx";
     }
+
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (type === "image") {
+          sendImageMutation.mutate(file);
+        } else if (type === "video") {
+          sendVideoMutation.mutate(file);
+        } else if (type === "document") {
+          sendDocumentMutation.mutate(file);
+        }
+      }
+    };
+
+    input.click();
   };
 
-  // Função para compartilhar links do MediaAttachmentModal
-  const handleLinkShare = (url: string, caption?: string) => {
-    const linkText = caption && caption.trim() ? caption.trim() : url;
-    sendLinkMutation.mutate({ url: url.trim(), text: linkText });
+  const handleSendLink = () => {
+    if (linkUrl.trim() && linkText.trim()) {
+      sendLinkMutation.mutate({ url: linkUrl.trim(), text: linkText.trim() });
+    } else {
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha a URL e o texto do link.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
@@ -807,17 +1036,140 @@ export function InputArea() {
       {isInternalNote && (
         <div className="mb-2 flex items-center gap-1.5 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md text-xs text-amber-700 dark:text-amber-400 relative z-50 shadow-sm">
           <StickyNote className="h-3 w-3" />
-          <span className="font-medium">Modo: Nota Interna (apenas equipe)</span>
+          <span className="font-medium">
+            Modo: Nota Interna (apenas equipe)
+          </span>
         </div>
       )}
 
       {/* Interface de digitação sempre visível */}
       <div className="flex items-end space-x-3">
-        <MediaAttachmentModal
-          onFileUpload={handleFileUpload}
-          onLinkShare={handleLinkShare}
-          isUploading={sendImageMutation.isPending || sendVideoMutation.isPending || sendDocumentMutation.isPending}
-        />
+        <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 text-educhat-medium hover:text-educhat-blue"
+              disabled={!activeConversation?.contact.phone}
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="w-96">
+            <DialogHeader>
+              <DialogTitle>Enviar Anexo</DialogTitle>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {/* Botão para Imagem */}
+              <Button
+                onClick={() => handleFileSelect("image")}
+                disabled={sendImageMutation.isPending}
+                className="h-20 flex-col bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                {sendImageMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Image className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Imagem</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Vídeo */}
+              <Button
+                onClick={() => handleFileSelect("video")}
+                disabled={sendVideoMutation.isPending}
+                className="h-20 flex-col bg-red-500 hover:bg-red-600 text-white"
+              >
+                {sendVideoMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <Video className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Vídeo</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Documento */}
+              <Button
+                onClick={() => handleFileSelect("document")}
+                disabled={sendDocumentMutation.isPending}
+                className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
+              >
+                {sendDocumentMutation.isPending ? (
+                  <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    <FileText className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Documento</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Botão para Link */}
+              <Button
+                onClick={() => {
+                  /* Abrirá seção de link */
+                }}
+                className="h-20 flex-col bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                <Link className="w-8 h-8 mb-2" />
+                <span className="text-sm">Link</span>
+              </Button>
+            </div>
+
+            {/* Seção para envio de link */}
+            <div className="mt-6 space-y-3">
+              <div>
+                <Label htmlFor="linkUrl">URL do Link</Label>
+                <Input
+                  id="linkUrl"
+                  type="url"
+                  placeholder="https://exemplo.com"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="linkText">Texto do Link</Label>
+                <Input
+                  id="linkText"
+                  placeholder="Descrição do link"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                />
+              </div>
+
+              <Button
+                onClick={handleSendLink}
+                disabled={
+                  !linkUrl.trim() ||
+                  !linkText.trim() ||
+                  sendLinkMutation.isPending
+                }
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                {sendLinkMutation.isPending ? (
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                ) : (
+                  <Link className="w-4 h-4 mr-2" />
+                )}
+                Enviar Link
+              </Button>
+            </div>
+
+            {!activeConversation?.contact.phone && (
+              <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
+                Anexos disponíveis apenas para contatos do WhatsApp
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Button
           variant="ghost"
@@ -825,13 +1177,12 @@ export function InputArea() {
           onClick={handleMicrophoneClick}
           className={cn(
             "p-2.5 text-educhat-medium hover:text-educhat-blue",
-            (showAudioRecorder || isRecording) && "bg-red-500 text-white hover:bg-red-600",
+            (showAudioRecorder || isRecording) &&
+              "bg-red-500 text-white hover:bg-red-600",
           )}
         >
           <Mic className="w-5.5 h-5.5" />
         </Button>
-
-
 
         {/* Botão de Emojis/Reações movido para fora da textarea */}
         <Popover open={isEmojiOpen} onOpenChange={setIsEmojiOpen}>
@@ -850,7 +1201,10 @@ export function InputArea() {
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-96 p-0 z-40 glass-effect shadow-2xl rounded-2xl border-0" align="end">
+          <PopoverContent
+            className="w-96 p-0 z-40 glass-effect shadow-2xl rounded-2xl border-0"
+            align="end"
+          >
             <div className="p-6">
               {/* Header elegante com gradiente e ícone animado */}
               <div className="relative mb-6 pb-4">
@@ -880,9 +1234,9 @@ export function InputArea() {
                     onClick={() => setActiveEmojiCategory(category)}
                     className={cn(
                       "text-xs px-4 py-2 h-9 rounded-full font-semibold transition-all duration-300 transform",
-                      activeEmojiCategory === category 
-                        ? "bg-gradient-to-r from-educhat-primary via-blue-500 to-purple-500 text-white shadow-xl shadow-educhat-primary/30 scale-110 border-0" 
-                        : "bg-white/70 hover:bg-white text-gray-700 hover:scale-105 hover:shadow-lg border border-gray-200 hover:border-educhat-primary/30"
+                      activeEmojiCategory === category
+                        ? "bg-gradient-to-r from-educhat-primary via-blue-500 to-purple-500 text-white shadow-xl shadow-educhat-primary/30 scale-110 border-0"
+                        : "bg-white/70 hover:bg-white text-gray-700 hover:scale-105 hover:shadow-lg border border-gray-200 hover:border-educhat-primary/30",
                     )}
                   >
                     {category}
@@ -893,8 +1247,13 @@ export function InputArea() {
               {/* Grid de emojis com animações elegantes */}
               <div className="max-h-72 overflow-y-auto pr-2 scrollbar-thin">
                 <div className="grid grid-cols-9 gap-2 emoji-grid-enter">
-                  {EMOJI_CATEGORIES[activeEmojiCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
-                    <div key={`${activeEmojiCategory}-${index}`} className="flex flex-col items-center gap-1.5">
+                  {EMOJI_CATEGORIES[
+                    activeEmojiCategory as keyof typeof EMOJI_CATEGORIES
+                  ].map((emoji, index) => (
+                    <div
+                      key={`${activeEmojiCategory}-${index}`}
+                      className="flex flex-col items-center gap-1.5"
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
@@ -930,7 +1289,9 @@ export function InputArea() {
                     </div>
                     <span className="font-semibold">Reações WhatsApp</span>
                   </div>
-                  <span className="text-xs text-amber-700">Disponíveis apenas para contatos com número</span>
+                  <span className="text-xs text-amber-700">
+                    Disponíveis apenas para contatos com número
+                  </span>
                 </div>
               )}
             </div>
@@ -947,7 +1308,7 @@ export function InputArea() {
             className="min-h-[48px] max-h-[140px] resize-none pr-20 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent text-base"
             rows={1}
           />
-          
+
           {/* Botões de toggle entre Mensagem e Nota Interna - movidos para a direita */}
           <div className="absolute right-2 top-2.5 flex items-center gap-1.5">
             <TooltipProvider>
@@ -958,7 +1319,7 @@ export function InputArea() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                      !isInternalNote ? "text-blue-600" : "text-gray-400"
+                      !isInternalNote ? "text-blue-600" : "text-gray-400",
                     )}
                     onClick={() => setIsInternalNote(false)}
                   >
@@ -970,7 +1331,7 @@ export function InputArea() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -979,7 +1340,7 @@ export function InputArea() {
                     size="sm"
                     className={cn(
                       "h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                      isInternalNote ? "text-amber-600" : "text-gray-400"
+                      isInternalNote ? "text-amber-600" : "text-gray-400",
                     )}
                     onClick={() => setIsInternalNote(true)}
                   >

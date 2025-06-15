@@ -1,5 +1,5 @@
-import { memo, useRef, useEffect, useState } from "react";
-import { FixedSizeList as List } from "react-window";
+import { memo, useRef, useEffect, useState, useLayoutEffect } from "react";
+import { VariableSizeList as List } from "react-window";
 import { MessageBubble } from "./MessageBubble";
 import type { Message, Contact } from "@shared/schema";
 
@@ -27,7 +27,7 @@ const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
   if (!message) return null;
 
   return (
-    <div style={style}>
+    <div style={style} key={message.id}>
       <MessageBubble
         message={message}
         contact={contact}
@@ -51,73 +51,82 @@ export const VirtualizedMessageList = memo(
     const prevConversationId = useRef<number | undefined>(conversationId);
     const prevMessageCount = useRef<number>(0);
 
-    // Função para rolar para o final
+    // Estimar tamanho dinâmico por mensagem
+    const getItemSize = (index: number) => {
+      const message = messages[index];
+      if (!message) return 100;
+
+      const type = message.messageType;
+      if (type === "image" || type === "video") return 300;
+      if (type === "audio") return 160;
+      if (type === "document") return 140;
+
+      const base = 80;
+      const contentLength = message.content?.length || 0;
+      return base + Math.min(contentLength * 0.3, 300);
+    };
+
+    // Scroll para o final
     const scrollToBottom = () => {
       if (listRef.current && messages.length > 0) {
         listRef.current.scrollToItem(messages.length - 1, "end");
       }
     };
 
-    // Rolar para o final quando a conversa mudar
+    // Scroll no início da conversa
     useEffect(() => {
       if (conversationId !== prevConversationId.current) {
         setShouldScrollToBottom(true);
         prevConversationId.current = conversationId;
         prevMessageCount.current = messages.length;
-        
-        // Aguardar um pouco para garantir que as mensagens foram carregadas
-        setTimeout(() => {
-          scrollToBottom();
-        }, 150);
       }
-    }, [conversationId, messages.length]);
+    }, [conversationId]);
 
-    // Rolar para o final quando novas mensagens chegarem (se o usuário estava no final)
+    // Scroll quando novas mensagens chegam
     useEffect(() => {
       if (messages.length > prevMessageCount.current && shouldScrollToBottom) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 50);
+        scrollToBottom();
       }
       prevMessageCount.current = messages.length;
     }, [messages.length, shouldScrollToBottom]);
 
-    // Rolar para o final no carregamento inicial
-    useEffect(() => {
-      if (messages.length > 0 && listRef.current) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 200);
+    // Scroll quando carregar inicialmente
+    useLayoutEffect(() => {
+      if (messages.length > 0 && shouldScrollToBottom) {
+        requestAnimationFrame(() => scrollToBottom());
       }
-    }, [messages.length > 0]);
+    }, [messages.length, shouldScrollToBottom]);
 
     const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }: any) => {
       if (!scrollUpdateWasRequested && messages.length > 0) {
-        // Verificar se o usuário está próximo ao final da lista
-        const totalHeight = messages.length * 120;
-        const isNearBottom = scrollOffset + height >= totalHeight - 200; // 200px de tolerância
+        const totalApproxHeight = messages.reduce(
+          (sum, _, i) => sum + getItemSize(i),
+          0,
+        );
+        const isNearBottom = scrollOffset + height >= totalApproxHeight - 200;
         setShouldScrollToBottom(isNearBottom);
       }
     };
 
-    const itemData = {
-      messages,
-      contact,
-      conversationId,
-    };
+    const itemData = useMemo(
+      () => ({
+        messages,
+        contact,
+        conversationId,
+      }),
+      [messages, contact, conversationId],
+    );
 
     return (
       <List
         ref={listRef}
         height={height}
-        width={`100%`}
+        width="100%"
         itemCount={messages.length}
-        itemSize={120} // Altura aproximada de cada mensagem
+        itemSize={getItemSize}
         itemData={itemData}
         onScroll={handleScroll}
-        style={{
-          overflowX: "hidden",
-        }}
+        style={{ overflowX: "hidden" }}
       >
         {MessageItem}
       </List>

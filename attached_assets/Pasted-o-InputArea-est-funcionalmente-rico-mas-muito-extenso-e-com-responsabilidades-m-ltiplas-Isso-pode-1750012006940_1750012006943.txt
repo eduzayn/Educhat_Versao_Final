@@ -1,0 +1,69 @@
+o InputArea está funcionalmente rico, mas muito extenso e com responsabilidades múltiplas. Isso pode dificultar manutenção, testes e evolução do código.
+
+✅ Pontos positivos do seu código:
+Ótima cobertura funcional: áudio, emojis, anexos, links, reações, notas internas.
+
+Uso correto de useMutation, useToast, QueryClient, controle de refs.
+
+Uso bem estruturado de estados, condicionais e Dialog, Popover, Tooltip.
+
+📦 Sugestão de Estrutura Modular (Divisão)
+Você pode dividir o InputArea em 6 subcomponentes reutilizáveis, mantendo o componente principal como orquestrador:
+
+1. AudioRecorderSection.tsx
+Move a lógica de renderização e controle do AudioRecorder para cá.
+
+Props: onSend, onCancel, isRecording, setIsRecording
+
+2. QuickReplyDropdown.tsx
+Responsável pelo dropdown flutuante com as respostas rápidas.
+
+Props: visible, filteredReplies, onSelect, selectedIndex, setSelectedIndex
+
+3. EmojiReactionPopover.tsx
+Toda a lógica do Popover de emojis e reações.
+
+Props: onInsertEmoji, onSendReaction, activeConversation
+
+4. AttachmentDialog.tsx
+Módulo responsável por envio de imagem, vídeo, documento e link.
+
+Props: onSendImage, onSendVideo, onSendDocument, onSendLink
+
+5. InternalNoteToggle.tsx
+Botões de troca entre mensagem normal e nota interna.
+
+Props: isInternalNote, setIsInternalNote
+
+6. QuickReplyChips.tsx
+Os botões rápidos abaixo da caixa de mensagem.
+
+Props: onSelect, QUICK_REPLIES
+
+🧠 InputArea Final
+Depois da divisão, o InputArea.tsx principal pode importar essas seções e conter apenas o useState, useEffect e funções orquestradoras, com algo como:
+
+tsx
+Copiar
+Editar
+<AudioRecorderSection ... />
+<EmojiReactionPopover ... />
+<AttachmentDialog ... />
+<QuickReplyDropdown ... />
+<InternalNoteToggle ... />
+<QuickReplyChips ... />
+🧽 Dica de organização
+Coloque tudo em uma pasta chamada InputArea/:
+
+markdown
+Copiar
+Editar
+components/
+└── InputArea/
+    ├── index.tsx              ← o atual InputArea
+    ├── AudioRecorderSection.tsx
+    ├── QuickReplyDropdown.tsx
+    ├── EmojiReactionPopover.tsx
+    ├── AttachmentDialog.tsx
+    ├── InternalNoteToggle.tsx
+    └── QuickReplyChips.tsx

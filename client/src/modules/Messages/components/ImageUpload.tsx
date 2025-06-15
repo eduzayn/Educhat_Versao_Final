@@ -117,7 +117,7 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            
+
             <div className="flex-1 space-y-2">
               <div className="text-sm font-medium text-foreground">
                 {selectedImage.name}
@@ -125,7 +125,7 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
               <div className="text-xs text-muted-foreground">
                 {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
               </div>
-              
+
               <input
                 type="text"
                 placeholder="Adicionar legenda (opcional)"
@@ -134,7 +134,7 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
                 className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                 maxLength={1000}
               />
-              
+
               <div className="flex gap-2">
                 <Button
                   size="sm"

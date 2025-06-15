@@ -1,5 +1,15 @@
-import { useState, useRef, useMemo, memo } from "react";
-import { Check, CheckCheck, Play, Pause, Volume2, FileText, Download, Trash2, StickyNote, Reply, MapPin, User, BarChart3, Square, List, Mail, AlertTriangle, Forward } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import {
+  Check,
+  CheckCheck,
+  Play,
+  Pause,
+  Volume2,
+  Download,
+  Trash2,
+  StickyNote,
+  Reply,
+} from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
@@ -30,7 +40,7 @@ interface MessageBubbleProps {
   onReply?: (message: Message) => void;
 }
 
-export const MessageBubble = memo(function MessageBubble({
+export function MessageBubble({
   message,
   contact,
   channelIcon,
@@ -38,191 +48,69 @@ export const MessageBubble = memo(function MessageBubble({
   conversationId,
   onReply,
 }: MessageBubbleProps) {
-  // Debug logging - Remove after fixing
-  console.log('MessageBubble render:', {
-    messageId: message.id,
-    content: message.content,
-    messageType: message.messageType,
-    isFromContact: message.isFromContact
-  });
   const isFromContact = message.isFromContact;
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
   const { toast } = useToast();
-  
 
-  
-
-  
-  // Verificar se a mensagem foi deletada pelo usuário
-  const isDeletedByUser = message.isDeletedByUser || false;
-  
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
-  const messageTime = useMemo(
-    () => {
-      const date = messageTimestamp instanceof Date ? messageTimestamp : new Date(messageTimestamp);
-      return new Intl.DateTimeFormat('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(date);
-    },
-    [messageTimestamp],
-  );
+  const messageTime = useMemo(() => {
+    const date =
+      messageTimestamp instanceof Date
+        ? messageTimestamp
+        : new Date(messageTimestamp);
+    return new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }, [messageTimestamp]);
 
   const messageStatus = useMemo(() => {
     if (isFromContact) return null;
-
-    if (message.readAt) {
-      return <CheckCheck className="w-3 h-3 text-blue-500" />;
-    } else if (message.deliveredAt) {
+    if (message.readAt) return <CheckCheck className="w-3 h-3 text-blue-500" />;
+    if (message.deliveredAt)
       return <CheckCheck className="w-3 h-3 text-gray-400" />;
-    } else {
-      return <Check className="w-3 h-3 text-gray-400" />;
-    }
+    return <Check className="w-3 h-3 text-gray-400" />;
   }, [isFromContact, message.readAt, message.deliveredAt]);
 
-  const avatarFallbackChar = isFromContact
-    ? contact.name?.charAt(0)?.toUpperCase() || "C"
-    : "A";
-
-  const bubbleClasses = message.isInternalNote
-    ? "bg-amber-50 text-amber-900 border border-amber-200"
-    : isFromContact
-    ? "bg-gray-100 text-gray-900"
-    : "bg-blue-500 text-white";
-
-  const timeClasses = isFromContact
-    ? "text-xs text-gray-400"
-    : "text-xs text-gray-500 justify-end";
-
-  const containerClasses = `flex items-start gap-3 group ${
-    isFromContact ? "flex-row" : "flex-row-reverse"
-  } mb-4`;
-
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isDeleted, setIsDeleted] = useState(false);
-  const [isForwarding, setIsForwarding] = useState(false);
-
-  // Verificar se a mensagem pode ser deletada
   const canDelete = () => {
     const now = new Date();
-    const sevenMinutesInMs = 7 * 60 * 1000;
-    
-    // Usar o timestamp mais recente disponível (sentAt ou deliveredAt)
-    const messageTimestamp = message.sentAt || message.deliveredAt || new Date();
-    const messageDate = new Date(messageTimestamp);
-    const timeDifference = now.getTime() - messageDate.getTime();
-    
-    if (isFromContact) {
-      // Mensagens recebidas podem ser ocultadas localmente em até 7 minutos
-      return timeDifference <= sevenMinutesInMs;
-    }
-    
-    // Mensagens enviadas pelo agente podem ser deletadas via Z-API em até 7 minutos
-    // Verificar se tem metadados Z-API (messageId ou zaapId)
-    const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
-    const metadataAny = metadata as any;
-    const hasZapiId = metadataAny?.messageId || metadataAny?.zaapId || metadataAny?.id;
-    
-    return timeDifference <= sevenMinutesInMs && !!hasZapiId;
+    const messageDate = new Date(message.sentAt || new Date());
+    return now.getTime() - messageDate.getTime() <= 7 * 60 * 1000;
   };
 
   const handleDeleteMessage = async () => {
     if (!conversationId) return;
-
     setIsDeleting(true);
     try {
       if (isFromContact) {
-        // Mensagem RECEBIDA → Soft Delete
         await apiRequest("POST", "/api/messages/soft-delete", {
           messageId: message.id,
-          conversationId: conversationId,
+          conversationId,
         });
-
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${conversationId}/messages`],
-        });
-
-        toast({
-          title: "Sucesso",
-          description: "Mensagem removida da sua interface",
-        });
+        setIsDeleted(true);
       } else {
-        // Mensagem ENVIADA → Z-API Delete
-        const metadata =
-          message.metadata && typeof message.metadata === "object"
-            ? message.metadata
-            : {};
-        let zapiMessageId = null;
-
-        if ("messageId" in metadata && metadata.messageId) {
-          zapiMessageId = metadata.messageId;
-        } else if ("zaapId" in metadata && metadata.zaapId) {
-          zapiMessageId = metadata.zaapId;
-        } else if ("id" in metadata && metadata.id) {
-          zapiMessageId = metadata.id;
-        }
-
-        if (!zapiMessageId) {
-          toast({
-            title: "Erro",
-            description: "Esta mensagem não pode ser deletada (ID da Z-API não encontrado)",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        console.log('🗑️ Iniciando exclusão de mensagem enviada:', {
-          messageId: message.id,
-          zapiMessageId,
-          phone: contact.phone,
-          conversationId
-        });
-
+        const metadata = message.metadata as any;
+        const messageId =
+          metadata?.messageId || metadata?.zaapId || metadata?.id;
+        if (!messageId) throw new Error("ID da mensagem não encontrado");
         await apiRequest("POST", "/api/zapi/delete-message", {
           phone: contact.phone,
-          messageId: zapiMessageId.toString(),
-          conversationId: conversationId,
+          messageId: messageId.toString(),
+          conversationId,
         });
-
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${conversationId}/messages`],
-        });
-
-        toast({
-          title: "Sucesso",
-          description: "Mensagem removida da conversa",
-        });
+        setIsDeleted(true);
       }
+      queryClient.invalidateQueries({
+        queryKey: [`/api/conversations/${conversationId}/messages`],
+      });
+      toast({ title: "Sucesso", description: "Mensagem deletada com sucesso" });
     } catch (error) {
-      console.error("❌ Erro ao deletar mensagem:", error);
-
-      let errorMessage = "Não foi possível deletar a mensagem";
-      let errorTitle = "Erro";
-      
-      if (error && typeof error === "object") {
-        if ("message" in error) {
-          const message = (error as Error).message;
-          if (message.includes("Failed to fetch")) {
-            errorTitle = "Erro de Conexão";
-            errorMessage = "Problema de conexão com o servidor. Verifique sua internet e tente novamente.";
-          } else if (message.includes("NetworkError")) {
-            errorTitle = "Erro de Rede";
-            errorMessage = "Erro de rede. Tente novamente em alguns segundos.";
-          } else if (message.includes("timeout")) {
-            errorTitle = "Timeout";
-            errorMessage = "A operação demorou muito. Tente novamente.";
-          } else if (message.includes("7 minutos")) {
-            errorTitle = "Prazo Expirado";
-            errorMessage = "Só é possível deletar mensagens em até 7 minutos após o envio.";
-          } else {
-            errorMessage = message;
-          }
-        }
-      }
-
       toast({
-        title: errorTitle,
-        description: errorMessage,
+        title: "Erro",
+        description:
+          error instanceof Error ? error.message : "Erro ao deletar mensagem",
         variant: "destructive",
       });
     } finally {
@@ -230,348 +118,183 @@ export const MessageBubble = memo(function MessageBubble({
     }
   };
 
-  const handleForwardMessage = async () => {
-    if (!conversationId) return;
-    
-    setIsForwarding(true);
-    try {
-      // Por simplicidade, vamos mostrar um toast indicando que a funcionalidade está sendo implementada
-      // Em uma implementação completa, seria aberto um modal para seleção de contatos/conversas
-      toast({
-        title: "Encaminhar mensagem",
-        description: "Selecione o contato ou conversa para encaminhar esta mensagem",
-      });
-      
-      console.log("Encaminhando mensagem:", {
-        messageId: message.id,
-        content: message.content,
-        messageType: message.messageType,
-        metadata: message.metadata
-      });
-      
-    } catch (error) {
-      console.error("Erro ao encaminhar mensagem:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível encaminhar a mensagem",
-        variant: "destructive",
-      });
-    } finally {
-      setIsForwarding(false);
-    }
-  };
-
-  // Se a mensagem foi deletada pelo usuário, mostrar indicação visual
-  if (isDeletedByUser) {
-    const deletedByUserInfo = (message as any)?.deletedByUser;
-    const deletedByName = deletedByUserInfo?.displayName || deletedByUserInfo?.username || 'Usuário';
-    
+  if (isDeleted || message.isDeleted) {
     return (
-      <div className={`flex mb-4 ${isFromContact ? 'justify-start' : 'justify-end'}`}>
-        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-          isFromContact 
-            ? 'bg-gray-100 text-gray-500' 
-            : 'bg-gray-200 text-gray-500'
-        }`}>
-          <div className="flex items-center gap-2 text-sm italic">
-            <AlertTriangle size={14} className="text-gray-400" />
-            <span>Esta mensagem foi apagada</span>
+      <div
+        className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
+      >
+        <Avatar className="w-9 h-9 flex-shrink-0 opacity-50">
+          <AvatarImage
+            src={isFromContact ? contact.profileImageUrl || "" : ""}
+          />
+          <AvatarFallback>
+            {isFromContact
+              ? contact.name?.charAt(0)?.toUpperCase() || "C"
+              : "A"}
+          </AvatarFallback>
+        </Avatar>
+        <div
+          className={`flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`}
+        >
+          <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500 opacity-75">
+            <span className="text-sm italic">Esta mensagem foi deletada</span>
           </div>
-          <div className="text-xs text-gray-400 mt-1">
-            Deletada por: {deletedByName}
-          </div>
-          <div className="text-xs text-gray-400">
-            {messageTime}
+          <div className={`flex items-center gap-1 mt-1 text-xs text-gray-400`}>
+            <span title={new Date(messageTimestamp).toLocaleString()}>
+              {messageTime}
+            </span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (isDeleted) {
-    return (
-      <div className="flex items-center justify-center py-2 text-xs text-gray-400 italic">
-        <div className="bg-gray-100 px-3 py-1 rounded-full">
-          Esta mensagem foi removida
-        </div>
-      </div>
-    );
-  }
-
-  // Função para renderizar o conteúdo da mensagem baseado no tipo
   const renderMessageContent = () => {
-    if (message.messageType === 'audio') {
-      // Verificar se temos uma URL válida para o áudio
-      let audioUrl: string | null = null;
-      
-      if (message.content && message.content.startsWith('data:audio/')) {
-        audioUrl = message.content;
-      }
-      else if (message.content && message.content.startsWith('data:') && message.content.includes('base64,')) {
-        audioUrl = message.content;
-      }
-      else if (message.content && message.content.match(/^[A-Za-z0-9+/]+=*$/)) {
-        const mimeType = (message.metadata as any)?.mimeType || 'audio/mp4';
-        audioUrl = `data:${mimeType};base64,${message.content}`;
-      }
-      else if (message.content && (message.content.startsWith('http://') || message.content.startsWith('https://'))) {
-        audioUrl = message.content;
-      }
-      else if ((message.metadata as any)?.audio?.audioUrl) {
-        audioUrl = (message.metadata as any).audio.audioUrl;
-      }
-      else if ((message.metadata as any)?.mediaUrl) {
-        audioUrl = (message.metadata as any).mediaUrl;
-      }
-
-      const duration = (message.metadata as any)?.audio?.duration || (message.metadata as any)?.duration || 0;
-      
-      if (audioUrl) {
+    switch (message.messageType) {
+      case "audio":
         return (
           <AudioMessage
-            audioUrl={audioUrl}
-            duration={duration}
-            isFromContact={isFromContact}
-          />
-        );
-      }
-
-      const messageIdFromMetadata = (message.metadata as any)?.messageId;
-      if (messageIdFromMetadata) {
-        return (
-          <AudioMessage
-            audioUrl={null}
-            duration={duration}
-            isFromContact={isFromContact}
-            messageIdForFetch={messageIdFromMetadata}
-          />
-        );
-      }
-
-      if ((message.metadata as any)?.audioSent && !isFromContact) {
-        return (
-          <AudioMessage
-            audioUrl={null}
-            duration={duration}
+            audioUrl={message.content}
             isFromContact={isFromContact}
             messageIdForFetch={message.id.toString()}
+            duration={(message.metadata as any)?.duration}
           />
         );
-      }
-      
-      return (
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
-          <Volume2 className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-600">Áudio indisponível</span>
-        </div>
-      );
-    }
-
-    // Renderizar figurinha
-    if (message.messageType === 'sticker') {
-      const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
-      let stickerUrl = null;
-
-      // Tentar obter URL da figurinha dos metadados
-      if ('sticker' in metadata && metadata.sticker) {
-        const stickerData = metadata.sticker as any;
-        stickerUrl = stickerData.stickerUrl || stickerData.url;
-      }
-      
-      // Se não tiver nos metadados, verificar se está no content
-      if (!stickerUrl && message.content) {
-        if (message.content.startsWith('data:') || message.content.startsWith('http')) {
-          stickerUrl = message.content;
-        }
-      }
-
-      return (
-        <div className="max-w-xs">
-          {stickerUrl ? (
-            <LazyMediaContent
-              messageId={message.id}
-              messageType="image"
-              conversationId={conversationId}
-              isFromContact={isFromContact}
-              metadata={message.metadata}
-              initialContent={stickerUrl}
-            />
-          ) : (
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-100">
-              <div className="text-2xl">🎭</div>
-              <span className="text-sm text-gray-600">Figurinha enviada</span>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Renderizar GIFs
-    if (message.messageType === 'gif') {
-      return (
-        <LazyMediaContent
-          messageId={message.id}
-          messageType="image"
-          conversationId={conversationId}
-          isFromContact={isFromContact}
-          metadata={message.metadata}
-          initialContent={message.content}
-        />
-      );
-    }
-
-    // Para todos os tipos de mídia (image, video, document), usar LazyMediaContent
-    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
-      return (
-        <LazyMediaContent
-          messageId={message.id}
-          messageType={message.messageType as "audio" | "video" | "image" | "document"}
-          conversationId={conversationId}
-          isFromContact={isFromContact}
-          metadata={message.metadata}
-          initialContent={message.content}
-        />
-      );
-    }
-
-    // Verificação adicional para documentos que podem não ter messageType definido
-    if (message.content && message.metadata) {
-      const metadata = message.metadata as any;
-      
-      // Verificar se é um documento baseado nos metadados
-      if (metadata.document || metadata.documentUrl || metadata.fileName) {
+      case "image":
+      case "video":
+      case "document":
         return (
           <LazyMediaContent
             messageId={message.id}
-            messageType="document"
+            messageType={message.messageType}
             conversationId={conversationId}
             isFromContact={isFromContact}
             metadata={message.metadata}
             initialContent={message.content}
           />
         );
-      }
-    }
-
-    // Tipos de mensagem especiais com formatação específica
-    if (message.messageType === 'location') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            <span className="font-medium">Localização compartilhada</span>
+      case "sticker":
+        return message.content?.startsWith("data:") ? (
+          <img
+            src={message.content}
+            alt="Figurinha"
+            className="max-w-[200px] h-auto rounded-lg"
+          />
+        ) : (
+          <div className="p-3 rounded-lg bg-gray-100">🎭 Figurinha enviada</div>
+        );
+      default:
+        return (
+          <div
+            className={`px-4 py-2 rounded-lg ${message.isInternalNote ? "bg-amber-50 text-amber-900 border border-amber-200" : isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"}`}
+          >
+            {message.isInternalNote && (
+              <div className="flex items-center gap-1.5 mb-2 text-xs text-amber-700">
+                <StickyNote className="h-3 w-3" />
+                <span className="font-medium">
+                  Nota Interna • Visível apenas para a equipe
+                </span>
+              </div>
+            )}
+            {message.content ? (
+              <p className="text-sm">{message.content}</p>
+            ) : (
+              <p className="text-sm italic">Mensagem sem conteúdo</p>
+            )}
+            {message.isInternalNote && message.authorName && (
+              <div className="mt-2 text-xs text-amber-600 font-medium">
+                {message.authorName}
+              </div>
+            )}
           </div>
-          <p className="text-sm mt-1 text-gray-600">{message.content}</p>
-        </div>
-      );
+        );
     }
-
-    if (message.messageType === 'contact') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-green-600" />
-            <span className="font-medium">Contato compartilhado</span>
-          </div>
-          <p className="text-sm mt-1 text-gray-600">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'reaction') {
-      return (
-        <div className={`px-3 py-2 rounded-lg ${bubbleClasses}`}>
-          <p className="text-sm">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'poll') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <BarChart3 className="h-4 w-4 text-purple-600" />
-            <span className="font-medium">Enquete</span>
-          </div>
-          <p className="text-sm mt-1">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'button') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <Square className="h-4 w-4 text-blue-600" />
-            <span className="font-medium">Botão interativo</span>
-          </div>
-          <p className="text-sm mt-1">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'list') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <List className="h-4 w-4 text-indigo-600" />
-            <span className="font-medium">Lista interativa</span>
-          </div>
-          <p className="text-sm mt-1">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'template') {
-      return (
-        <div className={`px-4 py-3 rounded-lg ${bubbleClasses}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <Mail className="h-4 w-4 text-cyan-600" />
-            <span className="font-medium">Mensagem template</span>
-          </div>
-          <p className="text-sm mt-1">{message.content}</p>
-        </div>
-      );
-    }
-
-    if (message.messageType === 'unsupported') {
-      return (
-        <div className={`px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 ${isFromContact ? 'border-l-4 border-l-gray-400' : 'border-r-4 border-r-gray-400'}`}>
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="font-medium">Conteúdo não disponível</span>
-          </div>
-          <p className="text-sm mt-1 text-gray-600">Este tipo de mensagem não pode ser exibido no momento.</p>
-        </div>
-      );
-    }
-
-    // Mensagem de texto padrão
-    return (
-      <div className={`px-4 py-2 rounded-lg ${bubbleClasses} min-h-[40px] flex items-center`}>
-        <span className="text-sm break-words">
-          {message.content || "Mensagem sem conteúdo"}
-        </span>
-      </div>
-    );
   };
 
-  // Mensagem normal - VERSÃO SIMPLIFICADA PARA DEBUG
   return (
-    <div className="flex items-start gap-3 mb-4 p-2 border border-red-500">
-      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-xs">
-        {isFromContact ? "C" : "A"}
-      </div>
-      <div className="flex-1">
-        <div className={`p-3 rounded-lg ${bubbleClasses} border-2 border-green-500`}>
-          <div className="text-sm font-bold text-red-600">
-            DEBUG: {message.content || "SEM CONTEÚDO"}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            ID: {message.id} | Tipo: {message.messageType}
+    <div
+      className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
+    >
+      <Avatar className="w-9 h-9 flex-shrink-0">
+        <AvatarImage src={isFromContact ? contact.profileImageUrl || "" : ""} />
+        <AvatarFallback>
+          {isFromContact ? contact.name?.charAt(0)?.toUpperCase() || "C" : "A"}
+        </AvatarFallback>
+      </Avatar>
+
+      <div
+        className={`flex-1 max-w-md ${isFromContact ? "" : "flex flex-col items-end"}`}
+      >
+        {renderMessageContent()}
+
+        {/* Ações: Responder e Excluir */}
+        <div
+          className={`flex gap-1 mt-1 ${isFromContact ? "justify-start" : "justify-end"}`}
+        >
+          {isFromContact && onReply && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReply(message)}
+              className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100"
+            >
+              <Reply className="w-3.5 h-3.5 mr-1" /> Responder
+            </Button>
+          )}
+          {canDelete() && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeleting}
+                  className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100 text-red-500"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  {isDeleting ? "Excluindo..." : "Excluir"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir mensagem</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {isFromContact
+                      ? "Remover da interface (não apaga do WhatsApp)"
+                      : "Remover permanentemente do WhatsApp"}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteMessage}>
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+
+        {/* Reações + Hora/Status */}
+        <div className="flex flex-col gap-1 mt-1">
+          {contact.phone && conversationId && (
+            <div className="flex justify-end">
+              <MessageReactions
+                message={message}
+                conversationId={conversationId}
+                contactPhone={contact.phone}
+              />
+            </div>
+          )}
+          <div
+            className={`flex items-center gap-1 ${isFromContact ? "text-xs text-gray-400" : "text-xs text-gray-500 justify-end"}`}
+          >
+            {messageStatus}
+            <span title={new Date(messageTimestamp).toLocaleString()}>
+              {messageTime}
+            </span>
           </div>
         </div>
       </div>
     </div>
   );
-});
+}
