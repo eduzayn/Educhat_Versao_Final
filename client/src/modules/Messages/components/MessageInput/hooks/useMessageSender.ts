@@ -10,15 +10,10 @@ interface UseMessageSenderProps {
 }
 
 export function useMessageSender({ conversationId, onSendMessage }: UseMessageSenderProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-
-  const invalidateMessages = () => {
-    queryClient.invalidateQueries({
-      queryKey: ['/api/conversations', conversationId, 'messages'],
-    });
-  };
+  const sendMessageMutation = useSendMessage();
+  const { activeConversation } = useChatStore();
 
   const notifySuccess = (title: string, description: string) => {
     toast({ title, description });
@@ -30,25 +25,25 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   };
 
   const sendTextMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim()) return false;
     
-    setIsLoading(true);
     try {
-      await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
-        content: content.trim(),
-        messageType: 'text',
-        isFromContact: false,
+      await sendMessageMutation.mutateAsync({
+        conversationId,
+        message: {
+          content: content.trim(),
+          messageType: 'text',
+          isFromContact: false,
+        },
+        contact: activeConversation?.contact
       });
 
-      invalidateMessages();
       notifySuccess('Mensagem enviada', 'Sua mensagem foi enviada com sucesso.');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       notifyError('Erro ao enviar', 'Não foi possível enviar a mensagem. Tente novamente.');
       return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -67,7 +62,9 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
       if (!response.ok) throw new Error('Falha no upload do arquivo');
 
-      invalidateMessages();
+      queryClient.invalidateQueries({
+        queryKey: ['/api/conversations', conversationId, 'messages'],
+      });
       notifySuccess('Arquivo enviado', 'Seu arquivo foi enviado com sucesso.');
       return true;
     } catch (error) {
@@ -80,29 +77,29 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   };
 
   const shareLink = async (url: string, caption?: string) => {
-    setIsLoading(true);
     try {
       const content = caption ? `${caption}\n\n${url}` : url;
-      await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
-        content,
-        messageType: 'text',
-        isFromContact: false,
+      await sendMessageMutation.mutateAsync({
+        conversationId,
+        message: {
+          content,
+          messageType: 'text',
+          isFromContact: false,
+        },
+        contact: activeConversation?.contact
       });
 
-      invalidateMessages();
       notifySuccess('Link compartilhado', 'Seu link foi compartilhado com sucesso.');
       return true;
     } catch (error) {
       console.error('Erro ao compartilhar link:', error);
       notifyError('Erro ao compartilhar', 'Não foi possível compartilhar o link. Tente novamente.');
       return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return {
-    isLoading,
+    isLoading: sendMessageMutation.isPending,
     isUploading,
     sendTextMessage,
     uploadFile,
