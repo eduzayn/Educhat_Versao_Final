@@ -245,7 +245,7 @@ export class CentralStorage {
   }
 
   async getMessageAnalytics(filters: any = {}) {
-    const messages = await this.message.getMessages();
+    const messages = await this.message.getMessages(1, 50, 0);
     return {
       total: messages.length,
       sent: messages.filter((m: any) => m.direction === 'outbound').length,

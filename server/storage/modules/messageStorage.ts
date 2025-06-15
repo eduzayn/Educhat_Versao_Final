@@ -26,6 +26,55 @@ export class MessageStorage extends BaseStorage {
       .offset(offset);
   }
 
+  async getMessagesLight(conversationId: number, limit = 20, cursor?: string): Promise<any[]> {
+    // 🚀 MÉTODO ULTRA-OTIMIZADO: Apenas campos absolutamente essenciais
+    const query = this.db
+      .select({
+        id: messages.id,
+        content: messages.content,
+        isFromContact: messages.isFromContact,
+        sentAt: messages.sentAt,
+        isInternalNote: messages.isInternalNote,
+        authorName: messages.authorName,
+      })
+      .from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false),
+        cursor ? lt(messages.id, parseInt(cursor)) : undefined
+      ))
+      .orderBy(desc(messages.sentAt))
+      .limit(limit);
+
+    const results = await query;
+    
+    // 🎯 RESPOSTA MÍNIMA: Apenas dados essenciais para exibição
+    return results.map(row => ({
+      id: row.id,
+      conversationId,
+      content: row.content,
+      isFromContact: row.isFromContact,
+      messageType: 'text',
+      metadata: null,
+      isDeleted: false,
+      sentAt: row.sentAt,
+      deliveredAt: null,
+      readAt: null,
+      whatsappMessageId: null,
+      zapiStatus: null,
+      isGroup: false,
+      referenceMessageId: null,
+      isInternalNote: row.isInternalNote || false,
+      authorId: null,
+      authorName: row.authorName,
+      isHiddenForUser: false,
+      isDeletedByUser: false,
+      deletedAt: null,
+      deletedBy: null,
+      deletedByUser: null
+    }));
+  }
+
   async getMessagesWithDeletedByInfo(conversationId: number, limit = 50, offset = 0, cursor?: string): Promise<any[]> {
     // 🚀 OTIMIZAÇÃO CRÍTICA: SELECT apenas campos essenciais para reduzir drasticamente o tamanho da resposta
     const query = this.db

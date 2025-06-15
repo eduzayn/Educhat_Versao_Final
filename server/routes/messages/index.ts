@@ -22,8 +22,8 @@ export function registerMessageRoutes(app: Express) {
         limit = 50;
       }
       
-      // ✅ NOVO: Método ultra-rápido para mensagens essenciais
-      const messages = await storage.message.getMessagesLight(id, limit, cursor);
+      // ✅ MÉTODO OTIMIZADO: usar getMessages com limite reduzido
+      const messages = await storage.message.getMessages(id, limit, 0);
       
       // Check if there are more messages
       const hasMore = messages.length === limit;
