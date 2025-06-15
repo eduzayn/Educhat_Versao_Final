@@ -41,15 +41,7 @@ export const MessageBubble = memo(function MessageBubble({
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   
-  // Debug logging para identificar problema de renderização
-  console.log('🔍 MessageBubble Debug:', {
-    messageId: message.id,
-    content: message.content?.substring(0, 50),
-    messageType: message.messageType,
-    isFromContact: message.isFromContact,
-    isDeletedByUser: message.isDeletedByUser,
-    contact: contact ? { id: contact.id, name: contact.name } : 'no contact'
-  });
+
   
   // Verificar se a mensagem foi deletada pelo usuário
   const isDeletedByUser = message.isDeletedByUser || false;
@@ -575,7 +567,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   // Mensagem normal
   return (
-    <div className={containerClasses} style={{ backgroundColor: 'red', minHeight: '50px', border: '2px solid blue' }}>
+    <div className={containerClasses}>
       <Avatar className="w-9 h-9 flex-shrink-0">
         <AvatarImage
           src={isFromContact ? contact.profileImageUrl || "" : ""}

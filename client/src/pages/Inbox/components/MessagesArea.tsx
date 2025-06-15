@@ -27,21 +27,6 @@ export function MessagesArea({
 
   // Garantir que messages seja sempre um array
   const messages = Array.isArray(messagesData) ? messagesData : [];
-  
-  // Debug logging para identificar problema de renderização
-  console.log('🔍 MessagesArea Debug:', {
-    conversationId: activeConversation?.id,
-    messagesDataType: typeof messagesData,
-    messagesDataLength: Array.isArray(messagesData) ? messagesData.length : 'not array',
-    messagesLength: messages.length,
-    isLoading,
-    firstMessage: messages[0] ? {
-      id: messages[0].id,
-      content: messages[0].content?.substring(0, 50),
-      messageType: messages[0].messageType,
-      isFromContact: messages[0].isFromContact
-    } : 'no messages'
-  });
 
   // Função para rolar para o final
   const scrollToBottom = useCallback(() => {
