@@ -41,13 +41,7 @@ export const MessageBubble = memo(function MessageBubble({
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   
-  // Debug log temporário
-  console.log('💬 MessageBubble renderizado:', {
-    messageId: message.id,
-    content: message.content?.substring(0, 50),
-    isFromContact,
-    messageType: message.messageType
-  });
+
   
 
   
@@ -84,10 +78,10 @@ export const MessageBubble = memo(function MessageBubble({
     : "A";
 
   const bubbleClasses = message.isInternalNote
-    ? "bg-amber-50 text-amber-900 border border-amber-200 opacity-100 visible"
+    ? "bg-amber-50 text-amber-900 border border-amber-200"
     : isFromContact
-    ? "bg-gray-100 text-gray-900 opacity-100 visible"
-    : "bg-blue-600 text-white opacity-100 visible";
+    ? "bg-gray-100 text-gray-900"
+    : "bg-blue-600 text-white";
 
   const timeClasses = isFromContact
     ? "text-xs text-gray-400"

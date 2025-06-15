@@ -1,0 +1,24 @@
+Você tem sim componentes repetidos entre modules e pages.
+🔍 Exemplos de duplicação (e recomendação):
+Função/Componente	Encontrado em	Comentário / Ação Recomendável
+InputArea.tsx vs MessageInput.tsx	modules e pages	Estão implementando a mesma função de envio de mensagens, mas com diferenças estruturais. Devem ser consolidados em um único componente reutilizável (de preferência, o InputArea.tsx, que é mais completo e moderno).
+MessagesArea.tsx vs conteúdo da InboxPage.tsx	modules e pages	A InboxPage já consome o MessagesArea.tsx, o que está correto. Mas é necessário garantir que nenhum outro arquivo tenha implementações paralelas internas.
+AudioMessage.tsx, AudioRecorder.tsx, MediaAttachmentModal.tsx, LazyMediaContent.tsx	todos nos modules e sendo chamados por pages	Esses arquivos estão bem posicionados em modules, mas algumas funções e chamadas duplicadas foram encontradas em pages como MessageInput.tsx. Devem ser eliminadas lá.
+ConversationListVirtualized.tsx	modules e pages/components	Este componente parece duplicado em duas pastas diferentes (provavelmente antigo e novo). Precisa ser consolidado. Recomendo manter o que está na pasta mais atualizada (pages/components).
+
+🧹 Ações Recomendadas para Consolidação e Limpeza:
+Elimine os arquivos duplicados de pages que implementam funcionalidades já bem resolvidas em modules.
+
+Ex: MessageInput.tsx, MediaAttachmentModal.tsx (duplicado), AudioMessageSimple.tsx, etc.
+
+Padronize os componentes de envio e recebimento para usarem sempre o mesmo hook e endpoint.
+
+Atualmente, alguns componentes usam apiRequest, outros usam fetch direto.
+
+Consolidar uso de queryClient.invalidateQueries(...).
+
+Garanta que o componente InputArea seja o único responsável por toda a lógica de envio (texto, mídia e áudio).
+
+Remova completamente MessageInput.tsx e outros elementos antigos se não estiverem sendo usados por nenhum componente ou rota atual.
+
+Atualize o InboxPage.tsx para refletir apenas os novos componentes (como ele já faz com InputArea, ótimo!).
