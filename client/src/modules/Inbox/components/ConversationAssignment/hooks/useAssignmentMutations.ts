@@ -1,7 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import type { AssignmentMutationData } from '../types';
 
 export function useTeamAssignment(conversationId: number) {
   const { toast } = useToast();
@@ -9,10 +7,13 @@ export function useTeamAssignment(conversationId: number) {
 
   return useMutation({
     mutationFn: async (data: { teamId: number | null; method: 'manual' | 'automatic' }) => {
-      return apiRequest(`/api/conversations/${conversationId}/assign-team`, {
+      const response = await fetch(`/api/conversations/${conversationId}/assign-team`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Erro ao atribuir equipe');
+      return response.json();
     },
     onSuccess: (_, variables) => {
       // Invalidar queries relacionadas
@@ -42,10 +43,13 @@ export function useUserAssignment(conversationId: number) {
 
   return useMutation({
     mutationFn: async (data: { userId: number | null; method: 'manual' | 'automatic' }) => {
-      return apiRequest(`/api/conversations/${conversationId}/assign-user`, {
+      const response = await fetch(`/api/conversations/${conversationId}/assign-user`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Erro ao atribuir usuário');
+      return response.json();
     },
     onSuccess: (_, variables) => {
       // Invalidar queries relacionadas
