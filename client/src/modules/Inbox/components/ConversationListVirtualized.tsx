@@ -45,6 +45,8 @@ export function ConversationListVirtualized({
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<FixedSizeList>(null);
   const previousScrollTop = useRef<number>(0);
+  const scrollThrottleRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingMoreRef = useRef<boolean>(false);
 
   // Filtrar conversas
   const filteredConversations = useMemo(() => {
@@ -89,21 +91,47 @@ export function ConversationListVirtualized({
 
   // Detectar scroll para carregar mais
   const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: any) => {
-    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
-    
-    if (isNearBottom && !isLoading) {
-      if (visibleCount < filteredConversations.length) {
-        handleLoadMore();
-      } else if (hasNextPage) {
-        onLoadMore();
-      }
+    // Limpar throttle anterior se existir
+    if (scrollThrottleRef.current) {
+      clearTimeout(scrollThrottleRef.current);
     }
+    
+    scrollThrottleRef.current = setTimeout(() => {
+      const scrollOffset = scrollTop;
+      const scrollLimit = scrollHeight - clientHeight;
+      const isNearBottom = scrollOffset >= scrollLimit - 50;
+      
+      // Verificar se deve carregar mais conteúdo
+      if (isNearBottom && !isLoading && !isLoadingMoreRef.current && scrollOffset > 0) {
+        isLoadingMoreRef.current = true;
+        
+        if (visibleCount < filteredConversations.length) {
+          handleLoadMore();
+        } else if (hasNextPage) {
+          onLoadMore();
+        }
+        
+        // Reset do flag após um breve delay
+        setTimeout(() => {
+          isLoadingMoreRef.current = false;
+        }, 1000);
+      }
+    }, 200);
   }, [isLoading, visibleCount, filteredConversations.length, hasNextPage, handleLoadMore, onLoadMore]);
 
   // Reset da contagem visível quando filtros mudam
   useEffect(() => {
     setVisibleCount(50);
   }, [searchTerm, statusFilter, channelFilter]);
+
+  // Cleanup dos timers quando componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (scrollThrottleRef.current) {
+        clearTimeout(scrollThrottleRef.current);
+      }
+    };
+  }, []);
 
   // Item renderer para virtualização
   const ItemRenderer = useCallback(({ index, style }: { index: number; style: any }) => {
