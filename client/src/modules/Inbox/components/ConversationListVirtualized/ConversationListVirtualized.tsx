@@ -238,3 +238,5 @@ export function ConversationListVirtualized({
     </div>
   );
 }
+
+export default ConversationListVirtualized;

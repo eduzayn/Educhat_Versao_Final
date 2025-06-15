@@ -186,3 +186,5 @@ export const ConversationItem = memo(ConversationItemComponent, (prevProps, next
     prevProps.conversation.messages?.[0]?.id === nextProps.conversation.messages?.[0]?.id
   );
 });
+
+export default ConversationItem;

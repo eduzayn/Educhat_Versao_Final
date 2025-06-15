@@ -196,3 +196,5 @@ export function ConversationListHeader({
     </div>
   );
 }
+
+export default ConversationListHeader;

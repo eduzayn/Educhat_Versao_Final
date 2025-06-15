@@ -31,3 +31,5 @@ export function ChannelIcon({ channel, className = "w-4 h-4" }: ChannelIconProps
 
   return getChannelIcon(channel);
 }
+
+export default ChannelIcon;
