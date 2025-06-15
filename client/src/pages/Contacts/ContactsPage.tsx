@@ -12,7 +12,7 @@ import { useContacts, useUpdateContact, useDeleteContact } from '@/shared/lib/ho
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useActiveWhatsAppChannels } from '@/shared/lib/hooks/useChannels';
 
-import { ContactFilters } from './components/ContactFilters';
+import { ContactFilters } from '@/modules/Contact/components/ContactFilters';
 import type { Contact } from '@shared/schema';
 import { BackButton } from '@/shared/components/BackButton';
 import { ContactDialog } from '@/shared/components/ContactDialog';
