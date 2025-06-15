@@ -197,3 +197,5 @@ export function LazyMediaContent({
 
   return <div className="my-1">{renderMediaPreview()}</div>;
 }
+
+export default LazyMediaContent;

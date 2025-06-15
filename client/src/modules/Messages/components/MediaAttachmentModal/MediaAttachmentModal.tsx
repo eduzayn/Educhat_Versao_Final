@@ -454,3 +454,5 @@ export function MediaAttachmentModal({
     </Dialog>
   );
 }
+
+export default MediaAttachmentModal;

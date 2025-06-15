@@ -316,3 +316,5 @@ export function MessageBubble({
     </div>
   );
 }
+
+export default MessageBubble;

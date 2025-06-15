@@ -135,3 +135,5 @@ export const VirtualizedMessageList = memo(
 );
 
 VirtualizedMessageList.displayName = "VirtualizedMessageList";
+
+export default VirtualizedMessageList;

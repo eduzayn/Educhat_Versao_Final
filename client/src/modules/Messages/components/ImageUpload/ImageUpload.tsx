@@ -166,3 +166,5 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
     </div>
   );
 }
+
+export default ImageUpload;

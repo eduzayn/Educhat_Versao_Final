@@ -416,3 +416,4 @@ const AudioRecorderComponent = ({
 };
 
 export const AudioRecorder = forwardRef<AudioRecorderRef, AudioRecorderProps>(AudioRecorderComponent);
+export default AudioRecorder;

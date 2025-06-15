@@ -206,3 +206,5 @@ export function AudioMessage({
 
 // Exportar também como AudioMessageSimple para compatibilidade
 export { AudioMessage as AudioMessageSimple };
+
+export default AudioMessage;
