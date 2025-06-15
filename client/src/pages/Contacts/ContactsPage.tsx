@@ -421,18 +421,26 @@ export function ContactsPage() {
                 contacts?.data?.map((contact) => (
                   <div key={contact.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={contact.profileImageUrl || ''} alt={contact.name} />
-                        <AvatarFallback className={`text-white ${
-                          contact.phone?.includes('whatsapp') || contact.phone?.startsWith('55') 
-                            ? 'bg-green-500' 
-                            : contact.name.startsWith('M') 
-                              ? 'bg-purple-500' 
-                              : 'bg-blue-500'
-                        }`}>
-                          {contact.name.substring(0, 1).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <ContactAvatar
+                          src={contact.profileImageUrl}
+                          name={contact.name}
+                          size="md"
+                          className="w-10 h-10"
+                        />
+                        
+                        {isWhatsAppAvailable && contact.phone && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -bottom-1 -right-1 h-6 w-6 p-0 rounded-full bg-white border border-gray-200 hover:bg-gray-50"
+                            onClick={() => handleUpdatePhoto(contact.id)}
+                            title="Atualizar foto do WhatsApp"
+                          >
+                            <Camera className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
                       <div>
                         <h3 className="font-medium text-gray-900">{contact.name}</h3>
                         <div className="flex items-center space-x-2 text-sm text-gray-500">
