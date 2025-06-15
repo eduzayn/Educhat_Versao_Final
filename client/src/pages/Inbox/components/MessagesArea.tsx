@@ -71,13 +71,7 @@ export function MessagesArea({
 
   return (
     <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-      {/* Loading indicator for fetching older messages */}
-      {isFetchingNextPage && (
-        <div className="p-4 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-gray-400" />
-          <p className="text-xs text-gray-500">Carregando mensagens anteriores...</p>
-        </div>
-      )}
+
 
       {(messages || []).length === 0 && !isLoading ? (
         <div className="flex items-center justify-center h-full text-gray-500">
