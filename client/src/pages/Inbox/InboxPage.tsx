@@ -45,7 +45,7 @@ import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/textarea';
 import { STATUS_CONFIG } from '@/types/chat';
 
-import { InputArea } from '@/modules/Messages/components/InputArea';
+import { MessageInput } from '@/modules/Messages/components/MessageInput';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
@@ -374,9 +374,13 @@ export function InboxPage() {
             />
 
             {/* Área de Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
-              <InputArea />
-            </div>
+            <MessageInput 
+              conversationId={activeConversation.id}
+              onSendMessage={() => {
+                // Atualizar mensagens após envio
+                refetchMessages();
+              }}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
