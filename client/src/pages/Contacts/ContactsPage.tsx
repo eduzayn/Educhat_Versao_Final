@@ -559,12 +559,12 @@ export function ContactsPage() {
             {viewingContact && (
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={viewingContact.profileImageUrl || ''} alt={viewingContact.name} />
-                    <AvatarFallback className="bg-blue-500 text-white">
-                      {viewingContact.name.substring(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ContactAvatar
+                    src={viewingContact.profileImageUrl}
+                    name={viewingContact.name}
+                    size="lg"
+                    className="w-16 h-16"
+                  />
                   <div>
                     <h3 className="text-xl font-semibold">{viewingContact.name}</h3>
                     <p className="text-gray-600">{viewingContact.email}</p>
@@ -685,12 +685,12 @@ export function ContactsPage() {
             {sendingMessageTo && (
               <div className="space-y-4">
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={sendingMessageTo.profileImageUrl || ''} alt={sendingMessageTo.name} />
-                    <AvatarFallback className="bg-green-500 text-white">
-                      {sendingMessageTo.name.substring(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ContactAvatar
+                    src={sendingMessageTo.profileImageUrl}
+                    name={sendingMessageTo.name}
+                    size="md"
+                    className="w-10 h-10"
+                  />
                   <div>
                     <h4 className="font-medium">{sendingMessageTo.name}</h4>
                     <p className="text-sm text-gray-600">{sendingMessageTo.phone}</p>

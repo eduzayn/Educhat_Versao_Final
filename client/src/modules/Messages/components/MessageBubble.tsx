@@ -650,10 +650,9 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         <MessageReactions
-          messageId={message.id}
+          message={message}
           conversationId={conversationId || 0}
           contactPhone={contact.phone || ''}
-          isFromContact={isFromContact}
         />
       </div>
     </div>
