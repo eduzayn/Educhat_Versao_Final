@@ -46,37 +46,13 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    // 🔒 PROTEGIDO: Busca otimizada de prévias - manter estrutura
-    const conversationIds = conversationsData.map(conv => conv.id);
-    const lastMessages = conversationIds.length > 0 ? await this.db
-      .select({
-        conversationId: messages.conversationId,
-        content: messages.content,
-        messageType: messages.messageType,
-        isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt
-      })
-      .from(messages)
-      .where(
-        and(
-          inArray(messages.conversationId, conversationIds),
-          eq(messages.isDeleted, false)
-        )
-      )
-      .orderBy(desc(messages.sentAt)) : [];
-
-    // Agrupar mensagens por conversa (apenas a última de cada)
-    const messagesByConversation = new Map();
-    for (const msg of lastMessages) {
-      if (!messagesByConversation.has(msg.conversationId)) {
-        messagesByConversation.set(msg.conversationId, msg);
-      }
-    }
+    // 🚀 OTIMIZAÇÃO CRÍTICA: Remover busca de prévias que causa lentidão de 4 segundos
+    // As prévias serão carregadas sob demanda quando necessário
 
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados com prévias das mensagens
+    // Retornar dados das conversas sem prévias de mensagens para otimização
     return conversationsData.map(conv => ({
       id: conv.id,
       contactId: conv.contactId,
@@ -117,9 +93,7 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: messagesByConversation.has(conv.id) ? 
-        [messagesByConversation.get(conv.id)] : 
-        [],
+      messages: [], // 🚀 OTIMIZAÇÃO: Prévias carregadas sob demanda
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
