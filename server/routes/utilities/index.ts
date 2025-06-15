@@ -3,7 +3,7 @@ import { AuthenticatedRequest, requirePermission } from '../../core/permissions'
 import { storage } from "../../storage";
 import { funnelService } from '../../services/funnelService';
 
-import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../core/zapi-utils';
+import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../utils/zapi';
 
 export function registerUtilitiesRoutes(app: Express) {
   

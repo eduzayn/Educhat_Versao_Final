@@ -577,6 +577,9 @@ export function registerWebhookRoutes(app: Express) {
   app.get('/api/zapi/qrcode', handleGetQRCode);
   app.get('/api/zapi/status', handleGetStatus);
   
+  // Registrar rotas de mídia Z-API
+  registerZApiMediaRoutes(app);
+  
   // QR Code para canal específico
   app.get('/api/channels/:id/qrcode', async (req, res) => {
     try {

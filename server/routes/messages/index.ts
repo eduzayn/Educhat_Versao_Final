@@ -315,7 +315,7 @@ export function registerMessageRoutes(app: Express) {
           console.log('🌐 DELETAR VIA Z-API - Tentando deletar para ambos os usuários');
           
           // Importar utilitários do Z-API
-          const { validateZApiCredentials } = await import('../../core/zapi-utils');
+          const { validateZApiCredentials } = await import('../../utils/zapi');
           
           const credentials = validateZApiCredentials();
           if (!credentials.valid) {
