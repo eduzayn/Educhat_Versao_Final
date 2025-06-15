@@ -34,18 +34,27 @@ export function LazyMediaContent({
       const response = await fetch(`/api/messages/${messageId}/media`);
       if (response.ok) {
         const data = await response.json();
-        setContent(data.content);
-        setLoaded(true);
+        
+        // Validar se o conteúdo existe e é válido
+        if (data.content && typeof data.content === 'string') {
+          setContent(data.content);
+          setLoaded(true);
 
-        if (messageType === "video") {
-          secureLog.debug("Vídeo carregado com sucesso", { messageId });
-        } else if (messageType === "image") {
-          secureLog.image("Carregada com sucesso", messageId);
+          if (messageType === "video") {
+            secureLog.debug("Vídeo carregado com sucesso", { messageId });
+          } else if (messageType === "image") {
+            secureLog.image("Carregada com sucesso", messageId);
+          }
+        } else {
+          console.error(`❌ Conteúdo inválido para ${messageType}`, { messageId, data });
+          secureLog.error(`Conteúdo inválido para ${messageType}`, { messageId });
         }
       } else {
+        console.error(`❌ Erro HTTP ao carregar ${messageType}`, { messageId, status: response.status });
         secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
       }
     } catch (error) {
+      console.error(`❌ Erro de rede ao carregar ${messageType}`, { messageId, error });
       secureLog.error(`Erro ao carregar ${messageType}`, error);
     } finally {
       setLoading(false);
@@ -123,9 +132,10 @@ export function LazyMediaContent({
                 className="rounded-lg w-full h-auto"
                 preload="metadata"
                 style={{ maxHeight: "400px", minWidth: "280px" }}
-                onError={() =>
-                  secureLog.error("Erro ao carregar vídeo", { messageId })
-                }
+                onError={(e) => {
+                  console.error("❌ Erro ao carregar vídeo", { messageId, error: e });
+                  secureLog.error("Erro ao carregar vídeo", { messageId });
+                }}
                 onLoadedData={() =>
                   secureLog.debug("Vídeo carregado", { messageId })
                 }

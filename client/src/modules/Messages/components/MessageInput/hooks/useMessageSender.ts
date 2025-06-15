@@ -35,6 +35,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content: content.trim(),
         messageType: 'text',
+        isFromContact: false,
       });
 
       invalidateMessages();
@@ -83,6 +84,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content,
         messageType: 'text',
+        isFromContact: false,
       });
 
       invalidateMessages();
