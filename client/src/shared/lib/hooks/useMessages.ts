@@ -16,8 +16,8 @@ export function useMessages(conversationId: number | null, limit = 50) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 1000 * 30, // ✅ REDUZIDO: 30 segundos para dados mais atualizados
-    gcTime: 1000 * 60 * 5, // ✅ REDUZIDO: 5 minutos para liberar memória mais cedo
+    staleTime: 0, // Forçar atualização imediata após novas mensagens
+    gcTime: 1000 * 60 * 5,
     retry: 2, // ✅ AUMENTADO: mais tentativas em caso de falha
     retryDelay: 200, // ✅ REDUZIDO: retry mais rápido
   });
@@ -68,8 +68,8 @@ export function useSendMessage() {
       return savedMessage;
     },
     onSuccess: (_, { conversationId }) => {
-      // Invalidar cache específico das mensagens dessa conversa
-      queryClient.invalidateQueries({ 
+      // Forçar refetch imediato das mensagens
+      queryClient.refetchQueries({ 
         queryKey: [`/api/conversations/${conversationId}/messages`] 
       });
       // Invalidar cache da lista de conversas
