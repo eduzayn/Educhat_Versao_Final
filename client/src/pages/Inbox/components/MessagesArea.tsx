@@ -73,7 +73,7 @@ export function MessagesArea({
   }, [messages.length > 0, isLoading, scrollToBottom]);
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-white min-h-0">
 
 
       {(messages || []).length === 0 && !isLoading ? (

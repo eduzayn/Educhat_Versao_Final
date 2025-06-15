@@ -44,7 +44,7 @@ import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationR
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { Textarea } from '@/shared/ui/textarea';
 import { STATUS_CONFIG } from '@/types/chat';
-import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
+
 import { InputArea } from '@/modules/Messages/components/InputArea';
 
 import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';

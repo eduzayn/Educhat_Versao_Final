@@ -41,6 +41,14 @@ export const MessageBubble = memo(function MessageBubble({
   const isFromContact = message.isFromContact;
   const { toast } = useToast();
   
+  // Debug log temporário
+  console.log('💬 MessageBubble renderizado:', {
+    messageId: message.id,
+    content: message.content?.substring(0, 50),
+    isFromContact,
+    messageType: message.messageType
+  });
+  
 
   
   // Verificar se a mensagem foi deletada pelo usuário
@@ -76,10 +84,10 @@ export const MessageBubble = memo(function MessageBubble({
     : "A";
 
   const bubbleClasses = message.isInternalNote
-    ? "bg-amber-50 text-amber-900 border border-amber-200"
+    ? "bg-amber-50 text-amber-900 border border-amber-200 opacity-100 visible"
     : isFromContact
-    ? "bg-gray-100 text-gray-900"
-    : "bg-blue-600 text-white";
+    ? "bg-gray-100 text-gray-900 opacity-100 visible"
+    : "bg-blue-600 text-white opacity-100 visible";
 
   const timeClasses = isFromContact
     ? "text-xs text-gray-400"
@@ -87,7 +95,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   const containerClasses = `flex items-start gap-3 group ${
     isFromContact ? "flex-row" : "flex-row-reverse"
-  } mb-4`;
+  } mb-4 relative z-10 visible`;
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
