@@ -7,7 +7,7 @@ import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Dashboard } from "@/pages/Dashboard/Dashboard";
-import { Login } from "@/pages/Auth/Login";
+import { Login } from "@/modules/Auth/Login";
 import { InboxPage } from "@/pages/Inbox/InboxPage";
 import { ContactsPage } from "@/pages/Contacts/ContactsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
