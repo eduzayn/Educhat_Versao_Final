@@ -116,7 +116,7 @@ export function MessagesArea({
                   messageId = metadata.id;
                 }
                 
-                // Enviar evento para InputArea via custom event
+                // Enviar evento para MessageInput via custom event
                 window.dispatchEvent(new CustomEvent('replyToMessage', {
                   detail: { messageId, content: message.content }
                 }));

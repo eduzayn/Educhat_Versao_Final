@@ -376,10 +376,6 @@ export function InboxPage() {
             {/* Área de Input */}
             <MessageInput 
               conversationId={activeConversation.id}
-              onSendMessage={() => {
-                // Atualizar mensagens após envio
-                refetchMessages();
-              }}
             />
           </>
         ) : (
