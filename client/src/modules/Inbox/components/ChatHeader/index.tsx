@@ -2,7 +2,7 @@ import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Phone } from "lucide-react";
-import { ConversationActionsDropdown } from "../../../../pages/Inbox/components/ConversationActionsDropdown";
+import { ConversationActionsDropdown } from "../ConversationActions";
 import { ConversationAssignmentDropdown } from "../../../../pages/Inbox/components/ConversationAssignmentDropdown";
 
 interface ChatHeaderProps {
