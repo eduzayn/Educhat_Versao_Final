@@ -25,7 +25,7 @@ import { ConfigPage } from "@/pages/IA/ConfigPage";
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
 // Removido AIDetectionSettingsPage - agora consolidado em IntegrationsPage
-import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
+import PermissionsPanel from "@/modules/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import { HandoffsPage } from "@/pages/Handoffs/HandoffsPage";
 
