@@ -17,34 +17,7 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    const results = await this.db.select({
-      id: messages.id,
-      conversationId: messages.conversationId,
-      // Truncar conteúdo para otimizar performance
-      content: sql`CASE 
-        WHEN LENGTH(${messages.content}) > 1000 
-        THEN SUBSTRING(${messages.content}, 1, 1000) || '...[truncado]'
-        ELSE ${messages.content}
-      END`.as('content'),
-      isFromContact: messages.isFromContact,
-      messageType: messages.messageType,
-      metadata: sql`NULL`.as('metadata'),
-      isDeleted: messages.isDeleted,
-      sentAt: messages.sentAt,
-      deliveredAt: messages.deliveredAt,
-      readAt: messages.readAt,
-      whatsappMessageId: messages.whatsappMessageId,
-      zapiStatus: messages.zapiStatus,
-      isGroup: messages.isGroup,
-      referenceMessageId: messages.referenceMessageId,
-      isInternalNote: messages.isInternalNote,
-      authorId: messages.authorId,
-      authorName: messages.authorName,
-      isHiddenForUser: messages.isHiddenForUser,
-      isDeletedByUser: messages.isDeletedByUser,
-      deletedAt: messages.deletedAt,
-      deletedBy: messages.deletedBy,
-    }).from(messages)
+    const results = await this.db.select().from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
