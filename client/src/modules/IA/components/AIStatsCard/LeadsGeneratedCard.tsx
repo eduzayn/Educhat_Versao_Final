@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
 import { TrendingUp } from 'lucide-react';
 
 export function LeadsGeneratedCard({ value }: { value: number }) {

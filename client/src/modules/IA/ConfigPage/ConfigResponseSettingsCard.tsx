@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Label } from '../../../shared/ui/label';
-import { Input } from '../../../shared/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../shared/ui/select';
-import { Slider } from '../../../shared/ui/slider';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Label } from '@/shared/ui/label';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Slider } from '@/shared/ui/slider';
 import { MessageSquare } from 'lucide-react';
 import React, { ChangeEvent } from 'react';
 

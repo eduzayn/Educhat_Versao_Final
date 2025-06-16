@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
 import { Users } from 'lucide-react';
 
 export function StudentsHelpedCard({ value }: { value: number }) {

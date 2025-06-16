@@ -1,1 +1,1 @@
-export { default } from './ConversationListVirtualized'; 
+export { default as ConversationListVirtualized } from './ConversationListVirtualized'; 

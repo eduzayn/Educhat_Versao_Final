@@ -1,7 +1,7 @@
 import { Activity } from 'lucide-react';
-import { CardContent } from '../../../shared/ui/card';
+import { CardContent } from '@/shared/ui/card';
 import { LogItem } from './LogItem';
-import { AILog } from './types';
+import type { AILog } from './types';
 
 interface LogsContentProps {
   logs: AILog[] | undefined;

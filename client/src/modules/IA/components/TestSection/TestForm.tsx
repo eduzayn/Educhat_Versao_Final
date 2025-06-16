@@ -1,5 +1,5 @@
-import { Input } from '../../../shared/ui/input';
-import { Button } from '../../../shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
 import { Send } from 'lucide-react';
 
 interface TestFormProps {

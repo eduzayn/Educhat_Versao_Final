@@ -50,7 +50,7 @@ export class MessageStorage extends BaseStorage {
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt))
+      .orderBy(messages.sentAt)
       .limit(limit)
       .offset(offset);
 

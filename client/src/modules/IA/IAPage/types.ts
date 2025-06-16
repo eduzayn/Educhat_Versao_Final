@@ -14,6 +14,15 @@ export interface AILog {
   type: string;
   message: string;
   metadata: Record<string, any>;
+  processingTime?: number;
+  createdAt?: string;
+  response?: string;
+  classification?: {
+    intent: string;
+    sentiment: 'positive' | 'negative' | 'neutral';
+    confidence: number;
+    aiMode: string;
+  };
 }
 
 export interface TrainingContext {
@@ -26,10 +35,16 @@ export interface TrainingContext {
 }
 
 export interface MemoryStats {
+  total: number;
   totalMemories: number;
   activeMemories: number;
   averageRelevance: number;
   topTags: Array<{ tag: string; count: number }>;
+  byType: {
+    user_info: number;
+    context: number;
+    preferences: number;
+  };
 }
 
 export interface Memory {

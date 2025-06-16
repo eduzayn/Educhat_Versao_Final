@@ -1,1 +1,1 @@
-export { default } from './MediaAttachmentModal'; 
+export { default as MediaAttachmentModal } from './MediaAttachmentModal'; 

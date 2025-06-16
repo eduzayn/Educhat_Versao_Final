@@ -43,7 +43,7 @@ export function DashboardConversations({ conversations, onViewAll }: DashboardCo
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {conversations.map((conversation) => {
+          {(Array.isArray(conversations) ? conversations : []).map((conversation) => {
             const ChannelIcon = getChannelIcon(conversation.channel);
             return (
               <div

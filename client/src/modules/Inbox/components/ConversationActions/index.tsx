@@ -95,4 +95,3 @@ export function ConversationActionsDropdown({
   );
 }
 
-export default ConversationActionsDropdown;

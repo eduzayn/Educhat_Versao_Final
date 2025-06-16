@@ -14,7 +14,7 @@ import { Textarea } from '@/shared/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import type { Deal } from '@shared/schema';
 import { teamConfigs } from '@/lib/crmFunnels';
-import { useToast } from '@/shared/ui/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import {
   Search,
   Filter,
@@ -74,10 +74,12 @@ export function DealsModule() {
   const currentTeam = teamConfigs[selectedTeam];
 
   // Query para buscar funis
-  const { data: funnelsData } = useQuery({
+  const { data: funnelsData = [] } = useQuery({
     queryKey: ['/api/funnels'],
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
+  
+  const safeFunnelsData = Array.isArray(funnelsData) ? funnelsData : [];
 
   // Query para buscar negócios
   const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
@@ -253,7 +255,7 @@ export function DealsModule() {
           <DealsHeader
             selectedTeam={selectedTeam}
             setSelectedTeam={setSelectedTeam}
-            funnelsData={funnelsData || []}
+            funnelsData={safeFunnelsData}
             getFunnelIcon={getFunnelIcon}
             search={search}
             setSearch={setSearch}

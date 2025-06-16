@@ -1,5 +1,5 @@
-import { Input } from '../../../shared/ui/input';
-import { Button } from '../../../shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
 import { Loader2, Globe } from 'lucide-react';
 import React from 'react';
 
