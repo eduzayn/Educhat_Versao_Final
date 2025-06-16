@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Team, SystemUser } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import type { Team } from '@shared/schema';
+import type { SystemUser } from '@shared/schema';
 
 // Hook para carregar times
 export function useTeams() {

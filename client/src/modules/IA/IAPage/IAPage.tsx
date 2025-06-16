@@ -1,5 +1,5 @@
-import { IAPageHeader } from './components/IAPageHeader';
-import { IAPageTabs } from './components/IAPageTabs';
+import { IAPageHeader } from '@/modules/IA/IAPage/IAPageHeader';
+import { IAPageTabs } from '@/modules/IA/IAPage/IAPageTabs';
 
 export default function IAPage() {
   return (

@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import ConversationListHeader from '../ConversationListHeader';
-import ConversationItem from '../ConversationItem';
+import ConversationListHeader from '@/modules/Inbox/components/ConversationListHeader';
+import ConversationItem from '@/modules/Inbox/components/ConversationItem';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationListVirtualizedProps {

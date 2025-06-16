@@ -1,4 +1,4 @@
-import { Card } from '../../../shared/ui/card';
+import { Card } from '@/shared/ui/card';
 import { AIStats, AIStatsCardProps } from './types';
 import { TotalInteractionsCard } from './TotalInteractionsCard';
 import { AvgResponseTimeCard } from './AvgResponseTimeCard';

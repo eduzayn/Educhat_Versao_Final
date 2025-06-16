@@ -1,11 +1,4 @@
-export interface AIStats {
-  totalInteractions: number;
-  avgResponseTime: number;
-  successRate: number;
-  leadsGenerated: number;
-  studentsHelped: number;
-  topIntents: Array<{ intent: string; count: number }>;
-}
+import type { AIStats } from '../../IAPage/types';
 
 export interface AIStatsCardProps {
   stats: AIStats | undefined;

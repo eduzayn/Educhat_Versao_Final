@@ -19,8 +19,8 @@ import { UsersSettingsPage } from "@/modules/Settings/Users/UsersSettingsPage";
 import { CRMPage } from "@/modules/CRM/CRMPage";
 import { BIPage } from "@/modules/BI/BIPage";
 import InternalChatPage from "@/modules/InternalChat/InternalChatPage";
-import IAPage from "@/modules/IA/IAPage";
-import { ConfigPage } from "@/modules/IA/ConfigPage";
+import IAPage from "@/modules/IA/IAPage/IAPage";
+import { ConfigPage } from "@/modules/IA/ConfigPage/ConfigPage";
 
 import QuickRepliesSettingsPage from "@/modules/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/modules/Settings/Webhooks/WebhookConfigPage";

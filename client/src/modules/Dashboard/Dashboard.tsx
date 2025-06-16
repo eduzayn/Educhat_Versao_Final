@@ -6,11 +6,12 @@ import { DashboardMetrics } from './components/DashboardMetrics';
 import { DashboardChannels } from './components/DashboardChannels';
 import { DashboardConversations } from './components/DashboardConversations';
 import { Spinner } from '@/shared/ui/spinner';
-import { useAuth } from '@/shared/hooks/useAuth';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { api } from '@/shared/services/api';
 
 export function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState('dashboard');
   const { user } = useAuth();
 
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
@@ -50,9 +51,14 @@ export function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-100">
       <DashboardSidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
         user={user}
+        onLogout={() => {
+          // Implementar logout
+        }}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader />

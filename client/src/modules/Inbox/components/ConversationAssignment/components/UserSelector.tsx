@@ -6,10 +6,16 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Badge } from "@/shared/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { User } from "lucide-react";
-import { useSystemUsers, useTeamUsers } from '../hooks/useAssignmentData';
-import { useUserAssignment } from '../hooks/useAssignmentMutations';
-import type { UserSelectorProps } from '../types';
+import { useSystemUsers, useTeamUsers } from '@/modules/Inbox/components/ConversationAssignment/hooks/useAssignmentData';
+import { useUserAssignment } from '@/modules/Inbox/components/ConversationAssignment/hooks/useAssignmentMutations';
+import type { UserSelectorProps } from '@/modules/Inbox/components/ConversationAssignment/types';
 
 export function UserSelector({
   conversationId,

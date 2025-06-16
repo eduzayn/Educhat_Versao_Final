@@ -1,4 +1,4 @@
-import { Button } from '../../../../shared/ui/button';
+import { Button } from '@/shared/ui/button';
 import { Brain, ArrowLeft } from 'lucide-react';
 import { useLocation } from 'wouter';
 

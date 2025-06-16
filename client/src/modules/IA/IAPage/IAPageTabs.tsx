@@ -1,13 +1,21 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../shared/ui/tabs';
-import { AIStatsCard } from '../../components/AIStatsCard';
-import { MemorySection } from '../../components/MemorySection';
-import { DocumentsSection } from '../../components/DocumentsSection';
-import { TestSection } from '../../components/TestSection';
-import { ContextsSection } from '../../components/ContextsSection';
-import { LogsSection } from '../../components/LogsSection';
-import { ConfigPage } from '../../ConfigPage';
 import { useState } from 'react';
-import { useAIStats, useAILogs, useTrainingContexts, useMemoryStats, useMemories, useRecentDocuments, useDocumentStats } from '../../queries';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { AIStatsCard } from '@/modules/IA/components/AIStatsCard';
+import { MemorySection } from '@/modules/IA/components/MemorySection';
+import { DocumentsSection } from '@/modules/IA/components/DocumentsSection';
+import { TestSection } from '@/modules/IA/components/TestSection';
+import { ContextsSection } from '@/modules/IA/components/ContextsSection';
+import { LogsSection } from '@/modules/IA/components/LogsSection';
+import { ConfigPage } from '@/modules/IA/ConfigPage';
+import { 
+  useAIStats, 
+  useAILogs, 
+  useTrainingContexts, 
+  useMemoryStats, 
+  useMemories, 
+  useRecentDocuments, 
+  useDocumentStats 
+} from '@/modules/IA/queries';
 
 export function IAPageTabs() {
   const [testMessage, setTestMessage] = useState('');

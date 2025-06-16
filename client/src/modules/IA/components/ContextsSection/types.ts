@@ -1,11 +1,4 @@
-export interface TrainingContext {
-  id: number;
-  title: string;
-  content: string;
-  category: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { TrainingContext } from '../../IAPage/types';
 
 export interface ContextsSectionProps {
   contexts: TrainingContext[] | undefined;

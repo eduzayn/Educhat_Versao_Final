@@ -1,21 +1,4 @@
-export interface ProcessedDocument {
-  id: number;
-  name: string;
-  type: string;
-  content: string;
-  metadata: {
-    pages?: number;
-    wordCount?: number;
-  };
-  createdAt: string;
-}
-
-export interface DocumentStats {
-  total: number;
-  processed: number;
-  errors: number;
-  totalPages: number;
-}
+import type { ProcessedDocument, DocumentStats } from '../../IAPage/types';
 
 export interface DocumentsSectionProps {
   recentDocuments: ProcessedDocument[] | undefined;

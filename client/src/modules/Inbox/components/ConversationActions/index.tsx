@@ -7,10 +7,10 @@ import {
   DropdownMenuSeparator,
 } from '@/shared/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
-import { conversationActions } from './config';
-import { ConversationActionItem } from './ConversationActionItem';
-import { useConversationActions } from './useConversationActions';
-import { ConversationActionsConfig } from './types';
+import { conversationActions } from './config/config';
+import { ConversationActionItem } from './components/ConversationActionItem';
+import { useConversationActions } from './hooks/useConversationActions';
+import { ConversationActionsConfig } from './types/types';
 
 export function ConversationActionsDropdown({
   conversationId,

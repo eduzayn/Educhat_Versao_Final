@@ -1,3 +1,5 @@
+import type { Memory, MemoryStats } from '../../IAPage/types';
+
 export interface AIMemory {
   id: number;
   conversationId: number;
@@ -12,14 +14,9 @@ export interface AIMemory {
   contactName?: string;
 }
 
-export interface MemoryStats {
-  byType: Record<string, number>;
-  total: number;
-}
-
 export interface MemorySectionProps {
   memoryStats: MemoryStats | undefined;
-  memoriesData: any;
+  memoriesData: Memory[] | undefined;
   memoriesLoading: boolean;
   memoryStatsLoading: boolean;
   memoryFilter: string;

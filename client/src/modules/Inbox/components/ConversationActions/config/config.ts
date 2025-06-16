@@ -16,7 +16,7 @@ import {
   Play
 } from 'lucide-react';
 
-import { ConversationAction } from './types';
+import { ConversationAction } from '../../types/types';
 
 export const conversationActions: ConversationAction[] = [
   // Status Actions

@@ -1,4 +1,5 @@
-import type { Team, SystemUser } from '@shared/schema';
+import type { Team } from '@shared/schema';
+import type { SystemUser } from '@shared/schema';
 
 export interface ConversationAssignmentConfig {
   conversationId: number;

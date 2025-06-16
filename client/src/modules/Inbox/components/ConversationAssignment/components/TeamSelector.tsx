@@ -13,9 +13,9 @@ import {
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
 import { Users } from "lucide-react";
-import { useTeams, useTeamUsers } from '../hooks/useAssignmentData';
-import { useTeamAssignment } from '../hooks/useAssignmentMutations';
-import type { TeamSelectorProps } from '../types';
+import { useTeams, useTeamUsers } from '@/modules/Inbox/components/ConversationAssignment/hooks/useAssignmentData';
+import { useTeamAssignment } from '@/modules/Inbox/components/ConversationAssignment/hooks/useAssignmentMutations';
+import type { TeamSelectorProps } from '@/modules/Inbox/components/ConversationAssignment/types';
 
 export function TeamSelector({
   conversationId,

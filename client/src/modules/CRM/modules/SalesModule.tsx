@@ -11,12 +11,12 @@ import {
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 // Importar subcomponentes de vendas
-import { SalesDashboard } from "../sales/SalesDashboard";
-import { SalesTargets } from "../sales/SalesTargets";
-import { SalesCommissions } from "../sales/SalesCommissions";
-import { SalesTerritories } from "../sales/SalesTerritories";
-import { SalesLeaderboard } from "../sales/SalesLeaderboard";
-import { SalesCoaching } from "../sales/SalesCoaching";
+import { SalesDashboard } from "@/modules/CRM/sales/SalesDashboard/SalesDashboard";
+import { SalesTargets } from "@/modules/CRM/sales/SalesTargets/SalesTargets";
+import { SalesCommissions } from "@/modules/CRM/sales/SalesCommissions/SalesCommissions";
+import { SalesTerritories } from "@/modules/CRM/sales/SalesTerritories/SalesTerritories";
+import { SalesLeaderboard } from "@/modules/CRM/sales/SalesLeaderboard/SalesLeaderboard";
+import { SalesCoaching } from "@/modules/CRM/sales/SalesCoaching/SalesCoaching";
 
 export function SalesModule() {
   const [activeTab, setActiveTab] = useState('dashboard');

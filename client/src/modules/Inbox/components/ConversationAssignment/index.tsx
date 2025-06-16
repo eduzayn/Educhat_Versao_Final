@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { TeamSelector } from './components/TeamSelector';
-import { UserSelector } from './components/UserSelector';
+import { TeamSelector } from '@/modules/Inbox/components/ConversationAssignment/components/TeamSelector';
+import { UserSelector } from '@/modules/Inbox/components/ConversationAssignment/components/UserSelector';
 import type { ConversationAssignmentConfig } from './types';
 
 export function ConversationAssignment({

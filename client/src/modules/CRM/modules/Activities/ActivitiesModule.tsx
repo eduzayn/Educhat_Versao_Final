@@ -4,13 +4,13 @@ import { Button } from '@/shared/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Calendar, Plus, ArrowLeft, Bell } from "lucide-react";
-import { ActivityList } from './Activities/components/ActivityList';
-import { ActivityFilters } from './Activities/components/ActivityFilters';
-import { ActivityStats } from './Activities/components/ActivityStats';
-import { ActivityDialog } from './Activities/components/ActivityDialog';
-import { NotificationSettingsDialog } from './Activities/components/NotificationSettingsDialog';
-import { useActivityForm } from './Activities/hooks/useActivityForm';
-import { useActivityData } from './Activities/hooks/useActivityData';
+import { ActivityList } from './components/ActivityList';
+import { ActivityFilters } from './components/ActivityFilters';
+import { ActivityStats } from './components/ActivityStats';
+import { ActivityDialog } from './components/ActivityDialog';
+import { NotificationSettingsDialog } from './components/NotificationSettingsDialog';
+import { useActivityForm } from './hooks/useActivityForm';
+import { useActivityData } from './hooks/useActivityData';
 import React from 'react';
 
 export function ActivitiesModule() {

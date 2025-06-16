@@ -1,16 +1,4 @@
-export interface AILog {
-  id: number;
-  message: string;
-  classification: {
-    intent: string;
-    sentiment: string;
-    confidence: number;
-    aiMode: string;
-  };
-  response: string;
-  processingTime: number;
-  createdAt: string;
-}
+import type { AILog } from '../../IAPage/types';
 
 export interface LogsSectionProps {
   logs: AILog[] | undefined;

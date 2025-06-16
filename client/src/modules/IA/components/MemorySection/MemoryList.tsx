@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/card';
 import { Brain } from 'lucide-react';
 import { AIMemory } from './types';
 import { MemoryListItem } from './MemoryListItem';

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 
 export function useTeamAssignment(conversationId: number) {

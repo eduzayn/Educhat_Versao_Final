@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { DropdownMenuItem } from '@/shared/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Loader2 } from 'lucide-react';
-import { ConversationAction } from './types';
+import { ConversationAction } from '@/modules/Inbox/components/ConversationActions/types/types';
+import { Button } from "@/shared/ui/button";
 
 interface ConversationActionItemProps {
   action: ConversationAction;

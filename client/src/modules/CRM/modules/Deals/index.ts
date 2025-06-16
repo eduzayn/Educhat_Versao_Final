@@ -1,0 +1,1 @@
+export { DealsModule } from './components/DealsModule'; 
