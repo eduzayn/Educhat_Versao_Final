@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
 import { MessageSquare } from 'lucide-react';
 
 export function TotalInteractionsCard({ value }: { value: number }) {

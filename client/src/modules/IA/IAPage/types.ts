@@ -14,6 +14,10 @@ export interface AILog {
   type: string;
   message: string;
   metadata: Record<string, any>;
+  processingTime?: number;
+  createdAt?: string;
+  response?: string;
+  classification?: string;
 }
 
 export interface TrainingContext {

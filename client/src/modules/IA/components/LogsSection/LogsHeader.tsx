@@ -1,6 +1,6 @@
 import { Activity, Trash2 } from 'lucide-react';
-import { CardHeader, CardTitle, CardDescription } from '../../../shared/ui/card';
-import { Button } from '../../../shared/ui/button';
+import { CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
 
 interface LogsHeaderProps {
   hasLogs: boolean;

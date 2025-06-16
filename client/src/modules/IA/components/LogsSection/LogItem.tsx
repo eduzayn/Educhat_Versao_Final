@@ -1,6 +1,6 @@
 import { MessageSquare, Brain } from 'lucide-react';
-import { Badge } from '../../../shared/ui/badge';
-import { AILog } from './types';
+import { Badge } from '@/shared/ui/badge';
+import type { AILog } from './types';
 
 interface LogItemProps {
   log: AILog;
