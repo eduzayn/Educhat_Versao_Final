@@ -29,10 +29,15 @@ export function useOptimizedDeletion(messageId: number, conversationId?: number)
         });
       } else {
         const metadata = messageMetadata as any;
-        const zapiMessageId = metadata?.messageId || metadata?.zaapId || metadata?.id;
+        // Tentar múltiplas formas de encontrar o ID Z-API baseado na estrutura real dos dados
+        const zapiMessageId = metadata?.zaapId || 
+                             metadata?.messageId || 
+                             metadata?.id ||
+                             metadata?.whatsappMessageId;
         
         if (!zapiMessageId) {
-          throw new Error("ID da mensagem Z-API não encontrado");
+          console.error("Metadados da mensagem:", metadata);
+          throw new Error("ID da mensagem Z-API não encontrado nos metadados");
         }
 
         await apiRequest("POST", "/api/zapi/delete-message", {
