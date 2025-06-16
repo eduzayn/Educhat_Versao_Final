@@ -23,7 +23,7 @@ export function useInfiniteConversations(
   const { searchTerm, ...queryOptions } = options;
   
   return useInfiniteQuery<ConversationsResponse>({
-    queryKey: ['/api/conversations/infinite', { limit, searchTerm }],
+    queryKey: ['/api/conversations', { limit, searchTerm }],
     queryFn: async ({ pageParam = 0 }: { pageParam: unknown }) => {
       const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({

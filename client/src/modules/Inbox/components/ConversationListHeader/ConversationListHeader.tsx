@@ -42,6 +42,7 @@ export function ConversationListHeader({
   // Debounce da busca para melhor performance
   useEffect(() => {
     const timeoutId = setTimeout(() => {
+      console.log('🔍 ConversationListHeader: Aplicando busca:', debouncedSearchTerm);
       setSearchTerm(debouncedSearchTerm);
     }, 300);
 
