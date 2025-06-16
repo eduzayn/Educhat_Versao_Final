@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bloquear completamente URLs de Gravatar para evitar 404s */
+img[src*="gravatar.com"],
+img[src*="www.gravatar.com"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Interceptar tentativas de carregamento de Gravatar via CSS */
+*[style*="gravatar.com"],
+*[style*="www.gravatar.com"] {
+  background-image: none !important;
+}
+
 /* Scrollbar personalizado unificado */
 .scrollbar-thin,
 .custom-scrollbar,
