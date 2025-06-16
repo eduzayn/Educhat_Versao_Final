@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,7 @@ interface Notification {
 
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   const { data: notifications = [], refetch } = useQuery({
     queryKey: ['/api/notifications'],
