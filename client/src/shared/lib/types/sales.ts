@@ -45,4 +45,35 @@ export interface CoachingStats {
     goal: number;
     training: number;
   };
+}
+
+export interface Commission {
+  id: number;
+  salespersonId: number;
+  salespersonName: string;
+  dealId: number;
+  dealValue: number;
+  commissionRate: number;
+  commissionValue: number;
+  status: 'pending' | 'approved' | 'paid';
+  dealClosedAt: string;
+  paidAt?: string;
+}
+
+export interface CommissionSummary {
+  salespersonId: number;
+  salespersonName: string;
+  totalDeals: number;
+  totalSales: number;
+  totalCommissions: number;
+  averageRate: number;
+}
+
+export interface CommissionsData {
+  totalCommissions: number;
+  totalPending: number;
+  totalPaid: number;
+  totalSales: number;
+  commissions: Commission[];
+  commissionsBySalesperson?: CommissionSummary[];
 } 
