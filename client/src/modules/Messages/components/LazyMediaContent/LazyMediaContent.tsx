@@ -143,6 +143,19 @@ export function LazyMediaContent({
           );
         }
         if (content) {
+          let videoUrl = content;
+          try {
+            if (!videoUrl.startsWith('data:')) {
+              videoUrl = encodeURI(videoUrl);
+            }
+          } catch (e) {
+            setError('URL do vídeo inválida.');
+            return null;
+          }
+          if (!videoUrl || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
+            setError('Vídeo não encontrado ou URL inválida.');
+            return null;
+          }
           return (
             <div className="relative max-w-sm">
               <video
@@ -154,22 +167,15 @@ export function LazyMediaContent({
                   const videoElement = e.target as HTMLVideoElement;
                   const errorCode = videoElement.error?.code;
                   const errorMessage = videoElement.error?.message;
-                  console.error("❌ Erro ao carregar vídeo", { 
-                    messageId, 
-                    errorCode,
-                    errorMessage,
-                    src: videoElement.src
-                  });
-                  secureLog.error("Erro ao carregar vídeo", { messageId, errorCode, errorMessage });
-                  setError(`Erro ao reproduzir vídeo (código: ${errorCode})`);
+                  setError(`Erro ao reproduzir vídeo (código: ${errorCode || 'desconhecido'})`);
                 }}
                 onLoadedData={() =>
                   secureLog.debug("Vídeo carregado", { messageId })
                 }
               >
-                <source src={content} type="video/mp4" />
-                <source src={content} type="video/webm" />
-                <source src={content} type="video/ogg" />
+                <source src={videoUrl} type="video/mp4" />
+                <source src={videoUrl} type="video/webm" />
+                <source src={videoUrl} type="video/ogg" />
                 Seu navegador não suporta vídeo.
               </video>
             </div>
