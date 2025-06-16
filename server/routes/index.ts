@@ -70,6 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerIntegrationRoutes(app);
   registerSettingsRoutes(app);
   registerFunnelRoutes(app);
+  // Rotas de busca global
+  setupSearchRoutes(app);
   // Sistema de detecção migrado para IA com equipes unificadas
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
