@@ -19,10 +19,6 @@ export function MessagesContainer({
   onReply,
   messagesEndRef,
 }: MessagesContainerProps) {
-  // Debug: Log messages para encontrar problema com "teste50"
-  console.log(`🔍 Renderizando ${messages.length} mensagens:`, 
-    messages.map(m => ({ id: m.id, content: m.content?.substring(0, 50) })));
-  
   return (
     <>
       {messages.map((message: any) => (

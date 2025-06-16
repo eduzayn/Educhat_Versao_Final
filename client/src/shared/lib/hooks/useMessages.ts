@@ -18,7 +18,9 @@ export function useMessages(conversationId: number | null, limit = 25) {
       const endTime = Date.now();
       console.log(`✅ Frontend: Mensagens carregadas em ${endTime - startTime}ms (${data.messages?.length || 0} itens)`);
       
-      return data.messages || [];
+      // Inverter ordem para exibir mensagens mais antigas primeiro (ordem cronológica)
+      const messages = data.messages || [];
+      return messages.reverse();
     },
     enabled: !!conversationId,
     refetchInterval: false,
