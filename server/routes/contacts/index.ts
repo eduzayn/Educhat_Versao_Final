@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../../storage";
 import { insertContactSchema, insertContactTagSchema } from "@shared/schema";
 import { pool } from "../../db";
+import avatarRoutes from "./avatars";
 
 /**
  * Sincroniza contato criado manualmente com Z-API para permitir mensagens ativas
@@ -214,31 +215,8 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
-  // Get contact photo from Z-API
-  app.get('/api/contacts/:id/photo', async (req, res) => {
-    try {
-      const contactId = parseInt(req.params.id);
-      const contact = await storage.getContact(contactId);
-      
-      if (!contact || !contact.phone) {
-        return res.status(404).json({ message: 'Contato não encontrado ou sem telefone' });
-      }
-
-      const { getContactPhoto } = await import('../../utils/zapi');
-      const photoUrl = await getContactPhoto(contact.phone);
-      
-      if (photoUrl) {
-        // Update contact with new photo URL
-        await storage.updateContact(contactId, { profileImageUrl: photoUrl });
-        res.json({ photoUrl, updated: true });
-      } else {
-        res.json({ photoUrl: null, updated: false });
-      }
-    } catch (error) {
-      console.error('Erro ao buscar foto do contato:', error);
-      res.status(500).json({ message: 'Erro ao buscar foto do contato' });
-    }
-  });
+  // Usar sistema de cache de avatares
+  app.use('/api/contacts', avatarRoutes);
 
   // Update all contact photos from Z-API
   app.post('/api/contacts/update-photos', async (req, res) => {

@@ -1,18 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { User } from 'lucide-react';
 import { useSafeAvatarUrl, getAvatarInitials } from '@/shared/lib/utils/avatarUtils';
+import { useQuery } from '@tanstack/react-query';
 
 interface ContactAvatarProps {
   src?: string | null;
   name?: string | null;
+  contactId?: number;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export function ContactAvatar({ src, name, size = 'md', className }: ContactAvatarProps) {
+export function ContactAvatar({ src, name, contactId, size = 'md', className }: ContactAvatarProps) {
   const [imageError, setImageError] = useState(false);
-  const safeAvatarUrl = useSafeAvatarUrl(src);
+  
+  // Usar cache de avatar se contactId estiver disponível
+  const { data: avatarData } = useQuery({
+    queryKey: ['contact-avatar', contactId],
+    queryFn: async () => {
+      if (!contactId) return null;
+      const response = await fetch(`/api/contacts/${contactId}/avatar`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!contactId,
+    staleTime: 24 * 60 * 60 * 1000, // 24 horas
+    gcTime: 24 * 60 * 60 * 1000,
+  });
+
+  // Determinar URL do avatar com prioridade para cache
+  const avatarUrl = avatarData?.avatarUrl || src;
+  const safeAvatarUrl = useSafeAvatarUrl(avatarUrl);
   
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -21,6 +40,17 @@ export function ContactAvatar({ src, name, size = 'md', className }: ContactAvat
   };
 
   const shouldShowImage = safeAvatarUrl && !imageError;
+
+  // Log para debug (apenas em desenvolvimento)
+  useEffect(() => {
+    if (avatarData && process.env.NODE_ENV === 'development') {
+      console.log(`Avatar cache para ${name}:`, {
+        source: avatarData.source,
+        cached: avatarData.cached,
+        hasUrl: !!avatarData.avatarUrl
+      });
+    }
+  }, [avatarData, name]);
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
