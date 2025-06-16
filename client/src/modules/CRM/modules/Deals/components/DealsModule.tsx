@@ -74,7 +74,7 @@ export function DealsModule() {
   const currentTeam = teamConfigs[selectedTeam];
 
   // Query para buscar funis
-  const { data: funnelsData } = useQuery({
+  const { data: funnelsData = [] } = useQuery({
     queryKey: ['/api/funnels'],
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
@@ -253,7 +253,7 @@ export function DealsModule() {
           <DealsHeader
             selectedTeam={selectedTeam}
             setSelectedTeam={setSelectedTeam}
-            funnelsData={funnelsData || []}
+            funnelsData={funnelsData}
             getFunnelIcon={getFunnelIcon}
             search={search}
             setSearch={setSearch}

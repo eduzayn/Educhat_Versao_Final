@@ -1,4 +1,4 @@
-import { Badge } from '../../../shared/ui/badge';
+import { Badge } from '@/shared/ui/badge';
 import { AIMemory } from './types';
 
 export function MemoryListItem({ memory }: { memory: AIMemory }) {
