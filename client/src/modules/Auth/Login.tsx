@@ -34,7 +34,7 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/login', loginData);
+      const response = await apiRequest('POST', '/api/auth/login', loginData);
       const user = await response.json();
       
       // Invalidar cache de autenticação para forçar refresh do estado
@@ -84,7 +84,7 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/register', {
+      const response = await apiRequest('POST', '/api/auth/register', {
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
