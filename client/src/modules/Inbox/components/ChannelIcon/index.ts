@@ -1,1 +1,1 @@
-export { default } from './ChannelIcon'; 
+export { default as ChannelIcon } from './ChannelIcon'; 

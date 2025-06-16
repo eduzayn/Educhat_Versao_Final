@@ -28,17 +28,19 @@ export function useConversationActions({
         .replace('{conversationId}', conversationId.toString())
         .replace('{contactId}', contactId.toString());
 
-      const requestData: any = {
+      const requestOptions: RequestInit = {
         method: action.method || 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       };
 
       // Add payload if exists
       if (action.payload) {
-        requestData.body = JSON.stringify(action.payload(conversationId, contactId));
-        requestData.headers = { 'Content-Type': 'application/json' };
+        requestOptions.body = JSON.stringify(action.payload(conversationId, contactId));
       }
 
-      const response = await fetch(endpoint, requestData);
+      const response = await fetch(endpoint, requestOptions);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));

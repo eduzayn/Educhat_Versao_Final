@@ -433,8 +433,8 @@ export class CentralStorage {
     return this.message.markMessageAsDelivered(id);
   }
 
-  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean) {
-    return this.message.markMessageAsDeletedByUser(messageId, deletedByUser);
+  async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean, userId?: number) {
+    return this.message.markMessageAsDeletedByUser(messageId, deletedByUser, userId);
   }
 
   // Soft delete methods available through message module

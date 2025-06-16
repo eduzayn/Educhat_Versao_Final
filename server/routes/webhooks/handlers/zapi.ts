@@ -698,12 +698,49 @@ export async function handleSendLink(req: Request, res: Response) {
 }
 
 /**
- * Registra rotas Z-API relacionadas a mídia
+ * Obtém status da conexão Z-API - CONSOLIDADO do arquivo principal
+ */
+async function handleGetStatus(req: any, res: any) {
+  try {
+    const credentials = validateZApiCredentials();
+    if (!credentials.valid) {
+      return res.status(400).json({ error: credentials.error });
+    }
+
+    const { instanceId, token, clientToken } = credentials;
+    const url = buildZApiUrl(instanceId, token, 'status');
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getZApiHeaders(clientToken)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+    
+  } catch (error) {
+    console.error('❌ Erro ao obter status:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+}
+
+/**
+ * Registra rotas Z-API consolidadas - mídia e status
  */
 export function registerZApiMediaRoutes(app: Express) {
+  // Rotas de mídia
   app.post('/api/zapi/send-image', uploadImage.single('image'), handleSendImage);
   app.post('/api/zapi/send-audio', uploadAudio.single('audio'), handleSendAudio);
   app.post('/api/zapi/send-video', uploadVideo.single('video'), handleSendVideo);
   app.post('/api/zapi/send-document', uploadDocument.single('document'), handleSendDocument);
   app.post('/api/zapi/send-link', handleSendLink);
+  
+  // Rota de status consolidada
+  app.get('/api/zapi/status', handleGetStatus);
 }

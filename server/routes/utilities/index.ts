@@ -1,7 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { storage } from "../../storage";
-import { funnelService } from '../../services/funnelService';
 
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../utils/zapi';
 
@@ -88,7 +87,7 @@ export function registerUtilitiesRoutes(app: Express) {
             });
           }
           
-          const config = channel.configuration || {};
+          const config = (channel.configuration as any) || {};
           credentials = {
             valid: true,
             instanceId: config.instanceId || channel.instanceId,
@@ -167,13 +166,13 @@ export function registerUtilitiesRoutes(app: Express) {
           const messages = await storage.messages.getMessages(parseInt(conversationId));
           // Encontrar a mensagem mais recente sem zaapId para associar com a resposta da Z-API
           const recentMessage = messages
-            .filter(msg => !msg.isFromContact && !msg.metadata?.zaapId)
-            .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
+            .filter(msg => !msg.isFromContact && !(msg.metadata as any)?.zaapId)
+            .sort((a, b) => new Date(b.sentAt || new Date()).getTime() - new Date(a.sentAt || new Date()).getTime())[0];
           
           if (recentMessage) {
             await storage.messages.updateMessage(recentMessage.id, {
               metadata: {
-                ...recentMessage.metadata,
+                ...(recentMessage.metadata as any || {}),
                 zaapId: data.messageId || data.id,
                 messageId: data.messageId || data.id,
                 phone: cleanPhone,
@@ -199,21 +198,12 @@ export function registerUtilitiesRoutes(app: Express) {
           if (contact) {
             console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
           
-          // Verificar se já existe conversa para este contato usando query direta
-          const db = storage.conversations.db;
-          const { conversations } = await import('../../../shared/schema');
-          const { eq } = await import('drizzle-orm');
-          
-          const [existingConversation] = await db.select()
-            .from(conversations)
-            .where(eq(conversations.contactId, contact.id))
-            .limit(1);
-          
-          let conversation = existingConversation;
+          // Verificar se já existe conversa para este contato
+          let conversation = await storage.conversation.getConversationByContactId(contact.id);
           
           if (!conversation) {
             // Criar nova conversa
-            conversation = await storage.conversations.createConversation({
+            conversation = await storage.conversation.createConversation({
               contactId: contact.id,
               channel: 'whatsapp',
               status: 'active',
@@ -359,7 +349,7 @@ export function registerUtilitiesRoutes(app: Express) {
         });
 
         if (messageToDelete) {
-          await storage.markMessageAsDeleted(messageToDelete.id);
+          await storage.message.markMessageAsDelivered(messageToDelete.id);
         }
 
         const { broadcast } = await import('../realtime');
@@ -765,7 +755,7 @@ export function registerUtilitiesRoutes(app: Express) {
       if (location !== undefined) updateData.location = location;
       if (bio !== undefined) updateData.bio = bio;
 
-      const updatedUser = await storage.updateSystemUser(req.user.id, updateData);
+      const updatedUser = await storage.userManagement.updateSystemUser(req.user.id, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
@@ -798,7 +788,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
       // Verificar senha atual
       const bcrypt = await import('bcryptjs');
-      const user = await storage.getSystemUser(req.user.id);
+      const user = await storage.userManagement.getSystemUser(req.user.id);
       
       if (!user || !user.password) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
@@ -812,7 +802,7 @@ export function registerUtilitiesRoutes(app: Express) {
       // Atualizar com nova senha
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       
-      await storage.updateSystemUser(req.user.id, { 
+      await storage.userManagement.updateSystemUser(req.user.id, { 
         password: hashedNewPassword 
       });
 
@@ -823,237 +813,15 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
-  // Teams API endpoints - REST: CRUD operations
-  app.get('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const teams = await storage.getTeams();
-      res.json(teams);
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-      res.status(500).json({ message: 'Failed to fetch teams' });
-    }
-  });
+  // ❌ ROTAS DE EQUIPES REMOVIDAS - CONSOLIDADAS EM /api/teams
+  // Todas as operações de equipes agora são gerenciadas em server/routes/teams/index.ts
 
-  app.post('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const team = await storage.createTeam(req.body);
-      
-      // Criar funil automaticamente para a nova equipe
-      try {
-        await funnelService.createFunnelForTeam(team.id);
-        console.log(`✅ Funil criado automaticamente para nova equipe: ${team.name} (ID: ${team.id})`);
-      } catch (funnelError) {
-        console.warn(`⚠️ Erro ao criar funil automático para equipe ${team.name}:`, funnelError);
-        // Não falhar a criação da equipe se houver erro no funil
-      }
-      
-      res.status(201).json(team);
-    } catch (error) {
-      console.error('Error creating team:', error);
-      res.status(500).json({ message: 'Failed to create team' });
-    }
-  });
+  // ❌ ROTAS DE ROLES REMOVIDAS - CONSOLIDADAS EM /api/admin/roles e /api/roles
+  // Todas as operações de funções agora são gerenciadas em server/routes/admin/index.ts
 
-  app.put('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const team = await storage.updateTeam(id, req.body);
-      res.json(team);
-    } catch (error) {
-      console.error('Error updating team:', error);
-      res.status(500).json({ message: 'Failed to update team' });
-    }
-  });
+  // ❌ ROTA DE PERMISSÕES REMOVIDA - CONSOLIDADA EM /api/admin/permissions
+  // Configuração de permissões agora é gerenciada em server/routes/admin/index.ts
 
-  app.delete('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteTeam(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting team:', error);
-      res.status(500).json({ message: 'Failed to delete team' });
-    }
-  });
-
-  // Roles API endpoints - REST: CRUD operations  
-  app.get('/api/roles', async (req: Request, res: Response) => {
-    try {
-      // Retornar dados estáticos até resolver o problema de storage
-      const staticRoles = [
-        { id: 1, name: 'Administrador', displayName: 'Administrador', isActive: true },
-        { id: 2, name: 'Gerente', displayName: 'Gerente', isActive: true },
-        { id: 3, name: 'Atendente', displayName: 'Atendente', isActive: true },
-        { id: 4, name: 'Visualizador', displayName: 'Visualizador', isActive: true }
-      ];
-      res.json(staticRoles);
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-      res.status(500).json({ message: 'Failed to fetch roles' });
-    }
-  });
-
-  app.post('/api/roles', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const role = await storage.createRole(req.body);
-      res.status(201).json(role);
-    } catch (error) {
-      console.error('Error creating role:', error);
-      res.status(500).json({ message: 'Failed to create role' });
-    }
-  });
-
-  app.put('/api/roles/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const role = await storage.updateRole(id, req.body);
-      res.json(role);
-    } catch (error) {
-      console.error('Error updating role:', error);
-      res.status(500).json({ message: 'Failed to update role' });
-    }
-  });
-
-  app.delete('/api/roles/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteRole(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting role:', error);
-      res.status(500).json({ message: 'Failed to delete role' });
-    }
-  });
-
-  // Permissions configuration - REST: POST /api/permissions/save
-  app.post('/api/permissions/save', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { roleId, permissions } = req.body;
-      
-      if (!roleId || !Array.isArray(permissions)) {
-        return res.status(400).json({ message: 'Role ID and permissions array are required' });
-      }
-
-      // Update role with new permissions
-      const updatedRole = await storage.updateRole(roleId, { 
-        permissions: JSON.stringify(permissions)
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Permissions saved successfully',
-        role: updatedRole 
-      });
-    } catch (error) {
-      console.error('Error saving permissions:', error);
-      res.status(500).json({ message: 'Failed to save permissions' });
-    }
-  });
-
-  // Channels API endpoints - REST: CRUD operations for multiple WhatsApp support
-  app.get('/api/channels', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const channels = await storage.getChannels();
-      res.json(channels);
-    } catch (error) {
-      console.error('Error fetching channels:', error);
-      res.status(500).json({ message: 'Failed to fetch channels' });
-    }
-  });
-
-  app.get('/api/channels/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const channel = await storage.getChannel(id);
-      
-      if (!channel) {
-        return res.status(404).json({ message: 'Channel not found' });
-      }
-      
-      res.json(channel);
-    } catch (error) {
-      console.error('Error fetching channel:', error);
-      res.status(500).json({ message: 'Failed to fetch channel' });
-    }
-  });
-
-  app.post('/api/channels', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const channelData = req.body;
-      
-      // Basic validation
-      if (!channelData.name || !channelData.type) {
-        return res.status(400).json({ message: 'Name and type are required' });
-      }
-
-      const channel = await storage.createChannel(channelData);
-      res.status(201).json(channel);
-    } catch (error) {
-      console.error('Error creating channel:', error);
-      res.status(400).json({ message: 'Failed to create channel' });
-    }
-  });
-
-  app.put('/api/channels/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const channelData = req.body;
-      
-      const channel = await storage.updateChannel(id, channelData);
-      
-      if (!channel) {
-        return res.status(404).json({ message: 'Channel not found' });
-      }
-      
-      res.json(channel);
-    } catch (error) {
-      console.error('Error updating channel:', error);
-      res.status(400).json({ message: 'Failed to update channel' });
-    }
-  });
-
-  app.delete('/api/channels/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteChannel(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting channel:', error);
-      res.status(500).json({ message: 'Failed to delete channel' });
-    }
-  });
-
-  // Channel status check - REST: GET /api/channels/:id/status
-  app.get('/api/channels/:id/status', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const status = await storage.getChannelStatus(id);
-      res.json(status);
-    } catch (error) {
-      console.error('Error checking channel status:', error);
-      res.status(500).json({ message: 'Failed to check channel status' });
-    }
-  });
-
-  // Channel activation/deactivation - REST: PATCH /api/channels/:id/toggle
-  app.patch('/api/channels/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { isActive } = req.body;
-      
-      const channel = await storage.updateChannel(id, { isActive });
-      
-      if (!channel) {
-        return res.status(404).json({ message: 'Channel not found' });
-      }
-      
-      res.json({ 
-        message: `Channel ${isActive ? 'activated' : 'deactivated'} successfully`,
-        channel 
-      });
-    } catch (error) {
-      console.error('Error toggling channel status:', error);
-      res.status(500).json({ message: 'Failed to toggle channel status' });
-    }
-  });
+  // ❌ ROTAS DE CANAIS REMOVIDAS - CONSOLIDADAS EM /api/channels
+  // Todas as operações de canais agora são gerenciadas em server/routes/channels/index.ts
 }

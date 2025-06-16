@@ -1,4 +1,4 @@
-import { getStagesForTeam, getTeamInfo } from '@/lib/crmFunnels';
+import { getStagesForTeam, getTeamInfo } from '@/shared/lib/crmFunnels';
 
 export const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {

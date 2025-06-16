@@ -25,11 +25,10 @@ export function useMessages(conversationId: number | null, limit = 25) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 30000, // Cache por 30 segundos para evitar requisições desnecessárias
-    gcTime: 1000 * 60 * 10, // Manter cache por 10 minutos
-    retry: 1, // Reduzir tentativas para acelerar feedback de erro
+    staleTime: 0, // Cache sempre fresh para atualizações imediatas
+    gcTime: 1000 * 60 * 5, // Reduzir tempo de cache para 5 minutos
+    retry: 1, 
     retryDelay: 500,
-    // Otimização: Manter dados anteriores durante carregamento
     placeholderData: (previousData) => previousData,
   });
 }
@@ -47,7 +46,7 @@ export function useSendMessage() {
       if (message.isInternalNote) {
         console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
         const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-        return response.json();
+        return await response.json();
       }
 
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
@@ -69,7 +68,8 @@ export function useSendMessage() {
             message: message.content,
             conversationId: conversationId
           });
-          console.log('✅ Mensagem enviada via Z-API:', zapiResponse);
+          const zapiResult = await zapiResponse.json();
+          console.log('✅ Mensagem enviada via Z-API:', zapiResult);
         } catch (error) {
           console.error('❌ Erro ao enviar via Z-API:', error);
           // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
@@ -78,15 +78,61 @@ export function useSendMessage() {
 
       return savedMessage;
     },
-    onSuccess: (_, { conversationId }) => {
-      // Forçar refetch imediato das mensagens - usar array para consistência
-      queryClient.refetchQueries({ 
+    onMutate: async ({ conversationId, message }) => {
+      // Cancelar qualquer refetch em andamento
+      await queryClient.cancelQueries({ 
         queryKey: ['/api/conversations', conversationId, 'messages'] 
       });
-      // Invalidar cache da lista de conversas
+
+      // Snapshot do estado anterior
+      const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
+
+      // Atualização otimista - adicionar mensagem temporária
+      const tempMessage = {
+        id: Date.now(), // ID temporário
+        ...message,
+        conversationId,
+        sentAt: new Date(),
+        isFromContact: false,
+        status: 'sending'
+      };
+
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (old: Message[] | undefined) => {
+          const messages = old || [];
+          return [...messages, tempMessage as Message];
+        }
+      );
+
+      return { previousMessages, tempMessage };
+    },
+    onSuccess: (newMessage, { conversationId }, context) => {
+      // Substituir mensagem temporária pela real
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (oldMessages: Message[] | undefined) => {
+          if (!oldMessages) return [newMessage];
+          // Substituir mensagem temporária pela real
+          return oldMessages.map(msg => 
+            msg.id === context?.tempMessage.id ? newMessage : msg
+          );
+        }
+      );
+      
+      // Invalidar cache da lista de conversas para atualizar contadores
       queryClient.invalidateQueries({ 
         queryKey: ['/api/conversations'] 
       });
+    },
+    onError: (err, { conversationId }, context) => {
+      // Restaurar estado anterior em caso de erro
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages'],
+          context.previousMessages
+        );
+      }
     },
   });
 }

@@ -144,15 +144,25 @@ export function LazyMediaContent({
         }
         if (content) {
           let videoUrl = content;
-          try {
-            if (!videoUrl.startsWith('data:')) {
+          
+          // Verificar se é um vídeo base64 válido
+          if (videoUrl.startsWith('data:video/')) {
+            // Vídeo base64 válido, usar diretamente
+          } else if (videoUrl.startsWith('http')) {
+            // URL externa, aplicar encoding
+            try {
               videoUrl = encodeURI(videoUrl);
+            } catch (e) {
+              setError('URL do vídeo inválida.');
+              return null;
             }
-          } catch (e) {
-            setError('URL do vídeo inválida.');
+          } else {
+            // Conteúdo inválido
+            setError('Formato de vídeo não suportado.');
             return null;
           }
-          if (!videoUrl || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
+          
+          if (!videoUrl || videoUrl === 'Vídeo' || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
             setError('Vídeo não encontrado ou URL inválida.');
             return null;
           }
@@ -167,6 +177,7 @@ export function LazyMediaContent({
                   const videoElement = e.target as HTMLVideoElement;
                   const errorCode = videoElement.error?.code;
                   const errorMessage = videoElement.error?.message;
+                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, errorMessage });
                   setError(`Erro ao reproduzir vídeo (código: ${errorCode || 'desconhecido'})`);
                 }}
                 onLoadedData={() =>

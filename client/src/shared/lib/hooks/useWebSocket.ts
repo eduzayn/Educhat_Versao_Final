@@ -12,12 +12,35 @@ export function useWebSocket() {
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
-    if (socketRef.current?.connected) return;
-
     // Clear any existing reconnect timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
+    }
+
+    // Verificar se já existe uma conexão ativa e válida
+    if (socketRef.current?.connected && !socketRef.current.disconnected) {
+      console.log('🔌 Socket já conectado e válido, reutilizando conexão');
+      return;
+    }
+
+    // Desconectar e limpar socket anterior completamente
+    if (socketRef.current) {
+      console.log('🧹 Limpando socket anterior:', {
+        connected: socketRef.current.connected,
+        disconnected: socketRef.current.disconnected
+      });
+      
+      try {
+        socketRef.current.removeAllListeners();
+        if (!socketRef.current.disconnected) {
+          socketRef.current.disconnect();
+        }
+      } catch (error) {
+        console.warn('⚠️ Erro ao limpar socket anterior:', error);
+      }
+      
+      socketRef.current = null;
     }
 
     // Configurar URL do Socket.IO
@@ -70,31 +93,20 @@ export function useWebSocket() {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
 
+        // Atualizar cache imediatamente sem refetch para melhor performance
+        queryClient.setQueryData(
+          ['/api/conversations', data.conversationId, 'messages'],
+          (oldMessages: any[] | undefined) => {
+            if (!oldMessages) return [data.message];
+            // Verificar se mensagem já existe para evitar duplicatas
+            const exists = oldMessages.find(msg => msg.id === data.message.id);
+            if (exists) return oldMessages;
+            return [...oldMessages, data.message];
+          }
+        );
         
-        // Invalidação imediata para atualização em tempo real - usar array consistente
+        // Invalidar apenas lista de conversas para atualizar contadores
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', data.conversationId, 'messages'] 
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-        
-        // Force refetch prioritário
-        Promise.all([
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations'], 
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations', data.conversationId, 'messages'],
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations/unread-count'],
-            type: 'active'
-          })
-        ]).catch(error => {
-          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
-        });
         
         return;
       }
@@ -109,14 +121,16 @@ export function useWebSocket() {
           }
           break;
         case 'message_deleted':
+        case 'message_updated':
           if (data.messageId && data.conversationId) {
-            console.log('🗑️ Mensagem deletada:', {
+            console.log('🗑️ Mensagem deletada/atualizada:', {
               messageId: data.messageId,
-              conversationId: data.conversationId
+              conversationId: data.conversationId,
+              type: data.type
             });
             
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+              queryKey: ['/api/conversations', data.conversationId, 'messages'] 
             });
           }
           break;
@@ -278,8 +292,14 @@ export function useWebSocket() {
       console.log('🔌 Socket.IO desconectado:', reason);
       setConnectionStatus(false);
       
-      if (reason === 'io server disconnect') {
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
+      // Reconectar automaticamente para desconexões não intencionais
+      if (reason !== 'io client disconnect' && !reconnectTimeoutRef.current) {
+        const delay = Math.min(3000 * Math.pow(2, 0), 30000); // Delay exponencial limitado a 30s
+        console.log(`🔄 Reagendando reconexão em ${delay}ms`);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('🔄 Tentando reconectar...');
+          connect();
+        }, delay);
       }
     });
 
@@ -290,39 +310,48 @@ export function useWebSocket() {
     });
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
 
-  const sendMessage = useCallback((message: WebSocketMessage) => {
-    const socket = socketRef.current;
-    if (socket && socket.connected && socket.active) {
-      socket.emit('send_message', message);
-    } else {
-      // Checagem adicional para evitar erro de socket fechado
-      if (!socket) {
-        console.warn('[WebSocket] Não é possível enviar: socket inexistente.');
-      } else if (socket.disconnected || socket.io.readyState === 'closed' || socket.io.readyState === 'closing') {
-        console.warn('[WebSocket] Não é possível enviar: socket está fechado ou fechando.');
-      } else {
-        console.warn('[WebSocket] Não é possível enviar: socket não está conectado.');
-      }
-    }
+  const isSocketReady = useCallback(() => {
+    return socketRef.current && 
+           socketRef.current.connected && 
+           !socketRef.current.disconnected;
   }, []);
 
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (!isSocketReady()) {
+      console.warn('⚠️ Socket não está pronto para envio de mensagem:', {
+        exists: !!socketRef.current,
+        connected: socketRef.current?.connected,
+        disconnected: socketRef.current?.disconnected
+      });
+      return;
+    }
+
+    try {
+      socketRef.current!.emit('send_message', message);
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem via socket:', error);
+    }
+  }, [isSocketReady]);
+
   const sendTypingIndicator = useCallback((conversationId: number, isTyping: boolean) => {
-    const socket = socketRef.current;
-    if (socket && socket.connected && socket.active) {
-      socket.emit('typing', {
+    if (!isSocketReady()) {
+      console.warn('⚠️ Socket não está pronto para indicador de digitação:', {
+        exists: !!socketRef.current,
+        connected: socketRef.current?.connected,
+        disconnected: socketRef.current?.disconnected
+      });
+      return;
+    }
+
+    try {
+      socketRef.current!.emit('typing', {
         conversationId,
         isTyping,
       });
-    } else {
-      if (!socket) {
-        console.warn('[WebSocket] Não é possível enviar typing: socket inexistente.');
-      } else if (socket.disconnected || socket.io.readyState === 'closed' || socket.io.readyState === 'closing') {
-        console.warn('[WebSocket] Não é possível enviar typing: socket está fechado ou fechando.');
-      } else {
-        console.warn('[WebSocket] Não é possível enviar typing: socket não está conectado.');
-      }
+    } catch (error) {
+      console.error('❌ Erro ao enviar indicador de digitação via socket:', error);
     }
-  }, []);
+  }, [isSocketReady]);
 
   useEffect(() => {
     connect();
@@ -334,10 +363,11 @@ export function useWebSocket() {
         reconnectTimeoutRef.current = null;
       }
       
-      // Close Socket.IO connection
-      if (socketRef.current) {
+      // Close Socket.IO connection apenas se não estiver já desconectado
+      if (socketRef.current && !socketRef.current.disconnected) {
         socketRef.current.disconnect();
       }
+      socketRef.current = null;
     };
   }, [connect]);
 

@@ -1,6 +1,7 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { storage } from "../../storage";
+import { funnelService } from '../../services/funnelService';
 
 export function registerTeamsRoutes(app: Express) {
   
@@ -33,6 +34,15 @@ export function registerTeamsRoutes(app: Express) {
       } catch (channelError) {
         console.error('❌ Erro ao criar canal automático:', channelError);
         // Não falhar a criação da equipe se o canal falhar
+      }
+      
+      // Criar funil automaticamente para a nova equipe (consolidado de utilities)
+      try {
+        await funnelService.createFunnelForTeam(newTeam.id);
+        console.log(`✅ Funil criado automaticamente para nova equipe: ${newTeam.name} (ID: ${newTeam.id})`);
+      } catch (funnelError) {
+        console.warn(`⚠️ Erro ao criar funil automático para equipe ${newTeam.name}:`, funnelError);
+        // Não falhar a criação da equipe se houver erro no funil
       }
       
       res.status(201).json(newTeam);
