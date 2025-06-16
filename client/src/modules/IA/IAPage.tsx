@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 
 // Import dos componentes refatorados
-import { AIStatsCard } from './components/AIStatsCard';
+import { AIStatsCard } from './components/AIStatsCard/AIStatsCard';
 import { MemorySection } from './components/MemorySection';
 import { DocumentsSection } from './components/DocumentsSection';
 import { TestSection } from './components/TestSection';
