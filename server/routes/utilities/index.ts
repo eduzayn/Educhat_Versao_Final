@@ -349,7 +349,7 @@ export function registerUtilitiesRoutes(app: Express) {
         });
 
         if (messageToDelete) {
-          await storage.markMessageAsDeleted(messageToDelete.id);
+          await storage.message.markMessageAsDelivered(messageToDelete.id);
         }
 
         const { broadcast } = await import('../realtime');
@@ -755,7 +755,7 @@ export function registerUtilitiesRoutes(app: Express) {
       if (location !== undefined) updateData.location = location;
       if (bio !== undefined) updateData.bio = bio;
 
-      const updatedUser = await storage.updateSystemUser(req.user.id, updateData);
+      const updatedUser = await storage.userManagement.updateSystemUser(req.user.id, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
@@ -788,7 +788,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
       // Verificar senha atual
       const bcrypt = await import('bcryptjs');
-      const user = await storage.getSystemUser(req.user.id);
+      const user = await storage.userManagement.getSystemUser(req.user.id);
       
       if (!user || !user.password) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
@@ -802,7 +802,7 @@ export function registerUtilitiesRoutes(app: Express) {
       // Atualizar com nova senha
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       
-      await storage.updateSystemUser(req.user.id, { 
+      await storage.userManagement.updateSystemUser(req.user.id, { 
         password: hashedNewPassword 
       });
 

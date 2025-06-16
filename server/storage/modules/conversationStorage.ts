@@ -447,6 +447,16 @@ export class ConversationStorage extends BaseStorage {
     return result?.count || 0;
   }
 
+  async getConversationByContactId(contactId: number): Promise<Conversation | null> {
+    const [conversation] = await this.db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.contactId, contactId))
+      .limit(1);
+    
+    return conversation || null;
+  }
+
   async assignConversation(conversationId: number, userId: number, teamId?: number): Promise<void> {
     await this.db
       .update(conversations)
