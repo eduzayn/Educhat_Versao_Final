@@ -1,5 +1,7 @@
 import type { Memory, MemoryStats } from '../../IAPage/types';
 
+export type { Memory, MemoryStats };
+
 export interface AIMemory {
   id: number;
   conversationId: number;

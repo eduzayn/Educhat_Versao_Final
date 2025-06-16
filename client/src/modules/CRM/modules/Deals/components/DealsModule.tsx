@@ -14,7 +14,7 @@ import { Textarea } from '@/shared/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import type { Deal } from '@shared/schema';
 import { teamConfigs } from '@/lib/crmFunnels';
-import { useToast } from '@/shared/ui/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import {
   Search,
   Filter,

@@ -1,4 +1,4 @@
-import { Card } from '../../../shared/ui/card';
+import { Card } from '@/shared/ui/card';
 import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { LogsSectionProps } from './types';

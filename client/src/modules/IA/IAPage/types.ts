@@ -26,10 +26,16 @@ export interface TrainingContext {
 }
 
 export interface MemoryStats {
+  total: number;
   totalMemories: number;
   activeMemories: number;
   averageRelevance: number;
   topTags: Array<{ tag: string; count: number }>;
+  byType: {
+    user_info: number;
+    context: number;
+    preferences: number;
+  };
 }
 
 export interface Memory {

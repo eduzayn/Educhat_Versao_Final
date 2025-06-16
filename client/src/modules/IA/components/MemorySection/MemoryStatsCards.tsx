@@ -1,6 +1,6 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
 import { Brain, Users, MessageSquare, Target } from 'lucide-react';
-import { MemoryStats } from './types';
+import type { MemoryStats } from './types';
 
 export function MemoryStatsCards({ memoryStats }: { memoryStats: MemoryStats | undefined }) {
   return (
