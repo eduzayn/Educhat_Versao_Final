@@ -147,8 +147,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
           </TooltipContent>
         </Tooltip>
 
-        {/* Chat Settings */}
-        <ChatSettings />
+
 
         {/* Info Panel Toggle */}
         <Tooltip>
