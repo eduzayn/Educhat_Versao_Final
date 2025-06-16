@@ -28,8 +28,28 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       currentPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
       
-      // Convert segment to readable label
-      const label = segment
+      // Mapeamento de segmentos para labels mais amigáveis
+      const segmentLabels: Record<string, string> = {
+        'inbox': 'Caixa de Entrada',
+        'contacts': 'Contatos',
+        'crm': 'CRM',
+        'ia': 'Prof. Ana',
+        'bi': 'Business Intelligence',
+        'settings': 'Configurações',
+        'integrations': 'Integrações',
+        'channels': 'Canais',
+        'users': 'Usuários',
+        'quick-replies': 'Respostas Rápidas',
+        'webhooks': 'Webhooks',
+        'admin': 'Administração',
+        'permissions': 'Permissões',
+        'chat-interno': 'Chat Interno',
+        'handoffs': 'Transferências',
+        'profile': 'Perfil'
+      };
+      
+      // Usar label mapeado ou gerar um label amigável
+      const label = segmentLabels[segment] || segment
         .replace(/-/g, ' ')
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .split(' ')

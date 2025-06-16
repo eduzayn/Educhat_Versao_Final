@@ -291,17 +291,36 @@ export function useWebSocket() {
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('send_message', message);
+    const socket = socketRef.current;
+    if (socket && socket.connected && socket.active) {
+      socket.emit('send_message', message);
+    } else {
+      // Checagem adicional para evitar erro de socket fechado
+      if (!socket) {
+        console.warn('[WebSocket] Não é possível enviar: socket inexistente.');
+      } else if (socket.disconnected || socket.io.readyState === 'closed' || socket.io.readyState === 'closing') {
+        console.warn('[WebSocket] Não é possível enviar: socket está fechado ou fechando.');
+      } else {
+        console.warn('[WebSocket] Não é possível enviar: socket não está conectado.');
+      }
     }
   }, []);
 
   const sendTypingIndicator = useCallback((conversationId: number, isTyping: boolean) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing', {
+    const socket = socketRef.current;
+    if (socket && socket.connected && socket.active) {
+      socket.emit('typing', {
         conversationId,
         isTyping,
       });
+    } else {
+      if (!socket) {
+        console.warn('[WebSocket] Não é possível enviar typing: socket inexistente.');
+      } else if (socket.disconnected || socket.io.readyState === 'closed' || socket.io.readyState === 'closing') {
+        console.warn('[WebSocket] Não é possível enviar typing: socket está fechado ou fechando.');
+      } else {
+        console.warn('[WebSocket] Não é possível enviar typing: socket não está conectado.');
+      }
     }
   }, []);
 

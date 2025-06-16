@@ -16,6 +16,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { apiRequest } from '@/lib/queryClient';
 
 interface MenuItem {
   id: string;
@@ -103,14 +104,6 @@ export function DashboardSidebar({
       managerOrAdminOnly: true
     },
     {
-      id: 'integrations',
-      label: 'Integrações',
-      icon: Zap,
-      description: 'Canais e APIs',
-      route: '/integrations',
-      managerOrAdminOnly: true
-    },
-    {
       id: 'handoffs',
       label: 'Transferências',
       icon: ArrowRightLeft,
@@ -140,6 +133,18 @@ export function DashboardSidebar({
     }
     return true;
   });
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest('POST', '/api/logout');
+      onLogout();
+      setLocation('/login');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, tenta redirecionar para login
+      setLocation('/login');
+    }
+  };
 
   return (
     <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col`}>
@@ -220,7 +225,7 @@ export function DashboardSidebar({
             </div>
             <Button
               variant="ghost"
-              onClick={onLogout}
+              onClick={handleLogout}
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4 mr-3" />
@@ -230,7 +235,7 @@ export function DashboardSidebar({
         ) : (
           <Button
             variant="ghost"
-            onClick={onLogout}
+            onClick={handleLogout}
             className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
           >
             <LogOut className="w-4 h-4" />

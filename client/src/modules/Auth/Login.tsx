@@ -6,6 +6,7 @@ import { Label } from '@/shared/ui/label';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Eye, EyeOff } from 'lucide-react';
+import { useLocation } from 'wouter';
 // Logo removido durante limpeza - usando texto simples
 
 export function Login() {
@@ -13,6 +14,7 @@ export function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const [loginData, setLoginData] = useState({
     email: '',
@@ -39,7 +41,7 @@ export function Login() {
         description: `Bem-vindo de volta, ${user.displayName}!`,
       });
       
-      window.location.reload();
+      setLocation('/');
     } catch (error: any) {
       toast({
         title: "Erro no login",
@@ -87,7 +89,7 @@ export function Login() {
         description: `Bem-vindo ao EduChat, ${user.displayName}!`,
       });
       
-      window.location.reload();
+      setLocation('/');
     } catch (error: any) {
       toast({
         title: "Erro no cadastro",
