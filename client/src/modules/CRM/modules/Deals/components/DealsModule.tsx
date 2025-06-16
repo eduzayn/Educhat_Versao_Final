@@ -29,9 +29,9 @@ import {
   Kanban,
   ArrowLeft
 } from "lucide-react";
-import { DealsHeader } from './components/DealsHeader';
-import { DealsKanban } from './components/DealsKanban';
-import { DealsEditDialog } from './components/DealsEditDialog';
+import { DealsHeader } from './DealsHeader';
+import { DealsKanban } from './DealsKanban';
+import { DealsEditDialog } from './DealsEditDialog';
 
 export function DealsModule() {
   const [search, setSearch] = useState("");

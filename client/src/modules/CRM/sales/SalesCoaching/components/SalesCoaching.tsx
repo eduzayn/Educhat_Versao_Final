@@ -26,12 +26,12 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
-import { SalesCoachingHeader } from './components/SalesCoachingHeader';
-import { SalesCoachingDialog } from './components/SalesCoachingDialog';
-import { SalesCoachingStats } from './components/SalesCoachingStats';
-import { SalesCoachingProfiles } from './components/SalesCoachingProfiles';
-import { SalesCoachingHistory } from './components/SalesCoachingHistory';
-import { SalesCoachingMaterials } from './components/SalesCoachingMaterials';
+import { SalesCoachingHeader } from './SalesCoachingHeader';
+import { SalesCoachingDialog } from './SalesCoachingDialog';
+import { SalesCoachingStats } from './SalesCoachingStats';
+import { SalesCoachingProfiles } from './SalesCoachingProfiles';
+import { SalesCoachingHistory } from './SalesCoachingHistory';
+import { SalesCoachingMaterials } from './SalesCoachingMaterials';
 
 interface CoachingRecord {
   id: number;
