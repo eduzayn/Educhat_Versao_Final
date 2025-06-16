@@ -87,7 +87,7 @@ export function registerUtilitiesRoutes(app: Express) {
             });
           }
           
-          const config = channel.configuration || {};
+          const config = (channel.configuration as any) || {};
           credentials = {
             valid: true,
             instanceId: config.instanceId || channel.instanceId,
@@ -166,13 +166,13 @@ export function registerUtilitiesRoutes(app: Express) {
           const messages = await storage.messages.getMessages(parseInt(conversationId));
           // Encontrar a mensagem mais recente sem zaapId para associar com a resposta da Z-API
           const recentMessage = messages
-            .filter(msg => !msg.isFromContact && !msg.metadata?.zaapId)
-            .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
+            .filter(msg => !msg.isFromContact && !(msg.metadata as any)?.zaapId)
+            .sort((a, b) => new Date(b.sentAt || new Date()).getTime() - new Date(a.sentAt || new Date()).getTime())[0];
           
           if (recentMessage) {
             await storage.messages.updateMessage(recentMessage.id, {
               metadata: {
-                ...recentMessage.metadata,
+                ...(recentMessage.metadata as any || {}),
                 zaapId: data.messageId || data.id,
                 messageId: data.messageId || data.id,
                 phone: cleanPhone,
@@ -198,21 +198,12 @@ export function registerUtilitiesRoutes(app: Express) {
           if (contact) {
             console.log('📋 Criando conversa e mensagem no banco para:', contact.name);
           
-          // Verificar se já existe conversa para este contato usando query direta
-          const db = storage.conversations.db;
-          const { conversations } = await import('../../../shared/schema');
-          const { eq } = await import('drizzle-orm');
-          
-          const [existingConversation] = await db.select()
-            .from(conversations)
-            .where(eq(conversations.contactId, contact.id))
-            .limit(1);
-          
-          let conversation = existingConversation;
+          // Verificar se já existe conversa para este contato
+          let conversation = await storage.conversation.getConversationByContactId(contact.id);
           
           if (!conversation) {
             // Criar nova conversa
-            conversation = await storage.conversations.createConversation({
+            conversation = await storage.conversation.createConversation({
               contactId: contact.id,
               channel: 'whatsapp',
               status: 'active',
