@@ -70,6 +70,15 @@ export function setupAuthRoutes(app: Express) {
     })(req, res, next);
   });
 
+  // Get current user
+  app.get("/api/user", (req: Request, res: Response) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+
+    res.json(req.user);
+  });
+
   // Logout
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     req.logout((err) => {
