@@ -44,20 +44,20 @@ export function CRMPage() {
       <CRMHeader onOpenSettings={() => setShowSettings(true)} />
       <div className="flex-1 flex flex-col">
         <Tabs defaultValue="dashboard" className="h-full">
-          <TabsList className="w-full justify-start border-b rounded-none h-12 px-6">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+          <TabsList className="w-full justify-between border-b rounded-none h-12 px-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 flex-1">
               <BarChart3 className="h-4 w-4" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="deals" className="flex items-center gap-2">
+            <TabsTrigger value="deals" className="flex items-center gap-2 flex-1">
               <Target className="h-4 w-4" /> Negócios
             </TabsTrigger>
-            <TabsTrigger value="sales" className="flex items-center gap-2">
+            <TabsTrigger value="sales" className="flex items-center gap-2 flex-1">
               <TrendingUp className="h-4 w-4" /> Vendas
             </TabsTrigger>
-            <TabsTrigger value="activities" className="flex items-center gap-2">
+            <TabsTrigger value="activities" className="flex items-center gap-2 flex-1">
               <Calendar className="h-4 w-4" /> Atividades
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
+            <TabsTrigger value="reports" className="flex items-center gap-2 flex-1">
               <FileText className="h-4 w-4" /> Relatórios
             </TabsTrigger>
           </TabsList>
