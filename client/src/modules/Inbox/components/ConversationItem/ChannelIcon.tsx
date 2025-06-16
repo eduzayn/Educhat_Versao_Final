@@ -1,23 +1,44 @@
-import { MessageCircle, Phone, Mail, Globe } from 'lucide-react';
+import { memo } from 'react';
+import { MessageCircle, Phone, Mail, Hash } from 'lucide-react';
 
 interface ChannelIconProps {
   channel: string;
   className?: string;
 }
 
-export function ChannelIcon({ channel, className = "w-4 h-4" }: ChannelIconProps) {
-  switch (channel?.toLowerCase()) {
-    case 'whatsapp':
-      return <MessageCircle className={`text-green-600 ${className}`} />;
-    case 'telegram':
-      return <MessageCircle className={`text-blue-500 ${className}`} />;
-    case 'phone':
-      return <Phone className={`text-gray-600 ${className}`} />;
-    case 'email':
-      return <Mail className={`text-red-500 ${className}`} />;
-    case 'web':
-      return <Globe className={`text-purple-500 ${className}`} />;
-    default:
-      return <MessageCircle className={`text-gray-400 ${className}`} />;
-  }
+const CHANNEL_ICONS = {
+  whatsapp: MessageCircle,
+  telefone: Phone,
+  email: Mail,
+  web: Hash,
+  facebook: MessageCircle,
+  instagram: MessageCircle,
+  telegram: MessageCircle,
+  default: MessageCircle,
+} as const;
+
+const CHANNEL_COLORS = {
+  whatsapp: 'text-green-600',
+  telefone: 'text-blue-600',
+  email: 'text-gray-600',
+  web: 'text-purple-600',
+  facebook: 'text-blue-700',
+  instagram: 'text-pink-600',
+  telegram: 'text-sky-600',
+  default: 'text-gray-500',
+} as const;
+
+function ChannelIconComponent({ channel, className = '' }: ChannelIconProps) {
+  const channelKey = (channel?.toLowerCase() || 'default') as keyof typeof CHANNEL_ICONS;
+  const Icon = CHANNEL_ICONS[channelKey] || CHANNEL_ICONS.default;
+  const colorClass = CHANNEL_COLORS[channelKey] || CHANNEL_COLORS.default;
+  
+  return (
+    <Icon 
+      className={`h-4 w-4 ${colorClass} ${className}`}
+      aria-label={`Canal: ${channel}`}
+    />
+  );
 }
+
+export const ChannelIcon = memo(ChannelIconComponent);

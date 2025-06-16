@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Volume2, VolumeX, Play, Settings, Check } from "lucide-react";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { Button } from "@/shared/ui/button";
