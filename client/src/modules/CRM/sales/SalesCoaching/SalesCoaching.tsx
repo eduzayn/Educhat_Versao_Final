@@ -26,6 +26,12 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
+import { SalesCoachingHeader } from './components/SalesCoachingHeader';
+import { SalesCoachingDialog } from './components/SalesCoachingDialog';
+import { SalesCoachingStats } from './components/SalesCoachingStats';
+import { SalesCoachingProfiles } from './components/SalesCoachingProfiles';
+import { SalesCoachingHistory } from './components/SalesCoachingHistory';
+import { SalesCoachingMaterials } from './components/SalesCoachingMaterials';
 
 interface CoachingRecord {
   id: number;
@@ -91,6 +97,16 @@ export function SalesCoaching() {
     }
   });
 
+  // Buscar materiais de treinamento
+  const { data: materials } = useQuery({
+    queryKey: ['/api/sales/coaching/materials'],
+    queryFn: async () => {
+      const response = await fetch('/api/sales/coaching/materials');
+      if (!response.ok) throw new Error('Erro ao carregar materiais');
+      return response.json();
+    }
+  });
+
   // Mutation para salvar registro de coaching
   const coachingMutation = useMutation({
     mutationFn: async (recordData: any) => {
@@ -110,6 +126,20 @@ export function SalesCoaching() {
       queryClient.invalidateQueries({ queryKey: ['/api/sales/coaching'] });
       setIsDialogOpen(false);
       setEditingRecord(null);
+    }
+  });
+
+  // Mutation para deletar registro
+  const deleteMutation = useMutation({
+    mutationFn: async (recordId: number) => {
+      const response = await fetch(`/api/sales/coaching/${recordId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Erro ao deletar registro');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/sales/coaching'] });
     }
   });
 
@@ -161,122 +191,38 @@ export function SalesCoaching() {
 
   return (
     <div className="space-y-6">
-      {/* Header e Filtros */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Coaching de Vendas</h2>
-          <p className="text-muted-foreground">Acompanhe o desenvolvimento da equipe de vendas</p>
-        </div>
+      <SalesCoachingHeader
+        selectedSalesperson={selectedSalesperson}
+        onSalespersonChange={setSelectedSalesperson}
+        salespeople={salespeople || []}
+        canCreateRecords={canCreateRecords}
+        isDialogOpen={isDialogOpen}
+        onDialogOpenChange={setIsDialogOpen}
+        onNewRecordClick={() => setEditingRecord(null)}
+      />
 
-        <div className="flex items-center gap-3">
-          <Select value={selectedSalesperson} onValueChange={setSelectedSalesperson}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todos vendedores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos vendedores</SelectItem>
-              {salespeople?.map((person: any) => (
-                <SelectItem key={person.id} value={person.id.toString()}>
-                  {person.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <SalesCoachingDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        editingRecord={editingRecord}
+        salespeople={salespeople || []}
+      />
 
-          {canCreateRecords && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setEditingRecord(null)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Registro
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                <DialogTitle>
-                  {editingRecord ? 'Editar Registro' : 'Novo Registro de Coaching'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="salespersonId">Vendedor</Label>
-                  <Select name="salespersonId" defaultValue={editingRecord?.salespersonId.toString()}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um vendedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {salespeople?.map((person: any) => (
-                        <SelectItem key={person.id} value={person.id.toString()}>
-                          {person.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+      <SalesCoachingStats stats={defaultData.stats} />
 
-                <div>
-                  <Label htmlFor="type">Tipo</Label>
-                  <Select name="type" defaultValue={editingRecord?.type || 'feedback'}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="feedback">Feedback</SelectItem>
-                      <SelectItem value="goal">Meta Comportamental</SelectItem>
-                      <SelectItem value="training">Treinamento</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+      <SalesCoachingProfiles profiles={profiles || []} />
 
-                <div>
-                  <Label htmlFor="title">Título</Label>
-                  <Input
-                    name="title"
-                    defaultValue={editingRecord?.title}
-                    placeholder="Ex: Melhoria no tempo de resposta"
-                    required
-                  />
-                </div>
+      <SalesCoachingHistory
+        records={defaultData.records}
+        onEdit={setEditingRecord}
+        onDelete={(recordId) => deleteMutation.mutate(recordId)}
+        canEdit={canCreateRecords}
+      />
 
-                <div>
-                  <Label htmlFor="content">Conteúdo</Label>
-                  <Textarea
-                    name="content"
-                    defaultValue={editingRecord?.content}
-                    placeholder="Descrição detalhada do coaching..."
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue={editingRecord?.status || 'pending'}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
-                      <SelectItem value="completed">Concluído</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={coachingMutation.isPending}>
-                    {coachingMutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </form>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </div>
+      <SalesCoachingMaterials
+        materials={materials || []}
+        canUpload={canCreateRecords}
+      />
 
       {/* Estatísticas de Coaching */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -409,78 +355,6 @@ export function SalesCoaching() {
           </CardContent>
         </Card>
       )}
-
-      {/* Histórico de Coaching */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Coaching</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {defaultData.records?.length > 0 ? (
-            <div className="space-y-4">
-              {defaultData.records.map((record: CoachingRecord) => (
-                <div key={record.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        {getTypeIcon(record.type)}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{record.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {record.salespersonName} • {new Date(record.date).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(record.status)}
-                      {canCreateRecords && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingRecord(record);
-                            setIsDialogOpen(true);
-                          }}
-                        >
-                          Editar
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-muted-foreground mb-2">
-                    <strong>Tipo:</strong> {
-                      record.type === 'feedback' ? 'Feedback' :
-                      record.type === 'goal' ? 'Meta Comportamental' : 'Treinamento'
-                    }
-                  </div>
-
-                  <p className="text-sm">{record.content}</p>
-
-                  <div className="text-xs text-muted-foreground mt-2">
-                    Criado por: {record.createdBy}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum registro encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                Comece registrando sessões de coaching para sua equipe
-              </p>
-              {canCreateRecords && (
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Primeiro Registro
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Upload de Materiais */}
       <Card>
