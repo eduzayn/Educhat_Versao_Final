@@ -42,7 +42,6 @@ export function ConversationListHeader({
   // Debounce da busca para melhor performance
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('🔍 ConversationListHeader: Aplicando busca:', debouncedSearchTerm);
       setSearchTerm(debouncedSearchTerm);
     }, 300);
 
@@ -125,11 +124,7 @@ export function ConversationListHeader({
           <Input
             placeholder="Buscar conversas..."
             value={debouncedSearchTerm}
-            onChange={(e) => {
-              const value = e.target.value;
-              console.log('🔍 Campo de busca digitado:', value);
-              handleSearchChange(value);
-            }}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 pr-10 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             aria-label="Campo de busca de conversas"
           />

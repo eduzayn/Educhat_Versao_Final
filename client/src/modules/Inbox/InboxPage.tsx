@@ -73,10 +73,7 @@ export function InboxPage() {
   const [canalOrigemFilter, setCanalOrigemFilter] = useState("all");
   const [nomeCanalFilter, setNomeCanalFilter] = useState("all");
 
-  // Log para debug da busca
-  useEffect(() => {
-    console.log('📋 InboxPage: searchTerm mudou para:', searchTerm);
-  }, [searchTerm]);
+
   const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
 
