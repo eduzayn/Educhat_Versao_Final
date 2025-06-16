@@ -7,7 +7,6 @@ import { DashboardChannels } from './components/DashboardChannels';
 import { DashboardConversations } from './components/DashboardConversations';
 import { Spinner } from '@/shared/ui/spinner';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
-import { api } from '@/shared/services/api';
 
 export function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -17,24 +16,39 @@ export function Dashboard() {
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: async () => {
-      const response = await api.get('/dashboard/metrics');
-      return response.data;
+      const response = await fetch('/api/dashboard/metrics');
+      if (!response.ok) {
+        // Retorna dados padrão se a API não estiver disponível
+        return {
+          totalConversations: 0,
+          activeChannels: 0,
+          pendingMessages: 0,
+          responseTime: 0
+        };
+      }
+      return response.json();
     },
   });
 
   const { data: channels, isLoading: isLoadingChannels } = useQuery({
     queryKey: ['dashboard-channels'],
     queryFn: async () => {
-      const response = await api.get('/dashboard/channels');
-      return response.data;
+      const response = await fetch('/api/dashboard/channels');
+      if (!response.ok) {
+        return [];
+      }
+      return response.json();
     },
   });
 
   const { data: conversations, isLoading: isLoadingConversations } = useQuery({
     queryKey: ['dashboard-conversations'],
     queryFn: async () => {
-      const response = await api.get('/dashboard/conversations');
-      return response.data;
+      const response = await fetch('/api/dashboard/conversations');
+      if (!response.ok) {
+        return [];
+      }
+      return response.json();
     },
   });
 
