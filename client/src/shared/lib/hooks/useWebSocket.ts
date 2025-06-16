@@ -12,12 +12,19 @@ export function useWebSocket() {
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
+    // Verificar se já existe uma conexão ativa
     if (socketRef.current?.connected) return;
 
     // Clear any existing reconnect timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
+    }
+
+    // Desconectar socket anterior se existir e não estiver já fechado
+    if (socketRef.current && !socketRef.current.disconnected) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
     }
 
     // Configurar URL do Socket.IO
@@ -315,10 +322,11 @@ export function useWebSocket() {
         reconnectTimeoutRef.current = null;
       }
       
-      // Close Socket.IO connection
-      if (socketRef.current) {
+      // Close Socket.IO connection apenas se não estiver já desconectado
+      if (socketRef.current && !socketRef.current.disconnected) {
         socketRef.current.disconnect();
       }
+      socketRef.current = null;
     };
   }, [connect]);
 
