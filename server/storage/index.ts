@@ -67,6 +67,10 @@ export class CentralStorage {
     return this.userManagement.updateSystemUser(id, userData);
   }
 
+  async updateUserLastLogin(userId: number) {
+    return this.userManagement.updateUserLastLogin(userId);
+  }
+
 
 
   // ==================== CONTACT OPERATIONS ====================

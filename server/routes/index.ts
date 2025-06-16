@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerChannelRoutes(app);
   registerConversationDetailsRoutes(app);
-  // Registrar rotas de atribuição manual para conversas
+  // Registrar rotas de atribuição manual para conversas (complementares às do inbox)
   app.use('/api/conversations', conversationsRouter);
   registerDealsRoutes(app);
   registerAnalyticsRoutes(app);
