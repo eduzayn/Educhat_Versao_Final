@@ -152,11 +152,12 @@ export function registerMessageRoutes(app: Express) {
     const startTime = Date.now();
     try {
       const messageId = parseInt(req.params.id);
-      console.log(`🎬 Carregando mídia para mensagem ${messageId}`);
+      console.log(`🚀 Carregamento sob demanda solicitado para mensagem ${messageId}`);
       
       const message = await storage.getMessage(messageId);
       
       if (!message) {
+        console.error(`❌ Mensagem ${messageId} não encontrada no storage`);
         return res.status(404).json({ error: 'Mensagem não encontrada' });
       }
 
@@ -174,6 +175,11 @@ export function registerMessageRoutes(app: Express) {
       );
 
       if (!mediaInfo.mediaUrl || !isValidMediaUrl(mediaInfo.mediaUrl)) {
+        console.error(`❌ URL de mídia inválida para mensagem ${messageId}:`, { 
+          mediaUrl: mediaInfo.mediaUrl, 
+          metadata: message.metadata,
+          content: message.content 
+        });
         return res.status(404).json({ error: 'URL da mídia não encontrada ou inválida' });
       }
 
@@ -188,7 +194,7 @@ export function registerMessageRoutes(app: Express) {
       });
 
       const duration = Date.now() - startTime;
-      console.log(`✅ Mídia carregada em ${duration}ms para mensagem ${messageId}`);
+      console.log(`✅ Mídia carregada sob demanda em ${duration}ms para mensagem ${messageId}: ${mediaInfo.mediaUrl}`);
       
       res.json({
         content: mediaInfo.mediaUrl,
@@ -202,7 +208,7 @@ export function registerMessageRoutes(app: Express) {
 
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`❌ Erro ao buscar mídia (${duration}ms):`, error);
+      console.error(`❌ Erro ao buscar mídia sob demanda (${duration}ms):`, error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

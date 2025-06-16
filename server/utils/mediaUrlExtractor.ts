@@ -124,6 +124,9 @@ export function isValidMediaUrl(url: string | null): boolean {
     }
   }
   
+  // Paths relativos são válidos (ex: /uploads/media/...)
+  if (url.startsWith('/')) return true;
+  
   return false;
 }
 

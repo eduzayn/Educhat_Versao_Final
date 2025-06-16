@@ -398,7 +398,7 @@ export class CentralStorage {
   }
 
   async getMessage(id: number) {
-    return this.message.getMessage ? this.message.getMessage(id) : null;
+    return this.message.getMessage(id);
   }
 
   async getMessagesByConversation(conversationId: number) {
