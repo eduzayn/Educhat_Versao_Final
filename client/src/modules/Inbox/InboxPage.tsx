@@ -72,6 +72,11 @@ export function InboxPage() {
   const [channelFilter, setChannelFilter] = useState("all");
   const [canalOrigemFilter, setCanalOrigemFilter] = useState("all");
   const [nomeCanalFilter, setNomeCanalFilter] = useState("all");
+
+  // Log para debug da busca
+  useEffect(() => {
+    console.log('📋 InboxPage: searchTerm mudou para:', searchTerm);
+  }, [searchTerm]);
   const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
 
@@ -92,22 +97,10 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real
   useWebSocket();
 
-  // Estado para debounce da busca
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-
-  // Debounce do termo de busca - aguarda 500ms após parar de digitar
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm.trim());
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   // Hook unificado para conversas com busca integrada
   const conversationsQuery = useInfiniteConversations(100, {
-    searchTerm: debouncedSearchTerm,
-    refetchInterval: debouncedSearchTerm ? false : 10000,
+    searchTerm: searchTerm.trim(),
+    refetchInterval: searchTerm.trim() ? false : 10000,
     staleTime: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,

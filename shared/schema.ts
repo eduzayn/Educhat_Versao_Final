@@ -35,6 +35,11 @@ export const contacts = pgTable("contacts", {
   phone: text("phone"),
   email: text("email"),
   profileImageUrl: text("profile_image_url"),
+  // Campos para cache de avatar
+  avatarCacheUrl: text("avatar_cache_url"), // URL da imagem em cache
+  avatarLastFetch: timestamp("avatar_last_fetch"), // Última tentativa de busca
+  avatarFetchAttempts: integer("avatar_fetch_attempts").default(0), // Contador de tentativas
+  hasValidAvatar: boolean("has_valid_avatar").default(false), // Se tem avatar válido
   location: text("location"),
   age: integer("age"),
   isOnline: boolean("is_online").default(false),

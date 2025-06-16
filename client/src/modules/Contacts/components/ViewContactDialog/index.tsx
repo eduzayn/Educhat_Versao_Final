@@ -5,7 +5,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/shared/ui/dialog";
-import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
+import { ContactAvatar } from "@/shared/ui/ContactAvatar";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -84,12 +84,13 @@ export function ViewContactDialog({
         <div className="space-y-6">
           {/* Avatar e nome */}
           <div className="flex items-center space-x-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={profileImageUrl || ""} />
-              <AvatarFallback className="bg-educhat-primary text-white text-2xl">
-                {name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <ContactAvatar
+              src={profileImageUrl}
+              name={name}
+              contactId={contact.id}
+              size="lg"
+              className="w-20 h-20"
+            />
 
             <div className="flex-1">
               <h3 className="text-2xl font-bold text-gray-900">{name}</h3>
