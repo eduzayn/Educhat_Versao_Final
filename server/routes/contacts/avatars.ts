@@ -3,7 +3,7 @@
  */
 
 import { Router } from 'express';
-import { AvatarCacheService } from '../../services/avatarCacheService';
+import { getContactAvatar, forceRefreshAvatar } from '../../services/avatarCacheService';
 import type { Request, Response } from 'express';
 
 const router = Router();
@@ -19,7 +19,7 @@ router.get('/:id/avatar', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'ID do contato inválido' });
     }
 
-    const result = await AvatarCacheService.getContactAvatar(contactId);
+    const result = await getContactAvatar(contactId);
     
     res.json({
       avatarUrl: result.avatarUrl,
@@ -52,7 +52,7 @@ router.post('/:id/avatar/refresh', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'ID do contato inválido' });
     }
 
-    const result = await AvatarCacheService.forceRefreshAvatar(contactId, phone);
+    const result = await forceRefreshAvatar(contactId, phone);
     
     res.json({
       avatarUrl: result.avatarUrl,
