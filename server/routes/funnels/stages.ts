@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { funnelService } from '../../../services/funnelService';
-import { validateTeamType } from '../middleware';
+import { funnelService } from '../../services/funnelService';
+import { validateTeamType } from './middleware';
 import { requirePermission } from '../../../core/permissions';
 import { AuthenticatedRequest } from '../../../core/permissions';
 

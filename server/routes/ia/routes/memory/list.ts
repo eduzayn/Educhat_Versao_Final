@@ -51,8 +51,8 @@ router.get('/', async (req, res) => {
       .limit(Number(limit))
       .offset(offset);
 
-    const response: IAMemoryListResponse = {
-      memories,
+    const response = {
+      memories: memories,
       pagination: {
         page: Number(page),
         limit: Number(limit),

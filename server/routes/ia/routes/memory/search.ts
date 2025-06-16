@@ -49,7 +49,7 @@ router.get('/search', async (req, res) => {
       .orderBy(desc(aiMemory.confidence), desc(aiMemory.updatedAt))
       .limit(Number(limit));
 
-    const response: IAMemorySearchResponse = { memories };
+    const response = { memories };
     res.json(response);
   } catch (error) {
     console.error('❌ Erro na busca de memórias:', error);
@@ -126,7 +126,7 @@ router.get('/conversation/:conversationId', async (req, res) => {
       )
       .orderBy(desc(aiMemory.updatedAt));
 
-    const response: IAMemoryConversationResponse = { memories };
+    const response = { memories };
     res.json(response);
   } catch (error) {
     console.error('❌ Erro ao buscar memórias da conversa:', error);

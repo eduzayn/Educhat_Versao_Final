@@ -37,7 +37,10 @@ router.post('/', upload.single('file'), async (req, res) => {
             })
             .returning();
           
-          contextsAdded.push(context);
+          contextsAdded.push({
+            ...context,
+            isActive: context.isActive ?? true
+          } as IAContext);
         }
       }
     }
