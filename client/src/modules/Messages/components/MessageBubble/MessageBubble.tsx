@@ -29,6 +29,7 @@ import { AudioMessage } from "../AudioMessage/AudioMessage";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatTime } from "@/shared/lib/utils/formatters";
+import { useOptimizedDeletion } from "@/shared/lib/hooks/useOptimizedDeletion";
 import type { Message, Contact } from "@shared/schema";
 
 interface MessageBubbleProps {
@@ -49,9 +50,8 @@ export function MessageBubble({
   onReply,
 }: MessageBubbleProps) {
   const isFromContact = message.isFromContact;
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
-  const { toast } = useToast();
+  const { isDeleting, deleteMessage, canDelete } = useOptimizedDeletion(message.id, conversationId);
 
   const messageTimestamp = message.deliveredAt || message.sentAt || new Date();
 
@@ -74,47 +74,10 @@ export function MessageBubble({
     return <Check className="w-3 h-3 text-gray-400" />;
   }, [isFromContact, message.readAt, message.deliveredAt]);
 
-  const canDelete = () => {
-    const now = new Date();
-    const messageDate = new Date(message.sentAt || new Date());
-    return now.getTime() - messageDate.getTime() <= 7 * 60 * 1000;
-  };
-
   const handleDeleteMessage = async () => {
-    if (!conversationId) return;
-    setIsDeleting(true);
-    try {
-      if (isFromContact) {
-        await apiRequest("POST", "/api/messages/soft-delete", {
-          messageId: message.id,
-          conversationId,
-        });
-        setIsDeleted(true);
-      } else {
-        const metadata = message.metadata as any;
-        const messageId =
-          metadata?.messageId || metadata?.zaapId || metadata?.id;
-        if (!messageId) throw new Error("ID da mensagem não encontrado");
-        await apiRequest("POST", "/api/zapi/delete-message", {
-          phone: contact.phone,
-          messageId: messageId.toString(),
-          conversationId,
-        });
-        setIsDeleted(true);
-      }
-      queryClient.invalidateQueries({
-        queryKey: ['/api/conversations', conversationId, 'messages'],
-      });
-      toast({ title: "Sucesso", description: "Mensagem deletada com sucesso" });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description:
-          error instanceof Error ? error.message : "Erro ao deletar mensagem",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
+    const success = await deleteMessage(isFromContact, contact.phone, message.metadata);
+    if (success) {
+      setIsDeleted(true);
     }
   };
 
@@ -257,7 +220,7 @@ export function MessageBubble({
               <Reply className="w-3.5 h-3.5 mr-1" /> Responder
             </Button>
           )}
-          {canDelete() && (
+          {canDelete(message.sentAt) && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
