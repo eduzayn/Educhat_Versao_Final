@@ -172,15 +172,18 @@ export function NotificationDropdown() {
         {notifications.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              className="justify-center text-sm text-blue-600 hover:text-blue-700"
-              onClick={() => {
+            <div 
+              className="flex cursor-pointer items-center justify-center px-2 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-gray-100 rounded-sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Navegando para /notifications');
                 setIsOpen(false);
                 setLocation('/notifications');
               }}
             >
               Ver todas as notificações
-            </DropdownMenuItem>
+            </div>
           </>
         )}
       </DropdownMenuContent>
