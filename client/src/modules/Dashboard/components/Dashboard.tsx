@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardSidebar } from './components/DashboardSidebar';
-import { DashboardHeader } from './components/DashboardHeader';
-import { DashboardMetrics } from './components/DashboardMetrics';
-import { DashboardChannels } from './components/DashboardChannels';
-import { DashboardConversations } from './components/DashboardConversations';
+import { DashboardSidebar } from './DashboardSidebar';
+import { DashboardHeader } from './DashboardHeader';
+import { DashboardMetrics } from './DashboardMetrics';
+import { DashboardChannels } from './DashboardChannels';
+import { DashboardConversations } from './DashboardConversations';
 import { Spinner } from '@/shared/ui/spinner';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 

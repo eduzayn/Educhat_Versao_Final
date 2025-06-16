@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
-import { Dashboard } from "@/modules/Dashboard/Dashboard";
+import { Dashboard } from "@/modules/Dashboard/components/Dashboard";
 import { Login } from "@/modules/Auth/Login";
 import { InboxPage } from "@/modules/Inbox/InboxPage";
 import { ContactsPage } from "@/modules/Contacts/components/ViewContactDialog/ContactsPage";
