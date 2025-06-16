@@ -48,8 +48,10 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
 
   const setCachedContent = useCallback((id: number, content: string, type: string) => {
     if (mediaCache.size >= 100) {
-      const oldestKey = mediaCache.keys().next().value;
-      mediaCache.delete(oldestKey);
+      const oldestKey = Array.from(mediaCache.keys())[0];
+      if (oldestKey !== undefined) {
+        mediaCache.delete(oldestKey);
+      }
     }
     
     mediaCache.set(id, {

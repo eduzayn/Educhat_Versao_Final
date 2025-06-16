@@ -34,6 +34,10 @@ export function LazyMediaContent({
     initialContentLength: initialContent?.length
   });
 
+  // Se temos fileUrl nos metadados, usar diretamente sem fazer requisição
+  const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl;
+  const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http'));
+
   const {
     content,
     loading,
@@ -43,7 +47,7 @@ export function LazyMediaContent({
     loadMediaContent,
     retry,
     canRetry
-  } = useOptimizedMedia(messageId, messageType, initialContent);
+  } = useOptimizedMedia(messageId, messageType, hasDirectUrl ? directMediaUrl : initialContent);
 
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });
@@ -124,46 +128,6 @@ export function LazyMediaContent({
           );
         }
         if (content) {
-          let videoUrl = content;
-          
-          // CORREÇÃO: Se o content não é uma URL válida, buscar nos metadados
-          if (videoUrl === 'Vídeo enviado' || videoUrl === 'Vídeo' || (!videoUrl.startsWith('http') && !videoUrl.startsWith('data:') && !videoUrl.startsWith('/'))) {
-            // Tentar usar URL dos metadados
-            videoUrl = metadata?.fileUrl || metadata?.mediaUrl || metadata?.url;
-            console.log(`🔧 Usando URL dos metadados para mensagem ${messageId}:`, { originalContent: content, newUrl: videoUrl });
-          }
-          
-          // Verificar se é um vídeo base64 válido
-          if (videoUrl?.startsWith('data:video/')) {
-            // Vídeo base64 válido, usar diretamente
-          } else if (videoUrl?.startsWith('http')) {
-            // URL externa válida
-            try {
-              // Verificar se a URL é válida
-              new URL(videoUrl);
-            } catch (e) {
-              setError('URL do vídeo inválida.');
-              return null;
-            }
-          } else if (videoUrl?.startsWith('/') || videoUrl?.includes('.mp4') || videoUrl?.includes('.webm') || videoUrl?.includes('.avi') || videoUrl?.includes('.mov')) {
-            // URL relativa ou arquivo de vídeo válido
-            // Manter videoUrl como está
-          } else {
-            // Log detalhado para debugging
-            console.error(`❌ Formato de vídeo não suportado.`, { 
-              messageId, 
-              originalContent: content,
-              finalVideoUrl: videoUrl,
-              contentType: typeof videoUrl,
-              contentLength: videoUrl?.length,
-              startsWithData: videoUrl?.startsWith('data:'),
-              startsWithHttp: videoUrl?.startsWith('http'),
-              fileName,
-              metadata: metadata
-            });
-            setError('Vídeo não encontrado. Verifique se o arquivo ainda existe.');
-            return null;
-          }
           return (
             <div className="relative max-w-sm">
               <video
@@ -174,17 +138,14 @@ export function LazyMediaContent({
                 onError={(e) => {
                   const videoElement = e.target as HTMLVideoElement;
                   const errorCode = videoElement.error?.code;
-                  const errorMessage = videoElement.error?.message;
-                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, errorMessage });
+                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, content });
                   setError(`Erro ao reproduzir vídeo (código: ${errorCode || 'desconhecido'})`);
                 }}
-                onLoadedData={() =>
-                  secureLog.debug("Vídeo carregado", { messageId })
-                }
+                onLoadedData={() => console.log(`✅ Vídeo carregado para mensagem ${messageId}`)}
               >
-                <source src={videoUrl} type="video/mp4" />
-                <source src={videoUrl} type="video/webm" />
-                <source src={videoUrl} type="video/ogg" />
+                <source src={content} type="video/mp4" />
+                <source src={content} type="video/webm" />
+                <source src={content} type="video/ogg" />
                 Seu navegador não suporta vídeo.
               </video>
             </div>

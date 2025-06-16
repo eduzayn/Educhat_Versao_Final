@@ -57,7 +57,8 @@ export function extractMediaUrl(
         break;
 
       case 'audio':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.audio?.audioUrl || 
                   metadata.audio?.url || 
                   metadata.audioUrl;
@@ -78,7 +79,8 @@ export function extractMediaUrl(
         break;
 
       case 'document':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.document?.documentUrl || 
                   metadata.document?.url || 
                   metadata.documentUrl;
