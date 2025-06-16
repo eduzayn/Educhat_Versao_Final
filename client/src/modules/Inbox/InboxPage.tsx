@@ -368,7 +368,6 @@ export function InboxPage() {
             }
           }}
           channels={channels}
-          onRefresh={() => conversationsQuery.refetch()}
           onNewContact={() => setIsModalOpen(true)}
         />
       </div>

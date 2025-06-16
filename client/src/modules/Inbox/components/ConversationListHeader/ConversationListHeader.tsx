@@ -28,7 +28,6 @@ export function ConversationListHeader({
   channels = [],
   showFilters,
   setShowFilters,
-  onRefresh,
   onNewContact
 }: ConversationListHeaderProps) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
