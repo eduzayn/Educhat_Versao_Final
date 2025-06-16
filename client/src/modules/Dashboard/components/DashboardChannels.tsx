@@ -43,7 +43,7 @@ export function DashboardChannels({ channels }: DashboardChannelsProps) {
     }
   };
 
-  const channelStats = channels?.map(channel => ({
+  const channelStats = (Array.isArray(channels) ? channels : [])?.map(channel => ({
     name: channel.name === 'whatsapp-1' ? 'WhatsApp (Alt)' : 
           channel.name.charAt(0).toUpperCase() + channel.name.slice(1),
     icon: getChannelIcon(channel.name),
