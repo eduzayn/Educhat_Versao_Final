@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, RefreshCw } from 'lucide-react';
 import { NotificationDropdown } from './NotificationDropdown';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { Button } from '@/shared/ui/button';
 
 interface SearchResult {
   id: number;
@@ -16,9 +17,11 @@ interface SearchResult {
 export function DashboardHeader() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [, setLocation] = useLocation();
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   // Buscar resultados quando há query
   const { data: searchResults, isLoading } = useQuery({
@@ -33,6 +36,25 @@ export function DashboardHeader() {
     enabled: searchQuery.trim().length >= 2,
     staleTime: 30000, // 30 segundos
   });
+
+  // Função de atualização
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Invalidar cache de queries principais do dashboard
+      await queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard-channels'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard-conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      
+      // Aguardar um pouco para mostrar o feedback visual
+      setTimeout(() => setIsRefreshing(false), 500);
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error);
+      setIsRefreshing(false);
+    }
+  };
 
   // Fechar resultados ao clicar fora
   useEffect(() => {
@@ -144,6 +166,16 @@ export function DashboardHeader() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="p-2 hover:bg-gray-100 rounded-full"
+            aria-label="Atualizar dados"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
           <NotificationDropdown />
         </div>
       </div>
