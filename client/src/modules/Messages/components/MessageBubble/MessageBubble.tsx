@@ -103,7 +103,7 @@ export function MessageBubble({
         setIsDeleted(true);
       }
       queryClient.invalidateQueries({
-        queryKey: [`/api/conversations/${conversationId}/messages`],
+        queryKey: ['/api/conversations', conversationId, 'messages'],
       });
       toast({ title: "Sucesso", description: "Mensagem deletada com sucesso" });
     } catch (error) {
@@ -118,7 +118,7 @@ export function MessageBubble({
     }
   };
 
-  if (isDeleted || message.isDeleted) {
+  if (isDeleted || message.isDeleted || message.isDeletedByUser) {
     return (
       <div
         className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}

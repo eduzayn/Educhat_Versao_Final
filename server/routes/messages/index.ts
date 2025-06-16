@@ -255,7 +255,7 @@ export function registerMessageRoutes(app: Express) {
       }
 
       // Marcar como deletada apenas no sistema (isDeleted = true) com ID do usuário
-      const success = await storage.messages.markMessageAsDeletedByUser(parsedMessageId, true, Number(userId));
+      const success = await storage.markMessageAsDeletedByUser(parsedMessageId, true, Number(userId));
       
       console.log('✅ SOFT DELETE - Mensagem ocultada da interface:', {
         messageId: parsedMessageId,

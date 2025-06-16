@@ -105,14 +105,16 @@ export function useWebSocket() {
           }
           break;
         case 'message_deleted':
+        case 'message_updated':
           if (data.messageId && data.conversationId) {
-            console.log('🗑️ Mensagem deletada:', {
+            console.log('🗑️ Mensagem deletada/atualizada:', {
               messageId: data.messageId,
-              conversationId: data.conversationId
+              conversationId: data.conversationId,
+              type: data.type
             });
             
             queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}/messages`] 
+              queryKey: ['/api/conversations', data.conversationId, 'messages'] 
             });
           }
           break;
