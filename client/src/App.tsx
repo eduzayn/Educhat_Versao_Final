@@ -16,7 +16,7 @@ import FacebookIntegrationPage from "@/modules/Settings/Integrations/FacebookInt
 import SettingsPage from "@/modules/Settings/SettingsPage";
 import ChannelsPage from "@/modules/Settings/Channels";
 import { UsersSettingsPage } from "@/modules/Settings/Users/UsersSettingsPage";
-import { CRMPage } from "@/modules/CRM/CRMPage";
+import { CRMPage } from "@/modules/CRM";
 import { BIPage } from "@/modules/BI/BIPage";
 import InternalChatPage from "@/modules/InternalChat/InternalChatPage";
 import IAPage from "@/modules/IA/IAPage/IAPage";
