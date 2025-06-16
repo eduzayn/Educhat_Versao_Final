@@ -149,8 +149,11 @@ export function registerMessageRoutes(app: Express) {
 
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {
+    const startTime = Date.now();
     try {
       const messageId = parseInt(req.params.id);
+      console.log(`🎬 Carregando mídia para mensagem ${messageId}`);
+      
       const message = await storage.getMessage(messageId);
       
       if (!message) {
@@ -184,17 +187,22 @@ export function registerMessageRoutes(app: Express) {
         'Cache-Control': 'public, max-age=3600'
       });
 
+      const duration = Date.now() - startTime;
+      console.log(`✅ Mídia carregada em ${duration}ms para mensagem ${messageId}`);
+      
       res.json({
         content: mediaInfo.mediaUrl,
         fileName: mediaInfo.fileName,
         mimeType: mediaInfo.mimeType,
         duration: mediaInfo.duration,
         messageType: message.messageType,
-        metadata: message.metadata
+        metadata: message.metadata,
+        loadTime: `${duration}ms`
       });
 
     } catch (error) {
-      console.error('Erro ao buscar mídia:', error);
+      const duration = Date.now() - startTime;
+      console.error(`❌ Erro ao buscar mídia (${duration}ms):`, error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
@@ -203,6 +211,7 @@ export function registerMessageRoutes(app: Express) {
 
   // Soft Delete (Mensagens Recebidas) - POST /api/messages/soft-delete
   app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
+    const startTime = Date.now();
     try {
       const { messageId, conversationId } = req.body;
       const userId = req.user?.id || 35; // Fallback para testes
@@ -246,9 +255,22 @@ export function registerMessageRoutes(app: Express) {
       const now = new Date();
       const timeDifference = now.getTime() - messageTime.getTime();
       const sevenMinutesInMs = 7 * 60 * 1000;
+      
+      console.log(`⏰ Verificando prazo de exclusão:`, {
+        messageId,
+        messageTime: messageTime.toISOString(),
+        now: now.toISOString(),
+        timeDifference: `${Math.round(timeDifference / 1000)}s`,
+        withinLimit: timeDifference <= sevenMinutesInMs
+      });
 
       if (timeDifference > sevenMinutesInMs) {
-        return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
+        console.log(`❌ Tentativa de exclusão fora do prazo para mensagem ${messageId}`);
+        return res.status(400).json({ 
+          error: 'Mensagem não pode ser deletada após 7 minutos do envio',
+          timeDifference: Math.round(timeDifference / 1000 / 60),
+          maxMinutes: 7
+        });
       }
 
       // Marcar como deletada apenas no sistema (isDeleted = true) com ID do usuário
@@ -274,23 +296,27 @@ export function registerMessageRoutes(app: Express) {
       });
       
       if (success) {
+        const duration = Date.now() - startTime;
         res.json({ 
           success: true, 
           message: 'Mensagem removida da sua interface',
           type: 'soft_delete',
-          deletedForEveryone: false
+          deletedForEveryone: false,
+          processingTime: `${duration}ms`
         });
       } else {
         res.status(500).json({ error: 'Erro ao deletar mensagem' });
       }
     } catch (error) {
-      console.error('❌ Erro ao fazer soft delete da mensagem recebida:', error);
+      const duration = Date.now() - startTime;
+      console.error(`❌ Erro ao fazer soft delete da mensagem recebida (${duration}ms):`, error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 
   // Deletar mensagem enviada (localmente + Z-API)
   app.patch('/api/messages/:id/delete-sent', async (req, res) => {
+    const startTime = Date.now();
     try {
       const messageId = parseInt(req.params.id);
       const { zapiMessageId, phone } = req.body;
@@ -314,9 +340,22 @@ export function registerMessageRoutes(app: Express) {
       const now = new Date();
       const timeDifference = now.getTime() - messageTime.getTime();
       const sevenMinutesInMs = 7 * 60 * 1000;
+      
+      console.log(`⏰ Verificando prazo de exclusão:`, {
+        messageId,
+        messageTime: messageTime.toISOString(),
+        now: now.toISOString(),
+        timeDifference: `${Math.round(timeDifference / 1000)}s`,
+        withinLimit: timeDifference <= sevenMinutesInMs
+      });
 
       if (timeDifference > sevenMinutesInMs) {
-        return res.status(400).json({ error: 'Só é possível deletar mensagens em até 7 minutos' });
+        console.log(`❌ Tentativa de exclusão fora do prazo para mensagem ${messageId}`);
+        return res.status(400).json({ 
+          error: 'Mensagem não pode ser deletada após 7 minutos do envio',
+          timeDifference: Math.round(timeDifference / 1000 / 60),
+          maxMinutes: 7
+        });
       }
 
       console.log('🗑️ DELETAR MENSAGEM ENVIADA - Iniciando processo completo:', {
@@ -420,6 +459,7 @@ export function registerMessageRoutes(app: Express) {
         console.log('📱 DELETAR LOCAL - Mensagem deletada apenas localmente (sem zapiMessageId)');
       }
 
+      const duration = Date.now() - startTime;
       res.json({ 
         success: true, 
         message: zapiDeletionSuccess 
@@ -427,11 +467,13 @@ export function registerMessageRoutes(app: Express) {
           : 'Mensagem removida da sua interface',
         localDeletion: true,
         zapiDeletion: zapiDeletionSuccess,
-        deletedForEveryone: zapiDeletionSuccess
+        deletedForEveryone: zapiDeletionSuccess,
+        processingTime: `${duration}ms`
       });
 
     } catch (error) {
-      console.error('❌ Erro ao deletar mensagem enviada:', error);
+      const duration = Date.now() - startTime;
+      console.error(`❌ Erro ao deletar mensagem enviada (${duration}ms):`, error);
       
       // Retornar erro mais específico
       if (error instanceof Error) {
