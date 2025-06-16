@@ -523,38 +523,7 @@ async function handleGetQRCode(req: any, res: any) {
   }
 }
 
-/**
- * Obtém status da conexão Z-API
- */
-async function handleGetStatus(req: any, res: any) {
-  try {
-    const credentials = validateZApiCredentials();
-    if (!credentials.valid) {
-      return res.status(400).json({ error: credentials.error });
-    }
-
-    const { instanceId, token, clientToken } = credentials;
-    const url = buildZApiUrl(instanceId, token, 'status');
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getZApiHeaders(clientToken)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    res.json(data);
-    
-  } catch (error) {
-    console.error('❌ Erro ao obter status:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-    });
-  }
-}
+// ❌ HANDLER DE STATUS REMOVIDO - CONSOLIDADO EM handlers/zapi.ts
 
 /**
  * Registra todas as rotas de webhooks
@@ -575,7 +544,7 @@ export function registerWebhookRoutes(app: Express) {
   app.post('/api/zapi/import-contacts', handleImportContacts);
   app.post('/api/webhooks/zapi/import-contacts', handleImportContacts); // Rota adicional para compatibilidade
   app.get('/api/zapi/qrcode', handleGetQRCode);
-  app.get('/api/zapi/status', handleGetStatus);
+  // ❌ Status handler removido - consolidado em handlers/zapi.ts
   
   // Registrar rotas de mídia Z-API
   registerZApiMediaRoutes(app);
