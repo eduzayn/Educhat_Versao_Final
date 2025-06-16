@@ -102,7 +102,7 @@ router.get('/channels', async (req, res) => {
       ORDER BY conversations DESC
     `);
 
-    const channels = channelStats.rows.map(stat => ({
+    const channels = channelStats.rows.map((stat: any) => ({
       name: stat.channel || 'WhatsApp',
       conversations: Number(stat.conversations),
       uniqueContacts: Number(stat.unique_contacts),
@@ -148,7 +148,7 @@ router.get('/conversations', async (req, res) => {
       LIMIT 10
     `);
 
-    const conversations = recentConversations.rows.map(conv => ({
+    const conversations = recentConversations.rows.map((conv: any) => ({
       id: Number(conv.id),
       contactId: Number(conv.contact_id),
       contactName: conv.contact_name || conv.phone,
