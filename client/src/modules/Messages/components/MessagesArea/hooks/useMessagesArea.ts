@@ -14,16 +14,10 @@ export function useMessagesArea(activeConversation: any) {
     25, // Reduzido de 30 para 25
   );
 
-  // LOG DE DEPURAÇÃO
-  console.log('[DEBUG] messagesData:', messagesData);
-
   const messages = useMemo(
     () => (Array.isArray(messagesData) ? messagesData : []),
     [messagesData],
   );
-
-  // LOG DE DEPURAÇÃO
-  console.log('[DEBUG] messages:', messages);
 
   // Otimização: Scroll mais eficiente com debounce
   const scrollToBottom = useCallback(() => {

@@ -45,10 +45,12 @@ export function registerMessageRoutes(app: Express) {
       const endTime = Date.now();
       console.log(`✅ Mensagens carregadas em ${endTime - startTime}ms (${messages.length} itens)`);
 
-      // Cache headers para otimizar requisições subsequentes
+      // Headers otimizados para evitar ERR_CACHE_WRITE_FAILURE
       res.set({
-        'Cache-Control': 'private, max-age=60', // Cache por 1 minuto
-        'ETag': `"messages-${id}-${offset}-${limit}"`,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
       });
 
       res.json({
