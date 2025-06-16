@@ -117,21 +117,26 @@ export function LazyMediaContent({
           if (videoUrl.startsWith('data:video/')) {
             // Vídeo base64 válido, usar diretamente
           } else if (videoUrl.startsWith('http')) {
-            // URL externa, aplicar encoding
+            // URL externa válida
             try {
-              videoUrl = encodeURI(videoUrl);
+              // Verificar se a URL é válida
+              new URL(videoUrl);
             } catch (e) {
               setError('URL do vídeo inválida.');
               return null;
             }
-          } else {
-            // Conteúdo inválido
-            setError('Formato de vídeo não suportado.');
-            return null;
-          }
-          
-          if (!videoUrl || videoUrl === 'Vídeo' || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
+          } else if (videoUrl.startsWith('/') || videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.avi') || videoUrl.includes('.mov')) {
+            // URL relativa ou arquivo de vídeo válido
+            // Manter videoUrl como está
+          } else if (videoUrl === 'Vídeo' || videoUrl.trim() === '' || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
+            // Conteúdo inválido conhecido
             setError('Vídeo não encontrado ou URL inválida.');
+            return null;
+          } else {
+            // Tentar usar como URL mesmo se não passar na validação inicial
+            // Log do erro para debugging mas não bloquear
+            console.error(`❌ Formato de vídeo não suportado.`, { messageId });
+            setError('Erro ao carregar vídeo. Clique para tentar novamente.');
             return null;
           }
           return (
