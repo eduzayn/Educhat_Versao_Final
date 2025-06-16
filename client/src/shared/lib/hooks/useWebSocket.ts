@@ -12,18 +12,34 @@ export function useWebSocket() {
   const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
-    // Verificar se já existe uma conexão ativa
-    if (socketRef.current?.connected) return;
-
     // Clear any existing reconnect timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
 
-    // Desconectar socket anterior se existir e não estiver já fechado
-    if (socketRef.current && !socketRef.current.disconnected) {
-      socketRef.current.disconnect();
+    // Verificar se já existe uma conexão ativa e válida
+    if (socketRef.current?.connected && !socketRef.current.disconnected) {
+      console.log('🔌 Socket já conectado e válido, reutilizando conexão');
+      return;
+    }
+
+    // Desconectar e limpar socket anterior completamente
+    if (socketRef.current) {
+      console.log('🧹 Limpando socket anterior:', {
+        connected: socketRef.current.connected,
+        disconnected: socketRef.current.disconnected
+      });
+      
+      try {
+        socketRef.current.removeAllListeners();
+        if (!socketRef.current.disconnected) {
+          socketRef.current.disconnect();
+        }
+      } catch (error) {
+        console.warn('⚠️ Erro ao limpar socket anterior:', error);
+      }
+      
       socketRef.current = null;
     }
 
@@ -276,8 +292,14 @@ export function useWebSocket() {
       console.log('🔌 Socket.IO desconectado:', reason);
       setConnectionStatus(false);
       
-      if (reason === 'io server disconnect') {
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
+      // Reconectar automaticamente para desconexões não intencionais
+      if (reason !== 'io client disconnect' && !reconnectTimeoutRef.current) {
+        const delay = Math.min(3000 * Math.pow(2, 0), 30000); // Delay exponencial limitado a 30s
+        console.log(`🔄 Reagendando reconexão em ${delay}ms`);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('🔄 Tentando reconectar...');
+          connect();
+        }, delay);
       }
     });
 
@@ -288,20 +310,48 @@ export function useWebSocket() {
     });
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
 
-  const sendMessage = useCallback((message: WebSocketMessage) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('send_message', message);
-    }
+  const isSocketReady = useCallback(() => {
+    return socketRef.current && 
+           socketRef.current.connected && 
+           !socketRef.current.disconnected;
   }, []);
 
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (!isSocketReady()) {
+      console.warn('⚠️ Socket não está pronto para envio de mensagem:', {
+        exists: !!socketRef.current,
+        connected: socketRef.current?.connected,
+        disconnected: socketRef.current?.disconnected
+      });
+      return;
+    }
+
+    try {
+      socketRef.current!.emit('send_message', message);
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem via socket:', error);
+    }
+  }, [isSocketReady]);
+
   const sendTypingIndicator = useCallback((conversationId: number, isTyping: boolean) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing', {
+    if (!isSocketReady()) {
+      console.warn('⚠️ Socket não está pronto para indicador de digitação:', {
+        exists: !!socketRef.current,
+        connected: socketRef.current?.connected,
+        disconnected: socketRef.current?.disconnected
+      });
+      return;
+    }
+
+    try {
+      socketRef.current!.emit('typing', {
         conversationId,
         isTyping,
       });
+    } catch (error) {
+      console.error('❌ Erro ao enviar indicador de digitação via socket:', error);
     }
-  }, []);
+  }, [isSocketReady]);
 
   useEffect(() => {
     connect();
