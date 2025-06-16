@@ -1,5 +1,5 @@
-import { Button } from '../../../shared/ui/button';
-import { Badge } from '../../../shared/ui/badge';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
 import { Settings, ArrowLeft } from 'lucide-react';
 import React from 'react';
 

@@ -17,7 +17,12 @@ export interface AILog {
   processingTime?: number;
   createdAt?: string;
   response?: string;
-  classification?: string;
+  classification?: {
+    intent: string;
+    sentiment: 'positive' | 'negative' | 'neutral';
+    confidence: number;
+    aiMode: string;
+  };
 }
 
 export interface TrainingContext {

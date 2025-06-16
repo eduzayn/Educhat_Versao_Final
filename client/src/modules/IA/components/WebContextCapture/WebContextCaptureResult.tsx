@@ -1,8 +1,8 @@
-import { Input } from '../../../shared/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../shared/ui/select';
-import { Badge } from '../../../shared/ui/badge';
-import { Textarea } from '../../../shared/ui/textarea';
-import { Button } from '../../../shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Badge } from '@/shared/ui/badge';
+import { Textarea } from '@/shared/ui/textarea';
+import { Button } from '@/shared/ui/button';
 import { Loader2, Plus, CheckCircle } from 'lucide-react';
 import { CONTEXT_CATEGORIES, WebCaptureResult } from './types';
 import React from 'react';

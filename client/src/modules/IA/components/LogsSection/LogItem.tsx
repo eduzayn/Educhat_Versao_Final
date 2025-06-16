@@ -15,11 +15,13 @@ export function LogItem({ log }: LogItemProps) {
           <span className="text-sm font-medium">Interação #{log.id}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            {log.processingTime}ms
-          </Badge>
+          {log.processingTime && (
+            <Badge variant="outline" className="text-xs">
+              {log.processingTime}ms
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground">
-            {new Date(log.createdAt).toLocaleString('pt-BR')}
+            {new Date(log.createdAt || log.timestamp || Date.now()).toLocaleString('pt-BR')}
           </span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
 import { Activity } from 'lucide-react';
 
 export function AvgResponseTimeCard({ value }: { value: number }) {

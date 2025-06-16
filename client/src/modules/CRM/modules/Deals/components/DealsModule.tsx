@@ -253,7 +253,7 @@ export function DealsModule() {
           <DealsHeader
             selectedTeam={selectedTeam}
             setSelectedTeam={setSelectedTeam}
-            funnelsData={funnelsData}
+            funnelsData={funnelsData || []}
             getFunnelIcon={getFunnelIcon}
             search={search}
             setSearch={setSearch}

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Input } from '../../../shared/ui/input';
-import { Label } from '../../../shared/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
 import { Key } from 'lucide-react';
 import React, { ChangeEvent } from 'react';
 

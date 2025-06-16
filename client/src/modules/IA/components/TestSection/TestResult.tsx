@@ -1,5 +1,5 @@
-import { CardContent } from '../../../shared/ui/card';
-import { Badge } from '../../../shared/ui/badge';
+import { CardContent } from '@/shared/ui/card';
+import { Badge } from '@/shared/ui/badge';
 import { MessageCircle, Brain } from 'lucide-react';
 
 interface TestResultProps {

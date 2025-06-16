@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../../../shared/ui/card';
-import { Badge } from '../../../shared/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui/card';
+import { Badge } from '@/shared/ui/badge';
 
 export function TopIntentsCard({ intents }: { intents: Array<{ intent: string; count: number }> }) {
   return (

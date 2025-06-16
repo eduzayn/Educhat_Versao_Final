@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../shared/ui/card';
-import { Button } from '../../../shared/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/card';
+import { Button } from '@/shared/ui/button';
 
 interface TestExamplesProps {
   setTestMessage: (message: string) => void;

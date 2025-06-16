@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Label } from '../../../shared/ui/label';
-import { Switch } from '../../../shared/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Label } from '@/shared/ui/label';
+import { Switch } from '@/shared/ui/switch';
 import { Globe, Mic, Image, Brain } from 'lucide-react';
 import React from 'react';
 
