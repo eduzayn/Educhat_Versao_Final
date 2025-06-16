@@ -25,11 +25,10 @@ export function useMessages(conversationId: number | null, limit = 25) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 30000, // Cache por 30 segundos para evitar requisições desnecessárias
-    gcTime: 1000 * 60 * 10, // Manter cache por 10 minutos
-    retry: 1, // Reduzir tentativas para acelerar feedback de erro
+    staleTime: 0, // Cache sempre fresh para atualizações imediatas
+    gcTime: 1000 * 60 * 5, // Reduzir tempo de cache para 5 minutos
+    retry: 1, 
     retryDelay: 500,
-    // Otimização: Manter dados anteriores durante carregamento
     placeholderData: (previousData) => previousData,
   });
 }
@@ -79,13 +78,45 @@ export function useSendMessage() {
 
       return savedMessage;
     },
-    onSuccess: (newMessage, { conversationId }) => {
-      // Atualizar cache imediatamente com a nova mensagem
+    onMutate: async ({ conversationId, message }) => {
+      // Cancelar qualquer refetch em andamento
+      await queryClient.cancelQueries({ 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
+      });
+
+      // Snapshot do estado anterior
+      const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
+
+      // Atualização otimista - adicionar mensagem temporária
+      const tempMessage = {
+        id: Date.now(), // ID temporário
+        ...message,
+        conversationId,
+        sentAt: new Date(),
+        isFromContact: false,
+        status: 'sending'
+      };
+
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (old: Message[] | undefined) => {
+          const messages = old || [];
+          return [...messages, tempMessage as Message];
+        }
+      );
+
+      return { previousMessages, tempMessage };
+    },
+    onSuccess: (newMessage, { conversationId }, context) => {
+      // Substituir mensagem temporária pela real
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: Message[] | undefined) => {
           if (!oldMessages) return [newMessage];
-          return [...oldMessages, newMessage];
+          // Substituir mensagem temporária pela real
+          return oldMessages.map(msg => 
+            msg.id === context?.tempMessage.id ? newMessage : msg
+          );
         }
       );
       
@@ -93,6 +124,15 @@ export function useSendMessage() {
       queryClient.invalidateQueries({ 
         queryKey: ['/api/conversations'] 
       });
+    },
+    onError: (err, { conversationId }, context) => {
+      // Restaurar estado anterior em caso de erro
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages'],
+          context.previousMessages
+        );
+      }
     },
   });
 }
