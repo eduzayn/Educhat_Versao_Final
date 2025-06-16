@@ -1,8 +1,30 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindTypography from "@tailwindcss/typography";
 
 export default {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  safelist: [
+    'bg-educhat-primary',
+    'text-educhat-primary',
+    'bg-educhat-secondary',
+    'text-educhat-dark',
+    'text-educhat-medium',
+    'bg-educhat-light',
+    'bg-educhat-purple-50',
+    'bg-educhat-purple-100',
+    'border-educhat-primary',
+    'hover:bg-educhat-secondary',
+    'hover:bg-educhat-primary',
+    'hover:text-educhat-primary',
+    'hover:text-educhat-dark',
+    'hover:text-educhat-medium',
+    'text-educhat-secondary',
+    'bg-educhat-accent',
+    'text-educhat-success',
+    'bg-educhat-success',
+  ],
   theme: {
     extend: {
       borderRadius: {
@@ -86,5 +108,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [tailwindcssAnimate, tailwindTypography],
 } satisfies Config;
