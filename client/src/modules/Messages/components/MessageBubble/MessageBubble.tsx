@@ -24,8 +24,8 @@ import {
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
 import { MessageReactions } from "../MessageReactions/MessageReactions";
-import { LazyMediaContent } from "./LazyMediaContent";
-import { AudioMessage } from "./AudioMessage";
+import { LazyMediaContent } from "../LazyMediaContent/LazyMediaContent";
+import { AudioMessage } from "../AudioMessage/AudioMessage";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatTime } from "@/shared/lib/utils/formatters";
