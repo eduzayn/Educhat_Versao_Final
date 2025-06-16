@@ -76,4 +76,16 @@ export interface CommissionsData {
   totalSales: number;
   commissions: Commission[];
   commissionsBySalesperson?: CommissionSummary[];
+}
+
+export interface SalesTarget {
+  id: number;
+  salespersonId: number;
+  salespersonName: string;
+  targetValue: number;
+  currentValue: number;
+  period: string;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'completed' | 'overdue';
 } 
