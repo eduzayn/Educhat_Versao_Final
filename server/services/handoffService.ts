@@ -4,7 +4,7 @@ import { db } from '../db';
 import { handoffs, conversations, systemUsers, teams } from '@shared/schema';
 import { eq, and, desc, asc } from 'drizzle-orm';
 import type { InsertHandoff, Handoff } from '@shared/schema';
-import { DealAutomationService } from './dealAutomationService';
+import { unifiedAssignmentService } from './unifiedAssignmentService';
 
 export interface HandoffRequest {
   conversationId: number;
@@ -125,7 +125,7 @@ export class HandoffService {
     // Executar automação de deals quando conversa é atribuída a uma equipe
     if (handoff.toTeamId) {
       try {
-        const automationService = new DealAutomationService();
+        const automationService = unifiedAssignmentService;
         const conversation = await db.query.conversations.findFirst({
           where: eq(conversations.id, handoff.conversationId)
         });
@@ -392,43 +392,6 @@ export class HandoffService {
     });
 
     return stats;
-  }
-
-  /**
-   * Executar handoff (transferir conversa)
-   */
-  async executeHandoff(handoffId: number): Promise<void> {
-    const handoff = await this.getHandoffById(handoffId);
-    if (!handoff) {
-      throw new Error('Handoff não encontrado');
-    }
-
-    // Atualizar conversa com nova atribuição
-    const updateData: any = {};
-    if (handoff.toUserId) {
-      updateData.assignedUserId = handoff.toUserId;
-    }
-    if (handoff.toTeamId) {
-      updateData.assignedTeamId = handoff.toTeamId;
-    }
-
-    await db
-      .update(conversations)
-      .set({
-        ...updateData,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, handoff.conversationId));
-
-    // Marcar handoff como concluído
-    await db
-      .update(handoffs)
-      .set({
-        status: 'completed',
-        completedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(handoffs.id, handoffId));
   }
 
   /**

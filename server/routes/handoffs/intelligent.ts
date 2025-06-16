@@ -90,9 +90,9 @@ router.post('/execute', validateInternalCall, validateConversationId, async (req
       );
 
       try {
-        const { dealAutomationService } = await import('../../../services/dealAutomationService');
+        const { unifiedAssignmentService } = await import('../../../services/unifiedAssignmentService');
         
-        await dealAutomationService.onConversationAssigned(
+        await unifiedAssignmentService.onConversationAssigned(
           conversationId,
           recommendation.teamId || 0,
           type === 'manual' ? 'manual' : 'automatic'
