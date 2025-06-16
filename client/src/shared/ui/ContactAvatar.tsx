@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { User } from 'lucide-react';
+import { useSafeAvatarUrl, getAvatarInitials } from '@/shared/lib/utils/avatarUtils';
 
 interface ContactAvatarProps {
   src?: string | null;
@@ -11,6 +12,7 @@ interface ContactAvatarProps {
 
 export function ContactAvatar({ src, name, size = 'md', className }: ContactAvatarProps) {
   const [imageError, setImageError] = useState(false);
+  const safeAvatarUrl = useSafeAvatarUrl(src);
   
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -18,29 +20,19 @@ export function ContactAvatar({ src, name, size = 'md', className }: ContactAvat
     lg: 'h-12 w-12'
   };
 
-  const getInitials = (name?: string | null) => {
-    if (!name) return '';
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
-  const shouldShowImage = src && !imageError && !src.includes('gravatar.com') && src.startsWith('http');
+  const shouldShowImage = safeAvatarUrl && !imageError;
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
       {shouldShowImage && (
         <AvatarImage
-          src={src}
+          src={safeAvatarUrl || undefined}
           alt={name || 'Avatar'}
           onError={() => setImageError(true)}
         />
       )}
       <AvatarFallback className="bg-primary/10 text-primary">
-        {getInitials(name) || <User className="h-4 w-4" />}
+        {getAvatarInitials(name) || <User className="h-4 w-4" />}
       </AvatarFallback>
     </Avatar>
   );
