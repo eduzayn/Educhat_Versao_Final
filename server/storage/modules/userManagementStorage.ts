@@ -181,6 +181,18 @@ export class UserManagementStorage extends BaseStorage {
     }));
   }
 
+  /**
+   * Update user's last login timestamp
+   */
+  async updateUserLastLogin(userId: number): Promise<void> {
+    await this.db.update(systemUsers)
+      .set({ 
+        lastLoginAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(systemUsers.id, userId));
+  }
+
   // ==================== SYSTEM SETTINGS ====================
 
   async getSystemSettings(): Promise<SystemSetting[]> {
