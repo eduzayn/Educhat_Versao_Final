@@ -174,7 +174,10 @@ export function NotificationDropdown() {
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="justify-center text-sm text-blue-600 hover:text-blue-700"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                setLocation('/notifications');
+              }}
             >
               Ver todas as notificações
             </DropdownMenuItem>
