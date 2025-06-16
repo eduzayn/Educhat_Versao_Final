@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
+import { useOptimizedMedia } from "@/shared/lib/hooks/useOptimizedMedia";
 
 interface LazyMediaContentProps {
   messageId: number;
@@ -20,52 +21,19 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
-  const [content, setContent] = useState<string | null>(initialContent || null);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!initialContent);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    content,
+    loading,
+    loaded,
+    error,
+    retryCount,
+    loadMediaContent,
+    retry,
+    canRetry
+  } = useOptimizedMedia(messageId, messageType, initialContent);
 
-  const loadMediaContent = async () => {
-    if (loaded || loading) return;
-
-    setLoading(true);
-    secureLog.debug(`Carregando ${messageType}`, { messageId });
-
-    try {
-      const response = await fetch(`/api/messages/${messageId}/media`);
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Validar se o conteúdo existe e é válido
-        if (data.content && typeof data.content === 'string') {
-          setContent(data.content);
-          setLoaded(true);
-
-          if (messageType === "video") {
-            secureLog.debug("Vídeo carregado com sucesso", { messageId });
-          } else if (messageType === "image") {
-            secureLog.image("Carregada com sucesso", messageId);
-          }
-        } else {
-          const errorMsg = `Conteúdo inválido para ${messageType}`;
-          console.error(`❌ ${errorMsg}`, { messageId, data });
-          secureLog.error(errorMsg, { messageId });
-          setError(errorMsg);
-        }
-      } else {
-        const errorMsg = `Erro HTTP ao carregar ${messageType}: ${response.status}`;
-        console.error(`❌ ${errorMsg}`, { messageId });
-        secureLog.error(errorMsg);
-        setError(errorMsg);
-      }
-    } catch (error) {
-      const errorMsg = `Erro de rede ao carregar ${messageType}`;
-      console.error(`❌ ${errorMsg}`, { messageId, error });
-      secureLog.error(errorMsg, error);
-      setError(errorMsg);
-    } finally {
-      setLoading(false);
-    }
+  const setError = (errorMsg: string) => {
+    console.error(`❌ ${errorMsg}`, { messageId });
   };
 
   const renderMediaPreview = () => {
@@ -92,10 +60,10 @@ export function LazyMediaContent({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
+              onClick={error ? retry : loadMediaContent}
+              disabled={loading || (!canRetry && !!error)}
             >
-              {loading ? "Carregando..." : "Ver imagem"}
+              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Ver imagem"}
             </Button>
           </div>
         );
@@ -122,10 +90,10 @@ export function LazyMediaContent({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
+              onClick={error ? retry : loadMediaContent}
+              disabled={loading || (!canRetry && !!error)}
             >
-              {loading ? "Carregando..." : "Reproduzir"}
+              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Reproduzir"}
             </Button>
           </div>
         );
@@ -199,10 +167,10 @@ export function LazyMediaContent({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
+              onClick={error ? retry : loadMediaContent}
+              disabled={loading || (!canRetry && !!error)}
             >
-              {loading ? "Carregando..." : "Reproduzir"}
+              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Reproduzir"}
             </Button>
           </div>
         );
@@ -225,10 +193,10 @@ export function LazyMediaContent({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={loadMediaContent}
-                disabled={loading}
+                onClick={error ? retry : loadMediaContent}
+                disabled={loading || (!canRetry && !!error)}
               >
-                {loading ? "Carregando..." : "Carregar"}
+                {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Carregar"}
               </Button>
             )}
           </div>
