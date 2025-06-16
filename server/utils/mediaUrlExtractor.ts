@@ -47,7 +47,8 @@ export function extractMediaUrl(
     if (typeof metadata === 'object') {
     switch (messageType) {
       case 'image':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.image?.imageUrl || 
                   metadata.image?.url || 
                   metadata.imageUrl;
@@ -66,7 +67,8 @@ export function extractMediaUrl(
         break;
 
       case 'video':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.video?.videoUrl || 
                   metadata.video?.url || 
                   metadata.videoUrl ||
