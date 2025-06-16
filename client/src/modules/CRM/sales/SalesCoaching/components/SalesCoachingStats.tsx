@@ -8,21 +8,7 @@ import {
   MessageSquare,
   FileText
 } from "lucide-react";
-
-interface CoachingStats {
-  totalCoaching: number;
-  completedCoaching: number;
-  pendingCoaching: number;
-  inProgressCoaching: number;
-  averageResponseTime: number;
-  conversionRate: number;
-  salesVolume: number;
-  byType: {
-    feedback: number;
-    goal: number;
-    training: number;
-  };
-}
+import { CoachingStats } from '@/shared/lib/types/sales';
 
 interface SalesCoachingStatsProps {
   stats: CoachingStats;

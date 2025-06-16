@@ -6,18 +6,7 @@ import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
-
-interface CoachingRecord {
-  id: number;
-  salespersonId: number;
-  salespersonName: string;
-  date: string;
-  type: 'feedback' | 'goal' | 'training';
-  title: string;
-  content: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  createdBy: string;
-}
+import { CoachingRecord } from '@/shared/lib/types/sales';
 
 interface SalesCoachingDialogProps {
   isOpen: boolean;

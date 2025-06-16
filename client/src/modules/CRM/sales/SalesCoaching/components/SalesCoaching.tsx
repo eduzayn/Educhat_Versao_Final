@@ -32,7 +32,29 @@ import { SalesCoachingStats } from './components/SalesCoachingStats';
 import { SalesCoachingProfiles } from './components/SalesCoachingProfiles';
 import { SalesCoachingHistory } from './components/SalesCoachingHistory';
 import { SalesCoachingMaterials } from './components/SalesCoachingMaterials';
-import { CoachingRecord, SalespersonProfile, Material, CoachingStats } from '@/shared/lib/types/sales';
+
+interface CoachingRecord {
+  id: number;
+  salespersonId: number;
+  salespersonName: string;
+  date: string;
+  type: 'feedback' | 'goal' | 'training';
+  title: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  createdBy: string;
+}
+
+interface SalespersonProfile {
+  id: number;
+  name: string;
+  responseTime: number;
+  conversionRate: number;
+  salesVolume: number;
+  strengths: string[];
+  improvements: string[];
+  lastCoaching: string;
+}
 
 export function SalesCoaching() {
   const [selectedSalesperson, setSelectedSalesperson] = useState('all');

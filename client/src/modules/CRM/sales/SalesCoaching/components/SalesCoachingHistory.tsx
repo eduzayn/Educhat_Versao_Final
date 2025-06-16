@@ -11,18 +11,7 @@ import {
   Edit,
   Trash
 } from "lucide-react";
-
-interface CoachingRecord {
-  id: number;
-  salespersonId: number;
-  salespersonName: string;
-  date: string;
-  type: 'feedback' | 'goal' | 'training';
-  title: string;
-  content: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  createdBy: string;
-}
+import { CoachingRecord } from '@/shared/lib/types/sales';
 
 interface SalesCoachingHistoryProps {
   records: CoachingRecord[];

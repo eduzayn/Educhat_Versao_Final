@@ -3,17 +3,7 @@ import { Progress } from '@/shared/ui/progress';
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Star, TrendingUp, TrendingDown } from 'lucide-react';
-
-interface SalespersonProfile {
-  id: number;
-  name: string;
-  responseTime: number;
-  conversionRate: number;
-  salesVolume: number;
-  strengths: string[];
-  improvements: string[];
-  lastCoaching: string;
-}
+import { SalespersonProfile } from '@/shared/lib/types/sales';
 
 interface SalesCoachingProfilesProps {
   profiles: SalespersonProfile[];
