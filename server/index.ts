@@ -22,6 +22,7 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
       'https://educhat.com.br', 
       'https://www.educhat.com.br',
+      'https://educhat.galaxiasistemas.com.br',
       ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : []),
       ...(process.env.RAILWAY_STATIC_URL ? [process.env.RAILWAY_STATIC_URL] : []),
       ...(process.env.REPLIT_DOMAINS ? 
