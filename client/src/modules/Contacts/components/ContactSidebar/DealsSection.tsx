@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/shared/ui/card';
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Plus, Edit, Briefcase } from 'lucide-react';
-import { getAllTeams, getStagesForTeam } from '@/lib/crmFunnels';
+import { getAllTeams, getStagesForTeam } from '@/shared/lib/crmFunnels';
 import { useContactDeals } from './hooks/useContactDeals';
 import { useCourseData } from './hooks/useCourseData';
 import { formatCurrency, getStageColor, getStageLabel, getTeamName } from './utils/dealUtils';
