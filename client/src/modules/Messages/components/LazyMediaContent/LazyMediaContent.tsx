@@ -23,6 +23,7 @@ export function LazyMediaContent({
   const [content, setContent] = useState<string | null>(initialContent || null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(!!initialContent);
+  const [error, setError] = useState<string | null>(null);
 
   const loadMediaContent = async () => {
     if (loaded || loading) return;
@@ -46,16 +47,22 @@ export function LazyMediaContent({
             secureLog.image("Carregada com sucesso", messageId);
           }
         } else {
-          console.error(`❌ Conteúdo inválido para ${messageType}`, { messageId, data });
-          secureLog.error(`Conteúdo inválido para ${messageType}`, { messageId });
+          const errorMsg = `Conteúdo inválido para ${messageType}`;
+          console.error(`❌ ${errorMsg}`, { messageId, data });
+          secureLog.error(errorMsg, { messageId });
+          setError(errorMsg);
         }
       } else {
-        console.error(`❌ Erro HTTP ao carregar ${messageType}`, { messageId, status: response.status });
-        secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
+        const errorMsg = `Erro HTTP ao carregar ${messageType}: ${response.status}`;
+        console.error(`❌ ${errorMsg}`, { messageId });
+        secureLog.error(errorMsg);
+        setError(errorMsg);
       }
     } catch (error) {
-      console.error(`❌ Erro de rede ao carregar ${messageType}`, { messageId, error });
-      secureLog.error(`Erro ao carregar ${messageType}`, error);
+      const errorMsg = `Erro de rede ao carregar ${messageType}`;
+      console.error(`❌ ${errorMsg}`, { messageId, error });
+      secureLog.error(errorMsg, error);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -124,6 +131,17 @@ export function LazyMediaContent({
         );
 
       case "video":
+        if (error) {
+          return (
+            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <Play className="w-5 h-5 text-red-500" />
+              <div className="flex-1">
+                <span className="text-sm text-red-700 dark:text-red-300">Vídeo: {fileName}</span>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
+              </div>
+            </div>
+          );
+        }
         if (content) {
           return (
             <div className="relative max-w-sm">
@@ -133,8 +151,17 @@ export function LazyMediaContent({
                 preload="metadata"
                 style={{ maxHeight: "400px", minWidth: "280px" }}
                 onError={(e) => {
-                  console.error("❌ Erro ao carregar vídeo", { messageId, error: e });
-                  secureLog.error("Erro ao carregar vídeo", { messageId });
+                  const videoElement = e.target as HTMLVideoElement;
+                  const errorCode = videoElement.error?.code;
+                  const errorMessage = videoElement.error?.message;
+                  console.error("❌ Erro ao carregar vídeo", { 
+                    messageId, 
+                    errorCode,
+                    errorMessage,
+                    src: videoElement.src
+                  });
+                  secureLog.error("Erro ao carregar vídeo", { messageId, errorCode, errorMessage });
+                  setError(`Erro ao reproduzir vídeo (código: ${errorCode})`);
                 }}
                 onLoadedData={() =>
                   secureLog.debug("Vídeo carregado", { messageId })
