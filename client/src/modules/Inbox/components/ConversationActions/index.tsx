@@ -29,7 +29,7 @@ export function ConversationActionsDropdown({
   } = useConversationActions({
     conversationId,
     contactId,
-    onActionComplete: (actionId, result) => {
+    onActionComplete: (actionId: string, result: any) => {
       setIsOpen(false);
       onActionComplete?.(actionId, result);
     }

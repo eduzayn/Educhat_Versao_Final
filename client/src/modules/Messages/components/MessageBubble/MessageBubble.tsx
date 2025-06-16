@@ -221,9 +221,7 @@ export function MessageBubble({
             ) : (
               <p className="text-sm italic">Mensagem sem conteúdo</p>
             )}
-            {message.metadata && (
-              <pre className="text-xs mt-2 bg-red-100 rounded p-2 overflow-x-auto">{JSON.stringify(message.metadata, null, 2)}</pre>
-            )}
+
           </div>
         );
     }
