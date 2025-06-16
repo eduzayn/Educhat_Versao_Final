@@ -29,7 +29,22 @@ export function extractMediaUrl(
   }
 
   // 2. Buscar nos metadados se não encontrou no content
-  if (!mediaUrl && metadata && typeof metadata === 'object') {
+  if (!mediaUrl && metadata) {
+    // Se metadata é uma string com data: diretamente
+    if (typeof metadata === 'string' && metadata.startsWith('data:')) {
+      mediaUrl = metadata;
+      return { mediaUrl, fileName: `${messageType}.${messageType === 'video' ? 'mp4' : messageType === 'audio' ? 'ogg' : 'jpg'}`, mimeType: null };
+    }
+    
+    // Se metadata tem a propriedade mediaUrl diretamente  
+    if (typeof metadata === 'object' && metadata.mediaUrl && metadata.mediaUrl.startsWith('data:')) {
+      mediaUrl = metadata.mediaUrl;
+      fileName = metadata.fileName || `${messageType}.${messageType === 'video' ? 'mp4' : messageType === 'audio' ? 'ogg' : 'jpg'}`;
+      mimeType = metadata.mimeType || null;
+      return { mediaUrl, fileName, mimeType };
+    }
+    
+    if (typeof metadata === 'object') {
     switch (messageType) {
       case 'image':
         mediaUrl = metadata.mediaUrl || 
@@ -54,7 +69,8 @@ export function extractMediaUrl(
         mediaUrl = metadata.mediaUrl || 
                   metadata.video?.videoUrl || 
                   metadata.video?.url || 
-                  metadata.videoUrl;
+                  metadata.videoUrl ||
+                  (typeof metadata === 'string' && metadata.startsWith('data:video/') ? metadata : null);
         fileName = metadata.fileName || metadata.video?.fileName || 'video.mp4';
         mimeType = metadata.mimeType || metadata.video?.mimeType || 'video/mp4';
         break;
@@ -73,6 +89,7 @@ export function extractMediaUrl(
         mediaUrl = metadata.mediaUrl || metadata.url;
         fileName = metadata.fileName || 'file';
         mimeType = metadata.mimeType || 'application/octet-stream';
+    }
     }
   }
 
