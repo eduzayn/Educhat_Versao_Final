@@ -542,7 +542,7 @@ export function registerWebhookRoutes(app: Express) {
   
   // Rotas Z-API auxiliares
   app.post('/api/zapi/import-contacts', handleImportContacts);
-  app.post('/api/webhooks/zapi/import-contacts', handleImportContacts); // Rota adicional para compatibilidade
+  // ❌ Rota duplicada /api/webhooks/zapi/import-contacts removida - usar apenas /api/zapi/import-contacts
   app.get('/api/zapi/qrcode', handleGetQRCode);
   // ❌ Status handler removido - consolidado em handlers/zapi.ts
   
