@@ -823,58 +823,8 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
-  // Teams API endpoints - REST: CRUD operations
-  app.get('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const teams = await storage.getTeams();
-      res.json(teams);
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-      res.status(500).json({ message: 'Failed to fetch teams' });
-    }
-  });
-
-  app.post('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const team = await storage.createTeam(req.body);
-      
-      // Criar funil automaticamente para a nova equipe
-      try {
-        await funnelService.createFunnelForTeam(team.id);
-        console.log(`✅ Funil criado automaticamente para nova equipe: ${team.name} (ID: ${team.id})`);
-      } catch (funnelError) {
-        console.warn(`⚠️ Erro ao criar funil automático para equipe ${team.name}:`, funnelError);
-        // Não falhar a criação da equipe se houver erro no funil
-      }
-      
-      res.status(201).json(team);
-    } catch (error) {
-      console.error('Error creating team:', error);
-      res.status(500).json({ message: 'Failed to create team' });
-    }
-  });
-
-  app.put('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const team = await storage.updateTeam(id, req.body);
-      res.json(team);
-    } catch (error) {
-      console.error('Error updating team:', error);
-      res.status(500).json({ message: 'Failed to update team' });
-    }
-  });
-
-  app.delete('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteTeam(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting team:', error);
-      res.status(500).json({ message: 'Failed to delete team' });
-    }
-  });
+  // ❌ ROTAS DE EQUIPES REMOVIDAS - CONSOLIDADAS EM /api/teams
+  // Todas as operações de equipes agora são gerenciadas em server/routes/teams/index.ts
 
   // Roles API endpoints - REST: CRUD operations  
   app.get('/api/roles', async (req: Request, res: Response) => {
