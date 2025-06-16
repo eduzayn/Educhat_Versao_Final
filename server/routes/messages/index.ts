@@ -1,10 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../../storage";
 import { insertMessageSchema } from "@shared/schema";
-// Temporary type for authenticated requests
-interface AuthenticatedRequest extends Request {
-  user?: { id: number; email: string; };
-}
+import { AuthenticatedRequest } from "../../core/permissions";
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
 
 export function registerMessageRoutes(app: Express) {
@@ -83,7 +80,7 @@ export function registerMessageRoutes(app: Express) {
       }
 
       // Verificar se a conversa existe
-      const conversation = await storage.getConversation(conversationId);
+      const conversation = await storage.conversation.getConversation(conversationId);
       if (!conversation) {
         return res.status(404).json({ 
           error: 'Conversa não encontrada',
@@ -208,7 +205,7 @@ export function registerMessageRoutes(app: Express) {
   app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
     try {
       const { messageId, conversationId } = req.body;
-      const userId = req.user?.id || req.session?.passport?.user || 35; // Fallback para testes
+      const userId = req.user?.id || 35; // Fallback para testes
 
       if (!messageId || isNaN(parseInt(messageId))) {
         return res.status(400).json({ error: 'messageId é obrigatório e deve ser um número válido' });
@@ -229,8 +226,8 @@ export function registerMessageRoutes(app: Express) {
         userId,
         userIdType: typeof userId,
         req_user: req.user,
-        passport_user: req.session?.passport?.user,
-        session_keys: Object.keys(req.session || {}),
+        passport_user: 'N/A',
+        session_keys: [],
         comportamento: 'Remove apenas da interface (NÃO deleta no WhatsApp)'
       });
 
@@ -245,7 +242,7 @@ export function registerMessageRoutes(app: Express) {
       }
 
       // Verificar se está dentro do prazo de 7 minutos
-      const messageTime = new Date(message.sentAt);
+      const messageTime = new Date(message.sentAt || new Date());
       const now = new Date();
       const timeDifference = now.getTime() - messageTime.getTime();
       const sevenMinutesInMs = 7 * 60 * 1000;
@@ -313,7 +310,7 @@ export function registerMessageRoutes(app: Express) {
       }
 
       // Verificar se está dentro do prazo de 7 minutos
-      const messageTime = new Date(message.sentAt);
+      const messageTime = new Date(message.sentAt || new Date());
       const now = new Date();
       const timeDifference = now.getTime() - messageTime.getTime();
       const sevenMinutesInMs = 7 * 60 * 1000;

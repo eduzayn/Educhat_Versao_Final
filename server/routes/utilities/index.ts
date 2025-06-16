@@ -451,19 +451,13 @@ export function registerUtilitiesRoutes(app: Express) {
       if (conversationId) {
         try {
           // Buscar mensagem pelo messageId da Z-API
-          const db = storage.messages.db;
-          const { messages } = await import('../../../shared/schema');
-          const { eq, and, sql } = await import('drizzle-orm');
-          
-          const [localMessage] = await db.select()
-            .from(messages)
-            .where(
-              and(
-                eq(messages.conversationId, parseInt(conversationId)),
-                sql`${messages.metadata}->>'zaapId' = ${messageId} OR ${messages.metadata}->>'messageId' = ${messageId} OR ${messages.metadata}->>'id' = ${messageId}`
-              )
-            )
-            .limit(1);
+          const messages = await storage.message.getMessagesByConversation(parseInt(conversationId));
+          const localMessage = messages.find(msg => {
+            const metadata = msg.metadata as any;
+            return metadata?.zaapId === messageId || 
+                   metadata?.messageId === messageId || 
+                   metadata?.id === messageId;
+          });
 
           if (localMessage) {
             await storage.markMessageAsDeletedByUser(localMessage.id, true);
@@ -577,7 +571,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
           const response = await fetch(url, {
             method: 'GET',
-            headers: strategy.headers,
+            headers: strategy.headers as any,
             signal: controller.signal,
             redirect: 'follow'
           });
@@ -706,8 +700,7 @@ export function registerUtilitiesRoutes(app: Express) {
           'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
-        },
-        timeout: 30000
+        }
       });
 
       if (!response.ok) {

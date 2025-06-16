@@ -51,7 +51,7 @@ router.post('/:id/assign-team', requireAuth, async (req: AuthenticatedRequest, r
     }
 
     // Verificar se a conversa existe
-    const conversation = await storage.getConversation(conversationId);
+    const conversation = await storage.conversation.getConversation(conversationId);
     if (!conversation) {
       return res.status(404).json({ 
         success: false, 
@@ -61,11 +61,10 @@ router.post('/:id/assign-team', requireAuth, async (req: AuthenticatedRequest, r
 
     // Se teamId é null, remove a atribuição
     if (teamId === null) {
-      await storage.updateConversation(conversationId, {
+      await storage.conversation.updateConversation(conversationId, {
         assignedTeamId: null,
         assignedUserId: null, // Remove também usuário quando remove equipe
-        assignmentMethod: method,
-        updatedAt: new Date()
+        assignmentMethod: method
       });
 
       console.log(`📋 Conversa ${conversationId} removida da equipe (atribuição manual)`);
@@ -98,8 +97,13 @@ router.post('/:id/assign-team', requireAuth, async (req: AuthenticatedRequest, r
       });
     }
 
-    // Atribuir à equipe
-    await storage.assignConversationToTeam(conversationId, teamId);
+    // Atribuir à equipe usando serviço consolidado
+    const { simpleAssignmentService } = await import('../../services/simpleAssignmentService');
+    const result = await simpleAssignmentService.assignConversationToTeam(
+      conversationId, 
+      teamId,
+      { method, assignedBy: req.user?.id }
+    );
     
     console.log(`📋 Conversa ${conversationId} atribuída à equipe ${team.name} (${method})`);
 
@@ -156,7 +160,7 @@ router.post('/:id/assign-user', requireAuth, async (req: AuthenticatedRequest, r
     }
 
     // Verificar se a conversa existe
-    const conversation = await storage.getConversation(conversationId);
+    const conversation = await storage.conversation.getConversation(conversationId);
     if (!conversation) {
       return res.status(404).json({ 
         success: false, 
@@ -166,10 +170,9 @@ router.post('/:id/assign-user', requireAuth, async (req: AuthenticatedRequest, r
 
     // Se userId é null, remove apenas a atribuição do usuário
     if (userId === null) {
-      await storage.updateConversation(conversationId, {
+      await storage.conversation.updateConversation(conversationId, {
         assignedUserId: null,
-        assignmentMethod: method,
-        updatedAt: new Date()
+        assignmentMethod: method
       });
 
       console.log(`👤 Usuário removido da conversa ${conversationId} (atribuição manual)`);
@@ -202,8 +205,13 @@ router.post('/:id/assign-user', requireAuth, async (req: AuthenticatedRequest, r
       });
     }
 
-    // Atribuir ao usuário
-    await storage.assignConversationToUser(conversationId, userId);
+    // Atribuir ao usuário usando serviço consolidado
+    const { simpleAssignmentService } = await import('../../services/simpleAssignmentService');
+    const result = await simpleAssignmentService.assignConversationToUser(
+      conversationId, 
+      userId,
+      { method, assignedBy: req.user?.id }
+    );
     
     console.log(`👤 Conversa ${conversationId} atribuída ao usuário ${user.displayName} (${method})`);
 
