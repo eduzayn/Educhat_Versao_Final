@@ -21,6 +21,19 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
+  // Log detalhado dos dados recebidos para debugging
+  console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
+    messageType,
+    conversationId,
+    isFromContact,
+    hasMetadata: !!metadata,
+    metadata,
+    hasInitialContent: !!initialContent,
+    initialContent,
+    initialContentType: typeof initialContent,
+    initialContentLength: initialContent?.length
+  });
+
   const {
     content,
     loading,
@@ -113,10 +126,17 @@ export function LazyMediaContent({
         if (content) {
           let videoUrl = content;
           
+          // CORREÇÃO: Se o content não é uma URL válida, buscar nos metadados
+          if (videoUrl === 'Vídeo enviado' || videoUrl === 'Vídeo' || (!videoUrl.startsWith('http') && !videoUrl.startsWith('data:') && !videoUrl.startsWith('/'))) {
+            // Tentar usar URL dos metadados
+            videoUrl = metadata?.fileUrl || metadata?.mediaUrl || metadata?.url;
+            console.log(`🔧 Usando URL dos metadados para mensagem ${messageId}:`, { originalContent: content, newUrl: videoUrl });
+          }
+          
           // Verificar se é um vídeo base64 válido
-          if (videoUrl.startsWith('data:video/')) {
+          if (videoUrl?.startsWith('data:video/')) {
             // Vídeo base64 válido, usar diretamente
-          } else if (videoUrl.startsWith('http')) {
+          } else if (videoUrl?.startsWith('http')) {
             // URL externa válida
             try {
               // Verificar se a URL é válida
@@ -125,18 +145,23 @@ export function LazyMediaContent({
               setError('URL do vídeo inválida.');
               return null;
             }
-          } else if (videoUrl.startsWith('/') || videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.avi') || videoUrl.includes('.mov')) {
+          } else if (videoUrl?.startsWith('/') || videoUrl?.includes('.mp4') || videoUrl?.includes('.webm') || videoUrl?.includes('.avi') || videoUrl?.includes('.mov')) {
             // URL relativa ou arquivo de vídeo válido
             // Manter videoUrl como está
-          } else if (videoUrl === 'Vídeo' || videoUrl.trim() === '' || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
-            // Conteúdo inválido conhecido
-            setError('Vídeo não encontrado ou URL inválida.');
-            return null;
           } else {
-            // Tentar usar como URL mesmo se não passar na validação inicial
-            // Log do erro para debugging mas não bloquear
-            console.error(`❌ Formato de vídeo não suportado.`, { messageId });
-            setError('Erro ao carregar vídeo. Clique para tentar novamente.');
+            // Log detalhado para debugging
+            console.error(`❌ Formato de vídeo não suportado.`, { 
+              messageId, 
+              originalContent: content,
+              finalVideoUrl: videoUrl,
+              contentType: typeof videoUrl,
+              contentLength: videoUrl?.length,
+              startsWithData: videoUrl?.startsWith('data:'),
+              startsWithHttp: videoUrl?.startsWith('http'),
+              fileName,
+              metadata: metadata
+            });
+            setError('Vídeo não encontrado. Verifique se o arquivo ainda existe.');
             return null;
           }
           return (

@@ -249,7 +249,7 @@ export class MessageStorage extends BaseStorage {
 
   async updateMessage(id: number, messageData: Partial<InsertMessage>): Promise<Message> {
     const [updated] = await this.db.update(messages)
-      .set({ ...messageData, updatedAt: new Date() })
+      .set(messageData)
       .where(eq(messages.id, id))
       .returning();
     return updated;
