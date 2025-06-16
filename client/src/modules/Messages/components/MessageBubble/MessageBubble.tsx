@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
-import { MessageReactions } from "./MessageReactions";
+import { MessageReactions } from "../MessageReactions/MessageReactions";
 import { LazyMediaContent } from "./LazyMediaContent";
 import { AudioMessage } from "./AudioMessage";
 import { useToast } from "@/shared/lib/hooks/use-toast";
