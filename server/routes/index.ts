@@ -27,6 +27,7 @@ import { registerIntegrationRoutes } from "./integrations/index";
 import { registerSettingsRoutes } from "./settings/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
+import { setupSearchRoutes } from "./search";
 import conversationsRouter from "./conversations/index";
 // Teams are now managed through dedicated team management system
 import iaRouter from "./ia/index";
