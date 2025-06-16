@@ -125,7 +125,11 @@ export function ConversationListHeader({
           <Input
             placeholder="Buscar conversas..."
             value={debouncedSearchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              console.log('🔍 Campo de busca digitado:', value);
+              handleSearchChange(value);
+            }}
             className="pl-10 pr-10 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             aria-label="Campo de busca de conversas"
           />
