@@ -11,6 +11,13 @@ import {
 } from '../../shared/schema';
 import { AIService, MessageClassification } from './aiService';
 import { storage } from "../storage";
+
+interface AssignmentOptions {
+  method?: 'manual' | 'automatic';
+  assignedBy?: number;
+}
+
+
 import { funnelService } from './funnelService';
 import type { InsertHandoff, Handoff } from '@shared/schema';
 
@@ -305,7 +312,7 @@ export class UnifiedAssignmentService {
   async createAutomaticDeal(conversationId: number, teamId: number): Promise<number | null> {
     try {
       // Buscar dados da conversa
-      const conversation = await storage.getConversation(conversationId);
+      const conversation = await storage.conversation.getConversation(conversationId);
       if (!conversation) {
         console.log(`❌ Conversa ${conversationId} não encontrada para automação de deal`);
         return null;
@@ -331,8 +338,7 @@ export class UnifiedAssignmentService {
       const deal = await storage.createAutomaticDeal(
         conversation.contactId,
         canalOrigem,
-        teamType,
-        initialStage
+        teamType
       );
 
       console.log(`✅ Deal criado automaticamente: ID ${deal.id} - ${deal.name}`);
@@ -401,7 +407,7 @@ export class UnifiedAssignmentService {
         maxCapacity,
         utilizationRate,
         priority: team.priority || 1,
-        isActive: team.isActive
+        isActive: team.isActive || false
       });
     }
 
@@ -720,5 +726,4 @@ export class UnifiedAssignmentService {
   }
 }
 
-// Instância singleton
 export const unifiedAssignmentService = new UnifiedAssignmentService();
