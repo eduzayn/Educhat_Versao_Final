@@ -76,10 +76,10 @@ export function Dashboard() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">
             <DashboardMetrics metrics={metrics} isLoading={isLoadingMetrics} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <DashboardChannels channels={channels} />
               <DashboardConversations
                 conversations={conversations}
