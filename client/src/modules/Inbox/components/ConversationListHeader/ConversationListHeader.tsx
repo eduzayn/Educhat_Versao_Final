@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Search, Filter, X, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
+import { Search, Filter, X, ArrowLeft, Plus } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface ConversationListHeaderProps {
@@ -15,7 +15,6 @@ interface ConversationListHeaderProps {
   channels: any[];
   showFilters: boolean;
   setShowFilters: (show: boolean) => void;
-  onRefresh?: () => void;
   onNewContact?: () => void;
 }
 
@@ -29,7 +28,6 @@ export function ConversationListHeader({
   channels = [],
   showFilters,
   setShowFilters,
-  onRefresh,
   onNewContact
 }: ConversationListHeaderProps) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
@@ -81,18 +79,6 @@ export function ConversationListHeader({
         </div>
 
         <div className="flex items-center space-x-2">
-          {onRefresh && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRefresh}
-              className="p-2 hover:bg-gray-100"
-              aria-label="Atualizar conversas"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-          )}
-          
           <Button
             variant="ghost"
             size="sm"

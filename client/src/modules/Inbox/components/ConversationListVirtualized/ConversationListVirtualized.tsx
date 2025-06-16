@@ -19,7 +19,6 @@ interface ConversationListVirtualizedProps {
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
   channels: any[];
-  onRefresh?: () => void;
   onNewContact?: () => void;
 }
 
@@ -37,7 +36,6 @@ export function ConversationListVirtualized({
   onSelectConversation,
   onLoadMore,
   channels = [],
-  onRefresh,
   onNewContact
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
@@ -186,7 +184,6 @@ export function ConversationListVirtualized({
         channels={channels}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
-        onRefresh={onRefresh}
         onNewContact={onNewContact}
       />
 

@@ -27,6 +27,7 @@ import { registerIntegrationRoutes } from "./integrations/index";
 import { registerSettingsRoutes } from "./settings/index";
 import { registerFunnelRoutes } from "./funnels/index";
 import { registerConversationDetailsRoutes } from "./conversations/details";
+import { setupSearchRoutes } from "./search";
 import conversationsRouter from "./conversations/index";
 // Teams are now managed through dedicated team management system
 import iaRouter from "./ia/index";
@@ -69,6 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerIntegrationRoutes(app);
   registerSettingsRoutes(app);
   registerFunnelRoutes(app);
+  // Rotas de busca global
+  setupSearchRoutes(app);
   // Sistema de detecção migrado para IA com equipes unificadas
   app.use('/api/ia', iaRouter);
   app.use('/api/ia', iaMemoryRouter);
