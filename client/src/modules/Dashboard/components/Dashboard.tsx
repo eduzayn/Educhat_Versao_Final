@@ -20,10 +20,10 @@ export function Dashboard() {
       if (!response.ok) {
         // Retorna dados padrão se a API não estiver disponível
         return {
-          totalConversations: 0,
-          activeChannels: 0,
-          pendingMessages: 0,
-          responseTime: 0
+          activeConversations: 0,
+          newContacts: { week: 0, today: 0 },
+          responseRate: 0,
+          averageResponseTime: 0
         };
       }
       return response.json();

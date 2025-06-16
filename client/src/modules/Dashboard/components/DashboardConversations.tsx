@@ -5,15 +5,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Conversation {
-  id: string;
-  contact: {
-    name: string;
-    avatar?: string;
-  };
+  id: number;
+  contactId: number;
+  contactName: string;
+  phone: string;
   channel: string;
   lastMessage: string;
-  lastMessageTime: string;
-  unread: boolean;
+  lastActivity: string;
+  unreadCount: number;
 }
 
 interface DashboardConversationsProps {
@@ -49,39 +48,38 @@ export function DashboardConversations({ conversations, onViewAll }: DashboardCo
               <div
                 key={conversation.id}
                 className={`flex items-start space-x-3 p-3 rounded-lg ${
-                  conversation.unread ? 'bg-blue-50' : 'bg-gray-50'
+                  conversation.unreadCount > 0 ? 'bg-blue-50' : 'bg-gray-50'
                 }`}
               >
                 <div className="flex-shrink-0">
-                  {conversation.contact.avatar ? (
-                    <img
-                      src={conversation.contact.avatar}
-                      alt={conversation.contact.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-educhat-primary flex items-center justify-center text-white">
-                      {conversation.contact.name.charAt(0)}
-                    </div>
-                  )}
+                  <div className="w-10 h-10 rounded-full bg-educhat-primary flex items-center justify-center text-white">
+                    {conversation.contactName.charAt(0).toUpperCase()}
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-educhat-dark truncate">
-                      {conversation.contact.name}
+                      {conversation.contactName}
                     </p>
                     <span className="text-sm text-educhat-medium">
-                      {formatDistanceToNow(new Date(conversation.lastMessageTime), {
+                      {conversation.lastActivity ? formatDistanceToNow(new Date(conversation.lastActivity), {
                         addSuffix: true,
                         locale: ptBR,
-                      })}
+                      }) : 'Agora'}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <ChannelIcon className="w-4 h-4 text-educhat-medium" />
-                    <p className="text-sm text-educhat-medium truncate">
-                      {conversation.lastMessage}
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 flex-1">
+                      <ChannelIcon className="w-4 h-4 text-educhat-medium" />
+                      <p className="text-sm text-educhat-medium truncate">
+                        {conversation.lastMessage}
+                      </p>
+                    </div>
+                    {conversation.unreadCount > 0 && (
+                      <span className="ml-2 bg-blue-500 text-white text-xs rounded-full px-2 py-1">
+                        {conversation.unreadCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
