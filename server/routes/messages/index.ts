@@ -3,9 +3,17 @@ import { storage } from "../../storage";
 import { insertMessageSchema } from "@shared/schema";
 import { AuthenticatedRequest } from "../../core/permissions";
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
+import listRouter from './routes/list';
+import createRouter from './routes/create';
+import mediaRouter from './routes/media';
+import deleteRouter from './routes/delete';
 
 export function registerMessageRoutes(app: Express) {
-  
+  app.use(listRouter);
+  app.use(createRouter);
+  app.use(mediaRouter);
+  app.use(deleteRouter);
+
   // Messages endpoints with infinite scroll support
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
@@ -143,10 +151,6 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
-
-
-
-
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {
     const startTime = Date.now();
@@ -212,8 +216,6 @@ export function registerMessageRoutes(app: Express) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
-
-
 
   // Soft Delete (Mensagens Recebidas) - POST /api/messages/soft-delete
   app.post('/api/messages/soft-delete', async (req: AuthenticatedRequest, res) => {
