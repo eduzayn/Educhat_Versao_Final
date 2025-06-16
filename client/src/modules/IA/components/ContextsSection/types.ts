@@ -1,0 +1,27 @@
+export interface TrainingContext {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ContextsSectionProps {
+  contexts: TrainingContext[] | undefined;
+  contextsLoading: boolean;
+}
+
+export interface NewContext {
+  title: string;
+  content: string;
+  category: string;
+}
+
+export interface NewQA {
+  question: string;
+  answer: string;
+  category: string;
+}
+
+export type ContextMode = 'content' | 'qa' | 'web'; 
