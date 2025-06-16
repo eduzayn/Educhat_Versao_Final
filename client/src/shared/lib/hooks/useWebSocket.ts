@@ -77,31 +77,20 @@ export function useWebSocket() {
         console.log('📨 Nova mensagem via broadcast:', data);
         addMessage(data.conversationId, data.message);
 
+        // Atualizar cache imediatamente sem refetch para melhor performance
+        queryClient.setQueryData(
+          ['/api/conversations', data.conversationId, 'messages'],
+          (oldMessages: any[] | undefined) => {
+            if (!oldMessages) return [data.message];
+            // Verificar se mensagem já existe para evitar duplicatas
+            const exists = oldMessages.find(msg => msg.id === data.message.id);
+            if (exists) return oldMessages;
+            return [...oldMessages, data.message];
+          }
+        );
         
-        // Invalidação imediata para atualização em tempo real - usar array consistente
+        // Invalidar apenas lista de conversas para atualizar contadores
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/conversations', data.conversationId, 'messages'] 
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-        
-        // Force refetch prioritário
-        Promise.all([
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations'], 
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations', data.conversationId, 'messages'],
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations/unread-count'],
-            type: 'active'
-          })
-        ]).catch(error => {
-          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
-        });
         
         return;
       }

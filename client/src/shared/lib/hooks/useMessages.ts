@@ -79,12 +79,17 @@ export function useSendMessage() {
 
       return savedMessage;
     },
-    onSuccess: (_, { conversationId }) => {
-      // Forçar refetch imediato das mensagens - usar array para consistência
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/conversations', conversationId, 'messages'] 
-      });
-      // Invalidar cache da lista de conversas
+    onSuccess: (newMessage, { conversationId }) => {
+      // Atualizar cache imediatamente com a nova mensagem
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (oldMessages: Message[] | undefined) => {
+          if (!oldMessages) return [newMessage];
+          return [...oldMessages, newMessage];
+        }
+      );
+      
+      // Invalidar cache da lista de conversas para atualizar contadores
       queryClient.invalidateQueries({ 
         queryKey: ['/api/conversations'] 
       });
