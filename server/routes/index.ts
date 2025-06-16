@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuthWithRoutes } from "./auth/auth";
+import { setupAuthWithRoutes } from "./auth";
 
 // Import modular routes
 // registerAuthRoutes removed - now unified with setupAuthWithRoutes
@@ -15,12 +15,12 @@ import { registerChannelRoutes } from "./channels/index";
 import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
 import { registerDealsRoutes } from "./deals/index";
-import { registerAnalyticsRoutes } from "./analytics/index";
+import { registerAnalyticsRoutes } from "./analytics";
 import { registerTeamsRoutes } from "./teams/index";
 import { registerUserTeamsRoutes } from "./user-teams/index";
 import { registerQuickRepliesRoutes } from "./quick-replies/index";
 import { registerUtilitiesRoutes } from "./utilities/index";
-import { registerBIRoutes } from "./bi/index";
+import { registerBIRoutes } from "./bi";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
