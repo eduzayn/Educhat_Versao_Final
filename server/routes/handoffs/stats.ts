@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { unifiedAssignmentService } from '../../../services/unifiedAssignmentService';
-import { IntelligentHandoffService } from '../../../services/intelligentHandoffService';
+import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
+import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
 
 const router = Router();
 const handoffService = new IntelligentHandoffService();

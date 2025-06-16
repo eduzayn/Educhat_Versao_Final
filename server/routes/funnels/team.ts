@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { funnelService } from '../../../services/funnelService';
-import { validateTeamType, validateTeamId } from '../middleware';
+import { funnelService } from '../../services/funnelService';
+import { validateTeamType, validateTeamId } from './middleware';
 
 const router = Router();
 

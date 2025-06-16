@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { funnelService } from '../../services/funnelService';
 import { validateTeamType } from './middleware';
-import { requirePermission } from '../../../core/permissions';
-import { AuthenticatedRequest } from '../../../core/permissions';
+import { requirePermission } from '../../core/permissions';
+import { AuthenticatedRequest } from '../../core/permissions';
 
 const router = Router();
 

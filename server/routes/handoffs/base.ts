@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { unifiedAssignmentService } from '../../../services/unifiedAssignmentService';
-import { IntelligentHandoffService } from '../../../services/intelligentHandoffService';
+import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
+import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
 import { handoffs as handoffsTable } from '@shared/schema';
-import { db } from '../../../db';
+import { db } from '../../db';
 import { desc } from 'drizzle-orm';
-import { createHandoffSchema } from '../config';
-import { validateHandoffId } from '../middleware';
+import { createHandoffSchema } from './config';
+import { validateHandoffId } from './middleware';
 
 const router = Router();
 const handoffService = new IntelligentHandoffService();

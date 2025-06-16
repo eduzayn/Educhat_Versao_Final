@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { IntelligentHandoffService } from '../../../services/intelligentHandoffService';
-import { AIService } from '../../../services/aiService';
-import { storage } from '../../../storage';
-import { validateInternalCall, validateConversationId } from '../middleware';
+import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
+import { AIService } from '../../services/aiService';
+import { storage } from '../../storage';
+import { validateInternalCall, validateConversationId } from './middleware';
 
 const router = Router();
 const intelligentHandoffService = new IntelligentHandoffService();
