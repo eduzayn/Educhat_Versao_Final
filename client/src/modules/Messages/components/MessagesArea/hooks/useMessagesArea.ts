@@ -8,9 +8,12 @@ export function useMessagesArea(activeConversation: any) {
   const [hasAutoScrolled, setHasAutoScrolled] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Garantir que sempre temos um ID válido para o hook useMessages
+  const conversationId = activeConversation?.id || null;
+  
   // Reduzir limite para melhorar performance inicial
   const { data: messagesData = [], isLoading } = useMessages(
-    activeConversation?.id || null,
+    conversationId,
     25, // Reduzido de 30 para 25
   );
 

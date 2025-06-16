@@ -16,13 +16,15 @@ export function MessagesArea({
   activeConversation,
   getChannelInfo,
 }: MessagesAreaProps) {
-  // SEMPRE chamar todos os hooks primeiro, independente de condições
+  // Garantir que o hook sempre seja chamado com um valor válido
+  const conversationToUse = activeConversation || { id: null };
+  
   const {
     messages,
     isLoading,
     messagesEndRef,
     handleReply
-  } = useMessagesArea(activeConversation);
+  } = useMessagesArea(conversationToUse);
 
   // Renderização condicional APÓS todos os hooks
   if (!activeConversation) {
