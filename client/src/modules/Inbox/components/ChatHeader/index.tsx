@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { ContactAvatar } from "@/shared/ui/ContactAvatar";
 import { Clock, Phone, Video } from "lucide-react";
 import { ConversationActionsDropdown } from "@/modules/Inbox/components/ConversationActions";
 import { ConversationAssignment } from "@/modules/Inbox/components/ConversationAssignment";
@@ -55,12 +55,13 @@ export function ChatHeader({
 
         {/* Informações do contato */}
         <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9">
-            <AvatarImage src={contact?.profileImageUrl || ""} />
-            <AvatarFallback className="text-sm">
-              {contact?.name?.charAt(0)?.toUpperCase() || "C"}
-            </AvatarFallback>
-          </Avatar>
+          <ContactAvatar
+            src={contact?.profileImageUrl}
+            name={contact?.name}
+            contactId={contactId}
+            size="sm"
+            className="w-9 h-9"
+          />
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
