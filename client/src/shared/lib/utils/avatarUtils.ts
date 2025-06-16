@@ -17,9 +17,10 @@ export function isGravatarUrl(url: string): boolean {
 export function sanitizeAvatarUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   
-  // Bloquear URLs de Gravatar para evitar 404s
+  // Se for URL do Gravatar, adiciona parâmetro d=identicon para garantir fallback
   if (isGravatarUrl(url)) {
-    return null;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}d=identicon`;
   }
   
   // Verificar se é uma URL válida

@@ -39,7 +39,10 @@ export function ContactAvatar({ src, name, contactId, size = 'md', className }: 
     lg: 'h-12 w-12'
   };
 
-  const shouldShowImage = safeAvatarUrl && !imageError;
+  // Resetar estado de erro quando a URL mudar
+  useEffect(() => {
+    setImageError(false);
+  }, [safeAvatarUrl]);
 
   // Log para debug (apenas em desenvolvimento)
   useEffect(() => {
@@ -54,11 +57,14 @@ export function ContactAvatar({ src, name, contactId, size = 'md', className }: 
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
-      {shouldShowImage && (
+      {safeAvatarUrl && !imageError && (
         <AvatarImage
-          src={safeAvatarUrl || undefined}
+          src={safeAvatarUrl}
           alt={name || 'Avatar'}
-          onError={() => setImageError(true)}
+          onError={() => {
+            console.warn(`Falha ao carregar avatar para ${name || 'contato'}`);
+            setImageError(true);
+          }}
         />
       )}
       <AvatarFallback className="bg-primary/10 text-primary">
