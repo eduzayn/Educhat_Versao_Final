@@ -1,11 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../shared/ui/tabs';
-import { AIStatsCard } from './AIStatsCard/AIStatsCard';
+import { AIStatsCard } from './AIStatsCard';
 import { MemorySection } from './MemorySection';
 import { DocumentsSection } from './DocumentsSection';
 import { TestSection } from './TestSection';
 import { ContextsSection } from './ContextsSection';
 import { LogsSection } from './LogsSection';
-import { ConfigPage } from '../ConfigPage';
+import { ConfigPage } from '../ConfigPage/ConfigPage';
 import { useState } from 'react';
 import { useAIStats, useAILogs, useTrainingContexts, useMemoryStats, useMemories, useRecentDocuments, useDocumentStats } from '../queries';
 
