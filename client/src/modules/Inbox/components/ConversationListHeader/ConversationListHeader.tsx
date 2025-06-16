@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
@@ -34,14 +34,23 @@ export function ConversationListHeader({
 }: ConversationListHeaderProps) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
+  // Sincronizar com prop externa
+  useEffect(() => {
+    setDebouncedSearchTerm(searchTerm);
+  }, [searchTerm]);
+
   // Debounce da busca para melhor performance
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchTerm(debouncedSearchTerm);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [debouncedSearchTerm, setSearchTerm]);
+
   const handleSearchChange = useCallback((value: string) => {
     setDebouncedSearchTerm(value);
-    const timeoutId = setTimeout(() => {
-      setSearchTerm(value);
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [setSearchTerm]);
+  }, []);
 
   const clearFilters = () => {
     setSearchTerm('');
