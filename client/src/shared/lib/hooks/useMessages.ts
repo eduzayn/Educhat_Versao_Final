@@ -47,7 +47,7 @@ export function useSendMessage() {
       if (message.isInternalNote) {
         console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
         const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-        return response.json();
+        return await response.json();
       }
 
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
@@ -69,7 +69,8 @@ export function useSendMessage() {
             message: message.content,
             conversationId: conversationId
           });
-          console.log('✅ Mensagem enviada via Z-API:', zapiResponse);
+          const zapiResult = await zapiResponse.json();
+          console.log('✅ Mensagem enviada via Z-API:', zapiResult);
         } catch (error) {
           console.error('❌ Erro ao enviar via Z-API:', error);
           // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar

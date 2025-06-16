@@ -167,6 +167,7 @@ export function LazyMediaContent({
                   const videoElement = e.target as HTMLVideoElement;
                   const errorCode = videoElement.error?.code;
                   const errorMessage = videoElement.error?.message;
+                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, errorMessage });
                   setError(`Erro ao reproduzir vídeo (código: ${errorCode || 'desconhecido'})`);
                 }}
                 onLoadedData={() =>
