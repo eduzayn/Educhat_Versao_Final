@@ -134,10 +134,19 @@ export function ContactsPage() {
       
       setDeletingContact(null);
       refetch();
-    } catch (error) {
+    } catch (error: any) {
+      // Extrair mensagem específica do erro retornado pelo backend
+      let errorMessage = "Erro ao excluir contato. Tente novamente.";
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Erro",
-        description: "Erro ao excluir contato. Tente novamente.",
+        title: "Não foi possível excluir o contato",
+        description: errorMessage,
         variant: "destructive"
       });
     }
