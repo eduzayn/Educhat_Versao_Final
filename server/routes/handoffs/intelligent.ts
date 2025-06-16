@@ -90,7 +90,7 @@ router.post('/execute', validateInternalCall, validateConversationId, async (req
       );
 
       try {
-        const { dealAutomationService } = await import('../../../services/dealAutomationService');
+        const { dealAutomationService } = await import('../../services/dealAutomationService');
         
         await dealAutomationService.onConversationAssigned(
           conversationId,
