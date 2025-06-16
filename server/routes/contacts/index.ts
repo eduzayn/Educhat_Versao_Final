@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { storage } from "../../storage";
 import { db } from "../../db";
 import { contacts } from "../../../shared/schema";
-import { ilike, or, desc, count, eq } from "drizzle-orm";
+import { ilike, or, desc, count, eq, inArray } from "drizzle-orm";
 
 export function registerContactRoutes(app: Express) {
   // GET /api/contacts - Buscar contatos com paginação e filtros
@@ -115,10 +115,21 @@ export function registerContactRoutes(app: Express) {
   app.delete('/api/contacts/:id', async (req: Request, res: Response) => {
     try {
       const contactId = parseInt(req.params.id);
+      
+      if (isNaN(contactId)) {
+        return res.status(400).json({ error: 'ID do contato inválido' });
+      }
+      
       await storage.deleteContact(contactId);
-      res.json({ success: true });
+      res.json({ success: true, message: 'Contato excluído com sucesso' });
     } catch (error) {
       console.error('Erro ao deletar contato:', error);
+      
+      // Retornar mensagem de erro específica se disponível
+      if (error instanceof Error) {
+        return res.status(400).json({ error: error.message });
+      }
+      
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
@@ -164,13 +175,20 @@ export function registerContactRoutes(app: Express) {
       const { contactIds } = req.body;
       
       // Buscar contatos para exportar
-      const contactsToExport = await db
-        .select()
-        .from(contacts)
-        .where(contactIds && contactIds.length > 0 ? 
-          contacts.id.in ? contacts.id.in(contactIds) : eq(contacts.id, contactIds[0]) :
-          undefined
-        );
+      let contactsToExport;
+      
+      if (contactIds && contactIds.length > 0) {
+        // Se IDs específicos foram fornecidos, buscar apenas esses contatos
+        contactsToExport = await db
+          .select()
+          .from(contacts)
+          .where(inArray(contacts.id, contactIds));
+      } else {
+        // Se nenhum ID específico, exportar todos
+        contactsToExport = await db
+          .select()
+          .from(contacts);
+      }
 
       // Gerar CSV
       const csvHeader = 'Nome,Telefone,Email,Canal de Origem,Data de Criação\n';
