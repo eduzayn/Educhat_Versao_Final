@@ -9,8 +9,8 @@ import { Filter, Search, Kanban, List, Plus } from "lucide-react";
 import type { Deal } from '@shared/schema';
 
 interface DealsHeaderProps {
-  selectedTeam: string;
-  setSelectedTeam: (team: string) => void;
+  selectedFunnelId: string;
+  setSelectedFunnelId: (funnelId: string) => void;
   funnelsData: any[];
   getFunnelIcon: (team: string) => React.ReactNode;
   search: string;
@@ -27,8 +27,8 @@ interface DealsHeaderProps {
 }
 
 export const DealsHeader: React.FC<DealsHeaderProps> = ({
-  selectedTeam,
-  setSelectedTeam,
+  selectedFunnelId,
+  setSelectedFunnelId,
   funnelsData,
   getFunnelIcon,
   search,
@@ -44,13 +44,13 @@ export const DealsHeader: React.FC<DealsHeaderProps> = ({
   createDealMutation
 }) => (
   <div className="flex items-center gap-4 flex-wrap">
-    <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+    <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
       <SelectTrigger className="w-64">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {funnelsData?.map((funnel: any) => (
-          <SelectItem key={funnel.id} value={funnel.teamType}>
+          <SelectItem key={funnel.id} value={funnel.id}>
             <div className="flex items-center gap-2">
               <span className="text-base">{getFunnelIcon(funnel.teamType)}</span>
               <span>{funnel.name}</span>

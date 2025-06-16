@@ -36,7 +36,7 @@ import { DealsEditDialog } from './DealsEditDialog';
 export function DealsModule() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("kanban");
-  const [selectedTeam, setSelectedTeam] = useState("comercial");
+  const [selectedFunnelId, setSelectedFunnelId] = useState<string>("");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -71,7 +71,7 @@ export function DealsModule() {
   };
 
   // Configuração atual do team
-  const currentTeam = teamConfigs[selectedTeam];
+  const currentTeam = teamConfigs[selectedFunnelId];
 
   // Query para buscar funis
   const { data: funnelsData = [] } = useQuery({
@@ -81,11 +81,18 @@ export function DealsModule() {
   
   const safeFunnelsData = Array.isArray(funnelsData) ? funnelsData : [];
 
+  // Atualizar selectedFunnelId para o primeiro funil ao carregar
+  useEffect(() => {
+    if (!selectedFunnelId && safeFunnelsData.length > 0) {
+      setSelectedFunnelId(safeFunnelsData[0].id);
+    }
+  }, [safeFunnelsData, selectedFunnelId]);
+
   // Query para buscar negócios
   const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
-    queryKey: ['/api/deals', { page, limit, team: selectedTeam, search }],
+    queryKey: ['/api/deals', { page, limit, funnelId: selectedFunnelId, search }],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/deals?page=${page}&limit=${limit}&team=${selectedTeam}&search=${encodeURIComponent(search)}`);
+      const response = await apiRequest('GET', `/api/deals?page=${page}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`);
       return response.json();
     },
     staleTime: 30 * 1000, // 30 segundos
@@ -142,7 +149,7 @@ export function DealsModule() {
       company: formData.get('company') as string,
       value: parseFloat(formData.get('value') as string) || 0,
       stage: selectedStageForNewDeal || currentTeam?.stages?.[0]?.id,
-      teamType: selectedTeam,
+      teamType: selectedFunnelId,
       probability: parseInt(formData.get('probability') as string) || 50,
       description: formData.get('description') as string,
       owner: 'Admin',
@@ -242,7 +249,7 @@ export function DealsModule() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{getFunnelIcon(selectedTeam)}</span>
+              <span className="text-2xl">{getFunnelIcon(selectedFunnelId)}</span>
               <div>
                 <div className="font-medium">{currentTeam?.name}</div>
                 <div className="text-sm text-muted-foreground">
@@ -253,8 +260,8 @@ export function DealsModule() {
           </div>
 
           <DealsHeader
-            selectedTeam={selectedTeam}
-            setSelectedTeam={setSelectedTeam}
+            selectedFunnelId={selectedFunnelId}
+            setSelectedFunnelId={setSelectedFunnelId}
             funnelsData={safeFunnelsData}
             getFunnelIcon={getFunnelIcon}
             search={search}
