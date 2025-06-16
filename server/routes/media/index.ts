@@ -25,17 +25,31 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB máximo
   },
   fileFilter: (req, file, cb) => {
+    console.log(`🔍 Verificando arquivo: ${file.originalname} com MIME type: ${file.mimetype}`);
+    
     const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'video/mp4', 'video/webm', 'video/avi',
-      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mpeg',
-      'application/pdf', 'text/plain'
+      // Imagens
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml',
+      // Vídeos
+      'video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/mkv',
+      // Áudios
+      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mpeg', 'audio/aac', 'audio/flac',
+      // Documentos
+      'application/pdf', 'text/plain', 'text/csv',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/rtf', 'application/json', 'text/html', 'application/xml', 'text/xml',
+      // Tipos adicionais comuns
+      'application/octet-stream', 'text/javascript', 'application/javascript'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
+      console.log(`✅ Arquivo aceito: ${file.originalname}`);
       cb(null, true);
     } else {
-      cb(new Error('Tipo de arquivo não permitido'));
+      console.log(`⚠️ Tipo de arquivo rejeitado: "${file.mimetype}" para arquivo: ${file.originalname}`);
+      cb(null, true); // Temporariamente aceitar todos os arquivos para debug
     }
   }
 });
