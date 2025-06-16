@@ -3,7 +3,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { ConversationActionsDropdown } from '../ConversationActions';
-import { ChannelIcon } from './ChannelIcon';
+import { ChannelIcon } from '../ChannelIcon';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';
 import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';

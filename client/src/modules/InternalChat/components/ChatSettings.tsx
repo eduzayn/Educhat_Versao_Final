@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import { Volume2, VolumeX, Play, Settings, Check } from "lucide-react";
 import { useToast } from "@/shared/lib/hooks/use-toast";
-import { Button } from "@/shared/ui/button";
-import { Switch } from "@/shared/ui/switch";
-import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
