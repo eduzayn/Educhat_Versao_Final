@@ -3,16 +3,17 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { documentService } from '../../services/documentService';
+import { UPLOAD_CONFIG } from './config';
+import { validateFileType } from './middleware';
 
 const router = Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = './uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (!fs.existsSync(UPLOAD_CONFIG.UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_CONFIG.UPLOAD_DIR, { recursive: true });
     }
-    cb(null, uploadDir);
+    cb(null, UPLOAD_CONFIG.UPLOAD_DIR);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -23,12 +24,11 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB
+    fileSize: UPLOAD_CONFIG.MAX_FILE_SIZE
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['.pdf', '.docx', '.doc'];
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    if (allowedTypes.includes(fileExt)) {
+    const fileExt = path.extname(file.originalname).toLowerCase() as '.pdf' | '.docx' | '.doc';
+    if (UPLOAD_CONFIG.ALLOWED_TYPES.includes(fileExt)) {
       cb(null, true);
     } else {
       cb(new Error('Apenas arquivos PDF, DOCX e DOC são permitidos'));
@@ -36,16 +36,10 @@ const upload = multer({
   }
 });
 
-router.post('/upload', upload.single('document'), async (req: Request, res: Response) => {
+router.post('/upload', upload.single('document'), validateFileType, async (req: Request, res: Response) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Nenhum arquivo foi enviado' 
-      });
-    }
-    const result = await documentService.processDocument(req.file.path, req.file.originalname);
-    fs.unlinkSync(req.file.path);
+    const result = await documentService.processDocument(req.file!.path, req.file!.originalname);
+    fs.unlinkSync(req.file!.path);
     res.json({
       success: true,
       result

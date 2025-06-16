@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
+import { DocumentStats } from './types';
 
 const router = Router();
 
 router.get('/stats', async (req: Request, res: Response) => {
   try {
-    const stats = {
+    const stats: DocumentStats = {
       totalDocuments: 0,
       totalSizeMB: 0,
       processingStats: {
