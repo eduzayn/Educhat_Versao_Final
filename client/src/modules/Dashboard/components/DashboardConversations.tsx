@@ -5,15 +5,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Conversation {
-  id: string;
-  contact: {
-    name: string;
-    avatar?: string;
-  };
+  id: number;
+  contactId: number;
+  contactName: string;
+  phone: string;
   channel: string;
   lastMessage: string;
-  lastMessageTime: string;
-  unread: boolean;
+  lastActivity: string;
+  unreadCount: number;
 }
 
 interface DashboardConversationsProps {
@@ -41,41 +40,40 @@ export function DashboardConversations({ conversations, onViewAll }: DashboardCo
           Ver todas
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="p-4">
+        <div className="space-y-3">
           {(Array.isArray(conversations) ? conversations : []).map((conversation) => {
             const ChannelIcon = getChannelIcon(conversation.channel);
             return (
               <div
                 key={conversation.id}
-                className={`flex items-start space-x-3 p-3 rounded-lg ${
-                  conversation.unread ? 'bg-blue-50' : 'bg-gray-50'
+                className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-gray-50 ${
+                  conversation.unreadCount > 0 ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
                 }`}
               >
                 <div className="flex-shrink-0">
-                  {conversation.contact.avatar ? (
-                    <img
-                      src={conversation.contact.avatar}
-                      alt={conversation.contact.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-educhat-primary flex items-center justify-center text-white">
-                      {conversation.contact.name.charAt(0)}
-                    </div>
-                  )}
+                  <div className="w-10 h-10 rounded-full bg-educhat-primary flex items-center justify-center text-white font-medium">
+                    {conversation.contactName.charAt(0).toUpperCase()}
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-1">
                     <p className="font-medium text-educhat-dark truncate">
-                      {conversation.contact.name}
+                      {conversation.contactName}
                     </p>
-                    <span className="text-sm text-educhat-medium">
-                      {formatDistanceToNow(new Date(conversation.lastMessageTime), {
-                        addSuffix: true,
-                        locale: ptBR,
-                      })}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-educhat-medium whitespace-nowrap">
+                        {conversation.lastActivity ? formatDistanceToNow(new Date(conversation.lastActivity), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        }) : 'Agora'}
+                      </span>
+                      {conversation.unreadCount > 0 && (
+                        <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                          {conversation.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <ChannelIcon className="w-4 h-4 text-educhat-medium" />
@@ -87,8 +85,14 @@ export function DashboardConversations({ conversations, onViewAll }: DashboardCo
               </div>
             );
           })}
+          {(!conversations || conversations.length === 0) && (
+            <div className="text-center py-8 text-gray-500">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhuma conversa recente</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

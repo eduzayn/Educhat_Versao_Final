@@ -18,9 +18,18 @@ const CACHE_DURATION = 5 * 60 * 1000;
 const MAX_RETRIES = 3;
 
 export function useOptimizedMedia(messageId: number, messageType: string, initialContent?: string | null) {
-  const [content, setContent] = useState<string | null>(initialContent || null);
+  // Log detalhado do que está sendo recebido no hook
+  console.log(`🎯 useOptimizedMedia iniciado para mensagem ${messageId}:`, {
+    messageType,
+    hasInitialContent: !!initialContent,
+    initialContent,
+    initialContentType: typeof initialContent,
+    initialContentLength: initialContent?.length
+  });
+
+  const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!initialContent);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -39,8 +48,10 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
 
   const setCachedContent = useCallback((id: number, content: string, type: string) => {
     if (mediaCache.size >= 100) {
-      const oldestKey = mediaCache.keys().next().value;
-      mediaCache.delete(oldestKey);
+      const oldestKey = Array.from(mediaCache.keys())[0];
+      if (oldestKey !== undefined) {
+        mediaCache.delete(oldestKey);
+      }
     }
     
     mediaCache.set(id, {
@@ -97,7 +108,7 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
     setError(null);
     updateLoadingState(messageId, true);
     
-    console.log(`🚀 Iniciando carregamento de ${messageType} para mensagem ${messageId}`);
+    console.log(`🚀 Carregamento sob demanda de ${messageType} para mensagem ${messageId}`);
 
     try {
       const response = await fetch(`/api/messages/${messageId}/media`, {
@@ -114,7 +125,7 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
           updateLoadingState(messageId, false);
           
           const duration = performance.now() - startTime;
-          console.log(`✅ ${messageType} carregado com sucesso em ${duration.toFixed(2)}ms para mensagem ${messageId}`);
+          console.log(`✅ ${messageType} carregado sob demanda em ${duration.toFixed(2)}ms para mensagem ${messageId}`);
         } else {
           const errorMsg = `Conteúdo inválido para ${messageType}`;
           setError(errorMsg);

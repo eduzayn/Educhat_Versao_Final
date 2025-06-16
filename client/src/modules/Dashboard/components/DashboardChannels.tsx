@@ -3,7 +3,9 @@ import { Phone, Instagram, Facebook, Mail, MessageCircle } from 'lucide-react';
 
 interface Channel {
   name: string;
-  count: number;
+  conversations: number;
+  uniqueContacts: number;
+  status: string;
 }
 
 interface DashboardChannelsProps {
@@ -47,7 +49,8 @@ export function DashboardChannels({ channels }: DashboardChannelsProps) {
     name: channel.name === 'whatsapp-1' ? 'WhatsApp (Alt)' : 
           channel.name.charAt(0).toUpperCase() + channel.name.slice(1),
     icon: getChannelIcon(channel.name),
-    count: channel.count,
+    count: channel.conversations,
+    uniqueContacts: channel.uniqueContacts,
     color: getChannelColor(channel.name)
   })) || [];
 
@@ -57,18 +60,25 @@ export function DashboardChannels({ channels }: DashboardChannelsProps) {
         <CardTitle className="text-lg text-educhat-dark">Canais de Comunicação</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {channelStats.map((channel) => (
-            <div key={channel.name} className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
-              <div className={`p-2 rounded-lg ${channel.color}`}>
-                <channel.icon className="w-5 h-5" />
+            <div key={channel.name} className="flex items-center space-x-3 p-4 rounded-lg bg-gray-50 border">
+              <div className={`p-3 rounded-lg ${channel.color}`}>
+                <channel.icon className="w-6 h-6" />
               </div>
-              <div>
-                <p className="font-medium text-educhat-dark">{channel.count}</p>
-                <p className="text-sm text-educhat-medium">{channel.name}</p>
+              <div className="flex-1">
+                <p className="text-lg font-bold text-educhat-dark">{channel.count}</p>
+                <p className="text-sm font-medium text-educhat-dark">{channel.name}</p>
+                <p className="text-xs text-educhat-medium">{channel.uniqueContacts} contatos únicos</p>
               </div>
             </div>
           ))}
+          {channelStats.length === 0 && (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhum canal configurado</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

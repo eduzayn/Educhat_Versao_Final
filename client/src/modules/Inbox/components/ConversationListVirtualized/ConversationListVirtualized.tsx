@@ -99,24 +99,41 @@ export function ConversationListVirtualized({
     scrollThrottleRef.current = setTimeout(() => {
       const scrollOffset = scrollTop;
       const scrollLimit = scrollHeight - clientHeight;
-      const isNearBottom = scrollOffset >= scrollLimit - 50;
+      const isNearBottom = scrollOffset >= scrollLimit - 100; // Aumentei a margem para 100px
+      
+      console.log('🔄 Scroll detectado:', { 
+        scrollOffset, 
+        scrollLimit, 
+        isNearBottom, 
+        hasNextPage, 
+        isLoading, 
+        visibleCount, 
+        filteredLength: filteredConversations.length 
+      });
       
       // Verificar se deve carregar mais conteúdo
-      if (isNearBottom && !isLoading && !isLoadingMoreRef.current && scrollOffset > 0) {
+      if (isNearBottom && !isLoading && !isLoadingMoreRef.current) {
         isLoadingMoreRef.current = true;
         
+        console.log('📥 Acionando carregamento...');
+        
+        // Primeiro carregar mais itens locais se disponível
         if (visibleCount < filteredConversations.length) {
+          console.log('📋 Carregando mais itens locais...');
           handleLoadMore();
-        } else if (hasNextPage) {
+        } 
+        // Se não há mais itens locais mas há páginas no servidor
+        else if (hasNextPage) {
+          console.log('🌐 Carregando próxima página...');
           onLoadMore();
         }
         
         // Reset do flag após um breve delay
         setTimeout(() => {
           isLoadingMoreRef.current = false;
-        }, 1000);
+        }, 500); // Reduzi para 500ms para resposta mais rápida
       }
-    }, 200);
+    }, 100); // Reduzi throttle para 100ms para melhor responsividade
   }, [isLoading, visibleCount, filteredConversations.length, hasNextPage, handleLoadMore, onLoadMore]);
 
   // Reset da contagem visível quando filtros mudam

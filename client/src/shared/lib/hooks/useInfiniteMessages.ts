@@ -4,32 +4,56 @@ import type { Message } from '@shared/schema';
 interface MessagesResponse {
   messages: Message[];
   hasMore: boolean;
-  nextCursor?: string;
+  nextOffset?: number;
+  total: number;
 }
 
-export function useInfiniteMessages(conversationId: number, pageSize: number = 100) {
+export function useInfiniteMessages(conversationId: number | null, pageSize: number = 50) {
   return useInfiniteQuery<MessagesResponse>({
-    queryKey: ['/api/conversations', conversationId, 'messages'],
-    queryFn: async ({ pageParam }) => {
+    queryKey: ['/api/conversations', conversationId, 'messages', 'infinite'],
+    queryFn: async ({ pageParam = 0 }) => {
+      const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({
-        limit: pageSize.toString()
+        limit: pageSize.toString(),
+        offset: offset.toString()
       });
       
-      if (pageParam) {
-        params.append('cursor', pageParam as string);
-      }
+      console.log(`🔄 Carregando mensagens infinitas - offset: ${offset}, limit: ${pageSize}`);
       
       const response = await fetch(`/api/conversations/${conversationId}/messages?${params}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch messages');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      
+      // Adaptar resposta para incluir paginação
+      const messages = data.messages || [];
+      const hasMore = messages.length === pageSize; // Se retornou o limite, provavelmente há mais
+      
+      console.log(`✅ Mensagens infinitas carregadas - ${messages.length} mensagens, hasMore: ${hasMore}`);
+      
+      return {
+        messages: messages.reverse(), // Ordem cronológica (mais antigas primeiro)
+        hasMore,
+        nextOffset: offset + pageSize,
+        total: data.total || messages.length
+      };
     },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor : undefined,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      // Se não há mais mensagens, retorna undefined
+      if (!lastPage.hasMore || lastPage.messages.length < pageSize) {
+        return undefined;
+      }
+      // Próximo offset é o número total de mensagens já carregadas
+      return allPages.length * pageSize;
+    },
     enabled: !!conversationId,
     refetchOnWindowFocus: false,
     staleTime: 30000, // 30 segundos
+    gcTime: 1000 * 60 * 5, // 5 minutos de cache
+    retry: 1,
+    retryDelay: 500,
   });
 }

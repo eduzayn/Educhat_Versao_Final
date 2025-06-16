@@ -39,12 +39,8 @@ export class MessageStorage extends BaseStorage {
       deletedAt: messages.deletedAt,
       deletedBy: messages.deletedBy,
       isDeleted: messages.isDeleted,
-      // Excluir metadata para reduzir payload - será carregado sob demanda se necessário
-      metadata: sql<any>`CASE 
-        WHEN ${messages.messageType} IN ('image', 'video', 'audio', 'document') 
-        THEN ${messages.metadata} 
-        ELSE NULL 
-      END`.as('metadata')
+      // Incluir metadata sempre, pois contém IDs Z-API necessários para deleção
+      metadata: messages.metadata
     }).from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
@@ -253,7 +249,7 @@ export class MessageStorage extends BaseStorage {
 
   async updateMessage(id: number, messageData: Partial<InsertMessage>): Promise<Message> {
     const [updated] = await this.db.update(messages)
-      .set({ ...messageData, updatedAt: new Date() })
+      .set(messageData)
       .where(eq(messages.id, id))
       .returning();
     return updated;

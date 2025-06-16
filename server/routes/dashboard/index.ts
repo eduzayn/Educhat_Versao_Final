@@ -65,17 +65,17 @@ router.get('/metrics', async (req, res) => {
     `);
 
     const metrics = {
-      activeConversations: Number(activeConversations.rows[0]?.count || 0),
+      activeConversations: Number((activeConversations.rows[0] as any)?.count || 0),
       newContacts: {
-        today: Number(newContacts.rows[0]?.today || 0),
-        week: Number(newContacts.rows[0]?.week || 0)
+        today: Number((newContacts.rows[0] as any)?.today || 0),
+        week: Number((newContacts.rows[0] as any)?.week || 0)
       },
-      responseRate: responseRate.rows[0]?.total > 0 
-        ? Math.round((Number(responseRate.rows[0]?.responded) / Number(responseRate.rows[0]?.total)) * 100) 
+      responseRate: (responseRate.rows[0] as any)?.total > 0 
+        ? Math.round((Number((responseRate.rows[0] as any)?.responded) / Number((responseRate.rows[0] as any)?.total)) * 100) 
         : 0,
-      averageResponseTime: Number(avgResponseTime.rows[0]?.avg_hours || 0),
-      channels: channelStats.rows.map(stat => ({
-        name: stat.channel || 'Não definido',
+      averageResponseTime: Number((avgResponseTime.rows[0] as any)?.avg_hours || 0),
+      channels: channelStats.rows.map((stat: any) => ({
+        name: stat.channel || 'WhatsApp',
         count: Number(stat.count)
       }))
     };
@@ -83,6 +83,85 @@ router.get('/metrics', async (req, res) => {
     res.json(metrics);
   } catch (error) {
     console.error('Erro ao buscar métricas do dashboard:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para dados de canais
+router.get('/channels', async (req, res) => {
+  try {
+    const channelStats = await db.execute(sql`
+      SELECT 
+        channel, 
+        count(*) as conversations,
+        count(distinct c.contact_id) as unique_contacts,
+        max(c.updated_at) as last_activity
+      FROM conversations c
+      WHERE c.created_at >= current_date - interval '30 days'
+      GROUP BY channel
+      ORDER BY conversations DESC
+    `);
+
+    const channels = channelStats.rows.map((stat: any) => ({
+      name: stat.channel || 'WhatsApp',
+      conversations: Number(stat.conversations),
+      uniqueContacts: Number(stat.unique_contacts),
+      lastActivity: stat.last_activity,
+      status: 'active'
+    }));
+
+    res.json(channels);
+  } catch (error) {
+    console.error('Erro ao buscar dados de canais:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para conversas recentes
+router.get('/conversations', async (req, res) => {
+  try {
+    const recentConversations = await db.execute(sql`
+      SELECT 
+        c.id,
+        c.contact_id,
+        c.channel,
+        c.updated_at,
+        ct.name as contact_name,
+        ct.phone,
+        (
+          SELECT m.content 
+          FROM messages m 
+          WHERE m.conversation_id = c.id 
+          ORDER BY m.sent_at DESC 
+          LIMIT 1
+        ) as last_message,
+        (
+          SELECT count(*) 
+          FROM messages m 
+          WHERE m.conversation_id = c.id 
+          AND m.is_from_contact = true 
+          AND m.sent_at >= current_date
+        ) as unread_count
+      FROM conversations c
+      JOIN contacts ct ON c.contact_id = ct.id
+      ORDER BY c.updated_at DESC
+      LIMIT 10
+    `);
+
+    const conversations = recentConversations.rows.map((conv: any) => ({
+      id: Number(conv.id),
+      contactId: Number(conv.contact_id),
+      contactName: conv.contact_name || conv.phone,
+      phone: conv.phone,
+      channel: conv.channel || 'WhatsApp',
+      lastMessage: conv.last_message || 'Sem mensagens',
+      lastActivity: conv.updated_at,
+      unreadCount: Number(conv.unread_count || 0)
+    }));
+
+    res.json(conversations);
+  } catch (error) {
+    console.error('Erro ao buscar conversas recentes:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

@@ -21,6 +21,23 @@ export function LazyMediaContent({
   metadata,
   initialContent,
 }: LazyMediaContentProps) {
+  // Log detalhado dos dados recebidos para debugging
+  console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
+    messageType,
+    conversationId,
+    isFromContact,
+    hasMetadata: !!metadata,
+    metadata,
+    hasInitialContent: !!initialContent,
+    initialContent,
+    initialContentType: typeof initialContent,
+    initialContentLength: initialContent?.length
+  });
+
+  // Para carregamento sob demanda, não passar URL direta - apenas quando explicitamente solicitado
+  const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl;
+  const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http'));
+
   const {
     content,
     loading,
@@ -30,7 +47,7 @@ export function LazyMediaContent({
     loadMediaContent,
     retry,
     canRetry
-  } = useOptimizedMedia(messageId, messageType, initialContent);
+  } = useOptimizedMedia(messageId, messageType, null); // Sempre null para forçar carregamento sob demanda
 
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });
@@ -54,17 +71,46 @@ export function LazyMediaContent({
           );
         }
         return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Image className="w-5 h-5" />
-            <span className="text-sm">Imagem: {fileName}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={error ? retry : loadMediaContent}
-              disabled={loading || (!canRetry && !!error)}
-            >
-              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Ver imagem"}
-            </Button>
+          <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Image className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  {fileName}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  {metadata?.fileSize ? `${(metadata.fileSize / 1024).toFixed(0)} KB` : 'Imagem'} • Clique para visualizar
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={error ? retry : loadMediaContent}
+                disabled={loading || (!canRetry && !!error)}
+                className="relative px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Carregando...
+                  </>
+                ) : error && retryCount > 0 ? (
+                  `Tentar novamente (${retryCount})`
+                ) : (
+                  <>
+                    <Image className="w-4 h-4 mr-2" />
+                    Ver imagem
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
 
@@ -82,19 +128,46 @@ export function LazyMediaContent({
           );
         }
         return (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <Play className="w-5 h-5" />
-            <span className="text-sm">
-              Áudio: {metadata?.duration || "Duração desconhecida"}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={error ? retry : loadMediaContent}
-              disabled={loading || (!canRetry && !!error)}
-            >
-              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Reproduzir"}
-            </Button>
+          <div className="group relative overflow-hidden bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-950/50 dark:to-teal-950/50 rounded-xl border border-green-200/50 dark:border-green-800/50 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  Áudio
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  {metadata?.duration || "Duração desconhecida"} • Clique para reproduzir
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={error ? retry : loadMediaContent}
+                disabled={loading || (!canRetry && !!error)}
+                className="relative px-4 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Carregando...
+                  </>
+                ) : error && retryCount > 0 ? (
+                  `Tentar novamente (${retryCount})`
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Reproduzir
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
 
@@ -111,29 +184,6 @@ export function LazyMediaContent({
           );
         }
         if (content) {
-          let videoUrl = content;
-          
-          // Verificar se é um vídeo base64 válido
-          if (videoUrl.startsWith('data:video/')) {
-            // Vídeo base64 válido, usar diretamente
-          } else if (videoUrl.startsWith('http')) {
-            // URL externa, aplicar encoding
-            try {
-              videoUrl = encodeURI(videoUrl);
-            } catch (e) {
-              setError('URL do vídeo inválida.');
-              return null;
-            }
-          } else {
-            // Conteúdo inválido
-            setError('Formato de vídeo não suportado.');
-            return null;
-          }
-          
-          if (!videoUrl || videoUrl === 'Vídeo' || videoUrl === 'https://educhat.galaxiasistemas.com.br/V%C3%ADdeo') {
-            setError('Vídeo não encontrado ou URL inválida.');
-            return null;
-          }
           return (
             <div className="relative max-w-sm">
               <video
@@ -144,61 +194,117 @@ export function LazyMediaContent({
                 onError={(e) => {
                   const videoElement = e.target as HTMLVideoElement;
                   const errorCode = videoElement.error?.code;
-                  const errorMessage = videoElement.error?.message;
-                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, errorMessage });
+                  console.error(`❌ Erro ao carregar vídeo`, { messageId, errorCode, content });
                   setError(`Erro ao reproduzir vídeo (código: ${errorCode || 'desconhecido'})`);
                 }}
-                onLoadedData={() =>
-                  secureLog.debug("Vídeo carregado", { messageId })
-                }
+                onLoadedData={() => console.log(`✅ Vídeo carregado para mensagem ${messageId}`)}
               >
-                <source src={videoUrl} type="video/mp4" />
-                <source src={videoUrl} type="video/webm" />
-                <source src={videoUrl} type="video/ogg" />
+                <source src={content} type="video/mp4" />
+                <source src={content} type="video/webm" />
+                <source src={content} type="video/ogg" />
                 Seu navegador não suporta vídeo.
               </video>
             </div>
           );
         }
         return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Play className="w-5 h-5" />
-            <span className="text-sm">Vídeo: {fileName}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={error ? retry : loadMediaContent}
-              disabled={loading || (!canRetry && !!error)}
-            >
-              {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Reproduzir"}
-            </Button>
-          </div>
-        );
-
-      case "document":
-        return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <FileText className="w-5 h-5" />
-            <span className="text-sm">Documento: {fileName}</span>
-            {content ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(content, "_blank")}
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Baixar
-              </Button>
-            ) : (
+          <div className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <Play className="w-2 h-2 text-white fill-current" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  {fileName}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  {metadata?.fileSize ? `${(metadata.fileSize / (1024 * 1024)).toFixed(1)} MB` : 'Vídeo'} • Clique para reproduzir
+                </p>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={error ? retry : loadMediaContent}
                 disabled={loading || (!canRetry && !!error)}
+                className="relative px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {loading ? "Carregando..." : error && retryCount > 0 ? `Tentar novamente (${retryCount})` : "Carregar"}
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Carregando...
+                  </>
+                ) : error && retryCount > 0 ? (
+                  `Tentar novamente (${retryCount})`
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Reproduzir
+                  </>
+                )}
               </Button>
-            )}
+            </div>
+          </div>
+        );
+
+      case "document":
+        return (
+          <div className="group relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 rounded-xl border border-amber-200/50 dark:border-amber-800/50 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <Download className="w-2 h-2 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  {fileName}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                  Documento • Clique para {content ? 'baixar' : 'carregar'}
+                </p>
+              </div>
+              {content ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(content, "_blank")}
+                  className="relative px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={error ? retry : loadMediaContent}
+                  disabled={loading || (!canRetry && !!error)}
+                  className="relative px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Carregando...
+                    </>
+                  ) : error && retryCount > 0 ? (
+                    `Tentar novamente (${retryCount})`
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Carregar
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         );
 

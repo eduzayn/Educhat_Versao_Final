@@ -47,7 +47,8 @@ export function extractMediaUrl(
     if (typeof metadata === 'object') {
     switch (messageType) {
       case 'image':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.image?.imageUrl || 
                   metadata.image?.url || 
                   metadata.imageUrl;
@@ -56,7 +57,8 @@ export function extractMediaUrl(
         break;
 
       case 'audio':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.audio?.audioUrl || 
                   metadata.audio?.url || 
                   metadata.audioUrl;
@@ -66,7 +68,8 @@ export function extractMediaUrl(
         break;
 
       case 'video':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.video?.videoUrl || 
                   metadata.video?.url || 
                   metadata.videoUrl ||
@@ -76,7 +79,8 @@ export function extractMediaUrl(
         break;
 
       case 'document':
-        mediaUrl = metadata.mediaUrl || 
+        mediaUrl = metadata.fileUrl || 
+                  metadata.mediaUrl || 
                   metadata.document?.documentUrl || 
                   metadata.document?.url || 
                   metadata.documentUrl;
@@ -119,6 +123,9 @@ export function isValidMediaUrl(url: string | null): boolean {
       return false;
     }
   }
+  
+  // Paths relativos são válidos (ex: /uploads/media/...)
+  if (url.startsWith('/')) return true;
   
   return false;
 }

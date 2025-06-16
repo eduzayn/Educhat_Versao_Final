@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Eye, EyeOff } from 'lucide-react';
 import { useLocation } from 'wouter';
 // Logo removido durante limpeza - usando texto simples
@@ -34,14 +34,21 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const user = await apiRequest('POST', '/api/login', loginData);
+      const response = await apiRequest('POST', '/api/login', loginData);
+      const user = await response.json();
+      
+      // Invalidar cache de autenticação para forçar refresh do estado
+      await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       
       toast({
         title: "Login realizado com sucesso!",
-        description: `Bem-vindo de volta, ${user.displayName}!`,
+        description: `Bem-vindo de volta, ${user.displayName || user.firstName || 'usuário'}!`,
       });
       
-      setLocation('/');
+      // Pequeno delay para garantir que a invalidação da cache foi processada
+      setTimeout(() => {
+        setLocation('/');
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Erro no login",
@@ -77,19 +84,26 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const user = await apiRequest('POST', '/api/register', {
+      const response = await apiRequest('POST', '/api/register', {
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
       });
+      const user = await response.json();
+      
+      // Invalidar cache de autenticação para forçar refresh do estado
+      await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: `Bem-vindo ao EduChat, ${user.displayName}!`,
+        description: `Bem-vindo ao EduChat, ${user.displayName || user.firstName || 'usuário'}!`,
       });
       
-      setLocation('/');
+      // Pequeno delay para garantir que a invalidação da cache foi processada
+      setTimeout(() => {
+        setLocation('/');
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Erro no cadastro",

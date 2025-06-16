@@ -23,7 +23,9 @@ export function MessagesArea({
     messages,
     isLoading,
     messagesEndRef,
-    handleReply
+    handleReply,
+    hasNextPage,
+    loadPreviousMessages
   } = useMessagesArea(conversationToUse);
 
   // Renderização condicional APÓS todos os hooks
@@ -50,6 +52,9 @@ export function MessagesArea({
           getChannelInfo={getChannelInfo}
           onReply={handleReply}
           messagesEndRef={messagesEndRef}
+          hasNextPage={hasNextPage}
+          loadPreviousMessages={loadPreviousMessages}
+          isLoading={isLoading}
         />
       )}
     </div>

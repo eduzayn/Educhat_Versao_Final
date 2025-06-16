@@ -368,7 +368,15 @@ export function InboxPage() {
           setChannelFilter={setChannelFilter}
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
-          onLoadMore={() => fetchNextPage()}
+          onLoadMore={async () => {
+            console.log('🔄 onLoadMore acionado - fetchNextPage...');
+            try {
+              const result = await fetchNextPage();
+              console.log('✅ fetchNextPage executado:', result);
+            } catch (error) {
+              console.error('❌ Erro no fetchNextPage:', error);
+            }
+          }}
           channels={channels}
           onRefresh={() => conversationsQuery.refetch()}
           onNewContact={() => setIsModalOpen(true)}

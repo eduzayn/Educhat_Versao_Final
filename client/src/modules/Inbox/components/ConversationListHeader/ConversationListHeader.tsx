@@ -58,7 +58,7 @@ export function ConversationListHeader({
       {/* Header principal */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
-          <Link href="/dashboard">
+          <Link href="/">
             <Button 
               variant="ghost" 
               size="sm" 
