@@ -14,7 +14,7 @@ import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
 import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
 import { registerRealtimeConfig } from "./realtime/index";
-import { registerDealsRoutes } from "./deals/index";
+import dealsRouter from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics";
 import { registerTeamsRoutes } from "./teams/index";
 import { registerUserTeamsRoutes } from "./user-teams/index";
@@ -58,7 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerConversationDetailsRoutes(app);
   // Registrar rotas de atribuição manual para conversas (complementares às do inbox)
   app.use('/api/conversations', conversationsRouter);
-  registerDealsRoutes(app);
+  app.use('/api/deals', dealsRouter);
   registerAnalyticsRoutes(app);
   registerTeamsRoutes(app);
   registerUserTeamsRoutes(app);

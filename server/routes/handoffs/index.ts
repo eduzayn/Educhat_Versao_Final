@@ -1,19 +1,21 @@
-import { Express } from 'express';
+import { Router } from 'express';
 import baseRouter from './base';
 import intelligentRouter from './intelligent';
 import pendingRouter from './pending';
 import statsRouter from './stats';
 
-export function registerHandoffRoutes(app: Express) {
-  // Rotas base
-  app.use('/api/handoffs', baseRouter);
+const router = Router();
 
-  // Rotas de handoffs inteligentes
-  app.use('/api/handoffs/intelligent', intelligentRouter);
+// Rotas base
+router.use('/', baseRouter);
 
-  // Rotas de handoffs pendentes
-  app.use('/api/handoffs/pending', pendingRouter);
+// Rotas de handoffs inteligentes
+router.use('/intelligent', intelligentRouter);
 
-  // Rotas de estatísticas
-  app.use('/api/handoffs/stats', statsRouter);
-}
+// Rotas de handoffs pendentes
+router.use('/pending', pendingRouter);
+
+// Rotas de estatísticas
+router.use('/stats', statsRouter);
+
+export default router;

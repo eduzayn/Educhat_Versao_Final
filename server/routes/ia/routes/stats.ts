@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../../../core/db';
+import { db } from '../../../db';
 import { aiLogs } from '../../../../shared/schema';
 import { eq, desc, and, count, avg, sql } from 'drizzle-orm';
 import { IAStats } from '../types';

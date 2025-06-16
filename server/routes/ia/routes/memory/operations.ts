@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../../../../core/db';
+import { db } from '../../../../db';
 import { aiMemory } from '../../../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { IAMemory } from '../../types/memory';

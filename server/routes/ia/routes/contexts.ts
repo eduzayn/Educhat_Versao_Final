@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../../../core/db';
+import { db } from '../../../db';
 import { aiContext } from '../../../../shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { IAContext } from '../types';

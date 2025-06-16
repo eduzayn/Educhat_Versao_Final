@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../../../core/db';
+import { db } from '../../../db';
 import { aiContext } from '../../../../shared/schema';
 import fs from 'fs/promises';
 import { upload } from '../config';
@@ -37,7 +37,10 @@ router.post('/', upload.single('file'), async (req, res) => {
             })
             .returning();
           
-          contextsAdded.push(context);
+          contextsAdded.push({
+            ...context,
+            isActive: context.isActive ?? true
+          } as IAContext);
         }
       }
     }

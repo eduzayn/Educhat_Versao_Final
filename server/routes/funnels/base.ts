@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { funnelService } from '../../../services/funnelService';
+import { funnelService } from '../../services/funnelService';
 
 const router = Router();
 

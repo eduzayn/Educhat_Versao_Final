@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../../../../core/db';
+import { db } from '../../../../db';
 import { aiMemory, contacts } from '../../../../../shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { IAMemory, IAMemoryListResponse } from '../../types/memory';
@@ -51,8 +51,8 @@ router.get('/', async (req, res) => {
       .limit(Number(limit))
       .offset(offset);
 
-    const response: IAMemoryListResponse = {
-      memories,
+    const response = {
+      memories: memories,
       pagination: {
         page: Number(page),
         limit: Number(limit),

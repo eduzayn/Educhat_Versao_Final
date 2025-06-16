@@ -114,7 +114,46 @@ export class ContactStorage extends BaseStorage {
   }
 
   async deleteContact(id: number): Promise<void> {
-    await this.db.delete(contacts).where(eq(contacts.id, id));
+    try {
+      // Verificar se o contato existe
+      const contact = await this.getContact(id);
+      if (!contact) {
+        throw new Error("Contato não encontrado.");
+      }
+
+      // Verificar dependências antes da exclusão
+      const { conversations, deals } = await import("../../../shared/schema");
+      
+      // Verificar conversas associadas
+      const relatedConversations = await this.db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .where(eq(conversations.contactId, id))
+        .limit(1);
+
+      if (relatedConversations.length > 0) {
+        throw new Error("Não é possível excluir este contato pois existem conversas associadas. Exclua as conversas primeiro ou considere desativar o contato.");
+      }
+
+      // Verificar deals associados
+      const relatedDeals = await this.db
+        .select({ id: deals.id })
+        .from(deals)
+        .where(eq(deals.contactId, id))
+        .limit(1);
+
+      if (relatedDeals.length > 0) {
+        throw new Error("Não é possível excluir este contato pois existem negócios associados. Exclua os negócios primeiro ou considere desativar o contato.");
+      }
+
+      // Se não há dependências, pode excluir o contato
+      await this.db.delete(contacts).where(eq(contacts.id, id));
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Erro ao excluir contato. Verifique se não há dados associados a este contato.");
+    }
   }
 
   // Contact Tags Operations
