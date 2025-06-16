@@ -13,6 +13,8 @@ import { TestSection } from './components/TestSection';
 import { ContextsSection } from './components/ContextsSection';
 import { LogsSection } from './components/LogsSection';
 import { ConfigPage } from './ConfigPage';
+import { IAPageHeader } from './components/IAPageHeader';
+import { IAPageTabs } from './components/IAPageTabs';
 
 interface AIStats {
   totalInteractions: number;
@@ -140,88 +142,8 @@ export default function IAPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Brain className="h-8 w-8 text-purple-600" />
-            <div>
-              <h1 className="text-3xl font-bold">Prof. Ana - IA Educacional</h1>
-              <p className="text-muted-foreground">
-                Sistema inteligente de atendimento educacional com personalidades adaptáveis
-              </p>
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={() => setLocation('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao Painel
-          </Button>
-        </div>
-
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="memory">Memória Contextual</TabsTrigger>
-            <TabsTrigger value="documents">Documentos PDF/DOCX</TabsTrigger>
-            <TabsTrigger value="test">Teste da IA</TabsTrigger>
-            <TabsTrigger value="contexts">Contextos</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-            <TabsTrigger value="config">Configurações</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <AIStatsCard stats={stats} isLoading={statsLoading} />
-          </TabsContent>
-
-          <TabsContent value="memory" className="space-y-4">
-            <MemorySection
-              memoryStats={memoryStats}
-              memoriesData={memoriesData}
-              memoriesLoading={memoriesLoading}
-              memoryStatsLoading={memoryStatsLoading}
-              memoryFilter={memoryFilter}
-              selectedConversation={selectedConversation}
-              setMemoryFilter={setMemoryFilter}
-              setSelectedConversation={setSelectedConversation}
-            />
-          </TabsContent>
-
-          <TabsContent value="documents" className="space-y-4">
-            <DocumentsSection
-              recentDocuments={recentDocuments}
-              documentStats={documentStats}
-              documentsLoading={documentsLoading}
-              documentStatsLoading={documentStatsLoading}
-            />
-          </TabsContent>
-
-          <TabsContent value="test" className="space-y-4">
-            <TestSection
-              testMessage={testMessage}
-              setTestMessage={setTestMessage}
-            />
-          </TabsContent>
-
-          <TabsContent value="contexts" className="space-y-4">
-            <ContextsSection
-              contexts={contexts}
-              contextsLoading={contextsLoading}
-            />
-          </TabsContent>
-
-          <TabsContent value="logs" className="space-y-4">
-            <LogsSection
-              logs={logs}
-              logsLoading={logsLoading}
-            />
-          </TabsContent>
-
-          <TabsContent value="config" className="space-y-4">
-            <ConfigPage />
-          </TabsContent>
-        </Tabs>
+        <IAPageHeader />
+        <IAPageTabs />
       </div>
     </div>
   );
