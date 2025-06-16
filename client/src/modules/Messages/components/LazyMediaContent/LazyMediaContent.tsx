@@ -34,7 +34,7 @@ export function LazyMediaContent({
     initialContentLength: initialContent?.length
   });
 
-  // Se temos fileUrl nos metadados, usar diretamente sem fazer requisição
+  // Para carregamento sob demanda, não passar URL direta - apenas quando explicitamente solicitado
   const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl;
   const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http'));
 
@@ -47,7 +47,7 @@ export function LazyMediaContent({
     loadMediaContent,
     retry,
     canRetry
-  } = useOptimizedMedia(messageId, messageType, hasDirectUrl ? directMediaUrl : initialContent);
+  } = useOptimizedMedia(messageId, messageType, null); // Sempre null para forçar carregamento sob demanda
 
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });

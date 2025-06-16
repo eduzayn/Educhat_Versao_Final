@@ -27,9 +27,9 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
     initialContentLength: initialContent?.length
   });
 
-  const [content, setContent] = useState<string | null>(initialContent || null);
+  const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!initialContent);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -108,7 +108,7 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
     setError(null);
     updateLoadingState(messageId, true);
     
-    console.log(`🚀 Iniciando carregamento de ${messageType} para mensagem ${messageId}`);
+    console.log(`🚀 Carregamento sob demanda de ${messageType} para mensagem ${messageId}`);
 
     try {
       const response = await fetch(`/api/messages/${messageId}/media`, {
@@ -125,7 +125,7 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
           updateLoadingState(messageId, false);
           
           const duration = performance.now() - startTime;
-          console.log(`✅ ${messageType} carregado com sucesso em ${duration.toFixed(2)}ms para mensagem ${messageId}`);
+          console.log(`✅ ${messageType} carregado sob demanda em ${duration.toFixed(2)}ms para mensagem ${messageId}`);
         } else {
           const errorMsg = `Conteúdo inválido para ${messageType}`;
           setError(errorMsg);
