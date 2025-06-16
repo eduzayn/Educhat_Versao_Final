@@ -825,79 +825,11 @@ export function registerUtilitiesRoutes(app: Express) {
   // ❌ ROTAS DE EQUIPES REMOVIDAS - CONSOLIDADAS EM /api/teams
   // Todas as operações de equipes agora são gerenciadas em server/routes/teams/index.ts
 
-  // Roles API endpoints - REST: CRUD operations  
-  app.get('/api/roles', async (req: Request, res: Response) => {
-    try {
-      // Retornar dados estáticos até resolver o problema de storage
-      const staticRoles = [
-        { id: 1, name: 'Administrador', displayName: 'Administrador', isActive: true },
-        { id: 2, name: 'Gerente', displayName: 'Gerente', isActive: true },
-        { id: 3, name: 'Atendente', displayName: 'Atendente', isActive: true },
-        { id: 4, name: 'Visualizador', displayName: 'Visualizador', isActive: true }
-      ];
-      res.json(staticRoles);
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-      res.status(500).json({ message: 'Failed to fetch roles' });
-    }
-  });
+  // ❌ ROTAS DE ROLES REMOVIDAS - CONSOLIDADAS EM /api/admin/roles e /api/roles
+  // Todas as operações de funções agora são gerenciadas em server/routes/admin/index.ts
 
-  app.post('/api/roles', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const role = await storage.createRole(req.body);
-      res.status(201).json(role);
-    } catch (error) {
-      console.error('Error creating role:', error);
-      res.status(500).json({ message: 'Failed to create role' });
-    }
-  });
-
-  app.put('/api/roles/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const role = await storage.updateRole(id, req.body);
-      res.json(role);
-    } catch (error) {
-      console.error('Error updating role:', error);
-      res.status(500).json({ message: 'Failed to update role' });
-    }
-  });
-
-  app.delete('/api/roles/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteRole(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting role:', error);
-      res.status(500).json({ message: 'Failed to delete role' });
-    }
-  });
-
-  // Permissions configuration - REST: POST /api/permissions/save
-  app.post('/api/permissions/save', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { roleId, permissions } = req.body;
-      
-      if (!roleId || !Array.isArray(permissions)) {
-        return res.status(400).json({ message: 'Role ID and permissions array are required' });
-      }
-
-      // Update role with new permissions
-      const updatedRole = await storage.updateRole(roleId, { 
-        permissions: JSON.stringify(permissions)
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Permissions saved successfully',
-        role: updatedRole 
-      });
-    } catch (error) {
-      console.error('Error saving permissions:', error);
-      res.status(500).json({ message: 'Failed to save permissions' });
-    }
-  });
+  // ❌ ROTA DE PERMISSÕES REMOVIDA - CONSOLIDADA EM /api/admin/permissions
+  // Configuração de permissões agora é gerenciada em server/routes/admin/index.ts
 
   // Channels API endpoints - REST: CRUD operations for multiple WhatsApp support
   app.get('/api/channels', async (req: AuthenticatedRequest, res: Response) => {

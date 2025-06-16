@@ -1102,4 +1102,123 @@ export function registerAdminRoutes(app: Express) {
       }
     }
   );
+
+  // ========== ROTAS PÚBLICAS CONSOLIDADAS ==========
+  // Rotas de roles públicas (consolidado de utilities/index.ts)
+  
+  // Listar funções básico - REST: GET /api/roles (sem autenticação administrativa)
+  app.get('/api/roles', async (req: Request, res: Response) => {
+    try {
+      const basicRoles = await db
+        .select({
+          id: roles.id,
+          name: roles.name,
+          displayName: roles.displayName,
+          isActive: roles.isActive
+        })
+        .from(roles)
+        .where(eq(roles.isActive, true))
+        .orderBy(roles.name);
+
+      res.json(basicRoles);
+    } catch (error) {
+      console.error('Erro ao buscar funções:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Criar função básica - REST: POST /api/roles (requer autenticação)
+  app.post('/api/roles', 
+    updateLastActivity(),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.user) {
+          return res.status(401).json({ message: 'Usuário não autenticado' });
+        }
+
+        const { name, displayName } = req.body;
+        if (!name) {
+          return res.status(400).json({ message: 'Nome da função é obrigatório' });
+        }
+
+        const [newRole] = await db
+          .insert(roles)
+          .values({
+            name,
+            displayName: displayName || name,
+            permissions: []
+          })
+          .returning();
+
+        res.status(201).json(newRole);
+      } catch (error) {
+        console.error('Erro ao criar função:', error);
+        res.status(500).json({ message: 'Erro ao criar função' });
+      }
+    }
+  );
+
+  // Atualizar função - REST: PUT /api/roles/:id (requer autenticação)
+  app.put('/api/roles/:id', 
+    updateLastActivity(),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.user) {
+          return res.status(401).json({ message: 'Usuário não autenticado' });
+        }
+
+        const id = parseInt(req.params.id);
+        const { name, displayName, isActive } = req.body;
+
+        const [updatedRole] = await db
+          .update(roles)
+          .set({
+            name,
+            displayName: displayName || name,
+            isActive
+          })
+          .where(eq(roles.id, id))
+          .returning();
+
+        if (!updatedRole) {
+          return res.status(404).json({ message: 'Função não encontrada' });
+        }
+
+        res.json(updatedRole);
+      } catch (error) {
+        console.error('Erro ao atualizar função:', error);
+        res.status(500).json({ message: 'Erro ao atualizar função' });
+      }
+    }
+  );
+
+  // Deletar função - REST: DELETE /api/roles/:id (requer autenticação)
+  app.delete('/api/roles/:id', 
+    updateLastActivity(),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        if (!req.user) {
+          return res.status(401).json({ message: 'Usuário não autenticado' });
+        }
+
+        const id = parseInt(req.params.id);
+
+        // Soft delete - marcar como inativo
+        const [deletedRole] = await db
+          .update(roles)
+          .set({ isActive: false })
+          .where(eq(roles.id, id))
+          .returning();
+
+        if (!deletedRole) {
+          return res.status(404).json({ message: 'Função não encontrada' });
+        }
+
+        res.status(204).send();
+      } catch (error) {
+        console.error('Erro ao deletar função:', error);
+        res.status(500).json({ message: 'Erro ao deletar função' });
+      }
+    }
+  );
 }
