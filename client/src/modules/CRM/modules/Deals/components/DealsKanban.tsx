@@ -22,6 +22,9 @@ interface DealsKanbanProps {
   handleDragStart: (e: React.DragEvent, deal: Deal) => void;
   handleEditDeal: (deal: Deal) => void;
   calculateStageValue: (stageDeals: Deal[]) => number;
+  loadMoreDeals: () => void;
+  hasNextPage: boolean;
+  isLoadingMore: boolean;
 }
 
 export const DealsKanban: React.FC<DealsKanbanProps> = ({
@@ -33,10 +36,25 @@ export const DealsKanban: React.FC<DealsKanbanProps> = ({
   handleDrop,
   handleDragStart,
   handleEditDeal,
-  calculateStageValue
-}) => (
-  <div className="h-full p-6">
-    <div className="flex gap-4 h-full overflow-x-auto pb-4">
+  calculateStageValue,
+  loadMoreDeals,
+  hasNextPage,
+  isLoadingMore
+}) => {
+  // Hook para detectar scroll e carregar mais dados
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const { scrollHeight, scrollTop, clientHeight } = element;
+    
+    // Carregar mais quando estiver próximo do final (dentro de 100px)
+    if (scrollHeight - scrollTop <= clientHeight + 100 && hasNextPage && !isLoadingMore) {
+      loadMoreDeals();
+    }
+  };
+
+  return (
+    <div className="h-full p-6">
+      <div className="flex gap-4 h-full overflow-x-auto pb-4" onScroll={handleScroll}>
       {(stages || []).map((stage) => {
         const stageDeals = getDealsForStage(stage.id);
         return (

@@ -54,9 +54,12 @@ export function DealsModule() {
   const [isEditDealDialogOpen, setIsEditDealDialogOpen] = useState(false);
   const [selectedDealForEdit, setSelectedDealForEdit] = useState<Deal | null>(null);
 
-  // State para paginação
+  // State para paginação e scroll infinito
   const [page, setPage] = useState(1);
-  const limit = 50;
+  const [allDeals, setAllDeals] = useState<Deal[]>([]);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const limit = 100;
 
   // Estados para drag and drop nativo
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
@@ -100,11 +103,11 @@ export function DealsModule() {
     }
   }, [safeFunnelsData, selectedFunnelId]);
 
-  // Query para buscar negócios
+  // Query para buscar negócios (primeira página)
   const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
-    queryKey: ['/api/deals', { page, limit, funnelId: selectedFunnelId, search, dateFilter, customDateStart, customDateEnd }],
+    queryKey: ['/api/deals', { page: 1, limit, funnelId: selectedFunnelId, search, dateFilter, customDateStart, customDateEnd }],
     queryFn: async () => {
-      let url = `/api/deals?page=${page}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`;
+      let url = `/api/deals?page=1&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`;
       
       if (dateFilter === 'today') {
         const today = new Date().toISOString().split('T')[0];
@@ -116,9 +119,58 @@ export function DealsModule() {
       const response = await apiRequest('GET', url);
       return response.json();
     },
-    enabled: !!selectedFunnelId, // Só executa quando há um funil selecionado
-    staleTime: 30 * 1000, // 30 segundos
+    enabled: !!selectedFunnelId,
+    staleTime: 30 * 1000,
   });
+
+  // Função para carregar mais negócios
+  const loadMoreDeals = async () => {
+    if (isLoadingMore || !hasNextPage) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      let url = `/api/deals?page=${nextPage}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`;
+      
+      if (dateFilter === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        url += `&dateStart=${today}&dateEnd=${today}`;
+      } else if (dateFilter === 'custom' && customDateStart && customDateEnd) {
+        url += `&dateStart=${customDateStart}&dateEnd=${customDateEnd}`;
+      }
+      
+      const response = await apiRequest('GET', url);
+      const newData = await response.json();
+      
+      if (newData.deals && newData.deals.length > 0) {
+        setAllDeals(prev => [...prev, ...newData.deals]);
+        setPage(nextPage);
+        setHasNextPage(newData.currentPage < newData.totalPages);
+      } else {
+        setHasNextPage(false);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar mais negócios:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Resetar dados quando filtros mudarem
+  useEffect(() => {
+    if (dealsData?.deals) {
+      setAllDeals(dealsData.deals);
+      setPage(1);
+      setHasNextPage(dealsData.currentPage < dealsData.totalPages);
+    }
+  }, [dealsData]);
+
+  // Resetar quando mudar funil ou filtros
+  useEffect(() => {
+    setAllDeals([]);
+    setPage(1);
+    setHasNextPage(true);
+  }, [selectedFunnelId, search, dateFilter, customDateStart, customDateEnd]);
 
   // Mutation para atualizar deal
   const updateDealMutation = useMutation({
@@ -143,7 +195,7 @@ export function DealsModule() {
     }
   });
 
-  const deals = dealsData?.deals || [];
+  const deals = allDeals.length > 0 ? allDeals : (dealsData?.deals || []);
 
   // Função para obter deals de um estágio específico
   const getDealsForStage = (stageId: string) => {
@@ -318,6 +370,9 @@ export function DealsModule() {
               handleDragStart={handleDragStart}
               handleEditDeal={handleEditDeal}
               calculateStageValue={calculateStageValue}
+              loadMoreDeals={loadMoreDeals}
+              hasNextPage={hasNextPage}
+              isLoadingMore={isLoadingMore}
             />
           ) : (
             <div className="p-6">
