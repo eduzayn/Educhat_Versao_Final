@@ -62,8 +62,12 @@ export function useInfiniteConversations(
       // Para busca, desabilita paginação infinita (carrega tudo de uma vez)
       if (searchTerm?.trim()) return undefined;
       
-      if (!lastPage.hasNextPage || lastPage.conversations.length < limit) return undefined;
-      return allPages.length * limit;
+      // Se não há próxima página ou não carregou conversas suficientes, parar paginação
+      if (!lastPage.hasNextPage || lastPage.conversations.length === 0) return undefined;
+      
+      // Calcular offset baseado no total de conversas já carregadas
+      const totalLoaded = allPages.reduce((total, page) => total + page.conversations.length, 0);
+      return totalLoaded;
     },
     initialPageParam: 0,
     staleTime: searchTerm?.trim() ? 30000 : 5000, // Cache mais longo para buscas

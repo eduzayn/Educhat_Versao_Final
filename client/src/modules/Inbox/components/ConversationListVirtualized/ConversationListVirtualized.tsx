@@ -73,8 +73,9 @@ export function ConversationListVirtualized({
       const scrollOffset = scrollTop;
       const scrollLimit = scrollHeight - clientHeight;
       
-      // Calcular se está próximo ao final da lista
-      const isNearBottom = scrollLimit > 0 && scrollOffset >= scrollLimit - 100;
+      // Melhorar detecção de fim da lista - verificar se está nos últimos 200px
+      const threshold = 200;
+      const isNearBottom = scrollLimit > 0 && (scrollLimit - scrollOffset) <= threshold;
       
       console.log('🔄 Scroll detectado:', { 
         scrollTop, 
@@ -82,10 +83,12 @@ export function ConversationListVirtualized({
         clientHeight,
         scrollOffset, 
         scrollLimit, 
+        distanceFromBottom: scrollLimit - scrollOffset,
         isNearBottom, 
         hasNextPage, 
         isLoading, 
-        conversationsCount: visibleConversations.length 
+        conversationsCount: visibleConversations.length,
+        threshold
       });
       
       // Verificar se deve carregar mais conversas do servidor
@@ -100,10 +103,10 @@ export function ConversationListVirtualized({
         // Reset do flag após delay
         setTimeout(() => {
           isLoadingMoreRef.current = false;
-        }, 1000);
+        }, 2000); // Aumentar delay para evitar múltiplas chamadas
       }
-    }, 150);
-  }, [isLoading, hasNextPage, onLoadMore]);
+    }, 100); // Reduzir throttle para responsividade
+  }, [isLoading, hasNextPage, onLoadMore, visibleConversations.length]);
 
   // Cleanup dos timers quando componente for desmontado
   useEffect(() => {
