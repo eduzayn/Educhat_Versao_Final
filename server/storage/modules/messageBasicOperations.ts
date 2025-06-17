@@ -1,6 +1,6 @@
 import { BaseStorage } from '../base/BaseStorage';
 import { messages, conversations, type Message, type InsertMessage } from '../../../shared/schema';
-import { eq, desc, and, isNull } from 'drizzle-orm';
+import { eq, desc, asc, and, isNull } from 'drizzle-orm';
 
 export class MessageBasicOperations extends BaseStorage {
   async getAllMessages(): Promise<Message[]> {
@@ -42,7 +42,7 @@ export class MessageBasicOperations extends BaseStorage {
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt))
+      .orderBy(asc(messages.sentAt))
       .limit(limit)
       .offset(offset);
 
