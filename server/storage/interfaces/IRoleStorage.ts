@@ -1,4 +1,4 @@
-import { Role, InsertRole } from '../../../shared/schema';
+import { Role, InsertRole } from '@shared/schema';
 
 export interface IRoleStorage {
   getRoles(): Promise<Role[]>;
