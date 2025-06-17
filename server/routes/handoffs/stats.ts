@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
 import { intelligentHandoffService } from '../../services/intelligentHandoffService';
+import { assignmentCompatibilityService } from '../../services/assignmentCompatibilityService';
+import { Express, Response } from 'express';
+import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 
 const router = Router();
 const handoffService = new IntelligentHandoffService();
@@ -39,5 +42,18 @@ router.get('/intelligent', async (req, res) => {
     });
   }
 });
+
+export function registerHandoffStatsRoutes(app: Express) {
+  app.get('/api/handoffs/stats', requirePermission('handoffs:read'), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 7;
+      const stats = await assignmentCompatibilityService.getHandoffStats(days);
+      res.json(stats);
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas de handoffs:', error);
+      res.status(500).json({ message: 'Erro ao buscar estatísticas de handoffs' });
+    }
+  });
+}
 
 export default router; 

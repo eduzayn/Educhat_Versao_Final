@@ -1,130 +1,44 @@
+import { assignmentAnalysisService, HandoffRecommendation } from './assignmentAnalysisService';
+import { assignmentExecutionService } from './assignmentExecutionService';
+import { dealAutomationService } from './dealAutomationService';
+import { teamCapacityService } from './teamCapacityService';
+import {
+  selectBestTeamForClassification,
+  calculateAssignmentConfidence,
+  mapUrgencyToPriority,
+  calculateWaitTime,
+  getAlternativeTeams
+} from './assignmentUtils';
+import { assignmentCompatibilityService } from './assignmentCompatibilityService';
 import { db } from '../core/db';
-import { eq, and, desc, asc, or, count, isNull } from 'drizzle-orm';
-import { 
-  handoffs, 
-  conversations, 
-  teams, 
-  systemUsers, 
-  userTeams,
-  contacts,
-  aiMemory 
-} from '../../shared/schema';
-import { AIService, MessageClassification } from './aiService';
-import { storage } from "../storage";
-
-interface AssignmentOptions {
-  method?: 'manual' | 'automatic';
-  assignedBy?: number;
-}
-
-
-import { funnelService } from './funnelService';
-import type { InsertHandoff, Handoff } from '@shared/schema';
-
-/**
- * SERVIÇO UNIFICADO DE ATRIBUIÇÃO
- * 
- * Consolida as responsabilidades anteriormente distribuídas entre:
- * - handoffService.ts (handoffs manuais/automáticos)
- * - intelligentHandoffService.ts (handoffs inteligentes com IA)
- * - dealAutomationService.ts (automação de deals)
- * 
- * Elimina duplicações e centraliza toda lógica de atribuição
- */
-
-interface HandoffRequest {
-  conversationId: number;
-  fromUserId?: number;
-  toUserId?: number;
-  fromTeamId?: number;
-  toTeamId?: number;
-  type: 'manual' | 'automatic' | 'escalation' | 'intelligent';
-  reason?: string;
-  priority?: 'low' | 'normal' | 'high' | 'urgent';
-  aiClassification?: {
-    confidence: number;
-    suggestedTeam?: string;
-    urgency: string;
-    frustrationLevel: number;
-    intent: string;
-  };
-  metadata?: {
-    triggerEvent?: string;
-    escalationReason?: string;
-    customerSentiment?: string;
-    previousHandoffs?: number;
-  };
-}
-
-interface HandoffRecommendation {
-  teamId?: number;
-  userId?: number;
-  confidence: number;
-  reason: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  estimatedWaitTime: number;
-  alternativeOptions: Array<{
-    teamId?: number;
-    userId?: number;
-    reason: string;
-    confidence: number;
-  }>;
-}
-
-interface TeamCapacity {
-  teamId: number;
-  teamName: string;
-  teamType: string;
-  activeUsers: number;
-  currentLoad: number;
-  maxCapacity: number;
-  utilizationRate: number;
-  priority: number;
-  isActive: boolean;
-}
-
-interface AssignmentResult {
-  success: boolean;
-  handoffId?: number;
-  dealId?: number;
-  recommendation?: HandoffRecommendation;
-  message: string;
-}
+import { eq } from 'drizzle-orm';
+import { conversations } from '../../shared/schema';
 
 export class UnifiedAssignmentService {
-  private aiService: AIService;
-  
-  private defaultCriteria = {
-    frustrationThreshold: 7,
-    urgencyLevels: ['high', 'critical'],
-    confidenceThreshold: 60,
-    maxHandoffsPerDay: 3,
-    escalationPatterns: ['complaint', 'technical_support', 'billing_issue']
-  };
-
-  constructor() {
-    this.aiService = new AIService();
-  }
-
-  /**
-   * MÉTODO PRINCIPAL - Processa atribuição completa com automação de deal
-   */
   async processAssignment(
     conversationId: number,
     messageContent?: string,
     type: 'manual' | 'automatic' | 'intelligent' = 'automatic'
-  ): Promise<AssignmentResult> {
-    
+  ): Promise<any> {
     try {
       let recommendation: HandoffRecommendation | null = null;
       let handoffId: number | null = null;
       let dealId: number | null = null;
 
-      // 1. Analisar se precisa de atribuição
       if (type === 'intelligent' && messageContent) {
-        recommendation = await this.analyzeIntelligentAssignment(conversationId, messageContent);
-        
-        if (recommendation.confidence < this.defaultCriteria.confidenceThreshold) {
+        recommendation = await assignmentAnalysisService.analyzeIntelligentAssignment(
+          conversationId,
+          messageContent,
+          this.getConversationContext,
+          teamCapacityService.analyzeTeamCapacities,
+          selectBestTeamForClassification,
+          calculateAssignmentConfidence,
+          mapUrgencyToPriority,
+          calculateWaitTime,
+          getAlternativeTeams
+        );
+
+        if (recommendation.confidence < 60) {
           return {
             success: true,
             recommendation,
@@ -132,18 +46,21 @@ export class UnifiedAssignmentService {
           };
         }
       } else {
-        // Para tipos manual/automatic, usar lógica simples de balanceamento
-        recommendation = await this.analyzeBestAssignment(conversationId);
+        recommendation = await assignmentAnalysisService.analyzeBestAssignment(
+          teamCapacityService.analyzeTeamCapacities
+        );
       }
 
-      // 2. Executar handoff se recomendação válida
       if (recommendation && (recommendation.teamId || recommendation.userId)) {
-        handoffId = await this.executeAssignment(conversationId, recommendation, type);
+        handoffId = await assignmentExecutionService.executeAssignment(
+          conversationId,
+          recommendation,
+          type
+        );
       }
 
-      // 3. Criar deal automático se conversa foi atribuída a equipe
       if (handoffId && recommendation?.teamId) {
-        dealId = await this.createAutomaticDeal(conversationId, recommendation.teamId);
+        dealId = await dealAutomationService.createAutomaticDeal(conversationId, recommendation.teamId);
       }
 
       return {
@@ -153,7 +70,6 @@ export class UnifiedAssignmentService {
         recommendation,
         message: 'Atribuição processada com sucesso'
       };
-
     } catch (error) {
       console.error('Erro no processamento de atribuição:', error);
       return {
@@ -161,379 +77,6 @@ export class UnifiedAssignmentService {
         message: `Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       };
     }
-  }
-
-  /**
-   * Análise inteligente com IA para determinar melhor atribuição
-   */
-  async analyzeIntelligentAssignment(
-    conversationId: number,
-    messageContent: string
-  ): Promise<HandoffRecommendation> {
-    
-    // Buscar contexto da conversa
-    const conversation = await this.getConversationContext(conversationId);
-    if (!conversation) {
-      throw new Error('Conversa não encontrada');
-    }
-
-    // Classificar mensagem com IA
-    const aiClassification = await this.aiService.classifyMessage(
-      messageContent,
-      conversation.contactId,
-      conversationId,
-      []
-    );
-
-    // Analisar capacidades das equipes
-    const teamCapacities = await this.analyzeTeamCapacities();
-
-    // Determinar melhor equipe baseado na IA e capacidade
-    const bestTeam = this.selectBestTeamForClassification(aiClassification, teamCapacities);
-    
-    if (!bestTeam) {
-      return {
-        confidence: 0,
-        reason: 'Nenhuma equipe disponível',
-        priority: 'low',
-        estimatedWaitTime: 0,
-        alternativeOptions: []
-      };
-    }
-
-    // Calcular confiança baseada em múltiplos fatores
-    const confidence = this.calculateAssignmentConfidence(
-      aiClassification,
-      bestTeam,
-      conversation
-    );
-
-    return {
-      teamId: bestTeam.teamId,
-      confidence,
-      reason: `IA detectou intenção: ${aiClassification.intent} • Equipe ${bestTeam.teamName} especializada em ${bestTeam.teamType} • Capacidade atual: ${Math.round(bestTeam.utilizationRate)}%`,
-      priority: this.mapUrgencyToPriority(aiClassification.urgency),
-      estimatedWaitTime: this.calculateWaitTime(bestTeam),
-      alternativeOptions: this.getAlternativeTeams(teamCapacities, bestTeam.teamId)
-    };
-  }
-
-  /**
-   * Análise simples de melhor atribuição por balanceamento de carga
-   */
-  async analyzeBestAssignment(conversationId: number): Promise<HandoffRecommendation> {
-    const teamCapacities = await this.analyzeTeamCapacities();
-    
-    // Selecionar equipe com menor utilização
-    const bestTeam = teamCapacities
-      .filter(team => team.isActive)
-      .sort((a, b) => a.utilizationRate - b.utilizationRate)[0];
-
-    if (!bestTeam) {
-      throw new Error('Nenhuma equipe disponível');
-    }
-
-    return {
-      teamId: bestTeam.teamId,
-      confidence: 80, // Confiança alta para balanceamento simples
-      reason: `Equipe ${bestTeam.teamName} com menor carga atual (${Math.round(bestTeam.utilizationRate)}%)`,
-      priority: 'normal',
-      estimatedWaitTime: this.calculateWaitTime(bestTeam),
-      alternativeOptions: []
-    };
-  }
-
-  /**
-   * Executa a atribuição criando handoff e atualizando conversa
-   */
-  async executeAssignment(
-    conversationId: number,
-    recommendation: HandoffRecommendation,
-    type: string
-  ): Promise<number> {
-    
-    // Criar handoff
-    const handoffData: any = {
-      conversationId,
-      toTeamId: recommendation.teamId || null,
-      toUserId: recommendation.userId || null,
-      type,
-      reason: recommendation.reason,
-      priority: recommendation.priority,
-      status: 'pending',
-      aiClassification: {
-        confidence: recommendation.confidence
-      },
-      metadata: {
-        triggerEvent: 'unified_assignment',
-        estimatedWaitTime: recommendation.estimatedWaitTime
-      }
-    };
-
-    const [handoff] = await db.insert(handoffs).values(handoffData).returning();
-
-    // Atualizar conversa
-    const updateData: any = {
-      updatedAt: new Date(),
-      priority: recommendation.priority
-    };
-
-    if (recommendation.teamId) {
-      updateData.assignedTeamId = recommendation.teamId;
-    }
-
-    if (recommendation.userId) {
-      updateData.assignedUserId = recommendation.userId;
-      updateData.assignedAt = new Date();
-    }
-
-    await db
-      .update(conversations)
-      .set(updateData)
-      .where(eq(conversations.id, conversationId));
-
-    // Marcar handoff como completado
-    await db
-      .update(handoffs)
-      .set({
-        status: 'completed',
-        completedAt: new Date()
-      })
-      .where(eq(handoffs.id, handoff.id));
-
-    console.log(`✅ Atribuição executada: Conversa ${conversationId} → Equipe ${recommendation.teamId}`);
-
-    return handoff.id;
-  }
-
-  /**
-   * Cria deal automático quando conversa é atribuída a equipe
-   */
-  async createAutomaticDeal(conversationId: number, teamId: number): Promise<number | null> {
-    try {
-      // Buscar dados da conversa
-      const conversation = await storage.conversation.getConversation(conversationId);
-      if (!conversation) {
-        console.log(`❌ Conversa ${conversationId} não encontrada para automação de deal`);
-        return null;
-      }
-
-      // Buscar dados da equipe
-      const team = await storage.getTeam(teamId);
-      if (!team) {
-        console.log(`❌ Equipe ${teamId} não encontrada para automação de deal`);
-        return null;
-      }
-
-      // Usar teamType para atribuição
-      const teamType = team.teamType || 'geral';
-      const canalOrigem = conversation.channel || 'unknown';
-
-      console.log(`🔄 Criando deal automático: contato=${conversation.contactId}, canal=${canalOrigem}, teamType=${teamType}`);
-
-      // Buscar estágio inicial correto do funil
-      const initialStage = await funnelService.getInitialStageForTeamType(teamType);
-      
-      // Criar deal automático
-      const deal = await storage.createAutomaticDeal(
-        conversation.contactId,
-        canalOrigem,
-        teamType
-      );
-
-      console.log(`✅ Deal criado automaticamente: ID ${deal.id} - ${deal.name}`);
-      
-      return deal.id;
-
-    } catch (error) {
-      console.error(`❌ Erro na automação de deal para conversa ${conversationId}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Analisa capacidades atuais de todas as equipes
-   */
-  async analyzeTeamCapacities(): Promise<TeamCapacity[]> {
-    // Buscar todas as equipes ativas
-    const teamsData = await db
-      .select({
-        id: teams.id,
-        name: teams.name,
-        teamType: teams.teamType,
-        isActive: teams.isActive,
-        priority: teams.priority
-      })
-      .from(teams)
-      .where(eq(teams.isActive, true));
-
-    const capacities: TeamCapacity[] = [];
-
-    for (const team of teamsData) {
-      // Contar usuários ativos na equipe
-      const activeUsers = await db
-        .select({ count: count() })
-        .from(userTeams)
-        .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
-        .where(
-          and(
-            eq(userTeams.teamId, team.id),
-            eq(systemUsers.isActive, true)
-          )
-        );
-
-      // Contar conversas atribuídas à equipe
-      const currentLoad = await db
-        .select({ count: count() })
-        .from(conversations)
-        .where(
-          and(
-            eq(conversations.assignedTeamId, team.id),
-            eq(conversations.status, 'open')
-          )
-        );
-
-      const userCount = activeUsers[0]?.count || 0;
-      const loadCount = currentLoad[0]?.count || 0;
-      const maxCapacity = userCount * 10; // 10 conversas por usuário
-      const utilizationRate = maxCapacity > 0 ? (loadCount / maxCapacity) * 100 : 0;
-
-      capacities.push({
-        teamId: team.id,
-        teamName: team.name,
-        teamType: team.teamType || 'geral',
-        activeUsers: userCount,
-        currentLoad: loadCount,
-        maxCapacity,
-        utilizationRate,
-        priority: team.priority || 1,
-        isActive: team.isActive || false
-      });
-    }
-
-    return capacities.sort((a, b) => a.utilizationRate - b.utilizationRate);
-  }
-
-  /**
-   * Seleciona melhor equipe baseada na classificação da IA
-   */
-  private selectBestTeamForClassification(
-    aiClassification: MessageClassification,
-    teamCapacities: TeamCapacity[]
-  ): TeamCapacity | null {
-    
-    // Mapear intenções para tipos de equipe
-    const intentToTeamType: { [key: string]: string } = {
-      'billing_inquiry': 'financeiro',
-      'technical_support': 'suporte',
-      'complaint': 'suporte',
-      'sales_interest': 'comercial',
-      'general_info': 'tutoria',
-      'course_question': 'tutoria',
-      'schedule_request': 'secretaria'
-    };
-
-    const preferredTeamType = intentToTeamType[aiClassification.intent];
-    
-    // Filtrar equipes disponíveis (menos de 80% de utilização)
-    const availableTeams = teamCapacities.filter(team => 
-      team.isActive && team.utilizationRate < 80
-    );
-
-    if (availableTeams.length === 0) {
-      return null;
-    }
-
-    // Priorizar equipe especializada se disponível
-    if (preferredTeamType) {
-      const specializedTeam = availableTeams.find(team => 
-        team.teamType === preferredTeamType
-      );
-      
-      if (specializedTeam) {
-        return specializedTeam;
-      }
-    }
-
-    // Senão, retornar equipe com menor utilização
-    return availableTeams[0];
-  }
-
-  /**
-   * Calcula confiança da atribuição baseada em múltiplos fatores
-   */
-  private calculateAssignmentConfidence(
-    aiClassification: MessageClassification,
-    team: TeamCapacity,
-    conversation: any
-  ): number {
-    let confidence = 50; // Base
-
-    // Boost por especialização da equipe
-    if (aiClassification.intent && this.teamSpecializedInIntent(team.teamType, aiClassification.intent)) {
-      confidence += 30;
-    }
-
-    // Boost por disponibilidade da equipe
-    if (team.utilizationRate < 50) {
-      confidence += 15;
-    } else if (team.utilizationRate < 80) {
-      confidence += 5;
-    }
-
-    // Boost por urgência
-    if (aiClassification.urgency === 'high' || aiClassification.urgency === 'critical') {
-      confidence += 10;
-    }
-
-    // Redução por alta frustração sem especialização
-    if (aiClassification.frustrationLevel > 7 && !this.teamSpecializedInIntent(team.teamType, aiClassification.intent)) {
-      confidence -= 20;
-    }
-
-    return Math.min(100, Math.max(0, confidence));
-  }
-
-  private teamSpecializedInIntent(teamType: string, intent: string): boolean {
-    const specializations: { [key: string]: string[] } = {
-      'financeiro': ['billing_inquiry'],
-      'suporte': ['technical_support', 'complaint'],
-      'comercial': ['sales_interest'],
-      'tutoria': ['general_info', 'course_question'],
-      'secretaria': ['schedule_request']
-    };
-
-    return specializations[teamType]?.includes(intent) || false;
-  }
-
-  private mapUrgencyToPriority(urgency: string): 'low' | 'normal' | 'high' | 'urgent' {
-    const mapping: { [key: string]: 'low' | 'normal' | 'high' | 'urgent' } = {
-      'low': 'low',
-      'normal': 'normal',
-      'high': 'high',
-      'critical': 'urgent'
-    };
-    return mapping[urgency] || 'normal';
-  }
-
-  private calculateWaitTime(team: TeamCapacity): number {
-    if (team.utilizationRate < 30) return 2; // 2 min se baixa utilização
-    if (team.utilizationRate < 70) return 5; // 5 min se média utilização
-    return Math.min(15, team.activeUsers * 2); // Max 15 min
-  }
-
-  private getAlternativeTeams(
-    teamCapacities: TeamCapacity[],
-    excludeTeamId: number
-  ): Array<{ teamId: number; reason: string; confidence: number }> {
-    return teamCapacities
-      .filter(team => team.teamId !== excludeTeamId && team.isActive && team.utilizationRate < 90)
-      .slice(0, 2)
-      .map(team => ({
-        teamId: team.teamId,
-        reason: `${team.teamName} - ${Math.round(team.utilizationRate)}% utilização`,
-        confidence: Math.max(0, 70 - team.utilizationRate)
-      }));
   }
 
   private async getConversationContext(conversationId: number) {
@@ -555,175 +98,21 @@ export class UnifiedAssignmentService {
     return conversation;
   }
 
-  /**
-   * MÉTODOS DE COMPATIBILIDADE - Para manter compatibilidade com código existente
-   */
-
-  // Compatibilidade com handoffService
-  async createHandoff(handoffData: HandoffRequest): Promise<Handoff> {
-    try {
-      // Validar dados obrigatórios
-      if (!handoffData.conversationId) {
-        throw new Error('conversationId é obrigatório');
-      }
-
-      if (!handoffData.toTeamId && !handoffData.toUserId) {
-        throw new Error('Deve ser fornecido pelo menos toTeamId ou toUserId');
-      }
-
-      // Criar handoff diretamente
-      const insertData: any = {
-        conversationId: handoffData.conversationId,
-        fromUserId: handoffData.fromUserId || null,
-        toUserId: handoffData.toUserId || null,
-        fromTeamId: handoffData.fromTeamId || null,
-        toTeamId: handoffData.toTeamId || null,
-        type: handoffData.type || 'manual',
-        reason: handoffData.reason || null,
-        priority: handoffData.priority || 'normal',
-        status: 'pending',
-        aiClassification: handoffData.aiClassification || null,
-        metadata: handoffData.metadata || null
-      };
-
-      const [handoff] = await db.insert(handoffs).values(insertData).returning();
-      
-      console.log(`🔄 Handoff criado: ${handoff.type} - Conversa ${handoff.conversationId} (ID: ${handoff.id})`);
-      
-      // Executar handoff imediatamente
-      await this.executeHandoffById(handoff.id);
-      
-      return handoff;
-
-    } catch (error) {
-      console.error('Erro ao criar handoff:', error);
-      throw error;
-    }
+  // Métodos de compatibilidade
+  async createHandoff(handoffData: any) {
+    return assignmentCompatibilityService.createHandoff(
+      handoffData,
+      assignmentCompatibilityService.executeHandoffById
+    );
   }
 
-  /**
-   * Executar handoff específico pelo ID
-   */
-  async executeHandoffById(handoffId: number): Promise<void> {
-    try {
-      const [handoff] = await db
-        .select()
-        .from(handoffs)
-        .where(eq(handoffs.id, handoffId))
-        .limit(1);
-
-      if (!handoff) {
-        throw new Error('Handoff não encontrado');
-      }
-
-      if (handoff.status !== 'pending') {
-        console.log(`⚠️ Handoff ${handoffId} já foi processado (status: ${handoff.status})`);
-        return;
-      }
-
-      // Dados para atualizar a conversa
-      const updateData: any = {
-        updatedAt: new Date(),
-        priority: handoff.priority || 'normal'
-      };
-
-      if (handoff.toTeamId) {
-        updateData.assignedTeamId = handoff.toTeamId;
-      }
-
-      if (handoff.toUserId) {
-        updateData.assignedUserId = handoff.toUserId;
-        updateData.assignedAt = new Date();
-      }
-
-      // Atualizar conversa
-      await db
-        .update(conversations)
-        .set(updateData)
-        .where(eq(conversations.id, handoff.conversationId));
-
-      // Marcar handoff como completado
-      await db
-        .update(handoffs)
-        .set({
-          status: 'completed',
-          completedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(handoffs.id, handoffId));
-
-      console.log(`✅ Handoff executado: ${handoff.type} - Conversa ${handoff.conversationId} → Equipe ${handoff.toTeamId || 'N/A'}, Usuário ${handoff.toUserId || 'N/A'}`);
-
-      // Criar deal automático se conversa foi atribuída a equipe
-      if (handoff.toTeamId) {
-        await this.createAutomaticDeal(handoff.conversationId, handoff.toTeamId);
-      }
-
-    } catch (error) {
-      console.error(`❌ Erro ao executar handoff ${handoffId}:`, error);
-      throw error;
-    }
+  async executeHandoffById(handoffId: number) {
+    return assignmentCompatibilityService.executeHandoffById(handoffId);
   }
 
-  // Compatibilidade com intelligentHandoffService
-  async analyzeAndRecommendHandoff(
-    conversationId: number,
-    messageContent: string,
-    aiClassification: MessageClassification
-  ): Promise<HandoffRecommendation> {
-    return this.analyzeIntelligentAssignment(conversationId, messageContent);
-  }
-
-  // Compatibilidade com dealAutomationService
-  async onConversationAssigned(
-    conversationId: number,
-    teamId: number,
-    assignmentMethod: 'manual' | 'automatic'
-  ) {
-    return this.createAutomaticDeal(conversationId, teamId);
-  }
-
-  /**
-   * Adicionar método para estatísticas
-   */
-  async getHandoffStats(days: number = 7): Promise<any> {
-    try {
-      const dateThreshold = new Date();
-      dateThreshold.setDate(dateThreshold.getDate() - days);
-
-      // Buscar todos os handoffs
-      const allHandoffs = await db
-        .select()
-        .from(handoffs);
-
-      // Filtrar por data
-      const recentHandoffs = allHandoffs.filter(h => 
-        h.createdAt && new Date(h.createdAt) >= dateThreshold
-      );
-
-      const totalHandoffs = recentHandoffs.length;
-      const completedHandoffs = recentHandoffs.filter(h => h.status === 'completed').length;
-      const pendingHandoffs = recentHandoffs.filter(h => h.status === 'pending').length;
-
-      return {
-        totalHandoffs,
-        completedHandoffs,
-        pendingHandoffs,
-        completionRate: totalHandoffs > 0 ? Math.round((completedHandoffs / totalHandoffs) * 100) : 0,
-        periodDays: days
-      };
-
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas de handoffs:', error);
-      return {
-        totalHandoffs: 0,
-        completedHandoffs: 0,
-        pendingHandoffs: 0,
-        completionRate: 0,
-        periodDays: days
-      };
-    }
+  async getHandoffStats(days: number = 7) {
+    return assignmentCompatibilityService.getHandoffStats(days);
   }
 }
 
-export const unifiedAssignmentService = new UnifiedAssignmentService();
+export const unifiedAssignmentService = new UnifiedAssignmentService(); 

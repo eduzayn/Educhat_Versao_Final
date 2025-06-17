@@ -5,6 +5,7 @@
 
 import type { Request, Response, Express } from "express";
 import { storage } from "../../../storage";
+import { conversationAssignmentService } from '../../../services/conversationAssignmentService';
 
 /**
  * Handler para webhook Manychat
@@ -122,12 +123,12 @@ export async function assignTeamManually(conversationId: number, teamId?: number
                           currentConversation.assignedTeamId !== teamId;
     
     if (shouldReassign) {
-      await storage.assignConversationToTeam(conversationId, teamId, 'manual');
+      await conversationAssignmentService.assignConversationToTeam(conversationId, teamId, { method: 'manual' });
       console.log(`✅ Conversa ID ${conversationId} atribuída manualmente à equipe`);
       
       const availableUser = await storage.getAvailableUserFromTeam(teamId);
       if (availableUser) {
-        await storage.assignConversationToUser(conversationId, availableUser.id, 'manual');
+        await conversationAssignmentService.assignConversationToUser(conversationId, availableUser.id, { method: 'manual' });
         console.log(`👤 Conversa atribuída manualmente ao usuário ${availableUser.displayName}`);
       }
     }

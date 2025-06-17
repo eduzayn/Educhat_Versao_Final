@@ -1,6 +1,7 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 import { storage } from "../../storage";
+import { conversationAssignmentService } from '../../services/conversationAssignmentService';
 
 export function registerTeamsAssignmentsRoutes(app: Express) {
   // Assign conversation to team - REST: POST /api/teams/:teamId/assign-conversation
@@ -13,7 +14,7 @@ export function registerTeamsAssignmentsRoutes(app: Express) {
         return res.status(400).json({ message: 'conversationId é obrigatório' });
       }
 
-      await storage.assignConversationToTeam(conversationId, teamId);
+      await conversationAssignmentService.assignConversationToTeam(conversationId, teamId);
       
       // Broadcast assignment notification
       const { broadcastToAll } = await import('../realtime');
@@ -43,7 +44,7 @@ export function registerTeamsAssignmentsRoutes(app: Express) {
         return res.status(400).json({ message: 'conversationId e userId são obrigatórios' });
       }
 
-      await storage.assignConversationToUser(conversationId, userId);
+      await conversationAssignmentService.assignConversationToUser(conversationId, userId);
       
       // Broadcast assignment notification
       const { broadcastToAll } = await import('../realtime');
