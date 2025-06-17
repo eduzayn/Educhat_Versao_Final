@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
@@ -30,29 +30,43 @@ export function ConversationListHeader({
   setShowFilters,
   onNewContact
 }: ConversationListHeaderProps) {
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Sincronizar com prop externa
+  // Sincronizar com prop externa apenas na inicialização
   useEffect(() => {
-    setDebouncedSearchTerm(searchTerm);
-  }, [searchTerm]);
-
-  // Debounce da busca para melhor performance
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setSearchTerm(debouncedSearchTerm);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [debouncedSearchTerm, setSearchTerm]);
+    setLocalSearchTerm(searchTerm);
+  }, []);
 
   const handleSearchChange = useCallback((value: string) => {
-    setDebouncedSearchTerm(value);
+    setLocalSearchTerm(value);
+    
+    // Limpar timeout anterior
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Definir novo timeout para debounce
+    debounceRef.current = setTimeout(() => {
+      setSearchTerm(value);
+    }, 500); // Aumentei para 500ms para reduzir ainda mais as requisições
+  }, [setSearchTerm]);
+
+  // Cleanup do timeout
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
   }, []);
 
   const clearFilters = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setLocalSearchTerm('');
     setSearchTerm('');
-    setDebouncedSearchTerm('');
     setStatusFilter('all');
     setChannelFilter('all');
     setShowFilters(false);
@@ -109,17 +123,20 @@ export function ConversationListHeader({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Buscar conversas..."
-            value={debouncedSearchTerm}
+            value={localSearchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 pr-10 border-gray-300 focus:ring-2 focus:ring-educhat-primary focus:border-transparent"
             aria-label="Campo de busca de conversas"
           />
-          {debouncedSearchTerm && (
+          {localSearchTerm && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                setDebouncedSearchTerm('');
+                if (debounceRef.current) {
+                  clearTimeout(debounceRef.current);
+                }
+                setLocalSearchTerm('');
                 setSearchTerm('');
               }}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100"
