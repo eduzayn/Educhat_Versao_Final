@@ -125,4 +125,4 @@ export function registerQuickRepliesGetRoutes(app: Express) {
       res.status(500).json({ message: 'Failed to fetch quick reply' });
     }
   });
-} 
+}
