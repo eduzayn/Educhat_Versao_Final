@@ -100,21 +100,21 @@ export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
                 <MessageSquare className="h-4 w-4 text-blue-500" />
                 <span className="text-sm">Feedback</span>
               </div>
-              <div className="text-2xl font-bold mt-2">{stats.byType.feedback}</div>
+              <div className="text-2xl font-bold mt-2">{safeStats.byType.feedback}</div>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4 text-green-500" />
                 <span className="text-sm">Metas</span>
               </div>
-              <div className="text-2xl font-bold mt-2">{stats.byType.goal}</div>
+              <div className="text-2xl font-bold mt-2">{safeStats.byType.goal}</div>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-purple-500" />
                 <span className="text-sm">Treinamento</span>
               </div>
-              <div className="text-2xl font-bold mt-2">{stats.byType.training}</div>
+              <div className="text-2xl font-bold mt-2">{safeStats.byType.training}</div>
             </div>
           </div>
         </CardContent>

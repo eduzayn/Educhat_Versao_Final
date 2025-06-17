@@ -52,7 +52,7 @@ export function registerChartsRoutes(app: Express) {
 
       // Distribuição por canal
       const channelDistribution = wonDeals.reduce((acc, deal) => {
-        const channel = deal.channel || 'whatsapp';
+        const channel = deal.canalOrigem || 'whatsapp';
         if (!acc[channel]) {
           acc[channel] = { name: channel, value: 0, deals: 0 };
         }
