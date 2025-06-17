@@ -15,12 +15,25 @@ router.get('/:channelId/messages', async (req: Request, res: Response) => {
 
     const channelId = req.params.channelId;
     
-    // Extrair ID do banco se for canal direto
+    // Extrair ID do banco baseado no tipo de canal
     let dbChannelId: number;
     if (channelId.startsWith('direct-')) {
       dbChannelId = parseInt(channelId.replace('direct-', ''));
+    } else if (channelId.startsWith('team-')) {
+      dbChannelId = parseInt(channelId.replace('team-', ''));
+    } else if (channelId === 'general') {
+      // Canal geral tem ID fixo
+      const generalChannel = await db
+        .select({ id: internalChatChannels.id })
+        .from(internalChatChannels)
+        .where(eq(internalChatChannels.type, 'general'))
+        .limit(1);
+      
+      if (generalChannel.length === 0) {
+        return res.json([]);
+      }
+      dbChannelId = generalChannel[0].id;
     } else {
-      // Para canais normais, ainda não implementado
       return res.json([]);
     }
 
@@ -65,10 +78,24 @@ router.post('/:channelId/messages', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
     }
 
-    // Extrair ID do banco se for canal direto
+    // Extrair ID do banco baseado no tipo de canal
     let dbChannelId: number;
     if (channelId.startsWith('direct-')) {
       dbChannelId = parseInt(channelId.replace('direct-', ''));
+    } else if (channelId.startsWith('team-')) {
+      dbChannelId = parseInt(channelId.replace('team-', ''));
+    } else if (channelId === 'general') {
+      // Canal geral tem ID fixo
+      const generalChannel = await db
+        .select({ id: internalChatChannels.id })
+        .from(internalChatChannels)
+        .where(eq(internalChatChannels.type, 'general'))
+        .limit(1);
+      
+      if (generalChannel.length === 0) {
+        return res.status(404).json({ error: 'Canal geral não encontrado' });
+      }
+      dbChannelId = generalChannel[0].id;
     } else {
       return res.status(400).json({ error: 'Tipo de canal não suportado' });
     }
