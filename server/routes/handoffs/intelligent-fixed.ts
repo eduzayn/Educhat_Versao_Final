@@ -4,6 +4,39 @@ import { validateInternalCall, validateConversationId } from './middleware';
 
 const router = Router();
 
+// Função de classificação inteligente de mensagens
+async function classifyMessage(messageContent: string) {
+  const content = messageContent.toLowerCase();
+  
+  // Palavras-chave para diferentes equipes
+  const keywords = {
+    comercial: ['curso', 'matricula', 'valor', 'preço', 'desconto', 'oferta', 'venda', 'comprar', 'adquirir', 'quanto custa'],
+    suporte: ['problema', 'erro', 'bug', 'não funciona', 'ajuda', 'dificuldade', 'não consigo', 'travou', 'lento'],
+    cobranca: ['pagamento', 'boleto', 'fatura', 'pagar', 'débito', 'pendência', 'cobrança', 'vencimento'],
+    secretaria: ['documento', 'certificado', 'diploma', 'declaração', 'histórico', 'comprovante'],
+    tutoria: ['dúvida', 'matéria', 'conteúdo', 'exercício', 'prova', 'trabalho', 'tcc', 'aula']
+  };
+  
+  let bestMatch = { teamType: 'comercial', confidence: 0.3, reason: 'Classificação padrão' };
+  
+  // Verificar correspondências
+  for (const [teamType, words] of Object.entries(keywords)) {
+    const matches = words.filter(word => content.includes(word)).length;
+    if (matches > 0) {
+      const confidence = Math.min(0.9, 0.5 + (matches * 0.1));
+      if (confidence > bestMatch.confidence) {
+        bestMatch = {
+          teamType,
+          confidence,
+          reason: `Detectadas ${matches} palavras-chave relacionadas a ${teamType}`
+        };
+      }
+    }
+  }
+  
+  return bestMatch;
+}
+
 // POST /api/handoffs/intelligent/analyze - Análise inteligente de handoff
 router.post('/analyze', validateConversationId, async (req, res) => {
   try {
@@ -61,16 +94,69 @@ router.post('/execute', validateConversationId, async (req, res) => {
       return res.status(404).json({ error: 'Conversa não encontrada' });
     }
 
+    // Classificação inteligente baseada no conteúdo da mensagem
+    const classification = await classifyMessage(messageContent);
+    console.log(`🤖 Classificação IA: ${classification.teamType} (confiança: ${classification.confidence})`);
+    
+    // Buscar equipe correspondente
+    const team = await storage.getTeamByTeamType(classification.teamType);
+    if (!team) {
+      console.log(`⚠️ Equipe não encontrada para tipo: ${classification.teamType}`);
+      return res.json({
+        success: false,
+        error: 'Equipe não encontrada',
+        classification,
+        handoffCreated: false
+      });
+    }
+
+    // Atualizar conversa com a equipe atribuída
+    await storage.updateConversation(conversationId, {
+      teamType: classification.teamType,
+      assignedUserId: null, // Será atribuído pelo round-robin depois
+      status: 'open'
+    });
+
+    // Criar deal automático se necessário
+    let dealCreated = false;
+    let dealId = null;
+    
+    try {
+      const { dealAutomationService } = await import('../../services/dealAutomationService');
+      dealId = await dealAutomationService.createAutomaticDeal(conversationId, team.id);
+      dealCreated = !!dealId;
+      
+      if (dealCreated) {
+        console.log(`✅ Deal criado automaticamente: ID ${dealId} para conversa ${conversationId}`);
+      }
+    } catch (dealError) {
+      console.error('Erro ao criar deal automático:', dealError);
+      // Não falhar o handoff por causa do deal
+    }
+
     const handoffResult = {
       success: true,
-      handoffId: 1,
-      teamId: 1,
-      userId: null
+      handoffId: Date.now(), // Simulated ID
+      teamId: team.id,
+      teamType: classification.teamType,
+      userId: null,
+      dealCreated,
+      dealId
     };
 
     res.json({
       success: true,
       handoff: handoffResult,
+      classification,
+      recommendation: {
+        teamId: team.id,
+        teamType: classification.teamType,
+        confidence: classification.confidence,
+        reason: classification.reason
+      },
+      handoffCreated: true,
+      dealCreated,
+      dealId,
       executionTime: '200ms'
     });
   } catch (error) {
