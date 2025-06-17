@@ -65,7 +65,7 @@ export class IntelligentHandoffService {
           priority: handoffs.priority,
           status: handoffs.status,
           createdAt: handoffs.createdAt,
-          fromUser: systemUsers.name,
+          fromUser: systemUsers.displayName,
           fromTeam: teams.name
         })
         .from(handoffs)
@@ -100,7 +100,7 @@ export class IntelligentHandoffService {
           priority: handoffs.priority,
           status: handoffs.status,
           createdAt: handoffs.createdAt,
-          fromUser: systemUsers.name,
+          fromUser: systemUsers.displayName,
           fromTeam: teams.name
         })
         .from(handoffs)

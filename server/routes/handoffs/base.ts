@@ -2,7 +2,7 @@ import { Router } from 'express';
 // import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { handoffs as handoffsTable } from '@shared/schema';
 import { db } from '../../db';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { createHandoffSchema } from './config';
 import { validateHandoffId } from './middleware';
 
@@ -57,7 +57,18 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const handoff = await unifiedAssignmentService.createHandoff(data);
+    // Criar handoff diretamente no banco
+    const [handoff] = await db.insert(handoffsTable).values({
+      conversationId: data.conversationId,
+      fromUserId: data.fromUserId,
+      toUserId: data.toUserId,
+      fromTeamId: data.fromTeamId,
+      toTeamId: data.toTeamId,
+      type: data.type,
+      reason: data.reason,
+      priority: data.priority || 'normal',
+      status: 'pending'
+    }).returning();
     
     res.status(201).json({
       success: true,
@@ -76,7 +87,8 @@ router.post('/', async (req, res) => {
 router.get('/:id', validateHandoffId, async (req, res) => {
   try {
     const handoffId = parseInt(req.params.id);
-    const handoff = await handoffService.getHandoffById(handoffId);
+    // Buscar handoff diretamente no banco
+    const [handoff] = await db.select().from(handoffsTable).where(eq(handoffsTable.id, handoffId)).limit(1);
     
     if (!handoff) {
       return res.status(404).json({
