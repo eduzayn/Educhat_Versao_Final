@@ -9,6 +9,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { useInternalChatStore } from "../store/internalChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { GeneralSettings } from "./GeneralSettings";
 
 export function ChannelSidebar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,9 +85,7 @@ export function ChannelSidebar() {
                 {totalUnread}
               </Badge>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <GeneralSettings />
           </div>
         </div>
 
