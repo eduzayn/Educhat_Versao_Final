@@ -140,9 +140,9 @@ export function InfoPanel() {
 
             <div className="space-y-2">
               {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => (
+                filteredMembers.map((member, index) => (
                   <div
-                    key={member.id}
+                    key={`member-${member.id}-${index}`}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group border border-transparent hover:border-muted"
                   >
                     <div className="relative flex-shrink-0">
