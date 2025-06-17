@@ -285,6 +285,36 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  // PUT /api/contact-notes/:id - Editar nota do contato
+  app.put('/api/contact-notes/:id', async (req: Request, res: Response) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const { content } = req.body;
+      
+      if (!content || !content.trim()) {
+        return res.status(400).json({ error: 'Conteúdo da nota é obrigatório' });
+      }
+      
+      const note = await storage.updateContactNote(noteId, { content: content.trim() });
+      res.json(note);
+    } catch (error) {
+      console.error('Erro ao atualizar nota:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // DELETE /api/contact-notes/:id - Excluir nota do contato
+  app.delete('/api/contact-notes/:id', async (req: Request, res: Response) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      await storage.deleteContactNote(noteId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao excluir nota:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // GET /api/contacts/:id/interests - Buscar interesses do contato
   app.get('/api/contacts/:id/interests', async (req: Request, res: Response) => {
     try {
