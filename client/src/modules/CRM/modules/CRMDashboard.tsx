@@ -187,9 +187,9 @@ export function CRMDashboard() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.companiesCount}</div>
+            <div className="text-2xl font-bold">{filteredKpis.companiesCount}</div>
             <p className="text-xs text-muted-foreground">
-              {kpis.activitiesThisWeek} atividades esta semana
+              {filteredKpis.activitiesThisWeek} atividades esta semana
             </p>
           </CardContent>
         </Card>
