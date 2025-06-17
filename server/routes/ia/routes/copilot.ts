@@ -32,10 +32,12 @@ router.post('/', async (req, res) => {
     console.log('🎓 Copilot Prof. Ana - Processando mensagem:', message);
     console.log('👤 Usuário:', userId);
     
-    // Tentar usar IA em tempo real
+    // Tentar usar IA em tempo real primeiro
     let aiResponse;
     try {
+      console.log('🤖 Tentando usar IA em tempo real...');
       aiResponse = await generateAIResponse(message);
+      console.log('✅ IA respondeu com sucesso');
     } catch (aiError) {
       console.error('❌ Erro na IA, usando fallback:', aiError);
       aiResponse = generateFallbackResponse(message);
@@ -61,8 +63,8 @@ router.post('/', async (req, res) => {
  * Gera resposta usando IA em tempo real com configurações do banco
  */
 async function generateAIResponse(message: string) {
-  // Buscar configurações de IA do banco
-  const [config] = await db.select().from(aiConfig).limit(1);
+  // Buscar configurações de IA
+  const config = await getAIConfig();
   
   if (!config || !config.isActive) {
     throw new Error('Configuração de IA não encontrada ou inativa');
