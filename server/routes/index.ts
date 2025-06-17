@@ -41,6 +41,7 @@ import { registerNotificationRoutes } from "./notifications/index";
 import { registerTeamsIntegratedChatRoutes } from "./internal-chat/index";
 import internalNotesRouter from "./internal-notes/index";
 import reportsRouter from "./reports";
+import activitiesRouter from "./activities/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
@@ -85,6 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api', internalNotesRouter);
   app.use('/api/reports', reportsRouter);
+  app.use('/api/activities', activitiesRouter);
   registerNotificationRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
 
