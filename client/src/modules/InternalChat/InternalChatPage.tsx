@@ -44,7 +44,7 @@ export default function InternalChatPage() {
 
         {/* Panel Lateral de Informações */}
         {showInfoPanel && (
-          <div className="w-[280px] sm:w-[300px] lg:w-[350px] border-l bg-card flex shrink-0">
+          <div className="w-[320px] sm:w-[360px] lg:w-[400px] border-l bg-card flex shrink-0">
             <InfoPanel />
           </div>
         )}

@@ -146,9 +146,9 @@ export function InfoPanel() {
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group border border-transparent hover:border-muted"
                   >
                     <div className="relative flex-shrink-0">
-                      <Avatar className="h-9 w-9">
+                      <Avatar className="h-10 w-10">
                         <AvatarImage src={member.avatar || ""} />
-                        <AvatarFallback className="text-xs">
+                        <AvatarFallback className="text-sm font-medium">
                           {member.displayName
                             .split(" ")
                             .map((n) => n[0])
@@ -161,34 +161,36 @@ export function InfoPanel() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <p className="text-sm font-medium truncate">
-                          {member.displayName}
-                        </p>
-                        {getRoleIcon(member.roleName)}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-muted-foreground truncate">
-                          @{member.username}
-                        </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {member.displayName}
+                          </p>
+                          {getRoleIcon(member.roleName)}
+                        </div>
                         {member.roleName && (
                           <Badge
                             variant={getRoleBadgeVariant(member.roleName)}
-                            className="text-xs px-1.5 py-0.5 flex-shrink-0"
+                            className="text-xs px-2 py-0.5 flex-shrink-0"
                           >
                             {getDisplayRoleName(member.roleName)}
                           </Badge>
                         )}
                       </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-muted-foreground truncate">
+                          @{member.username}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Botão de mensagem privada */}
                     {member.id !== (user as any)?.id && (
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
                           onClick={() => setSelectedUserForPrivateChat(member)}
                           title={`Enviar mensagem privada para ${member.displayName}`}
                         >
