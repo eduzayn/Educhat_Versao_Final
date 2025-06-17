@@ -2,8 +2,9 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
-import { ActionButtons } from './ActionButtons';
-
+import { Button } from '@/shared/ui/button';
+import { Send, Mic } from 'lucide-react';
+import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder/AudioRecorder';
 import { QuickReplyDropdown } from './QuickReplyDropdown';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
 import type { QuickReply } from '@shared/schema';
@@ -18,7 +19,9 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [filteredReplies, setFilteredReplies] = useState<QuickReply[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const audioRecorderRef = useRef<AudioRecorderRef>(null);
 
   const { data: quickReplies = [] } = useQuickReplies();
   const incrementUsageMutation = useIncrementQuickReplyUsage();
@@ -86,6 +89,19 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
   const handleSendAudio = async (audioBlob: Blob, duration: number) => {
     await sendAudio(audioBlob, duration);
+    setShowAudioRecorder(false);
+  };
+
+  const handleMicClick = () => {
+    if (showAudioRecorder) {
+      setShowAudioRecorder(false);
+    } else {
+      setShowAudioRecorder(true);
+    }
+  };
+
+  const handleAudioCancel = () => {
+    setShowAudioRecorder(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -128,7 +144,17 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         selectedIndex={selectedIndex}
       />
 
-
+      {/* Audio Recorder - posicionado acima do textarea */}
+      {showAudioRecorder && (
+        <div className="mb-3">
+          <AudioRecorder
+            ref={audioRecorderRef}
+            onSendAudio={handleSendAudio}
+            onCancel={handleAudioCancel}
+            autoStart={true}
+          />
+        </div>
+      )}
 
       <div className="flex items-end gap-3">
         <MediaAttachmentModal
@@ -150,12 +176,27 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
           />
         </div>
 
-        <ActionButtons
-          onSendMessage={handleSendMessage}
-          onSendAudio={handleSendAudio}
-          canSend={message.trim().length > 0}
-          isLoading={isLoading}
-        />
+        {/* Botões de ação */}
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleMicClick}
+            className={`${showAudioRecorder ? 'bg-red-100 text-red-600' : ''}`}
+            aria-label="Gravar áudio"
+          >
+            <Mic className="w-4 h-4" />
+          </Button>
+
+          <Button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || isLoading}
+            size="sm"
+            aria-label="Enviar mensagem"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
