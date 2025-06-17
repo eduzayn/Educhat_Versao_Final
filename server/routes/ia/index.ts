@@ -7,6 +7,7 @@ import uploadRouter from './routes/upload';
 import memoryListRouter from './routes/memory/list';
 import memoryOperationsRouter from './routes/memory/operations';
 import memorySearchRouter from './routes/memory/search';
+import copilotRouter from './routes/copilot';
 
 const router = Router();
 
@@ -29,5 +30,8 @@ router.use('/upload-training', uploadRouter);
 router.use('/memory', memoryListRouter);
 router.use('/memory', memoryOperationsRouter);
 router.use('/memory', memorySearchRouter);
+
+// Rota do copilot
+router.use('/copilot', copilotRouter);
 
 export default router;

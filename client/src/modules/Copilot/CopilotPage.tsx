@@ -46,7 +46,7 @@ export default function CopilotPage() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
-  const { user } = useAuth() as { user: User | null };
+  const { user } = useAuth() as { user: User };
 
   // Mensagem de boas-vindas
   useEffect(() => {

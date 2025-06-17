@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { aiService } from '../../../services/aiService';
-import { IATestResponse } from '../types';
 
 const router = Router();
 
@@ -18,29 +16,36 @@ router.post('/', async (req, res) => {
     console.log('🎓 Copilot Prof. Ana - Processando mensagem:', message);
     console.log('👤 Usuário:', userId);
     
-    // Usar o contexto específico do copilot para foco em conteúdo interno
-    const classification = await aiService.classifyMessage(message, 0, 0, [], {
-      mode: 'copilot',
-      context: 'internal_knowledge',
-      focus: 'courses_policies_procedures'
-    });
-    
-    const response = await aiService.generateResponse(message, classification, 0, 0, {
-      mode: 'copilot',
-      systemRole: 'internal_assistant',
-      context: 'prof_ana_copilot'
-    });
-    
-    // Log para análise posterior
-    console.log('📊 Resposta do Copilot gerada:', {
-      confidence: classification.confidence,
-      intent: classification.intent,
-      responseLength: response.message?.length || 0
-    });
-    
-    const copilotResponse: IATestResponse = {
-      message: response.message,
-      classification: response.classification
+    // Por enquanto, resposta simples até integrar com IA
+    const copilotResponse = {
+      message: `Olá! Sou a Prof. Ana, sua assistente inteligente. 
+
+Analisando sua pergunta: "${message}"
+
+Como assistente especializada, posso ajudar você com:
+
+📚 **Informações sobre cursos**
+- Detalhes de graduação, pós-graduação e cursos técnicos
+- Requisitos de matrícula e documentação
+- Cronogramas e modalidades
+
+💼 **Processos internos**
+- Como usar o EduChat de forma eficiente
+- Melhores práticas de atendimento
+- Procedimentos de vendas e suporte
+
+🎯 **Políticas institucionais**
+- Regulamentos acadêmicos
+- Políticas de desconto e pagamento
+- Procedimentos de certificação
+
+Pode fazer sua pergunta específica que terei prazer em ajudar!`,
+      classification: {
+        intent: 'copilot_query',
+        confidence: 0.9,
+        sentiment: 'neutral',
+        urgency: 'medium'
+      }
     };
 
     res.json(copilotResponse);
