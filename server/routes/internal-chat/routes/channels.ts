@@ -263,7 +263,7 @@ router.post('/direct/:targetUserId', async (req: Request, res: Response) => {
           name: `Conversa entre ${req.user.displayName || req.user.username} e ${targetUser[0].displayName || targetUser[0].username}`,
           description: 'Canal de mensagem direta',
           isPrivate: true,
-          participantIds: participantIds,
+          participants: participantIds,
           createdBy: currentUserId,
         })
         .returning();
