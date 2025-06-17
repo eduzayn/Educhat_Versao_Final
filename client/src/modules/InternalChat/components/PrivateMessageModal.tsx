@@ -426,8 +426,8 @@ export function PrivateMessageModal({
         {!isMinimized && (
           <>
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 max-h-[500px] overflow-y-auto">
+              <div className="p-4 space-y-4">
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     <Avatar className="h-16 w-16 mx-auto mb-3">
