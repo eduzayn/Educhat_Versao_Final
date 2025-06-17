@@ -54,6 +54,90 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
 
     const savedMessage = await storage.createMessage(messageData);
 
+    // ENVIO VIA Z-API PARA O WHATSAPP
+    try {
+      // Buscar dados da conversa para obter o telefone do contato
+      const conversation = await storage.getConversation(parseInt(conversationId));
+      if (conversation?.contact?.phone) {
+        const { validateZApiCredentials, buildZApiUrl } = await import('../../../utils/zapi');
+        const credentials = validateZApiCredentials();
+        
+        if (credentials.valid) {
+          const { instanceId, token, clientToken } = credentials;
+          const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
+          
+          // Converter arquivo para base64 para envio via Z-API
+          const fs = await import('fs');
+          const path = await import('path');
+          const filePath = path.join(process.cwd(), 'uploads', 'media', req.file.filename);
+          const fileBuffer = fs.readFileSync(filePath);
+          const fileBase64 = fileBuffer.toString('base64');
+          const dataUrl = `data:${req.file.mimetype};base64,${fileBase64}`;
+          
+          let endpoint = '';
+          let payload: any = {
+            phone: cleanPhone
+          };
+          
+          // Definir endpoint e payload baseado no tipo de arquivo
+          if (fileType === 'image') {
+            endpoint = 'send-image';
+            payload.image = dataUrl;
+            if (caption) payload.caption = caption;
+          } else if (fileType === 'video') {
+            endpoint = 'send-video';
+            payload.video = dataUrl;
+            if (caption) payload.caption = caption;
+          } else if (fileType === 'audio') {
+            endpoint = 'send-audio';
+            payload.audio = dataUrl;
+          } else {
+            endpoint = 'send-document';
+            payload.document = dataUrl;
+            payload.fileName = req.file.originalname;
+            if (caption) payload.caption = caption;
+          }
+          
+          const url = buildZApiUrl(instanceId, token, endpoint);
+          
+          console.log(`📤 Enviando ${fileType} via Z-API para ${cleanPhone}`);
+          
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Client-Token': clientToken,
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const zapiData = await response.json();
+            console.log(`✅ ${fileType} enviado com sucesso via Z-API`);
+            
+            // Atualizar mensagem com ID da Z-API
+            await storage.updateMessage(savedMessage.id, {
+              metadata: {
+                ...savedMessage.metadata,
+                zaapId: zapiData.messageId || zapiData.id,
+                sentViaZapi: true
+              }
+            });
+          } else {
+            const errorText = await response.text();
+            console.error(`❌ Erro ao enviar ${fileType} via Z-API:`, errorText);
+          }
+        } else {
+          console.warn('⚠️ Credenciais Z-API não configuradas, mídia salva apenas localmente');
+        }
+      } else {
+        console.warn('⚠️ Telefone do contato não encontrado, mídia salva apenas localmente');
+      }
+    } catch (zapiError) {
+      console.error('❌ Erro na integração Z-API:', zapiError);
+      // Continuar mesmo se o envio Z-API falhar
+    }
+
     // Broadcast via WebSocket
     const { broadcast } = await import('../../realtime');
     broadcast(parseInt(conversationId), {
