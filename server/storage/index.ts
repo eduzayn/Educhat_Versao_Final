@@ -606,6 +606,36 @@ export class CentralStorage {
       this.conversation.getConversationByContactAndChannel(contactId, channel) : null;
   }
 
+  // ==================== INTERNAL NOTES METHODS ====================
+  async getInternalNotes(conversationId: number) {
+    return this.message.getInternalNotes(conversationId);
+  }
+
+  async createInternalNote(data: {
+    conversationId: number;
+    content: string;
+    authorId: number;
+    authorName: string;
+    noteType?: string;
+    notePriority?: string;
+    noteTags?: string[];
+    isPrivate?: boolean;
+  }) {
+    return this.message.createInternalNote(data);
+  }
+
+  async updateInternalNote(id: number, data: any) {
+    return this.message.updateInternalNote(id, data);
+  }
+
+  async getInternalNotesByPriority(conversationId: number, priority: string) {
+    return this.message.getInternalNotesByPriority(conversationId, priority);
+  }
+
+  async getInternalNotesByTags(conversationId: number, tags: string[]) {
+    return this.message.getInternalNotesByTags(conversationId, tags);
+  }
+
   // ==================== COMPATIBILITY ALIASES ====================
   get contacts() {
     return this.contact;

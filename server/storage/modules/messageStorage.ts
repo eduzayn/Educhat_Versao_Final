@@ -97,8 +97,34 @@ export class MessageStorage extends BaseStorage {
     return this.notesOps.getInternalNotes(conversationId);
   }
 
-  async createInternalNote(conversationId: number, content: string, authorId: number, authorName: string): Promise<Message> {
-    return this.notesOps.createInternalNote(conversationId, content, authorId, authorName);
+  async createInternalNote(data: {
+    conversationId: number;
+    content: string;
+    authorId: number;
+    authorName: string;
+    noteType?: string;
+    notePriority?: string;
+    noteTags?: string[];
+    isPrivate?: boolean;
+  }): Promise<Message> {
+    return this.notesOps.createInternalNote(data);
+  }
+
+  async updateInternalNote(id: number, data: any): Promise<Message> {
+    return this.notesOps.updateInternalNote(id, data);
+  }
+
+  async getInternalNotesByPriority(conversationId: number, priority: string): Promise<Message[]> {
+    return this.notesOps.getInternalNotesByPriority(conversationId, priority);
+  }
+
+  async getInternalNotesByTags(conversationId: number, tags: string[]): Promise<Message[]> {
+    return this.notesOps.getInternalNotesByTags(conversationId, tags);
+  }
+
+  // Getter para acessar diretamente as operações de notas internas
+  get messageInternalNotesOps() {
+    return this.notesOps;
   }
 
   // Z-API operations

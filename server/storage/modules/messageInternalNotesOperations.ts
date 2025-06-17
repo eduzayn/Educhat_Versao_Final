@@ -68,7 +68,7 @@ export class MessageInternalNotesOperations extends BaseStorage {
 
   async updateInternalNote(id: number, data: Partial<InsertMessage>): Promise<Message> {
     const [updated] = await this.db.update(messages)
-      .set({ ...data, updatedAt: new Date() })
+      .set(data)
       .where(and(
         eq(messages.id, id),
         eq(messages.isInternalNote, true)
