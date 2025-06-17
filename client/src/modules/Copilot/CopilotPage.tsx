@@ -15,10 +15,12 @@ import {
   MessageSquare,
   BookOpen,
   Clock,
-  Brain
+  Brain,
+  ArrowLeft
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { useLocation } from 'wouter';
 
 interface User {
   id?: number;
@@ -47,6 +49,7 @@ export default function CopilotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth() as { user: User };
+  const [, setLocation] = useLocation();
 
   // Mensagem de boas-vindas
   useEffect(() => {
@@ -175,6 +178,14 @@ Como posso ajudar você hoje?`,
       <div className="bg-white dark:bg-gray-800 border-b shadow-sm p-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/dashboard')}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <div className="relative">
               <Avatar className="w-12 h-12 border-2 border-blue-200">
                 <AvatarImage src="/prof-ana-avatar.png" />
