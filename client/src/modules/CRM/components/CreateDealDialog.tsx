@@ -32,10 +32,12 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
   });
 
   // Buscar contatos
-  const { data: contacts } = useQuery({
+  const { data: contactsResponse } = useQuery({
     queryKey: ['/api/contacts'],
     enabled: isOpen && !preselectedContactId,
   });
+
+  const contacts = contactsResponse?.data || [];
 
   // Buscar categorias e cursos
   const { data: categories } = useQuery({
@@ -148,11 +150,17 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
                   <SelectValue placeholder="Selecione um contato" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.isArray(contacts?.data) ? contacts.data.map((contact: any) => (
-                    <SelectItem key={contact.id} value={contact.id.toString()}>
-                      {contact.name} {contact.phone && `(${contact.phone})`}
+                  {contacts.length > 0 ? (
+                    contacts.map((contact: any) => (
+                      <SelectItem key={contact.id} value={contact.id.toString()}>
+                        {contact.name} {contact.phone && `(${contact.phone})`}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      Nenhum contato encontrado
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
