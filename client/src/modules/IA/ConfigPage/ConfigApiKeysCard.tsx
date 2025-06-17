@@ -46,7 +46,11 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
   };
 
   const getDisplayValue = (key: string, keyName: string) => {
-    if (editingKeys[keyName] || visibleKeys[keyName] || !key) return key;
+    // Se está editando ou visível, mostrar valor real
+    if (editingKeys[keyName] || visibleKeys[keyName] || !key) {
+      return key;
+    }
+    // Caso contrário, mostrar mascarado
     return maskApiKey(key);
   };
 
