@@ -14,6 +14,7 @@ import type { DateRange } from "react-day-picker";
 import { ContactDialog } from '@/shared/components/ContactDialog';
 import { CreateDealDialog } from '../components/CreateDealDialog';
 import { ScheduleActivityDialog } from '../components/ScheduleActivityDialog';
+import { EmailComposerDialog } from '../components/EmailComposerDialog';
 
 export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showDealDialog, setShowDealDialog] = useState(false);
   const [showActivityDialog, setShowActivityDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
 
   const handleDateSelect = (range: DateRange | undefined) => {
     setDateRange(range);
@@ -158,7 +160,7 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
                 <Phone className="h-4 w-4 mr-2" />
                 Ligar para Contato
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.open('/contacts', '_blank')}>
+              <DropdownMenuItem onClick={() => setShowEmailDialog(true)}>
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email
               </DropdownMenuItem>
@@ -191,6 +193,11 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
       <ScheduleActivityDialog 
         isOpen={showActivityDialog} 
         onClose={() => setShowActivityDialog(false)}
+      />
+      
+      <EmailComposerDialog 
+        isOpen={showEmailDialog} 
+        onClose={() => setShowEmailDialog(false)}
       />
     </div>
   );

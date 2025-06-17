@@ -86,6 +86,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerNotificationRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
 
+  // Registrar rotas de email
+  const emailRouter = await import('./emails/index');
+  app.use('/api/emails', emailRouter.default);
+
+  // Registrar rotas de contatos para email
+  const contactEmailRouter = await import('./contacts/email-list');
+  app.use('/api/contacts/email-list', contactEmailRouter.default);
+
+  // Registrar rotas de grupos de contatos
+  const contactGroupsRouter = await import('./contact-groups/index');
+  app.use('/api/contact-groups', contactGroupsRouter.default);
+
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
 
