@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/shared/ui/button';
@@ -75,9 +75,6 @@ export function DealsModule() {
     return icons[team] || '📁';
   };
 
-  // Configuração atual do team
-  const currentTeam = teamConfigs[selectedFunnelId];
-
   // Query para buscar funis
   const { data: funnelsData = [] } = useQuery({
     queryKey: ['/api/funnels'],
@@ -85,6 +82,16 @@ export function DealsModule() {
   });
   
   const safeFunnelsData = Array.isArray(funnelsData) ? funnelsData : [];
+
+  // Configuração atual do team - buscar pelo funil real selecionado
+  const { currentFunnel, currentTeam } = useMemo(() => {
+    const funnel = safeFunnelsData.find(f => f.id.toString() === selectedFunnelId?.toString());
+    const team = funnel ? {
+      name: funnel.name,
+      stages: Array.isArray(funnel.stages) ? funnel.stages : []
+    } : null;
+    return { currentFunnel: funnel, currentTeam: team };
+  }, [safeFunnelsData, selectedFunnelId]);
 
   // Atualizar selectedFunnelId para o primeiro funil ao carregar
   useEffect(() => {
@@ -264,7 +271,7 @@ export function DealsModule() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{getFunnelIcon(selectedFunnelId)}</span>
+              <span className="text-2xl">{getFunnelIcon(currentFunnel?.teamType || '')}</span>
               <div>
                 <div className="font-medium">{currentTeam?.name}</div>
                 <div className="text-sm text-muted-foreground">
