@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Hash, Users, Search, Bell, BellOff, Settings } from "lucide-react";
+import { Hash, Users, Search, Bell, BellOff, Settings, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
@@ -13,6 +14,11 @@ export function ChannelSidebar() {
   const [searchQuery, setSearchQuery] = useState("");
   const { channels, activeChannel, setActiveChannel } = useInternalChatStore();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleBackToDashboard = () => {
+    setLocation("/");
+  };
 
   const filteredChannels = channels.filter(
     (channel) =>
@@ -60,7 +66,18 @@ export function ChannelSidebar() {
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Chat Interno</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBackToDashboard}
+              className="h-8 w-8 hover:bg-muted"
+              title="Voltar ao Dashboard"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-lg font-semibold">Chat Interno</h2>
+          </div>
           <div className="flex items-center gap-2">
             {totalUnread > 0 && (
               <Badge variant="destructive" className="text-xs unread-badge">
