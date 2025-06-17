@@ -24,7 +24,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
   const [form, setForm] = useState({
     title: '',
     description: '',
-    contactId: preselectedContactId || '',
+    contactId: preselectedContactId || 0 as number,
     activityType: 'call',
     date: '',
     time: '',
@@ -43,7 +43,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
     enabled: isOpen && !preselectedContactId,
   });
 
-  const contacts = contactsResponse?.data || [];
+  const contacts = (contactsResponse as any)?.data || [];
 
   // Gerar horários disponíveis
   const generateTimeSlots = () => {
@@ -97,7 +97,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
     setForm({
       title: '',
       description: '',
-      contactId: preselectedContactId || '',
+      contactId: preselectedContactId || 0 as number,
       activityType: 'call',
       date: '',
       time: '',
@@ -129,7 +129,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
     const activityData = {
       title: form.title,
       description: form.description,
-      contactId: form.contactId ? parseInt(form.contactId.toString()) : null,
+      contactId: form.contactId > 0 ? form.contactId : null,
       activityType: form.activityType,
       scheduledAt: `${form.date}T${form.time}:00`,
       duration: parseInt(form.duration),
@@ -224,22 +224,17 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Contato
                 </label>
-                <Select value={form.contactId.toString()} onValueChange={(value) => setForm({ ...form, contactId: value })}>
+                <Select value={form.contactId ? form.contactId.toString() : ""} onValueChange={(value) => setForm({ ...form, contactId: parseInt(value) || 0 })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um contato" />
                   </SelectTrigger>
                   <SelectContent>
-                    {contacts.length > 0 ? (
-                      contacts.map((contact: any) => (
-                        <SelectItem key={contact.id} value={contact.id.toString()}>
-                          {contact.name} {contact.phone && `(${contact.phone})`}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-contacts" disabled>
-                        Nenhum contato encontrado
+                    <SelectItem value="0">Nenhum contato selecionado</SelectItem>
+                    {contacts.length > 0 && contacts.map((contact: any) => (
+                      <SelectItem key={contact.id} value={contact.id.toString()}>
+                        {contact.name} {contact.phone && `(${contact.phone})`}
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
