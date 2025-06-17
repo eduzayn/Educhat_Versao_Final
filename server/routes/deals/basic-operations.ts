@@ -13,6 +13,8 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
       channel, 
       startDate, 
       endDate, 
+      dateStart,
+      dateEnd,
       stage, 
       team,
       funnelId,
@@ -64,7 +66,9 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
       search: search as string,
       userId: filterUserId,
       assignedUserId: assignedUserId as string,
-      funnelId: funnelId as string
+      funnelId: funnelId as string,
+      dateStart: dateStart as string,
+      dateEnd: dateEnd as string
     });
     
     console.log('📊 Resultado da busca de negócios:', {
