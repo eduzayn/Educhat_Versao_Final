@@ -14,6 +14,21 @@ export function registerQuickRepliesGetRoutes(app: Express) {
     }
   });
 
+  // Get user's quick replies - REST: GET /api/quick-replies/my-replies (MOVED BEFORE :id route)
+  app.get('/api/quick-replies/my-replies', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const quickReplies = await storage.getUserQuickReplies(req.user.id);
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Error fetching user quick replies:', error);
+      res.status(500).json({ message: 'Failed to fetch user quick replies' });
+    }
+  });
+
   // Get quick reply by ID - REST: GET /api/quick-replies/:id
   app.get('/api/quick-replies/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -78,20 +93,7 @@ export function registerQuickRepliesGetRoutes(app: Express) {
     }
   });
 
-  // Get user's quick replies - REST: GET /api/quick-replies/my-replies
-  app.get('/api/quick-replies/my-replies', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Não autenticado' });
-      }
 
-      const quickReplies = await storage.getUserQuickReplies(req.user.id);
-      res.json(quickReplies);
-    } catch (error) {
-      console.error('Error fetching user quick replies:', error);
-      res.status(500).json({ message: 'Failed to fetch user quick replies' });
-    }
-  });
 
   // Get quick reply categories - REST: GET /api/quick-replies/categories
   app.get('/api/quick-replies/categories', async (req: AuthenticatedRequest, res: Response) => {

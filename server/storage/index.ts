@@ -464,6 +464,34 @@ export class CentralStorage {
     return this.quickReply.deleteQuickReply(id);
   }
 
+  async getUserQuickReplies(userId: number) {
+    return this.quickReply.getUserQuickReplies(userId);
+  }
+
+  async getQuickRepliesByCategory(category: string) {
+    return this.quickReply.getQuickRepliesByCategory(category);
+  }
+
+  async searchQuickReplies(params: any) {
+    return this.quickReply.searchQuickReplies(params);
+  }
+
+  async getMostUsedQuickReplies(limit?: number) {
+    return this.quickReply.getMostUsedQuickReplies(limit);
+  }
+
+  async getQuickReplyCategories() {
+    return this.quickReply.getQuickReplyCategories();
+  }
+
+  async getQuickReplyStatistics(period?: string) {
+    return this.quickReply.getQuickReplyStatistics(period);
+  }
+
+  async incrementQuickReplyUsage(id: number) {
+    return this.quickReply.incrementQuickReplyUsage(id);
+  }
+
   // ==================== SYSTEM SETTINGS ====================
   async getSystemSetting(key: string) {
     const setting = await this.userManagement.getSystemSetting(key);
