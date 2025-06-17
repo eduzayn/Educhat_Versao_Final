@@ -10,7 +10,7 @@ import { Dashboard } from "@/modules/Dashboard/components/Dashboard";
 import { Login } from "@/modules/Auth/Login";
 import { InboxPage } from "@/modules/Inbox/InboxPage";
 import { ContactsPage } from "@/modules/Contacts/components/ViewContactDialog/ContactsPage";
-import ReportsPage from "@/modules/Reports/ReportsPage";
+import { ReportsPage } from "@/modules/Reports/ReportsPage";
 // Integrações agora consolidadas - redirecionar para a página existente
 import FacebookIntegrationPage from "@/modules/Settings/Integrations/FacebookIntegrationPage";
 import IntegrationsPage from "@/modules/Settings/Integrations/IntegrationsPage";
