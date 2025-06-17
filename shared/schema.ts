@@ -143,7 +143,7 @@ export const quickReplies = pgTable("quick_replies", {
   category: text("category").default("general"), // category for organization
   isActive: boolean("is_active").default(true),
   usageCount: integer("usage_count").default(0), // track usage for analytics
-  createdBy: varchar("created_by").references(() => users.id),
+  createdBy: integer("created_by").references(() => systemUsers.id),
   teamId: integer("team_id").references(() => teams.id), // for team-scoped quick replies
   isShared: boolean("is_shared").default(false), // se é compartilhada ou privada
   shareScope: varchar("share_scope", { length: 20 }).default("private"), // private, team, global
@@ -155,8 +155,8 @@ export const quickReplies = pgTable("quick_replies", {
 export const quickReplyShares = pgTable("quick_reply_shares", {
   id: serial("id").primaryKey(),
   quickReplyId: integer("quick_reply_id").references(() => quickReplies.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  sharedBy: varchar("shared_by").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  sharedBy: integer("shared_by").references(() => systemUsers.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -165,7 +165,7 @@ export const quickReplyTeamShares = pgTable("quick_reply_team_shares", {
   id: serial("id").primaryKey(),
   quickReplyId: integer("quick_reply_id").references(() => quickReplies.id).notNull(),
   teamId: integer("team_id").references(() => teams.id).notNull(),
-  sharedBy: varchar("shared_by").references(() => users.id).notNull(),
+  sharedBy: integer("shared_by").references(() => systemUsers.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
