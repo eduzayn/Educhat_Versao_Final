@@ -42,7 +42,7 @@ export function useInfiniteConversations(
       
       const data = await response.json();
       
-      // Adaptar resposta se for array simples
+      // Adaptar resposta se for array simples (busca)
       if (Array.isArray(data)) {
         return {
           conversations: data,
@@ -51,7 +51,12 @@ export function useInfiniteConversations(
         };
       }
       
-      return data;
+      // Resposta com paginação (formato padrão)
+      return {
+        conversations: data.conversations || [],
+        hasNextPage: data.hasNextPage || false,
+        total: data.total || 0
+      };
     },
     getNextPageParam: (lastPage, allPages) => {
       // Para busca, desabilita paginação infinita (carrega tudo de uma vez)

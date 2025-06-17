@@ -20,15 +20,29 @@ router.get('/', async (req, res) => {
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas
       conversations = await storage.searchConversations(search.trim(), limit);
+      // Para busca, retornar formato simples
+      const endTime = Date.now();
+      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
+      res.json(conversations);
     } else {
       // Busca normal paginada
       conversations = await storage.getConversations(limit, offset);
+      
+      // Verificar se há mais conversas para paginar
+      const hasNextPage = conversations.length === limit;
+      
+      const endTime = Date.now();
+      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
+      
+      // Retornar formato compatível com scroll infinito
+      res.json({
+        conversations,
+        hasNextPage,
+        total: conversations.length,
+        offset,
+        limit
+      });
     }
-    
-    const endTime = Date.now();
-    console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
-    
-    res.json(conversations);
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Failed to fetch conversations' });
