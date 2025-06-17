@@ -190,14 +190,14 @@ export function ReportsPage() {
             onMoreFilters={() => console.log('Mais filtros')}
           >
             <PeriodFilter
-              value="30"
-              onValueChange={(value) => console.log('Period:', value)}
+              value={period}
+              onValueChange={setPeriod}
               className="w-48"
             />
 
             <ChannelFilter
-              value="all"
-              onValueChange={(value) => console.log('Channel:', value)}
+              value={channel}
+              onValueChange={setChannel}
               className="w-48"
             />
           </FilterContainer>
@@ -211,10 +211,14 @@ export function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-educhat-dark">0</div>
-                <div className="flex items-center text-xs text-green-600 mt-1">
+                <div className="text-2xl font-bold text-educhat-dark">
+                  {isLoading ? '...' : metrics.totalConversations.toLocaleString()}
+                </div>
+                <div className={`flex items-center text-xs mt-1 ${
+                  metrics.conversationGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +0% vs período anterior
+                  {metrics.conversationGrowth >= 0 ? '+' : ''}{metrics.conversationGrowth}% vs período anterior
                 </div>
               </CardContent>
             </Card>
@@ -226,10 +230,14 @@ export function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-educhat-dark">0</div>
-                <div className="flex items-center text-xs text-green-600 mt-1">
+                <div className="text-2xl font-bold text-educhat-dark">
+                  {isLoading ? '...' : metrics.messagesSent.toLocaleString()}
+                </div>
+                <div className={`flex items-center text-xs mt-1 ${
+                  metrics.messagesGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +0% vs período anterior
+                  {metrics.messagesGrowth >= 0 ? '+' : ''}{metrics.messagesGrowth}% vs período anterior
                 </div>
               </CardContent>
             </Card>
@@ -241,10 +249,14 @@ export function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-educhat-dark">0min</div>
-                <div className="flex items-center text-xs text-orange-600 mt-1">
+                <div className="text-2xl font-bold text-educhat-dark">
+                  {isLoading ? '...' : `${metrics.avgResponseTime}min`}
+                </div>
+                <div className={`flex items-center text-xs mt-1 ${
+                  metrics.responseTimeGrowth <= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +0% vs período anterior
+                  {metrics.responseTimeGrowth >= 0 ? '+' : ''}{metrics.responseTimeGrowth}% vs período anterior
                 </div>
               </CardContent>
             </Card>
@@ -256,10 +268,14 @@ export function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-educhat-dark">0%</div>
-                <div className="flex items-center text-xs text-green-600 mt-1">
+                <div className="text-2xl font-bold text-educhat-dark">
+                  {isLoading ? '...' : `${metrics.resolutionRate}%`}
+                </div>
+                <div className={`flex items-center text-xs mt-1 ${
+                  metrics.resolutionGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +0% vs período anterior
+                  {metrics.resolutionGrowth >= 0 ? '+' : ''}{metrics.resolutionGrowth}% vs período anterior
                 </div>
               </CardContent>
             </Card>
