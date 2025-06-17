@@ -50,12 +50,15 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
   // Gerar horários disponíveis
   const generateTimeSlots = () => {
     const slots = [];
-    const startHour = 8; // 8:00
-    const endHour = 18; // 18:00
+    const startHour = 5; // 05:00
+    const endHour = 24; // 23:30 (último horário)
     const interval = 30; // 30 minutos
     
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += interval) {
+        // Para a última hora (23h), só adicionar 23:00 e 23:30
+        if (hour === 23 && minute > 30) break;
+        
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         slots.push(timeString);
       }
