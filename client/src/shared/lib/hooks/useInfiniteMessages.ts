@@ -34,7 +34,7 @@ export function useInfiniteMessages(conversationId: number | null, pageSize: num
       console.log(`✅ Mensagens infinitas carregadas - ${messages.length} mensagens, hasMore: ${hasMore}`);
       
       return {
-        messages: messages, // Manter ordem original do servidor (mais recentes primeiro)
+        messages: messages, // Ordem cronológica correta do servidor (antigas primeiro)
         hasMore,
         nextOffset: offset + pageSize,
         total: data.total || messages.length

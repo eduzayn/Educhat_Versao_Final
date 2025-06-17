@@ -33,7 +33,7 @@ export function useMessagesArea(activeConversation: any) {
   const hasNextPage = messagesQuery.hasNextPage;
   const fetchNextPage = messagesQuery.fetchNextPage;
 
-  // Otimização: Scroll mais eficiente com debounce
+  // Scroll otimizado para o final das mensagens
   const scrollToBottom = useCallback(() => {
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
@@ -41,15 +41,29 @@ export function useMessagesArea(activeConversation: any) {
     
     scrollTimeoutRef.current = setTimeout(() => {
       if (messagesEndRef.current) {
-        // Usar scrollTop para melhor performance que scrollIntoView
-        const container = messagesEndRef.current.parentElement;
-        if (container) {
-          container.scrollTop = container.scrollHeight;
+        // Buscar o container de scroll (div com overflow-y-auto)
+        let scrollContainer = messagesEndRef.current.parentElement;
+        
+        // Se não encontrou, buscar o container pai
+        while (scrollContainer && !scrollContainer.classList.contains('overflow-y-auto')) {
+          scrollContainer = scrollContainer.parentElement;
+        }
+        
+        if (scrollContainer) {
+          // Forçar scroll para o final
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+          });
         } else {
-          messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+          // Fallback para scrollIntoView
+          messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+          });
         }
       }
-    }, 50); // Debounce de 50ms
+    }, 100); // Aumentado para 100ms para dar tempo ao DOM se atualizar
   }, []);
 
   const handleReply = useCallback((message: any) => {

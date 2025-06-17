@@ -4,7 +4,7 @@ import { eq, desc, asc, and, isNull } from 'drizzle-orm';
 
 export class MessageBasicOperations extends BaseStorage {
   async getAllMessages(): Promise<Message[]> {
-    return this.db.select().from(messages).orderBy(desc(messages.sentAt));
+    return this.db.select().from(messages).orderBy(asc(messages.sentAt));
   }
 
   async getMessage(id: number): Promise<Message | undefined> {
@@ -110,10 +110,6 @@ export class MessageBasicOperations extends BaseStorage {
     await this.db.delete(messages).where(eq(messages.id, id));
   }
 
-  async getMessagesByConversation(conversationId: number): Promise<Message[]> {
-    return this.getMessages(conversationId);
-  }
-
   async getUnreadMessages(conversationId: number): Promise<Message[]> {
     return this.db.select().from(messages)
       .where(and(
@@ -122,6 +118,6 @@ export class MessageBasicOperations extends BaseStorage {
         isNull(messages.readAt),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt));
+      .orderBy(asc(messages.sentAt));
   }
 } 
