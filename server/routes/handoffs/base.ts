@@ -7,7 +7,7 @@ import { createHandoffSchema } from './config';
 import { validateHandoffId } from './middleware';
 
 const router = Router();
-const handoffService = new intelligentHandoffService();
+// const handoffService = intelligentHandoffService;
 
 // GET /api/handoffs - Buscar todos os handoffs
 router.get('/', async (req, res) => {
