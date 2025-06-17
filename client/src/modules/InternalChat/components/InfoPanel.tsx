@@ -30,9 +30,15 @@ export function InfoPanel() {
 
   useEffect(() => {
     if (activeChannel) {
+      console.log('InfoPanel: Carregando usuários para canal:', activeChannel);
       loadChannelUsers(activeChannel);
     }
   }, [activeChannel, loadChannelUsers]);
+
+  useEffect(() => {
+    console.log('InfoPanel: Membros atualizados:', members.length);
+    console.log('InfoPanel: Dados dos membros:', members);
+  }, [members]);
 
   if (!channel) {
     return (
