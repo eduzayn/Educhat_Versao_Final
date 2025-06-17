@@ -107,7 +107,7 @@ export function InfoPanel() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+        <div className="p-3 space-y-4">
           {/* Busca de Membros */}
           <div>
             <div className="relative">
@@ -132,15 +132,15 @@ export function InfoPanel() {
               </Badge>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group border border-transparent hover:border-muted"
                   >
                     <div className="relative flex-shrink-0">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9">
                         <AvatarImage src={member.avatar || ""} />
                         <AvatarFallback className="text-xs">
                           {member.displayName
@@ -154,21 +154,21 @@ export function InfoPanel() {
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
                     </div>
 
-                    <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
                         <p className="text-sm font-medium truncate">
                           {member.displayName}
                         </p>
                         {getRoleIcon(member.roleName)}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mt-1">
                         <p className="text-xs text-muted-foreground truncate">
                           @{member.username}
                         </p>
                         {member.roleName && (
                           <Badge
                             variant={getRoleBadgeVariant(member.roleName)}
-                            className="text-xs px-1 py-0 flex-shrink-0"
+                            className="text-xs px-1.5 py-0.5 flex-shrink-0"
                           >
                             {member.roleName}
                           </Badge>
@@ -182,7 +182,7 @@ export function InfoPanel() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary transition-colors"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                           onClick={() => setSelectedUserForPrivateChat(member)}
                           title={`Enviar mensagem privada para ${member.displayName}`}
                         >
