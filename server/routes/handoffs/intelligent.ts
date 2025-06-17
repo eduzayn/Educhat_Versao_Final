@@ -1,10 +1,5 @@
-import { Router } from 'express';
-import { intelligentHandoffService } from '../../services/intelligentHandoffService';
-import { aiService } from '../../services/ai-index';
-import { storage } from '../../storage';
-import { validateInternalCall, validateConversationId } from './middleware';
-
-const router = Router();
+// Temporarily disabled due to compilation issues - using intelligent-temp.ts instead
+export { default } from './intelligent-fixed';
 
 // POST /api/handoffs/intelligent/analyze - Análise inteligente de handoff com IA + dados reais
 router.post('/analyze', validateConversationId, async (req, res) => {

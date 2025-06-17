@@ -55,7 +55,7 @@ export class DealStorage {
   }
 
   async getDealsByContact(contactId: number) {
-    return this.automaticOps.getDealsByContact(contactId);
+    return this.basicOps.getDeals().then(deals => deals.filter((d: any) => d.contactId === contactId));
   }
 
   // Maintenance Operations

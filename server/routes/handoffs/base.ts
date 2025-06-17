@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { intelligentHandoffService } from '../../services/intelligentHandoffService';
+// import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { handoffs as handoffsTable } from '@shared/schema';
 import { db } from '../../db';
 import { desc } from 'drizzle-orm';
@@ -7,7 +7,6 @@ import { createHandoffSchema } from './config';
 import { validateHandoffId } from './middleware';
 
 const router = Router();
-// const handoffService = intelligentHandoffService;
 
 // GET /api/handoffs - Buscar todos os handoffs
 router.get('/', async (req, res) => {
