@@ -1,121 +1,15 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { deals, contacts, teams, funnels, type Deal, type InsertDeal } from "@shared/schema";
-import { eq, desc, and, count, sql } from "drizzle-orm";
+import { deals, contacts, teams, funnels, type Deal, type InsertDeal } from "../../../shared/schema";
+import { eq } from "drizzle-orm";
 
-/**
- * Deal storage module - manages CRM deals and automatic deal creation
- */
-export class DealStorage extends BaseStorage {
-  async getDeals(): Promise<Deal[]> {
-    return this.db.select().from(deals).orderBy(desc(deals.createdAt));
-  }
-
-  async getDealsWithPagination(params: any): Promise<any> {
-    const { page = 1, limit = 10, stage, contactId, userId, teamId, teamType, search, assignedUserId } = params;
-    const offset = (page - 1) * limit;
-
-    let query = this.db.select().from(deals);
-    const conditions = [];
-
-    if (stage) conditions.push(eq(deals.stage, stage));
-    if (contactId) conditions.push(eq(deals.contactId, contactId));
-    if (teamType) conditions.push(eq(deals.teamType, teamType));
-    if (search) {
-      conditions.push(sql`${deals.name} ILIKE ${`%${search}%`}`);
-    }
-
-    // Filtro específico por usuário atribuído (para usuários não-admin)
-    if (userId) {
-      conditions.push(eq(deals.assignedUserId, userId));
-    }
-    
-    // Filtro adicional por assignedUserId (do query parameter)
-    if (assignedUserId) {
-      conditions.push(eq(deals.assignedUserId, parseInt(assignedUserId)));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const results = await query
-      .orderBy(desc(deals.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    const [totalResult] = await this.db
-      .select({ count: count() })
-      .from(deals)
-      .where(conditions.length > 0 ? and(...conditions) : undefined);
-
-    return {
-      deals: results,
-      total: totalResult.count,
-      totalPages: Math.ceil(totalResult.count / limit),
-      currentPage: page
-    };
-  }
-
-  async getDeal(id: number): Promise<Deal | undefined> {
-    const [deal] = await this.db.select().from(deals).where(eq(deals.id, id));
-    return deal;
-  }
-
-  async getDealsByContact(contactId: number): Promise<Deal[]> {
-    return this.db.select().from(deals)
-      .where(eq(deals.contactId, contactId))
-      .orderBy(desc(deals.createdAt));
-  }
-
-  async getDealsByStage(stage: string): Promise<Deal[]> {
-    return this.db.select().from(deals)
-      .where(eq(deals.stage, stage))
-      .orderBy(desc(deals.createdAt));
-  }
-
-  async createDeal(deal: InsertDeal): Promise<Deal> {
-    const [newDeal] = await this.db.insert(deals).values(deal).returning();
-    return newDeal;
-  }
-
-  async updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal> {
-    const [updated] = await this.db.update(deals)
-      .set({ ...deal, updatedAt: new Date() })
-      .where(eq(deals.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteDeal(id: number): Promise<void> {
-    await this.db.delete(deals).where(eq(deals.id, id));
-  }
-
-  async addDealNote(dealId: number, noteData: { content: string; authorId: number }): Promise<any> {
-    // Implementar quando necessário - por enquanto retorna sucesso
-    return { id: Date.now(), dealId, ...noteData, createdAt: new Date() };
-  }
-
-  async getDealNotes(dealId: number): Promise<any[]> {
-    // Implementar quando necessário - por enquanto retorna array vazio
-    return [];
-  }
-
-  async getDealStatistics(filters?: any): Promise<any> {
-    // Implementar quando necessário - por enquanto retorna estatísticas básicas
-    return {
-      totalDeals: 0,
-      activeDeals: 0,
-      closedDeals: 0,
-      totalValue: 0,
-      averageValue: 0
-    };
-  }
-
+export class DealAutomaticOperations extends BaseStorage {
   async createAutomaticDeal(contactId: number, canalOrigem?: string, teamType?: string, initialStage?: string): Promise<Deal> {
     console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, teamType=${teamType}`);
     
     // Verificação robusta para evitar duplicação durante criação
-    const existingDeals = await this.getDealsByContact(contactId);
+    const { DealBasicOperations } = await import('./dealBasicOperations');
+    const basicOps = new DealBasicOperations();
+    const existingDeals = await basicOps.getDealsByContact(contactId);
     console.log(`📊 Deals existentes para contato ${contactId}: ${existingDeals.length} deals encontrados`);
     
     // Verificar se já existe qualquer deal ativo para este contato no mesmo canal
@@ -172,7 +66,7 @@ export class DealStorage extends BaseStorage {
     const dealName = `${contact.name} - ${teamType || 'Geral'}`;
 
     // Verificação final antes da criação para evitar condições de corrida
-    const finalCheck = await this.getDealsByContact(contactId);
+    const finalCheck = await basicOps.getDealsByContact(contactId);
     const lastMinuteActiveDeal = finalCheck.find(deal => {
       const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
       return isActive && deal.canalOrigem === canalOrigem;
@@ -230,7 +124,7 @@ export class DealStorage extends BaseStorage {
     console.log(`💼 Criando deal automático: ${dealName} para ${contact.name}`);
     
     try {
-      const newDeal = await this.createDeal(dealData);
+      const newDeal = await basicOps.createDeal(dealData);
       console.log(`✅ Deal criado com sucesso: ID ${newDeal.id} para contato ${contactId}`);
       return newDeal;
     } catch (error) {
@@ -238,7 +132,7 @@ export class DealStorage extends BaseStorage {
       
       // Em caso de erro (possível duplicação por condição de corrida), 
       // tentar retornar um deal existente
-      const fallbackDeals = await this.getDealsByContact(contactId);
+      const fallbackDeals = await basicOps.getDealsByContact(contactId);
       const fallbackDeal = fallbackDeals.find(deal => {
         const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
         return isActive && deal.canalOrigem === canalOrigem;
@@ -252,56 +146,4 @@ export class DealStorage extends BaseStorage {
       throw error;
     }
   }
-
-  async cleanupDuplicateDeals(): Promise<{ removed: number; details: any[] }> {
-    console.log('🧹 Iniciando limpeza de deals duplicados...');
-    
-    // Buscar todos os deals ativos
-    const allDeals = await this.db.select().from(deals).orderBy(deals.contactId, deals.createdAt);
-    
-    // Agrupar deals por contato e teamType
-    const dealGroups = new Map();
-    
-    for (const deal of allDeals) {
-      const key = `${deal.contactId}-${deal.teamType}-${deal.canalOrigem}`;
-      if (!dealGroups.has(key)) {
-        dealGroups.set(key, []);
-      }
-      dealGroups.get(key).push(deal);
-    }
-    
-    // Identificar e remover duplicatas
-    const toRemove = [];
-    const details = [];
-    
-    for (const [key, deals] of dealGroups.entries()) {
-      if (deals.length > 1) {
-        // Manter apenas o deal mais recente
-        const sortedDeals = deals.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        const keepDeal = sortedDeals[0];
-        const duplicates = sortedDeals.slice(1);
-        
-        for (const duplicate of duplicates) {
-          toRemove.push(duplicate.id);
-          details.push({
-            removed: duplicate,
-            kept: keepDeal,
-            reason: 'Duplicate deal for same contact/teamType/channel'
-          });
-        }
-      }
-    }
-    
-    // Executar remoção
-    for (const dealId of toRemove) {
-      await this.db.delete(deals).where(eq(deals.id, dealId));
-    }
-    
-    console.log(`🧹 Limpeza concluída: ${toRemove.length} deals duplicados removidos`);
-    
-    return {
-      removed: toRemove.length,
-      details
-    };
-  }
-}
+} 
