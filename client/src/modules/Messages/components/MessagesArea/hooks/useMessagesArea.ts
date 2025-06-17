@@ -41,6 +41,8 @@ export function useMessagesArea(activeConversation: any) {
     
     scrollTimeoutRef.current = setTimeout(() => {
       if (messagesEndRef.current) {
+        console.log('🔄 Executando scroll automático...');
+        
         // Buscar o container de scroll (div com overflow-y-auto)
         let scrollContainer = messagesEndRef.current.parentElement;
         
@@ -50,20 +52,24 @@ export function useMessagesArea(activeConversation: any) {
         }
         
         if (scrollContainer) {
+          console.log('✅ Container de scroll encontrado, fazendo scroll para o final');
           // Forçar scroll para o final
           scrollContainer.scrollTo({
             top: scrollContainer.scrollHeight,
             behavior: 'smooth'
           });
         } else {
+          console.log('⚠️ Container não encontrado, usando fallback scrollIntoView');
           // Fallback para scrollIntoView
           messagesEndRef.current.scrollIntoView({ 
             behavior: 'smooth',
             block: 'end'
           });
         }
+      } else {
+        console.log('❌ messagesEndRef não encontrado');
       }
-    }, 100); // Aumentado para 100ms para dar tempo ao DOM se atualizar
+    }, 100);
   }, []);
 
   const handleReply = useCallback((message: any) => {
@@ -77,34 +83,35 @@ export function useMessagesArea(activeConversation: any) {
     );
   }, []);
 
-  // Scroll on conversation change - otimizado para evitar scroll redundante
+  // Scroll automático quando conversa muda
   useEffect(() => {
     if (activeConversation?.id !== prevConversationId.current) {
       prevConversationId.current = activeConversation?.id;
       prevMessageCount.current = messages.length;
       setHasAutoScrolled(true);
       
-      // Scroll imediato para nova conversa sem setTimeout
+      // Dar tempo para as mensagens carregarem antes do scroll
       if (messages.length > 0) {
-        scrollToBottom();
+        setTimeout(() => {
+          scrollToBottom();
+        }, 200);
       }
     }
-  }, [activeConversation?.id, scrollToBottom]);
+  }, [activeConversation?.id, messages.length, scrollToBottom]);
 
-  // Scroll automático imediato para novas mensagens
+  // Scroll automático para novas mensagens
   useEffect(() => {
     const shouldScroll = messages.length > prevMessageCount.current && 
-                        (hasAutoScrolled || messages.length === 1) && 
                         activeConversation?.id === prevConversationId.current;
     
     if (shouldScroll) {
-      // Scroll imediato para mensagens novas (incluindo temporárias)
-      requestAnimationFrame(() => {
+      // Usar setTimeout para garantir que o DOM foi atualizado
+      setTimeout(() => {
         scrollToBottom();
-      });
+      }, 150);
     }
     prevMessageCount.current = messages.length;
-  }, [messages.length, hasAutoScrolled, activeConversation?.id, scrollToBottom]);
+  }, [messages.length, activeConversation?.id, scrollToBottom]);
 
   // Scroll imediato quando há mensagens temporárias (status 'sending')
   useEffect(() => {
