@@ -569,6 +569,14 @@ export class CentralStorage {
     return this.notes.getContactNotes(contactId);
   }
 
+  async addContactNote(contactId: number, content: string) {
+    return this.notes.addContactNote(contactId, content);
+  }
+
+  async getContactDeals(contactId: number) {
+    return this.deal.getContactDeals ? this.deal.getContactDeals(contactId) : [];
+  }
+
   // ==================== MISSING CONTACT METHODS ====================
   async getContactWithTags(id: number) {
     return this.contact.getContactWithTags ? this.contact.getContactWithTags(id) : this.contact.getContact(id);

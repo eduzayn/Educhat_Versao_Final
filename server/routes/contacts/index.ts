@@ -207,5 +207,59 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  // GET /api/contacts/:id/notes - Buscar notas do contato
+  app.get('/api/contacts/:id/notes', async (req: Request, res: Response) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const notes = await storage.getContactNotes(contactId);
+      res.json(notes || []);
+    } catch (error) {
+      console.error('Erro ao buscar notas do contato:', error);
+      res.status(500).json({ message: 'Erro ao buscar notas do contato' });
+    }
+  });
+
+  // POST /api/contacts/:id/notes - Adicionar nota ao contato
+  app.post('/api/contacts/:id/notes', async (req: Request, res: Response) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const { content } = req.body;
+      
+      if (!content || !content.trim()) {
+        return res.status(400).json({ error: 'Conteúdo da nota é obrigatório' });
+      }
+      
+      const note = await storage.addContactNote(contactId, content.trim());
+      res.status(201).json(note);
+    } catch (error) {
+      console.error('Erro ao adicionar nota:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // GET /api/contacts/:id/interests - Buscar interesses do contato
+  app.get('/api/contacts/:id/interests', async (req: Request, res: Response) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const interests = await storage.getContactInterests(contactId);
+      res.json(interests || []);
+    } catch (error) {
+      console.error('Erro ao buscar interesses do contato:', error);
+      res.status(500).json({ message: 'Erro ao buscar interesses do contato' });
+    }
+  });
+
+  // GET /api/contacts/:id/deals - Buscar negócios do contato
+  app.get('/api/contacts/:id/deals', async (req: Request, res: Response) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const deals = await storage.getContactDeals(contactId);
+      res.json({ deals: deals || [] });
+    } catch (error) {
+      console.error('Erro ao buscar negócios do contato:', error);
+      res.status(500).json({ message: 'Erro ao buscar negócios do contato' });
+    }
+  });
+
   console.log("Contact routes registered");
 }

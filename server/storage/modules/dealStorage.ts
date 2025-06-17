@@ -69,4 +69,16 @@ export class DealStorage extends BaseStorage {
   async getDealStatistics() {
     return this.auxiliaryOps.getDealStatistics();
   }
+
+  async getContactDeals(contactId: number) {
+    return this.basicOps.getDealsByContact(contactId);
+  }
+
+  async addDealNote(dealId: number, noteData: any) {
+    return this.auxiliaryOps.addDealNote(dealId, noteData);
+  }
+
+  async getDealNotes(dealId: number) {
+    return this.auxiliaryOps.getDealNotes(dealId);
+  }
 }
