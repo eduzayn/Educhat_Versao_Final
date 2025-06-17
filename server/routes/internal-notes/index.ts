@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../../storage';
-import { authenticateToken } from '../../middleware/auth';
+import { requireAuth } from '../conversations/middleware';
 import { insertMessageSchema } from '../../../shared/schema';
 import { z } from 'zod';
 
@@ -28,7 +28,7 @@ const updateInternalNoteSchema = createInternalNoteSchema.partial();
  * GET /api/conversations/:conversationId/internal-notes
  * Busca todas as notas internas de uma conversa
  */
-router.get('/conversations/:conversationId/internal-notes', authenticateToken, async (req, res) => {
+router.get('/conversations/:conversationId/internal-notes', requireAuth, async (req, res) => {
   try {
     const conversationId = parseInt(req.params.conversationId);
     
@@ -48,7 +48,7 @@ router.get('/conversations/:conversationId/internal-notes', authenticateToken, a
  * POST /api/conversations/:conversationId/internal-notes
  * Cria uma nova nota interna
  */
-router.post('/conversations/:conversationId/internal-notes', authenticateToken, async (req, res) => {
+router.post('/conversations/:conversationId/internal-notes', requireAuth, async (req, res) => {
   try {
     const conversationId = parseInt(req.params.conversationId);
     
@@ -84,7 +84,7 @@ router.post('/conversations/:conversationId/internal-notes', authenticateToken, 
  * PUT /api/internal-notes/:noteId
  * Atualiza uma nota interna existente
  */
-router.put('/internal-notes/:noteId', authenticateToken, async (req, res) => {
+router.put('/internal-notes/:noteId', requireAuth, async (req, res) => {
   try {
     const noteId = parseInt(req.params.noteId);
     
@@ -109,7 +109,7 @@ router.put('/internal-notes/:noteId', authenticateToken, async (req, res) => {
  * GET /api/conversations/:conversationId/internal-notes/priority/:priority
  * Busca notas internas por prioridade
  */
-router.get('/conversations/:conversationId/internal-notes/priority/:priority', authenticateToken, async (req, res) => {
+router.get('/conversations/:conversationId/internal-notes/priority/:priority', requireAuth, async (req, res) => {
   try {
     const conversationId = parseInt(req.params.conversationId);
     const { priority } = req.params;
@@ -130,7 +130,7 @@ router.get('/conversations/:conversationId/internal-notes/priority/:priority', a
  * POST /api/conversations/:conversationId/internal-notes/search/tags
  * Busca notas internas por tags
  */
-router.post('/conversations/:conversationId/internal-notes/search/tags', authenticateToken, async (req, res) => {
+router.post('/conversations/:conversationId/internal-notes/search/tags', requireAuth, async (req, res) => {
   try {
     const conversationId = parseInt(req.params.conversationId);
     const { tags } = req.body;

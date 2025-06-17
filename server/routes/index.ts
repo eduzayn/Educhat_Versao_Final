@@ -39,6 +39,7 @@ import handoffsRouter from "./handoffs/index";
 import dashboardRouter from "./dashboard/index";
 import { registerNotificationRoutes } from "./notifications/index";
 import { registerTeamsIntegratedChatRoutes } from "./internal-chat/index";
+import internalNotesRouter from "./internal-notes/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
