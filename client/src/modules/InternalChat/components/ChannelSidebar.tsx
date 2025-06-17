@@ -65,23 +65,23 @@ export function ChannelSidebar() {
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-3 border-b">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleBackToDashboard}
-              className="h-8 w-8 hover:bg-muted"
+              className="h-8 w-8 hover:bg-muted flex-shrink-0"
               title="Voltar ao Dashboard"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-semibold">Chat Interno</h2>
+            <h2 className="text-lg font-semibold truncate">Chat Interno</h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {totalUnread > 0 && (
-              <Badge variant="destructive" className="text-xs unread-badge">
+              <Badge variant="destructive" className="text-xs">
                 {totalUnread}
               </Badge>
             )}
@@ -104,7 +104,7 @@ export function ChannelSidebar() {
       {/* User Info */}
       <div className="p-3 border-b">
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarImage src="" />
             <AvatarFallback>
               {(user as any)?.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -116,7 +116,7 @@ export function ChannelSidebar() {
             </p>
             <p className="text-xs text-muted-foreground">Online</p>
           </div>
-          <div className="h-2 w-2 bg-green-500 rounded-full" />
+          <div className="h-2 w-2 bg-green-500 rounded-full flex-shrink-0" />
         </div>
       </div>
 
