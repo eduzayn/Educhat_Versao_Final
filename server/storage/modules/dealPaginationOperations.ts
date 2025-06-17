@@ -30,7 +30,8 @@ export class DealPaginationOperations extends BaseStorage {
     }
 
     // Filtro específico por usuário atribuído (para usuários não-admin)
-    if (userId) {
+    // Só aplica se explicitamente solicitado via parâmetro
+    if (userId && assignedUserId) {
       conditions.push(eq(deals.assignedUserId, userId));
     }
     
