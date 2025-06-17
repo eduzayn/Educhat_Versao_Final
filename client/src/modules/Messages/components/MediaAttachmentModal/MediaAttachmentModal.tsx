@@ -221,9 +221,9 @@ export function MediaAttachmentModal({
                           hover:shadow-md hover:scale-[1.02] active:scale-[0.98] active:bg-gray-100 
                           dark:active:bg-gray-700 group"
               >
-                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center 
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center 
                                transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg
-                               group-hover:bg-orange-600 group-active:scale-105">
+                               group-hover:bg-blue-600 group-active:scale-105">
                   <Headphones className="w-5 h-5 text-white transition-transform duration-300 
                                         group-hover:scale-110" />
                 </div>
