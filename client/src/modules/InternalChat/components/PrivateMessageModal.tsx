@@ -363,7 +363,7 @@ export function PrivateMessageModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={`max-w-4xl w-[750px] h-[700px] p-0 ${isMinimized ? "h-16" : ""}`}
+        className={`max-w-4xl w-[750px] h-[700px] p-0 flex flex-col ${isMinimized ? "h-16" : ""}`}
       >
         {/* Header */}
         <DialogHeader className="p-4 border-b bg-muted/30">
