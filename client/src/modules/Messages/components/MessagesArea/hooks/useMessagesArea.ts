@@ -17,10 +17,16 @@ export function useMessagesArea(activeConversation: any) {
   // Consolidar todas as mensagens das páginas - mensagens antigas no topo, recentes no final
   const messages = useMemo(() => {
     if (!messagesQuery.data) return [];
-    // Como o backend agora retorna em ordem crescente (antigas primeiro), 
-    // devemos inverter a ordem das páginas para manter a cronologia correta
-    const allPages = [...messagesQuery.data.pages].reverse();
-    return allPages.flatMap(page => page.messages);
+    // O backend agora retorna mensagens em ordem cronológica correta (antigas primeiro)
+    // Para paginação infinita, as páginas mais antigas vêm primeiro
+    const allMessages: any[] = [];
+    
+    // Adicionar páginas em ordem reversa (páginas mais antigas primeiro)
+    for (let i = messagesQuery.data.pages.length - 1; i >= 0; i--) {
+      allMessages.push(...messagesQuery.data.pages[i].messages);
+    }
+    
+    return allMessages;
   }, [messagesQuery.data]);
 
   const isLoading = messagesQuery.isLoading;

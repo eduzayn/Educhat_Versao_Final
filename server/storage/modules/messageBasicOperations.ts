@@ -13,7 +13,27 @@ export class MessageBasicOperations extends BaseStorage {
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    // Otimização: Selecionar apenas campos essenciais para reduzir transferência de dados
+    // Para carregar mensagens com scroll para baixo, precisamos:
+    // 1. Buscar as mensagens mais recentes primeiro (se offset = 0)
+    // 2. Buscar mensagens mais antigas quando offset > 0 (para carregar histórico)
+    
+    // Primeiro, contar total de mensagens para calcular offset correto
+    const totalCount = await this.db.select({
+      count: messages.id
+    }).from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false)
+      ));
+
+    const total = totalCount.length;
+    
+    // Se offset = 0, queremos as mensagens mais recentes
+    // Se offset > 0, queremos mensagens mais antigas (paginação reversa)
+    const adjustedOffset = offset === 0 
+      ? Math.max(0, total - limit) // Pegar as últimas 'limit' mensagens
+      : Math.max(0, total - offset - limit); // Pegar mensagens anteriores
+
     const results = await this.db.select({
       id: messages.id,
       conversationId: messages.conversationId,
@@ -35,7 +55,6 @@ export class MessageBasicOperations extends BaseStorage {
       deletedAt: messages.deletedAt,
       deletedBy: messages.deletedBy,
       isDeleted: messages.isDeleted,
-      // Incluir metadata sempre, pois contém IDs Z-API necessários para deleção
       metadata: messages.metadata
     }).from(messages)
       .where(and(
@@ -44,7 +63,7 @@ export class MessageBasicOperations extends BaseStorage {
       ))
       .orderBy(asc(messages.sentAt))
       .limit(limit)
-      .offset(offset);
+      .offset(adjustedOffset);
 
     return results as Message[];
   }
