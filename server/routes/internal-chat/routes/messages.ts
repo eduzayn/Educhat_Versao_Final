@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '../../../db';
-import { internalChatChannels, internalChatMessages, systemUsers } from '@shared/schema';
+import { internalChatChannels, internalChatMessages, systemUsers, teams } from '@shared/schema';
 import { Message } from '../types/teams';
 
 const router = Router();
@@ -20,7 +20,19 @@ router.get('/:channelId/messages', async (req: Request, res: Response) => {
     if (channelId.startsWith('direct-')) {
       dbChannelId = parseInt(channelId.replace('direct-', ''));
     } else if (channelId.startsWith('team-')) {
-      dbChannelId = parseInt(channelId.replace('team-', ''));
+      const teamId = parseInt(channelId.replace('team-', ''));
+      
+      // Buscar canal para a equipe
+      let teamChannel = await db
+        .select({ id: internalChatChannels.id })
+        .from(internalChatChannels)
+        .where(eq(internalChatChannels.teamId, teamId))
+        .limit(1);
+      
+      if (teamChannel.length === 0) {
+        return res.json([]);
+      }
+      dbChannelId = teamChannel[0].id;
     } else if (channelId === 'general') {
       // Canal geral tem ID fixo
       const generalChannel = await db
@@ -83,7 +95,44 @@ router.post('/:channelId/messages', async (req: Request, res: Response) => {
     if (channelId.startsWith('direct-')) {
       dbChannelId = parseInt(channelId.replace('direct-', ''));
     } else if (channelId.startsWith('team-')) {
-      dbChannelId = parseInt(channelId.replace('team-', ''));
+      const teamId = parseInt(channelId.replace('team-', ''));
+      
+      // Buscar ou criar canal para a equipe
+      let teamChannel = await db
+        .select({ id: internalChatChannels.id })
+        .from(internalChatChannels)
+        .where(eq(internalChatChannels.teamId, teamId))
+        .limit(1);
+      
+      if (teamChannel.length === 0) {
+        // Criar canal para a equipe
+        const team = await db
+          .select({ name: teams.name })
+          .from(teams)
+          .where(eq(teams.id, teamId))
+          .limit(1);
+        
+        if (team.length === 0) {
+          return res.status(404).json({ error: 'Equipe não encontrada' });
+        }
+        
+        const [newChannel] = await db
+          .insert(internalChatChannels)
+          .values({
+            name: team[0].name,
+            description: `Discussões da ${team[0].name}`,
+            type: 'team',
+            teamId: teamId,
+            isPrivate: false,
+            createdBy: req.user.id,
+            isActive: true
+          })
+          .returning({ id: internalChatChannels.id });
+        
+        dbChannelId = newChannel.id;
+      } else {
+        dbChannelId = teamChannel[0].id;
+      }
     } else if (channelId === 'general') {
       // Canal geral tem ID fixo
       const generalChannel = await db
