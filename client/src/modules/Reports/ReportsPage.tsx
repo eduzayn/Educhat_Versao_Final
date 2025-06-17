@@ -7,6 +7,7 @@ import { PeriodFilter, ChannelFilter, FilterContainer } from '@/shared/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Label } from '@/shared/ui/label';
+import { Input } from '@/shared/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { ConversationsPeriodChart } from './ConversationsPeriodChart';
 import { ChannelsUsageChart } from './ChannelsUsageChart';
@@ -15,6 +16,24 @@ export function ReportsPage() {
   const [period, setPeriod] = useState('30');
   const [channel, setChannel] = useState('all');
   const [exportFormat, setExportFormat] = useState('xlsx');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
+
+  // Handler para mudança do período
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod);
+    if (newPeriod === 'custom') {
+      setShowCustomDateDialog(true);
+    }
+  };
+
+  // Handler para aplicar datas customizadas
+  const handleApplyCustomDates = () => {
+    if (customStartDate && customEndDate) {
+      setShowCustomDateDialog(false);
+    }
+  };
 
   // Buscar dados dos relatórios
   const { data: reportData, isLoading } = useQuery({
@@ -124,10 +143,10 @@ export function ReportsPage() {
           </div>
 
           {/* Filtros */}
-          <FilterContainer spacing="sm">
+          <FilterContainer spacing="md">
             <PeriodFilter 
               value={period} 
-              onValueChange={setPeriod} 
+              onValueChange={handlePeriodChange} 
               size="sm"
               className="w-36"
             />
@@ -209,6 +228,49 @@ export function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Período Personalizado */}
+      <Dialog open={showCustomDateDialog} onOpenChange={setShowCustomDateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Período Personalizado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-date">Data de Início</Label>
+              <Input
+                id="start-date"
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end-date">Data de Fim</Label>
+              <Input
+                id="end-date"
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCustomDateDialog(false);
+                  setPeriod('30');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleApplyCustomDates}>
+                Aplicar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
