@@ -48,18 +48,7 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
     return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
   };
 
-  const getDisplayValue = (key: string, keyName: string) => {
-    // Se não há chave, mostrar vazio
-    if (!key) return '';
-    
-    // Se está visível (botão olho clicado) ou editando, mostrar valor real
-    if (visibleKeys[keyName] || editingKeys[keyName]) {
-      return key;
-    }
-    
-    // Caso contrário, mostrar mascarado
-    return maskApiKey(key);
-  };
+
 
   return (
     <Card>
@@ -159,8 +148,8 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="anthropic-key"
-              type="text"
-              value={getDisplayValue(formData.anthropicApiKey, 'anthropic')}
+              type={visibleKeys['anthropic'] ? "text" : "password"}
+              value={visibleKeys['anthropic'] || editingKeys['anthropic'] ? formData.anthropicApiKey : maskApiKey(formData.anthropicApiKey)}
               onChange={handleChange}
               onFocus={() => handleFocus('anthropic')}
               onBlur={() => handleBlur('anthropic')}
