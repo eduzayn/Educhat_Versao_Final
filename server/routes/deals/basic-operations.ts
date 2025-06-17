@@ -5,7 +5,7 @@ import { storage } from '../../storage';
 const router = Router();
 
 // Get all deals with filters and pagination - REST: GET /api/deals
-router.get('/', requirePermission('deals:read'), async (req: AuthenticatedRequest, res) => {
+router.get('/', requirePermission('deal:manage'), async (req: AuthenticatedRequest, res) => {
   try {
     const { 
       status, 
@@ -87,7 +87,7 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
 });
 
 // Get deal by ID - REST: GET /api/deals/:id
-router.get('/:id', requirePermission('deals:read'), async (req: AuthenticatedRequest, res) => {
+router.get('/:id', requirePermission('deal:manage'), async (req: AuthenticatedRequest, res) => {
   try {
     const dealId = parseInt(req.params.id);
     
@@ -111,7 +111,7 @@ router.get('/:id', requirePermission('deals:read'), async (req: AuthenticatedReq
 });
 
 // Create new deal - REST: POST /api/deals
-router.post('/', requirePermission('deals:create'), async (req: AuthenticatedRequest, res) => {
+router.post('/', requirePermission('deal:create'), async (req: AuthenticatedRequest, res) => {
   try {
     const {
       contactId,
@@ -173,7 +173,7 @@ router.post('/', requirePermission('deals:create'), async (req: AuthenticatedReq
 });
 
 // Update deal - REST: PATCH /api/deals/:id
-router.patch('/:id', requirePermission('deals:update'), async (req: AuthenticatedRequest, res) => {
+router.patch('/:id', requirePermission('deal:manage'), async (req: AuthenticatedRequest, res) => {
   try {
     const dealId = parseInt(req.params.id);
     
@@ -222,7 +222,7 @@ router.patch('/:id', requirePermission('deals:update'), async (req: Authenticate
 });
 
 // Delete deal - REST: DELETE /api/deals/:id
-router.delete('/:id', requirePermission('deals:delete'), async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', requirePermission('deal:delete'), async (req: AuthenticatedRequest, res) => {
   try {
     const dealId = parseInt(req.params.id);
     
