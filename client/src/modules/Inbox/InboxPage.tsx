@@ -176,18 +176,7 @@ export function InboxPage() {
     }
   };
 
-  const fetchContactInterests = async (contactId: number) => {
-    try {
-      const response = await fetch(`/api/contacts/${contactId}/interests`);
-      if (response.ok) {
-        const interests = await response.json();
-        setContactInterests(Array.isArray(interests) ? interests : []);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar interesses do contato:", error);
-      setContactInterests([]);
-    }
-  };
+
 
   const handleAddNote = async () => {
     if (!newNote.trim() || !activeConversation) return;
@@ -469,7 +458,6 @@ export function InboxPage() {
         activeConversation={activeConversation}
         contactNotes={contactNotes}
         contactDeals={contactDeals}
-        contactInterests={contactInterests}
         onAddNote={handleAddNote}
         onEditNote={handleEditNote}
         onDeleteNote={handleDeleteNote}
