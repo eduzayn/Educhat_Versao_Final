@@ -768,8 +768,36 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 
-// Internal Chat integrado com sistema de equipes e usuários existentes
-// Não necessita tabelas específicas - usa teams, systemUsers e userTeams
+// Internal Chat Tables
+export const internalChatChannels = pgTable("internal_chat_channels", {
+  id: serial("id").primaryKey(),
+  type: varchar("type", { length: 20 }).notNull(), // 'direct', 'team', 'general'
+  name: text("name").notNull(),
+  description: text("description"),
+  isPrivate: boolean("is_private").default(false),
+  teamId: integer("team_id").references(() => teams.id, { onDelete: 'cascade' }),
+  createdBy: integer("created_by").references(() => systemUsers.id),
+  participantIds: integer("participant_ids").array(), // Para canais diretos
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const internalChatMessages = pgTable("internal_chat_messages", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id").references(() => internalChatChannels.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").references(() => systemUsers.id),
+  content: text("content").notNull(),
+  messageType: varchar("message_type", { length: 20 }).default('text'), // 'text', 'audio', 'file'
+  metadata: jsonb("metadata").default('{}'),
+  replyToId: integer("reply_to_id"),
+  isEdited: boolean("is_edited").default(false),
+  isDeleted: boolean("is_deleted").default(false),
+  reactions: jsonb("reactions").default('{}'),
+  readBy: jsonb("read_by").default('[]'), // Array de user IDs que leram
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Relations for new permission tables
 export const permissionsRelations = relations(permissions, ({ many }) => ({
@@ -1201,6 +1229,53 @@ export const aiMemoryRelations = relations(aiMemory, ({ one }) => ({
     references: [contacts.id],
   }),
 }));
+
+// Internal Chat Relations
+export const internalChatChannelsRelations = relations(internalChatChannels, ({ one, many }) => ({
+  team: one(teams, {
+    fields: [internalChatChannels.teamId],
+    references: [teams.id],
+  }),
+  creator: one(systemUsers, {
+    fields: [internalChatChannels.createdBy],
+    references: [systemUsers.id],
+  }),
+  messages: many(internalChatMessages),
+}));
+
+export const internalChatMessagesRelations = relations(internalChatMessages, ({ one }) => ({
+  channel: one(internalChatChannels, {
+    fields: [internalChatMessages.channelId],
+    references: [internalChatChannels.id],
+  }),
+  user: one(systemUsers, {
+    fields: [internalChatMessages.userId],
+    references: [systemUsers.id],
+  }),
+  replyTo: one(internalChatMessages, {
+    fields: [internalChatMessages.replyToId],
+    references: [internalChatMessages.id],
+  }),
+}));
+
+// Insert schemas for Internal Chat
+export const insertInternalChatChannelSchema = createInsertSchema(internalChatChannels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInternalChatMessageSchema = createInsertSchema(internalChatMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for Internal Chat
+export type InternalChatChannel = typeof internalChatChannels.$inferSelect;
+export type InsertInternalChatChannel = z.infer<typeof insertInternalChatChannelSchema>;
+export type InternalChatMessage = typeof internalChatMessages.$inferSelect;
+export type InsertInternalChatMessage = z.infer<typeof insertInternalChatMessageSchema>;
 
 // Prof. Ana Configuration Table
 export const aiConfig = pgTable("ai_config", {

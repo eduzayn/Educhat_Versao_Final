@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, inArray } from 'drizzle-orm';
 import { db } from '../../../db';
-import { teams, userTeams, systemUsers, roles } from '@shared/schema';
+import { teams, userTeams, systemUsers, roles, internalChatChannels } from '@shared/schema';
 import { getUserPermissions } from '../services/permissions';
 import { Channel } from '../types/teams';
 
@@ -83,6 +83,64 @@ router.get('/', async (req: Request, res: Response) => {
         }))
       ];
     }
+
+    // Buscar canais diretos/privados do usuário
+    const directChannels = await db
+      .select({
+        id: internalChatChannels.id,
+        name: internalChatChannels.name,
+        description: internalChatChannels.description,
+        type: internalChatChannels.type,
+        isPrivate: internalChatChannels.isPrivate,
+        participantIds: internalChatChannels.participantIds,
+      })
+      .from(internalChatChannels)
+      .where(
+        and(
+          eq(internalChatChannels.type, 'direct'),
+          eq(internalChatChannels.isActive, true),
+          or(
+            eq(internalChatChannels.createdBy, req.user.id),
+            inArray(req.user.id, internalChatChannels.participantIds)
+          )
+        )
+      );
+
+    // Converter canais diretos para o formato esperado
+    const directChannelsFormatted = await Promise.all(
+      directChannels.map(async (channel) => {
+        const participantIds = channel.participantIds || [];
+        const otherUserId = participantIds.find(id => id !== req.user.id);
+        
+        if (otherUserId) {
+          const otherUser = await db
+            .select({
+              displayName: systemUsers.displayName,
+              username: systemUsers.username,
+              avatar: systemUsers.avatar,
+            })
+            .from(systemUsers)
+            .where(eq(systemUsers.id, otherUserId))
+            .limit(1);
+
+          if (otherUser.length > 0) {
+            return {
+              id: `direct-${channel.id}`,
+              name: `${otherUser[0].displayName || otherUser[0].username}`,
+              description: `Conversa privada`,
+              type: 'direct' as const,
+              isPrivate: true,
+              participants: participantIds,
+              unreadCount: 0,
+              channelDbId: channel.id,
+            };
+          }
+        }
+        return null;
+      })
+    );
+
+    channels.push(...directChannelsFormatted.filter(Boolean));
     
     res.json(channels);
   } catch (error) {
@@ -143,6 +201,89 @@ router.get('/:channelId/users', async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Erro ao buscar usuários do canal:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Criar ou buscar canal direto entre dois usuários
+router.post('/direct/:targetUserId', async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
+
+    const targetUserId = parseInt(req.params.targetUserId);
+    const currentUserId = req.user.id;
+
+    if (targetUserId === currentUserId) {
+      return res.status(400).json({ error: 'Não é possível criar canal direto consigo mesmo' });
+    }
+
+    // Verificar se o usuário alvo existe
+    const targetUser = await db
+      .select({
+        id: systemUsers.id,
+        displayName: systemUsers.displayName,
+        username: systemUsers.username,
+      })
+      .from(systemUsers)
+      .where(eq(systemUsers.id, targetUserId))
+      .limit(1);
+
+    if (targetUser.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Buscar canal direto existente
+    const participantIds = [currentUserId, targetUserId].sort();
+    
+    const existingChannel = await db
+      .select()
+      .from(internalChatChannels)
+      .where(
+        and(
+          eq(internalChatChannels.type, 'direct'),
+          eq(internalChatChannels.isActive, true)
+        )
+      );
+
+    let directChannel = existingChannel.find(channel => {
+      const channelParticipants = (channel.participantIds || []).sort();
+      return channelParticipants.length === 2 && 
+             channelParticipants[0] === participantIds[0] && 
+             channelParticipants[1] === participantIds[1];
+    });
+
+    // Se não existe, criar novo canal
+    if (!directChannel) {
+      const [newChannel] = await db
+        .insert(internalChatChannels)
+        .values({
+          type: 'direct',
+          name: `Conversa entre ${req.user.displayName || req.user.username} e ${targetUser[0].displayName || targetUser[0].username}`,
+          description: 'Canal de mensagem direta',
+          isPrivate: true,
+          participantIds: participantIds,
+          createdBy: currentUserId,
+        })
+        .returning();
+
+      directChannel = newChannel;
+    }
+
+    res.json({
+      success: true,
+      channel: {
+        id: `direct-${directChannel.id}`,
+        name: targetUser[0].displayName || targetUser[0].username,
+        type: 'direct',
+        isPrivate: true,
+        channelDbId: directChannel.id,
+        participants: participantIds,
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao criar/buscar canal direto:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
