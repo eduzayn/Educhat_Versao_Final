@@ -13,20 +13,7 @@ export function useQuickReplies() {
   });
 }
 
-export function useQuickReplySearch() {
-  return useMutation({
-    mutationFn: async (params: { query: string; category?: string; type?: string }) => {
-      const searchParams = new URLSearchParams();
-      searchParams.append('q', params.query);
-      if (params.category) searchParams.append('category', params.category);
-      if (params.type) searchParams.append('type', params.type);
-      
-      const response = await fetch(`/api/quick-replies/search?${searchParams}`);
-      if (!response.ok) throw new Error('Falha na busca');
-      return response.json();
-    },
-  });
-}
+
 
 export function useIncrementQuickReplyUsage() {
   const queryClient = useQueryClient();

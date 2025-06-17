@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
@@ -28,12 +28,15 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     onSendMessage,
   });
 
+  // Memoize quickReplies to prevent unnecessary re-renders
+  const memoizedQuickReplies = useMemo(() => quickReplies, [quickReplies.length]);
+
   // Buscar respostas rápidas baseadas no texto digitado
   useEffect(() => {
     if (message.startsWith('/')) {
       const query = message.slice(1).toLowerCase();
       if (query.length > 0) {
-        const filtered = quickReplies.filter(qr => 
+        const filtered = memoizedQuickReplies.filter(qr => 
           qr.title.toLowerCase().includes(query) ||
           qr.shortcut?.toLowerCase().includes(query) ||
           qr.content?.toLowerCase().includes(query)
@@ -42,7 +45,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         setShowQuickReplies(filtered.length > 0);
         setSelectedIndex(0);
       } else {
-        setFilteredReplies(quickReplies.slice(0, 10));
+        setFilteredReplies(memoizedQuickReplies.slice(0, 10));
         setShowQuickReplies(true);
         setSelectedIndex(0);
       }
@@ -50,7 +53,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
       setShowQuickReplies(false);
       setFilteredReplies([]);
     }
-  }, [message, quickReplies]);
+  }, [message, memoizedQuickReplies]);
 
   const selectQuickReply = (reply: QuickReply) => {
     if (reply.type === 'text') {

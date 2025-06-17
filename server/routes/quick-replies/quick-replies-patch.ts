@@ -14,4 +14,16 @@ export function registerQuickRepliesPatchRoutes(app: Express) {
       res.status(500).json({ message: 'Failed to increment usage count' });
     }
   });
+
+  // Alternative POST route for increment usage - REST: POST /api/quick-replies/:id/increment-usage
+  app.post('/api/quick-replies/:id/increment-usage', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.incrementQuickReplyUsage(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error incrementing quick reply usage:', error);
+      res.status(500).json({ message: 'Failed to increment usage count' });
+    }
+  });
 } 
