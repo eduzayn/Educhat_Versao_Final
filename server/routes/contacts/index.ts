@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { db } from "../../db";
-import { contacts } from "../../../shared/schema";
+import { contacts } from "@shared/schema";
 import { ilike, or, desc, count, eq, inArray } from "drizzle-orm";
 
 export function registerContactRoutes(app: Express) {

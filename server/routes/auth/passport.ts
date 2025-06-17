@@ -1,7 +1,7 @@
 import { Express } from "express";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { comparePasswords } from "./password";
 
 export function setupPassport(app: Express) {

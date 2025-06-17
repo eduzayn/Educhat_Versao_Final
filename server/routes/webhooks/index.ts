@@ -5,7 +5,7 @@
  */
 
 import type { Express } from "express";
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../utils/zapi";
 import { webhookHealthMonitor, validateWebhookData } from "../../webhookHealthCheck";
 

@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { BIDashboardResponse, BIChannelData, BIDailyTrend } from './types';
 
 export function registerDashboardRoutes(app: Express) {

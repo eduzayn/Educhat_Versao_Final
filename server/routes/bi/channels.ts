@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { BIChannelStats } from './types';
 
 export function registerChannelRoutes(app: Express) {

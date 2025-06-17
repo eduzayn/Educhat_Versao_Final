@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissionsRefactored';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { AnalyticsFilters } from './types';
 
 export function registerUserRoutes(app: Express) {

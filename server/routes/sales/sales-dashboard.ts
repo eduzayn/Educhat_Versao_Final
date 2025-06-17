@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 
 export function registerDashboardRoutes(app: Express) {
   // Dashboard de Vendas - REST: GET /api/sales/dashboard

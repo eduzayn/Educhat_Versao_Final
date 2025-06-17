@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { verifyFacebookSignature } from './facebook-verification';
 import { processCommentEvent } from './facebook-comments';
 

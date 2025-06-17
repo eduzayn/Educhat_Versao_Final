@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { db } from "./db";
-import { systemUsers, roles, permissions, rolePermissions } from "../../shared/schema";
+import { systemUsers, roles, permissions, rolePermissions } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {

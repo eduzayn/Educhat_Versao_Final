@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { conversationAssignmentService } from '../../services/conversationAssignmentService';
 
 export function registerTeamsAssignmentsRoutes(app: Express) {

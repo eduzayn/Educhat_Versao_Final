@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 
 export function registerRankingRoutes(app: Express) {
   // Ranking de Vendedores - REST: GET /api/sales/ranking

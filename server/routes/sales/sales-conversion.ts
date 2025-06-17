@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 
 export function registerConversionRoutes(app: Express) {
   // Relatório de Conversão - REST: GET /api/sales/conversion

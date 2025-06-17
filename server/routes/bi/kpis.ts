@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { BIKPIResponse } from './types';
 
 export function registerKPIRoutes(app: Express) {

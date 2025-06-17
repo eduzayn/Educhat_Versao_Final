@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { deals } from "../../../shared/schema";
+import { deals } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export class DealMaintenanceOperations extends BaseStorage {

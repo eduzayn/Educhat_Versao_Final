@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { type Contact, type InsertContact, type ContactTag, type InsertContactTag, type ContactWithTags } from "../../../shared/schema";
+import { type Contact, type InsertContact, type ContactTag, type InsertContactTag, type ContactWithTags } from "@shared/schema";
 
 /**
  * Contact storage module - manages contacts and contact tags

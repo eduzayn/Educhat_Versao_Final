@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { z } from "zod";
 import { insertManychatIntegrationSchema } from "@shared/schema";
 import { facebookRoutes } from '../integrations/facebook';

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../../storage";
+import { storage } from "../storage";
 
 export function registerContactPhotoRoutes(app: Express) {
   app.get('/api/contacts/:id/photo', async (req, res) => {

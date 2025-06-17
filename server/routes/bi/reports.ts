@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { BIReportConversion, BIReportChannel, BIReportGeneral } from './types';
 
 export function registerReportRoutes(app: Express) {

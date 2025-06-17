@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { teams, userTeams, systemUsers, type Team, type InsertTeam, type UserTeam, type InsertUserTeam, type SystemUser } from "../../../shared/schema";
+import { teams, userTeams, systemUsers, type Team, type InsertTeam, type UserTeam, type InsertUserTeam, type SystemUser } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { TeamBasicOperations } from './teamBasicOperations';
 import { TeamMemberOperations } from './teamMemberOperations';

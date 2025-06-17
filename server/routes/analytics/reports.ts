@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { AnalyticsReportRequest } from './types';
 
 export function registerReportRoutes(app: Express) {

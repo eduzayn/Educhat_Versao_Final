@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../../storage";
+import { storage } from "../storage";
 
 export function registerQuickRepliesDeleteRoutes(app: Express) {
   // Delete quick reply - REST: DELETE /api/quick-replies/:id

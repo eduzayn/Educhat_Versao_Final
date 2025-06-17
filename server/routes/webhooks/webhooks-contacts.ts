@@ -1,4 +1,4 @@
-import { storage } from "../../storage";
+import { storage } from "../storage";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../utils/zapi";
 
 /**
