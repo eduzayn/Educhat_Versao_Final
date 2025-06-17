@@ -119,9 +119,11 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="elevenlabs-key"
-              type={visibleKeys['elevenlabs'] ? "text" : "password"}
-              value={visibleKeys['elevenlabs'] ? formData.elevenlabsApiKey : getDisplayValue(formData.elevenlabsApiKey, 'elevenlabs')}
+              type="text"
+              value={getDisplayValue(formData.elevenlabsApiKey, 'elevenlabs')}
               onChange={handleChange}
+              onFocus={() => handleFocus('elevenlabs')}
+              onBlur={() => handleBlur('elevenlabs')}
               placeholder="xi-api-..."
               className="pr-10"
             />
@@ -145,9 +147,11 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="anthropic-key"
-              type={visibleKeys['anthropic'] ? "text" : "password"}
-              value={visibleKeys['anthropic'] ? formData.anthropicApiKey : getDisplayValue(formData.anthropicApiKey, 'anthropic')}
+              type="text"
+              value={getDisplayValue(formData.anthropicApiKey, 'anthropic')}
               onChange={handleChange}
+              onFocus={() => handleFocus('anthropic')}
+              onBlur={() => handleBlur('anthropic')}
               placeholder="sk-ant-..."
               className="pr-10"
             />
