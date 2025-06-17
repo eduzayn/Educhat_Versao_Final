@@ -18,8 +18,7 @@ router.post('/', async (req: Request, res: Response) => {
       description,
       contactId,
       activityType,
-      date,
-      time,
+      scheduledAt,
       duration,
       priority,
       reminderMinutes,
@@ -28,9 +27,9 @@ router.post('/', async (req: Request, res: Response) => {
     } = req.body;
 
     // Validação básica
-    if (!title || !date || !time) {
+    if (!title || !scheduledAt) {
       return res.status(400).json({ 
-        error: 'Campos obrigatórios: título, data e horário' 
+        error: 'Campos obrigatórios: título e data/horário' 
       });
     }
 
@@ -40,7 +39,7 @@ router.post('/', async (req: Request, res: Response) => {
       description: description || null,
       contactId: contactId || null,
       type: activityType || 'call',
-      scheduledDate: new Date(`${date}T${time}:00`),
+      scheduledDate: new Date(scheduledAt),
       duration: parseInt(duration) || 30,
       priority: priority || 'normal',
       reminderMinutes: parseInt(reminderMinutes) || 15,
