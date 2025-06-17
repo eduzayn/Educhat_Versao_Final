@@ -1,0 +1,29 @@
+Console.js:61 Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?
+
+Check the render method of `Primitive.button.SlotClone`.
+    at ChatSettings (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/modules/InternalChat/components/ChatSettings.tsx:59:77)
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=f1a88200:79:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=f1a88200:56:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=f1a88200:42:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=f1a88200:79:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=f1a88200:56:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=f1a88200:42:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…ner/workspace/node_modules/.vite/deps/chunk-LWDXDOUK.js?v=f1a88200:1931:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…space/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f1a88200:202:13
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=f1a88200:38:15)
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=f1a88200:38:15)
+    at Popper (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…ner/workspace/node_modules/.vite/deps/chunk-LWDXDOUK.js?v=f1a88200:1923:11)
+    at Tooltip (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…kspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f1a88200:111:5)
+    at div
+    at div
+    at ChatHeader (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/modules/InternalChat/components/ChatHeader.tsx:35:30)
+    at div
+    at div
+    at InternalChatPage (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/modules/InternalChat/InternalChatPage.tsx:31:45)
+    at Route (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f1a88200:323:16)
+    at Switch (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=f1a88200:379:17)
+    at Router (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/App.tsx?v=GIEiy_kmnegIHNEcmYGQK:50:42)
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=f1a88200:38:15)
+    at TooltipProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=f1a88200:67:5)
+    at QueryClientProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f1a88200:2805:3)
+    at App
