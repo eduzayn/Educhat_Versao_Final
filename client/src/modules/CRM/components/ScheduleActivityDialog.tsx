@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { useToast } from '@/shared/ui/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { format, addDays, startOfWeek, addMinutes, parseISO } from "date-fns";
@@ -62,10 +62,17 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
   // Mutation para criar atividade
   const createActivityMutation = useMutation({
     mutationFn: async (activityData: any) => {
-      return apiRequest('/api/activities', {
+      const response = await fetch('/api/activities', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(activityData),
       });
+      if (!response.ok) {
+        throw new Error('Erro ao agendar atividade');
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -220,7 +227,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                     <SelectValue placeholder="Selecione um contato" />
                   </SelectTrigger>
                   <SelectContent>
-                    {contacts?.map((contact: any) => (
+                    {Array.isArray(contacts) && contacts.map((contact: any) => (
                       <SelectItem key={contact.id} value={contact.id.toString()}>
                         {contact.name} {contact.phone && `(${contact.phone})`}
                       </SelectItem>

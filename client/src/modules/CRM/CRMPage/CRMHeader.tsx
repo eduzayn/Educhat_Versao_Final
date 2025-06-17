@@ -11,12 +11,20 @@ import { useCRMContext } from './CRMPage';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
+import { ContactDialog } from '@/shared/components/ContactDialog';
+import { CreateDealDialog } from '../components/CreateDealDialog';
+import { ScheduleActivityDialog } from '../components/ScheduleActivityDialog';
 
 export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { user } = useAuth();
   const { dateFilter, setDateFilter } = useCRMContext();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  
+  // Estados para os diálogos de ação rápida
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showDealDialog, setShowDealDialog] = useState(false);
+  const [showActivityDialog, setShowActivityDialog] = useState(false);
 
   const handleDateSelect = (range: DateRange | undefined) => {
     setDateRange(range);
@@ -137,29 +145,29 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Novo Atendimento
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowContactDialog(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Contato
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowDealDialog(true)}>
                 <Target className="h-4 w-4 mr-2" />
                 Criar Negócio
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open('/contacts', '_blank')}>
                 <Phone className="h-4 w-4 mr-2" />
                 Ligar para Contato
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open('/contacts', '_blank')}>
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Calendar className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={() => setShowActivityDialog(true)}>
+                <CalendarIcon className="h-4 w-4 mr-2" />
                 Agendar Atividade
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open('/reports', '_blank')}>
                 <FileText className="h-4 w-4 mr-2" />
                 Gerar Relatório
               </DropdownMenuItem>
