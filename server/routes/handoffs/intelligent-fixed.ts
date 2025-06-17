@@ -117,6 +117,27 @@ router.post('/execute', validateConversationId, async (req, res) => {
       status: 'open'
     });
 
+    // Atribuir usuário automaticamente usando round-robin
+    let assignedUserId = null;
+    let assignedUserName = null;
+    let roundRobinSuccess = false;
+    
+    try {
+      const { roundRobinService } = await import('../../services/roundRobinService');
+      const roundRobinResult = await roundRobinService.assignUserToConversation(conversationId, team.id);
+      
+      if (roundRobinResult.success) {
+        assignedUserId = roundRobinResult.userId;
+        assignedUserName = roundRobinResult.userName;
+        roundRobinSuccess = true;
+        console.log(`🎯 Round-robin: ${roundRobinResult.userName} atribuído à conversa ${conversationId} (${roundRobinResult.reason})`);
+      } else {
+        console.log(`⚠️ Round-robin falhou: ${roundRobinResult.reason}`);
+      }
+    } catch (roundRobinError) {
+      console.error('Erro no round-robin:', roundRobinError);
+    }
+
     // Criar deal automático se necessário
     let dealCreated = false;
     let dealId = null;
@@ -139,7 +160,9 @@ router.post('/execute', validateConversationId, async (req, res) => {
       handoffId: Date.now(), // Simulated ID
       teamId: team.id,
       teamType: classification.teamType,
-      userId: null,
+      userId: assignedUserId,
+      userName: assignedUserName,
+      roundRobinApplied: roundRobinSuccess,
       dealCreated,
       dealId
     };
