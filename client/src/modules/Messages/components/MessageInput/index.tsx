@@ -1,12 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useMessageSender } from './hooks/useMessageSender';
-import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
 import { ActionButtons } from './ActionButtons';
-import { QuickReplyChips } from './QuickReplyChips';
-import { QuickReplyDropdown } from './QuickReplyDropdown';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
-import type { QuickReply } from '@shared/schema';
 
 interface MessageInputProps {
   conversationId: number;
@@ -15,59 +11,12 @@ interface MessageInputProps {
 
 export function MessageInput({ conversationId, onSendMessage }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [filteredReplies, setFilteredReplies] = useState<QuickReply[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  const { data: quickReplies = [] } = useQuickReplies();
-  const incrementUsageMutation = useIncrementQuickReplyUsage();
 
   const { isLoading, isUploading, sendTextMessage, uploadFile, shareLink, sendAudio } = useMessageSender({
     conversationId,
     onSendMessage,
   });
-
-  // Memoize quickReplies to prevent unnecessary re-renders
-  const memoizedQuickReplies = useMemo(() => quickReplies, [quickReplies.length]);
-
-  // Buscar respostas rápidas baseadas no texto digitado
-  useEffect(() => {
-    if (message.startsWith('/')) {
-      const query = message.slice(1).toLowerCase();
-      if (query.length > 0) {
-        const filtered = memoizedQuickReplies.filter(qr => 
-          qr.title.toLowerCase().includes(query) ||
-          qr.shortcut?.toLowerCase().includes(query) ||
-          qr.content?.toLowerCase().includes(query)
-        );
-        setFilteredReplies(filtered);
-        setShowQuickReplies(filtered.length > 0);
-        setSelectedIndex(0);
-      } else {
-        setFilteredReplies(memoizedQuickReplies.slice(0, 10));
-        setShowQuickReplies(true);
-        setSelectedIndex(0);
-      }
-    } else {
-      setShowQuickReplies(false);
-      setFilteredReplies([]);
-    }
-  }, [message, memoizedQuickReplies]);
-
-  const selectQuickReply = (reply: QuickReply) => {
-    if (reply.type === 'text') {
-      setMessage(reply.content || reply.title);
-    }
-    setShowQuickReplies(false);
-    setFilteredReplies([]);
-    
-    // Incrementar contador de uso
-    incrementUsageMutation.mutate(reply.id);
-    
-    // Focar no textarea
-    textAreaRef.current?.focus();
-  };
 
   const handleSendMessage = async () => {
     const success = await sendTextMessage(message);
@@ -89,29 +38,6 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (showQuickReplies && filteredReplies.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % filteredReplies.length);
-        return;
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + filteredReplies.length) % filteredReplies.length);
-        return;
-      }
-      if (e.key === 'Enter' || e.key === 'Tab') {
-        e.preventDefault();
-        selectQuickReply(filteredReplies[selectedIndex]);
-        return;
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setShowQuickReplies(false);
-        return;
-      }
-    }
-
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -120,19 +46,6 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
   return (
     <div className="bg-white border-t border-gray-200 p-4 relative">
-      {/* Quick Reply Dropdown */}
-      <QuickReplyDropdown
-        visible={showQuickReplies}
-        filteredReplies={filteredReplies}
-        onSelect={selectQuickReply}
-        selectedIndex={selectedIndex}
-      />
-
-      {/* Quick Reply Chips - mostrar apenas quando não há texto digitado */}
-      {!message && (
-        <QuickReplyChips onSelect={(reply) => setMessage(reply)} />
-      )}
-
       <div className="flex items-end gap-3">
         <MediaAttachmentModal
           onFileUpload={handleFileUpload}
@@ -147,7 +60,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
-            placeholder="Digite sua mensagem ou use / para respostas rápidas..."
+            placeholder="Digite sua mensagem..."
             className="min-h-[40px] max-h-[120px] resize-none"
             aria-label="Campo de mensagem"
           />
