@@ -136,9 +136,29 @@ export const UsersTab = () => {
   });
 
   // Fetch users from API
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['/api/admin/users'],
-    queryFn: () => fetch('/api/admin/users', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/admin/users', { credentials: 'include' });
+        if (!response.ok) {
+          const text = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(text);
+          } catch {
+            console.error('Erro ao buscar usuários: Response não é JSON válido:', text);
+            throw new Error('Erro de comunicação com o servidor');
+          }
+          throw new Error(errorData.error || errorData.message || 'Erro ao buscar usuários');
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Erro ao buscar usuários:', err);
+        throw err;
+      }
+    }
   });
 
   // Ensure users is always an array
@@ -440,13 +460,25 @@ export const UsersTab = () => {
         </Card>
       </div>
       
+      {/* Exibir erro se houver */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-800">
+              <div className="text-sm">
+                <strong>Erro ao carregar usuários:</strong> {error?.message || 'Erro desconhecido'}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Lista de Usuários */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Lista de Usuários</CardTitle>
             <div className="flex gap-2">
-
               <Button onClick={() => setShowUserDialog(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Usuário
@@ -472,7 +504,29 @@ export const UsersTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user: any) => (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        Carregando usuários...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-red-600">
+                      Falha ao carregar usuários. Verifique sua conexão ou permissões.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      Nenhum usuário encontrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user: any) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <Checkbox />
@@ -558,7 +612,8 @@ export const UsersTab = () => {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+                )}
               </TableBody>
             </Table>
           </div>
