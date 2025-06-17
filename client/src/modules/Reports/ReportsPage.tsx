@@ -202,27 +202,8 @@ export function ReportsPage() {
 
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Conversas por Período</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  {isLoading ? 'Carregando dados...' : 'Gráfico de conversas por período'}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Canais Mais Utilizados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  {isLoading ? 'Carregando dados...' : 'Gráfico de canais mais utilizados'}
-                </div>
-              </CardContent>
-            </Card>
+            <ConversationsPeriodChart period={period} channel={channel} />
+            <ChannelsUsageChart period={period} />
           </div>
         </div>
       </div>

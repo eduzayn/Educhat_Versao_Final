@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { conversations, messages, contacts } from '../../shared/schema';
-import { sql, eq, and, gte, lte, count, avg } from 'drizzle-orm';
+import { sql, eq, and, gte, lte, count, avg, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -133,6 +133,89 @@ router.get('/analytics', async (req, res) => {
     res.json({ metrics });
   } catch (error) {
     console.error('Erro ao buscar analytics:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para dados do gráfico de conversas por período
+router.get('/conversations-chart', async (req, res) => {
+  try {
+    const { period = '30', channel = 'all' } = req.query;
+    const now = new Date();
+    const daysAgo = parseInt(period as string);
+    const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+
+    // Filtro de data
+    const dateFilter = gte(conversations.createdAt, startDate);
+    
+    // Filtro de canal
+    const channelFilter = channel === 'all' ? undefined : eq(conversations.channel, channel as string);
+
+    // Buscar conversas agrupadas por dia
+    const conversationsByDay = await db
+      .select({
+        date: sql<string>`DATE(${conversations.createdAt})`,
+        count: count()
+      })
+      .from(conversations)
+      .where(and(dateFilter, channelFilter))
+      .groupBy(sql`DATE(${conversations.createdAt})`)
+      .orderBy(sql`DATE(${conversations.createdAt})`);
+
+    // Preencher dias sem dados com zero
+    const chartData = [];
+    for (let i = daysAgo - 1; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayData = conversationsByDay.find(d => d.date === dateStr);
+      
+      chartData.push({
+        date: dateStr,
+        conversas: dayData ? dayData.count : 0,
+        label: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      });
+    }
+
+    res.json({ data: chartData });
+  } catch (error) {
+    console.error('Erro ao buscar dados do gráfico de conversas:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Endpoint para dados do gráfico de canais mais utilizados
+router.get('/channels-chart', async (req, res) => {
+  try {
+    const { period = '30' } = req.query;
+    const now = new Date();
+    const daysAgo = parseInt(period as string);
+    const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+
+    const dateFilter = gte(conversations.createdAt, startDate);
+
+    // Buscar conversas agrupadas por canal
+    const conversationsByChannel = await db
+      .select({
+        channel: conversations.channel,
+        count: count()
+      })
+      .from(conversations)
+      .where(dateFilter)
+      .groupBy(conversations.channel)
+      .orderBy(desc(count()));
+
+    // Calcular total para porcentagens
+    const total = conversationsByChannel.reduce((sum, item) => sum + item.count, 0);
+
+    const chartData = conversationsByChannel.map(item => ({
+      canal: item.channel || 'WhatsApp',
+      conversas: item.count,
+      porcentagem: total > 0 ? Math.round((item.count / total) * 100) : 0
+    }));
+
+    res.json({ data: chartData });
+  } catch (error) {
+    console.error('Erro ao buscar dados do gráfico de canais:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
