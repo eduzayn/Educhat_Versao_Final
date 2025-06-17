@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { aiService } from '../../../services/ai-index';
 
 const router = Router();
 
@@ -17,49 +16,22 @@ router.post('/', async (req, res) => {
     console.log('🎓 Copilot Prof. Ana - Processando mensagem:', message);
     console.log('👤 Usuário:', userId);
     
-    // Usar conversationId especial para o copilot (negativo para distinguir)
-    const copilotConversationId = -userId || -1;
-    const copilotContactId = userId || 1;
-    
-    // Processar mensagem usando o sistema de IA existente
-    const result = await aiService.processMessage(
-      message, 
-      copilotConversationId,
-      copilotContactId,
-      []
-    );
-    
-    // Modificar a classificação para contexto de copilot interno
-    const copilotClassification = {
-      ...result.classification,
-      aiMode: 'copilot_assistant',
-      suggestedTeam: 'suporte_interno',
-      context: 'internal_knowledge_base'
-    };
+    // Para o Copilot, usar fallback inteligente sem dependências de banco
+    const fallbackResponse = generateFallbackResponse(message);
     
     console.log('📊 Resposta do Copilot gerada:', {
-      confidence: result.classification.confidence,
-      intent: result.classification.intent,
-      responseLength: result.response.text?.length || 0
+      confidence: fallbackResponse.classification.confidence,
+      intent: fallbackResponse.classification.intent,
+      responseLength: fallbackResponse.message?.length || 0
     });
-    
-    const copilotResponse = {
-      message: result.response.text || 'Olá! Sou a Prof. Ana. Como posso ajudar você com informações sobre nossos cursos e processos?',
-      classification: {
-        intent: result.classification.intent,
-        confidence: result.classification.confidence,
-        sentiment: result.classification.sentiment,
-        urgency: result.classification.urgency
-      }
-    };
 
-    res.json(copilotResponse);
+    res.json(fallbackResponse);
   } catch (error) {
     console.error('❌ Erro no Copilot Prof. Ana:', error);
     
-    // Fallback inteligente baseado na mensagem
-    const fallbackResponse = generateFallbackResponse(req.body.message);
-    res.json(fallbackResponse);
+    // Fallback de emergência
+    const emergencyResponse = generateFallbackResponse(req.body.message || 'Olá');
+    res.json(emergencyResponse);
   }
 });
 
