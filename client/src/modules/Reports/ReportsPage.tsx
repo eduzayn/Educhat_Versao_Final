@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { useQuery } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-
 export function ReportsPage() {
   const [period, setPeriod] = useState('30');
   const [channel, setChannel] = useState('all');
@@ -20,7 +18,6 @@ export function ReportsPage() {
   });
   const [showCustomPeriod, setShowCustomPeriod] = useState(false);
   const [exportFormat, setExportFormat] = useState('xlsx');
-  const { toast } = useToast();
 
   // Buscar dados dos relatórios
   const { data: reportData, isLoading } = useQuery({
@@ -65,16 +62,9 @@ export function ReportsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast({
-        title: "Relatório exportado com sucesso",
-        description: `Arquivo baixado no formato ${exportFormat.toUpperCase()}`
-      });
+      alert('Relatório exportado com sucesso!');
     } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível exportar o relatório",
-        variant: "destructive"
-      });
+      alert('Erro ao exportar relatório. Tente novamente.');
     }
   };
 
@@ -82,10 +72,7 @@ export function ReportsPage() {
     if (customDateRange.start && customDateRange.end) {
       setPeriod('custom');
       setShowCustomPeriod(false);
-      toast({
-        title: "Período personalizado aplicado",
-        description: `De ${customDateRange.start} até ${customDateRange.end}`
-      });
+      alert(`Período personalizado aplicado: ${customDateRange.start} até ${customDateRange.end}`);
     }
   };
 
