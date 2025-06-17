@@ -33,8 +33,8 @@ export class NotesStorage extends BaseStorage {
     const noteData: InsertContactNote = {
       contactId,
       content,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      authorName: 'Sistema', // Nome padrão para notas do sistema
+      authorId: null
     };
     return this.createContactNote(noteData);
   }
