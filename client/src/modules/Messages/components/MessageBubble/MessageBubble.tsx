@@ -68,11 +68,22 @@ export function MessageBubble({
 
   const messageStatus = useMemo(() => {
     if (isFromContact) return null;
+    
+    // Mensagem sendo enviada (status temporário)
+    if ((message as any).status === 'sending') {
+      return (
+        <div className="flex items-center">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse mr-1" />
+          <span className="text-xs text-yellow-600">Enviando...</span>
+        </div>
+      );
+    }
+    
     if (message.readAt) return <CheckCheck className="w-3 h-3 text-blue-500" />;
     if (message.deliveredAt)
       return <CheckCheck className="w-3 h-3 text-gray-400" />;
     return <Check className="w-3 h-3 text-gray-400" />;
-  }, [isFromContact, message.readAt, message.deliveredAt]);
+  }, [isFromContact, message.readAt, message.deliveredAt, (message as any).status]);
 
   const handleDeleteMessage = async () => {
     const success = await deleteMessage(isFromContact, contact.phone, message.metadata);

@@ -79,6 +79,8 @@ export function useSendMessage() {
       return savedMessage;
     },
     onMutate: async ({ conversationId, message }) => {
+      console.log('🚀 Exibindo mensagem imediatamente no bubble');
+      
       // Cancelar qualquer refetch em andamento
       await queryClient.cancelQueries({ 
         queryKey: ['/api/conversations', conversationId, 'messages'] 
@@ -87,21 +89,28 @@ export function useSendMessage() {
       // Snapshot do estado anterior
       const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
 
-      // Atualização otimista - adicionar mensagem temporária
+      // Atualização otimista - adicionar mensagem temporária IMEDIATAMENTE
       const tempMessage = {
-        id: Date.now(), // ID temporário
+        id: Date.now(), // ID temporário único
         ...message,
         conversationId,
         sentAt: new Date(),
         isFromContact: false,
-        status: 'sending'
+        status: 'sending',
+        zapiMessageId: null,
+        readAt: null,
+        deliveredAt: null,
+        metadata: null
       };
 
+      // Forçar atualização imediata da UI
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (old: Message[] | undefined) => {
           const messages = old || [];
-          return [...messages, tempMessage as Message];
+          const updatedMessages = [...messages, tempMessage as Message];
+          console.log('✅ Mensagem adicionada ao bubble imediatamente:', tempMessage.id);
+          return updatedMessages;
         }
       );
 

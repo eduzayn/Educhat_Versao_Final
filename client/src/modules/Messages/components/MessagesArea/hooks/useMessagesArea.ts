@@ -68,18 +68,30 @@ export function useMessagesArea(activeConversation: any) {
     }
   }, [activeConversation?.id, scrollToBottom]);
 
-  // Scroll on new message - otimizado para evitar scroll duplo
+  // Scroll automático imediato para novas mensagens
   useEffect(() => {
     const shouldScroll = messages.length > prevMessageCount.current && 
-                        hasAutoScrolled && 
-                        !isLoading && 
+                        (hasAutoScrolled || messages.length === 1) && 
                         activeConversation?.id === prevConversationId.current;
     
     if (shouldScroll) {
-      scrollToBottom();
+      // Scroll imediato para mensagens novas (incluindo temporárias)
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
     }
     prevMessageCount.current = messages.length;
-  }, [messages.length, hasAutoScrolled, isLoading, activeConversation?.id, scrollToBottom]);
+  }, [messages.length, hasAutoScrolled, activeConversation?.id, scrollToBottom]);
+
+  // Scroll imediato quando há mensagens temporárias (status 'sending')
+  useEffect(() => {
+    const hasTemporaryMessage = messages.some((msg: any) => msg.status === 'sending');
+    if (hasTemporaryMessage) {
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
+    }
+  }, [messages, scrollToBottom]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
