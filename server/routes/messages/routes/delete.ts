@@ -94,7 +94,15 @@ router.patch('/api/messages/:id/delete-sent', async (req, res) => {
       });
     }
     let zapiDeletionSuccess = false;
-    if (zapiMessageId && phone) {
+    
+    // Tentar obter zapiMessageId dos metadados se não foi fornecido
+    let finalZapiMessageId = zapiMessageId;
+    if (!finalZapiMessageId && message.metadata) {
+      const metadata = message.metadata as any;
+      finalZapiMessageId = metadata.zaapId || metadata.messageId || metadata.id;
+    }
+    
+    if (finalZapiMessageId && phone) {
       try {
         const { validateZApiCredentials } = await import('../../../utils/zapi');
         const credentials = validateZApiCredentials();
@@ -103,7 +111,10 @@ router.patch('/api/messages/:id/delete-sent', async (req, res) => {
         }
         const { instanceId, token, clientToken } = credentials;
         const cleanPhone = phone.replace(/\D/g, '');
-        const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${zapiMessageId}&owner=true`;
+        const deleteUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/messages?phone=${cleanPhone}&messageId=${finalZapiMessageId}&owner=true`;
+        
+        console.log(`🗑️ Tentando deletar mensagem via Z-API: ${finalZapiMessageId}`);
+        
         const deleteResponse = await fetch(deleteUrl, {
           method: 'DELETE',
           headers: {
@@ -118,11 +129,16 @@ router.patch('/api/messages/:id/delete-sent', async (req, res) => {
           deleteResult = { rawResponse: responseText };
         }
         if (deleteResponse.ok) {
+          console.log(`✅ Mensagem deletada via Z-API: ${finalZapiMessageId}`);
           zapiDeletionSuccess = true;
+        } else {
+          console.warn(`⚠️ Falha ao deletar via Z-API: ${deleteResponse.status}`);
         }
       } catch (error) {
-        // Falha ao deletar via Z-API
+        console.error('❌ Erro ao deletar via Z-API:', error);
       }
+    } else {
+      console.warn('⚠️ Mensagem não possui ID Z-API ou telefone para deleção via WhatsApp');
     }
     const success = await storage.markMessageAsDeletedByUser(messageId, true);
     if (!success) {

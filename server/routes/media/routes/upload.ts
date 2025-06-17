@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { AuthenticatedRequest } from '../../../permissions';
+import { AuthenticatedRequest } from '../../../core/permissionsRefactored';
 import { upload } from '../config/upload';
 
 const router = Router();
@@ -116,12 +116,15 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
             console.log(`✅ ${fileType} enviado com sucesso via Z-API`);
             
             // Atualizar mensagem com ID da Z-API
+            const currentMetadata = savedMessage.metadata as Record<string, any> || {};
+            const updatedMetadata = { 
+              ...currentMetadata, 
+              zaapId: zapiData.messageId || zapiData.id, 
+              sentViaZapi: true 
+            };
+            
             await storage.updateMessage(savedMessage.id, {
-              metadata: {
-                ...savedMessage.metadata,
-                zaapId: zapiData.messageId || zapiData.id,
-                sentViaZapi: true
-              }
+              metadata: updatedMetadata
             });
           } else {
             const errorText = await response.text();
