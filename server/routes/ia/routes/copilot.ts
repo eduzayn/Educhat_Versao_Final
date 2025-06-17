@@ -41,6 +41,43 @@ router.post('/', async (req, res) => {
 function generateFallbackResponse(message: string) {
   const lowerMessage = message.toLowerCase();
   
+  console.log('🔍 Analisando mensagem:', message);
+  console.log('🔍 Mensagem em lowercase:', lowerMessage);
+  
+  // Prioridade para perguntas sobre sistema/plataforma
+  if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('euchat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar') || lowerMessage.includes('como funciona') || lowerMessage.includes('funciona') || lowerMessage.includes('como trabalhar')) {
+    console.log('✅ Detectado: pergunta sobre sistema');
+    return {
+      message: `Sobre como usar o EduChat:
+
+💻 **Funcionalidades principais:**
+- Caixa de Entrada: Gerencie todas as conversas
+- Contatos: Organize leads e alunos
+- CRM: Acompanhe o funil de vendas
+- Relatórios: Analise performance da equipe
+
+📱 **Dicas de uso:**
+- Use respostas rápidas para agilizar atendimento
+- Configure tags para organizar contatos
+- Acompanhe métricas em tempo real
+- Use filtros para encontrar conversas específicas
+
+🎯 **Melhores práticas:**
+- Responda rapidamente aos leads
+- Use tom acolhedor e profissional
+- Registre informações importantes nos contatos
+- Transfira conversas quando necessário
+
+Precisa de ajuda com alguma funcionalidade específica?`,
+      classification: {
+        intent: 'technical_support',
+        confidence: 0.9,
+        sentiment: 'neutral',
+        urgency: 'medium'
+      }
+    };
+  }
+  
   // Respostas específicas baseadas em palavras-chave
   if (lowerMessage.includes('pós-graduação') || lowerMessage.includes('pos graduacao') || lowerMessage.includes('especialização')) {
     return {
@@ -105,7 +142,7 @@ Gostaria de simular um valor específico para algum curso?`,
     };
   }
   
-  if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar')) {
+  if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('euchat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar') || lowerMessage.includes('como funciona') || lowerMessage.includes('funciona') || lowerMessage.includes('como trabalhar')) {
     return {
       message: `Sobre como usar o EduChat:
 
