@@ -339,6 +339,29 @@ export const handoffs = pgTable("handoffs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela para armazenamento de mídia no banco (produção-ready)
+export const mediaFiles = pgTable("media_files", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => messages.id).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  fileSize: integer("file_size").notNull(), // bytes
+  fileData: text("file_data").notNull(), // base64 encoded file
+  mediaType: varchar("media_type", { length: 20 }).notNull(), // image, video, audio, document
+  isCompressed: boolean("is_compressed").default(false),
+  compressionQuality: integer("compression_quality"), // 1-100 for images/videos
+  duration: integer("duration"), // seconds for audio/video
+  dimensions: jsonb("dimensions").$type<{
+    width?: number;
+    height?: number;
+  }>(), // for images/videos
+  zapiSent: boolean("zapi_sent").default(false), // if sent via Z-API
+  zapiMessageId: varchar("zapi_message_id", { length: 100 }), // Z-API message ID
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const contactsRelations = relations(contacts, ({ many }) => ({
   conversations: many(conversations),
@@ -396,10 +419,18 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
   messages: many(messages),
 }));
 
-export const messagesRelations = relations(messages, ({ one }) => ({
+export const messagesRelations = relations(messages, ({ one, many }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
     references: [conversations.id],
+  }),
+  mediaFiles: many(mediaFiles),
+}));
+
+export const mediaFilesRelations = relations(mediaFiles, ({ one }) => ({
+  message: one(messages, {
+    fields: [mediaFiles.messageId],
+    references: [messages.id],
   }),
 }));
 
@@ -556,8 +587,17 @@ export const insertHandoffSchema = createInsertSchema(handoffs).omit({
   updatedAt: true,
 });
 
+export const insertMediaFileSchema = createInsertSchema(mediaFiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type Handoff = typeof handoffs.$inferSelect;
 export type InsertHandoff = z.infer<typeof insertHandoffSchema>;
+
+export type MediaFile = typeof mediaFiles.$inferSelect;
+export type InsertMediaFile = z.infer<typeof insertMediaFileSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
