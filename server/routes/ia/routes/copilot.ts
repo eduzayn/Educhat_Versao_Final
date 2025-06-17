@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { Anthropic } from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { db } from '../../../db';
+import { aiContext } from '../../../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -60,6 +63,27 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * Busca contextos de treinamento ativos do banco de dados
+ */
+async function getTrainingContexts() {
+  try {
+    const contexts = await db
+      .select({
+        name: aiContext.name,
+        type: aiContext.type,
+        content: aiContext.content
+      })
+      .from(aiContext)
+      .where(eq(aiContext.isActive, true));
+    
+    return contexts;
+  } catch (error) {
+    console.error('❌ Erro ao buscar contextos de treinamento:', error);
+    return [];
+  }
+}
+
+/**
  * Gera resposta usando IA em tempo real com configurações do banco
  */
 async function generateAIResponse(message: string) {
@@ -72,11 +96,27 @@ async function generateAIResponse(message: string) {
     throw new Error('Configuração de IA não encontrada ou inativa');
   }
   
+  // Buscar contextos de treinamento personalizados
+  console.log('📚 Buscando contextos de treinamento...');
+  const trainingContexts = await getTrainingContexts();
+  console.log(`✅ ${trainingContexts.length} contextos de treinamento carregados`);
+  
   console.log('✅ Configurações de IA carregadas:', {
     hasAnthropicKey: !!config.anthropicApiKey,
     hasOpenAIKey: !!config.openaiApiKey,
-    isActive: config.isActive
+    isActive: config.isActive,
+    trainingContextsCount: trainingContexts.length
   });
+
+  // Construir prompt com contextos de treinamento personalizados
+  let contextualKnowledge = '';
+  if (trainingContexts.length > 0) {
+    contextualKnowledge = '\n\nBASE DE CONHECIMENTO ESPECÍFICA:\n';
+    trainingContexts.forEach((context, index) => {
+      contextualKnowledge += `\n${index + 1}. ${context.name.toUpperCase()}:\n${context.content}\n`;
+    });
+    contextualKnowledge += '\nUSE SEMPRE estas informações específicas para responder perguntas relacionadas. Seja precisa com valores, prazos e procedimentos descritos acima.\n';
+  }
 
   const systemPrompt = `Você é a Prof. Ana, assistente inteligente do EduChat - uma plataforma educacional especializada em cursos de pós-graduação.
 
@@ -92,12 +132,15 @@ SUAS RESPONSABILIDADES:
 - Dar suporte aos colaboradores internos
 - Fornecer informações sobre procedimentos e políticas
 
+${contextualKnowledge}
+
 INSTRUÇÕES:
 - Seja profissional mas acolhedora
 - Use emojis moderadamente para deixar as respostas mais amigáveis
-- Para dúvidas específicas sobre valores, sugira contato direto com consultores
+- Para dúvidas específicas sobre valores, sugira contato direto com consultores se não tiver informações precisas
 - Para questões técnicas da plataforma, forneça orientações claras
 - Mantenha respostas concisas mas informativas
+- SEMPRE use as informações da base de conhecimento específica quando disponível
 
 Responda à seguinte mensagem:`;
 
