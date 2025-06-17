@@ -70,15 +70,7 @@ export function MessagesContainer({
       {showLoadMoreButton && (
         <div className="flex justify-center mb-4">
           <button
-            onClick={() => {
-              console.log('🔘 Botão "Carregar mensagens anteriores" clicado');
-              console.log('📊 Estado atual:', { hasNextPage, isLoading, loadPreviousMessages: !!loadPreviousMessages });
-              if (loadPreviousMessages) {
-                loadPreviousMessages();
-              } else {
-                console.error('❌ loadPreviousMessages não está disponível');
-              }
-            }}
+            onClick={() => loadPreviousMessages?.()}
             disabled={isLoading}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm"
           >
