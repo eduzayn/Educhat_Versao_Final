@@ -74,9 +74,20 @@ export function ConversationListVirtualized({
       const scrollLimit = scrollHeight - clientHeight;
       const isNearBottom = scrollOffset >= scrollLimit - 100;
       
+      console.log('🔄 Scroll detectado:', { 
+        scrollOffset, 
+        scrollLimit, 
+        isNearBottom, 
+        hasNextPage, 
+        isLoading, 
+        conversationsCount: visibleConversations.length 
+      });
+      
       // Verificar se deve carregar mais conversas do servidor
       if (isNearBottom && !isLoading && hasNextPage && !isLoadingMoreRef.current) {
         isLoadingMoreRef.current = true;
+        
+        console.log('🌐 Carregando próxima página do servidor...');
         
         // Carregar próxima página do servidor
         onLoadMore();
