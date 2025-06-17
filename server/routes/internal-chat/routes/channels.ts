@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { eq, and } from 'drizzle-orm';
-import { db } from '../../../core/db';
-import { teams, userTeams, systemUsers, roles } from '../../../../shared/schema';
+import { db } from '../../../db';
+import { teams, userTeams, systemUsers, roles } from '@shared/schema';
 import { getUserPermissions } from '../services/permissions';
 import { Channel } from '../types/teams';
 
@@ -42,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: `team-${team.id}`,
           name: team.name,
           description: team.description || `Discussões da ${team.name}`,
-          type: 'team',
+          type: 'team' as const,
           teamId: team.id,
           isPrivate: false,
           participants: [],
@@ -75,7 +75,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: `team-${ut.teamId}`,
           name: ut.teamName || 'Equipe',
           description: ut.teamDescription || `Discussões da equipe`,
-          type: 'team',
+          type: 'team' as const,
           teamId: ut.teamId,
           isPrivate: false,
           participants: [],
