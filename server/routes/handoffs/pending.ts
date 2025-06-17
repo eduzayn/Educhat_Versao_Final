@@ -3,13 +3,12 @@ import { intelligentHandoffService } from '../../services/intelligentHandoffServ
 import { validateHandoffId } from './middleware';
 
 const router = Router();
-const handoffService = new IntelligentHandoffService();
 
 // GET /api/handoffs/pending/user/:userId - Handoffs pendentes para usuário
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    const handoffs = await handoffService.getPendingHandoffsForUser(userId);
+    const handoffs = await intelligentHandoffService.getPendingHandoffsForUser(userId);
     
     res.json({
       success: true,
@@ -27,7 +26,7 @@ router.get('/user/:userId', async (req, res) => {
 router.get('/team/:teamId', async (req, res) => {
   try {
     const teamId = parseInt(req.params.teamId);
-    const handoffs = await handoffService.getPendingHandoffsForTeam(teamId);
+    const handoffs = await intelligentHandoffService.getPendingHandoffsForTeam(teamId);
     
     res.json({
       success: true,
@@ -53,7 +52,7 @@ router.post('/:id/accept', validateHandoffId, async (req, res) => {
       });
     }
     
-    await handoffService.acceptHandoff(handoffId, userId);
+    await intelligentHandoffService.acceptHandoff(handoffId, userId);
     
     res.json({
       success: true,
@@ -74,7 +73,7 @@ router.post('/:id/reject', validateHandoffId, async (req, res) => {
     const handoffId = parseInt(req.params.id);
     const reason = req.body.reason;
     
-    await handoffService.rejectHandoff(handoffId, reason);
+    await intelligentHandoffService.rejectHandoff(handoffId, reason);
     
     res.json({
       success: true,
