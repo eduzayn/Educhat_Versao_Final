@@ -177,7 +177,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         </div>
 
         {/* Botões de ação */}
-        <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
