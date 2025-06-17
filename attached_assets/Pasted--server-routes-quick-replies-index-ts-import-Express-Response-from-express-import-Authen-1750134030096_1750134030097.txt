@@ -1,0 +1,245 @@
+// server/routes/quick-replies/index.ts
+import { Express, Response } from 'express';
+import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
+import { storage } from "../../storage";
+import multer from 'multer';
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+export function registerQuickRepliesRoutes(app: Express) {
+  
+  // Buscar todas as respostas rápidas
+  app.get('/api/quick-replies', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const quickReplies = await storage.getQuickReplies();
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Erro ao buscar respostas rápidas:', error);
+      res.status(500).json({ message: 'Falha ao buscar respostas rápidas' });
+    }
+  });
+
+  // Buscar resposta rápida por ID
+  app.get('/api/quick-replies/:id', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const quickReply = await storage.getQuickReply(id);
+      
+      if (!quickReply) {
+        return res.status(404).json({ message: 'Resposta rápida não encontrada' });
+      }
+      
+      res.json(quickReply);
+    } catch (error) {
+      console.error('Erro ao buscar resposta rápida:', error);
+      res.status(500).json({ message: 'Falha ao buscar resposta rápida' });
+    }
+  });
+
+  // Criar nova resposta rápida
+  app.post('/api/quick-replies', upload.single('file'), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { selectedTeams, selectedUsers, shareScope, ...restData } = req.body;
+      
+      // Validação básica
+      if (!restData.title || !restData.content) {
+        return res.status(400).json({ message: 'Título e conteúdo são obrigatórios' });
+      }
+
+      const validatedData = {
+        title: restData.title,
+        content: restData.content,
+        type: restData.type || 'text',
+        category: restData.category || 'general',
+        tags: restData.tags || [],
+        isActive: restData.isActive !== false,
+        shareScope: shareScope || 'private',
+        createdBy: req.user?.id,
+        fileUrl: null,
+        fileName: null,
+        fileSize: null,
+        mimeType: null
+      };
+      
+      // Lidar com upload de arquivo para tipos de mídia
+      if (req.file && validatedData.type !== 'text') {
+        const fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
+        
+        validatedData.fileUrl = fileUrl;
+        validatedData.fileName = req.file.originalname;
+        validatedData.fileSize = req.file.size;
+        validatedData.mimeType = req.file.mimetype;
+      }
+      
+      const quickReply = await storage.createQuickReply(validatedData);
+      
+      // Criar registros de compartilhamento granular se aplicável
+      if (shareScope === 'team' && selectedTeams && Array.isArray(selectedTeams)) {
+        for (const teamId of selectedTeams) {
+          await storage.createQuickReplyTeamShare({
+            quickReplyId: quickReply.id,
+            teamId: parseInt(teamId),
+            sharedBy: req.user?.id,
+          });
+        }
+      }
+
+      if (shareScope === 'user' && selectedUsers && Array.isArray(selectedUsers)) {
+        for (const userId of selectedUsers) {
+          await storage.createQuickReplyUserShare({
+            quickReplyId: quickReply.id,
+            userId: parseInt(userId),
+            sharedBy: req.user?.id,
+          });
+        }
+      }
+      
+      res.status(201).json(quickReply);
+    } catch (error) {
+      console.error('Erro ao criar resposta rápida:', error);
+      res.status(500).json({ message: 'Falha ao criar resposta rápida' });
+    }
+  });
+
+  // Atualizar resposta rápida
+  app.put('/api/quick-replies/:id', upload.single('file'), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { selectedTeams, selectedUsers, shareScope, ...restData } = req.body;
+      
+      const updateData = {
+        title: restData.title,
+        content: restData.content,
+        type: restData.type,
+        category: restData.category,
+        isActive: restData.isActive,
+        shareScope: shareScope,
+      };
+      
+      // Lidar com upload de arquivo
+      if (req.file && restData.type !== 'text') {
+        const fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
+        updateData.fileUrl = fileUrl;
+        updateData.fileName = req.file.originalname;
+        updateData.fileSize = req.file.size;
+        updateData.mimeType = req.file.mimetype;
+      }
+      
+      const updatedQuickReply = await storage.updateQuickReply(id, updateData);
+      
+      // Atualizar compartilhamentos se necessário
+      if (shareScope === 'team' && selectedTeams) {
+        await storage.deleteQuickReplyTeamShares(id);
+        for (const teamId of selectedTeams) {
+          await storage.createQuickReplyTeamShare({
+            quickReplyId: id,
+            teamId: parseInt(teamId),
+            sharedBy: req.user?.id,
+          });
+        }
+      }
+      
+      res.json(updatedQuickReply);
+    } catch (error) {
+      console.error('Erro ao atualizar resposta rápida:', error);
+      res.status(500).json({ message: 'Falha ao atualizar resposta rápida' });
+    }
+  });
+
+  // Deletar resposta rápida
+  app.delete('/api/quick-replies/:id', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteQuickReply(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao deletar resposta rápida:', error);
+      res.status(500).json({ message: 'Falha ao deletar resposta rápida' });
+    }
+  });
+
+  // Buscar por categoria
+  app.get('/api/quick-replies/category/:category', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { category } = req.params;
+      const quickReplies = await storage.getQuickRepliesByCategory(category);
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Erro ao buscar respostas rápidas por categoria:', error);
+      res.status(500).json({ message: 'Falha ao buscar respostas rápidas por categoria' });
+    }
+  });
+
+  // Buscar respostas rápidas
+  app.get('/api/quick-replies/search', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { q, category, type } = req.query;
+      
+      if (!q) {
+        return res.status(400).json({ message: 'Query de busca é obrigatória' });
+      }
+      
+      const quickReplies = await storage.searchQuickReplies({
+        query: q as string,
+        category: category as string,
+        type: type as string,
+        userId: req.user?.id
+      });
+      
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Erro ao buscar respostas rápidas:', error);
+      res.status(500).json({ message: 'Falha ao buscar respostas rápidas' });
+    }
+  });
+
+  // Buscar mais usadas
+  app.get('/api/quick-replies/most-used', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { limit = '10' } = req.query;
+      const quickReplies = await storage.getMostUsedQuickReplies(parseInt(limit as string));
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Erro ao buscar respostas rápidas mais usadas:', error);
+      res.status(500).json({ message: 'Falha ao buscar respostas rápidas mais usadas' });
+    }
+  });
+
+  // Buscar respostas rápidas do usuário
+  app.get('/api/quick-replies/my-replies', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const quickReplies = await storage.getUserQuickReplies(req.user.id);
+      res.json(quickReplies);
+    } catch (error) {
+      console.error('Erro ao buscar respostas rápidas do usuário:', error);
+      res.status(500).json({ message: 'Falha ao buscar respostas rápidas do usuário' });
+    }
+  });
+
+  // Buscar categorias
+  app.get('/api/quick-replies/categories', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const categories = await storage.getQuickReplyCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error('Erro ao buscar categorias de respostas rápidas:', error);
+      res.status(500).json({ message: 'Falha ao buscar categorias de respostas rápidas' });
+    }
+  });
+
+  // Incrementar uso
+  app.post('/api/quick-replies/:id/increment-usage', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.incrementQuickReplyUsage(id);
+      res.status(200).json({ message: 'Uso incrementado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao incrementar uso:', error);
+      res.status(500).json({ message: 'Falha ao incrementar uso' });
+    }
+  });
+}
