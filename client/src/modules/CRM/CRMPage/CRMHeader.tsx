@@ -175,6 +175,23 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* Diálogos para Ações Rápidas */}
+      <ContactDialog 
+        isOpen={showContactDialog} 
+        onClose={() => setShowContactDialog(false)}
+        onSuccess={() => setShowContactDialog(false)}
+      />
+      
+      <CreateDealDialog 
+        isOpen={showDealDialog} 
+        onClose={() => setShowDealDialog(false)}
+      />
+      
+      <ScheduleActivityDialog 
+        isOpen={showActivityDialog} 
+        onClose={() => setShowActivityDialog(false)}
+      />
     </div>
   );
 } 
