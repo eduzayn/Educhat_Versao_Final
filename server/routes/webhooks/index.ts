@@ -145,24 +145,39 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       }
       
       // Buscar ou criar contato
+      console.log('📞 Buscando contato para phone:', phone);
       let contact = await storage.getContactByPhone(phone);
+      console.log('👤 Contato encontrado:', contact ? `ID: ${contact.id}` : 'NÃO');
+      
       if (!contact) {
+        console.log('🆕 Criando novo contato para phone:', phone);
         contact = await storage.createContact({
           phone: phone,
           name: webhookData.senderName || `WhatsApp ${phone}`,
           canalOrigem: 'whatsapp',
           userIdentity: phone
         });
+        console.log('✅ Contato criado:', contact ? `ID: ${contact.id}` : 'FALHOU');
       }
       
       // Buscar ou criar conversa
       let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+      console.log('🔍 Conversa encontrada:', conversation ? 'SIM' : 'NÃO', conversation?.id);
+      
       if (!conversation) {
+        console.log('🆕 Criando nova conversa para contactId:', contact.id);
         conversation = await storage.createConversation({
           contactId: contact.id,
           channel: 'whatsapp',
           status: 'open'
         });
+        console.log('✅ Conversa criada:', conversation?.id);
+      }
+      
+      // Garantir que a conversa foi criada com sucesso
+      if (!conversation || !conversation.id) {
+        console.error('❌ Conversa inválida:', conversation);
+        throw new Error('Falha ao criar ou recuperar conversa');
       }
       
       // Criar mensagem

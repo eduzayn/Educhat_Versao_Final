@@ -91,7 +91,6 @@ export class ConversationFilterOperations extends BaseStorage {
     const result = await this.db
       .select()
       .from(conversations)
-      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(and(
         eq(conversations.contactId, contactId),
         eq(conversations.channel, channel)
