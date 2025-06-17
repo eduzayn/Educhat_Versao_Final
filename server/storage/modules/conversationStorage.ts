@@ -5,835 +5,187 @@ import { eq, desc, and, count, sql, inArray, or, ilike } from "drizzle-orm";
 
 /**
  * Conversation storage module - manages conversations and assignments
+ * Refatorado para usar módulos menores
  */
 export class ConversationStorage extends BaseStorage {
-  /**
-   * 🚨 CRÍTICO: Método otimizado de 52+ segundos para ~500ms
-   * NÃO ALTERAR sem consultar PERFORMANCE_CRITICAL.md
-   * 
-   * Otimizações implementadas:
-   * - Campos essenciais apenas
-   * - Índices de banco obrigatórios
-   * - Busca otimizada de prévias
-   */
-  async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
-    const startTime = Date.now();
-
-    // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
-    const conversationsData = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        // Apenas campos essenciais do contato
-        contactName: contacts.name,
-        contactPhone: contacts.phone,
-        contactProfileImage: contacts.profileImageUrl
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt))
-      .limit(limit)
-      .offset(offset);
-
-    // 🚀 BUSCA OTIMIZADA DE PRÉVIAS: Query rápida e específica
-    const conversationIds = conversationsData.map(conv => conv.id);
-    
-    const lastMessages = conversationIds.length > 0 ? await this.db
-      .select({
-        conversationId: messages.conversationId,
-        content: sql`CASE 
-          WHEN LENGTH(${messages.content}) > 100 
-          THEN SUBSTRING(${messages.content}, 1, 100) || '...'
-          ELSE ${messages.content}
-        END`.as('content'),
-        messageType: messages.messageType,
-        isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt,
-        isInternalNote: messages.isInternalNote
-      })
-      .from(messages)
-      .where(and(
-        inArray(messages.conversationId, conversationIds),
-        eq(messages.isDeleted, false)
-      ))
-      .orderBy(desc(messages.sentAt)) : [];
-
-    // Agrupar apenas a última mensagem por conversa
-    const messagesByConversation = new Map();
-    for (const msg of lastMessages) {
-      if (!messagesByConversation.has(msg.conversationId)) {
-        messagesByConversation.set(msg.conversationId, msg);
-      }
-    }
-
-    const endTime = Date.now();
-    console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
-
-    // Retornar dados das conversas com prévias otimizadas
-    return conversationsData.map(conv => ({
-      id: conv.id,
-      contactId: conv.contactId,
-      channel: conv.channel,
-      channelId: null,
-      status: conv.status,
-      lastMessageAt: conv.lastMessageAt,
-      unreadCount: conv.unreadCount,
-      teamType: null,
-      assignedTeamId: conv.assignedTeamId,
-      assignedUserId: conv.assignedUserId,
-      assignmentMethod: null,
-      assignedAt: null,
-      isRead: conv.isRead,
-      priority: conv.priority,
-      tags: [],
-      metadata: null,
-      createdAt: conv.createdAt,
-      updatedAt: conv.updatedAt,
-      contact: {
-        id: conv.contactId,
-        userIdentity: null,
-        name: conv.contactName,
-        email: null,
-        phone: conv.contactPhone,
-        profileImageUrl: conv.contactProfileImage,
-        location: null,
-        age: null,
-        isOnline: false,
-        lastSeenAt: null,
-        canalOrigem: null,
-        nomeCanal: null,
-        idCanal: null,
-        assignedUserId: null,
-        tags: [],
-        createdAt: conv.createdAt,
-        updatedAt: conv.updatedAt,
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: messagesByConversation.has(conv.id) ? 
-        [messagesByConversation.get(conv.id)] : 
-        [],
-      _count: { messages: conv.unreadCount || 0 }
-    })) as ConversationWithContact[];
-  }
-
-  async getConversation(id: number): Promise<ConversationWithContact | undefined> {
-    const [result] = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        // Contact fields
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.id, id))
-      .limit(1);
-
-    if (!result) return undefined;
-
-    // Buscar mensagens da conversa
-    const conversationMessages = await this.db
-      .select()
-      .from(messages)
-      .where(and(
-        eq(messages.conversationId, id),
-        eq(messages.isDeleted, false)
-      ))
-      .orderBy(desc(messages.sentAt));
-
-    // Buscar canal se disponível
-    let channelInfo = null;
-    if (result.channelId) {
-      [channelInfo] = await this.db
-        .select()
-        .from(channels)
-        .where(eq(channels.id, result.channelId));
-    }
-
-    // Buscar tags do contato
-    const contactTagsResult = await this.db
-      .select({ tag: contactTags.tag })
-      .from(contactTags)
-      .where(eq(contactTags.contactId, result.contact.id));
-
-    const tagsArray = contactTagsResult.map(t => t.tag);
-
-    // Buscar deals do contato
-    const contactDeals = await this.db
-      .select()
-      .from(deals)
-      .where(and(
-        eq(deals.contactId, result.contact.id),
-        eq(deals.isActive, true)
-      ))
-      .orderBy(desc(deals.createdAt));
-
-    return {
-      ...result,
-      contact: {
-        ...result.contact,
-        tags: tagsArray,
-        deals: contactDeals
-      },
-      channelInfo: channelInfo || undefined,
-      messages: conversationMessages || [],
-      _count: { messages: result.unreadCount || 0 }
-    } as ConversationWithContact;
-  }
-
+  // Basic Operations
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
-    const [created] = await this.db
-      .insert(conversations)
-      .values(conversation)
-      .returning();
-    return created;
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.createConversation(conversation);
   }
 
   async updateConversation(id: number, conversationData: Partial<InsertConversation>): Promise<Conversation> {
-    const [updated] = await this.db
-      .update(conversations)
-      .set({
-        ...conversationData,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, id))
-      .returning();
-    return updated;
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.updateConversation(id, conversationData);
   }
 
   async deleteConversation(id: number): Promise<void> {
-    await this.db
-      .delete(conversations)
-      .where(eq(conversations.id, id));
-  }
-
-  async getConversationsByChannel(channel: string): Promise<ConversationWithContact[]> {
-    const conversationsWithContacts = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.channel, channel))
-      .orderBy(desc(conversations.lastMessageAt));
-
-    return conversationsWithContacts.map(conv => ({
-      ...conv,
-      contact: {
-        ...conv.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
-  }
-
-  async getConversationsByStatus(status: string): Promise<ConversationWithContact[]> {
-    const conversationsWithContacts = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.status, status))
-      .orderBy(desc(conversations.lastMessageAt));
-
-    return conversationsWithContacts.map(conv => ({
-      ...conv,
-      contact: {
-        ...conv.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
-  }
-
-  async updateLastMessage(conversationId: number, messageId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        lastMessageAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async markConversationAsRead(conversationId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        isRead: true,
-        unreadCount: 0,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async markConversationAsUnread(conversationId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        isRead: false,
-        unreadCount: 1,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async incrementUnreadCount(conversationId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        unreadCount: sql`${conversations.unreadCount} + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async resetUnreadCount(conversationId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        unreadCount: 0,
-        isRead: true,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async getUnreadCount(): Promise<number> {
-    // Retornar a soma total de mensagens não lidas de todas as conversas
-    const [result] = await this.db
-      .select({ 
-        totalUnread: sql<number>`COALESCE(SUM(${conversations.unreadCount}), 0)::integer` 
-      })
-      .from(conversations)
-      .where(sql`${conversations.unreadCount} > 0`);
-    
-    return result?.totalUnread || 0;
-  }
-
-  async getConversationCount(): Promise<number> {
-    const [result] = await this.db
-      .select({ count: count() })
-      .from(conversations);
-    
-    return result?.count || 0;
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.deleteConversation(id);
   }
 
   async getConversationByContactId(contactId: number): Promise<Conversation | null> {
-    const [conversation] = await this.db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.contactId, contactId))
-      .limit(1);
-    
-    return conversation || null;
-  }
-
-  async assignConversation(conversationId: number, userId: number, teamId?: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        assignedUserId: userId,
-        assignedTeamId: teamId || null,
-        assignedAt: new Date(),
-        assignmentMethod: 'manual',
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
-  }
-
-  async unassignConversation(conversationId: number): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        assignedUserId: null,
-        assignedTeamId: null,
-        assignedAt: null,
-        assignmentMethod: null,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.getConversationByContactId(contactId);
   }
 
   async updateConversationStatus(conversationId: number, status: string): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        status,
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.updateConversationStatus(conversationId, status);
   }
 
-  async addConversationTag(conversationId: number, tag: string): Promise<void> {
-    const [conversation] = await this.db
-      .select({ tags: conversations.tags })
-      .from(conversations)
-      .where(eq(conversations.id, conversationId));
-
-    if (conversation) {
-      const currentTags = conversation.tags || [];
-      if (!currentTags.includes(tag)) {
-        await this.db
-          .update(conversations)
-          .set({
-            tags: [...currentTags, tag],
-            updatedAt: new Date()
-          })
-          .where(eq(conversations.id, conversationId));
-      }
-    }
+  async updateLastMessage(conversationId: number, messageId: number): Promise<void> {
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.updateLastMessage(conversationId, messageId);
   }
 
-  async removeConversationTag(conversationId: number, tag: string): Promise<void> {
-    const [conversation] = await this.db
-      .select({ tags: conversations.tags })
-      .from(conversations)
-      .where(eq(conversations.id, conversationId));
-
-    if (conversation) {
-      const currentTags = conversation.tags || [];
-      const updatedTags = currentTags.filter(t => t !== tag);
-      
-      await this.db
-        .update(conversations)
-        .set({
-          tags: updatedTags,
-          updatedAt: new Date()
-        })
-        .where(eq(conversations.id, conversationId));
-    }
+  // List Operations
+  async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+    const { ConversationListOperations } = await import('./conversationListOperations');
+    const listOps = new ConversationListOperations(this.db);
+    return listOps.getConversations(limit, offset);
   }
 
-  // Métodos adicionais necessários para compatibilidade
+  async getConversationCount(): Promise<number> {
+    const { ConversationListOperations } = await import('./conversationListOperations');
+    const listOps = new ConversationListOperations(this.db);
+    return listOps.getConversationCount();
+  }
+
+  async searchConversations(searchTerm: string, limit: number = 200): Promise<ConversationWithContact[]> {
+    const { ConversationListOperations } = await import('./conversationListOperations');
+    const listOps = new ConversationListOperations(this.db);
+    return listOps.searchConversations(searchTerm, limit);
+  }
+
+  // Status Operations
+  async markConversationAsRead(conversationId: number): Promise<void> {
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.markConversationAsRead(conversationId);
+  }
+
+  async markConversationAsUnread(conversationId: number): Promise<void> {
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.markConversationAsUnread(conversationId);
+  }
+
+  async incrementUnreadCount(conversationId: number): Promise<void> {
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.incrementUnreadCount(conversationId);
+  }
+
+  async resetUnreadCount(conversationId: number): Promise<void> {
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.resetUnreadCount(conversationId);
+  }
+
+  async getUnreadCount(): Promise<number> {
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.getUnreadCount();
+  }
+
   async getTotalUnreadCount(): Promise<number> {
-    return this.getUnreadCount();
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.getTotalUnreadCount();
   }
 
-  /**
-   * Método alternativo para contar conversas não lidas (não mensagens)
-   */
   async getUnreadConversationCount(): Promise<number> {
-    const [result] = await this.db
-      .select({ count: count() })
-      .from(conversations)
-      .where(eq(conversations.isRead, false));
-    
-    return result?.count || 0;
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.getUnreadConversationCount();
   }
-
-
 
   async recalculateUnreadCounts(): Promise<void> {
-    // Implementação básica - pode ser expandida conforme necessário
-    console.log('Recalculando contadores de mensagens não lidas...');
+    const { ConversationStatusOperations } = await import('./conversationStatusOperations');
+    const statusOps = new ConversationStatusOperations(this.db);
+    return statusOps.recalculateUnreadCounts();
+  }
+
+  // Assignment Operations
+  async assignConversation(conversationId: number, userId: number, teamId?: number): Promise<void> {
+    const { ConversationAssignmentOperations } = await import('./conversationAssignmentOperations');
+    const assignmentOps = new ConversationAssignmentOperations(this.db);
+    return assignmentOps.assignConversation(conversationId, userId, teamId);
+  }
+
+  async unassignConversation(conversationId: number): Promise<void> {
+    const { ConversationAssignmentOperations } = await import('./conversationAssignmentOperations');
+    const assignmentOps = new ConversationAssignmentOperations(this.db);
+    return assignmentOps.unassignConversation(conversationId);
   }
 
   async assignConversationToTeam(conversationId: number, teamId: number, method: string = 'manual'): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        assignedTeamId: teamId,
-        assignmentMethod: method,
-        assignedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
+    const { ConversationAssignmentOperations } = await import('./conversationAssignmentOperations');
+    const assignmentOps = new ConversationAssignmentOperations(this.db);
+    return assignmentOps.assignConversationToTeam(conversationId, teamId, method);
   }
 
   async assignConversationToUser(conversationId: number, userId: number, method: string = 'manual'): Promise<void> {
-    await this.db
-      .update(conversations)
-      .set({
-        assignedUserId: userId,
-        assignmentMethod: method,
-        assignedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(conversations.id, conversationId));
+    const { ConversationAssignmentOperations } = await import('./conversationAssignmentOperations');
+    const assignmentOps = new ConversationAssignmentOperations(this.db);
+    return assignmentOps.assignConversationToUser(conversationId, userId, method);
+  }
+
+  // Tag Operations
+  async addConversationTag(conversationId: number, tag: string): Promise<void> {
+    const { ConversationTagOperations } = await import('./conversationTagOperations');
+    const tagOps = new ConversationTagOperations(this.db);
+    return tagOps.addConversationTag(conversationId, tag);
+  }
+
+  async removeConversationTag(conversationId: number, tag: string): Promise<void> {
+    const { ConversationTagOperations } = await import('./conversationTagOperations');
+    const tagOps = new ConversationTagOperations(this.db);
+    return tagOps.removeConversationTag(conversationId, tag);
+  }
+
+  // Filter Operations
+  async getConversationsByChannel(channel: string): Promise<ConversationWithContact[]> {
+    const { ConversationFilterOperations } = await import('./conversationFilterOperations');
+    const filterOps = new ConversationFilterOperations(this.db);
+    return filterOps.getConversationsByChannel(channel);
+  }
+
+  async getConversationsByStatus(status: string): Promise<ConversationWithContact[]> {
+    const { ConversationFilterOperations } = await import('./conversationFilterOperations');
+    const filterOps = new ConversationFilterOperations(this.db);
+    return filterOps.getConversationsByStatus(status);
   }
 
   async getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]> {
-    const conversationsWithContacts = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.assignedTeamId, teamId))
-      .orderBy(desc(conversations.lastMessageAt));
-
-    return conversationsWithContacts.map(conv => ({
-      ...conv,
-      contact: {
-        ...conv.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    const { ConversationFilterOperations } = await import('./conversationFilterOperations');
+    const filterOps = new ConversationFilterOperations(this.db);
+    return filterOps.getConversationsByTeam(teamId);
   }
 
   async getConversationsByUser(userId: number): Promise<ConversationWithContact[]> {
-    const conversationsWithContacts = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.assignedUserId, userId))
-      .orderBy(desc(conversations.lastMessageAt));
-
-    return conversationsWithContacts.map(conv => ({
-      ...conv,
-      contact: {
-        ...conv.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    const { ConversationFilterOperations } = await import('./conversationFilterOperations');
+    const filterOps = new ConversationFilterOperations(this.db);
+    return filterOps.getConversationsByUser(userId);
   }
 
   async getConversationByContactAndChannel(contactId: number, channel: string): Promise<ConversationWithContact | undefined> {
-    const [result] = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(and(
-        eq(conversations.contactId, contactId),
-        eq(conversations.channel, channel)
-      ))
-      .limit(1);
-
-    if (!result) return undefined;
-
-    return {
-      ...result,
-      contact: {
-        ...result.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: result.unreadCount || 0 }
-    } as ConversationWithContact;
+    const { ConversationFilterOperations } = await import('./conversationFilterOperations');
+    const filterOps = new ConversationFilterOperations(this.db);
+    return filterOps.getConversationByContactAndChannel(contactId, channel);
   }
 
-  /**
-   * Busca conversas diretamente no banco de dados - independente do scroll infinito
-   * Para encontrar conversas antigas com 400+ conversas diárias
-   */
-  async searchConversations(searchTerm: string, limit: number = 200): Promise<ConversationWithContact[]> {
-    const conversationsData = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channel: conversations.channel,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        lastMessageAt: conversations.lastMessageAt,
-        unreadCount: conversations.unreadCount,
-        teamType: conversations.teamType,
-        assignedTeamId: conversations.assignedTeamId,
-        assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
-        isRead: conversations.isRead,
-        priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        
-        contact: {
-          id: contacts.id,
-          userIdentity: contacts.userIdentity,
-          name: contacts.name,
-          email: contacts.email,
-          phone: contacts.phone,
-          profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(
-        or(
-          ilike(contacts.name, `%${searchTerm}%`),
-          ilike(contacts.phone, `%${searchTerm}%`),
-          ilike(contacts.email, `%${searchTerm}%`)
-        )
-      )
-      .orderBy(desc(conversations.lastMessageAt))
-      .limit(limit);
-
-    return conversationsData.map(conv => ({
-      ...conv,
-      contact: {
-        ...conv.contact,
-        tags: [],
-        deals: []
-      },
-      channelInfo: undefined,
-      messages: [],
-      _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+  // Detail Operations
+  async getConversation(id: number): Promise<ConversationWithContact | undefined> {
+    const { ConversationDetailOperations } = await import('./conversationDetailOperations');
+    const detailOps = new ConversationDetailOperations(this.db);
+    return detailOps.getConversation(id);
   }
 }
