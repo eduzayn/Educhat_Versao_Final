@@ -56,16 +56,16 @@ class RoundRobinService {
           id: systemUsers.id,
           displayName: systemUsers.displayName,
           isOnline: systemUsers.isOnline,
-          maxCapacity: systemUsers.maxCapacity,
-          lastAssignedAt: systemUsers.lastAssignedAt,
-          status: systemUsers.status
+          status: systemUsers.status,
+          lastActivityAt: systemUsers.lastActivityAt
         })
         .from(systemUsers)
         .innerJoin(userTeams, eq(systemUsers.id, userTeams.userId))
         .where(
           and(
             eq(userTeams.teamId, teamId),
-            eq(systemUsers.status, 'active')
+            eq(systemUsers.status, 'active'),
+            eq(userTeams.isActive, true)
           )
         );
 
@@ -94,8 +94,8 @@ class RoundRobinService {
             displayName: user.displayName,
             isOnline: user.isOnline || false,
             currentLoad,
-            maxCapacity: user.maxCapacity || 10,
-            lastAssignedAt: user.lastAssignedAt,
+            maxCapacity: 10, // Valor padrão fixo
+            lastAssignedAt: user.lastActivityAt, // Usar lastActivityAt como referência
             workingHours: {
               start: '08:00',
               end: '18:00',
@@ -193,11 +193,11 @@ class RoundRobinService {
         })
         .where(eq(conversations.id, conversationId));
 
-      // Atualizar timestamp da última atribuição do usuário
+      // Atualizar timestamp da última atividade do usuário (como referência para próximas atribuições)
       await db
         .update(systemUsers)
         .set({
-          lastAssignedAt: new Date()
+          lastActivityAt: new Date()
         })
         .where(eq(systemUsers.id, selectedUser.id));
 
