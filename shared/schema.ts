@@ -948,6 +948,26 @@ export type UserWithPermissions = SystemUser & {
   })[];
 };
 
+// Activities table
+export const activities = pgTable("activities", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 50 }).notNull().default("call"), // call, meeting, video_call, message, email, task
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'set null' }),
+  userId: integer("user_id").references(() => systemUsers.id, { onDelete: 'cascade' }).notNull(),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  duration: integer("duration").default(30), // em minutos
+  priority: varchar("priority", { length: 20 }).default("normal"), // low, normal, high, urgent
+  status: varchar("status", { length: 20 }).default("scheduled"), // scheduled, completed, cancelled, in_progress
+  reminderMinutes: integer("reminder_minutes").default(15),
+  location: text("location"),
+  meetingLink: text("meeting_link"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Facebook/Instagram Integration Tables
 export const facebookIntegrations = pgTable("facebook_integrations", {
   id: serial("id").primaryKey(),
@@ -1002,6 +1022,17 @@ export const insertFacebookWebhookLogSchema = createInsertSchema(facebookWebhook
   id: true,
   createdAt: true,
 });
+
+// Insert schemas for Activities
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for Activities
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
 
 // Types for Facebook integration
 export type FacebookIntegration = typeof facebookIntegrations.$inferSelect;
