@@ -145,9 +145,20 @@ export function DealsModule() {
 
   const deals = dealsData?.deals || [];
 
+  // Debug: log dos dados recebidos
+  console.log('🔍 Debug deals data:', {
+    dealsData,
+    deals,
+    selectedFunnelId,
+    currentTeam,
+    isLoading: isLoadingDeals
+  });
+
   // Função para obter deals de um estágio específico
   const getDealsForStage = (stageId: string) => {
-    return deals.filter((deal: Deal) => deal.stage === stageId);
+    const stageDeals = deals.filter((deal: Deal) => deal.stage === stageId);
+    console.log(`📊 Deals para estágio ${stageId}:`, stageDeals);
+    return stageDeals;
   };
 
   // Função para calcular valor total de um estágio
