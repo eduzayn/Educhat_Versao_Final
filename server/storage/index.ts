@@ -565,6 +565,10 @@ export class CentralStorage {
     return this.notes.deleteContactNote(id);
   }
 
+  async getContactNoteById(id: number) {
+    return this.notes.getContactNoteById(id);
+  }
+
   async getContactNotes(contactId: number) {
     return this.notes.getContactNotes(contactId);
   }

@@ -29,6 +29,13 @@ export class NotesStorage extends BaseStorage {
     await this.db.delete(contactNotes).where(eq(contactNotes.id, id));
   }
 
+  async getContactNoteById(id: number): Promise<ContactNote | null> {
+    const [note] = await this.db.select().from(contactNotes)
+      .where(eq(contactNotes.id, id))
+      .limit(1);
+    return note || null;
+  }
+
   async addContactNote(contactId: number, content: string): Promise<ContactNote> {
     const noteData: InsertContactNote = {
       contactId,

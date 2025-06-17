@@ -294,6 +294,24 @@ export function registerContactRoutes(app: Express) {
       if (!content || !content.trim()) {
         return res.status(400).json({ error: 'Conteúdo da nota é obrigatório' });
       }
+
+      // Buscar a nota para verificar o tempo de criação
+      const existingNote = await storage.getContactNoteById(noteId);
+      if (!existingNote) {
+        return res.status(404).json({ error: 'Nota não encontrada' });
+      }
+
+      // Verificar se a nota foi criada há menos de 7 minutos (420000 ms)
+      const now = new Date();
+      const createdAt = existingNote.createdAt ? new Date(existingNote.createdAt) : new Date();
+      const timeDifference = now.getTime() - createdAt.getTime();
+      const sevenMinutesInMs = 7 * 60 * 1000;
+
+      if (timeDifference > sevenMinutesInMs) {
+        return res.status(403).json({ 
+          error: 'Não é possível editar esta nota. O tempo limite de 7 minutos foi excedido.' 
+        });
+      }
       
       const note = await storage.updateContactNote(noteId, { content: content.trim() });
       res.json(note);
@@ -307,6 +325,25 @@ export function registerContactRoutes(app: Express) {
   app.delete('/api/contact-notes/:id', async (req: Request, res: Response) => {
     try {
       const noteId = parseInt(req.params.id);
+
+      // Buscar a nota para verificar o tempo de criação
+      const existingNote = await storage.getContactNoteById(noteId);
+      if (!existingNote) {
+        return res.status(404).json({ error: 'Nota não encontrada' });
+      }
+
+      // Verificar se a nota foi criada há menos de 7 minutos (420000 ms)
+      const now = new Date();
+      const createdAt = existingNote.createdAt ? new Date(existingNote.createdAt) : new Date();
+      const timeDifference = now.getTime() - createdAt.getTime();
+      const sevenMinutesInMs = 7 * 60 * 1000;
+
+      if (timeDifference > sevenMinutesInMs) {
+        return res.status(403).json({ 
+          error: 'Não é possível excluir esta nota. O tempo limite de 7 minutos foi excedido.' 
+        });
+      }
+
       await storage.deleteContactNote(noteId);
       res.status(204).send();
     } catch (error) {
