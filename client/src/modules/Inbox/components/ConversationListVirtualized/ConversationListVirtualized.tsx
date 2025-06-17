@@ -72,9 +72,14 @@ export function ConversationListVirtualized({
     scrollThrottleRef.current = setTimeout(() => {
       const scrollOffset = scrollTop;
       const scrollLimit = scrollHeight - clientHeight;
-      const isNearBottom = scrollOffset >= scrollLimit - 100;
+      
+      // Calcular se está próximo ao final da lista
+      const isNearBottom = scrollLimit > 0 && scrollOffset >= scrollLimit - 100;
       
       console.log('🔄 Scroll detectado:', { 
+        scrollTop, 
+        scrollHeight, 
+        clientHeight,
         scrollOffset, 
         scrollLimit, 
         isNearBottom, 
