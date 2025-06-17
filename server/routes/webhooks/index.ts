@@ -288,62 +288,9 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
             console.error(`❌ Erro na análise de IA:`, await handoffResponse.text());
           }
 
-          // RESPOSTA AUTOMÁTICA DA PROF. ANA
-          try {
-            console.log(`🎓 Gerando resposta automática da Prof. Ana para: "${messageContent}"`);
-            
-            const aiResponse = await fetch('http://localhost:5000/api/ia/copilot', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-internal-call': 'true'
-              },
-              body: JSON.stringify({
-                message: messageContent,
-                userId: contact.id,
-                mode: 'automatic_response',
-                context: 'whatsapp_chat'
-              })
-            });
-
-            if (aiResponse.ok) {
-              const aiResult = await aiResponse.json();
-              
-              if (aiResult.message && aiResult.message.trim()) {
-                console.log(`🤖 Prof. Ana gerou resposta: "${aiResult.message}"`);
-                
-                // Enviar resposta automática via Z-API
-                const credentials = validateZApiCredentials();
-                if (credentials.valid) {
-                  const { instanceId, token, clientToken } = credentials;
-                  const sendUrl = buildZApiUrl(instanceId, token, 'send-text');
-                  
-                  const sendResponse = await fetch(sendUrl, {
-                    method: 'POST',
-                    headers: getZApiHeaders(clientToken),
-                    body: JSON.stringify({
-                      phone: contact.phone,
-                      message: aiResult.message
-                    })
-                  });
-
-                  if (sendResponse.ok) {
-                    console.log(`✅ Resposta automática enviada com sucesso para ${contact.name}`);
-                  } else {
-                    console.error(`❌ Erro ao enviar resposta automática: ${sendResponse.status}`);
-                  }
-                } else {
-                  console.error(`❌ Credenciais Z-API inválidas para envio de resposta automática`);
-                }
-              } else {
-                console.log(`ℹ️ Prof. Ana não gerou resposta para esta mensagem`);
-              }
-            } else {
-              console.error(`❌ Erro ao gerar resposta da Prof. Ana: ${aiResponse.status}`);
-            }
-          } catch (aiError) {
-            console.error(`❌ Erro na resposta automática da Prof. Ana:`, aiError);
-          }
+          // RESPOSTA AUTOMÁTICA DA PROF. ANA - TEMPORARIAMENTE DESABILITADA
+          // A Prof. Ana está configurada para responder apenas internamente no sistema
+          console.log(`ℹ️ Resposta automática da Prof. Ana desabilitada para WhatsApp - apenas respostas internas ativas`);
         }
       } catch (aiError) {
         console.error('❌ Erro na análise de IA para transferências:', aiError);
