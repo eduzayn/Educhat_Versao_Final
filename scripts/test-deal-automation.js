@@ -82,7 +82,7 @@ async function testDealAutomation() {
     // 4. Verificar deals criados nas últimas 24h
     console.log('\n📈 DEALS CRIADOS RECENTEMENTE:');
     const recentDealsResult = await pool.query(`
-      SELECT d.id, d.name, d.team_type, d.stage, d.channel_origem as canal_origem,
+      SELECT d.id, d.name, d.team_type, d.stage, d.canal_origem,
              d.created_at, ct.name as contact_name
       FROM deals d
       LEFT JOIN contacts ct ON ct.id = d.contact_id
