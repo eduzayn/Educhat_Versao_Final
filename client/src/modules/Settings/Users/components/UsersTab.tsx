@@ -138,27 +138,6 @@ export const UsersTab = () => {
   // Fetch users from API
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['/api/admin/users'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/admin/users', { credentials: 'include' });
-        if (!response.ok) {
-          const text = await response.text();
-          let errorData;
-          try {
-            errorData = JSON.parse(text);
-          } catch {
-            console.error('Erro ao buscar usuários: Response não é JSON válido:', text);
-            throw new Error('Erro de comunicação com o servidor');
-          }
-          throw new Error(errorData.error || errorData.message || 'Erro ao buscar usuários');
-        }
-        const data = await response.json();
-        return Array.isArray(data) ? data : [];
-      } catch (err) {
-        console.error('Erro ao buscar usuários:', err);
-        throw err;
-      }
-    }
   });
 
   // Ensure users is always an array

@@ -148,7 +148,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
                   <SelectValue placeholder="Selecione um contato" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.isArray(contacts?.data) && contacts.data.map((contact: any) => (
+                  {Array.isArray(contacts?.data) ? contacts.data.map((contact: any) => (
                     <SelectItem key={contact.id} value={contact.id.toString()}>
                       {contact.name} {contact.phone && `(${contact.phone})`}
                     </SelectItem>
