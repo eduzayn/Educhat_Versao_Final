@@ -72,6 +72,12 @@ export function InfoPanel() {
     return "outline";
   };
 
+  const getDisplayRoleName = (roleName?: string) => {
+    if (roleName === "Administrador") return "Adm";
+    if (roleName === "Admin") return "Adm";
+    return roleName;
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header do Canal */}
@@ -170,7 +176,7 @@ export function InfoPanel() {
                             variant={getRoleBadgeVariant(member.roleName)}
                             className="text-xs px-1.5 py-0.5 flex-shrink-0"
                           >
-                            {member.roleName}
+                            {getDisplayRoleName(member.roleName)}
                           </Badge>
                         )}
                       </div>
