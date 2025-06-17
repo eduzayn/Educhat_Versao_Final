@@ -19,11 +19,12 @@ export interface Channel {
   id: string;
   name: string;
   description: string;
-  type: 'general' | 'team';
+  type: 'general' | 'team' | 'direct';
   teamId?: number;
   isPrivate: boolean;
   participants: any[];
   unreadCount: number;
+  channelDbId?: number;
 }
 
 export interface Message {

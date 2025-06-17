@@ -189,7 +189,7 @@ export function PrivateMessageModal({
 
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      channelId: privateChannelId,
+      channelId: channelId || 'temp',
       userId: currentUser.id,
       userName: currentUser.displayName || currentUser.username || "Usuário",
       userAvatar: currentUser.avatar,

@@ -140,7 +140,7 @@ router.get('/', async (req: Request, res: Response) => {
       })
     );
 
-    channels.push(...directChannelsFormatted.filter(Boolean) as Channel[]);
+    channels.push(...directChannelsFormatted.filter(Boolean) as any[]);
     
     res.json(channels);
   } catch (error) {
