@@ -26,10 +26,13 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
 
   const handleFocus = (keyName: string) => {
     setEditingKeys(prev => ({ ...prev, [keyName]: true }));
+    // Quando o usuário foca no campo, automaticamente torna visível
+    setVisibleKeys(prev => ({ ...prev, [keyName]: true }));
   };
 
   const handleBlur = (keyName: string) => {
     setEditingKeys(prev => ({ ...prev, [keyName]: false }));
+    // Não ocultar automaticamente ao perder foco se o usuário escolheu manter visível
   };
 
   const toggleKeyVisibility = (keyName: string) => {
@@ -46,10 +49,14 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
   };
 
   const getDisplayValue = (key: string, keyName: string) => {
-    // Se está editando ou visível, mostrar valor real
-    if (editingKeys[keyName] || visibleKeys[keyName] || !key) {
+    // Se não há chave, mostrar vazio
+    if (!key) return '';
+    
+    // Se está visível (botão olho clicado) ou editando, mostrar valor real
+    if (visibleKeys[keyName] || editingKeys[keyName]) {
       return key;
     }
+    
     // Caso contrário, mostrar mascarado
     return maskApiKey(key);
   };
@@ -68,8 +75,8 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="openai-key"
-              type="text"
-              value={getDisplayValue(formData.openaiApiKey, 'openai')}
+              type={visibleKeys['openai'] ? "text" : "password"}
+              value={visibleKeys['openai'] || editingKeys['openai'] ? formData.openaiApiKey : maskApiKey(formData.openaiApiKey)}
               onChange={handleChange}
               onFocus={() => handleFocus('openai')}
               onBlur={() => handleBlur('openai')}
@@ -96,8 +103,8 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="perplexity-key"
-              type="text"
-              value={getDisplayValue(formData.perplexityApiKey, 'perplexity')}
+              type={visibleKeys['perplexity'] ? "text" : "password"}
+              value={visibleKeys['perplexity'] || editingKeys['perplexity'] ? formData.perplexityApiKey : maskApiKey(formData.perplexityApiKey)}
               onChange={handleChange}
               onFocus={() => handleFocus('perplexity')}
               onBlur={() => handleBlur('perplexity')}
@@ -124,8 +131,8 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
           <div className="relative">
             <Input
               id="elevenlabs-key"
-              type="text"
-              value={getDisplayValue(formData.elevenlabsApiKey, 'elevenlabs')}
+              type={visibleKeys['elevenlabs'] ? "text" : "password"}
+              value={visibleKeys['elevenlabs'] || editingKeys['elevenlabs'] ? formData.elevenlabsApiKey : maskApiKey(formData.elevenlabsApiKey)}
               onChange={handleChange}
               onFocus={() => handleFocus('elevenlabs')}
               onBlur={() => handleBlur('elevenlabs')}
