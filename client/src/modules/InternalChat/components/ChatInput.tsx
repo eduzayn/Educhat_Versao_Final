@@ -476,7 +476,7 @@ export function ChatInput() {
   }
 
   return (
-    <div className="border-t bg-card p-4">
+    <div className="border-t bg-card p-2 sm:p-4">
       {/* Componente de gravação de áudio */}
       {showAudioRecorder && (
         <div className="mb-4 border rounded-lg p-3 bg-gray-50">
@@ -556,21 +556,21 @@ export function ChatInput() {
         className="hidden"
       />
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-1 sm:gap-2">
         {/* Attachment Button */}
         <Dialog open={isAttachmentOpen} onOpenChange={setIsAttachmentOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 flex-shrink-0"
+              className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0"
               disabled={!currentUser || !activeChannel}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="w-96">
+          <DialogContent className="w-[90vw] max-w-md">
             <DialogHeader>
               <DialogTitle>Enviar Arquivo</DialogTitle>
             </DialogHeader>
@@ -632,7 +632,7 @@ export function ChatInput() {
             {/* Emoji Picker */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Button variant="ghost" size="icon" className="h-5 w-5 sm:h-6 sm:w-6">
                   <Smile className="h-3 w-3" />
                 </Button>
               </PopoverTrigger>
@@ -653,11 +653,11 @@ export function ChatInput() {
               </PopoverContent>
             </Popover>
 
-            {/* Mention Button */}
+            {/* Mention Button - oculto em telas pequenas */}
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6"
+              className="h-5 w-5 sm:h-6 sm:w-6 hidden sm:flex"
               onClick={insertMentionButton}
             >
               <AtSign className="h-3 w-3" />
@@ -671,7 +671,7 @@ export function ChatInput() {
           size="icon"
           onClick={handleMicrophoneClick}
           className={cn(
-            "h-10 w-10 flex-shrink-0",
+            "h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0",
             (showAudioRecorder || isRecording) &&
               "bg-red-500 text-white hover:bg-red-600",
           )}
@@ -685,7 +685,7 @@ export function ChatInput() {
           onClick={handleSendMessage}
           disabled={!message.trim()}
           size="icon"
-          className="h-10 w-10 flex-shrink-0"
+          className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0"
         >
           <Send className="h-4 w-4" />
         </Button>

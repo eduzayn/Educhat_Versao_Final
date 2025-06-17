@@ -23,12 +23,12 @@ export default function InternalChatPage() {
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar de Canais/Equipes */}
-      <div className="w-[320px] border-r bg-card flex flex-col">
+      <div className="w-[280px] md:w-[320px] border-r bg-card flex flex-col shrink-0">
         <ChannelSidebar />
       </div>
 
       {/* Área Principal de Chat */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative min-w-0">
         <ConnectionStatus />
         <ChatHeader 
           onToggleInfo={() => setShowInfoPanel(!showInfoPanel)}
@@ -43,7 +43,7 @@ export default function InternalChatPage() {
 
       {/* Panel Lateral de Informações */}
       {showInfoPanel && (
-        <div className="w-[350px] border-l bg-card flex">
+        <div className="w-[300px] lg:w-[350px] border-l bg-card flex shrink-0 hidden lg:flex">
           <InfoPanel />
         </div>
       )}
