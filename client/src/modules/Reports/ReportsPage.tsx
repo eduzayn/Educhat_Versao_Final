@@ -122,9 +122,19 @@ export function ReportsPage() {
           </div>
 
           {/* Filtros */}
-          <FilterContainer>
-            <PeriodFilter value={period} onChange={setPeriod} />
-            <ChannelFilter value={channel} onChange={setChannel} />
+          <FilterContainer spacing="sm">
+            <PeriodFilter 
+              value={period} 
+              onValueChange={setPeriod} 
+              size="sm"
+              className="w-36"
+            />
+            <ChannelFilter 
+              value={channel} 
+              onValueChange={setChannel} 
+              size="sm"
+              className="w-36"
+            />
           </FilterContainer>
 
           {/* Métricas */}
