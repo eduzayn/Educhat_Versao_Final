@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Users,
   Bot,
+  GraduationCap,
   Zap,
   ArrowRightLeft,
   Settings
@@ -89,9 +90,16 @@ export function DashboardSidebar({
     },
     {
       id: 'prof-ana',
+      label: 'Prof. Ana',
+      icon: GraduationCap,
+      description: 'Copilot - Assistente Inteligente',
+      route: '/copilot'
+    },
+    {
+      id: 'ia-config',
       label: 'IA',
       icon: Bot,
-      description: 'Assistente de Relacionamento Inteligente',
+      description: 'Configuração da IA',
       route: '/ia',
       adminOnly: true
     },
