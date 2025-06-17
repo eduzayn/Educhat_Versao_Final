@@ -42,7 +42,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
   const [openContactSelect, setOpenContactSelect] = useState(false);
 
   // Buscar contatos para seleção
-  const { data: contacts = [] } = useQuery({
+  const { data: contacts = [] } = useQuery<Array<{id: number, name: string, phone?: string, email?: string}>>({
     queryKey: ['/api/contacts/search'],
     enabled: isOpen && !preselectedContactId,
   });
@@ -236,7 +236,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                     >
                       {form.contactId && form.contactId > 0
                         ? (() => {
-                            const selectedContact = contacts.find((contact: any) => contact.id === form.contactId);
+                            const selectedContact = contacts.find((contact) => contact.id === form.contactId);
                             return selectedContact ? `${selectedContact.name}${selectedContact.phone ? ` (${selectedContact.phone})` : ''}` : "Contato não encontrado";
                           })()
                         : "Selecione um contato"}
@@ -260,7 +260,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                             />
                             Nenhum contato selecionado
                           </CommandItem>
-                          {contacts.length > 0 && contacts.map((contact: any) => (
+                          {contacts.length > 0 && contacts.map((contact) => (
                             <CommandItem
                               key={contact.id}
                               onSelect={() => {

@@ -149,7 +149,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
                 </SelectTrigger>
                 <SelectContent>
                   {contacts.length > 0 ? (
-                    contacts.map((contact: any) => (
+                    contacts.map((contact) => (
                       <SelectItem key={contact.id} value={contact.id.toString()}>
                         {contact.name} {contact.phone && `(${contact.phone})`}
                       </SelectItem>
