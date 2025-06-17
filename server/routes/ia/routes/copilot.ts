@@ -41,12 +41,8 @@ router.post('/', async (req, res) => {
 function generateFallbackResponse(message: string) {
   const lowerMessage = message.toLowerCase();
   
-  console.log('🔍 Analisando mensagem:', message);
-  console.log('🔍 Mensagem em lowercase:', lowerMessage);
-  
   // Prioridade para perguntas sobre sistema/plataforma
   if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('euchat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar') || lowerMessage.includes('como funciona') || lowerMessage.includes('funciona') || lowerMessage.includes('como trabalhar')) {
-    console.log('✅ Detectado: pergunta sobre sistema');
     return {
       message: `Sobre como usar o EduChat:
 
