@@ -3,6 +3,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useSendMessage } from '@/shared/lib/hooks/useMessages';
 import { useChatStore } from '@/shared/store/chatStore';
+import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 
 interface UseMessageSenderProps {
   conversationId: number;
@@ -14,6 +15,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   const { toast } = useToast();
   const sendMessageMutation = useSendMessage();
   const { activeConversation } = useChatStore();
+  const sendAudioMutation = useSendAudioMessage();
 
   const notifySuccess = (title: string, description: string) => {
     toast({ title, description });
@@ -99,22 +101,12 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   };
 
   const sendAudio = async (audioBlob: Blob, duration: number) => {
-    setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, `audio-${Date.now()}.webm`);
-      formData.append('conversationId', conversationId.toString());
-      formData.append('duration', duration.toString());
-
-      const response = await fetch('/api/messages/upload-audio', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Falha no upload do áudio');
-
-      queryClient.invalidateQueries({
-        queryKey: ['/api/conversations', conversationId, 'messages'],
+      await sendAudioMutation.mutateAsync({
+        conversationId,
+        audioBlob,
+        duration,
+        contact: activeConversation?.contact
       });
       notifySuccess('Áudio enviado', 'Sua mensagem de áudio foi enviada com sucesso.');
       return true;
@@ -122,13 +114,11 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       console.error('Erro ao enviar áudio:', error);
       notifyError('Erro ao enviar áudio', 'Não foi possível enviar o áudio. Tente novamente.');
       return false;
-    } finally {
-      setIsUploading(false);
     }
   };
 
   return {
-    isLoading: sendMessageMutation.isPending,
+    isLoading: sendMessageMutation.isPending || sendAudioMutation.isPending,
     isUploading,
     sendTextMessage,
     uploadFile,
