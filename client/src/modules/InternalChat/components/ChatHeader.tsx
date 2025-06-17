@@ -14,7 +14,6 @@ import {
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
 import { useInternalChatStore } from "../store/internalChatStore";
-import { useLocation } from "wouter";
 import { ChatSettings } from "./ChatSettings";
 
 
@@ -25,13 +24,8 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
   const { channels, activeChannel } = useInternalChatStore();
-  const [, setLocation] = useLocation();
 
   const channel = channels.find((c) => c.id === activeChannel);
-
-  const handleBackToDashboard = () => {
-    setLocation("/");
-  };
 
   if (!channel) {
     return (
