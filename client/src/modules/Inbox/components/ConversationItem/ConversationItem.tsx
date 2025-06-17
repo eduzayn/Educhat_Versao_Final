@@ -60,7 +60,7 @@ function ConversationItemComponent({
 
   const lastMessage = conversation.messages?.[0];
   const statusConfig = getStatusConfig(conversation.status || 'open');
-  const hasUnreadMessages = (conversation as any).unreadCount > 0;
+  const hasUnreadMessages = (conversation.unreadCount || 0) > 0;
 
   return (
     <div
@@ -148,7 +148,7 @@ function ConversationItemComponent({
             {/* Contador de mensagens não lidas */}
             {hasUnreadMessages && (
               <Badge className="bg-educhat-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center">
-                {(conversation as any).unreadCount > 99 ? '99+' : (conversation as any).unreadCount}
+                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
               </Badge>
             )}
 

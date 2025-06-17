@@ -26,6 +26,7 @@ export class ConversationStatusOperations {
         .update(conversations)
         .set({ 
           isRead: false,
+          unreadCount: 1,
           updatedAt: new Date()
         })
         .where(eq(conversations.id, conversationId));
