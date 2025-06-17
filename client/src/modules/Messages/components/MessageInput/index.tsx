@@ -31,6 +31,13 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     await shareLink(url, caption);
   };
 
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    await uploadFile(
+      new File([audioBlob], `audio_${Date.now()}.wav`, { type: 'audio/wav' }),
+      `Áudio (${Math.floor(duration)}s)`
+    );
+  };
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     handleKeyDown(e, handleSendMessage);
   };
@@ -88,6 +95,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
         <ActionButtons
           onSendMessage={handleSendMessage}
+          onSendAudio={handleSendAudio}
           canSend={message.trim().length > 0}
           isLoading={isLoading}
         />
