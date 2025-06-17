@@ -21,10 +21,7 @@ router.post('/', async (req: Request, res: Response) => {
     
     console.log(`✅ Captura concluída: ${result.title}`);
     
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json(result);
     
   } catch (error: any) {
     console.error('Erro na captura web:', error);

@@ -10,9 +10,15 @@ interface WebCaptureResult {
   title: string;
   description: string;
   content: string;
+  summary: string;
+  keywords: string[];
   images: string[];
   links: string[];
-  metadata: Record<string, string>;
+  metadata: {
+    domain: string;
+    wordCount: number;
+    extractedAt: string;
+  };
   capturedAt: Date;
 }
 
@@ -88,24 +94,32 @@ class WebCaptureService {
         });
       }
 
-      // Extrair metadados
-      const metadata: Record<string, string> = {};
-      $('meta').each((_, element) => {
-        const name = $(element).attr('name') || $(element).attr('property');
-        const content = $(element).attr('content');
-        if (name && content) {
-          metadata[name] = content;
-        }
-      });
+      // Gerar resumo (primeiros 200 caracteres do conteúdo)
+      const summary = content.length > 200 ? content.substring(0, 200) + '...' : content;
+      
+      // Extrair palavras-chave simples (palavras mais frequentes)
+      const keywords = this.extractKeywords(content);
+      
+      // Obter domínio
+      const domain = new URL(url).hostname;
+      
+      // Contar palavras
+      const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
 
       return {
         url,
         title,
         description,
         content: content.trim(),
+        summary,
+        keywords,
         images,
         links,
-        metadata,
+        metadata: {
+          domain,
+          wordCount,
+          extractedAt: new Date().toISOString()
+        },
         capturedAt: new Date()
       };
 
@@ -168,6 +182,30 @@ class WebCaptureService {
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Extrai palavras-chave do conteúdo
+   */
+  private extractKeywords(content: string): string[] {
+    // Remover pontuação e converter para minúsculas
+    const words = content
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 3);
+
+    // Contar frequência das palavras
+    const wordCount: Record<string, number> = {};
+    words.forEach(word => {
+      wordCount[word] = (wordCount[word] || 0) + 1;
+    });
+
+    // Retornar as 10 palavras mais frequentes
+    return Object.entries(wordCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([word]) => word);
   }
 
   /**

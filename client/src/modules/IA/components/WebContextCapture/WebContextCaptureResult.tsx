@@ -61,8 +61,8 @@ export function WebContextCaptureResult({
         <div>
           <label className="text-sm font-medium text-gray-700">Informações Capturadas</label>
           <div className="space-y-2 text-sm">
-            <div><strong>Domínio:</strong> {captureResult.metadata.domain}</div>
-            <div><strong>Palavras:</strong> {captureResult.metadata.wordCount.toLocaleString()}</div>
+            <div><strong>Domínio:</strong> {captureResult.metadata?.domain || 'N/A'}</div>
+            <div><strong>Palavras:</strong> {captureResult.metadata?.wordCount?.toLocaleString() || 'N/A'}</div>
             <div><strong>URL:</strong> <a href={captureResult.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{captureResult.url}</a></div>
           </div>
         </div>

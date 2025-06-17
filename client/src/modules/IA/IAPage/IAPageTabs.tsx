@@ -35,8 +35,8 @@ export function IAPageTabs() {
     <Tabs defaultValue="overview" className="w-full">
       <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-        <TabsTrigger value="memory">Memória Contextual</TabsTrigger>
-        <TabsTrigger value="documents">Documentos PDF/DOCX</TabsTrigger>
+        <TabsTrigger value="memory">Memória</TabsTrigger>
+        <TabsTrigger value="documents">Documentos</TabsTrigger>
         <TabsTrigger value="test">Teste da IA</TabsTrigger>
         <TabsTrigger value="contexts">Contextos</TabsTrigger>
         <TabsTrigger value="logs">Logs</TabsTrigger>
