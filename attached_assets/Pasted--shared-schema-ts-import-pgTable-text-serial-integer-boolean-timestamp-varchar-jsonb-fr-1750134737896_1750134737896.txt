@@ -1,0 +1,58 @@
+// shared/schema.ts
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb } from "drizzle-orm/pg-core";
+
+// Tabela de mensagens com suporte a notas internas
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  content: text("content").notNull(),
+  isFromContact: boolean("is_from_contact").notNull(),
+  messageType: varchar("message_type", { length: 20 }).default("text"), // text, image, file, audio
+  metadata: jsonb("metadata"), // para anexos, etc.
+  isDeleted: boolean("is_deleted").default(false),
+  sentAt: timestamp("sent_at").defaultNow(),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  
+  // Campos específicos para notas internas
+  isInternalNote: boolean("is_internal_note").default(false), // indica se é uma nota interna
+  authorId: integer("author_id").references(() => systemUsers.id), // ID do usuário que criou a nota
+  authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar
+  noteType: varchar("note_type", { length: 20 }).default("general"), // general, reminder, important, follow_up
+  notePriority: varchar("note_priority", { length: 20 }).default("normal"), // low, normal, high, urgent
+  noteTags: text("note_tags").array(), // tags para categorização
+  isPrivate: boolean("is_private").default(false), // se a nota é privada para o autor
+  
+  // Campos da Z-API (para mensagens normais)
+  whatsappMessageId: varchar("whatsapp_message_id", { length: 50 }),
+  zapiStatus: varchar("zapi_status", { length: 20 }),
+  isGroup: boolean("is_group").default(false),
+  referenceMessageId: varchar("reference_message_id", { length: 50 }),
+  
+  // Campos para ocultação e deleção
+  isHiddenForUser: boolean("is_hidden_for_user").default(false),
+  isDeletedByUser: boolean("is_deleted_by_user").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: integer("deleted_by").references(() => systemUsers.id),
+});
+
+// Tabela de notas de contato (separada das mensagens)
+export const contactNotes = pgTable("contact_notes", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").references(() => contacts.id).notNull(),
+  content: text("content").notNull(),
+  authorName: varchar("author_name", { length: 100 }).notNull(),
+  authorId: integer("author_id").references(() => systemUsers.id),
+  noteType: varchar("note_type", { length: 20 }).default("general"),
+  notePriority: varchar("note_priority", { length: 20 }).default("normal"),
+  noteTags: text("note_tags").array(),
+  isPrivate: boolean("is_private").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tipos TypeScript
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;
+export type ContactNote = typeof contactNotes.$inferSelect;
+export type InsertContactNote = typeof contactNotes.$inferInsert;

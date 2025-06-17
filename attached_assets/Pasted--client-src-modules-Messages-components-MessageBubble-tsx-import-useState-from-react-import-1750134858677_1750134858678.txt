@@ -1,0 +1,273 @@
+// client/src/modules/Messages/components/MessageBubble.tsx
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { 
+  Reply, 
+  Trash2, 
+  StickyNote, 
+  AlertTriangle, 
+  Clock, 
+  Tag,
+  Edit,
+  Eye,
+  EyeOff
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { Message, Contact } from "@shared/schema";
+
+interface MessageBubbleProps {
+  message: Message;
+  contact: Contact;
+  conversationId?: number;
+  onReply?: (message: Message) => void;
+  onEdit?: (message: Message) => void;
+}
+
+export function MessageBubble({
+  message,
+  contact,
+  conversationId,
+  onReply,
+  onEdit,
+}: MessageBubbleProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(message.content);
+
+  const isFromContact = message.isFromContact;
+  const messageTimestamp = new Date(message.sentAt);
+  const messageTime = formatDistanceToNow(messageTimestamp, { 
+    addSuffix: true, 
+    locale: ptBR 
+  });
+
+  // Configurações de nota interna
+  const getNoteTypeConfig = (type: string) => {
+    switch (type) {
+      case 'reminder':
+        return { icon: Clock, label: 'Lembrete', color: 'text-blue-600' };
+      case 'important':
+        return { icon: AlertTriangle, label: 'Importante', color: 'text-orange-600' };
+      case 'follow_up':
+        return { icon: Tag, label: 'Follow-up', color: 'text-purple-600' };
+      default:
+        return { icon: StickyNote, label: 'Geral', color: 'text-amber-600' };
+    }
+  };
+
+  const getNotePriorityConfig = (priority: string) => {
+    switch (priority) {
+      case 'low':
+        return { label: 'Baixa', color: 'bg-gray-100 text-gray-700' };
+      case 'normal':
+        return { label: 'Normal', color: 'bg-blue-100 text-blue-700' };
+      case 'high':
+        return { label: 'Alta', color: 'bg-orange-100 text-orange-700' };
+      case 'urgent':
+        return { label: 'Urgente', color: 'bg-red-100 text-red-700' };
+      default:
+        return { label: 'Normal', color: 'bg-blue-100 text-blue-700' };
+    }
+  };
+
+  const noteTypeConfig = getNoteTypeConfig(message.noteType || 'general');
+  const notePriorityConfig = getNotePriorityConfig(message.notePriority || 'normal');
+
+  // Handlers
+  const handleDelete = async () => {
+    if (!confirm('Tem certeza que deseja deletar esta mensagem?')) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/messages/${message.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao deletar mensagem');
+      }
+      
+      // Recarregar mensagens
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao deletar mensagem:', error);
+      alert('Erro ao deletar mensagem');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editedContent.trim()) return;
+    
+    setIsEditing(true);
+    try {
+      const response = await fetch(`/api/messages/${message.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editedContent }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar mensagem');
+      }
+      
+      // Recarregar mensagens
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao atualizar mensagem:', error);
+      alert('Erro ao atualizar mensagem');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const renderMessageContent = () => {
+    if (message.isInternalNote) {
+      return (
+        <div className="px-4 py-3 rounded-lg bg-amber-50 text-amber-900 border border-amber-200">
+          {/* Cabeçalho da nota interna */}
+          <div className="flex items-center gap-2 mb-2">
+            <noteTypeConfig.icon className="h-3 w-3" />
+            <span className="text-xs font-medium text-amber-700">
+              Nota Interna • {noteTypeConfig.label}
+            </span>
+            <Badge variant="secondary" className={cn("text-xs", notePriorityConfig.color)}>
+              {notePriorityConfig.label}
+            </Badge>
+          </div>
+          
+          {/* Conteúdo da nota */}
+          {isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="w-full p-2 border border-amber-300 rounded text-sm resize-none"
+                rows={3}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleEdit} disabled={isEditing}>
+                  Salvar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          )}
+          
+          {/* Tags da nota */}
+          {message.noteTags && message.noteTags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {message.noteTags.map((tag, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+          
+          {/* Autor da nota */}
+          {message.authorName && (
+            <div className="mt-2 text-xs text-amber-600 font-medium">
+              {message.authorName}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Mensagem normal
+    return (
+      <div className={cn(
+        "px-4 py-2 rounded-lg",
+        isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"
+      )}>
+        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className={cn(
+      "flex items-start gap-3 mb-4",
+      isFromContact ? "" : "flex-row-reverse"
+    )}>
+      <Avatar className="w-9 h-9 flex-shrink-0">
+        <AvatarImage src={isFromContact ? contact.profileImageUrl || "" : ""} />
+        <AvatarFallback>
+          {isFromContact 
+            ? contact.name?.charAt(0)?.toUpperCase() || "C" 
+            : message.isInternalNote ? "N" : "A"
+          }
+        </AvatarFallback>
+      </Avatar>
+
+      <div className={cn(
+        "flex-1 max-w-md",
+        isFromContact ? "" : "flex flex-col items-end"
+      )}>
+        {renderMessageContent()}
+
+        {/* Ações da mensagem */}
+        <div className={cn(
+          "flex gap-1 mt-1",
+          isFromContact ? "justify-start" : "justify-end"
+        )}>
+          {/* Responder (apenas para mensagens do contato) */}
+          {isFromContact && onReply && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReply(message)}
+              className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100"
+            >
+              <Reply className="w-3.5 h-3.5 mr-1" /> Responder
+            </Button>
+          )}
+          
+          {/* Editar (apenas para notas internas próprias) */}
+          {message.isInternalNote && !isFromContact && onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+              className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100"
+            >
+              <Edit className="w-3.5 h-3.5 mr-1" /> Editar
+            </Button>
+          )}
+          
+          {/* Deletar */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100 text-red-500"
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" />
+            {isDeleting ? "Excluindo..." : "Excluir"}
+          </Button>
+        </div>
+
+        {/* Timestamp */}
+        <div className={cn(
+          "flex items-center gap-1 mt-1 text-xs",
+          isFromContact ? "text-gray-400" : "text-gray-500 justify-end"
+        )}>
+          <span title={messageTimestamp.toLocaleString()}>
+            {messageTime}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}

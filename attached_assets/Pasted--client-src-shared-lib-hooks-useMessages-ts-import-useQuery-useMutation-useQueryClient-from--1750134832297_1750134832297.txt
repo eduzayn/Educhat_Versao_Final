@@ -1,0 +1,132 @@
+// client/src/shared/lib/hooks/useMessages.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import type { Message, InsertMessage } from '@shared/schema';
+
+export function useMessages(conversationId: number | null, limit = 25) {
+  return useQuery<Message[]>({
+    queryKey: ['/api/conversations', conversationId, 'messages'],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.messages || [];
+    },
+    enabled: !!conversationId,
+    staleTime: 30000,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    retryDelay: 500,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useInternalNotes(conversationId: number | null) {
+  return useQuery<Message[]>({
+    queryKey: ['/api/conversations', conversationId, 'internal-notes'],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations/${conversationId}/internal-notes`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!conversationId,
+    staleTime: 30000,
+  });
+}
+
+export function useSendMessage() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ conversationId, message, contact }: { 
+      conversationId: number; 
+      message: Omit<InsertMessage, 'conversationId'>;
+      contact?: any;
+    }) => {
+      // Se for nota interna, NUNCA enviar via Z-API - apenas salvar localmente
+      if (message.isInternalNote) {
+        console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
+        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
+        return response.json();
+      }
+
+      // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
+      console.log('💾 Salvando mensagem no banco local primeiro');
+      const localResponse = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
+      const savedMessage = await localResponse.json();
+
+      // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
+      if (contact?.phone) {
+        console.log('📤 Enviando mensagem via Z-API:', {
+          phone: contact.phone,
+          message: message.content,
+          conversationId
+        });
+        
+        try {
+          const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
+            phone: contact.phone,
+            message: message.content,
+            conversationId: conversationId
+          });
+          console.log('✅ Mensagem enviada via Z-API:', zapiResponse);
+        } catch (error) {
+          console.error('❌ Erro ao enviar via Z-API:', error);
+          // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
+        }
+      }
+
+      return savedMessage;
+    },
+    onSuccess: (_, { conversationId }) => {
+      // Forçar refetch imediato das mensagens
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/conversations', conversationId, 'messages'] 
+      });
+      // Invalidar cache da lista de conversas
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'] 
+      });
+    },
+  });
+}
+
+export function useUpdateMessage() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertMessage> }) => {
+      const response = await apiRequest('PUT', `/api/messages/${id}`, data);
+      return response.json();
+    },
+    onSuccess: (_, { id }) => {
+      // Invalidar cache das mensagens
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'] 
+      });
+    },
+  });
+}
+
+export function useDeleteMessage() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/messages/${id}`);
+      return response;
+    },
+    onSuccess: () => {
+      // Invalidar cache das mensagens
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'] 
+      });
+    },
+  });
+}

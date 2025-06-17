@@ -1,0 +1,190 @@
+// client/src/modules/Messages/components/InputArea/index.tsx
+import { useState, useRef, useEffect } from "react";
+import { Mic, Send } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
+import { useSendMessage } from "@/shared/lib/hooks/useMessages";
+import { useChatStore } from "@/shared/store/chatStore";
+import { useToast } from "@/shared/lib/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+
+import { InternalNoteToggle } from "./InternalNoteToggle";
+import { QuickReplyDropdown } from "./QuickReplyDropdown";
+import { QuickReplyChips } from "./QuickReplyChips";
+
+export function InputArea() {
+  // Estados principais
+  const [message, setMessage] = useState("");
+  const [isInternalNote, setIsInternalNote] = useState(false);
+  const [noteType, setNoteType] = useState("general");
+  const [notePriority, setNotePriority] = useState("normal");
+  const [noteTags, setNoteTags] = useState<string[]>([]);
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  // Refs
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Hooks
+  const { activeConversation } = useChatStore();
+  const sendMessageMutation = useSendMessage();
+  const { toast } = useToast();
+
+  // Buscar usuário atual (para notas internas)
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+    retry: false,
+    staleTime: 1000 * 60 * 10,
+    enabled: isInternalNote,
+  });
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 120) + "px";
+    }
+  }, [message]);
+
+  // Handler de envio de mensagem
+  const handleSendMessage = async () => {
+    if (!message.trim() || !activeConversation) return;
+
+    const messageContent = message.trim();
+    setMessage("");
+
+    try {
+      if (isInternalNote) {
+        // Enviar nota interna
+        const authorName =
+          (currentUser as any)?.displayName ||
+          (currentUser as any)?.username ||
+          "Usuário";
+
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: messageContent,
+            isFromContact: false,
+            messageType: "text",
+            isInternalNote: true,
+            authorName: authorName,
+            authorId: (currentUser as any)?.id,
+            noteType: noteType,
+            notePriority: notePriority,
+            noteTags: noteTags,
+            isPrivate: isPrivate,
+          },
+          contact: activeConversation.contact,
+        });
+
+        // Resetar estado da nota interna
+        setIsInternalNote(false);
+        setNoteType("general");
+        setNotePriority("normal");
+        setNoteTags([]);
+        setIsPrivate(false);
+
+        toast({
+          title: "Nota interna salva",
+          description: "A nota foi salva apenas para a equipe interna.",
+        });
+      } else {
+        // Enviar mensagem normal
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversation.id,
+          message: {
+            content: messageContent,
+            isFromContact: false,
+            messageType: "text",
+          },
+          contact: activeConversation.contact,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao enviar mensagem. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler de teclas
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Inserir resposta rápida
+  const insertQuickReply = (reply: string) => {
+    setMessage(reply);
+    textareaRef.current?.focus();
+  };
+
+  if (!activeConversation) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white border-t border-gray-200 p-4">
+      <div className="flex items-end space-x-3">
+        <div className="flex-1 relative">
+          <Textarea
+            ref={textareaRef}
+            placeholder={
+              isInternalNote 
+                ? "Digite sua nota interna... (apenas equipe verá)"
+                : "Digite sua mensagem..."
+            }
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className={cn(
+              "min-h-[48px] max-h-[140px] resize-none pr-20 border-gray-300 focus:ring-2 focus:border-transparent text-base",
+              isInternalNote 
+                ? "border-amber-300 focus:ring-amber-500 bg-amber-50" 
+                : "focus:ring-blue-500"
+            )}
+            rows={1}
+          />
+
+          <InternalNoteToggle
+            isInternalNote={isInternalNote}
+            onToggle={setIsInternalNote}
+            noteType={noteType}
+            notePriority={notePriority}
+            onNoteTypeChange={setNoteType}
+            onNotePriorityChange={setNotePriority}
+          />
+        </div>
+
+        <Button
+          onClick={handleSendMessage}
+          disabled={!message.trim() || sendMessageMutation.isPending}
+          className={cn(
+            "p-3.5 rounded-xl transition-colors",
+            isInternalNote
+              ? "bg-amber-600 hover:bg-amber-700 text-white"
+              : "bg-blue-600 hover:bg-blue-700 text-white",
+            sendMessageMutation.isPending && "opacity-50 cursor-not-allowed",
+          )}
+        >
+          {sendMessageMutation.isPending ? (
+            <div className="w-5.5 h-5.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <Send className="w-5.5 h-5.5" />
+          )}
+        </Button>
+      </div>
+
+      {/* Chips de respostas rápidas (apenas para mensagens normais) */}
+      {!isInternalNote && (
+        <QuickReplyChips onSelect={insertQuickReply} />
+      )}
+    </div>
+  );
+}

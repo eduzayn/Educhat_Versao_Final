@@ -100,6 +100,10 @@ export const messages = pgTable("messages", {
   isInternalNote: boolean("is_internal_note").default(false), // indica se é uma nota interna
   authorId: integer("author_id").references(() => systemUsers.id), // ID do usuário que criou a nota
   authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar
+  noteType: varchar("note_type", { length: 20 }).default("general"), // general, reminder, important, follow_up
+  notePriority: varchar("note_priority", { length: 20 }).default("normal"), // low, normal, high, urgent
+  noteTags: text("note_tags").array(), // tags para categorização
+  isPrivate: boolean("is_private").default(false), // se a nota é privada para o autor
   // Campo para ocultação local de mensagens
   isHiddenForUser: boolean("is_hidden_for_user").default(false), // oculta mensagem apenas localmente exibição
   // Campo para indicar que mensagem foi deletada pelo usuário (mas deve mostrar placeholder)

@@ -1,0 +1,125 @@
+// server/routes/messages/index.ts
+import { Express, Response } from 'express';
+import { AuthenticatedRequest } from '../../core/permissions';
+import { storage } from "../../storage";
+
+export function registerMessageRoutes(app: Express) {
+  
+  // Buscar mensagens de uma conversa
+  app.get('/api/conversations/:conversationId/messages', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const limit = parseInt(req.query.limit as string) || 25;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const messages = await storage.getMessages(conversationId, limit, offset);
+      res.json({ messages });
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+      res.status(500).json({ message: 'Falha ao buscar mensagens' });
+    }
+  });
+
+  // Criar mensagem (normal ou interna)
+  app.post('/api/conversations/:conversationId/messages', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const messageData = req.body;
+      
+      let message;
+      
+      if (messageData.isInternalNote) {
+        // Criar nota interna
+        message = await storage.createInternalNote({
+          conversationId,
+          content: messageData.content,
+          authorId: req.user?.id || 0,
+          authorName: messageData.authorName || req.user?.displayName || 'Usuário',
+          noteType: messageData.noteType,
+          notePriority: messageData.notePriority,
+          noteTags: messageData.noteTags,
+          isPrivate: messageData.isPrivate,
+        });
+      } else {
+        // Criar mensagem normal
+        message = await storage.createMessage({
+          conversationId,
+          content: messageData.content,
+          isFromContact: false,
+          messageType: messageData.messageType || 'text',
+          metadata: messageData.metadata,
+          sentAt: new Date()
+        });
+      }
+      
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('Erro ao criar mensagem:', error);
+      res.status(500).json({ message: 'Falha ao criar mensagem' });
+    }
+  });
+
+  // Buscar apenas notas internas
+  app.get('/api/conversations/:conversationId/internal-notes', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const notes = await storage.getInternalNotes(conversationId);
+      res.json(notes);
+    } catch (error) {
+      console.error('Erro ao buscar notas internas:', error);
+      res.status(500).json({ message: 'Falha ao buscar notas internas' });
+    }
+  });
+
+  // Buscar notas por prioridade
+  app.get('/api/conversations/:conversationId/internal-notes/priority/:priority', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const priority = req.params.priority;
+      const notes = await storage.getInternalNotesByPriority(conversationId, priority);
+      res.json(notes);
+    } catch (error) {
+      console.error('Erro ao buscar notas por prioridade:', error);
+      res.status(500).json({ message: 'Falha ao buscar notas por prioridade' });
+    }
+  });
+
+  // Buscar notas por tags
+  app.get('/api/conversations/:conversationId/internal-notes/tags', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      const tags = (req.query.tags as string).split(',');
+      const notes = await storage.getInternalNotesByTags(conversationId, tags);
+      res.json(notes);
+    } catch (error) {
+      console.error('Erro ao buscar notas por tags:', error);
+      res.status(500).json({ message: 'Falha ao buscar notas por tags' });
+    }
+  });
+
+  // Atualizar nota interna
+  app.put('/api/messages/:id', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const message = await storage.updateMessage(id, updateData);
+      res.json(message);
+    } catch (error) {
+      console.error('Erro ao atualizar mensagem:', error);
+      res.status(500).json({ message: 'Falha ao atualizar mensagem' });
+    }
+  });
+
+  // Deletar mensagem
+  app.delete('/api/messages/:id', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.markMessageAsDeleted(id, req.user?.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao deletar mensagem:', error);
+      res.status(500).json({ message: 'Falha ao deletar mensagem' });
+    }
+  });
+}
