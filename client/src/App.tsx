@@ -29,6 +29,7 @@ import PermissionsPanel from "@/modules/Admin/PermissionsPanel";
 import { ProfilePage } from "@/modules/Profile/ProfilePage";
 import { HandoffsPage } from "@/modules/Handoffs/HandoffsPage";
 import { NotificationsPage } from "@/modules/Notifications/NotificationsPage";
+import CopilotPage from "@/modules/Copilot/CopilotPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -115,6 +116,7 @@ function Router() {
             )}
           </Route>
           <Route path="/admin/permissions" component={PermissionsPanel} />
+          <Route path="/copilot" component={CopilotPage} />
           <Route path="/chat-interno" component={InternalChatPage} />
           <Route path="/handoffs" component={HandoffsPage} />
           <Route path="/notifications" component={NotificationsPage} />
