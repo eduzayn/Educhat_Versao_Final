@@ -133,7 +133,7 @@ Responda à seguinte mensagem:`;
           }
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro Anthropic detalhado:', {
         message: error.message,
         status: error.status,
