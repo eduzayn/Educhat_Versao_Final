@@ -13,12 +13,21 @@ import { useInternalChatStore } from './store/internalChatStore';
 
 export default function InternalChatPage() {
   const [showInfoPanel, setShowInfoPanel] = useState(true);
-  const { activeChannel, loadChannels } = useInternalChatStore();
+  const { activeChannel, loadChannels, loadChannelMessages, channels } = useInternalChatStore();
 
   // Carregar canais baseados nas equipes do usuário na inicialização
   useEffect(() => {
     loadChannels();
   }, [loadChannels]);
+
+  // Carregar mensagens de todos os canais disponíveis
+  useEffect(() => {
+    if (channels.length > 0) {
+      channels.forEach(channel => {
+        loadChannelMessages(channel.id);
+      });
+    }
+  }, [channels, loadChannelMessages]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">

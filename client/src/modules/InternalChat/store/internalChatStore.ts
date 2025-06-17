@@ -86,7 +86,9 @@ interface InternalChatStore {
   getUnreadTotal: () => number;
   loadChannels: () => Promise<void>;
   loadChannelUsers: (channelId: string) => Promise<void>;
+  loadChannelMessages: (channelId: string) => Promise<void>;
   setChannelUsers: (channelId: string, users: ChatUser[]) => void;
+  setChannelMessages: (channelId: string, messages: InternalChatMessage[]) => void;
 }
 
 // Configurações padrão de áudio
@@ -112,7 +114,14 @@ export const useInternalChatStore = create<InternalChatStore>()(
     channelUsers: {},
 
     // Ações
-    setActiveChannel: (channelId) => set({ activeChannel: channelId }),
+    setActiveChannel: (channelId) => {
+      set({ activeChannel: channelId });
+      
+      // Carregar mensagens do canal se ainda não estiverem carregadas
+      if (channelId && !get().messages[channelId]) {
+        get().loadChannelMessages(channelId);
+      }
+    },
     
     addChannel: (channel) => set((state) => ({
       channels: [...state.channels, channel]
@@ -124,30 +133,62 @@ export const useInternalChatStore = create<InternalChatStore>()(
       )
     })),
     
-    addMessage: (message) => set((state) => {
-      const channelMessages = state.messages[message.channelId] || [];
-      const newMessages = {
-        ...state.messages,
-        [message.channelId]: [...channelMessages, message]
+    addMessage: (message) => {
+      // Salvar mensagem no banco de dados
+      const saveMessageToDatabase = async () => {
+        try {
+          const response = await fetch(`/api/internal-chat/channels/${message.channelId}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              content: message.content,
+              messageType: message.messageType,
+              metadata: {
+                isImportant: message.isImportant,
+                reminderDate: message.reminderDate,
+              }
+            })
+          });
+          
+          if (!response.ok) {
+            console.error('Erro ao salvar mensagem no banco de dados');
+          }
+        } catch (error) {
+          console.error('Erro ao salvar mensagem no banco de dados:', error);
+        }
       };
-      
-      // Atualizar última mensagem e atividade do canal
-      const updatedChannels = state.channels.map(channel =>
-        channel.id === message.channelId 
-          ? { 
-              ...channel, 
-              lastMessage: message,
-              lastActivity: message.timestamp,
-              unreadCount: channel.id === state.activeChannel ? 0 : channel.unreadCount + 1
-            }
-          : channel
-      );
-      
-      return {
-        messages: newMessages,
-        channels: updatedChannels
-      };
-    }),
+
+      // Salvar no banco de dados de forma assíncrona
+      saveMessageToDatabase();
+
+      // Atualizar o store local imediatamente
+      set((state) => {
+        const channelMessages = state.messages[message.channelId] || [];
+        const newMessages = {
+          ...state.messages,
+          [message.channelId]: [...channelMessages, message]
+        };
+        
+        // Atualizar última mensagem e atividade do canal
+        const updatedChannels = state.channels.map(channel =>
+          channel.id === message.channelId 
+            ? { 
+                ...channel, 
+                lastMessage: message,
+                lastActivity: message.timestamp,
+                unreadCount: channel.id === state.activeChannel ? 0 : channel.unreadCount + 1
+              }
+            : channel
+        );
+        
+        return {
+          messages: newMessages,
+          channels: updatedChannels
+        };
+      });
+    },
     
     updateMessage: (messageId, updates) => set((state) => {
       const newMessages = { ...state.messages };
@@ -293,6 +334,43 @@ export const useInternalChatStore = create<InternalChatStore>()(
       } catch (error) {
         console.error('Erro ao carregar canais:', error);
       }
+    },
+
+    // Carregar mensagens de um canal específico do banco de dados
+    loadChannelMessages: async (channelId: string) => {
+      try {
+        const response = await fetch(`/api/internal-chat/channels/${channelId}/messages`);
+        if (response.ok) {
+          const messagesData = await response.json();
+          const messages: InternalChatMessage[] = messagesData.map((msg: any) => ({
+            id: msg.id.toString(),
+            channelId,
+            userId: msg.userId,
+            userName: msg.userName || 'Usuário',
+            userAvatar: msg.userAvatar,
+            content: msg.content,
+            messageType: msg.messageType || 'text',
+            timestamp: new Date(msg.createdAt),
+            reactions: msg.reactions || {},
+            isImportant: msg.metadata?.isImportant || false,
+            reminderDate: msg.metadata?.reminderDate ? new Date(msg.metadata.reminderDate) : undefined
+          }));
+          
+          get().setChannelMessages(channelId, messages);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar mensagens do canal:', error);
+      }
+    },
+
+    // Definir mensagens de um canal (substitui as existentes)
+    setChannelMessages: (channelId: string, messages: InternalChatMessage[]) => {
+      set((state) => ({
+        messages: {
+          ...state.messages,
+          [channelId]: messages
+        }
+      }));
     },
 
     // Carregar usuários de um canal específico
