@@ -15,6 +15,7 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
       endDate, 
       stage, 
       team,
+      funnelId,
       page = '1',
       limit = '50',
       search
@@ -50,7 +51,8 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
       team,
       stage,
       search,
-      assignedUserId
+      assignedUserId,
+      funnelId
     });
     
     // Use pagination method from storage
@@ -61,7 +63,8 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
       stage: stage as string,
       search: search as string,
       userId: filterUserId,
-      assignedUserId: assignedUserId as string
+      assignedUserId: assignedUserId as string,
+      funnelId: funnelId as string
     });
     
     console.log('📊 Resultado da busca de negócios:', {

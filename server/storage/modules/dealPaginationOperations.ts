@@ -4,7 +4,7 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
 
 export class DealPaginationOperations extends BaseStorage {
   async getDealsWithPagination(params: any): Promise<any> {
-    const { page = 1, limit = 10, stage, contactId, userId, teamId, teamType, search, assignedUserId } = params;
+    const { page = 1, limit = 10, stage, contactId, userId, teamId, teamType, search, assignedUserId, funnelId } = params;
     const offset = (page - 1) * limit;
 
     let query = this.db.select().from(deals);
@@ -13,6 +13,7 @@ export class DealPaginationOperations extends BaseStorage {
     if (stage) conditions.push(eq(deals.stage, stage));
     if (contactId) conditions.push(eq(deals.contactId, contactId));
     if (teamType) conditions.push(eq(deals.teamType, teamType));
+    if (funnelId) conditions.push(eq(deals.funnelId, parseInt(funnelId)));
     if (search) {
       conditions.push(sql`${deals.name} ILIKE ${`%${search}%`}`);
     }
