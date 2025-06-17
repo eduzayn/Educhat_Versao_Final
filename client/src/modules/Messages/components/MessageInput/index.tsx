@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useMessageInput } from './hooks/useMessageInput';
 import { useMessageSender } from './hooks/useMessageSender';
-import { useQuickReplies, useQuickReplySearch, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
-import { TextArea } from './TextArea';
+import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
+import { Textarea } from '@/shared/ui/textarea';
 import { ActionButtons } from './ActionButtons';
 import { QuickReplyChips } from './QuickReplyChips';
 import { QuickReplyDropdown } from './QuickReplyDropdown';
@@ -22,7 +21,6 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: quickReplies = [] } = useQuickReplies();
-  const searchMutation = useQuickReplySearch();
   const incrementUsageMutation = useIncrementQuickReplyUsage();
 
   const { isLoading, isUploading, sendTextMessage, uploadFile, shareLink, sendAudio } = useMessageSender({
@@ -118,40 +116,18 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   };
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4">
-      {/* Quick Replies Popup */}
-      {quickReplies.showQuickReplies && quickReplies.filteredQuickReplies.length > 0 && (
-        <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
-            Respostas rápidas disponíveis:
-          </p>
-          <div className="max-h-32 overflow-y-auto space-y-1">
-            {quickReplies.filteredQuickReplies.map((reply, index) => (
-              <div
-                key={reply.id}
-                className={`p-2 rounded cursor-pointer flex items-start gap-2 ${
-                  index === quickReplies.selectedIndex
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-blue-100 dark:hover:bg-blue-900"
-                }`}
-                onClick={() => selectQuickReply(reply)}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{reply.title}</div>
-                  <div className="text-xs opacity-75 truncate">{reply.content}</div>
-                </div>
-                {reply.shortcut && (
-                  <div className="text-xs bg-blue-200 dark:bg-blue-800 px-1 rounded">
-                    {reply.shortcut}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-blue-500 dark:text-blue-400 mt-2">
-            Use ↑↓ para navegar, Enter/Tab para selecionar, Esc para fechar
-          </p>
-        </div>
+    <div className="bg-white border-t border-gray-200 p-4 relative">
+      {/* Quick Reply Dropdown */}
+      <QuickReplyDropdown
+        visible={showQuickReplies}
+        filteredReplies={filteredReplies}
+        onSelect={selectQuickReply}
+        selectedIndex={selectedIndex}
+      />
+
+      {/* Quick Reply Chips - mostrar apenas quando não há texto digitado */}
+      {!message && (
+        <QuickReplyChips onSelect={(reply) => setMessage(reply)} />
       )}
 
       <div className="flex items-end gap-3">
@@ -161,12 +137,18 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
           isUploading={isUploading}
         />
 
-        <TextArea
-          value={message}
-          onChange={setMessage}
-          onKeyDown={onKeyDown}
-          disabled={isLoading}
-        />
+        <div className="flex-1">
+          <Textarea
+            ref={textAreaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
+            placeholder="Digite sua mensagem ou use / para respostas rápidas..."
+            className="min-h-[40px] max-h-[120px] resize-none"
+            aria-label="Campo de mensagem"
+          />
+        </div>
 
         <ActionButtons
           onSendMessage={handleSendMessage}
