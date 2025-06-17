@@ -281,6 +281,8 @@ export function InboxPage() {
 
   // Função para excluir nota
   const handleDeleteNote = async (noteId: number) => {
+    if (!activeConversation?.contactId) return;
+    
     try {
       const response = await fetch(`/api/contact-notes/${noteId}`, {
         method: "DELETE",
@@ -291,7 +293,9 @@ export function InboxPage() {
       }
 
       // Recarregar as notas do contato
-      fetchContactNotes(activeConversation.contactId);
+      if (activeConversation?.contactId) {
+        fetchContactNotes(activeConversation.contactId);
+      }
     } catch (error) {
       console.error("Erro ao excluir nota:", error);
       toast({

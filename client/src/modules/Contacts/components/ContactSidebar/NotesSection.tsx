@@ -172,7 +172,7 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
               </label>
               <Textarea
                 value={editingNote?.content || ''}
-                onChange={(e) => setEditingNote(prev => prev ? { ...prev, content: e.target.value } : null)}
+                onChange={(e) => setEditingNote((prev: any) => prev ? { ...prev, content: e.target.value } : null)}
                 placeholder="Digite sua nota aqui..."
                 rows={6}
                 className="resize-none"
