@@ -42,7 +42,7 @@ router.get('/', requirePermission('deals:read'), async (req: AuthenticatedReques
     let filterUserId = null;
     
     // Se não for admin/manager, filtrar apenas negócios atribuídos ao usuário
-    if (!['admin', 'manager', 'superadmin'].includes(userRole)) {
+    if (!['admin', 'manager', 'superadmin', 'Administrador'].includes(userRole)) {
       filterUserId = userId;
     }
     
