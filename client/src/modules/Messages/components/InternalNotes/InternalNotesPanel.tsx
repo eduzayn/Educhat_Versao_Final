@@ -260,7 +260,7 @@ export function InternalNotesPanel({ conversationId, isOpen, onClose }: Internal
                 className="pl-10"
               />
             </div>
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
+            <Select value={filterPriority} onValueChange={(value) => setFilterPriority(value === 'all' ? '' : value)}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Prioridade" />
               </SelectTrigger>

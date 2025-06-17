@@ -158,7 +158,7 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                 <Select 
                   value={dealFormData.category} 
                   onValueChange={(value) => {
-                    setDealFormData({...dealFormData, category: value, course: ''});
+                    setDealFormData({...dealFormData, category: value === 'all' ? '' : value, course: ''});
                   }}
                 >
                   <SelectTrigger>
@@ -179,7 +179,7 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                 <Label>Curso de Interesse</Label>
                 <Select 
                   value={dealFormData.course} 
-                  onValueChange={(value) => setDealFormData({...dealFormData, course: value})}
+                  onValueChange={(value) => setDealFormData({...dealFormData, course: value === 'none' ? '' : value})}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o curso" />

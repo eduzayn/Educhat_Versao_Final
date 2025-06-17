@@ -236,7 +236,7 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="no-contacts" disabled>
                         Nenhum contato encontrado
                       </SelectItem>
                     )}
