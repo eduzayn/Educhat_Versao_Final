@@ -14,6 +14,7 @@ export function WebContextCapture({ onContextAdded }: WebContextCaptureProps) {
   const [customTitle, setCustomTitle] = useState('');
   const [captureResult, setCaptureResult] = useState<WebCaptureResult | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [editableSummary, setEditableSummary] = useState('');
 
   const captureWebContentMutation = useMutation({
     mutationFn: async (webUrl: string) => {
@@ -32,6 +33,7 @@ export function WebContextCapture({ onContextAdded }: WebContextCaptureProps) {
     onSuccess: (data: WebCaptureResult) => {
       setCaptureResult(data);
       setCustomTitle(data.title);
+      setEditableSummary(data.summary);
       setIsCapturing(false);
     },
     onError: () => {
@@ -46,7 +48,7 @@ export function WebContextCapture({ onContextAdded }: WebContextCaptureProps) {
       }
       const contextData = {
         title: customTitle || captureResult.title,
-        content: `URL: ${captureResult.url}\n\nConteúdo:\n${captureResult.content}\n\nResumo:\n${captureResult.summary}`,
+        content: `URL: ${captureResult.url}\n\nConteúdo:\n${captureResult.content}\n\nResumo:\n${editableSummary}`,
         category,
         type: 'web_content',
         metadata: {
@@ -71,6 +73,7 @@ export function WebContextCapture({ onContextAdded }: WebContextCaptureProps) {
       setUrl('');
       setCategory('');
       setCustomTitle('');
+      setEditableSummary('');
       setCaptureResult(null);
       onContextAdded?.();
     }

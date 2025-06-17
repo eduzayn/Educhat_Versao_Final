@@ -13,6 +13,8 @@ interface WebContextCaptureResultProps {
   setCustomTitle: (title: string) => void;
   category: string;
   setCategory: (cat: string) => void;
+  editableSummary: string;
+  setEditableSummary: (summary: string) => void;
   onSave: () => void;
   onNew: () => void;
   savePending: boolean;
@@ -24,6 +26,8 @@ export function WebContextCaptureResult({
   setCustomTitle,
   category,
   setCategory,
+  editableSummary,
+  setEditableSummary,
   onSave,
   onNew,
   savePending
@@ -81,10 +85,11 @@ export function WebContextCaptureResult({
         <div>
           <label className="text-sm font-medium text-gray-700">Resumo do Conteúdo</label>
           <Textarea
-            value={captureResult.summary}
-            readOnly
+            value={editableSummary}
+            onChange={(e) => setEditableSummary(e.target.value)}
             className="text-sm"
             rows={3}
+            placeholder="Edite o resumo do conteúdo capturado..."
           />
         </div>
         <div className="flex gap-2">
