@@ -102,15 +102,22 @@ Como posso ajudar você hoje?`,
   // Mutation para enviar mensagem para a IA
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
+      console.log('🚀 Enviando mensagem para Prof. Ana:', message);
+      console.log('👤 User ID:', user?.id);
+      
       const response = await apiRequest('POST', '/api/ia/copilot', {
         message,
         mode: 'copilot',
         userId: user?.id || 0,
         context: 'copilot_internal'
       });
+      
+      console.log('📥 Resposta recebida da Prof. Ana:', response);
       return response;
     },
     onSuccess: (response: any, message) => {
+      console.log('✅ Processando resposta bem-sucedida:', response);
+      
       // Adicionar resposta da IA
       const aiMessage: CopilotMessage = {
         id: `ai-${Date.now()}`,
@@ -121,6 +128,7 @@ Como posso ajudar você hoje?`,
         classification: response.classification
       };
       
+      console.log('💬 Adicionando mensagem da IA:', aiMessage);
       setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
       
@@ -128,7 +136,7 @@ Como posso ajudar você hoje?`,
       queryClient.invalidateQueries({ queryKey: ['copilot-history'] });
     },
     onError: (error) => {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('❌ Erro detalhado ao enviar mensagem:', error);
       const errorMessage: CopilotMessage = {
         id: `error-${Date.now()}`,
         content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
