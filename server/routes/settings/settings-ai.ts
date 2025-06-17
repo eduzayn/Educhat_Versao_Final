@@ -1,23 +1,27 @@
-import { Express, Response } from 'express';
-import { z } from "zod";
-import { eq } from 'drizzle-orm';
+import { Express, Request, Response } from 'express';
+import { z } from 'zod';
 import { db } from '../../db';
-import { aiConfig, insertAiConfigSchema, systemSettings, insertSystemSettingSchema } from '@shared/schema';
+import { aiConfig, systemSettings, insertAiConfigSchema, insertSystemSettingSchema } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 import Anthropic from '@anthropic-ai/sdk';
 
-export function registerAIRoutes(app: Express) {
+export function registerAIRoutes(app: any) {
   // Get AI configuration
-  app.get('/api/settings/integrations/ai/config', async (req, res) => {
+  app.get('/api/settings/integrations/ai/config', async (req: Request, res: Response) => {
     try {
       let [config] = await db.select().from(aiConfig).limit(1);
       
-      // Create default config if none exists
       if (!config) {
+        // Create default configuration if none exists
         [config] = await db.insert(aiConfig).values({
+          openaiApiKey: '',
+          perplexityApiKey: '',
+          elevenlabsApiKey: '',
+          anthropicApiKey: '',
           enabledFeatures: {
-            webSearch: false,
-            voiceSynthesis: false,
+            webSearch: true,
             imageAnalysis: true,
+            voiceSynthesis: false,
             contextualMemory: true
           },
           responseSettings: {
@@ -30,7 +34,7 @@ export function registerAIRoutes(app: Express) {
       }
 
       // Mask API keys for security while showing partial info
-      const maskApiKey = (key: string) => {
+      const maskApiKey = (key: string | null): string => {
         if (!key) return '';
         if (key.length <= 8) return '•'.repeat(key.length);
         return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
@@ -52,7 +56,7 @@ export function registerAIRoutes(app: Express) {
   });
 
   // Update AI configuration
-  app.post('/api/settings/integrations/ai/config', async (req, res) => {
+  app.post('/api/settings/integrations/ai/config', async (req: Request, res: Response) => {
     try {
       console.log('📝 Recebendo dados para salvar configuração da IA:', JSON.stringify(req.body, null, 2));
       
@@ -85,7 +89,7 @@ export function registerAIRoutes(app: Express) {
       }
 
       // Mask API keys for security while showing partial info
-      const maskApiKey = (key: string) => {
+      const maskApiKey = (key: string | null): string => {
         if (!key) return '';
         if (key.length <= 8) return '•'.repeat(key.length);
         return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
@@ -114,7 +118,7 @@ export function registerAIRoutes(app: Express) {
   });
 
   // Test AI connection
-  app.post('/api/settings/integrations/ai/test', async (req, res) => {
+  app.post('/api/settings/integrations/ai/test', async (req: Request, res: Response) => {
     try {
       const { anthropicApiKey } = req.body;
       
@@ -157,7 +161,7 @@ export function registerAIRoutes(app: Express) {
   });
 
   // Get AI detection settings
-  app.get('/api/settings/integrations/ai/detection', async (req, res) => {
+  app.get('/api/settings/integrations/ai/detection', async (req: Request, res: Response) => {
     try {
       const settings = await db.select().from(systemSettings).where(eq(systemSettings.category, 'ai'));
       res.json(settings);
@@ -168,7 +172,7 @@ export function registerAIRoutes(app: Express) {
   });
 
   // Update AI detection setting
-  app.post('/api/settings/integrations/ai/detection', async (req, res) => {
+  app.post('/api/settings/integrations/ai/detection', async (req: Request, res: Response) => {
     try {
       const validatedData = insertSystemSettingSchema.parse({
         ...req.body,
@@ -214,4 +218,4 @@ export function registerAIRoutes(app: Express) {
       }
     }
   });
-} 
+}
