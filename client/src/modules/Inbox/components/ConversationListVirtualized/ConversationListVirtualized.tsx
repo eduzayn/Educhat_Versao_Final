@@ -39,14 +39,12 @@ export function ConversationListVirtualized({
   onNewContact
 }: ConversationListVirtualizedProps) {
   const [showFilters, setShowFilters] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(50);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<FixedSizeList>(null);
-  const previousScrollTop = useRef<number>(0);
   const scrollThrottleRef = useRef<NodeJS.Timeout | null>(null);
   const isLoadingMoreRef = useRef<boolean>(false);
 
-  // Filtrar conversas
+  // Filtrar conversas (sem limitação de visibilidade)
   const filteredConversations = useMemo(() => {
     return conversations.filter(conversation => {
       const matchesSearch = !searchTerm || 
@@ -61,33 +59,10 @@ export function ConversationListVirtualized({
     });
   }, [conversations, searchTerm, statusFilter, channelFilter]);
 
-  // Conversas visíveis (para paginação virtual)
-  const visibleConversations = useMemo(() => {
-    return filteredConversations.slice(0, visibleCount);
-  }, [filteredConversations, visibleCount]);
+  // Usar todas as conversas filtradas sem limitação
+  const visibleConversations = filteredConversations;
 
-  // Manter posição do scroll ao carregar mais conversas
-  const handleLoadMore = useCallback(() => {
-    if (listRef.current) {
-      previousScrollTop.current = (listRef.current as any).state?.scrollOffset || 0;
-    }
-    
-    const newCount = Math.min(visibleCount + 50, filteredConversations.length);
-    setVisibleCount(newCount);
-    
-    // Restaurar posição do scroll após carregamento
-    setTimeout(() => {
-      if (listRef.current) {
-        listRef.current.scrollTo(previousScrollTop.current);
-      }
-    }, 0);
-
-    if (newCount >= filteredConversations.length && hasNextPage) {
-      onLoadMore();
-    }
-  }, [visibleCount, filteredConversations.length, hasNextPage, onLoadMore]);
-
-  // Detectar scroll para carregar mais
+  // Detectar scroll para carregar mais conversas do servidor
   const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: any) => {
     // Limpar throttle anterior se existir
     if (scrollThrottleRef.current) {
@@ -97,33 +72,22 @@ export function ConversationListVirtualized({
     scrollThrottleRef.current = setTimeout(() => {
       const scrollOffset = scrollTop;
       const scrollLimit = scrollHeight - clientHeight;
-      const isNearBottom = scrollOffset >= scrollLimit - 100; // Aumentei a margem para 100px
+      const isNearBottom = scrollOffset >= scrollLimit - 100;
       
-      // Verificar se deve carregar mais conteúdo
-      if (isNearBottom && !isLoading && !isLoadingMoreRef.current) {
+      // Verificar se deve carregar mais conversas do servidor
+      if (isNearBottom && !isLoading && hasNextPage && !isLoadingMoreRef.current) {
         isLoadingMoreRef.current = true;
         
-        // Primeiro carregar mais itens locais se disponível
-        if (visibleCount < filteredConversations.length) {
-          handleLoadMore();
-        } 
-        // Se não há mais itens locais mas há páginas no servidor
-        else if (hasNextPage) {
-          onLoadMore();
-        }
+        // Carregar próxima página do servidor
+        onLoadMore();
         
-        // Reset do flag após um breve delay
+        // Reset do flag após delay
         setTimeout(() => {
           isLoadingMoreRef.current = false;
-        }, 500); // Reduzi para 500ms para resposta mais rápida
+        }, 1000);
       }
-    }, 100); // Reduzi throttle para 100ms para melhor responsividade
-  }, [isLoading, visibleCount, filteredConversations.length, hasNextPage, handleLoadMore, onLoadMore]);
-
-  // Reset da contagem visível quando filtros mudam
-  useEffect(() => {
-    setVisibleCount(50);
-  }, [searchTerm, statusFilter, channelFilter]);
+    }, 150);
+  }, [isLoading, hasNextPage, onLoadMore]);
 
   // Cleanup dos timers quando componente for desmontado
   useEffect(() => {
@@ -155,7 +119,6 @@ export function ConversationListVirtualized({
 
   // Calcular altura total da lista
   const itemHeight = 88; // Altura aproximada de cada item de conversa
-  const totalHeight = Math.min(visibleConversations.length * itemHeight, 600); // Máximo 600px
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -225,7 +188,7 @@ export function ConversationListVirtualized({
       )}
 
       {/* Indicador de fim da lista */}
-      {!hasNextPage && visibleConversations.length > 0 && visibleCount >= filteredConversations.length && (
+      {!hasNextPage && visibleConversations.length > 0 && (
         <div className="p-4 border-t border-gray-200 bg-gray-50 text-center">
           <span className="text-sm text-gray-500">
             {filteredConversations.length === 1 
