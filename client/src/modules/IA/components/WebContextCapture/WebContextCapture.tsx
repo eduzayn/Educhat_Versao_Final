@@ -124,11 +124,14 @@ export function WebContextCapture({ onContextAdded }: WebContextCaptureProps) {
             setCustomTitle={setCustomTitle}
             category={category}
             setCategory={setCategory}
+            editableSummary={editableSummary}
+            setEditableSummary={setEditableSummary}
             onSave={handleSaveContext}
             onNew={() => {
               setCaptureResult(null);
               setUrl('');
               setCustomTitle('');
+              setEditableSummary('');
               setCategory('');
             }}
             savePending={saveContextMutation.isPending}
