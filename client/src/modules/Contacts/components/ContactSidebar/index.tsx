@@ -1,7 +1,5 @@
 import { ContactHeader } from './ContactHeader';
 import { ContactInfo } from './ContactInfo';
-import { FormationSection } from './FormationSection';
-import { InterestSection } from './InterestSection';
 import { DealsSection } from './DealsSection';
 import { TagsSection } from './TagsSection';
 import { NotesSection } from './NotesSection';
@@ -11,7 +9,6 @@ interface ContactSidebarProps {
   activeConversation: any;
   contactNotes: any[];
   contactDeals: any[];
-  contactInterests: any[];
   onAddNote: (note: string) => void;
   onEditNote?: (noteId: number, content: string) => void;
   onDeleteNote?: (noteId: number) => void;
@@ -21,7 +18,6 @@ export function ContactSidebar({
   activeConversation, 
   contactNotes, 
   contactDeals, 
-  contactInterests, 
   onAddNote,
   onEditNote,
   onDeleteNote
@@ -38,12 +34,6 @@ export function ContactSidebar({
 
         {/* Informações de Contato */}
         <ContactInfo contact={contact} />
-
-        {/* Área de Formação */}
-        <FormationSection tags={contact.tags} />
-
-        {/* Área de Interesse */}
-        <InterestSection tags={contact.tags} />
 
         {/* Negócios */}
         <DealsSection 

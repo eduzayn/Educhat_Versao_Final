@@ -132,7 +132,7 @@ export function InboxPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
-  const [contactInterests, setContactInterests] = useState<any[]>([]);
+
   const [newNote, setNewNote] = useState("");
   const [showNoteDialog, setShowNoteDialog] = useState(false);
 
@@ -146,7 +146,7 @@ export function InboxPage() {
     if (activeConversation?.contactId) {
       fetchContactDeals(activeConversation.contactId);
       fetchContactNotes(activeConversation.contactId);
-      fetchContactInterests(activeConversation.contactId);
+
     }
   }, [activeConversation?.contactId]);
 
