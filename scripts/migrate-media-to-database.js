@@ -3,11 +3,13 @@
  * Solução robusta para produção
  */
 
-const { db } = require('../server/db');
-const { messages, mediaFiles } = require('../shared/schema');
-const { eq, and, isNotNull } = require('drizzle-orm');
-const fs = require('fs').promises;
-const path = require('path');
+import { db } from '../server/db.ts';
+import { messages, mediaFiles } from '../shared/schema.ts';
+import { eq, and, isNotNull } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
+
+const fsPromises = fs.promises;
 
 async function migrateMediaToDatabase() {
   console.log('🚀 Iniciando migração de mídia para o banco de dados...');
@@ -54,10 +56,10 @@ async function migrateMediaToDatabase() {
         
         try {
           // Verificar se arquivo existe
-          await fs.access(filePath);
+          await fsPromises.access(filePath);
           
           // Ler arquivo
-          const fileBuffer = await fs.readFile(filePath);
+          const fileBuffer = await fsPromises.readFile(filePath);
           const fileBase64 = fileBuffer.toString('base64');
           
           // Extrair informações do arquivo
