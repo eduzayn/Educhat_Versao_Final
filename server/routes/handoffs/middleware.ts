@@ -18,7 +18,7 @@ export const validateHandoffId = (req: Request, res: Response, next: NextFunctio
 };
 
 export const validateConversationId = (req: Request, res: Response, next: NextFunction) => {
-  const conversationId = parseInt(req.params.conversationId);
+  const conversationId = parseInt(req.params.conversationId || req.body.conversationId);
   if (isNaN(conversationId)) {
     return res.status(400).json({
       error: 'ID da conversa inválido'
