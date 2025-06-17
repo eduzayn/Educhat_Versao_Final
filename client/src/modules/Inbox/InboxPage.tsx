@@ -57,7 +57,7 @@ import { useChannels, Channel } from "@/shared/lib/hooks/useChannels";
 
 import { STATUS_CONFIG } from "@/types/chat";
 
-import { InboxMessageInput } from "./components/InboxMessageInput";
+import { MessageInput } from "@/modules/Messages/components/MessageInput";
 
 import { ConversationActionsDropdown } from "@/modules/Inbox/components/ConversationActions";
 import { ConversationAssignment } from "@/modules/Inbox/components/ConversationAssignment";
@@ -394,13 +394,7 @@ export function InboxPage() {
             />
 
             {/* Área de Input */}
-            <InboxMessageInput 
-              conversationId={activeConversation.id}
-              onSendMessage={() => {
-                messagesQuery.refetch();
-                conversationsQuery.refetch();
-              }}
-            />
+            <MessageInput conversationId={activeConversation.id} />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
