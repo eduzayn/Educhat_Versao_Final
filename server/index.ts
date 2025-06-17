@@ -14,8 +14,30 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Configurações de timeout para prevenir 502
+app.use((req, res, next) => {
+  // Timeout de 25 segundos para requests (menor que o timeout do proxy)
+  req.setTimeout(25000, () => {
+    console.warn(`⚠️ Request timeout: ${req.method} ${req.path}`);
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'Request timeout' });
+    }
+  });
+  
+  // Timeout de resposta
+  res.setTimeout(25000, () => {
+    console.warn(`⚠️ Response timeout: ${req.method} ${req.path}`);
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'Response timeout' });
+    }
+  });
+  
+  next();
+});
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 // Configuração de CORS adequada para produção
 const allowedOrigins = process.env.NODE_ENV === 'production' 
@@ -113,6 +135,17 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      
+      // Alerta para requests lentos que podem causar 502
+      if (duration > 20000) {
+        console.warn(`🐌 Request muito lento detectado: ${logLine}`);
+      }
+      
+      // Alerta para status codes problemáticos
+      if (res.statusCode >= 500) {
+        console.error(`🚨 Server error: ${logLine}`);
+      }
+      
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -131,13 +164,58 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Error handling middleware deve vir ANTES do Vite
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Error handling middleware robusto para prevenir 502
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    console.error("Error:", err);
-    res.status(status).json({ message });
+    console.error(`❌ Error ${status} on ${req.method} ${req.path}:`, err);
+    
+    // Prevenir headers duplos que causam 502
+    if (res.headersSent) {
+      console.warn(`⚠️ Headers já enviados para ${req.path}, ignorando erro`);
+      return;
+    }
+
+    // Garantir resposta JSON válida
+    try {
+      res.status(status).json({ 
+        error: message,
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      });
+    } catch (sendError) {
+      console.error(`❌ Erro ao enviar resposta de erro para ${req.path}:`, sendError);
+      // Última tentativa com resposta simples
+      try {
+        res.status(500).end('Internal Server Error');
+      } catch (finalError) {
+        console.error(`❌ Erro crítico na resposta final:`, finalError);
+      }
+    }
+  });
+
+  // Middleware para capturar requests sem resposta (previne 502)
+  app.use('*', (req, res, next) => {
+    // Timeout de segurança para requests sem resposta
+    const safetyTimeout = setTimeout(() => {
+      if (!res.headersSent) {
+        console.warn(`⚠️ Request sem resposta detectado: ${req.method} ${req.path}`);
+        res.status(404).json({ 
+          error: 'Route not found',
+          path: req.path,
+          method: req.method
+        });
+      }
+    }, 20000); // 20 segundos
+
+    // Limpar timeout quando response for enviado
+    res.on('finish', () => {
+      clearTimeout(safetyTimeout);
+    });
+
+    next();
   });
 
   // Middleware para garantir que rotas API não sejam interceptadas pelo Vite
