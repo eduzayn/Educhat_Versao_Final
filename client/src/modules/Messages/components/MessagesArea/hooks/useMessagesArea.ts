@@ -14,12 +14,11 @@ export function useMessagesArea(activeConversation: any) {
   // Usar hook de mensagens infinitas
   const messagesQuery = useInfiniteMessages(conversationId, 25);
   
-  // Consolidar todas as mensagens das páginas - páginas antigas no topo, recentes no final
+  // Consolidar todas as mensagens das páginas - mensagens antigas no topo, recentes no final
   const messages = useMemo(() => {
     if (!messagesQuery.data) return [];
-    // Reverter a ordem das páginas para que páginas antigas fiquem no topo
-    const pages = [...messagesQuery.data.pages].reverse();
-    return pages.flatMap(page => page.messages);
+    // Manter ordem natural das páginas e mensagens (antigas primeiro, recentes no final)
+    return messagesQuery.data.pages.flatMap(page => page.messages);
   }, [messagesQuery.data]);
 
   const isLoading = messagesQuery.isLoading;
