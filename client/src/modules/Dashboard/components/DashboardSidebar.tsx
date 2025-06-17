@@ -89,7 +89,7 @@ export function DashboardSidebar({
     },
     {
       id: 'prof-ana',
-      label: 'Prof. Ana',
+      label: 'IA',
       icon: Bot,
       description: 'Assistente de Relacionamento Inteligente',
       route: '/ia',
