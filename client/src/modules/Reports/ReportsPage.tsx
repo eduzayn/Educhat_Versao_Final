@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Label } from '@/shared/ui/label';
 import { useQuery } from '@tanstack/react-query';
+import { ConversationsPeriodChart } from './ConversationsPeriodChart';
+import { ChannelsUsageChart } from './ChannelsUsageChart';
 
 export function ReportsPage() {
   const [period, setPeriod] = useState('30');
