@@ -186,8 +186,8 @@ export class UnifiedStatsService {
       : 0;
 
     return {
-      avgResponseTime: avgResponseTime ? Math.round(avgResponseTime) : 0,
-      avgResolutionTime: avgResolutionTime ? Math.round(avgResolutionTime) : 0,
+      avgResponseTime: avgResponseTime ? Math.round(Number(avgResponseTime)) : 0,
+      avgResolutionTime: avgResolutionTime ? Math.round(Number(avgResolutionTime)) : 0,
       conversationToDealsRatio: Math.round(conversationToDealsRatio * 100) / 100,
       successfulHandoffs
     };
