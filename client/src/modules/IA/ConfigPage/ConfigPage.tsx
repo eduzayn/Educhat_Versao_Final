@@ -60,6 +60,11 @@ export function ConfigPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings/integrations/ai/config'] });
+      // Simular notificação de sucesso
+      console.log('✅ Configurações salvas com sucesso!');
+    },
+    onError: (error) => {
+      console.error('❌ Erro ao salvar configurações:', error);
     }
   });
 
