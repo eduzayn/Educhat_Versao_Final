@@ -22,6 +22,8 @@ export function ChatHeader({
   onStatusChange,
   getChannelInfo,
 }: ChatHeaderProps) {
+  const [showInternalNotes, setShowInternalNotes] = useState(false);
+  
   if (!activeConversation) return null;
 
   const {
@@ -90,6 +92,16 @@ export function ChatHeader({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
+            title="Notas Internas"
+            aria-label="Notas Internas"
+            onClick={() => setShowInternalNotes(true)}
+          >
+            <StickyNote className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
             title="Iniciar ligação"
             aria-label="Iniciar ligação"
           >
@@ -102,6 +114,13 @@ export function ChatHeader({
           />
         </div>
       </div>
+      
+      {/* Panel de Notas Internas */}
+      <InternalNotesPanel
+        conversationId={id}
+        isOpen={showInternalNotes}
+        onClose={() => setShowInternalNotes(false)}
+      />
     </header>
   );
 }

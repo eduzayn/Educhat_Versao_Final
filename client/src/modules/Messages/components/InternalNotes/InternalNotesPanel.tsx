@@ -8,21 +8,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Separator } from '@/shared/ui/separator';
-import { useToast } from '@/shared/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { Plus, StickyNote, Search, Filter, Edit, Trash2, Clock, User, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Message } from '@shared/schema';
 
-interface InternalNote extends Message {
+interface InternalNote {
   id: number;
   content: string;
   authorName: string;
   sentAt: Date;
-  noteType?: string;
-  notePriority?: string;
-  noteTags?: string[];
-  isPrivate?: boolean;
+  noteType?: string | null;
+  notePriority?: string | null;
+  noteTags?: string[] | null;
+  isPrivate?: boolean | null;
 }
 
 interface InternalNotesPanelProps {
@@ -227,7 +227,7 @@ export function InternalNotesPanel({ conversationId, isOpen, onClose }: Internal
         <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Sticky className="h-5 w-5" />
+              <StickyNote className="h-5 w-5" />
               Notas Internas
             </CardTitle>
             <div className="flex items-center gap-2">
