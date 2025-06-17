@@ -79,7 +79,7 @@ export function PrivateMessageModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentUser = user as any;
-  const privateChannelId = `direct-${Math.min(currentUser?.id || 0, targetUser.id)}-${Math.max(currentUser?.id || 0, targetUser.id)}`;
+  const [channelId, setChannelId] = useState<string | null>(null);
 
   const FREQUENT_EMOJIS = ["👍", "❤️", "😊", "😂", "👏", "🎉", "💯", "🔥"];
 
@@ -89,15 +89,63 @@ export function PrivateMessageModal({
     }
   }, [messages, isOpen]);
 
+  // Carregar mensagens existentes quando o modal abrir
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      loadExistingMessages();
+    }
+  }, [isOpen, currentUser, targetUser.id]);
+
+  const loadExistingMessages = async () => {
+    try {
+      // Criar/buscar canal direto
+      const channelResponse = await fetch(`/api/internal-chat/channels/direct/${targetUser.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (channelResponse.ok) {
+        const { channel } = await channelResponse.json();
+        setChannelId(channel.id);
+
+        // Buscar mensagens existentes
+        const messagesResponse = await fetch(`/api/internal-chat/channels/${channel.id}/messages`, {
+          credentials: 'include',
+        });
+
+        if (messagesResponse.ok) {
+          const existingMessages = await messagesResponse.json();
+          const formattedMessages = existingMessages.map((msg: any) => ({
+            id: msg.id,
+            channelId: channel.id,
+            userId: msg.userId,
+            userName: msg.userName || 'Usuário',
+            userAvatar: msg.userAvatar,
+            content: msg.content,
+            messageType: msg.messageType,
+            timestamp: new Date(msg.createdAt),
+            reactions: msg.reactions || {},
+          }));
+          setMessages(formattedMessages);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar mensagens:', error);
+    }
+  };
+
   const handleAudioSend = async (audioBlob: Blob, duration: number) => {
-    if (!currentUser) return;
+    if (!currentUser || !channelId) return;
 
     try {
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const newMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        channelId: privateChannelId,
+        channelId: channelId,
         userId: currentUser.id,
         userName: currentUser.displayName || currentUser.username || "Usuário",
         userAvatar: currentUser.avatar,
@@ -198,34 +246,79 @@ export function PrivateMessageModal({
     textareaRef.current?.focus();
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim() || !currentUser) return;
 
-    const newMessage = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      channelId: privateChannelId,
-      userId: currentUser.id,
-      userName: currentUser.displayName || currentUser.username || "Usuário",
-      userAvatar: currentUser.avatar,
-      content: message.trim(),
-      messageType: "text" as const,
-      timestamp: new Date(),
-      reactions: {},
-    };
+    try {
+      // Primeiro, criar/buscar o canal direto
+      const channelResponse = await fetch(`/api/internal-chat/channels/direct/${targetUser.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
 
-    setMessages((prev) => [...prev, newMessage]);
-    playNotificationSound("send");
-    setMessage("");
+      if (!channelResponse.ok) {
+        throw new Error('Falha ao criar canal direto');
+      }
 
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+      const { channel } = await channelResponse.json();
+      setChannelId(channel.id);
+
+      // Enviar a mensagem para o backend
+      const messageResponse = await fetch(`/api/internal-chat/channels/${channel.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: message.trim(),
+          messageType: 'text',
+        }),
+      });
+
+      if (!messageResponse.ok) {
+        throw new Error('Falha ao enviar mensagem');
+      }
+
+      const { message: savedMessage } = await messageResponse.json();
+
+      // Adicionar mensagem ao estado local
+      const newMessage = {
+        id: savedMessage.id,
+        channelId: channel.id,
+        userId: currentUser.id,
+        userName: currentUser.displayName || currentUser.username || "Usuário",
+        userAvatar: currentUser.avatar,
+        content: message.trim(),
+        messageType: "text" as const,
+        timestamp: new Date(savedMessage.timestamp),
+        reactions: {},
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
+      playNotificationSound("send");
+      setMessage("");
+
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+
+      toast({
+        title: "Mensagem enviada",
+        description: `Mensagem privada enviada para ${targetUser.displayName}`,
+      });
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao enviar mensagem. Tente novamente.",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Mensagem enviada",
-      description: `Mensagem privada enviada para ${targetUser.displayName}`,
-    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

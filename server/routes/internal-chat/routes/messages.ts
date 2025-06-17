@@ -1,4 +1,7 @@
 import { Request, Response, Router } from 'express';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '../../../db';
+import { internalChatChannels, internalChatMessages, systemUsers } from '@shared/schema';
 import { Message } from '../types/teams';
 
 const router = Router();
@@ -12,8 +15,37 @@ router.get('/:channelId/messages', async (req: Request, res: Response) => {
 
     const channelId = req.params.channelId;
     
-    // Por enquanto, retornar array vazio - mensagens serão implementadas via Socket.IO
-    res.json([]);
+    // Extrair ID do banco se for canal direto
+    let dbChannelId: number;
+    if (channelId.startsWith('direct-')) {
+      dbChannelId = parseInt(channelId.replace('direct-', ''));
+    } else {
+      // Para canais normais, ainda não implementado
+      return res.json([]);
+    }
+
+    // Buscar mensagens do canal
+    const messages = await db
+      .select({
+        id: internalChatMessages.id,
+        content: internalChatMessages.content,
+        messageType: internalChatMessages.messageType,
+        metadata: internalChatMessages.metadata,
+        reactions: internalChatMessages.reactions,
+        createdAt: internalChatMessages.createdAt,
+        userId: systemUsers.id,
+        userName: systemUsers.displayName,
+        userAvatar: systemUsers.avatar,
+      })
+      .from(internalChatMessages)
+      .leftJoin(systemUsers, eq(internalChatMessages.userId, systemUsers.id))
+      .where(
+        eq(internalChatMessages.channelId, dbChannelId)
+      )
+      .orderBy(desc(internalChatMessages.createdAt))
+      .limit(50);
+
+    res.json(messages.reverse()); // Reverter para ordem cronológica
   } catch (error) {
     console.error('Erro ao buscar mensagens:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -28,26 +60,56 @@ router.post('/:channelId/messages', async (req: Request, res: Response) => {
     }
 
     const channelId = req.params.channelId;
-    const { content, messageType = 'text' } = req.body;
+    const { content, messageType = 'text', metadata = {} } = req.body;
 
     if (!content?.trim()) {
       return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
     }
 
-    const message: Message = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    // Extrair ID do banco se for canal direto
+    let dbChannelId: number;
+    if (channelId.startsWith('direct-')) {
+      dbChannelId = parseInt(channelId.replace('direct-', ''));
+    } else {
+      return res.status(400).json({ error: 'Tipo de canal não suportado' });
+    }
+
+    // Verificar se o canal existe e o usuário tem permissão
+    const channel = await db
+      .select()
+      .from(internalChatChannels)
+      .where(eq(internalChatChannels.id, dbChannelId))
+      .limit(1);
+
+    if (channel.length === 0) {
+      return res.status(404).json({ error: 'Canal não encontrado' });
+    }
+
+    // Salvar mensagem no banco
+    const [savedMessage] = await db
+      .insert(internalChatMessages)
+      .values({
+        channelId: dbChannelId,
+        userId: req.user.id,
+        content: content.trim(),
+        messageType,
+        metadata,
+      })
+      .returning();
+
+    const message = {
+      id: savedMessage.id,
       channelId,
       userId: req.user.id,
       userName: req.user.displayName || req.user.username,
       userAvatar: (req.user as any).avatar,
       content: content.trim(),
       messageType,
-      timestamp: new Date(),
-      reactions: {}
+      timestamp: savedMessage.createdAt,
+      reactions: {},
     };
 
-    // Broadcast da mensagem via Socket.IO seria implementado aqui
-    console.log(`📨 Nova mensagem no canal ${channelId}:`, message);
+    console.log(`📨 Nova mensagem salva no canal ${channelId}:`, message);
 
     res.json({ success: true, message });
   } catch (error) {

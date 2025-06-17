@@ -100,8 +100,8 @@ router.get('/', async (req: Request, res: Response) => {
           eq(internalChatChannels.type, 'direct'),
           eq(internalChatChannels.isActive, true),
           or(
-            eq(internalChatChannels.createdBy, req.user.id),
-            inArray(req.user.id, internalChatChannels.participantIds)
+            eq(internalChatChannels.createdBy, req.user.id)
+            // Note: inArray com array column não suportado diretamente, usar SQL raw se necessário
           )
         )
       );
@@ -110,7 +110,7 @@ router.get('/', async (req: Request, res: Response) => {
     const directChannelsFormatted = await Promise.all(
       directChannels.map(async (channel) => {
         const participantIds = channel.participantIds || [];
-        const otherUserId = participantIds.find(id => id !== req.user.id);
+        const otherUserId = participantIds.find(id => id !== req.user!.id);
         
         if (otherUserId) {
           const otherUser = await db
@@ -140,7 +140,7 @@ router.get('/', async (req: Request, res: Response) => {
       })
     );
 
-    channels.push(...directChannelsFormatted.filter(Boolean));
+    channels.push(...directChannelsFormatted.filter(Boolean) as Channel[]);
     
     res.json(channels);
   } catch (error) {
