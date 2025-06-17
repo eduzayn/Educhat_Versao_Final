@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
+import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { AIService } from '../../services/aiService';
 import { storage } from '../../storage';
 import { validateInternalCall, validateConversationId } from './middleware';
 
 const router = Router();
-const intelligentHandoffService = new IntelligentHandoffService();
 
 // POST /api/handoffs/intelligent/analyze - Análise inteligente de handoff com IA + dados reais
 router.post('/analyze', validateConversationId, async (req, res) => {

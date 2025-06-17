@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { IntelligentHandoffService } from '../../services/intelligentHandoffService';
+import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { validateHandoffId } from './middleware';
 
 const router = Router();
