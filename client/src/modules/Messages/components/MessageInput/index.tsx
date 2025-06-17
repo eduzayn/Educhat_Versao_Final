@@ -3,7 +3,7 @@ import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
 import { ActionButtons } from './ActionButtons';
-import { QuickReplyChips } from './QuickReplyChips';
+
 import { QuickReplyDropdown } from './QuickReplyDropdown';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
 import type { QuickReply } from '@shared/schema';
@@ -128,10 +128,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         selectedIndex={selectedIndex}
       />
 
-      {/* Quick Reply Chips - mostrar apenas quando não há texto digitado */}
-      {!message && (
-        <QuickReplyChips onSelect={(reply) => setMessage(reply)} />
-      )}
+
 
       <div className="flex items-end gap-3">
         <MediaAttachmentModal
