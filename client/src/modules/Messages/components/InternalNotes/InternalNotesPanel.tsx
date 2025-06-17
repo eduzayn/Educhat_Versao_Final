@@ -265,7 +265,7 @@ export function InternalNotesPanel({ conversationId, isOpen, onClose }: Internal
                 <SelectValue placeholder="Prioridade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {PRIORITY_OPTIONS.map(priority => (
                   <SelectItem key={priority.value} value={priority.value}>
                     {priority.label}

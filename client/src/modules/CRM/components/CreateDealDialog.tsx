@@ -157,7 +157,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="no-contacts" disabled>
                       Nenhum contato encontrado
                     </SelectItem>
                   )}

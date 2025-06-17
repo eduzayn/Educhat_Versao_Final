@@ -165,7 +165,7 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
@@ -185,7 +185,7 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                     <SelectValue placeholder="Selecione o curso" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum curso específico</SelectItem>
+                    <SelectItem value="none">Nenhum curso específico</SelectItem>
                     {filteredCourses.map((course) => (
                       <SelectItem key={course} value={course}>
                         {course}
