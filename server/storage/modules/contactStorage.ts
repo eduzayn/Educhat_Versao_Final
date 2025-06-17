@@ -9,25 +9,29 @@ export class ContactStorage extends BaseStorage {
   // Basic Operations
   async getContact(id: number): Promise<Contact | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
+    basicOps.setDb(this.db);
     return basicOps.getContact(id);
   }
 
   async getContactWithTags(id: number): Promise<ContactWithTags | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
+    basicOps.setDb(this.db);
     return basicOps.getContactWithTags(id);
   }
 
   async createContact(contact: InsertContact): Promise<Contact> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
+    basicOps.setDb(this.db);
     return basicOps.createContact(contact);
   }
 
   async updateContact(id: number, contactData: Partial<InsertContact>): Promise<Contact> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
+    basicOps.setDb(this.db);
     return basicOps.updateContact(id, contactData);
   }
 
