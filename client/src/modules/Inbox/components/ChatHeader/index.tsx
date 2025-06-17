@@ -1,9 +1,11 @@
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ContactAvatar } from "@/shared/ui/ContactAvatar";
-import { Clock, Phone, Video } from "lucide-react";
+import { Clock, Phone, Video, StickyNote } from "lucide-react";
 import { ConversationActionsDropdown } from "@/modules/Inbox/components/ConversationActions";
 import { ConversationAssignment } from "@/modules/Inbox/components/ConversationAssignment";
+import { InternalNotesPanel } from "@/modules/Messages/components/InternalNotes/InternalNotesPanel";
+import { useState } from "react";
 
 interface ChatHeaderProps {
   activeConversation: any;
