@@ -29,13 +29,19 @@ export function registerAIRoutes(app: Express) {
         }).returning();
       }
 
-      // Don't send API keys in response for security
+      // Mask API keys for security while showing partial info
+      const maskApiKey = (key: string) => {
+        if (!key) return '';
+        if (key.length <= 8) return '•'.repeat(key.length);
+        return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
+      };
+
       const safeConfig = {
         ...config,
-        openaiApiKey: config.openaiApiKey ? '***CONFIGURED***' : '',
-        perplexityApiKey: config.perplexityApiKey ? '***CONFIGURED***' : '',
-        elevenlabsApiKey: config.elevenlabsApiKey ? '***CONFIGURED***' : '',
-        anthropicApiKey: config.anthropicApiKey ? '***CONFIGURED***' : ''
+        openaiApiKey: maskApiKey(config.openaiApiKey),
+        perplexityApiKey: maskApiKey(config.perplexityApiKey),
+        elevenlabsApiKey: maskApiKey(config.elevenlabsApiKey),
+        anthropicApiKey: maskApiKey(config.anthropicApiKey)
       };
 
       res.json(safeConfig);
@@ -78,13 +84,19 @@ export function registerAIRoutes(app: Express) {
         console.log('✅ Nova configuração criada com sucesso');
       }
 
-      // Don't send API keys in response
+      // Mask API keys for security while showing partial info
+      const maskApiKey = (key: string) => {
+        if (!key) return '';
+        if (key.length <= 8) return '•'.repeat(key.length);
+        return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
+      };
+
       const safeConfig = {
         ...config,
-        openaiApiKey: config.openaiApiKey ? '***CONFIGURED***' : '',
-        perplexityApiKey: config.perplexityApiKey ? '***CONFIGURED***' : '',
-        elevenlabsApiKey: config.elevenlabsApiKey ? '***CONFIGURED***' : '',
-        anthropicApiKey: config.anthropicApiKey ? '***CONFIGURED***' : ''
+        openaiApiKey: maskApiKey(config.openaiApiKey),
+        perplexityApiKey: maskApiKey(config.perplexityApiKey),
+        elevenlabsApiKey: maskApiKey(config.elevenlabsApiKey),
+        anthropicApiKey: maskApiKey(config.anthropicApiKey)
       };
 
       res.json(safeConfig);
