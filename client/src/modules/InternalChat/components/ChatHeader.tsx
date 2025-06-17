@@ -140,12 +140,7 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
         </Tooltip>
 
         {/* Chat Settings */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ChatSettings />
-          </TooltipTrigger>
-          <TooltipContent>Configurações do Chat</TooltipContent>
-        </Tooltip>
+        <ChatSettings />
 
 
       </div>
