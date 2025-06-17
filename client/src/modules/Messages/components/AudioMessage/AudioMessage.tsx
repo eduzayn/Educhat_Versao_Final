@@ -138,7 +138,7 @@ export function AudioMessage({
 
   return (
     <div
-      className={`flex items-center gap-3 p-3 rounded-lg max-w-sm ${
+      className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
         isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"
       }`}
     >
@@ -158,46 +158,47 @@ export function AudioMessage({
         size="sm"
         onClick={handlePlayPause}
         disabled={isLoading}
-        className={`w-8 h-8 p-0 rounded-full ${
+        className={`w-10 h-10 p-0 rounded-full ${
           isFromContact
             ? "hover:bg-gray-200 text-gray-700"
             : "hover:bg-blue-500 text-white"
         }`}
       >
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
         ) : isPlaying ? (
-          <Pause className="w-4 h-4" />
+          <Pause className="w-5 h-5" />
         ) : (
-          <Play className="w-4 h-4" />
+          <Play className="w-5 h-5 ml-0.5" />
         )}
       </Button>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Volume2 className="w-3 h-3 opacity-70" />
-          <span className="text-xs opacity-70">
-            {isLoading ? "Carregando..." : error ? error : "Áudio"}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 opacity-80" />
+            <span className="text-sm opacity-90 font-medium">
+              {isLoading ? "Carregando..." : error ? error : "Áudio"}
+            </span>
+          </div>
+          <span className="text-sm opacity-80 font-mono">
+            {formatAudioTime(audioDuration)}
           </span>
         </div>
 
         <div className="relative">
           <div
-            className={`w-full h-1 rounded-full ${
+            className={`w-full h-2 rounded-full ${
               isFromContact ? "bg-gray-300" : "bg-blue-400"
             }`}
           >
             <div
-              className={`h-full rounded-full transition-all duration-100 ${
+              className={`h-full rounded-full transition-all duration-200 ${
                 isFromContact ? "bg-gray-600" : "bg-white"
               }`}
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-        </div>
-
-        <div className="flex justify-end text-xs opacity-70 mt-1">
-          <span>{formatAudioTime(audioDuration)}</span>
         </div>
       </div>
     </div>
