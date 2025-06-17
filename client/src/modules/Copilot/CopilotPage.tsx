@@ -112,8 +112,9 @@ Como posso ajudar você hoje?`,
         context: 'copilot_internal'
       });
       
-      console.log('📥 Resposta recebida da Prof. Ana:', response);
-      return response;
+      const jsonResponse = await response.json();
+      console.log('📥 Resposta recebida da Prof. Ana:', jsonResponse);
+      return jsonResponse;
     },
     onSuccess: (response: any, message) => {
       console.log('✅ Processando resposta bem-sucedida:', response);
