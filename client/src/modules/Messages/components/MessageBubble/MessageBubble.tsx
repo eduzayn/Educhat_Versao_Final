@@ -69,6 +69,16 @@ export function MessageBubble({
   const messageStatus = useMemo(() => {
     if (isFromContact) return null;
     
+    // Mensagem sendo deletada (atualização otimista)
+    if ((message as any).isDeleted || (message as any).isDeletedByUser || isDeleting) {
+      return (
+        <div className="flex items-center">
+          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse mr-1" />
+          <span className="text-xs text-red-600">Excluindo...</span>
+        </div>
+      );
+    }
+    
     // Mensagem sendo enviada (status temporário)
     if ((message as any).status === 'sending') {
       return (

@@ -17,9 +17,47 @@ export function useOptimizedDeletion(messageId: number, conversationId?: number)
     }
 
     const startTime = performance.now();
-    console.log(`🗑️ Iniciando exclusão da mensagem ${messageId}`);
+    console.log(`🗑️ Iniciando exclusão otimista da mensagem ${messageId}`);
     
     setIsDeleting(true);
+
+    // ✨ ATUALIZAÇÃO OTIMISTA: Marcar mensagem como deletada IMEDIATAMENTE na UI
+    const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
+    const previousInfiniteMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages', 'infinite']);
+    
+    // Atualizar tanto query normal quanto infinite
+    queryClient.setQueryData(
+      ['/api/conversations', conversationId, 'messages'],
+      (old: any[] | undefined) => {
+        if (!old) return [];
+        return old.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, isDeleted: true, isDeletedByUser: true, deletedAt: new Date() }
+            : msg
+        );
+      }
+    );
+
+    // Atualizar query infinite (usada pelo componente atual)
+    queryClient.setQueryData(
+      ['/api/conversations', conversationId, 'messages', 'infinite'],
+      (old: any | undefined) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            messages: page.messages.map((msg: any) => 
+              msg.id === messageId 
+                ? { ...msg, isDeleted: true, isDeletedByUser: true, deletedAt: new Date() }
+                : msg
+            )
+          }))
+        };
+      }
+    );
+
+    console.log(`✅ Mensagem ${messageId} marcada como deletada na UI instantaneamente`);
 
     try {
       if (isFromContact) {
@@ -47,12 +85,13 @@ export function useOptimizedDeletion(messageId: number, conversationId?: number)
         });
       }
 
+      // Invalidar apenas após sucesso para garantir sincronização com servidor
       queryClient.invalidateQueries({
         queryKey: ['/api/conversations', conversationId, 'messages'],
       });
 
       const duration = performance.now() - startTime;
-      console.log(`✅ Mensagem ${messageId} deletada com sucesso em ${duration.toFixed(2)}ms`);
+      console.log(`✅ Exclusão confirmada no servidor em ${duration.toFixed(2)}ms`);
       
       toast({ 
         title: "Sucesso", 
@@ -61,10 +100,25 @@ export function useOptimizedDeletion(messageId: number, conversationId?: number)
 
       return true;
     } catch (error) {
+      // ❌ REVERTER ATUALIZAÇÃO OTIMISTA em caso de erro
+      if (previousMessages) {
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages'],
+          previousMessages
+        );
+      }
+      
+      if (previousInfiniteMessages) {
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages', 'infinite'],
+          previousInfiniteMessages
+        );
+      }
+
       const errorMsg = error instanceof Error ? error.message : "Erro desconhecido";
       const duration = performance.now() - startTime;
       
-      console.error(`❌ Erro ao deletar mensagem ${messageId} após ${duration.toFixed(2)}ms:`, error);
+      console.error(`❌ Erro ao deletar mensagem ${messageId} após ${duration.toFixed(2)}ms - revertendo UI:`, error);
       
       toast({
         title: "Erro",
