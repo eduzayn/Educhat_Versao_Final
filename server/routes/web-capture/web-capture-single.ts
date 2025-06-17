@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { WebCaptureService } from '../../services/webCaptureService';
+import { webCaptureService } from '../../services/webCaptureService';
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     console.log(`🌐 Iniciando captura de conteúdo web: ${url}`);
     
-    const result = await WebCaptureService.captureWebsite(url);
+    const result = await webCaptureService.captureUrl(url);
     
     console.log(`✅ Captura concluída: ${result.title}`);
     

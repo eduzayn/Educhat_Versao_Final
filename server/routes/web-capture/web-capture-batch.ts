@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { WebCaptureService } from '../../services/webCaptureService';
+import { webCaptureService } from '../../services/webCaptureService';
 
 const router = Router();
 
@@ -24,7 +24,7 @@ router.post('/batch', async (req: Request, res: Response) => {
 
     console.log(`🌐 Iniciando captura em lote: ${urls.length} URLs`);
     
-    const results = await WebCaptureService.captureMultipleUrls(urls);
+    const results = await webCaptureService.captureMultipleUrls(urls);
     
     console.log(`✅ Captura em lote concluída: ${results.length}/${urls.length} sucessos`);
     
