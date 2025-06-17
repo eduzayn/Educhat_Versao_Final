@@ -41,6 +41,11 @@ export function DealsModule() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
+  // Estados para filtros de data
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [customDateStart, setCustomDateStart] = useState<string>("");
+  const [customDateEnd, setCustomDateEnd] = useState<string>("");
+  
   // Estado para modal de novo negócio
   const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
   const [selectedStageForNewDeal, setSelectedStageForNewDeal] = useState<string | null>(null);
@@ -90,9 +95,18 @@ export function DealsModule() {
 
   // Query para buscar negócios
   const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
-    queryKey: ['/api/deals', { page, limit, funnelId: selectedFunnelId, search }],
+    queryKey: ['/api/deals', { page, limit, funnelId: selectedFunnelId, search, dateFilter, customDateStart, customDateEnd }],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/deals?page=${page}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`);
+      let url = `/api/deals?page=${page}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`;
+      
+      if (dateFilter === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        url += `&dateStart=${today}&dateEnd=${today}`;
+      } else if (dateFilter === 'custom' && customDateStart && customDateEnd) {
+        url += `&dateStart=${customDateStart}&dateEnd=${customDateEnd}`;
+      }
+      
+      const response = await apiRequest('GET', url);
       return response.json();
     },
     enabled: !!selectedFunnelId, // Só executa quando há um funil selecionado
@@ -276,6 +290,12 @@ export function DealsModule() {
             selectedStageForNewDeal={selectedStageForNewDeal}
             currentTeam={currentTeam}
             createDealMutation={createDealMutation}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            customDateStart={customDateStart}
+            setCustomDateStart={setCustomDateStart}
+            customDateEnd={customDateEnd}
+            setCustomDateEnd={setCustomDateEnd}
           />
         </div>
 

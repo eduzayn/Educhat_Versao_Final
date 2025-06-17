@@ -3,9 +3,11 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
-import { Filter, Search, Kanban, List, Plus } from "lucide-react";
+import { Filter, Search, Kanban, List, Plus, Calendar, ChevronDown } from "lucide-react";
 import type { Deal } from '@shared/schema';
 
 interface DealsHeaderProps {
@@ -24,6 +26,12 @@ interface DealsHeaderProps {
   selectedStageForNewDeal: string | null;
   currentTeam: any;
   createDealMutation: { isPending: boolean };
+  dateFilter: string;
+  setDateFilter: (filter: string) => void;
+  customDateStart: string;
+  setCustomDateStart: (date: string) => void;
+  customDateEnd: string;
+  setCustomDateEnd: (date: string) => void;
 }
 
 export const DealsHeader: React.FC<DealsHeaderProps> = ({
@@ -41,7 +49,13 @@ export const DealsHeader: React.FC<DealsHeaderProps> = ({
   handleNewDealSubmit,
   selectedStageForNewDeal,
   currentTeam,
-  createDealMutation
+  createDealMutation,
+  dateFilter,
+  setDateFilter,
+  customDateStart,
+  setCustomDateStart,
+  customDateEnd,
+  setCustomDateEnd
 }) => (
   <div className="flex items-center gap-4 flex-wrap">
     <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
@@ -70,9 +84,78 @@ export const DealsHeader: React.FC<DealsHeaderProps> = ({
       />
     </div>
 
-    <Button variant="outline">
-      <Filter className="h-4 w-4 mr-2" /> Filtros
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Filter className="h-4 w-4 mr-2" /> 
+          Filtros
+          <ChevronDown className="h-4 w-4 ml-2" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('all')}
+          className={dateFilter === 'all' ? 'bg-accent' : ''}
+        >
+          Todos os períodos
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('today')}
+          className={dateFilter === 'today' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Hoje
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('custom')}
+          className={dateFilter === 'custom' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Data personalizada
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+
+    {dateFilter === 'custom' && (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Calendar className="h-4 w-4 mr-2" />
+            {customDateStart && customDateEnd 
+              ? `${customDateStart} - ${customDateEnd}`
+              : 'Selecionar período'
+            }
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-4" align="start">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dateStart">Data inicial</Label>
+              <Input
+                id="dateStart"
+                type="date"
+                value={customDateStart}
+                onChange={(e) => setCustomDateStart(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dateEnd">Data final</Label>
+              <Input
+                id="dateEnd"
+                type="date"
+                value={customDateEnd}
+                onChange={(e) => setCustomDateEnd(e.target.value)}
+              />
+            </div>
+            {customDateStart && customDateEnd && (
+              <div className="text-sm text-muted-foreground">
+                Período: {customDateStart} até {customDateEnd}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    )}
 
     <div className="flex items-center border rounded-md">
       <Button
