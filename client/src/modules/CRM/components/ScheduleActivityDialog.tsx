@@ -38,10 +38,12 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
 
   // Buscar contatos
-  const { data: contacts } = useQuery({
+  const { data: contactsResponse } = useQuery({
     queryKey: ['/api/contacts'],
     enabled: isOpen && !preselectedContactId,
   });
+
+  const contacts = contactsResponse?.data || [];
 
   // Gerar horários disponíveis
   const generateTimeSlots = () => {
@@ -227,11 +229,17 @@ export function ScheduleActivityDialog({ isOpen, onClose, preselectedContactId }
                     <SelectValue placeholder="Selecione um contato" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.isArray(contacts) && contacts.map((contact: any) => (
-                      <SelectItem key={contact.id} value={contact.id.toString()}>
-                        {contact.name} {contact.phone && `(${contact.phone})`}
+                    {contacts.length > 0 ? (
+                      contacts.map((contact: any) => (
+                        <SelectItem key={contact.id} value={contact.id.toString()}>
+                          {contact.name} {contact.phone && `(${contact.phone})`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        Nenhum contato encontrado
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
