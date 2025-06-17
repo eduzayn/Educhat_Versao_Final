@@ -248,6 +248,60 @@ export function InboxPage() {
     }
   };
 
+  // Função para editar nota
+  const handleEditNote = async (noteId: number, content: string) => {
+    if (!activeConversation?.contactId) return;
+    
+    try {
+      const response = await fetch(`/api/contact-notes/${noteId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar nota");
+      }
+
+      // Recarregar as notas do contato
+      fetchContactNotes(activeConversation.contactId);
+    } catch (error) {
+      console.error("Erro ao editar nota:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a nota. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para excluir nota
+  const handleDeleteNote = async (noteId: number) => {
+    try {
+      const response = await fetch(`/api/contact-notes/${noteId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao excluir nota");
+      }
+
+      // Recarregar as notas do contato
+      fetchContactNotes(activeConversation.contactId);
+    } catch (error) {
+      console.error("Erro ao excluir nota:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a nota. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Carregar notas quando a conversa ativa mudar
   useEffect(() => {
     loadContactNotes();
@@ -413,6 +467,8 @@ export function InboxPage() {
         contactDeals={contactDeals}
         contactInterests={contactInterests}
         onAddNote={handleAddNote}
+        onEditNote={handleEditNote}
+        onDeleteNote={handleDeleteNote}
       />
 
       <ContactDialog

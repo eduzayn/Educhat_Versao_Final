@@ -13,6 +13,8 @@ interface ContactSidebarProps {
   contactDeals: any[];
   contactInterests: any[];
   onAddNote: (note: string) => void;
+  onEditNote?: (noteId: number, content: string) => void;
+  onDeleteNote?: (noteId: number) => void;
 }
 
 export function ContactSidebar({ 
@@ -20,7 +22,9 @@ export function ContactSidebar({
   contactNotes, 
   contactDeals, 
   contactInterests, 
-  onAddNote 
+  onAddNote,
+  onEditNote,
+  onDeleteNote
 }: ContactSidebarProps) {
   if (!activeConversation) return null;
 
@@ -59,6 +63,8 @@ export function ContactSidebar({
           contactName={contact.name}
           notes={contactNotes}
           onAddNote={onAddNote}
+          onEditNote={onEditNote}
+          onDeleteNote={onDeleteNote}
         />
 
         {/* Resumo Estatístico */}
