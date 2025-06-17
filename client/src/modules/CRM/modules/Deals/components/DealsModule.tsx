@@ -95,6 +95,7 @@ export function DealsModule() {
       const response = await apiRequest('GET', `/api/deals?page=${page}&limit=${limit}&funnelId=${selectedFunnelId}&search=${encodeURIComponent(search)}`);
       return response.json();
     },
+    enabled: !!selectedFunnelId, // Só executa quando há um funil selecionado
     staleTime: 30 * 1000, // 30 segundos
   });
 
