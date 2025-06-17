@@ -5,7 +5,7 @@ import { setupAuthWithRoutes } from "./auth";
 // Import modular routes
 // registerAuthRoutes removed - now unified with setupAuthWithRoutes
 import { registerAdminRoutes } from "./admin/index";
-import { registerTeamsIntegratedChatRoutes } from "./internal-chat/teams-integration";
+// Teams integration routes temporarily disabled for compilation
 import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication routes now integrated in setupAuthWithRoutes
   registerAdminRoutes(app);
-  registerTeamsIntegratedChatRoutes(app);
+  // registerTeamsIntegratedChatRoutes(app); // Temporarily disabled
   registerMediaRoutes(app);
   registerInboxRoutes(app);
   registerMessageRoutes(app);

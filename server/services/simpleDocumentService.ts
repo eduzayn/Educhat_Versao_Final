@@ -30,4 +30,3 @@ export class SimpleDocumentService {
 }
 
 export const documentService = new SimpleDocumentService();
-export default documentService;
