@@ -3,10 +3,12 @@ import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
 import { Button } from '@/shared/ui/button';
-import { Send, Mic } from 'lucide-react';
+import { Send, Mic, StickyNote } from 'lucide-react';
 import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder/AudioRecorder';
 import { QuickReplyDropdown } from './QuickReplyDropdown';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
+import { useToast } from '@/shared/lib/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { QuickReply } from '@shared/schema';
 
 interface MessageInputProps {
@@ -20,11 +22,13 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const [filteredReplies, setFilteredReplies] = useState<QuickReply[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [isInternalNote, setIsInternalNote] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
 
   const { data: quickReplies = [] } = useQuickReplies();
   const incrementUsageMutation = useIncrementQuickReplyUsage();
+  const { toast } = useToast();
 
   const { isLoading, isUploading, sendTextMessage, uploadFile, shareLink, sendAudio } = useMessageSender({
     conversationId,
@@ -73,9 +77,59 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   };
 
   const handleSendMessage = async () => {
-    const success = await sendTextMessage(message);
-    if (success) {
-      setMessage("");
+    if (isInternalNote) {
+      await handleSendInternalNote();
+    } else {
+      const success = await sendTextMessage(message);
+      if (success) {
+        setMessage("");
+      }
+    }
+  };
+
+  const handleSendInternalNote = async () => {
+    if (!message.trim()) return;
+
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/internal-notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: message,
+          noteType: 'general',
+          notePriority: 'normal',
+          noteTags: [],
+          isPrivate: false
+        })
+      });
+
+      if (response.ok) {
+        setMessage("");
+        setIsInternalNote(false);
+        
+        // Invalidar cache de mensagens para recarregar a conversa
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
+        
+        toast({
+          title: 'Sucesso',
+          description: 'Nota interna criada com sucesso'
+        });
+
+        if (onSendMessage) {
+          onSendMessage();
+        }
+      } else {
+        throw new Error('Erro ao criar nota interna');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar nota interna:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar a nota interna',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -164,20 +218,37 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         />
 
         <div className="flex-1">
+          {isInternalNote && (
+            <div className="mb-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700 flex items-center gap-1.5">
+              <StickyNote className="h-3 w-3" />
+              <span className="font-medium">Modo Nota Interna - Visível apenas para a equipe</span>
+            </div>
+          )}
           <Textarea
             ref={textAreaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
-            placeholder="Digite sua mensagem ou use / para respostas rápidas..."
-            className="min-h-[40px] max-h-[120px] resize-none"
+            placeholder={isInternalNote ? "Digite sua nota interna..." : "Digite sua mensagem ou use / para respostas rápidas..."}
+            className={`min-h-[40px] max-h-[120px] resize-none ${isInternalNote ? 'border-amber-300 bg-amber-50' : ''}`}
             aria-label="Campo de mensagem"
           />
         </div>
 
         {/* Botões de ação */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsInternalNote(!isInternalNote)}
+            className={`${isInternalNote ? 'bg-amber-100 text-amber-600' : ''}`}
+            aria-label="Nota interna"
+            title={isInternalNote ? "Voltar para mensagem normal" : "Criar nota interna"}
+          >
+            <StickyNote className="w-4 h-4" />
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -192,9 +263,10 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
             onClick={handleSendMessage}
             disabled={!message.trim() || isLoading}
             size="sm"
-            aria-label="Enviar mensagem"
+            aria-label={isInternalNote ? "Criar nota interna" : "Enviar mensagem"}
+            className={isInternalNote ? 'bg-amber-600 hover:bg-amber-700' : ''}
           >
-            <Send className="w-4 h-4" />
+            {isInternalNote ? <StickyNote className="w-4 h-4" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
       </div>
