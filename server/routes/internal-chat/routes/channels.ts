@@ -130,7 +130,7 @@ router.get('/', async (req: Request, res: Response) => {
               description: `Conversa privada`,
               type: 'direct' as const,
               isPrivate: true,
-              participants: participantIds,
+              participantIds: participantIds,
               unreadCount: 0,
               channelDbId: channel.id,
             };
