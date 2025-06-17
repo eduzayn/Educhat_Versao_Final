@@ -68,6 +68,54 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  // GET /api/contacts/search - Buscar contatos para seleção (sem paginação)
+  app.get('/api/contacts/search', async (req: Request, res: Response) => {
+    try {
+      const { q = '' } = req.query;
+      const searchTerm = q as string;
+
+      let whereConditions;
+      
+      // Se há termo de busca, aplicar filtros
+      if (searchTerm && searchTerm.trim()) {
+        const trimmedSearch = searchTerm.trim();
+        whereConditions = or(
+          ilike(contacts.name, `%${trimmedSearch}%`),
+          ilike(contacts.phone, `%${trimmedSearch}%`),
+          ilike(contacts.email, `%${trimmedSearch}%`)
+        );
+      }
+
+      // Buscar contatos sem limitação de paginação para seleção
+      const contactsQuery = db
+        .select({
+          id: contacts.id,
+          name: contacts.name,
+          phone: contacts.phone,
+          email: contacts.email,
+          profileImageUrl: contacts.profileImageUrl
+        })
+        .from(contacts)
+        .orderBy(desc(contacts.updatedAt))
+        .limit(500); // Limite maior para permitir busca ampla
+
+      if (whereConditions) {
+        contactsQuery.where(whereConditions);
+      }
+
+      const contactsData = await contactsQuery;
+
+      res.json(contactsData);
+
+    } catch (error) {
+      console.error('Erro ao buscar contatos para seleção:', error);
+      res.status(500).json({ 
+        error: 'Erro interno do servidor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
   // GET /api/contacts/:id - Buscar contato específico
   app.get('/api/contacts/:id', async (req: Request, res: Response) => {
     try {

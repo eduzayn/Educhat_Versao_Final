@@ -31,13 +31,11 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
     notes: ''
   });
 
-  // Buscar contatos
-  const { data: contactsResponse } = useQuery({
-    queryKey: ['/api/contacts'],
+  // Buscar contatos para seleção
+  const { data: contacts = [] } = useQuery<Array<{id: number, name: string, phone?: string, email?: string}>>({
+    queryKey: ['/api/contacts/search'],
     enabled: isOpen && !preselectedContactId,
   });
-
-  const contacts = contactsResponse?.data || [];
 
   // Buscar categorias e cursos
   const { data: categories } = useQuery({
