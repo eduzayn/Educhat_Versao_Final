@@ -148,7 +148,7 @@ function ConversationItemComponent({
             {/* Contador de mensagens não lidas */}
             {hasUnreadMessages && (
               <Badge className="bg-educhat-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center">
-                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                {(conversation.unreadCount || 0) > 99 ? '99+' : (conversation.unreadCount || 0)}
               </Badge>
             )}
 

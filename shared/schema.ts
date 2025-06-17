@@ -605,7 +605,10 @@ export type InsertMediaFile = z.infer<typeof insertMediaFileSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
-  contact: Contact;
+  contact: Contact & {
+    tags: string[];
+    deals: Deal[];
+  };
   channelInfo?: Channel;
   messages: Message[];
   _count?: {
