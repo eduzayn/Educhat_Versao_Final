@@ -1,5 +1,5 @@
 import { BaseStorage } from '../base/BaseStorage';
-import { messages, conversations, type Message, type InsertMessage } from '../../../shared/schema';
+import { messages, conversations, type Message, type InsertMessage } from '@shared/schema';
 import { eq, desc, asc, and, isNull } from 'drizzle-orm';
 
 export class MessageBasicOperations extends BaseStorage {
@@ -116,6 +116,15 @@ export class MessageBasicOperations extends BaseStorage {
         eq(messages.conversationId, conversationId),
         eq(messages.isFromContact, true),
         isNull(messages.readAt),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(asc(messages.sentAt));
+  }
+
+  async getMessagesByConversation(conversationId: number): Promise<Message[]> {
+    return this.db.select().from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
       .orderBy(asc(messages.sentAt));

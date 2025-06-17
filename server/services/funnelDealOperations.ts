@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { deals, funnels, contacts } from '../../shared/schema';
+import { deals, funnels, contacts } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 /**

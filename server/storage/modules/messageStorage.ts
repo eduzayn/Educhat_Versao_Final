@@ -1,5 +1,5 @@
 import { BaseStorage } from '../base/BaseStorage';
-import { messages, type Message, type InsertMessage } from '../../../shared/schema';
+import { messages, type Message, type InsertMessage } from '@shared/schema';
 import { MessageBasicOperations } from './messageBasicOperations';
 import { MessageStatusOperations } from './messageStatusOperations';
 import { MessageMediaOperations } from './messageMediaOperations';

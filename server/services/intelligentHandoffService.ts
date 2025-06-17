@@ -1,7 +1,7 @@
 // DEPRECATED: Este serviço foi consolidado em unifiedAssignmentService.ts
 // Mantido para compatibilidade durante migração
 import { db } from '../db';
-import { handoffs, systemUsers, teams, conversations } from '../../shared/schema';
+import { handoffs, systemUsers, teams, conversations } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export class IntelligentHandoffService {
