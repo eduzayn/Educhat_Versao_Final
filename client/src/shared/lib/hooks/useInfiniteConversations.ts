@@ -62,11 +62,24 @@ export function useInfiniteConversations(
       // Para busca, desabilita paginação infinita (carrega tudo de uma vez)
       if (searchTerm?.trim()) return undefined;
       
+      // Debug logging
+      const totalLoaded = allPages.reduce((total, page) => total + page.conversations.length, 0);
+      console.log('📦 hasNextPage Debug:', {
+        hasNextPage: lastPage.hasNextPage,
+        conversationsInLastPage: lastPage.conversations.length,
+        totalLoaded,
+        allPagesCount: allPages.length,
+        searchTerm: searchTerm?.trim()
+      });
+      
       // Se não há próxima página ou não carregou conversas suficientes, parar paginação
-      if (!lastPage.hasNextPage || lastPage.conversations.length === 0) return undefined;
+      if (!lastPage.hasNextPage || lastPage.conversations.length === 0) {
+        console.log('🛑 Stopping pagination - hasNextPage:', lastPage.hasNextPage, 'conversations:', lastPage.conversations.length);
+        return undefined;
+      }
       
       // Calcular offset baseado no total de conversas já carregadas
-      const totalLoaded = allPages.reduce((total, page) => total + page.conversations.length, 0);
+      console.log('➡️ Next page offset:', totalLoaded);
       return totalLoaded;
     },
     initialPageParam: 0,

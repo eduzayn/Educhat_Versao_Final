@@ -76,12 +76,25 @@ export function ConversationListVirtualized({
       const threshold = 200;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < threshold;
 
+      // Debug logging
+      console.log('📦 Scroll Debug:', {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        isNearBottom,
+        hasNextPage,
+        isLoading,
+        isLoadingMoreRef: isLoadingMoreRef.current,
+        conversationsCount: visibleConversations.length
+      });
+
       if (
         isNearBottom &&
         !isLoading &&
         hasNextPage &&
         !isLoadingMoreRef.current
       ) {
+        console.log('🔄 Triggering load more...');
         isLoadingMoreRef.current = true;
         onLoadMore();
         setTimeout(() => {
