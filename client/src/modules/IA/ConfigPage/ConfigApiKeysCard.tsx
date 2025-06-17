@@ -20,7 +20,8 @@ export function ConfigApiKeysCard({ formData, onApiKeyChange }: ConfigApiKeysCar
   const [editingKeys, setEditingKeys] = useState<{[key: string]: boolean}>({});
   
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    onApiKeyChange(e.target.id.replace('-key', 'ApiKey'), e.target.value);
+    const keyName = e.target.id.replace('-key', 'ApiKey');
+    onApiKeyChange(keyName, e.target.value);
   };
 
   const handleFocus = (keyName: string) => {

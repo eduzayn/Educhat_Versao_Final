@@ -5,7 +5,7 @@ import { aiConfig, systemSettings, insertAiConfigSchema, insertSystemSettingSche
 import { eq } from 'drizzle-orm';
 import Anthropic from '@anthropic-ai/sdk';
 
-export function registerAIRoutes(app: any) {
+export function registerAIRoutes(app: Express) {
   // Get AI configuration
   app.get('/api/settings/integrations/ai/config', async (req: Request, res: Response) => {
     try {
@@ -33,22 +33,16 @@ export function registerAIRoutes(app: any) {
         }).returning();
       }
 
-      // Mask API keys for security while showing partial info
-      const maskApiKey = (key: string | null): string => {
-        if (!key) return '';
-        if (key.length <= 8) return '•'.repeat(key.length);
-        return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
-      };
-
-      const safeConfig = {
+      // Send real keys to frontend for proper masking functionality
+      const responseConfig = {
         ...config,
-        openaiApiKey: maskApiKey(config.openaiApiKey),
-        perplexityApiKey: maskApiKey(config.perplexityApiKey),
-        elevenlabsApiKey: maskApiKey(config.elevenlabsApiKey),
-        anthropicApiKey: maskApiKey(config.anthropicApiKey)
+        openaiApiKey: config.openaiApiKey || '',
+        perplexityApiKey: config.perplexityApiKey || '',
+        elevenlabsApiKey: config.elevenlabsApiKey || '',
+        anthropicApiKey: config.anthropicApiKey || ''
       };
 
-      res.json(safeConfig);
+      res.json(responseConfig);
     } catch (error) {
       console.error('Erro ao buscar configurações da IA:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
@@ -88,22 +82,16 @@ export function registerAIRoutes(app: any) {
         console.log('✅ Nova configuração criada com sucesso');
       }
 
-      // Mask API keys for security while showing partial info
-      const maskApiKey = (key: string | null): string => {
-        if (!key) return '';
-        if (key.length <= 8) return '•'.repeat(key.length);
-        return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
-      };
-
-      const safeConfig = {
+      // Return real keys for frontend masking
+      const responseConfig = {
         ...config,
-        openaiApiKey: maskApiKey(config.openaiApiKey),
-        perplexityApiKey: maskApiKey(config.perplexityApiKey),
-        elevenlabsApiKey: maskApiKey(config.elevenlabsApiKey),
-        anthropicApiKey: maskApiKey(config.anthropicApiKey)
+        openaiApiKey: config.openaiApiKey || '',
+        perplexityApiKey: config.perplexityApiKey || '',
+        elevenlabsApiKey: config.elevenlabsApiKey || '',
+        anthropicApiKey: config.anthropicApiKey || ''
       };
 
-      res.json(safeConfig);
+      res.json(responseConfig);
     } catch (error) {
       console.error('❌ Erro ao salvar configurações da IA:', error);
       if (error instanceof z.ZodError) {
