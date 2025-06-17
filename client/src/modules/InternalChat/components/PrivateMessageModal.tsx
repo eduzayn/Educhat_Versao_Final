@@ -118,8 +118,8 @@ export function PrivateMessageModal({
 
         if (messagesResponse.ok) {
           const existingMessages = await messagesResponse.json();
-          const formattedMessages = existingMessages.map((msg: any) => ({
-            id: msg.id,
+          const formattedMessages = existingMessages.map((msg: any, index: number) => ({
+            id: msg.id || `msg-${Date.now()}-${index}`,
             channelId: channel.id,
             userId: msg.userId,
             userName: msg.userName || 'Usuário',
@@ -127,7 +127,7 @@ export function PrivateMessageModal({
             content: msg.content,
             messageType: msg.messageType,
             timestamp: new Date(msg.createdAt),
-            reactions: msg.reactions || {},
+            reactions: {},
           }));
           setMessages(formattedMessages);
         }
@@ -250,6 +250,8 @@ export function PrivateMessageModal({
     if (!message.trim() || !currentUser) return;
 
     try {
+      console.log('Iniciando envio de mensagem privada para:', targetUser.displayName);
+      
       // Primeiro, criar/buscar o canal direto
       const channelResponse = await fetch(`/api/internal-chat/channels/direct/${targetUser.id}`, {
         method: 'POST',
@@ -259,14 +261,22 @@ export function PrivateMessageModal({
         credentials: 'include',
       });
 
+      console.log('Resposta do canal:', channelResponse.status);
+
       if (!channelResponse.ok) {
-        throw new Error('Falha ao criar canal direto');
+        const errorText = await channelResponse.text();
+        console.error('Erro na criação do canal:', errorText);
+        throw new Error(`Falha ao criar canal direto: ${channelResponse.status}`);
       }
 
-      const { channel } = await channelResponse.json();
+      const channelData = await channelResponse.json();
+      console.log('Dados do canal:', channelData);
+      
+      const { channel } = channelData;
       setChannelId(channel.id);
 
       // Enviar a mensagem para o backend
+      console.log('Enviando mensagem para canal:', channel.id);
       const messageResponse = await fetch(`/api/internal-chat/channels/${channel.id}/messages`, {
         method: 'POST',
         headers: {
@@ -279,22 +289,29 @@ export function PrivateMessageModal({
         }),
       });
 
+      console.log('Resposta da mensagem:', messageResponse.status);
+
       if (!messageResponse.ok) {
-        throw new Error('Falha ao enviar mensagem');
+        const errorText = await messageResponse.text();
+        console.error('Erro no envio da mensagem:', errorText);
+        throw new Error(`Falha ao enviar mensagem: ${messageResponse.status}`);
       }
 
-      const { message: savedMessage } = await messageResponse.json();
+      const messageData = await messageResponse.json();
+      console.log('Dados da mensagem salva:', messageData);
+
+      const { message: savedMessage } = messageData;
 
       // Adicionar mensagem ao estado local
       const newMessage = {
-        id: savedMessage.id,
+        id: savedMessage.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         channelId: channel.id,
         userId: currentUser.id,
         userName: currentUser.displayName || currentUser.username || "Usuário",
         userAvatar: currentUser.avatar,
         content: message.trim(),
         messageType: "text" as const,
-        timestamp: new Date(savedMessage.timestamp),
+        timestamp: new Date(savedMessage.timestamp || savedMessage.createdAt || new Date()),
         reactions: {},
       };
 
@@ -306,6 +323,8 @@ export function PrivateMessageModal({
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
+
+      console.log('Mensagem enviada com sucesso');
 
       toast({
         title: "Mensagem enviada",

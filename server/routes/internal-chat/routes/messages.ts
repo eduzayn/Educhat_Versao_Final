@@ -31,7 +31,6 @@ router.get('/:channelId/messages', async (req: Request, res: Response) => {
         content: internalChatMessages.content,
         messageType: internalChatMessages.messageType,
         metadata: internalChatMessages.metadata,
-        reactions: internalChatMessages.reactions,
         createdAt: internalChatMessages.createdAt,
         userId: systemUsers.id,
         userName: systemUsers.displayName,
