@@ -84,6 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/handoffs', handoffsRouter);
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api', internalNotesRouter);
+  app.use('/api/reports', reportsRouter);
   registerNotificationRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
 
