@@ -1,10 +1,104 @@
-import { BarChart3, TrendingUp, Download, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { BarChart3, TrendingUp, Download, Calendar, CalendarDays } from 'lucide-react';
 import { BackButton } from '@/shared/components/BackButton';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { PeriodFilter, ChannelFilter, FilterContainer } from '@/shared/components/filters';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 export function ReportsPage() {
+  const [period, setPeriod] = useState('30');
+  const [channel, setChannel] = useState('all');
+  const [customDateRange, setCustomDateRange] = useState({
+    start: '',
+    end: ''
+  });
+  const [showCustomPeriod, setShowCustomPeriod] = useState(false);
+  const [exportFormat, setExportFormat] = useState('xlsx');
+  const { toast } = useToast();
+
+  // Buscar dados dos relatórios
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['/api/reports/analytics', period, channel],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        period,
+        channel,
+        ...(customDateRange.start && customDateRange.end && {
+          startDate: customDateRange.start,
+          endDate: customDateRange.end
+        })
+      });
+      const response = await fetch(`/api/reports/analytics?${params}`);
+      if (!response.ok) throw new Error('Erro ao carregar relatórios');
+      return response.json();
+    }
+  });
+
+  const handleExport = async () => {
+    try {
+      const params = new URLSearchParams({
+        period,
+        channel,
+        format: exportFormat,
+        ...(customDateRange.start && customDateRange.end && {
+          startDate: customDateRange.start,
+          endDate: customDateRange.end
+        })
+      });
+      
+      const response = await fetch(`/api/reports/export?${params}`);
+      if (!response.ok) throw new Error('Erro ao exportar relatório');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Relatório exportado com sucesso",
+        description: `Arquivo baixado no formato ${exportFormat.toUpperCase()}`
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao exportar",
+        description: "Não foi possível exportar o relatório",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCustomPeriod = () => {
+    if (customDateRange.start && customDateRange.end) {
+      setPeriod('custom');
+      setShowCustomPeriod(false);
+      toast({
+        title: "Período personalizado aplicado",
+        description: `De ${customDateRange.start} até ${customDateRange.end}`
+      });
+    }
+  };
+
+  const metrics = reportData?.metrics || {
+    totalConversations: 0,
+    messagesSent: 0,
+    avgResponseTime: 0,
+    resolutionRate: 0,
+    conversationGrowth: 0,
+    messagesGrowth: 0,
+    responseTimeGrowth: 0,
+    resolutionGrowth: 0
+  };
   return (
     <div className="h-screen bg-gray-50">
       <div className="p-6">
@@ -24,14 +118,80 @@ export function ReportsPage() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
-                <Button className="bg-educhat-primary hover:bg-educhat-secondary">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Período
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="w-4 h-4 mr-2" />
+                      Exportar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Exportar Relatório</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="format">Formato do arquivo</Label>
+                        <Select value={exportFormat} onValueChange={setExportFormat}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o formato" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
+                            <SelectItem value="csv">CSV (.csv)</SelectItem>
+                            <SelectItem value="pdf">PDF (.pdf)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={handleExport} className="w-full">
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar Relatório
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={showCustomPeriod} onOpenChange={setShowCustomPeriod}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-educhat-primary hover:bg-educhat-secondary">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Período
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Selecionar Período Personalizado</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="start-date">Data de início</Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={customDateRange.start}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, start: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="end-date">Data de fim</Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={customDateRange.end}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, end: e.target.value }))}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleCustomPeriod} 
+                        className="w-full"
+                        disabled={!customDateRange.start || !customDateRange.end}
+                      >
+                        <CalendarDays className="w-4 h-4 mr-2" />
+                        Aplicar Período
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
