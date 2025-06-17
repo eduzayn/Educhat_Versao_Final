@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui/tooltip";
 import { useInternalChatStore } from "../store/internalChatStore";
 import { useLocation } from "wouter";
+import { ChatSettings } from "./ChatSettings";
 
 
 interface ChatHeaderProps {
@@ -166,14 +167,12 @@ export function ChatHeader({ onToggleInfo, showInfoPanel }: ChatHeaderProps) {
           </TooltipContent>
         </Tooltip>
 
-        {/* More Options */}
+        {/* Chat Settings */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            <ChatSettings />
           </TooltipTrigger>
-          <TooltipContent>Mais opções</TooltipContent>
+          <TooltipContent>Configurações do Chat</TooltipContent>
         </Tooltip>
       </div>
     </div>
