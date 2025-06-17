@@ -40,94 +40,31 @@ export class ConversationFilterOperations extends BaseStorage {
       .offset(offset);
   }
 
-  async getConversationsByTeam(teamId: number, limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversationsByTeam(teamId: number, limit = 100, offset = 0) {
     return this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        priority: conversations.priority,
-        assignedTo: conversations.assignedTo,
-        assignedTeam: conversations.assignedTeam,
-        unreadCount: conversations.unreadCount,
-        lastMessageAt: conversations.lastMessageAt,
-        lastMessageId: conversations.lastMessageId,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        tags: conversations.tags,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          avatarUrl: contacts.avatarUrl
-        }
-      })
+      .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.assignedTeam, teamId))
+      .where(eq(conversations.assignedTeamId, teamId))
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
   }
 
-  async getConversationsByUser(userId: number, limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversationsByUser(userId: number, limit = 100, offset = 0) {
     return this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        priority: conversations.priority,
-        assignedTo: conversations.assignedTo,
-        assignedTeam: conversations.assignedTeam,
-        unreadCount: conversations.unreadCount,
-        lastMessageAt: conversations.lastMessageAt,
-        lastMessageId: conversations.lastMessageId,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        tags: conversations.tags,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          avatarUrl: contacts.avatarUrl
-        }
-      })
+      .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(eq(conversations.assignedTo, userId))
+      .where(eq(conversations.assignedUserId, userId))
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
   }
 
-  async getConversationsByPriority(priority: string, limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversationsByPriority(priority: string, limit = 100, offset = 0) {
     return this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        priority: conversations.priority,
-        assignedTo: conversations.assignedTo,
-        assignedTeam: conversations.assignedTeam,
-        unreadCount: conversations.unreadCount,
-        lastMessageAt: conversations.lastMessageAt,
-        lastMessageId: conversations.lastMessageId,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        tags: conversations.tags,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          avatarUrl: contacts.avatarUrl
-        }
-      })
+      .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(eq(conversations.priority, priority))
@@ -136,70 +73,28 @@ export class ConversationFilterOperations extends BaseStorage {
       .offset(offset);
   }
 
-  async getUnassignedConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getUnassignedConversations(limit = 100, offset = 0) {
     return this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        priority: conversations.priority,
-        assignedTo: conversations.assignedTo,
-        assignedTeam: conversations.assignedTeam,
-        unreadCount: conversations.unreadCount,
-        lastMessageAt: conversations.lastMessageAt,
-        lastMessageId: conversations.lastMessageId,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        tags: conversations.tags,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          avatarUrl: contacts.avatarUrl
-        }
-      })
+      .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(and(
-        sql`${conversations.assignedTo} IS NULL`,
-        sql`${conversations.assignedTeam} IS NULL`
+        sql`${conversations.assignedUserId} IS NULL`,
+        sql`${conversations.assignedTeamId} IS NULL`
       ))
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);
   }
 
-  async getConversationByContactAndChannel(contactId: number, channelId: number): Promise<ConversationWithContact | null> {
+  async getConversationByContactAndChannel(contactId: number, channel: string) {
     const result = await this.db
-      .select({
-        id: conversations.id,
-        contactId: conversations.contactId,
-        channelId: conversations.channelId,
-        status: conversations.status,
-        priority: conversations.priority,
-        assignedTo: conversations.assignedTo,
-        assignedTeam: conversations.assignedTeam,
-        unreadCount: conversations.unreadCount,
-        lastMessageAt: conversations.lastMessageAt,
-        lastMessageId: conversations.lastMessageId,
-        createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
-        tags: conversations.tags,
-        contact: {
-          id: contacts.id,
-          name: contacts.name,
-          phone: contacts.phone,
-          email: contacts.email,
-          avatarUrl: contacts.avatarUrl
-        }
-      })
+      .select()
       .from(conversations)
       .leftJoin(contacts, eq(conversations.contactId, contacts.id))
       .where(and(
         eq(conversations.contactId, contactId),
-        eq(conversations.channelId, channelId)
+        eq(conversations.channel, channel)
       ))
       .limit(1);
     
