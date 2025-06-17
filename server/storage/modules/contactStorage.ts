@@ -10,59 +10,55 @@ export class ContactStorage extends BaseStorage {
   async getContact(id: number): Promise<Contact | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
     const basicOps = new ContactBasicOperations();
-    basicOps.setDb(this.db);
     return basicOps.getContact(id);
   }
 
   async getContactWithTags(id: number): Promise<ContactWithTags | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
     const basicOps = new ContactBasicOperations();
-    basicOps.setDb(this.db);
     return basicOps.getContactWithTags(id);
   }
 
   async createContact(contact: InsertContact): Promise<Contact> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
     const basicOps = new ContactBasicOperations();
-    basicOps.setDb(this.db);
     return basicOps.createContact(contact);
   }
 
   async updateContact(id: number, contactData: Partial<InsertContact>): Promise<Contact> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
     const basicOps = new ContactBasicOperations();
-    basicOps.setDb(this.db);
     return basicOps.updateContact(id, contactData);
   }
 
   async getContactByPhone(phone: string): Promise<Contact | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
     return basicOps.getContactByPhone(phone);
   }
 
   async getContactByUserIdentity(userIdentity: string): Promise<Contact | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
     return basicOps.getContactByUserIdentity(userIdentity);
   }
 
   async getContactByEmail(email: string): Promise<Contact | undefined> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
     return basicOps.getContactByEmail(email);
   }
 
   async getAllContacts(): Promise<Contact[]> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');
-    const basicOps = new ContactBasicOperations(this.db);
+    const basicOps = new ContactBasicOperations();
     return basicOps.getAllContacts();
   }
 
   // Search Operations
   async searchContacts(query: string): Promise<Contact[]> {
     const { ContactSearchOperations } = await import('./contactSearchOperations');
-    const searchOps = new ContactSearchOperations(this.db);
+    const searchOps = new ContactSearchOperations();
     return searchOps.searchContacts(query);
   }
 
