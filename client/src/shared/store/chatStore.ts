@@ -3,6 +3,7 @@ import type { ChatState, ConversationWithContact, Message, TypingIndicator } fro
 
 interface ChatStore extends ChatState {
   setActiveConversation: (conversation: ConversationWithContact | null) => void;
+  updateActiveConversationAssignment: (assignedTeamId: number | null, assignedUserId: number | null) => void;
   addMessage: (conversationId: number, message: Message) => void;
   setMessages: (conversationId: number, messages: Message[]) => void;
   setTypingIndicator: (conversationId: number, indicator: TypingIndicator | null) => void;
@@ -22,6 +23,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set({ activeConversation: conversation });
     if (conversation) {
       set({ selectedContactId: conversation.contact.id });
+    }
+  },
+
+  updateActiveConversationAssignment: (assignedTeamId, assignedUserId) => {
+    const { activeConversation } = get();
+    if (activeConversation) {
+      set({
+        activeConversation: {
+          ...activeConversation,
+          assignedTeamId,
+          assignedUserId,
+        },
+      });
     }
   },
 

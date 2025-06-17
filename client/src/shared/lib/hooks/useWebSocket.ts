@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateActiveConversationAssignment } = useChatStore();
 
   const connect = useCallback(() => {
     // Clear any existing reconnect timeout
