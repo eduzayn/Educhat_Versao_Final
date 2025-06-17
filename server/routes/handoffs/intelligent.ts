@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { intelligentHandoffService } from '../../services/intelligentHandoffService';
-import { aiService } from '../../services/aiService';
+import { aiService } from '../../services/ai-index';
 import { storage } from '../../storage';
 import { validateInternalCall, validateConversationId } from './middleware';
 
@@ -17,8 +17,6 @@ router.post('/analyze', validateConversationId, async (req, res) => {
       });
     }
 
-    const aiService = new AIService();
-    
     const aiClassification = await aiService.classifyMessage(
       messageContent,
       0,
@@ -65,8 +63,6 @@ router.post('/execute', validateInternalCall, validateConversationId, async (req
       return res.status(404).json({ error: 'Conversa não encontrada' });
     }
 
-    const aiService = new AIService();
-    
     const aiClassification = await aiService.classifyMessage(
       messageContent,
       conversation.contactId,
@@ -89,7 +85,7 @@ router.post('/execute', validateInternalCall, validateConversationId, async (req
       );
 
       try {
-        const { unifiedAssignmentService } = await import('../../../services/unifiedAssignmentService');
+        const { unifiedAssignmentService } = await import('../../services/unifiedAssignmentService');
         
         await unifiedAssignmentService.onConversationAssigned(
           conversationId,
