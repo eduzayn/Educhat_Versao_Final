@@ -1,14 +1,16 @@
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
-import { Settings, ArrowLeft } from 'lucide-react';
+import { Settings, ArrowLeft, Save } from 'lucide-react';
 import React from 'react';
 
 interface ConfigHeaderProps {
   isActive: boolean;
   onBack: () => void;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
-export function ConfigHeader({ isActive, onBack }: ConfigHeaderProps) {
+export function ConfigHeader({ isActive, onBack, onSave, isSaving }: ConfigHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -30,9 +32,21 @@ export function ConfigHeader({ isActive, onBack }: ConfigHeaderProps) {
           </p>
         </div>
       </div>
-      <Badge variant={isActive ? "default" : "secondary"} className="text-sm">
-        {isActive ? "Ativa" : "Inativa"}
-      </Badge>
+      <div className="flex items-center gap-3">
+        <Badge variant={isActive ? "default" : "secondary"} className="text-sm">
+          {isActive ? "Ativa" : "Inativa"}
+        </Badge>
+        {onSave && (
+          <Button 
+            onClick={onSave}
+            disabled={isSaving}
+            className="flex items-center gap-2"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 } 

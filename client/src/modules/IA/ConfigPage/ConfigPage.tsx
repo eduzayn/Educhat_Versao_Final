@@ -34,9 +34,9 @@ export function ConfigPage() {
   const [formData, setFormData] = useState<AIConfig>(defaultConfig);
 
   const { data: config, isLoading } = useQuery({
-    queryKey: ['/api/ia/config'],
+    queryKey: ['/api/settings/integrations/ai/config'],
     queryFn: async () => {
-      const response = await fetch('/api/ia/config');
+      const response = await fetch('/api/settings/integrations/ai/config');
       if (!response.ok) throw new Error('Falha ao carregar configurações');
       return response.json() as Promise<AIConfig>;
     }
@@ -48,7 +48,23 @@ export function ConfigPage() {
     }
   }, [config]);
 
+  const saveMutation = useMutation({
+    mutationFn: async (data: AIConfig) => {
+      const response = await fetch('/api/settings/integrations/ai/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Falha ao salvar configurações');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/integrations/ai/config'] });
+    }
+  });
+
   const handleBack = () => setLocation('/ia');
+  const handleSave = () => saveMutation.mutate(formData);
   const handleToggleActive = (checked: boolean) => setFormData(prev => ({ ...prev, isActive: checked }));
   const handleApiKeyChange = (key: string, value: string) => setFormData(prev => ({ ...prev, [key]: value }));
   const handleFeatureToggle = (feature: string, enabled: boolean) => setFormData(prev => ({
@@ -70,7 +86,12 @@ export function ConfigPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <ConfigHeader isActive={formData.isActive} onBack={handleBack} />
+      <ConfigHeader 
+        isActive={formData.isActive} 
+        onBack={handleBack} 
+        onSave={handleSave}
+        isSaving={saveMutation.isPending}
+      />
       <ConfigStatusCard isActive={formData.isActive} onToggle={handleToggleActive} />
       <ConfigApiKeysCard formData={formData} onApiKeyChange={handleApiKeyChange} />
       <ConfigFeaturesCard enabledFeatures={formData.enabledFeatures} onFeatureToggle={handleFeatureToggle} />
