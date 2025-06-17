@@ -139,7 +139,7 @@ export function AudioMessage({
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
-        isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"
+        isFromContact ? "bg-gray-200 text-gray-800" : "bg-blue-600 text-white"
       }`}
     >
       {fetchedAudioUrl && (
@@ -160,7 +160,7 @@ export function AudioMessage({
         disabled={isLoading}
         className={`w-10 h-10 p-0 rounded-full ${
           isFromContact
-            ? "hover:bg-gray-200 text-gray-700"
+            ? "hover:bg-gray-300 text-gray-700"
             : "hover:bg-blue-500 text-white"
         }`}
       >
@@ -189,12 +189,12 @@ export function AudioMessage({
         <div className="relative">
           <div
             className={`w-full h-2 rounded-full ${
-              isFromContact ? "bg-gray-300" : "bg-blue-400"
+              isFromContact ? "bg-gray-400" : "bg-blue-400"
             }`}
           >
             <div
               className={`h-full rounded-full transition-all duration-200 ${
-                isFromContact ? "bg-gray-600" : "bg-white"
+                isFromContact ? "bg-gray-700" : "bg-white"
               }`}
               style={{ width: `${progressPercentage}%` }}
             />
