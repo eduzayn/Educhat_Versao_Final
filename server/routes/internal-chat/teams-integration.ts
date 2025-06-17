@@ -43,15 +43,15 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
       
       const teamMembers = await db
         .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          role: users.role,
-          isActive: users.isActive,
-          avatarUrl: users.avatarUrl
+          id: systemUsers.id,
+          displayName: systemUsers.displayName,
+          email: systemUsers.email,
+          role: systemUsers.role,
+          isActive: systemUsers.isActive,
+          avatar: systemUsers.avatar
         })
-        .from(users)
-        .where(eq(users.teamId, parseInt(teamId)));
+        .from(systemUsers)
+        .where(eq(systemUsers.teamId, parseInt(teamId)));
 
       res.json(teamMembers);
     } catch (error) {
@@ -104,15 +104,15 @@ export function registerTeamsIntegratedChatRoutes(app: Express) {
         .select({ count: conversations.id })
         .from(conversations)
         .where(and(
-          eq(conversations.teamId, parseInt(teamId)),
-          eq(conversations.status, 'active')
+          eq(conversations.assignedTeamId, parseInt(teamId)),
+          eq(conversations.status, 'open')
         ));
 
       // Contar membros da equipe
       const teamMembers = await db
-        .select({ count: users.id })
-        .from(users)
-        .where(eq(users.teamId, parseInt(teamId)));
+        .select({ count: systemUsers.id })
+        .from(systemUsers)
+        .where(eq(systemUsers.teamId, parseInt(teamId)));
 
       res.json({
         activeConversations: activeConversations.length,

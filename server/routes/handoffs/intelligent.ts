@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { intelligentHandoffService } from '../../services/intelligentHandoffService';
-import { AIService } from '../../services/aiService';
+import { aiService } from '../../services/aiService';
 import { storage } from '../../storage';
 import { validateInternalCall, validateConversationId } from './middleware';
 

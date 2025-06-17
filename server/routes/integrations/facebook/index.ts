@@ -12,4 +12,7 @@ export function registerFacebookRoutes(app: Express) {
 
   // Rotas de webhook
   app.use('/api/integrations/facebook', webhookRouter);
-} 
+}
+
+// Export default para compatibilidade
+export const facebookRoutes = registerFacebookRoutes; 

@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { db } from '../db';
 import { documents } from '../../shared/schema';
-import { eq, like, or, desc } from 'drizzle-orm';
+import { eq, like, or, desc, and } from 'drizzle-orm';
 import mammoth from 'mammoth';
 import pdfParse from 'pdf-parse';
 
@@ -169,7 +169,13 @@ class DocumentService {
     try {
       const searchTerms = query.toLowerCase().split(/\s+/);
       
-      let queryBuilder = db
+      // Construir query base
+      let whereConditions = [];
+      if (userId) {
+        whereConditions.push(eq(documents.userId, userId));
+      }
+
+      const queryBuilder = db
         .select({
           id: documents.id,
           title: documents.title,
@@ -179,14 +185,14 @@ class DocumentService {
         })
         .from(documents);
 
-      // Filtrar por usuário se especificado
-      if (userId) {
-        queryBuilder = queryBuilder.where(eq(documents.userId, userId));
-      }
-
-      const results = await queryBuilder
-        .orderBy(desc(documents.createdAt))
-        .limit(limit * 2); // Buscar mais para filtrar depois
+      const results = whereConditions.length > 0 
+        ? await queryBuilder
+            .where(and(...whereConditions))
+            .orderBy(desc(documents.createdAt))
+            .limit(limit * 2)
+        : await queryBuilder
+            .orderBy(desc(documents.createdAt))
+            .limit(limit * 2);
 
       // Calcular relevância e filtrar
       const scored = results
