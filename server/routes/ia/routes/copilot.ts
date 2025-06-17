@@ -64,11 +64,19 @@ router.post('/', async (req, res) => {
  */
 async function generateAIResponse(message: string) {
   // Buscar configurações de IA
+  console.log('🔍 Buscando configurações de IA...');
   const config = await getAIConfig();
   
   if (!config || !config.isActive) {
+    console.log('❌ Configuração de IA não encontrada ou inativa');
     throw new Error('Configuração de IA não encontrada ou inativa');
   }
+  
+  console.log('✅ Configurações de IA carregadas:', {
+    hasAnthropicKey: !!config.anthropicApiKey,
+    hasOpenAIKey: !!config.openaiApiKey,
+    isActive: config.isActive
+  });
 
   const systemPrompt = `Você é a Prof. Ana, assistente inteligente do EduChat - uma plataforma educacional especializada em cursos de pós-graduação.
 
@@ -96,6 +104,7 @@ Responda à seguinte mensagem:`;
   // Tentar Anthropic primeiro se disponível
   if (config.anthropicApiKey) {
     try {
+      console.log('🔧 Usando Anthropic API...');
       const anthropic = new Anthropic({
         apiKey: config.anthropicApiKey,
       });
@@ -113,6 +122,7 @@ Responda à seguinte mensagem:`;
 
       const content = response.content[0];
       if (content && 'text' in content) {
+        console.log('✅ Anthropic respondeu com sucesso');
         return {
           message: content.text,
           classification: {
@@ -124,8 +134,15 @@ Responda à seguinte mensagem:`;
         };
       }
     } catch (error) {
-      console.error('❌ Erro Anthropic:', error);
+      console.error('❌ Erro Anthropic detalhado:', {
+        message: error.message,
+        status: error.status,
+        type: error.type,
+        error: error.error
+      });
     }
+  } else {
+    console.log('⚠️ Chave da API Anthropic não encontrada');
   }
 
   // Tentar OpenAI se Anthropic falhou
