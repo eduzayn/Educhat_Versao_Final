@@ -20,6 +20,15 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
   const [editingNote, setEditingNote] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<any>(null);
 
+  // Função para verificar se uma nota pode ser editada (dentro de 7 minutos)
+  const canEditNote = (createdAt: string | Date) => {
+    const now = new Date();
+    const noteCreatedAt = new Date(createdAt);
+    const timeDifference = now.getTime() - noteCreatedAt.getTime();
+    const sevenMinutesInMs = 7 * 60 * 1000;
+    return timeDifference <= sevenMinutesInMs;
+  };
+
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     
@@ -32,23 +41,40 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
     if (!editingNote || !editingNote.content.trim()) return;
     
     if (onEditNote) {
-      await onEditNote(editingNote.id, editingNote.content.trim());
-      setEditingNote(null);
-      toast({
-        title: "Nota atualizada",
-        description: "A nota foi atualizada com sucesso.",
-      });
+      try {
+        await onEditNote(editingNote.id, editingNote.content.trim());
+        setEditingNote(null);
+        toast({
+          title: "Nota atualizada",
+          description: "A nota foi atualizada com sucesso.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao editar nota",
+          description: error.message || "Não foi possível editar a nota. Verifique se o tempo limite de 7 minutos não foi excedido.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleDeleteNote = async (noteId: number) => {
     if (onDeleteNote) {
-      await onDeleteNote(noteId);
-      setShowDeleteDialog(null);
-      toast({
-        title: "Nota excluída",
-        description: "A nota foi excluída com sucesso.",
-      });
+      try {
+        await onDeleteNote(noteId);
+        setShowDeleteDialog(null);
+        toast({
+          title: "Nota excluída",
+          description: "A nota foi excluída com sucesso.",
+        });
+      } catch (error: any) {
+        setShowDeleteDialog(null);
+        toast({
+          title: "Erro ao excluir nota",
+          description: error.message || "Não foi possível excluir a nota. Verifique se o tempo limite de 7 minutos não foi excedido.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -126,9 +152,10 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setEditingNote({ ...note })}
-                        title="Editar nota"
+                        className={`h-6 w-6 p-0 ${!canEditNote(note.createdAt) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => canEditNote(note.createdAt) && setEditingNote({ ...note })}
+                        disabled={!canEditNote(note.createdAt)}
+                        title={canEditNote(note.createdAt) ? "Editar nota" : "Tempo limite de edição expirado (7 minutos)"}
                       >
                         <Edit2 className="h-3 w-3" />
                       </Button>
@@ -137,9 +164,10 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                        onClick={() => setShowDeleteDialog(note)}
-                        title="Excluir nota"
+                        className={`h-6 w-6 p-0 text-red-600 hover:text-red-700 ${!canEditNote(note.createdAt) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => canEditNote(note.createdAt) && setShowDeleteDialog(note)}
+                        disabled={!canEditNote(note.createdAt)}
+                        title={canEditNote(note.createdAt) ? "Excluir nota" : "Tempo limite de exclusão expirado (7 minutos)"}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -149,7 +177,19 @@ export function NotesSection({ contactName, notes, onAddNote, onEditNote, onDele
               </div>
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>{note.author || 'Sistema'}</span>
-                <span>{new Date(note.createdAt).toLocaleDateString('pt-BR')}</span>
+                <div className="flex items-center gap-2">
+                  <span>{new Date(note.createdAt).toLocaleDateString('pt-BR')}</span>
+                  {canEditNote(note.createdAt) && (
+                    <span className="text-green-600 font-medium" title="Ainda pode ser editada/excluída">
+                      ✓ Editável
+                    </span>
+                  )}
+                  {!canEditNote(note.createdAt) && (
+                    <span className="text-orange-600 font-medium" title="Tempo limite de edição/exclusão expirado">
+                      ⏰ Expirado
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
