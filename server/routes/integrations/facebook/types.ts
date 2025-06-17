@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertFacebookIntegrationSchema } from '../../../shared/schema';
+import { insertFacebookIntegrationSchema } from '../../../../shared/schema';
 
 export const facebookIntegrationSchema = insertFacebookIntegrationSchema.extend({
   webhookVerifyToken: z.string().min(10, 'Token de verificação deve ter pelo menos 10 caracteres')

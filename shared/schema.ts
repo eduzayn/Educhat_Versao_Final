@@ -763,6 +763,19 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   }),
 }));
 
+// Documents table for document management
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  format: varchar("format", { length: 10 }).notNull(), // pdf, doc, docx, txt, md
+  size: integer("size").notNull(),
+  userId: varchar("user_id").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Manychat Integrations table
 export const manychatIntegrations = pgTable("manychat_integrations", {
   id: serial("id").primaryKey(),
