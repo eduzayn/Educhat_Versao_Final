@@ -10,7 +10,7 @@ export function registerChartsRoutes(app: Express) {
       
       // Buscar dados reais dos negócios e usuários
       const deals = await storage.getDeals();
-      const users = await storage.getSystemUsers();
+      const users = await storage.userManagement.getSystemUsers();
       
       const wonDeals = deals.filter(deal => deal.stage === 'won');
 

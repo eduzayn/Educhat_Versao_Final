@@ -15,8 +15,18 @@ interface SalesCoachingStatsProps {
 }
 
 export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
-  const completionRate = stats.totalCoaching > 0 
-    ? (stats.completedCoaching / stats.totalCoaching) * 100 
+  // Provide default values if stats is undefined or missing properties
+  const safeStats = {
+    totalCoaching: stats?.totalCoaching || 0,
+    completedCoaching: stats?.completedCoaching || 0,
+    averageResponseTime: stats?.averageResponseTime || 0,
+    conversionRate: stats?.conversionRate || 0,
+    salesVolume: stats?.salesVolume || 0,
+    byType: stats?.byType || { feedback: 0, goal: 0, training: 0 }
+  };
+
+  const completionRate = safeStats.totalCoaching > 0 
+    ? (safeStats.completedCoaching / safeStats.totalCoaching) * 100 
     : 0;
 
   return (
@@ -31,7 +41,7 @@ export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
           <div className="text-2xl font-bold">{completionRate.toFixed(1)}%</div>
           <Progress value={completionRate} className="mt-2" />
           <p className="text-xs text-muted-foreground mt-2">
-            {stats.completedCoaching} de {stats.totalCoaching} concluídos
+            {safeStats.completedCoaching} de {safeStats.totalCoaching} concluídos
           </p>
         </CardContent>
       </Card>
@@ -43,7 +53,7 @@ export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.averageResponseTime}h</div>
+          <div className="text-2xl font-bold">{safeStats.averageResponseTime}h</div>
           <p className="text-xs text-muted-foreground mt-2">
             Tempo médio para feedback
           </p>
@@ -57,7 +67,7 @@ export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.conversionRate}%</div>
+          <div className="text-2xl font-bold">{safeStats.conversionRate}%</div>
           <p className="text-xs text-muted-foreground mt-2">
             Conversão após coaching
           </p>
@@ -71,7 +81,7 @@ export function SalesCoachingStats({ stats }: SalesCoachingStatsProps) {
           <TrendingDown className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">R$ {stats.salesVolume.toLocaleString()}</div>
+          <div className="text-2xl font-bold">R$ {safeStats.salesVolume.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground mt-2">
             Vendas após coaching
           </p>
