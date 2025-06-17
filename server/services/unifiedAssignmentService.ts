@@ -45,7 +45,11 @@ class UnifiedAssignmentService {
       const teamCapacities = await this.getTeamCapacities();
       
       // Sugerir equipe baseado na análise
-      const suggestedTeamId = await aiService.suggestTeamAssignment(analysis, teamCapacities);
+      const teamCapacitiesConverted = teamCapacities.map(tc => ({
+        ...tc,
+        capacity: tc.maxCapacity
+      }));
+      const suggestedTeamId = await aiService.suggestTeamAssignment(analysis, teamCapacitiesConverted);
       
       if (!suggestedTeamId) {
         return {
@@ -203,7 +207,6 @@ class UnifiedAssignmentService {
         .select({
           id: teams.id,
           name: teams.name,
-          type: teams.type,
           maxCapacity: teams.maxCapacity
         })
         .from(teams)
@@ -230,7 +233,7 @@ class UnifiedAssignmentService {
           currentLoad,
           maxCapacity,
           availability: Math.max(0, maxCapacity - currentLoad),
-          specializations: [team.type] // Pode ser expandido conforme necessário
+          specializations: ['geral'] // Pode ser expandido conforme necessário
         });
       }
 
@@ -289,7 +292,7 @@ class UnifiedAssignmentService {
       const assignedConversations = await db
         .select({ count: count() })
         .from(conversations)
-        .where(eq(conversations.assignedTeamId, null));
+        .where(eq(conversations.status, 'open'));
 
       // Implementação básica - pode ser expandida
       return {
