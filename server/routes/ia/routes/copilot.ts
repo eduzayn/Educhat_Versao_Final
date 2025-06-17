@@ -1,6 +1,22 @@
 import { Router } from 'express';
+import { Anthropic } from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 const router = Router();
+
+// Função para buscar configurações de IA
+async function getAIConfig() {
+  try {
+    const response = await fetch('http://localhost:5000/api/settings/integrations/ai/config');
+    if (!response.ok) {
+      throw new Error('Falha ao carregar configurações de IA');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Erro ao buscar configurações de IA:', error);
+    return null;
+  }
+}
 
 /**
  * POST /api/ia/copilot - Endpoint específico para o Copilot da Prof. Ana
@@ -16,16 +32,22 @@ router.post('/', async (req, res) => {
     console.log('🎓 Copilot Prof. Ana - Processando mensagem:', message);
     console.log('👤 Usuário:', userId);
     
-    // Para o Copilot, usar fallback inteligente sem dependências de banco
-    const fallbackResponse = generateFallbackResponse(message);
+    // Tentar usar IA em tempo real
+    let aiResponse;
+    try {
+      aiResponse = await generateAIResponse(message);
+    } catch (aiError) {
+      console.error('❌ Erro na IA, usando fallback:', aiError);
+      aiResponse = generateFallbackResponse(message);
+    }
     
     console.log('📊 Resposta do Copilot gerada:', {
-      confidence: fallbackResponse.classification.confidence,
-      intent: fallbackResponse.classification.intent,
-      responseLength: fallbackResponse.message?.length || 0
+      confidence: aiResponse.classification.confidence,
+      intent: aiResponse.classification.intent,
+      responseLength: aiResponse.message?.length || 0
     });
 
-    res.json(fallbackResponse);
+    res.json(aiResponse);
   } catch (error) {
     console.error('❌ Erro no Copilot Prof. Ana:', error);
     
@@ -34,6 +56,119 @@ router.post('/', async (req, res) => {
     res.json(emergencyResponse);
   }
 });
+
+/**
+ * Gera resposta usando IA em tempo real com configurações do banco
+ */
+async function generateAIResponse(message: string) {
+  // Buscar configurações de IA do banco
+  const [config] = await db.select().from(aiConfig).limit(1);
+  
+  if (!config || !config.isActive) {
+    throw new Error('Configuração de IA não encontrada ou inativa');
+  }
+
+  const systemPrompt = `Você é a Prof. Ana, assistente inteligente do EduChat - uma plataforma educacional especializada em cursos de pós-graduação.
+
+CONTEXTO DA EMPRESA:
+- EduChat é uma plataforma de comunicação empresarial com foco em educação
+- Oferece cursos de pós-graduação em áreas como Neuropsicopedagogia, Psicopedagogia, Educação Especial
+- Modalidade EAD com suporte completo aos alunos
+- Sistema CRM integrado para gestão de leads e alunos
+
+SUAS RESPONSABILIDADES:
+- Responder dúvidas sobre cursos e matrículas
+- Orientar sobre uso da plataforma EduChat
+- Dar suporte aos colaboradores internos
+- Fornecer informações sobre procedimentos e políticas
+
+INSTRUÇÕES:
+- Seja profissional mas acolhedora
+- Use emojis moderadamente para deixar as respostas mais amigáveis
+- Para dúvidas específicas sobre valores, sugira contato direto com consultores
+- Para questões técnicas da plataforma, forneça orientações claras
+- Mantenha respostas concisas mas informativas
+
+Responda à seguinte mensagem:`;
+
+  // Tentar Anthropic primeiro se disponível
+  if (config.anthropicApiKey) {
+    try {
+      const anthropic = new Anthropic({
+        apiKey: config.anthropicApiKey,
+      });
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: config.responseSettings?.maxTokens || 1000,
+        messages: [
+          {
+            role: 'user',
+            content: `${systemPrompt}\n\n"${message}"`
+          }
+        ],
+      });
+
+      const content = response.content[0];
+      if (content && 'text' in content) {
+        return {
+          message: content.text,
+          classification: {
+            intent: 'ai_generated',
+            confidence: 0.95,
+            sentiment: 'neutral',
+            urgency: 'medium'
+          }
+        };
+      }
+    } catch (error) {
+      console.error('❌ Erro Anthropic:', error);
+    }
+  }
+
+  // Tentar OpenAI se Anthropic falhou
+  if (config.openaiApiKey) {
+    try {
+      const openai = new OpenAI({
+        apiKey: config.openaiApiKey,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+        max_tokens: config.responseSettings?.maxTokens || 800,
+        temperature: config.responseSettings?.temperature || 0.7,
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (content) {
+        return {
+          message: content,
+          classification: {
+            intent: 'ai_generated',
+            confidence: 0.9,
+            sentiment: 'neutral',
+            urgency: 'medium'
+          }
+        };
+      }
+    } catch (error) {
+      console.error('❌ Erro OpenAI:', error);
+    }
+  }
+
+  // Se chegou aqui, nenhuma IA funcionou
+  throw new Error('Nenhuma API de IA disponível ou configurada');
+}
 
 /**
  * Gera resposta de fallback inteligente baseada na mensagem
