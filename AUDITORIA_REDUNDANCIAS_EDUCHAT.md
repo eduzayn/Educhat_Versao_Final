@@ -134,16 +134,16 @@
 
 ## 🛠️ PLANO DE AÇÃO PRIORITÁRIO
 
-### Fase 1 - Crítico (1-2 dias)
-1. **Consolidar rotas de estatísticas**
-   - Criar `UnifiedStatsService`
-   - Implementar rota unificada `/api/stats`
-   - Manter proxies para compatibilidade
+### Fase 1 - Crítico (1-2 dias) ✅ **CONCLUÍDO**
+1. **Consolidar rotas de estatísticas** ✅
+   - ✅ Criado `UnifiedStatsService` em `/server/services/unifiedStatsService.ts`
+   - ✅ Implementada rota unificada `/api/stats` em `/server/routes/stats/index.ts`
+   - ✅ Mantidos proxies para compatibilidade com rotas existentes
+   - ✅ Registrado no sistema de rotas principal
 
-2. **Remover duplicatas Quick Replies**
-   - Verificar funcionalidade do arquivo "fixed"
-   - Consolidar melhorias no arquivo principal
-   - Remover arquivo duplicado
+2. **Remover duplicatas Quick Replies** ✅
+   - ✅ Verificado: arquivos eram idênticos
+   - ✅ Removido arquivo duplicado `quick-replies-get-fixed.ts`
 
 ### Fase 2 - Médio (2-3 dias)
 1. **Padronizar Headers**

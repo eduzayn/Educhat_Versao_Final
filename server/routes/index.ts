@@ -42,6 +42,7 @@ import { registerTeamsIntegratedChatRoutes } from "./internal-chat/index";
 import internalNotesRouter from "./internal-notes/index";
 import reportsRouter from "./reports";
 import activitiesRouter from "./activities/index";
+import { registerUnifiedStatsRoutes } from "./stats/index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
@@ -89,6 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/activities', activitiesRouter);
   registerNotificationRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
+  
+  // Registrar rotas unificadas de estatísticas
+  registerUnifiedStatsRoutes(app);
 
   // Registrar rotas de email
   const emailRouter = await import('./emails/index');

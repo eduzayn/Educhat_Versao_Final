@@ -148,22 +148,22 @@ export class UnifiedStatsService {
       { successfulHandoffs }
     ] = await Promise.all([
       db.select({ 
-        avgResponseTime: avg(sql<number>`EXTRACT(EPOCH FROM (${conversations.firstResponseAt} - ${conversations.createdAt}))`)
+        avgResponseTime: avg(sql<number>`EXTRACT(EPOCH FROM (${conversations.lastMessageAt} - ${conversations.createdAt}))`)
       })
         .from(conversations)
         .where(and(
           conversationWhere,
-          sql`${conversations.firstResponseAt} IS NOT NULL`
+          sql`${conversations.lastMessageAt} IS NOT NULL`
         ))
         .then(res => res[0]),
 
       db.select({ 
-        avgResolutionTime: avg(sql<number>`EXTRACT(EPOCH FROM (${conversations.closedAt} - ${conversations.createdAt}))`)
+        avgResolutionTime: avg(sql<number>`EXTRACT(EPOCH FROM (${conversations.updatedAt} - ${conversations.createdAt}))`)
       })
         .from(conversations)
         .where(and(
           conversationWhere,
-          sql`${conversations.closedAt} IS NOT NULL`
+          sql`${conversations.status} = 'resolved'`
         ))
         .then(res => res[0]),
 
