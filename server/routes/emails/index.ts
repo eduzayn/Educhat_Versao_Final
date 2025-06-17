@@ -18,16 +18,34 @@ router.post('/send', requireAuth, upload.any(), async (req, res) => {
       });
     }
 
-    // Validar se SendGrid está configurado
-    if (!process.env.SENDGRID_API_KEY) {
+    // Buscar chave do SendGrid do banco de dados
+    let sendgridApiKey = process.env.SENDGRID_API_KEY;
+    
+    if (!sendgridApiKey) {
+      const { db } = require('../../db');
+      const { systemSettings } = require('../../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      
+      const setting = await db
+        .select()
+        .from(systemSettings)
+        .where(eq(systemSettings.key, 'sendgrid_api_key'))
+        .limit(1);
+        
+      if (setting.length > 0) {
+        sendgridApiKey = setting[0].value;
+      }
+    }
+    
+    if (!sendgridApiKey) {
       return res.status(500).json({
         success: false,
-        message: 'Serviço de email não configurado. Entre em contato com o administrador.'
+        message: 'Serviço de email não configurado. Configure a chave do SendGrid nas integrações.'
       });
     }
 
     const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.setApiKey(sendgridApiKey);
 
     // Preparar anexos se existirem
     const emailAttachments = attachments?.map(file => ({

@@ -98,6 +98,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const contactGroupsRouter = await import('./contact-groups/index');
   app.use('/api/contact-groups', contactGroupsRouter.default);
 
+  // Registrar rotas de configuração de APIs
+  const apisRouter = await import('./settings/apis');
+  app.use('/api/settings/integrations/apis', apisRouter.default);
+
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
 

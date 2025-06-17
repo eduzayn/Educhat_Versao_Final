@@ -13,6 +13,7 @@ import { ContactsPage } from "@/modules/Contacts/components/ViewContactDialog/Co
 import ReportsPage from "@/modules/Reports/ReportsPage";
 // Integrações agora consolidadas - redirecionar para a página existente
 import FacebookIntegrationPage from "@/modules/Settings/Integrations/FacebookIntegrationPage";
+import IntegrationsPage from "@/modules/Settings/Integrations/IntegrationsPage";
 import SettingsPage from "@/modules/Settings/SettingsPage";
 import ChannelsPage from "@/modules/Settings/Channels";
 import { UsersSettingsPage } from "@/modules/Settings/Users/UsersSettingsPage";
@@ -81,6 +82,14 @@ function Router() {
             {() => <ProtectedRoute component={SettingsPage} />}
           </Route>
           <Route path="/settings/integrations">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={IntegrationsPage}
+              />
+            )}
+          </Route>
+          <Route path="/settings/integrations/facebook">
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
