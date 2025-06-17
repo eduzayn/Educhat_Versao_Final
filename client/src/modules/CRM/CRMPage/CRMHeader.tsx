@@ -10,17 +10,16 @@ import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useCRMContext } from './CRMPage';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { user } = useAuth();
   const { dateFilter, setDateFilter } = useCRMContext();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range) {
-      setDateRange(range);
-    }
+  const handleDateSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
   };
   const canAccessSettings = (user as any)?.role === 'admin' || (user as any)?.role === 'gerente';
 
@@ -33,7 +32,7 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   };
 
   const handleDateRangeConfirm = () => {
-    if (dateRange.from && dateRange.to) {
+    if (dateRange?.from && dateRange?.to) {
       setDateFilter({
         period: 'custom',
         startDate: dateRange.from,
@@ -103,7 +102,7 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
                 </div>
                 <Calendar
                   mode="range"
-                  selected={dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined}
+                  selected={dateRange}
                   onSelect={handleDateSelect}
                   numberOfMonths={2}
                   locale={ptBR}
@@ -114,7 +113,7 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
                   </Button>
                   <Button 
                     onClick={handleDateRangeConfirm}
-                    disabled={!dateRange.from || !dateRange.to}
+                    disabled={!dateRange?.from || !dateRange?.to}
                   >
                     Aplicar Filtro
                   </Button>

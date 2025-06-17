@@ -76,16 +76,6 @@ export function CRMDashboard() {
       activitiesThisWeek: Math.round(67 * periodMultiplier)
     });
   }, [dateFilter]);
-  const kpis = {
-    totalDeals: 24,
-    totalValue: 95400,
-    conversionRate: 18.5,
-    avgDealTime: 12,
-    totalContacts: 342,
-    activeLeads: 89,
-    companiesCount: 15,
-    activitiesThisWeek: 67
-  };
 
   const recentDeals = [
     {
@@ -157,7 +147,7 @@ export function CRMDashboard() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.totalDeals}</div>
+            <div className="text-2xl font-bold">{filteredKpis.totalDeals}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 mr-1 text-green-500" />
               +12% vs mês anterior
@@ -171,9 +161,9 @@ export function CRMDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {kpis.totalValue.toLocaleString('pt-BR')}</div>
+            <div className="text-2xl font-bold">R$ {filteredKpis.totalValue.toLocaleString('pt-BR')}</div>
             <p className="text-xs text-muted-foreground">
-              Taxa de conversão: {kpis.conversionRate}%
+              Taxa de conversão: {filteredKpis.conversionRate}%
             </p>
           </CardContent>
         </Card>
@@ -184,9 +174,9 @@ export function CRMDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.activeLeads}</div>
+            <div className="text-2xl font-bold">{filteredKpis.activeLeads}</div>
             <p className="text-xs text-muted-foreground">
-              De {kpis.totalContacts} contatos totais
+              De {filteredKpis.totalContacts} contatos totais
             </p>
           </CardContent>
         </Card>
