@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerContactSingleRoutes(app: Express) {
   app.get('/api/contacts/:id', async (req, res) => {

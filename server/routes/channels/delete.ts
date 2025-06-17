@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerChannelDeleteRoutes(app: Express) {
   // Delete channel - REST: DELETE /api/channels/:id

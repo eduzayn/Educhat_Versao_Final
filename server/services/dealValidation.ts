@@ -1,4 +1,4 @@
-import { storage } from "../storage";
+import { storage } from "../storage/index";
 
 /**
  * Verifica se deve criar deal automático

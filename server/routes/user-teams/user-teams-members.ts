@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerUserTeamsMembersRoutes(app: Express) {
   // Get team members - REST: GET /api/user-teams/:teamId

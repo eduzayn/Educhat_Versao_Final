@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerChannelListRoutes(app: Express) {
   // Get all channels - REST: GET /api/channels

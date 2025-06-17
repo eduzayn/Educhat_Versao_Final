@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerProductsRoutes(app: Express) {
   // Análise de Produtos/Serviços - REST: GET /api/sales/products

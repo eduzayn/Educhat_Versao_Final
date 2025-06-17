@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { contacts, type Contact } from "@shared/schema";
-import { desc, ilike, or } from "drizzle-orm";
+import { desc, ilike, or, eq } from "drizzle-orm";
 
 export class ContactSearchOperations extends BaseStorage {
   async searchContacts(query: string): Promise<Contact[]> {

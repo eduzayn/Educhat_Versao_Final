@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissionsRefactored';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 import { funnelService } from '../../services/funnelService';
 
 export function registerTeamsCrudRoutes(app: Express) {

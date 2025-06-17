@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from "socket.io";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 // Store connected clients with their metadata
 const clients = new Map<string, { 

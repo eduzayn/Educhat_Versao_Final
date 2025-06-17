@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerQuickRepliesGetRoutes(app: Express) {
   // Get all quick replies - REST: GET /api/quick-replies

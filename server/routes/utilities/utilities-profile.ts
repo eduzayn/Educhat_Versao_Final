@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerProfileRoutes(app: Express) {
   // Profile API endpoints - REST: User profile management

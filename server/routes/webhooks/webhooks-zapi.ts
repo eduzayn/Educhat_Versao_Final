@@ -1,4 +1,4 @@
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 import { validateZApiCredentials } from "../../utils/zapi";
 import { webhookHealthMonitor } from "../../webhookHealthCheck";
 

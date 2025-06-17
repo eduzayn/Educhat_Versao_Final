@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 /**
  * Verificar assinatura do webhook Facebook

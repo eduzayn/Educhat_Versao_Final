@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import passport from "passport";
 import { hashPassword } from "./password";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function setupAuthRoutes(app: Express) {
   // Health check endpoint para sessões

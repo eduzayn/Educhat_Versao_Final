@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 import { insertContactTagSchema } from "@shared/schema";
 
 export function registerContactTagsRoutes(app: Express) {

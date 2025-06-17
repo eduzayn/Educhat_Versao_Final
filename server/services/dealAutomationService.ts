@@ -1,4 +1,4 @@
-import { storage } from "../storage";
+import { storage } from "../storage/index";
 import { funnelService } from './funnelService';
 
 export class DealAutomationService {

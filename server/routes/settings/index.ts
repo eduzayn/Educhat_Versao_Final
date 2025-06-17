@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { Router } from 'express';
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 import { z } from "zod";
 import { eq } from 'drizzle-orm';
 import { db } from '../../db';

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../storage";
+import { storage } from "../../storage/index";
 
 export function registerChannelUpdateRoutes(app: Express) {
   // Update channel - REST: PUT /api/channels/:id
