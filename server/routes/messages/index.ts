@@ -3,13 +3,11 @@ import { storage } from "../../storage/index";
 import { insertMessageSchema } from "@shared/schema";
 import { AuthenticatedRequest } from "../../core/permissionsRefactored";
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
-import listRouter from './routes/list';
 import createRouter from './routes/create';
 import mediaRouter from './routes/media';
 import deleteRouter from './routes/delete';
 
 export function registerMessageRoutes(app: Express) {
-  app.use(listRouter);
   app.use(createRouter);
   app.use(mediaRouter);
   app.use(deleteRouter);
