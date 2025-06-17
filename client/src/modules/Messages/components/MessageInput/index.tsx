@@ -11,7 +11,7 @@ interface MessageInputProps {
 
 export function MessageInput({ conversationId, onSendMessage }: MessageInputProps) {
   const { message, setMessage, clearMessage, handleKeyDown, selectQuickReply, quickReplies } = useMessageInput();
-  const { isLoading, isUploading, sendTextMessage, uploadFile, shareLink } = useMessageSender({
+  const { isLoading, isUploading, sendTextMessage, uploadFile, shareLink, sendAudio } = useMessageSender({
     conversationId,
     onSendMessage,
   });
@@ -29,6 +29,10 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
   const handleLinkShare = async (url: string, caption?: string) => {
     await shareLink(url, caption);
+  };
+
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    await sendAudio(audioBlob, duration);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -88,6 +92,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
         <ActionButtons
           onSendMessage={handleSendMessage}
+          onSendAudio={handleSendAudio}
           canSend={message.trim().length > 0}
           isLoading={isLoading}
         />
