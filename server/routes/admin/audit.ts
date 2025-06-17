@@ -2,7 +2,7 @@ import { Express, Response } from 'express';
 import { db } from '../../core/db';
 import { auditLogs, systemUsers } from '../../../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { requirePermission, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
+import { requirePermission, AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 
 export function registerAuditRoutes(app: Express) {
   // Listar logs de auditoria

@@ -2,7 +2,7 @@ import { Express, Response } from 'express';
 import { db } from '../../core/db';
 import { permissions, rolePermissions, customRules } from '../../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
+import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 
 export function registerPermissionRoutes(app: Express) {
   // Listar todas as permissões

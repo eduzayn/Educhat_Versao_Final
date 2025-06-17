@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../../core/permissions';
+import { AuthenticatedRequest } from '../../core/permissionsRefactored';
 
 export interface AnalyticsFilters {
   startDate?: Date;

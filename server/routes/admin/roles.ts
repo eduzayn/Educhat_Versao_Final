@@ -2,7 +2,7 @@ import { Express, Response } from 'express';
 import { db } from '../../core/db';
 import { roles, rolePermissions, permissions } from '../../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
+import { requirePermission, PermissionService, AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 
 export function registerRoleRoutes(app: Express) {
   // Listar funções com permissões

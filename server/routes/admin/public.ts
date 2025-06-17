@@ -1,8 +1,8 @@
 import { Express, Response } from 'express';
 import { db } from '../../core/db';
 import { systemUsers, roles } from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
-import { AuthenticatedRequest, updateLastActivity } from '../../core/permissions';
+import { eq, sql } from 'drizzle-orm';
+import { AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 
 export function registerPublicRoutes(app: Express) {
   // Obter informações do usuário atual

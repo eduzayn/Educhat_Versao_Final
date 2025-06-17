@@ -1,4 +1,4 @@
-import { UserManagementStorage } from './modules/userManagementStorage';
+import { UserManagementStorage } from './modules/userManagementStorageRefactored';
 import { ContactStorage } from './modules/contactStorage';
 import { ConversationStorage } from './modules/conversationStorage';
 import { MessageStorage } from './modules/messageStorage';

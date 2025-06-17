@@ -1,42 +1,12 @@
-<<<<<<< HEAD
-import { BaseStorage } from "../base/BaseStorage";
-
-/**
- * Facebook storage module - manages Facebook integration data
- */
-export class FacebookStorage extends BaseStorage {
-  async createFacebookConfig(config: any) {
-    // Implementation for Facebook configuration
-    return config;
-  }
-
-  async getFacebookConfig(id: number) {
-    // Implementation to get Facebook configuration
-    return null;
-  }
-
-  async updateFacebookConfig(id: number, config: any) {
-    // Implementation to update Facebook configuration
-    return config;
-  }
-
-  async deleteFacebookConfig(id: number) {
-    // Implementation to delete Facebook configuration
-    return true;
-  }
-
-  async getAllFacebookConfigs() {
-    // Implementation to get all Facebook configurations
-    return [];
-  }
-}
-=======
 import { BaseStorage } from '../base/BaseStorage';
 import { FacebookIntegrationOperations } from './facebookIntegrationOperations';
 import { FacebookWebhookLogOperations } from './facebookWebhookLogOperations';
 import { FacebookApiOperations } from './facebookApiOperations';
 import { FacebookMessageProcessing } from './facebookMessageProcessing';
 
+/**
+ * Facebook storage module - manages Facebook integration data
+ */
 export class FacebookStorage extends BaseStorage {
   private integrationOps: FacebookIntegrationOperations;
   private webhookLogOps: FacebookWebhookLogOperations;
@@ -114,5 +84,25 @@ export class FacebookStorage extends BaseStorage {
   async processFacebookMessage(webhookData: any, integrationId: number) {
     return this.messageProcessing.processFacebookMessage(webhookData, integrationId);
   }
-} 
->>>>>>> 88bb2ff6 (refactor: dividir messageStorage em módulos menores, atualizar imports e orquestrador)
+
+  // Legacy methods for backward compatibility
+  async createFacebookConfig(config: any) {
+    return this.createIntegration(config);
+  }
+
+  async getFacebookConfig(id: number) {
+    return this.getIntegration(id);
+  }
+
+  async updateFacebookConfig(id: number, config: any) {
+    return this.updateIntegration(id, config);
+  }
+
+  async deleteFacebookConfig(id: number) {
+    return this.deleteIntegration(id);
+  }
+
+  async getAllFacebookConfigs() {
+    return this.getIntegrations();
+  }
+}

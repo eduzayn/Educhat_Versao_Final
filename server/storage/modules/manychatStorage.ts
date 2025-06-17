@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { BaseStorage } from "../base/BaseStorage";
-=======
 import { BaseStorage } from '../base/BaseStorage';
 import { 
   manychatIntegrations, 
@@ -14,38 +11,11 @@ import { ManychatIntegrationOperations } from './manychatIntegrationOperations';
 import { ManychatWebhookLogOperations } from './manychatWebhookLogOperations';
 import { ManychatApiOperations } from './manychatApiOperations';
 import { ManychatLeadProcessing } from './manychatLeadProcessing';
->>>>>>> 88bb2ff6 (refactor: dividir messageStorage em módulos menores, atualizar imports e orquestrador)
 
 /**
  * ManyChat storage module - manages ManyChat integration data
  */
 export class ManychatStorage extends BaseStorage {
-<<<<<<< HEAD
-  async createManychatConfig(config: any) {
-    // Implementation for ManyChat configuration
-    return config;
-  }
-
-  async getManychatConfig(id: number) {
-    // Implementation to get ManyChat configuration
-    return null;
-  }
-
-  async updateManychatConfig(id: number, config: any) {
-    // Implementation to update ManyChat configuration
-    return config;
-  }
-
-  async deleteManychatConfig(id: number) {
-    // Implementation to delete ManyChat configuration
-    return true;
-  }
-
-  async getAllManychatConfigs() {
-    // Implementation to get all ManyChat configurations
-    return [];
-  }
-=======
   private integrationOps: ManychatIntegrationOperations;
   private webhookLogOps: ManychatWebhookLogOperations;
   private apiOps: ManychatApiOperations;
@@ -133,5 +103,25 @@ export class ManychatStorage extends BaseStorage {
   async processManychatLead(webhookData: any, integrationId: number): Promise<{ contactId?: number; conversationId?: number }> {
     return this.leadProcessing.processManychatLead(webhookData, integrationId);
   }
->>>>>>> 88bb2ff6 (refactor: dividir messageStorage em módulos menores, atualizar imports e orquestrador)
+
+  // Legacy methods for backward compatibility
+  async createManychatConfig(config: any) {
+    return this.createIntegration(config);
+  }
+
+  async getManychatConfig(id: number) {
+    return this.getIntegration(id);
+  }
+
+  async updateManychatConfig(id: number, config: any) {
+    return this.updateIntegration(id, config);
+  }
+
+  async deleteManychatConfig(id: number) {
+    return this.deleteIntegration(id);
+  }
+
+  async getAllManychatConfigs() {
+    return this.getIntegrations();
+  }
 }

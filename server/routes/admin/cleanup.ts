@@ -2,7 +2,7 @@ import { Express, Response } from 'express';
 import { db } from '../../core/db';
 import { conversations, messages, handoffs, auditLogs } from '../../../shared/schema';
 import { sql, and } from 'drizzle-orm';
-import { requirePermission, AuthenticatedRequest, updateLastActivity, PermissionService } from '../../core/permissions';
+import { requirePermission, AuthenticatedRequest, updateLastActivity, PermissionService } from '../../core/permissionsRefactored';
 
 export function registerCleanupRoutes(app: Express) {
   // Limpar dados antigos

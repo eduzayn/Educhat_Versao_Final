@@ -1,5 +1,5 @@
 import { Express, Response } from 'express';
-import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
+import { AuthenticatedRequest, requirePermission } from '../../core/permissionsRefactored';
 import { storage } from "../../storage";
 import { funnelService } from '../../services/funnelService';
 
