@@ -359,12 +359,10 @@ export function InboxPage() {
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
           onLoadMore={async () => {
-            console.log('🔄 onLoadMore acionado - fetchNextPage...');
             try {
-              const result = await fetchNextPage();
-              console.log('✅ fetchNextPage executado:', result);
+              await fetchNextPage();
             } catch (error) {
-              console.error('❌ Erro no fetchNextPage:', error);
+              console.error('Erro ao carregar mais conversas:', error);
             }
           }}
           channels={channels}

@@ -28,11 +28,12 @@ router.get('/', async (req, res) => {
       // Busca normal paginada
       conversations = await storage.getConversations(limit, offset);
       
-      // Verificar se há mais conversas para paginar
-      const hasNextPage = conversations.length === limit;
+      // Buscar uma conversa adicional para verificar se há mais páginas
+      const nextPageCheck = await storage.getConversations(1, offset + limit);
+      const hasNextPage = nextPageCheck.length > 0;
       
       const endTime = Date.now();
-      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
+      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens) - hasNextPage: ${hasNextPage}`);
       
       // Retornar formato compatível com scroll infinito
       res.json({

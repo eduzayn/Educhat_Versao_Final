@@ -41,8 +41,6 @@ export function useMessagesArea(activeConversation: any) {
     
     scrollTimeoutRef.current = setTimeout(() => {
       if (messagesEndRef.current) {
-        console.log('🔄 Executando scroll automático...');
-        
         // Buscar o container de scroll (div com overflow-y-auto)
         let scrollContainer = messagesEndRef.current.parentElement;
         
@@ -52,22 +50,18 @@ export function useMessagesArea(activeConversation: any) {
         }
         
         if (scrollContainer) {
-          console.log('✅ Container de scroll encontrado, fazendo scroll para o final');
           // Forçar scroll para o final
           scrollContainer.scrollTo({
             top: scrollContainer.scrollHeight,
             behavior: 'smooth'
           });
         } else {
-          console.log('⚠️ Container não encontrado, usando fallback scrollIntoView');
           // Fallback para scrollIntoView
           messagesEndRef.current.scrollIntoView({ 
             behavior: 'smooth',
             block: 'end'
           });
         }
-      } else {
-        console.log('❌ messagesEndRef não encontrado');
       }
     }, 100);
   }, []);

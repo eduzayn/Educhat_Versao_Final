@@ -99,30 +99,16 @@ export function ConversationListVirtualized({
       const scrollLimit = scrollHeight - clientHeight;
       const isNearBottom = scrollOffset >= scrollLimit - 100; // Aumentei a margem para 100px
       
-      console.log('🔄 Scroll detectado:', { 
-        scrollOffset, 
-        scrollLimit, 
-        isNearBottom, 
-        hasNextPage, 
-        isLoading, 
-        visibleCount, 
-        filteredLength: filteredConversations.length 
-      });
-      
       // Verificar se deve carregar mais conteúdo
       if (isNearBottom && !isLoading && !isLoadingMoreRef.current) {
         isLoadingMoreRef.current = true;
         
-        console.log('📥 Acionando carregamento...');
-        
         // Primeiro carregar mais itens locais se disponível
         if (visibleCount < filteredConversations.length) {
-          console.log('📋 Carregando mais itens locais...');
           handleLoadMore();
         } 
         // Se não há mais itens locais mas há páginas no servidor
         else if (hasNextPage) {
-          console.log('🌐 Carregando próxima página...');
           onLoadMore();
         }
         
