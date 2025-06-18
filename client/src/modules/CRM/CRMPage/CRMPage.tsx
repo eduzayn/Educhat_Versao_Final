@@ -1,5 +1,5 @@
 import { useState, createContext, useContext } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { CRMDashboard, DealsModule, ActivitiesModule, ReportsModule, SalesModule } from "../modules";
 import { CRMSettings } from "../components/CRMSettings";
@@ -29,7 +29,7 @@ export const useCRMContext = () => {
 export function CRMPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>({ period: 'month' });
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   
   // Determinar aba ativa baseada na URL
   const getActiveTab = () => {
@@ -40,12 +40,35 @@ export function CRMPage() {
     return 'dashboard';
   };
 
+  // Função para navegar entre abas
+  const handleTabChange = (value: string) => {
+    switch (value) {
+      case 'dashboard':
+        setLocation('/crm');
+        break;
+      case 'deals':
+        setLocation('/crm/deals');
+        break;
+      case 'sales':
+        setLocation('/crm/sales'); 
+        break;
+      case 'activities':
+        setLocation('/crm/activities');
+        break;
+      case 'reports':
+        setLocation('/crm/reports');
+        break;
+      default:
+        setLocation('/crm');
+    }
+  };
+
   return (
     <CRMContext.Provider value={{ dateFilter, setDateFilter }}>
       <div className="flex flex-col h-screen">
         <CRMHeader onOpenSettings={() => setShowSettings(true)} />
         <div className="flex-1 flex flex-col">
-          <Tabs value={getActiveTab()} className="h-full">
+          <Tabs value={getActiveTab()} onValueChange={handleTabChange} className="h-full">
             <TabsList className="w-full justify-between border-b rounded-none h-12 px-6">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 flex-1">
                 <span className="icon-dashboard" /> Dashboard
