@@ -1,5 +1,80 @@
 import { Express, Response } from 'express';
 
+// Cache para URLs expiradas (evita tentativas desnecessárias)
+const expiredUrlsCache = new Map<string, number>();
+const EXPIRED_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
+
+// Cache para imagens válidas (curto prazo)
+const validImageCache = new Map<string, { data: Buffer; contentType: string; timestamp: number }>();
+const VALID_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+function isUrlExpired(url: string): boolean {
+  const cached = expiredUrlsCache.get(url);
+  if (!cached) return false;
+  
+  // Se passou do TTL, remover do cache
+  if (Date.now() - cached > EXPIRED_CACHE_TTL) {
+    expiredUrlsCache.delete(url);
+    return false;
+  }
+  
+  return true;
+}
+
+function markUrlAsExpired(url: string): void {
+  expiredUrlsCache.set(url, Date.now());
+}
+
+function getCachedImage(url: string): { data: Buffer; contentType: string } | null {
+  const cached = validImageCache.get(url);
+  if (!cached) return null;
+  
+  // Se passou do TTL, remover do cache
+  if (Date.now() - cached.timestamp > VALID_CACHE_TTL) {
+    validImageCache.delete(url);
+    return null;
+  }
+  
+  return { data: cached.data, contentType: cached.contentType };
+}
+
+function cacheValidImage(url: string, data: Buffer, contentType: string): void {
+  validImageCache.set(url, { data, contentType, timestamp: Date.now() });
+}
+
+function createExpiredPlaceholder(): string {
+  return `<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
+      </linearGradient>
+      <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+        <circle cx="10" cy="10" r="1" fill="#e2e8f0" opacity="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="300" height="200" fill="url(#bgGrad)" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+    <rect width="300" height="200" fill="url(#dots)" opacity="0.3"/>
+    <g transform="translate(150, 70)">
+      <circle r="25" fill="#cbd5e1" opacity="0.7"/>
+      <g transform="translate(-12, -8)">
+        <rect x="0" y="0" width="24" height="16" fill="none" stroke="#64748b" stroke-width="2" rx="2"/>
+        <circle cx="8" cy="6" r="3" fill="none" stroke="#64748b" stroke-width="1.5"/>
+        <polyline points="2,12 8,8 14,12 22,6" fill="none" stroke="#64748b" stroke-width="1.5"/>
+      </g>
+    </g>
+    <text x="150" y="130" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#64748b">
+      Imagem não disponível
+    </text>
+    <text x="150" y="150" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">
+      URL do WhatsApp expirou
+    </text>
+    <text x="150" y="170" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#cbd5e1">
+      As imagens do WhatsApp expiram após alguns dias
+    </text>
+  </svg>`;
+}
+
 export function registerProxyRoutes(app: Express) {
   // Sistema robusto de proxy para imagens WhatsApp - REST: GET /api/proxy/whatsapp-image
   app.get('/api/proxy/whatsapp-image', async (req, res) => {
@@ -13,6 +88,27 @@ export function registerProxyRoutes(app: Express) {
       // Verificar se é uma URL válida do WhatsApp
       if (!url.includes('pps.whatsapp.net') && !url.includes('mmg.whatsapp.net') && !url.includes('media.whatsapp.net')) {
         return res.status(400).json({ error: 'URL não é do WhatsApp' });
+      }
+
+      // Verificar cache de URLs expiradas primeiro
+      if (isUrlExpired(url)) {
+        console.log('⚡ URL já conhecida como expirada - retornando placeholder imediatamente');
+        const placeholderSvg = createExpiredPlaceholder();
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(placeholderSvg);
+      }
+
+      // Verificar cache de imagens válidas
+      const cachedImage = getCachedImage(url);
+      if (cachedImage) {
+        console.log('⚡ Imagem encontrada no cache - retornando imediatamente');
+        res.setHeader('Content-Type', cachedImage.contentType);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        return res.send(cachedImage.data);
       }
 
       console.log('🖼️ Tentando carregar imagem WhatsApp:', url.substring(0, 100) + '...');
@@ -97,13 +193,26 @@ export function registerProxyRoutes(app: Express) {
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            return res.send(Buffer.from(arrayBuffer));
+            const buffer = Buffer.from(arrayBuffer);
+            
+            // Cache da imagem válida
+            cacheValidImage(url, buffer, contentType);
+            
+            return res.send(buffer);
           }
 
           // URL expirou (404, 403, 410)
           if (response.status === 404 || response.status === 403 || response.status === 410) {
-            console.log(`⚠️ URL WhatsApp expirada (${response.status}) com ${strategy.name}`);
-            throw new Error(`WhatsApp URL expired: ${response.status}`);
+            console.log(`⚠️ URL WhatsApp expirada (${response.status}) com ${strategy.name} - parando tentativas`);
+            // Marcar URL como expirada e parar tentativas imediatamente
+            markUrlAsExpired(url);
+            
+            // Retornar placeholder imediatamente sem tentar outras estratégias
+            const placeholderSvg = createExpiredPlaceholder();
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            return res.send(placeholderSvg);
           }
 
           console.log(`⚠️ Falha ${response.status} com ${strategy.name}`);
@@ -119,36 +228,10 @@ export function registerProxyRoutes(app: Express) {
       // Todas as estratégias falharam - URL definitivamente expirada
       console.log('⚠️ Todas as tentativas falharam - URL WhatsApp expirada, retornando placeholder');
       
-      const placeholderSvg = `<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
-        <defs>
-          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
-          </linearGradient>
-          <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="10" cy="10" r="1" fill="#e2e8f0" opacity="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="300" height="200" fill="url(#bgGrad)" stroke="#e2e8f0" stroke-width="1" rx="8"/>
-        <rect width="300" height="200" fill="url(#dots)" opacity="0.3"/>
-        <g transform="translate(150, 70)">
-          <circle r="25" fill="#cbd5e1" opacity="0.7"/>
-          <g transform="translate(-12, -8)">
-            <rect x="0" y="0" width="24" height="16" fill="none" stroke="#64748b" stroke-width="2" rx="2"/>
-            <circle cx="8" cy="6" r="3" fill="none" stroke="#64748b" stroke-width="1.5"/>
-            <polyline points="2,12 8,8 14,12 22,6" fill="none" stroke="#64748b" stroke-width="1.5"/>
-          </g>
-        </g>
-        <text x="150" y="130" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#64748b">
-          Imagem não disponível
-        </text>
-        <text x="150" y="150" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">
-          URL do WhatsApp expirou
-        </text>
-        <text x="150" y="170" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#cbd5e1">
-          As imagens do WhatsApp expiram após alguns dias
-        </text>
-      </svg>`;
+      // Garantir que a URL seja marcada como expirada
+      markUrlAsExpired(url);
+      
+      const placeholderSvg = createExpiredPlaceholder();
       
       res.setHeader('Content-Type', 'image/svg+xml');
       res.setHeader('Cache-Control', 'public, max-age=3600');
