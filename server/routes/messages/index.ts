@@ -8,6 +8,7 @@ import mediaRouter from './routes/media';
 import deleteRouter from './routes/delete';
 
 export function registerMessageRoutes(app: Express) {
+  // Registrar apenas os routers específicos (createRouter já tem a rota POST)
   app.use(createRouter);
   app.use(mediaRouter);
   app.use(deleteRouter);
@@ -72,82 +73,7 @@ export function registerMessageRoutes(app: Express) {
     }
   });
 
-  app.post('/api/conversations/:id/messages', async (req: AuthenticatedRequest, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const userId = req.user?.id;
-
-      // Validar ID da conversa
-      if (isNaN(conversationId)) {
-        return res.status(400).json({ 
-          error: 'ID da conversa inválido',
-          details: 'O ID da conversa deve ser um número válido'
-        });
-      }
-
-      // Verificar se a conversa existe
-      const conversation = await storage.conversation.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ 
-          error: 'Conversa não encontrada',
-          details: `Conversa com ID ${conversationId} não existe`
-        });
-      }
-
-      // Parse data first to check if it's an internal note
-      const parsedData = insertMessageSchema.parse({
-        ...req.body,
-        conversationId,
-      });
-
-      // Simplificar verificação de permissões - permitir resposta a todas as conversas para usuários autenticados
-      // Para notas internas, verificação básica de autenticação já é suficiente
-
-      const message = await storage.createMessage(parsedData);
-      
-      // Broadcast to WebSocket clients IMMEDIATELY
-      const { broadcast, broadcastToAll } = await import('../realtime');
-      broadcast(conversationId, {
-        type: 'new_message',
-        conversationId,
-        message,
-      });
-      
-      // Broadcast global para atualizar todas as listas de conversas
-      broadcastToAll({
-        type: 'new_message',
-        conversationId,
-        message
-      });
-      
-      // Nota: O envio via Z-API agora é feito pelo frontend após salvar a mensagem localmente
-      
-      res.status(201).json(message);
-    } catch (error) {
-      console.error('Error creating message:', error);
-      
-      // Fornecer detalhes específicos do erro
-      if (error instanceof Error) {
-        if (error.name === 'ZodError') {
-          return res.status(400).json({ 
-            error: 'Dados da mensagem inválidos',
-            details: error.message,
-            validationErrors: (error as any).issues || []
-          });
-        }
-        
-        return res.status(400).json({ 
-          error: 'Erro ao criar mensagem',
-          details: error.message
-        });
-      }
-      
-      res.status(500).json({ 
-        error: 'Erro interno do servidor',
-        details: 'Falha inesperada ao processar a mensagem'
-      });
-    }
-  });
+  // Rota POST removida - já existe no createRouter
 
   // Get media content for a specific message - REST: GET /api/messages/:id/media
   app.get('/api/messages/:id/media', async (req, res) => {
