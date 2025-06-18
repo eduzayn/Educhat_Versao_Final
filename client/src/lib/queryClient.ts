@@ -23,15 +23,52 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    const headers: Record<string, string> = {};
+    
+    if (data) {
+      headers["Content-Type"] = "application/json";
+    }
 
-  await throwIfResNotOk(res);
-  return res;
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`❌ Erro na requisição ${method} ${url}:`, error);
+    
+    // Se é erro de rede, tentar novamente uma vez
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.log(`🔄 Tentando novamente: ${method} ${url}`);
+      try {
+        const headers: Record<string, string> = {};
+        
+        if (data) {
+          headers["Content-Type"] = "application/json";
+        }
+
+        const res = await fetch(url, {
+          method,
+          headers,
+          body: data ? JSON.stringify(data) : undefined,
+          credentials: "include",
+        });
+
+        await throwIfResNotOk(res);
+        return res;
+      } catch (retryError) {
+        console.error(`❌ Erro na segunda tentativa ${method} ${url}:`, retryError);
+        throw retryError;
+      }
+    }
+    
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

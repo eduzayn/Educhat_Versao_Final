@@ -105,16 +105,47 @@ Como posso ajudar você hoje?`,
       console.log('🚀 Enviando mensagem para Prof. Ana:', message);
       console.log('👤 User ID:', user?.id);
       
-      const response = await apiRequest('POST', '/api/ia/copilot', {
-        message,
-        mode: 'copilot',
-        userId: user?.id || 0,
-        context: 'copilot_internal'
-      });
-      
-      const jsonResponse = await response.json();
-      console.log('📥 Resposta recebida da Prof. Ana:', jsonResponse);
-      return jsonResponse;
+      try {
+        const response = await apiRequest('POST', '/api/ia/copilot', {
+          message,
+          mode: 'copilot',
+          userId: user?.id || 0,
+          context: 'copilot_internal'
+        });
+        
+        const jsonResponse = await response.json();
+        console.log('📥 Resposta recebida da Prof. Ana:', jsonResponse);
+        return jsonResponse;
+      } catch (error) {
+        console.error('❌ Erro detalhado ao enviar mensagem:', error);
+        
+        // Fallback direto para casos de erro de conectividade
+        return {
+          message: `Desculpe, estou com problemas de conectividade no momento. 
+          
+Mas posso ajudar você com:
+
+📚 **Informações sobre cursos**
+- Detalhes de pós-graduação e graduação
+- Valores e formas de pagamento
+
+💼 **Suporte ao EduChat**
+- Como usar as funcionalidades
+- Melhores práticas de atendimento
+
+🎯 **Orientações gerais**
+- Políticas da instituição
+- Procedimentos administrativos
+
+Tente novamente em alguns segundos ou reformule sua pergunta.`,
+          classification: {
+            intent: 'connectivity_error',
+            confidence: 0.8,
+            sentiment: 'neutral',
+            urgency: 'medium'
+          }
+        };
+      }
     },
     onSuccess: (response: any, message) => {
       console.log('✅ Processando resposta bem-sucedida:', response);
