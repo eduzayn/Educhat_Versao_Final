@@ -74,7 +74,7 @@ class UnifiedAssignmentService {
         .set({
           assignedTeamId: suggestedTeamId,
           teamType: this.getTeamTypeById(suggestedTeamId),
-          assignmentMethod: 'automatic_equitable',
+          assignmentMethod: 'automatic',
           assignedAt: new Date(),
           updatedAt: new Date()
         })

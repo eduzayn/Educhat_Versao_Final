@@ -67,7 +67,7 @@ function getTypeIcon(type: string) {
   }
 }
 
-export function HandoffsList({ handoffs, activeTab, setActiveTab, handleAcceptHandoff, handleRejectHandoff, onSelectHandoff }: HandoffsListProps) {
+export function HandoffsList({ handoffs, activeTab, setActiveTab, handleAcceptHandoff, handleRejectHandoff }: HandoffsListProps) {
   const filteredHandoffs = handoffs.filter(handoff => {
     switch (activeTab) {
       case 'pending': return handoff.status === 'pending';
@@ -95,8 +95,7 @@ export function HandoffsList({ handoffs, activeTab, setActiveTab, handleAcceptHa
             filteredHandoffs.map((handoff) => (
               <div
                 key={handoff.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => onSelectHandoff?.(handoff)}
+                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

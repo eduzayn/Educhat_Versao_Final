@@ -1,49 +1,18 @@
-// Definir tipo MessageClassification localmente para evitar dependência circular
-interface MessageClassification {
-  intent: string;
-  sentiment: string;
-  confidence: number;
-  urgency: string;
-  frustrationLevel: number;
-}
+import { MessageClassification } from './aiService';
 import { TeamCapacity } from './assignmentAnalysisService';
 
 export function selectBestTeamForClassification(
   aiClassification: MessageClassification,
   teamCapacities: TeamCapacity[]
 ): TeamCapacity | null {
-  // REGRAS CRÍTICAS: Nunca misturar tipos de atendimento
   const intentToTeamType: { [key: string]: string } = {
-    // COMERCIAL - apenas vendas e leads
-    'lead_generation': 'comercial',
-    'sales_interest': 'comercial', 
-    'course_inquiry': 'comercial',
-    'pricing_question': 'comercial',
-    'enrollment_interest': 'comercial',
-    
-    // FINANCEIRO - apenas pagamentos e cobrança
     'billing_inquiry': 'financeiro',
-    'payment_issue': 'financeiro',
-    'invoice_request': 'financeiro',
-    
-    // SUPORTE - apenas problemas técnicos
     'technical_support': 'suporte',
-    'platform_issue': 'suporte',
-    'login_problem': 'suporte',
-    
-    // RECLAMAÇÕES sempre para suporte (não comercial)
     'complaint': 'suporte',
-    'service_complaint': 'suporte',
-    
-    // TUTORIA - apenas alunos matriculados
-    'student_support': 'tutoria',
+    'sales_interest': 'comercial',
+    'general_info': 'tutoria',
     'course_question': 'tutoria',
-    'academic_support': 'tutoria',
-    
-    // SECRETARIA - apenas processos administrativos
-    'schedule_request': 'secretaria',
-    'document_request': 'secretaria',
-    'general_info': 'secretaria'
+    'schedule_request': 'secretaria'
   };
   const preferredTeamType = intentToTeamType[aiClassification.intent];
   const availableTeams = teamCapacities.filter(team => team.isActive && team.utilizationRate < 80);
@@ -71,11 +40,11 @@ export function calculateAssignmentConfidence(
 
 function teamSpecializedInIntent(teamType: string, intent: string): boolean {
   const specializations: { [key: string]: string[] } = {
-    'comercial': ['lead_generation', 'sales_interest', 'course_inquiry', 'pricing_question', 'enrollment_interest'],
-    'financeiro': ['billing_inquiry', 'payment_issue', 'invoice_request'],
-    'suporte': ['technical_support', 'platform_issue', 'login_problem', 'complaint', 'service_complaint'],
-    'tutoria': ['student_support', 'course_question', 'academic_support'],
-    'secretaria': ['schedule_request', 'document_request', 'general_info']
+    'financeiro': ['billing_inquiry'],
+    'suporte': ['technical_support', 'complaint'],
+    'comercial': ['sales_interest'],
+    'tutoria': ['general_info', 'course_question'],
+    'secretaria': ['schedule_request']
   };
   return specializations[teamType]?.includes(intent) || false;
 }

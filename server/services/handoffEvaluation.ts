@@ -74,38 +74,13 @@ export class HandoffEvaluation {
     let suggestedTeamId: number | undefined;
     let reason = 'Baseado na análise da IA';
 
-    // MAPEAMENTO CORRIGIDO: Nunca enviar comercial para suporte
+    // Mapear intents para equipes específicas
     const intentTeamMapping: Record<string, string> = {
-      // VENDAS/COMERCIAL
-      'lead_generation': 'comercial',
-      'sales_interest': 'comercial',
-      'sales_inquiry': 'comercial',
-      'course_inquiry': 'comercial',
-      'course_information': 'comercial',
-      'pricing_question': 'comercial',
-      'enrollment_interest': 'comercial',
-      
-      // FINANCEIRO
-      'billing_inquiry': 'financeiro',
-      'billing_issue': 'financeiro',
-      'payment_issue': 'financeiro',
-      'invoice_request': 'financeiro',
-      
-      // SUPORTE TÉCNICO (não comercial!)
       'technical_support': 'suporte',
-      'platform_issue': 'suporte',
-      'login_problem': 'suporte',
-      'complaint': 'suporte', // Reclamações vão para suporte, não comercial
-      
-      // TUTORIA
-      'student_support': 'tutoria',
-      'course_question': 'tutoria',
-      'academic_support': 'tutoria',
-      
-      // SECRETARIA
-      'general_info': 'secretaria',
-      'schedule_request': 'secretaria',
-      'document_request': 'secretaria',
+      'billing_issue': 'financeiro',
+      'complaint': 'suporte',
+      'sales_inquiry': 'comercial',
+      'course_information': 'comercial',
       'enrollment': 'secretaria'
     };
 
