@@ -5,6 +5,7 @@ import { db } from '../../../db';
 import { aiContext } from '../../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { aiConfigService } from '../../../services/aiConfigService';
+import { AIErrorHandler } from '../../../middleware/aiErrorHandler';
 
 const router = Router();
 
@@ -76,7 +77,7 @@ async function getTrainingContexts() {
 async function generateAIResponse(message: string) {
   // Buscar configurações de IA
   console.log('🔍 Buscando configurações de IA...');
-  const config = await getAIConfig();
+  const config = await aiConfigService.getConfig();
   
   if (!config || !config.isActive) {
     console.log('❌ Configuração de IA não encontrada ou inativa');
@@ -164,12 +165,7 @@ Responda à seguinte mensagem:`;
         };
       }
     } catch (error: any) {
-      console.error('❌ Erro Anthropic detalhado:', {
-        message: error.message,
-        status: error.status,
-        type: error.type,
-        error: error.error
-      });
+      AIErrorHandler.logError('anthropic', error, 'copilot_generation');
       
       // Se for erro de timeout ou rede, tentar OpenAI
       if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.status >= 500) {

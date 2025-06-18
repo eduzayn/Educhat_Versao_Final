@@ -72,11 +72,13 @@ class AIConfigService {
         anthropicApiKey: config.anthropicApiKey || undefined,
         perplexityApiKey: config.perplexityApiKey || undefined,
         elevenlabsApiKey: config.elevenlabsApiKey || undefined,
-        responseSettings: config.responseSettings || {
-          maxTokens: 1000,
-          temperature: 0.7,
-          model: 'claude-3-sonnet-20240229'
-        },
+        responseSettings: (config.responseSettings && typeof config.responseSettings === 'object' && 'maxTokens' in config.responseSettings) 
+          ? config.responseSettings as { maxTokens: number; temperature: number; model: string }
+          : {
+            maxTokens: 1000,
+            temperature: 0.7,
+            model: 'claude-3-sonnet-20240229'
+          },
         isActive: config.isActive ?? true
       };
 

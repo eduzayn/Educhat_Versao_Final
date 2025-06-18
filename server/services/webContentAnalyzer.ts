@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiConfigService } from './aiConfigService';
+import { AIErrorHandler } from '../middleware/aiErrorHandler';
 
 export class WebContentAnalyzer {
   static async analyzeWithAI(content: string, title: string, url: string): Promise<{
@@ -53,6 +54,7 @@ Responda em JSON com as chaves: "summary", "keywords" (array), "improvedTitle"`;
         improvedTitle: result.improvedTitle || title
       };
     } catch (error) {
+      AIErrorHandler.logError('anthropic', error, 'web_content_analysis');
       // Fallback analysis
       const words = content.toLowerCase().split(/\s+/);
       const wordCount: Record<string, number> = {};
