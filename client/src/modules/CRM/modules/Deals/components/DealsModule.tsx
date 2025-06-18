@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { DealsHeader } from './DealsHeader';
 import { DealsKanban } from './DealsKanban';
+import { DealsTable } from './DealsTable';
 import { DealsEditDialog } from './DealsEditDialog';
 
 export function DealsModule() {
@@ -375,11 +376,11 @@ export function DealsModule() {
               isLoadingMore={isLoadingMore}
             />
           ) : (
-            <div className="p-6">
-              <div className="text-center text-muted-foreground py-8">
-                Visualização em tabela em desenvolvimento
-              </div>
-            </div>
+            <DealsTable
+              deals={allDeals}
+              onEditDeal={handleEditDeal}
+              isLoading={dealsQuery.isLoading}
+            />
           )}
         </div>
       </div>
