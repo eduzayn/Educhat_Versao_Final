@@ -61,7 +61,7 @@ export class ConversationDetailOperations extends BaseStorage {
         eq(messages.conversationId, id),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt));
+      .orderBy(desc(messages.sentAt), desc(messages.id));
 
     // Buscar canal se disponível
     let channelInfo = null;

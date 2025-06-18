@@ -64,7 +64,7 @@ export class ConversationListOperations extends BaseStorage {
         inArray(messages.conversationId, conversationIds),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt)) : [];
+      .orderBy(desc(messages.sentAt), desc(messages.id)) : [];
 
     // Agrupar apenas a última mensagem por conversa
     const messagesByConversation = new Map();

@@ -10,7 +10,7 @@ export class MessageInternalNotesOperations extends BaseStorage {
         eq(messages.isInternalNote, true),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt));
+      .orderBy(desc(messages.sentAt), desc(messages.id));
   }
 
   async createInternalNote(data: {
@@ -52,7 +52,7 @@ export class MessageInternalNotesOperations extends BaseStorage {
         eq(messages.notePriority, priority),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt));
+      .orderBy(desc(messages.sentAt), desc(messages.id));
   }
 
   async getInternalNotesByTags(conversationId: number, tags: string[]): Promise<Message[]> {
@@ -63,7 +63,7 @@ export class MessageInternalNotesOperations extends BaseStorage {
         or(...tags.map(tag => eq(messages.noteTags, [tag]))),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(desc(messages.sentAt));
+      .orderBy(desc(messages.sentAt), desc(messages.id));
   }
 
   async updateInternalNote(id: number, data: Partial<InsertMessage>): Promise<Message> {
