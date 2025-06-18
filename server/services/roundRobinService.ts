@@ -183,11 +183,12 @@ class RoundRobinService {
         };
       }
 
-      // Atualizar conversa com usuário atribuído
+      // Atualizar conversa com usuário e equipe atribuídos
       await db
         .update(conversations)
         .set({
           assignedUserId: selectedUser.id,
+          assignedTeamId: teamId,
           assignmentMethod: 'automatic',
           updatedAt: new Date()
         })

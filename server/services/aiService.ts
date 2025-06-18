@@ -137,12 +137,19 @@ class AIService {
     const urgentWords = ['urgente', 'emergência', 'problema', 'parou', 'não funciona'];
     const urgency = urgentWords.some(word => lowerMessage.includes(word)) ? 'high' : 'medium';
 
-    // Categoria básica
+    // Categoria básica com prioridade para suporte
     let category = 'duvida';
-    if (lowerMessage.includes('comprar') || lowerMessage.includes('preço')) {
-      category = 'vendas';
-    } else if (lowerMessage.includes('problema') || lowerMessage.includes('erro')) {
+    
+    // Palavras-chave de suporte (alta prioridade)
+    const suporteWords = ['suporte', 'técnico', 'problema', 'erro', 'bug', 'não funciona', 'parou', 'travou', 'lento', 'falha', 'defeito', 'quebrou', 'sistema', 'app', 'aplicativo', 'site', 'plataforma'];
+    
+    // Palavras-chave de vendas
+    const vendasWords = ['comprar', 'preço', 'valor', 'custo', 'orçamento', 'produto', 'serviço', 'venda', 'adquirir', 'contratar'];
+    
+    if (suporteWords.some(word => lowerMessage.includes(word))) {
       category = 'suporte';
+    } else if (vendasWords.some(word => lowerMessage.includes(word))) {
+      category = 'vendas';
     }
 
     return {
