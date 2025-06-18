@@ -21,6 +21,7 @@
 
 #### Backend
 - ✅ `server/routes/messages/routes/media.ts` - API de carregamento de mídia
+- ✅ `server/utils/mediaUrlExtractor.ts` - Extrator de URLs de mídia
 
 ### PROTEÇÕES IMPLEMENTADAS
 
@@ -34,7 +35,6 @@ Outros arquivos relacionados que podem ser protegidos se necessário:
 - `client/src/shared/lib/hooks/useMessageCache.ts`
 - `client/src/shared/lib/hooks/useOptimizedMessageLoading.ts`
 - `server/routes/webhooks/handlers/zapi-media.ts`
-- `server/utils/mediaUrlExtractor.ts`
 
 ### FUNCIONALIDADES PROTEGIDAS
 
