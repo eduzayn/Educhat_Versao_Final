@@ -72,7 +72,7 @@ export function useUserAssignment(conversationId: number) {
       
       // Invalidar cache do usuário específico para atualizar nome no cabeçalho
       if (variables.userId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/users', variables.userId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/basic', variables.userId] });
       }
       
       toast({

@@ -40,10 +40,10 @@ export function ChatHeader({
 
   // Buscar informações do usuário atribuído
   const { data: assignedUser } = useQuery({
-    queryKey: ['/api/admin/users', assignedUserId],
+    queryKey: ['/api/users/basic', assignedUserId],
     queryFn: async () => {
       if (!assignedUserId) return null;
-      const response = await fetch(`/api/admin/users/${assignedUserId}`);
+      const response = await fetch(`/api/users/${assignedUserId}/basic`);
       if (!response.ok) return null;
       return response.json();
     },
