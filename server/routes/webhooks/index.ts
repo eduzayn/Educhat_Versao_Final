@@ -9,6 +9,7 @@ import { storage } from "../../storage/index";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../utils/zapi";
 import { webhookHealthMonitor, validateWebhookData } from "../../webhookHealthCheck";
 import { gamificationService } from "../../services/gamificationService";
+import { dealAutomationService } from "../../services/dealAutomationService";
 
 // Importar handlers modulares
 import { registerZApiMediaRoutes } from './handlers/zapi';
@@ -300,6 +301,22 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
                 console.log(`🎮 Gamificação atualizada via webhook para usuário ${handoffResult.assignedUserId}`);
               } catch (gamError) {
                 console.error(`❌ Erro ao atualizar gamificação via webhook:`, gamError);
+              }
+              
+              // Criar deal automático quando conversa é atribuída
+              if (handoffResult.assignedTeamId) {
+                try {
+                  console.log(`💼 Iniciando criação automática de deal para conversa ${conversation.id}`);
+                  const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, handoffResult.assignedTeamId);
+                  if (dealId) {
+                    console.log(`✅ Deal automático criado com sucesso: ID ${dealId}`);
+                  } else {
+                    console.log(`ℹ️ Deal automático não criado (pode já existir ou não atender critérios)`);
+                  }
+                } catch (dealError) {
+                  console.error(`❌ Erro ao criar deal automático:`, dealError);
+                  // Não falhar o webhook por causa do deal
+                }
               }
             }
           } else {
