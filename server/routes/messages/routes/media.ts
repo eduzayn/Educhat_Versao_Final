@@ -31,7 +31,7 @@ router.get('/api/messages/:id/media', async (req, res) => {
       'Cross-Origin-Resource-Policy': 'cross-origin',
       'Cross-Origin-Embedder-Policy': 'unsafe-none',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cache-Control': 'public, max-age=3600'
+      'Cache-Control': 'public, max-age=7200, immutable'
     });
     const duration = Date.now() - startTime;
     res.json({

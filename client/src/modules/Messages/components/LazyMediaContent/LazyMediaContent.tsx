@@ -34,9 +34,15 @@ export function LazyMediaContent({
     initialContentLength: initialContent?.length
   });
 
-  // Para carregamento sob demanda, não passar URL direta - apenas quando explicitamente solicitado
-  const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl;
-  const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http'));
+  // OTIMIZAÇÃO: Usar URL direta quando disponível para renderização imediata
+  const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl || metadata?.url;
+  const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http') || directMediaUrl.startsWith('data:'));
+
+  console.log(`🔍 Verificando URL direta para mensagem ${messageId}:`, {
+    directMediaUrl,
+    hasDirectUrl,
+    metadata
+  });
 
   const {
     content,
@@ -47,7 +53,7 @@ export function LazyMediaContent({
     loadMediaContent,
     retry,
     canRetry
-  } = useOptimizedMedia(messageId, messageType, null); // Sempre null para forçar carregamento sob demanda
+  } = useOptimizedMedia(messageId, messageType, hasDirectUrl ? directMediaUrl : null);
 
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });

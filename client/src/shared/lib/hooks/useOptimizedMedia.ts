@@ -27,9 +27,9 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
     initialContentLength: initialContent?.length
   });
 
-  const [content, setContent] = useState<string | null>(null);
+  const [content, setContent] = useState<string | null>(initialContent || null);
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(!!initialContent);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -76,7 +76,11 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
   }, []);
 
   const loadMediaContent = useCallback(async () => {
-    if (loaded || loading) return;
+    // Se já temos conteúdo inicial válido, não carregar novamente
+    if (loaded || loading || (content && content.length > 0)) {
+      console.log(`⚡ Mídia ${messageId} já disponível (${content?.length} chars)`);
+      return;
+    }
 
     const cachedContent = getCachedContent(messageId);
     if (cachedContent) {
