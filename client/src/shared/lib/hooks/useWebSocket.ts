@@ -173,6 +173,11 @@ export function useWebSocket() {
               method: data.method
             });
             
+            // Atualizar activeConversation se for a conversa atual
+            if (activeConversation && activeConversation.id === data.conversationId) {
+              updateActiveConversationAssignment(data.teamId || null, data.userId || null);
+            }
+            
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
@@ -231,6 +236,14 @@ export function useWebSocket() {
               assignedUserId: data.conversation.assignedUserId,
               assignedUserName: data.conversation.assignedUserName
             });
+            
+            // Atualizar activeConversation se for a conversa atual
+            if (activeConversation && activeConversation.id === data.conversationId) {
+              updateActiveConversationAssignment(
+                data.conversation.assignedTeamId || null, 
+                data.conversation.assignedUserId || null
+              );
+            }
             
             // Invalidar cache para atualizar a interface
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });

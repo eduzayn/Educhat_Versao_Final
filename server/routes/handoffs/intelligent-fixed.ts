@@ -138,6 +138,29 @@ router.post('/execute', validateConversationId, async (req, res) => {
       console.error('Erro no round-robin:', roundRobinError);
     }
 
+    // Emitir evento WebSocket para atualização em tempo real
+    if (roundRobinSuccess) {
+      try {
+        const { broadcastToAll } = await import('../realtime');
+        const updatedConversation = await storage.getConversation(conversationId);
+        
+        broadcastToAll({
+          type: 'conversation_assigned_to_user',
+          conversationId,
+          conversation: {
+            ...updatedConversation,
+            assignedUserId,
+            assignedUserName,
+            assignedTeamId: team.id
+          }
+        });
+        
+        console.log(`📡 Evento WebSocket emitido: conversa ${conversationId} atribuída a ${assignedUserName}`);
+      } catch (broadcastError) {
+        console.error('Erro ao emitir evento WebSocket:', broadcastError);
+      }
+    }
+
     // Criar deal automático se necessário
     let dealCreated = false;
     let dealId = null;
