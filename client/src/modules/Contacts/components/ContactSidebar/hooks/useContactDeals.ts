@@ -82,6 +82,10 @@ export const useContactDeals = () => {
   const handleUpdateDeal = (deal: any, updates: any) => {
     const data: any = {};
     
+    if (updates.name !== undefined) {
+      data.name = updates.name;
+    }
+    
     if (updates.value !== undefined) {
       data.value = Math.round(parseFloat(updates.value) * 100);
     }

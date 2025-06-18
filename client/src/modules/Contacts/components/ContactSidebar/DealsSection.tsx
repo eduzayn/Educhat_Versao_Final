@@ -375,6 +375,20 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
             
             <div className="space-y-4">
               <div>
+                <Label>Nome do Negócio</Label>
+                <Input
+                  defaultValue={editingDeal.name}
+                  placeholder="Ex: Curso de Programação - João Silva"
+                  onChange={(e) => {
+                    setEditingDealData((prev: any) => ({ 
+                      ...prev, 
+                      name: e.target.value 
+                    }));
+                  }}
+                />
+              </div>
+
+              <div>
                 <Label>Valor</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
@@ -385,7 +399,10 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                     defaultValue={(editingDeal.value / 100).toFixed(2)}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      handleUpdateDeal(editingDeal, { value: newValue });
+                      setEditingDealData((prev: any) => ({ 
+                        ...prev, 
+                        value: newValue 
+                      }));
                     }}
                   />
                 </div>
@@ -450,6 +467,7 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                     if (Object.keys(updates).length > 0) {
                       handleUpdateDeal(editingDeal, updates);
                     }
+                    setEditingDeal(null);
                   }}
                   disabled={updateDealMutation.isPending}
                 >
