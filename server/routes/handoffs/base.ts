@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // import { intelligentHandoffService } from '../../services/intelligentHandoffService';
-import { handoffs as handoffsTable } from '@shared/schema';
-import { db } from '../../db';
+import { handoffs as handoffsTable } from '../../../shared/schema';
+import { db } from '../../core/db';
 import { desc, eq } from 'drizzle-orm';
 import { createHandoffSchema } from './config';
 import { validateHandoffId } from './middleware';
