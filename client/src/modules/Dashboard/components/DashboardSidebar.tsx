@@ -14,7 +14,8 @@ import {
   GraduationCap,
   Zap,
   ArrowRightLeft,
-  Settings
+  Settings,
+  Award
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
