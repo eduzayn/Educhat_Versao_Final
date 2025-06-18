@@ -18,7 +18,7 @@ import { useCRMContext } from '../CRMPage/CRMPage';
 import { useEffect, useState } from 'react';
 import { CreateDealDialog } from '../components/CreateDealDialog';
 import { ScheduleActivityDialog } from '../components/ScheduleActivityDialog';
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subDays } from 'date-fns';
 
 export function CRMDashboard() {
   const { dateFilter } = useCRMContext();
@@ -47,6 +47,10 @@ export function CRMDashboard() {
           return { start: startOfDay(now), end: endOfDay(now) };
         case 'week':
           return { start: startOfWeek(now), end: endOfWeek(now) };
+        case '15days':
+          return { start: startOfDay(subDays(now, 15)), end: endOfDay(now) };
+        case '30days':
+          return { start: startOfDay(subDays(now, 30)), end: endOfDay(now) };
         case 'month':
           return { start: startOfMonth(now), end: endOfMonth(now) };
         case 'quarter':

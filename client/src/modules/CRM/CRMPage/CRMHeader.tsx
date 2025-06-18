@@ -60,6 +60,8 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
     const periodLabels: Record<string, string> = {
       today: 'Hoje',
       week: 'Esta semana',
+      '15days': 'Últimos 15 dias',
+      '30days': 'Últimos 30 dias',
       month: 'Este mês',
       quarter: 'Este trimestre',
       year: 'Este ano',
@@ -94,6 +96,8 @@ export function CRMHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
             <SelectContent>
               <SelectItem value="today">Hoje</SelectItem>
               <SelectItem value="week">Esta semana</SelectItem>
+              <SelectItem value="15days">Últimos 15 dias</SelectItem>
+              <SelectItem value="30days">Últimos 30 dias</SelectItem>
               <SelectItem value="month">Este mês</SelectItem>
               <SelectItem value="quarter">Este trimestre</SelectItem>
               <SelectItem value="year">Este ano</SelectItem>
