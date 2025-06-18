@@ -6,13 +6,7 @@ import { processUnassignedConversations } from '../../services/auto-ai-assignmen
 const router = Router();
 
 // Configuração dos clientes de IA
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { aiConfigService } from '../../services/aiConfigService';
 
 /**
  * POST /api/admin/test-ai-connection

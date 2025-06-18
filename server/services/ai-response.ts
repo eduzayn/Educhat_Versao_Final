@@ -4,9 +4,16 @@ import { db } from '../core/db';
 import { aiLogs, aiContext, aiSessions, aiMemory } from '../../shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { aiConfigService } from './aiConfigService';
+
+// Inicializar OpenAI dinamicamente quando necessário
+async function getOpenAI() {
+  const openaiKey = await aiConfigService.getOpenAIKey();
+  if (!openaiKey) {
+    throw new Error('OpenAI API key não configurada');
+  }
+  return new OpenAI({ apiKey: openaiKey });
+}
 
 export class AIResponse {
   /**

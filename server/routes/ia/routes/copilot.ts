@@ -231,17 +231,21 @@ Responda à seguinte mensagem:`;
         };
       }
     } catch (error: any) {
-      console.error('❌ Erro OpenAI detalhado:', {
+      console.error('❌ [OPENAI] Erro detalhado:', {
         message: error.message,
         status: error.status,
+        code: error.code,
         type: error.type,
-        error: error.error,
-        code: error.code
+        timestamp: new Date().toISOString()
       });
       
-      // Se for erro de quota, informar especificamente
-      if (error.code === 'insufficient_quota') {
-        console.error('🚨 OpenAI: Quota excedida - verifique billing');
+      // Análise específica por tipo de erro
+      if (error.status === 401) {
+        console.error('🔑 [OPENAI] ERRO DE AUTENTICAÇÃO - Chave de API inválida');
+      } else if (error.status === 429 || error.code === 'insufficient_quota') {
+        console.error('💳 [OPENAI] QUOTA EXCEDIDA - Verificar billing/créditos');
+      } else if (error.status >= 500) {
+        console.error('🚨 [OPENAI] ERRO DE SERVIDOR - Problema no serviço externo');
       }
     }
   } else {
