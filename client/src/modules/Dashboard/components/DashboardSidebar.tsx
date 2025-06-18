@@ -113,6 +113,13 @@ export function DashboardSidebar({
       managerOrAdminOnly: true
     },
     {
+      id: 'gamification',
+      label: 'Gamificação',
+      icon: Award,
+      description: 'Sistema de badges e motivação',
+      route: '/gamification'
+    },
+    {
       id: 'handoffs',
       label: 'Transferências',
       icon: ArrowRightLeft,
