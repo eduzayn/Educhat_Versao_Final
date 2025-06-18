@@ -48,7 +48,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useMessages } from "@/shared/lib/hooks/useMessages";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useZApiStore } from "@/shared/store/zapiStore";
-import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { useCreateContact } from "@/shared/lib/hooks/useContacts";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
@@ -89,7 +88,6 @@ export function InboxPage() {
 
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
-  useGlobalZApiMonitor();
 
   // Inicializar WebSocket para mensagens em tempo real
   useWebSocket();
