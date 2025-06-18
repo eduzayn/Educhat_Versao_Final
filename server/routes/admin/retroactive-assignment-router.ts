@@ -133,7 +133,7 @@ router.post('/retroactive-assignment', async (req, res) => {
           .select()
           .from(messages)
           .where(eq(messages.conversationId, conversation.id))
-          .orderBy(asc(messages.sentAt));
+          .orderBy(asc(messages.sentAt), asc(messages.id));
 
         // Analisar conteúdo
         const analysis = analyzeConversationContent(conversationMessages);
@@ -251,7 +251,7 @@ router.get('/retroactive-assignment/preview', async (req, res) => {
         .select()
         .from(messages)
         .where(eq(messages.conversationId, conversation.id))
-        .orderBy(asc(messages.sentAt));
+        .orderBy(asc(messages.sentAt), asc(messages.id));
 
       const analysis = analyzeConversationContent(conversationMessages);
       

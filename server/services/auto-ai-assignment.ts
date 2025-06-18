@@ -185,7 +185,7 @@ export async function processUnassignedConversations(options: {
           })
           .from(messages)
           .where(eq(messages.conversationId, conversation.id))
-          .orderBy(messages.sentAt);
+          .orderBy(messages.sentAt, messages.id);
 
         const messageContents = conversationMessages
           .map(m => m.content)
