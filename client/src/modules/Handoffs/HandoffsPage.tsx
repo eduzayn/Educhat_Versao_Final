@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useLocation } from 'wouter';
 import type { Handoff } from '@shared/schema';
 import { HandoffsStats } from './HandoffsStats';
 import { HandoffsList } from './HandoffsList';
+import { RoundRobinDashboard } from './RoundRobinDashboard';
 
 interface HandoffWithDetails extends Handoff {
   conversation?: {
@@ -163,31 +165,46 @@ export function HandoffsPage() {
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sistema de Handoffs</h1>
-            <p className="text-gray-600">Gerencie transferências de conversas inteligentes</p>
+            <h1 className="text-2xl font-bold text-gray-900">Sistema de Transferências</h1>
+            <p className="text-gray-600">Gerencie transferências inteligentes e rodízio equitativo</p>
           </div>
         </div>
       </div>
+
       {/* Estatísticas */}
       {stats && <HandoffsStats stats={stats} />}
-      {/* Lista de Handoffs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Handoffs Recentes</CardTitle>
-          <CardDescription>
-            Visualize e gerencie todas as transferências de conversas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <HandoffsList
-            handoffs={handoffs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            handleAcceptHandoff={handleAcceptHandoff}
-            handleRejectHandoff={handleRejectHandoff}
-          />
-        </CardContent>
-      </Card>
+
+      {/* Abas principais */}
+      <Tabs defaultValue="round-robin" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="round-robin">Rodízio Equitativo</TabsTrigger>
+          <TabsTrigger value="handoffs">Transferências</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="round-robin" className="space-y-6">
+          <RoundRobinDashboard onRefresh={loadData} />
+        </TabsContent>
+
+        <TabsContent value="handoffs" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transferências Recentes</CardTitle>
+              <CardDescription>
+                Visualize e gerencie todas as transferências de conversas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HandoffsList
+                handoffs={handoffs}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                handleAcceptHandoff={handleAcceptHandoff}
+                handleRejectHandoff={handleRejectHandoff}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 
