@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { PeriodFilter, ChannelFilter, FilterContainer } from '@/shared/components/filters';
 import { Download, Calendar } from "lucide-react";
 import { SalesDashboardStats } from './components/SalesDashboardStats';
@@ -96,17 +99,60 @@ export function SalesDashboard() {
           />
 
           {period === 'custom' && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setIsCustomDateOpen(true)}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              {customDateStart && customDateEnd 
-                ? `${new Date(customDateStart).toLocaleDateString('pt-BR')} - ${new Date(customDateEnd).toLocaleDateString('pt-BR')}`
-                : 'Definir período'
-              }
-            </Button>
+            <Popover open={isCustomDateOpen} onOpenChange={setIsCustomDateOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {customDateStart && customDateEnd 
+                    ? `${customDateStart} - ${customDateEnd}`
+                    : 'Definir período'
+                  }
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4" align="start">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dateStart">Data inicial</Label>
+                    <Input
+                      id="dateStart"
+                      type="date"
+                      value={customDateStart}
+                      onChange={(e) => setCustomDateStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dateEnd">Data final</Label>
+                    <Input
+                      id="dateEnd"
+                      type="date"
+                      value={customDateEnd}
+                      onChange={(e) => setCustomDateEnd(e.target.value)}
+                    />
+                  </div>
+                  {customDateStart && customDateEnd && (
+                    <div className="text-sm text-muted-foreground">
+                      Período: {customDateStart} até {customDateEnd}
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setIsCustomDateOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => setIsCustomDateOpen(false)}
+                      disabled={!customDateStart || !customDateEnd}
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           <ChannelFilter
