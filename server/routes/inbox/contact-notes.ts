@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../../storage';
-import { insertContactNoteSchema } from '../../../shared/schema';
+import { insertContactNoteSchema } from '@shared/schema';
 
 const router = Router();
 

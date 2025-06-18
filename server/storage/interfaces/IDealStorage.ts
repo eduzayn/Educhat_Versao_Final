@@ -1,4 +1,4 @@
-import { Deal, InsertDeal } from '../../../shared/schema';
+import { Deal, InsertDeal } from '@shared/schema';
 
 export interface IDealStorage {
   getDeals(): Promise<Deal[]>;

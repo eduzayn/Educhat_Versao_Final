@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { contactNotes, type ContactNote, type InsertContactNote } from "../../../shared/schema";
+import { contactNotes, type ContactNote, type InsertContactNote } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 /**

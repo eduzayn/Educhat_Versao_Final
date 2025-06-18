@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { conversations, teams, systemUsers } from '../../../shared/schema';
+import { conversations, teams, systemUsers } from '@shared/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { aiService } from './aiService';
 

@@ -2,7 +2,7 @@
 // Settings e Roles mantidos aqui por serem específicos do sistema
 
 import { BaseStorage } from "../base/BaseStorage";
-import { systemSettings, roles, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "../../../shared/schema";
+import { systemSettings, roles, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "@shared/schema";
 import { eq, desc, ilike, or } from "drizzle-orm";
 
 /**

@@ -1,4 +1,4 @@
-import { SystemSetting, InsertSystemSetting } from '../../../shared/schema';
+import { SystemSetting, InsertSystemSetting } from '@shared/schema';
 
 export interface ISystemSettingStorage {
   getSystemSetting(key: string): Promise<SystemSetting | null>;

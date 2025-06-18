@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { roles, type Role, type InsertRole } from "../../../shared/schema";
+import { roles, type Role, type InsertRole } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 /**

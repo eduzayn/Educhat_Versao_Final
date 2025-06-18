@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateHandoffId } from './middleware';
 import { db } from '../../db';
-import { handoffs } from '../../../shared/schema';
+import { handoffs } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 const router = Router();

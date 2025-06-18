@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { db } from '../../core/db';
-import { conversations, messages, handoffs, auditLogs } from '../../../shared/schema';
+import { conversations, messages, handoffs, auditLogs } from '@shared/schema';
 import { sql, and } from 'drizzle-orm';
 import { requirePermission, AuthenticatedRequest, updateLastActivity, PermissionService } from '../../core/permissionsRefactored';
 

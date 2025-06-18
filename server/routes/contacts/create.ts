@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../storage/index";
-import { insertContactSchema } from "../../../shared/schema";
+import { insertContactSchema } from "@shared/schema";
 import { syncContactWithZApi } from "./syncZApi";
 
 export function registerContactCreateRoutes(app: Express) {

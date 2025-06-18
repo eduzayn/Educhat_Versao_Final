@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { deals, type Deal, type InsertDeal } from "../../../shared/schema";
+import { deals, type Deal, type InsertDeal } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export class DealBasicOperations extends BaseStorage {

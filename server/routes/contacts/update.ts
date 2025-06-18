@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../storage/index";
-import { insertContactSchema } from "../../../shared/schema";
+import { insertContactSchema } from "@shared/schema";
 
 export function registerContactUpdateRoutes(app: Express) {
   app.put('/api/contacts/:id', async (req, res) => {

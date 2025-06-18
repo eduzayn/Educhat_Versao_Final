@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { deals } from "../../../shared/schema";
+import { deals } from "@shared/schema";
 import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
 
 export class DealPaginationOperations extends BaseStorage {

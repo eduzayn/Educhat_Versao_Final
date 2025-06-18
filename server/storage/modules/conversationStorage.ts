@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
-import { deals } from "../../../shared/schema";
+import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "@shared/schema";
+import { deals } from "@shared/schema";
 import { eq, desc, and, count, sql, inArray, or, ilike } from "drizzle-orm";
 
 /**

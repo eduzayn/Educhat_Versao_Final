@@ -1,6 +1,6 @@
 import type { Express, Response, Request } from "express";
 import { db } from '../../core/db';
-import { systemUsers } from '../../../shared/schema';
+import { systemUsers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export function registerUserRoutes(app: Express) {

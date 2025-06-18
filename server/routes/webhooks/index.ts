@@ -269,7 +269,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           console.log(`💼 Verificando necessidade de deal automático para conversa não atribuída ${conversation.id}`);
           // Usar equipe comercial como padrão para conversas não atribuídas
           // Buscar equipe comercial dinamicamente
-          const comercialTeam = await storage.getTeamByTeamType('comercial');
+          const comercialTeam = await storage.getTeamByType('comercial');
           const teamId = comercialTeam?.id || 1;
           const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, teamId);
           if (dealId) {

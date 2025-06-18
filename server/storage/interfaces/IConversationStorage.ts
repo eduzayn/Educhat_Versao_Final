@@ -1,4 +1,4 @@
-import { Conversation, InsertConversation, ConversationWithContact } from '../../../shared/schema';
+import { Conversation, InsertConversation, ConversationWithContact } from '@shared/schema';
 
 export interface IConversationStorage {
   getConversations(limit?: number, offset?: number): Promise<ConversationWithContact[]>;

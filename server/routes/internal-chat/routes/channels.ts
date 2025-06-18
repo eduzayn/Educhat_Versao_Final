@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { db } from '../../../db';
-import { teams, userTeams, systemUsers, roles, internalChatChannels } from '../../../shared/schema';
+import { teams, userTeams, systemUsers, roles, internalChatChannels } from '@shared/schema';
 import { getUserPermissions } from '../services/permissions';
 import { Channel } from '../types/teams';
 

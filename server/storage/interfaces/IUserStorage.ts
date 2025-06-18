@@ -1,4 +1,4 @@
-import { User, UpsertUser, SystemUser, InsertSystemUser } from '../../../shared/schema';
+import { User, UpsertUser, SystemUser, InsertSystemUser } from '@shared/schema';
 
 export interface IUserStorage {
   getUser(id: string): Promise<User | undefined>;

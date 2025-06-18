@@ -1,4 +1,4 @@
-import { Channel, InsertChannel } from '../../../shared/schema';
+import { Channel, InsertChannel } from '@shared/schema';
 
 export interface IChannelStorage {
   getChannels(): Promise<Channel[]>;

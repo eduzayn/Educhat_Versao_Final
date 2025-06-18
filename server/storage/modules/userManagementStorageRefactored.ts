@@ -3,7 +3,7 @@ import { UserSystemStorage } from './userSystemStorage';
 import { UserSettingsStorage } from './userSettingsStorage';
 import { UserRolesStorage } from './userRolesStorage';
 import { UserAnalyticsStorage } from './userAnalyticsStorage';
-import type { User, UpsertUser, SystemUser, InsertSystemUser, SystemSetting, Role, InsertRole } from '../../../shared/schema';
+import type { User, UpsertUser, SystemUser, InsertSystemUser, SystemSetting, Role, InsertRole } from '@shared/schema';
 
 /**
  * Unified User Management Storage Module

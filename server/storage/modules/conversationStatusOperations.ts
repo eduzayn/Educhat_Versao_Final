@@ -1,6 +1,6 @@
 import { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { conversations } from '../../../shared/schema';
+import { conversations } from '@shared/schema';
 
 export class ConversationStatusOperations {
   constructor(private db: any) {}

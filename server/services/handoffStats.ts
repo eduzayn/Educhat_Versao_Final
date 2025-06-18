@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { handoffs, teams } from '../../../shared/schema';
+import { handoffs, teams } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 export class HandoffStats {

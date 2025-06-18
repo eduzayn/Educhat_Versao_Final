@@ -1,6 +1,6 @@
 import { db } from '../core/db';
 import { eq, count, and } from 'drizzle-orm';
-import { teams, userTeams, systemUsers, conversations } from '../../../shared/schema';
+import { teams, userTeams, systemUsers, conversations } from '@shared/schema';
 import { TeamCapacity } from './assignmentAnalysisService';
 
 export class TeamCapacityService {

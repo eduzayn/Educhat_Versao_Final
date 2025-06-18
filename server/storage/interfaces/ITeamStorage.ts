@@ -1,4 +1,4 @@
-import { Team, InsertTeam, UserTeam, InsertUserTeam, SystemUser } from '../../../shared/schema';
+import { Team, InsertTeam, UserTeam, InsertUserTeam, SystemUser } from '@shared/schema';
 
 export interface ITeamStorage {
   getTeams(): Promise<Team[]>;

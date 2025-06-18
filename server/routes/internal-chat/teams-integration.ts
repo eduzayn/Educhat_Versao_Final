@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { db } from "../../db";
-import { teams, systemUsers, conversations, messages } from "../../../shared/schema";
+import { teams, systemUsers, conversations, messages } from "@shared/schema";
 import { eq, and, or, desc } from "drizzle-orm";
 
 /**
