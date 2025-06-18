@@ -281,8 +281,18 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
               reason: handoffResult.recommendation?.reason
             });
             
-            if (handoffResult.handoffCreated) {
+            if (handoffResult.handoffCreated && handoffResult.assignedUserId) {
               console.log(`🔄 Transferência automática executada com sucesso para conversa ${conversation.id}`);
+              
+              // Atualizar gamificação para o usuário que recebeu a conversa
+              try {
+                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'daily', new Date());
+                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'weekly', new Date());
+                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'monthly', new Date());
+                console.log(`🎮 Gamificação atualizada via webhook para usuário ${handoffResult.assignedUserId}`);
+              } catch (gamError) {
+                console.error(`❌ Erro ao atualizar gamificação via webhook:`, gamError);
+              }
             }
           } else {
             console.error(`❌ Erro na análise de IA:`, await handoffResponse.text());

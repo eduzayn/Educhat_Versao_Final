@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { systemUsers, conversations, userTeams, teams } from '@shared/schema';
 import { eq, and, sql, count, desc, asc } from 'drizzle-orm';
+import { gamificationService } from './gamificationService';
 
 /**
  * SERVIÇO ROUND-ROBIN EQUITATIVO CORRIGIDO
