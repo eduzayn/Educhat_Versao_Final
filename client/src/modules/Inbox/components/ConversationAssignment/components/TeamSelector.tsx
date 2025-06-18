@@ -91,7 +91,7 @@ export function TeamSelector({
                     {teamUsers
                       .filter((u) => u.isActive)
                       .map((u) => (
-                        <li key={u.id} className="flex items-center gap-2">
+                        <li key={`team-user-${u.id}`} className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
                               u.isOnline ? "bg-green-500" : "bg-gray-400"
@@ -109,7 +109,7 @@ export function TeamSelector({
         <SelectContent>
           <SelectItem value="none">Sem grupo (neutro)</SelectItem>
           {teams.map((team) => (
-            <SelectItem key={team.id} value={team.id.toString()}>
+            <SelectItem key={`team-${team.id}`} value={team.id.toString()}>
               <div className="flex items-center gap-2">
                 <span
                   className="w-2 h-2 rounded-full"

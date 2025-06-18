@@ -29,7 +29,11 @@ export function UserSelector({
   const userAssignmentMutation = useUserAssignment(conversationId);
 
   // Use team users if a team is selected, otherwise use all users
+  // Remove duplicates by creating a Map with unique user IDs
   const availableUsers = currentTeamId ? teamUsers : allUsers;
+  const uniqueUsers = Array.from(
+    new Map(availableUsers.map(user => [user.id, user])).values()
+  );
   const currentUser = allUsers.find((u) => u.id === currentUserId);
 
   const handleUserChange = async (value: string) => {
@@ -76,10 +80,10 @@ export function UserSelector({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">Não atribuído</SelectItem>
-          {availableUsers
+          {uniqueUsers
             .filter((u) => u.isActive)
             .map((u) => (
-              <SelectItem key={u.id} value={u.id.toString()}>
+              <SelectItem key={`user-${u.id}`} value={u.id.toString()}>
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-2 h-2 rounded-full ${u.isOnline ? "bg-green-500" : "bg-gray-400"}`}
