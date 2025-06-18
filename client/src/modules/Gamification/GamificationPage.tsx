@@ -254,9 +254,9 @@ function DashboardTab({ data }: { data?: GamificationData }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {data.badges.earned.slice(0, 4).map((badge) => (
+            {data.badges?.earned?.slice(0, 4).map((badge) => (
               <BadgeCard key={badge.badgeId} badge={badge} />
-            ))}
+            )) || <p className="text-gray-500 text-sm">Nenhum badge recente</p>}
           </div>
         </CardContent>
       </Card>
