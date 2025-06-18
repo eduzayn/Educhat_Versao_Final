@@ -92,7 +92,7 @@ router.post('/execute', async (req, res) => {
         assignedUserId: selectedUser.userId,
         assignedTeamId: selectedTeam.id,
         teamType: teamType,
-        assignmentMethod: 'automatic_intelligent',
+        assignmentMethod: 'auto_intelligent',
         assignedAt: new Date(),
         updatedAt: new Date()
       })
