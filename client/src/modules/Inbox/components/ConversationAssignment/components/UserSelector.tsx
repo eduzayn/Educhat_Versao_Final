@@ -34,7 +34,12 @@ export function UserSelector({
   const uniqueUsers = Array.from(
     new Map(availableUsers.map(user => [user.id, user])).values()
   );
-  const currentUser = allUsers.find((u) => u.id === currentUserId);
+  
+  // Find current user from the combined list of all users and team users
+  const allAvailableUsers = [...allUsers, ...teamUsers];
+  const currentUser = Array.from(
+    new Map(allAvailableUsers.map(user => [user.id, user])).values()
+  ).find((u) => u.id === currentUserId);
 
   const handleUserChange = async (value: string) => {
     const userId = value === "none" ? null : parseInt(value);
