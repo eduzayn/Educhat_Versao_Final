@@ -1,3 +1,13 @@
+/*
+ * ⚠️  ARQUIVO PROTEGIDO - SISTEMA DE TRANSFERÊNCIAS ⚠️
+ * 
+ * Este arquivo é CRÍTICO para o funcionamento do sistema de transferências.
+ * O sistema está ESTÁVEL e NÃO deve ser modificado sem autorização explícita.
+ * 
+ * Data de Proteção: 18/06/2025
+ * Status: SISTEMA ESTÁVEL - NÃO MODIFICAR
+ */
+
 import OpenAI from 'openai';
 import { MessageClassification } from './ai-types';
 import { db } from '../core/db';
