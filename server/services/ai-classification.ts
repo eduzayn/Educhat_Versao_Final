@@ -43,7 +43,7 @@ export class AIClassification {
             
             Analise a mensagem e retorne a classificação em JSON no formato:
             {
-              "intent": "lead_generation|student_support|complaint|general_info|spam|course_inquiry|technical_support|financial",
+              "intent": "lead_generation|sales_interest|course_inquiry|pricing_question|enrollment_interest|billing_inquiry|payment_issue|technical_support|platform_issue|complaint|student_support|course_question|general_info|schedule_request",
               "sentiment": "positive|neutral|negative|frustrated|excited",
               "confidence": 85,
               "isLead": true,
@@ -63,7 +63,7 @@ export class AIClassification {
             Regras de classificação:
             - frustrationLevel: 0-3=baixo, 4-6=médio, 7-10=alto
             - aiMode: "mentor" para alunos, "consultora" para leads
-            - suggestedTeam baseado na intenção: comercial (vendas), suporte (técnico), pedagogico (acadêmico), financeiro (pagamentos)
+            - suggestedTeam NUNCA misturar tipos: comercial (apenas vendas/leads), suporte (apenas técnico/reclamações), tutoria (apenas alunos), financeiro (apenas pagamentos), secretaria (apenas administrativo)
             - confidence: precisão da classificação (0-100)
             - Detecte emojis, gírias e informalidade para sentimento
             - Identifique menções de cursos, valores, problemas técnicos`
