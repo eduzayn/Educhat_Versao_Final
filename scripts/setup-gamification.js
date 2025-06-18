@@ -2,8 +2,8 @@
  * Script para configurar badges e dados iniciais do sistema de gamificação
  */
 
-import { db } from '../server/db.js';
-import { gamificationBadges } from '../shared/schema.js';
+import { db } from '../server/db.ts';
+import { gamificationBadges } from '../shared/schema.ts';
 
 async function setupGamificationBadges() {
   console.log('🎮 Configurando badges do sistema de gamificação...');

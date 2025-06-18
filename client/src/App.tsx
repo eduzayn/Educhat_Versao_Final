@@ -31,6 +31,7 @@ import { ProfilePage } from "@/modules/Profile/ProfilePage";
 import { HandoffsPage } from "@/modules/Handoffs/HandoffsPage";
 import { NotificationsPage } from "@/modules/Notifications/NotificationsPage";
 import CopilotPage from "@/modules/Copilot/CopilotPage";
+import GamificationPageWrapper from "@/pages/GamificationPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

@@ -92,6 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerNotificationRoutes(app);
   registerTeamsIntegratedChatRoutes(app);
   
+  // Registrar rotas de gamificação
+  app.use('/api/gamification', gamificationRouter);
+  
   // Registrar rotas unificadas de estatísticas
   registerUnifiedStatsRoutes(app);
 
