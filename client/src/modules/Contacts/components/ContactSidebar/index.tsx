@@ -30,7 +30,12 @@ export function ContactSidebar({
     <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-6">
         {/* Cabeçalho do Contato */}
-        <ContactHeader contact={contact} />
+        <ContactHeader contact={{ 
+          id: contact.id, 
+          name: contact.name, 
+          profileImageUrl: contact.profileImageUrl, 
+          isOnline: contact.isOnline 
+        }} />
 
         {/* Informações de Contato */}
         <ContactInfo contact={contact} />

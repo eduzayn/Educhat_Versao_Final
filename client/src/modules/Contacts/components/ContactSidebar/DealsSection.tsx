@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/shared/ui/card';
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
-import { Plus, Edit, Briefcase } from 'lucide-react';
+import { Plus, Edit, Briefcase, Check, X } from 'lucide-react';
+import { useUpdateContact } from '@/shared/lib/hooks/useContacts';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { getAllTeams, getStagesForTeam } from '@/shared/lib/crmFunnels';
 import { useContactDeals } from './hooks/useContactDeals';
 import { useCourseData } from './hooks/useCourseData';
@@ -23,6 +25,9 @@ interface DealsSectionProps {
 }
 
 export function DealsSection({ contact, deals }: DealsSectionProps) {
+  const [isEditingContactName, setIsEditingContactName] = useState(false);
+  const [editedContactName, setEditedContactName] = useState(contact.name);
+  
   const {
     showDealDialog,
     setShowDealDialog,
@@ -40,6 +45,8 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
   } = useContactDeals();
 
   const { categories, filteredCourses, filterCoursesByCategory } = useCourseData();
+  const updateContactMutation = useUpdateContact();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (dealFormData.category) {
@@ -56,6 +63,52 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
   const openEditDialog = (deal: any) => {
     setEditingDeal(deal);
     setEditingDealData({});
+  };
+
+  const handleContactNameEdit = () => {
+    setIsEditingContactName(true);
+    setEditedContactName(contact.name);
+  };
+
+  const handleContactNameSave = async () => {
+    if (editedContactName.trim() === contact.name) {
+      setIsEditingContactName(false);
+      return;
+    }
+
+    if (!editedContactName.trim()) {
+      toast({
+        title: "Nome inválido",
+        description: "O nome do contato não pode estar vazio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await updateContactMutation.mutateAsync({
+        id: contact.id,
+        data: { name: editedContactName.trim() }
+      });
+      
+      toast({
+        title: "Nome atualizado",
+        description: "O nome do contato foi atualizado com sucesso.",
+      });
+      
+      setIsEditingContactName(false);
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o nome do contato.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleContactNameCancel = () => {
+    setEditedContactName(contact.name);
+    setIsEditingContactName(false);
   };
 
   return (
@@ -203,8 +256,50 @@ export function DealsSection({ contact, deals }: DealsSectionProps) {
                       {contact.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{contact.name}</p>
+                  <div className="flex-1">
+                    {isEditingContactName ? (
+                      <div className="flex items-center space-x-1">
+                        <Input
+                          value={editedContactName}
+                          onChange={(e) => setEditedContactName(e.target.value)}
+                          className="text-sm h-6 px-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleContactNameSave();
+                            if (e.key === 'Escape') handleContactNameCancel();
+                          }}
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={handleContactNameSave}
+                          disabled={updateContactMutation.isPending}
+                        >
+                          <Check className="h-3 w-3 text-green-600" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={handleContactNameCancel}
+                        >
+                          <X className="h-3 w-3 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-1 group">
+                        <p className="font-medium text-sm">{contact.name}</p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={handleContactNameEdit}
+                        >
+                          <Edit className="h-3 w-3 text-gray-500" />
+                        </Button>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-500">{contact.phone}</p>
                   </div>
                 </div>

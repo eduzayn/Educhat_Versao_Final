@@ -65,14 +65,15 @@ export function useUpdateContact() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: { id: number; name: string; email: string; phone: string }) => {
-      const { id, ...contact } = data;
-      const response = await apiRequest('PUT', `/api/contacts/${id}`, contact);
+    mutationFn: async (params: { id: number; data: Partial<InsertContact> }) => {
+      const { id, data } = params;
+      const response = await apiRequest('PUT', `/api/contacts/${id}`, data);
       return response.json();
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contacts', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
     }
   });
 }
