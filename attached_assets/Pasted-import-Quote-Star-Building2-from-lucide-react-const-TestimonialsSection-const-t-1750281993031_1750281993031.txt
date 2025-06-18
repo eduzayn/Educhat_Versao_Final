@@ -1,0 +1,101 @@
+import { Quote, Star, Building2 } from "lucide-react";
+const TestimonialsSection = () => {
+  const testimonials = [{
+    quote: "Com o EduChat, dobramos a taxa de conversão em menos de 2 meses.",
+    author: "Prof. Maria Silva",
+    role: "Diretora Acadêmica",
+    institution: "Instituto Tecnológico SP",
+    rating: 5,
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face"
+  }, {
+    quote: "Hoje sabemos quem está realmente trabalhando e entregando resultado.",
+    author: "Carlos Eduardo",
+    role: "Coordenador de Atendimento",
+    institution: "Faculdade Moderna",
+    rating: 5,
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face"
+  }, {
+    quote: "Nossa comunicação ficou fluida, rápida e muito mais humanizada.",
+    author: "Ana Paula Costa",
+    role: "Gerente de Marketing",
+    institution: "Escola Digital Plus",
+    rating: 5,
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face"
+  }];
+  const stats = [{
+    value: "+150%",
+    label: "Aumento na Conversão"
+  }, {
+    value: "97%",
+    label: "Satisfação dos Clientes"
+  }, {
+    value: "2.3s",
+    label: "Tempo Médio de Resposta"
+  }, {
+    value: "24/7",
+    label: "Disponibilidade"
+  }];
+  return <section className="py-20 bg-gradient-to-br from-green-50 to-blue-50">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16 animate-fade-in">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Building2 className="w-6 h-6 text-green-600" />
+            <span className="text-green-600 font-semibold">Prova Social</span>
+          </div>
+          
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            Quem usa, aprova: resultados do EduChat na prática.{" "}
+            <span className="text-green-600"></span>
+          </h2>
+        </div>
+        
+        {/* Testimonials */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {testimonials.map((testimonial, index) => <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover-lift border border-gray-100 animate-fade-in" style={{
+          animationDelay: `${index * 0.2}s`
+        }}>
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(testimonial.rating)].map((_, i) => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}
+              </div>
+              
+              <Quote className="w-8 h-8 text-gray-300 mb-4" />
+              
+              <blockquote className="text-lg text-gray-700 mb-6 italic">
+                "{testimonial.quote}"
+              </blockquote>
+              
+              <div className="flex items-center gap-4">
+                <img src={testimonial.image} alt={testimonial.author} className="w-12 h-12 rounded-full object-cover" />
+                <div>
+                  <div className="font-semibold text-gray-900">{testimonial.author}</div>
+                  <div className="text-sm text-gray-600">{testimonial.role}</div>
+                  <div className="text-sm text-green-600 font-medium">{testimonial.institution}</div>
+                </div>
+              </div>
+            </div>)}
+        </div>
+        
+        {/* Stats */}
+        <div className="bg-white rounded-2xl p-8 shadow-2xl animate-scale-in">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            {stats.map((stat, index) => <div key={index} className="space-y-2">
+                <div className="text-4xl font-bold text-gradient">{stat.value}</div>
+                <div className="text-gray-600 font-medium">{stat.label}</div>
+              </div>)}
+          </div>
+        </div>
+        
+        {/* Institution Logos Placeholder */}
+        <div className="text-center mt-12 animate-fade-in">
+          
+          <div className="flex justify-center items-center gap-8 opacity-60">
+            
+            
+            
+            
+          </div>
+        </div>
+      </div>
+    </section>;
+};
+export default TestimonialsSection;

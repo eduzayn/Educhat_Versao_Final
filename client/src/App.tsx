@@ -8,6 +8,7 @@ import { useGlobalZApiMonitor } from "@/shared/lib/hooks/useGlobalZApiMonitor";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Dashboard } from "@/modules/Dashboard/components/Dashboard";
 import { Login } from "@/modules/Auth/Login";
+import { LandingPage } from "@/pages/public/LandingPage";
 import { InboxPage } from "@/modules/Inbox/InboxPage";
 import { ContactsPage } from "@/modules/Contacts/components/ViewContactDialog/ContactsPage";
 import { ReportsPage } from "@/modules/Reports/ReportsPage";
@@ -52,11 +53,16 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/landing" component={LandingPage} />
       <Route path="/login" component={Login} />
       {!isAuthenticated ? (
-        <Route path="*" component={Login} />
+        <>
+          <Route path="/" component={LandingPage} />
+          <Route path="*" component={Login} />
+        </>
       ) : (
         <>
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />

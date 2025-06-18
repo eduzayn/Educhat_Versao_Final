@@ -1,0 +1,230 @@
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Check, Star, Zap, Crown, MessageSquare, Settings, Calendar, CalendarDays } from "lucide-react";
+import { useState } from "react";
+
+const PricingSection = () => {
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  const plans = [
+    {
+      name: "Essencial",
+      icon: MessageSquare,
+      priceMonthly: "Comece Grátis",
+      priceAnnualMonthly: "Comece Grátis",
+      period: "",
+      description: "Para escolas pequenas e cursos livres",
+      features: [
+        "Até 1 atendente",
+        "WhatsApp + Instagram",
+        "IA básica",
+        "Relatórios mensais",
+        "Suporte por e-mail"
+      ],
+      popular: false,
+      color: "border-gray-200",
+      buttonText: "Começar Agora"
+    },
+    {
+      name: "Profissional",
+      icon: Star,
+      priceMonthly: "R$ 516",
+      priceAnnualMonthly: "R$ 464", // 10% desconto: 516 * 0.9 = 464
+      period: "/mês",
+      description: "Para instituições com equipe de atendimento",
+      features: [
+        "Até 3 atendentes",
+        "WhatsApp + Facebook",
+        "IA avançada + treinamento",
+        "BI completo + relatórios",
+        "CRM educacional",
+        "Suporte"
+      ],
+      popular: true,
+      color: "border-edu-primary",
+      buttonText: "Começar Agora"
+    },
+    {
+      name: "Enterprise",
+      icon: Crown,
+      priceMonthly: "R$ 1228",
+      priceAnnualMonthly: "R$ 1105", // 10% desconto: 1228 * 0.9 = 1105
+      period: "/mês",
+      description: "Para grupos educacionais com alta demanda",
+      features: [
+        "Até 10 atendentes",
+        "Até 2 canais (WhatsApp ou Telegram)",
+        "Redes Socias (Facebook e Instagram)",
+        "IA avançada + treinamento",
+        "BI completo + relatórios",
+        "CRM educacional",
+        "Suporte Prioritario"
+      ],
+      popular: false,
+      color: "border-gray-200",
+      buttonText: "Começar Agora"
+    },
+    {
+      name: "Personalizado",
+      icon: Settings,
+      priceMonthly: "Consultar",
+      priceAnnualMonthly: "Consultar",
+      period: "",
+      description: "Solução customizada para suas necessidades específicas",
+      features: [
+        "Atendentes ilimitados",
+        "Todos os canais disponíveis",
+        "IA personalizada",
+        "Relatórios customizados",
+        "Integrações específicas",
+        "Suporte dedicado",
+        "Consultoria especializada"
+      ],
+      popular: false,
+      color: "border-gray-200",
+      buttonText: "Falar com Suporte"
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-gray-50">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16 animate-fade-in">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Zap className="w-6 h-6 text-edu-primary" />
+            <span className="text-edu-primary font-semibold">Planos e Investimento</span>
+          </div>
+          
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            Planos sob Medida para{" "}
+            <span className="text-gradient">Sua Realidade</span>
+          </h2>
+          
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Escolha o plano ideal para o tamanho e necessidades da sua instituição.
+          </p>
+
+          <div className="flex items-center justify-center gap-4">
+            <span className={`text-lg ${!isAnnual ? 'font-semibold text-edu-primary' : 'text-gray-600'}`}>
+              Mensal
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setIsAnnual(!isAnnual)}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-edu-primary focus:ring-offset-2"
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isAnnual ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex items-center gap-2">
+                    {isAnnual ? <CalendarDays className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
+                    <span>Alternar para {isAnnual ? 'mensal' : 'anual'}</span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className={`text-lg ${isAnnual ? 'font-semibold text-edu-primary' : 'text-gray-600'}`}>
+              Anual
+            </span>
+            {isAnnual && (
+              <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                Economize 10%
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {plans.map((plan, index) => (
+            <div 
+              key={index}
+              className={`
+                relative bg-white rounded-2xl p-8 shadow-lg hover-lift border-2 animate-fade-in flex flex-col
+                ${plan.popular ? 'border-edu-primary scale-105' : plan.color}
+              `}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-edu-primary text-white px-6 py-2 rounded-full text-sm font-semibold">
+                    Mais Popular
+                  </div>
+                </div>
+              )}
+              
+              <div className="text-center mb-8">
+                <div className="p-3 bg-gray-100 rounded-xl inline-block mb-4">
+                  <plan.icon className={`w-8 h-8 ${plan.popular ? 'text-edu-primary' : 'text-gray-600'}`} />
+                </div>
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                <p className="text-gray-600 mb-4">{plan.description}</p>
+                
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    {isAnnual ? plan.priceAnnualMonthly : plan.priceMonthly}
+                  </span>
+                  <span className="text-gray-600">{plan.period}</span>
+                  {isAnnual && plan.priceMonthly !== "Consultar" && plan.priceMonthly !== "Comece Grátis" && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      <span className="line-through">{plan.priceMonthly}</span>
+                      <span className="ml-2 text-green-600 font-semibold">10% off</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <ul className="space-y-4 mb-8 flex-grow">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <Button 
+                className={`
+                  w-full py-4 text-lg font-semibold mt-auto
+                  ${plan.popular 
+                    ? 'bg-edu-primary hover:bg-edu-primary/90 text-white' 
+                    : 'bg-gray-900 hover:bg-gray-800 text-white'
+                  }
+                `}
+              >
+                {plan.buttonText}
+              </Button>
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-center animate-scale-in">
+          <div className="bg-gradient-to-r from-edu-primary to-edu-secondary rounded-2xl p-8 text-white max-w-2xl mx-auto">
+            <h3 className="text-2xl font-bold mb-4">
+              Quer uma solução sob medida?
+            </h3>
+            <p className="text-xl mb-6">
+              Nossos especialistas estão prontos para ajudar sua instituição a crescer com eficiência.
+            </p>
+            <Button 
+              size="lg"
+              variant="secondary"
+              className="bg-white text-edu-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
+            >
+              💬 Fale agora com um consultor no WhatsApp
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default PricingSection;
