@@ -261,6 +261,24 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       if (messageType === 'text' && messageContent && messageContent.length > 10) {
         await autoAssignIfNeeded(conversation.id, messageContent);
       }
+
+      // **CRIAÇÃO AUTOMÁTICA DE DEALS PARA CONVERSAS NÃO ATRIBUÍDAS**
+      // Verificar se a conversa não possui atribuição e criar deal se necessário
+      if (!conversation.assignedUserId && !conversation.assignedTeamId && messageType === 'text') {
+        try {
+          console.log(`💼 Verificando necessidade de deal automático para conversa não atribuída ${conversation.id}`);
+          // Usar equipe comercial como padrão para conversas não atribuídas
+          // Buscar equipe comercial dinamicamente
+          const comercialTeam = await storage.getTeamByType('comercial');
+          const teamId = comercialTeam?.id || 1;
+          const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, teamId);
+          if (dealId) {
+            console.log(`✅ Deal automático criado para conversa não atribuída: ID ${dealId}`);
+          }
+        } catch (dealError) {
+          console.error(`❌ Erro ao criar deal para conversa não atribuída:`, dealError);
+        }
+      }
       
       // ANÁLISE DE IA E TRANSFERÊNCIAS AUTOMÁTICAS (Sistema Legado)
       try {
