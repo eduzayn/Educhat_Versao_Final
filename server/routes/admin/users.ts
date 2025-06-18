@@ -271,7 +271,7 @@ export function registerUserRoutes(app: Express) {
         // Atualizar senha se fornecida
         if (password && password.trim() !== '') {
           const bcrypt = await import('bcryptjs');
-          updateData.passwordHash = await bcrypt.default.hash(password, 10);
+          updateData.password = await bcrypt.default.hash(password, 10);
         }
 
         updateData.updatedAt = new Date();
