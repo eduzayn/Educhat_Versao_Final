@@ -1,3 +1,13 @@
+/*
+ * ⚠️  UTILITÁRIO PROTEGIDO - SISTEMA DE CARREGAMENTO DE MÍDIAS SOB DEMANDA ⚠️
+ * 
+ * Este utilitário é CRÍTICO para o funcionamento do carregamento sob demanda.
+ * O sistema está ESTÁVEL e NÃO deve ser modificado sem autorização explícita.
+ * 
+ * Data de Proteção: 18/06/2025
+ * Status: SISTEMA ESTÁVEL - NÃO MODIFICAR
+ */
+
 /**
  * Processador otimizado de URLs de mídia
  * Centraliza a lógica de extração e validação de URLs de mídia

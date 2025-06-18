@@ -1,3 +1,13 @@
+/*
+ * ⚠️  COMPONENTE PROTEGIDO - SISTEMA DE CARREGAMENTO DE MÍDIAS SOB DEMANDA ⚠️
+ * 
+ * Este componente é CRÍTICO para o funcionamento do carregamento sob demanda.
+ * O sistema está ESTÁVEL e NÃO deve ser modificado sem autorização explícita.
+ * 
+ * Data de Proteção: 18/06/2025
+ * Status: SISTEMA ESTÁVEL - NÃO MODIFICAR
+ */
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
