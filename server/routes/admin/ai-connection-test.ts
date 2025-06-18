@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import { processUnassignedConversations } from '../../services/auto-ai-assignment.js';
 
 const router = Router();
 
@@ -145,6 +146,36 @@ router.get('/ai-status', async (req: Request, res: Response) => {
   };
 
   res.json(status);
+});
+
+/**
+ * POST /api/admin/process-all-unassigned
+ * Processa todas as conversas não atribuídas automaticamente
+ */
+router.post('/process-all-unassigned', async (req: Request, res: Response) => {
+  try {
+    const { maxConversations = 100, minConfidence = 25 } = req.body;
+    
+    console.log(`🚀 Iniciando processamento completo de conversas não atribuídas`);
+    
+    const results = await processUnassignedConversations({
+      maxConversations,
+      minConfidence,
+      onlyRecent: false // Processar todas, não apenas recentes
+    });
+
+    res.json({
+      success: true,
+      message: `Processamento concluído: ${results.assigned} conversas atribuídas de ${results.processed} processadas`,
+      results
+    });
+  } catch (error: any) {
+    console.error('❌ Erro no processamento automático:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erro interno do servidor'
+    });
+  }
 });
 
 export default router;

@@ -118,7 +118,8 @@ export async function processUnassignedConversations(options: {
 
   try {
     // Buscar conversas não atribuídas
-    let query = db
+
+    let baseQuery = db
       .select({
         id: conversations.id,
         createdAt: conversations.createdAt
@@ -128,19 +129,27 @@ export async function processUnassignedConversations(options: {
       .orderBy(desc(conversations.createdAt))
       .limit(maxConversations);
 
-    // Filtro para conversas recentes (últimos 30 dias)
+    // Filtro para conversas recentes (últimos 30 dias)  
     if (onlyRecent) {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      query = query.where(
-        and(
-          isNull(conversations.assignedTeamId),
-          gt(conversations.createdAt, thirtyDaysAgo)
+      baseQuery = db
+        .select({
+          id: conversations.id,
+          createdAt: conversations.createdAt
+        })
+        .from(conversations)
+        .where(
+          and(
+            isNull(conversations.assignedTeamId),
+            gt(conversations.createdAt, thirtyDaysAgo)
+          )
         )
-      ) as any;
+        .orderBy(desc(conversations.createdAt))
+        .limit(maxConversations);
     }
 
-    const unassignedConversations = await query;
+    const unassignedConversations = await baseQuery;
 
     console.log(`📊 Encontradas ${unassignedConversations.length} conversas para processar`);
 
