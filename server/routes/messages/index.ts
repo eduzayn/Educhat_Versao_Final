@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../storage/index";
-import { insertMessageSchema } from "@shared/schema";
+import { insertMessageSchema } from "../../../shared/schema";
 import { AuthenticatedRequest } from "../../core/permissionsRefactored";
 import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor";
 import createRouter from './routes/create';
