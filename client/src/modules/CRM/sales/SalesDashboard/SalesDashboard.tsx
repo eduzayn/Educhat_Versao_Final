@@ -57,6 +57,36 @@ export function SalesDashboard() {
 
   const isLoading = dashboardLoading || chartsLoading;
 
+  // Função para exportar dados
+  const handleExport = async () => {
+    try {
+      let dateParams = '';
+      if (period === 'custom' && customDateStart && customDateEnd) {
+        dateParams = `&dateStart=${customDateStart}&dateEnd=${customDateEnd}`;
+      }
+      
+      const response = await fetch(`/api/sales/export?period=${period}&channel=${channel}&salesperson=${salesperson}${dateParams}`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao exportar dados');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `vendas_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Erro ao exportar:', error);
+      alert('Erro ao exportar dados. Tente novamente.');
+    }
+  };
+
   const defaultDashboard = dashboardData || {
     totalSalesThisMonth: 0,
     totalSalesLastMonth: 0,
@@ -161,7 +191,7 @@ export function SalesDashboard() {
             className="w-40"
           />
 
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
