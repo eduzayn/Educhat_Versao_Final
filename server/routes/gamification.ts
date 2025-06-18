@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { gamificationService } from '../services/gamificationService';
-import { requireAuth } from '../core/auth';
+// Middleware simples de autenticação
+const requireAuth = (req: any, res: any, next: any) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ error: 'Usuário não autenticado' });
+  }
+  next();
+};
 
 const router = Router();
 

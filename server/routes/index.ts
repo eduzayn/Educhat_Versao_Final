@@ -43,6 +43,7 @@ import internalNotesRouter from "./internal-notes/index";
 import reportsRouter from "./reports";
 import activitiesRouter from "./activities/index";
 import { registerUnifiedStatsRoutes } from "./stats/index";
+import gamificationRouter from "./gamification";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO

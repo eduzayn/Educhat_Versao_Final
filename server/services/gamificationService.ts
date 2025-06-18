@@ -360,7 +360,7 @@ export class GamificationService {
       progress: row.userBadge?.progress || 0,
       maxProgress: row.userBadge?.maxProgress || 100,
       isEarned: !!row.userBadge,
-      earnedAt: row.userBadge?.earnedAt || undefined,
+      earnedAt: row.userBadge?.earnedAt ? row.userBadge.earnedAt : undefined,
       points: row.badge.points || 100,
       rarity: row.badge.rarity || 'common'
     }));
