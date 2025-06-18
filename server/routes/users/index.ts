@@ -1,13 +1,12 @@
-import type { Express, Response } from "express";
+import type { Express, Response, Request } from "express";
 import { db } from '../../core/db';
 import { systemUsers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 
 export function registerUserRoutes(app: Express) {
-  // Rota sem autenticação para buscar informações básicas do usuário (apenas para cabeçalho de conversas)
-  // Esta rota é específica para exibição no cabeçalho e não requer permissões especiais
-  app.get('/api/users/:id/basic', async (req, res: Response) => {
+  // Rota pública para informações básicas do usuário (apenas para UI)
+  // Completamente isolada do sistema de permissões para evitar conflitos produção vs desenvolvimento
+  app.get('/api/users/:id/basic', async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.id);
       

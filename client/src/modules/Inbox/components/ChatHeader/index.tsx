@@ -43,26 +43,38 @@ export function ChatHeader({
     queryKey: ['/api/users/basic', assignedUserId],
     queryFn: async () => {
       if (!assignedUserId) return null;
-      console.log(`🔍 Buscando usuário ${assignedUserId} via /api/users/${assignedUserId}/basic`);
-      const response = await fetch(`/api/users/${assignedUserId}/basic`);
-      console.log(`📡 Resposta da API: ${response.status} ${response.statusText}`);
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ Erro na API: ${response.status} - ${errorText}`);
+      
+      try {
+        const response = await fetch(`/api/users/${assignedUserId}/basic`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin', // Garante que cookies sejam enviados
+        });
+        
+        if (!response.ok) {
+          console.error(`Erro ${response.status}: ${response.statusText}`);
+          return null;
+        }
+        
+        const userData = await response.json();
+        console.log(`Usuário ${assignedUserId} carregado:`, userData.displayName || userData.username);
+        return userData;
+      } catch (error) {
+        console.error(`Erro ao buscar usuário ${assignedUserId}:`, error);
         return null;
       }
-      const userData = await response.json();
-      console.log(`✅ Dados do usuário recebidos:`, userData);
-      return userData;
     },
     enabled: !!assignedUserId,
-    retry: 3,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: 500,
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
   });
 
-  // Log para debug em produção
+  // Log de debug apenas se houver erro persistente
   if (assignedUserId && isError) {
-    console.error(`❌ Erro ao buscar usuário ${assignedUserId}:`, error);
+    console.error(`Falha persistente ao buscar usuário ${assignedUserId}:`, error);
   }
 
   const channelInfo = getChannelInfo(channel);
