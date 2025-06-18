@@ -91,15 +91,18 @@ async function generateAIResponse(message: string) {
   // Usar chaves do banco de dados (já corretas)
   const anthropicKey = config.anthropicApiKey;
   const openaiKey = config.openaiApiKey;
+  const perplexityKey = config.perplexityApiKey;
   
   console.log('✅ Configurações de IA carregadas:', {
     hasAnthropicKey: !!anthropicKey,
     hasOpenAIKey: !!openaiKey,
+    hasPerplexityKey: !!perplexityKey,
     isActive: config.isActive,
     trainingContextsCount: trainingContexts.length,
     keysFromDB: true,
     anthropicKeyPreview: anthropicKey ? `${anthropicKey.substring(0, 10)}...` : 'null',
-    openaiKeyPreview: openaiKey ? `${openaiKey.substring(0, 10)}...` : 'null'
+    openaiKeyPreview: openaiKey ? `${openaiKey.substring(0, 10)}...` : 'null',
+    perplexityKeyPreview: perplexityKey ? `${perplexityKey.substring(0, 10)}...` : 'null'
   });
 
   // Construir prompt com contextos de treinamento personalizados
@@ -257,6 +260,67 @@ Responda à seguinte mensagem:`;
     }
   } else {
     console.log('⚠️ Chave da API OpenAI não encontrada');
+  }
+
+  // Tentar Perplexity como última alternativa
+  if (perplexityKey) {
+    try {
+      console.log('🔧 Tentando Perplexity como última alternativa...');
+      
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${perplexityKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user', 
+              content: message
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [PERPLEXITY] Erro detalhado:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+          timestamp: new Date().toISOString()
+        });
+        
+        if (response.status === 401) {
+          console.log('🔑 [PERPLEXITY] ERRO DE AUTENTICAÇÃO - Chave de API inválida');
+        }
+        throw new Error(`Perplexity API error: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices?.[0]?.message?.content;
+      
+      if (aiResponse) {
+        console.log('✅ [PERPLEXITY] Resposta obtida com sucesso');
+        return aiResponse.trim();
+      } else {
+        console.log('⚠️ [PERPLEXITY] Resposta vazia ou inválida');
+        throw new Error('Resposta inválida da Perplexity');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Erro na Perplexity, usando fallback:', error.message);
+    }
+  } else {
+    console.log('⚠️ Chave da API Perplexity não encontrada');
   }
 
   // Se chegou aqui, nenhuma IA funcionou
