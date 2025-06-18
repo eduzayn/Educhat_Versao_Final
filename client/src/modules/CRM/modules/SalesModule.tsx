@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { 
   BarChart3, 
@@ -20,9 +21,23 @@ import { SalesCoaching } from "@/modules/CRM/sales/SalesCoaching/SalesCoaching";
 
 export function SalesModule() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [location] = useLocation();
   const { user } = useAuth();
   
   const isAdmin = (user as any)?.role === 'admin';
+
+  // Processar parâmetros de URL para navegação automática
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    
+    if (tab && ['dashboard', 'targets', 'commissions', 'territories', 'leaderboard', 'coaching'].includes(tab)) {
+      setActiveTab(tab);
+      // Limpar o parâmetro da URL após processar
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location]);
 
   return (
     <div className="space-y-6">
