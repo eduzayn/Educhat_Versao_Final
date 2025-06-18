@@ -442,7 +442,7 @@ function LeaderboardTab({ data }: { data?: GamificationData }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {data.leaderboards[period].map((entry, index) => (
+          {(data.leaderboards?.[period] || []).map((entry, index) => (
             <div 
               key={entry.userId} 
               className={`flex items-center justify-between p-3 rounded ${
@@ -470,7 +470,7 @@ function LeaderboardTab({ data }: { data?: GamificationData }) {
                 <p className="text-sm text-gray-500">pontos</p>
               </div>
             </div>
-          ))}
+          )) || <p className="text-gray-500 text-center py-4">Nenhum dado disponível para este período</p>}
         </div>
       </CardContent>
     </Card>
