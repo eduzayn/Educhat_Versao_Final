@@ -6,6 +6,7 @@ import { registerAuditRoutes } from './audit';
 import { registerStatsRoutes } from './stats';
 import { registerCleanupRoutes } from './cleanup';
 import { registerPublicRoutes } from './public';
+import retroactiveAssignmentRouter from './retroactive-assignment';
 
 /**
  * Módulo Admin - Sistema de Administração
@@ -28,4 +29,7 @@ export function registerAdminRoutes(app: Express) {
   registerStatsRoutes(app);
   registerCleanupRoutes(app);
   registerPublicRoutes(app);
+  
+  // Registro da rota de atribuição retroativa
+  app.use('/api/admin', retroactiveAssignmentRouter);
 }

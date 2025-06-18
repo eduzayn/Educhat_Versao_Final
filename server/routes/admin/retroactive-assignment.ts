@@ -67,7 +67,7 @@ function analyzeConversationContent(messageList: any[]) {
   const confidence = Math.min(bestMatch.score * 20, 100); // Max 100%
   
   return {
-    teamType: bestMatch.teamType || null,
+    teamType: bestMatch.teamType || 'unassigned',
     confidence,
     reason: bestMatch.matchedWords.length > 0 
       ? `Palavras-chave encontradas: ${bestMatch.matchedWords.join(', ')}`
@@ -99,8 +99,7 @@ router.post('/', async (req, res) => {
 
     const conversationsToProcess = await query
       .limit(maxConversations)
-      .orderBy(desc(conversations.createdAt))
-      .execute();
+      .orderBy(desc(conversations.createdAt));
 
     console.log(`📊 Encontradas ${conversationsToProcess.length} conversas para processar`);
 
@@ -258,8 +257,7 @@ router.get('/preview', async (req, res) => {
 
     const conversationsToAnalyze = await query
       .limit(maxConversations)
-      .orderBy(desc(conversations.createdAt))
-      .execute();
+      .orderBy(desc(conversations.createdAt));
 
     const previews = [];
 
