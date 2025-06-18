@@ -10,7 +10,7 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/shared/ui/tooltip';
-import { Building2, Plus, Users, Settings, UserPlus, Loader2, X } from 'lucide-react';
+import { Building2, Plus, Users, Settings, UserPlus, Loader2, X, AlertTriangle, UserMinus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team } from '@shared/schema';
@@ -35,8 +35,10 @@ export const TeamsTab = () => {
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [showConfirmAddMember, setShowConfirmAddMember] = useState(false);
   const [showConfirmDeleteTeam, setShowConfirmDeleteTeam] = useState(false);
+  const [showRemoveMemberDialog, setShowRemoveMemberDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<{user: any, team: Team} | null>(null);
   
   // Estados do formulário de nova equipe
   const [newTeamForm, setNewTeamForm] = useState({
@@ -404,9 +406,8 @@ export const TeamsTab = () => {
                                 variant="ghost"
                                 className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
                                 onClick={() => {
-                                  if (confirm(`Tem certeza que deseja remover ${member.displayName} da equipe ${team.name}?`)) {
-                                    removeMemberMutation.mutate({ userId: member.id, teamId: team.id });
-                                  }
+                                  setMemberToRemove({ user: member, team });
+                                  setShowRemoveMemberDialog(true);
                                 }}
                                 disabled={removeMemberMutation.isPending}
                               >
@@ -728,6 +729,91 @@ export const TeamsTab = () => {
             >
               {addMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Adicionar Membro
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Confirmação para Remover Membro */}
+      <AlertDialog open={showRemoveMemberDialog} onOpenChange={setShowRemoveMemberDialog}>
+        <AlertDialogContent className="sm:max-w-[500px]">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <UserMinus className="h-6 w-6 text-destructive" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-left">
+                  Remover Membro da Equipe
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-left">
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            {memberToRemove && (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-muted">
+                      {memberToRemove.user.displayName?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{memberToRemove.user.displayName}</p>
+                    <p className="text-xs text-muted-foreground">{memberToRemove.user.email}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    Será removido da equipe <strong>{memberToRemove.team.name}</strong>.
+                    O usuário não receberá mais atribuições desta equipe.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowRemoveMemberDialog(false);
+                setMemberToRemove(null);
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (memberToRemove) {
+                  removeMemberMutation.mutate({ 
+                    userId: memberToRemove.user.id, 
+                    teamId: memberToRemove.team.id 
+                  });
+                  setShowRemoveMemberDialog(false);
+                  setMemberToRemove(null);
+                }
+              }}
+              disabled={removeMemberMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground flex-1"
+            >
+              {removeMemberMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Removendo...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <UserMinus className="h-4 w-4" />
+                  Remover da Equipe
+                </div>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
