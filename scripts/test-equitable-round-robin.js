@@ -3,9 +3,9 @@
  * Verifica se a distribuição está verdadeiramente equitativa
  */
 
-import { db } from '../server/db.js';
-import { equitableRoundRobinService } from '../server/services/equitableRoundRobinService.js';
-import { conversations, systemUsers, userTeams } from '../shared/schema.js';
+import { db } from '../server/db.ts';
+import { equitableRoundRobinService } from '../server/services/equitableRoundRobinService.ts';
+import { conversations, systemUsers, userTeams } from '../shared/schema.ts';
 import { eq, and } from 'drizzle-orm';
 
 async function testEquitableDistribution() {
