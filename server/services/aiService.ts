@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { aiConfigService } from './aiConfigService';
 
 /**
  * Serviço de IA para análise de conversas e atribuição inteligente
@@ -24,20 +25,23 @@ class AIService {
   private openai: OpenAI | null = null;
 
   constructor() {
-    if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-    }
+    // Não inicializar aqui, inicializar dinamicamente quando necessário
   }
 
   /**
    * Analisa uma mensagem para determinar sentimento, urgência e categoria
    */
   async analyzeMessage(message: string, context?: string): Promise<AIAnalysisResult> {
-    if (!this.openai) {
+    // Inicializar OpenAI dinamicamente
+    const openaiKey = await aiConfigService.getOpenAIKey();
+    if (!openaiKey) {
+      console.log('⚠️ OpenAI não configurada, usando análise de fallback');
       return this.getFallbackAnalysis(message);
     }
+
+    const openai = new OpenAI({
+      apiKey: openaiKey,
+    });
 
     try {
       const prompt = `
@@ -53,10 +57,11 @@ class AIService {
         - confidence: nível de confiança da análise (0-1)
       `;
 
-      const response = await this.openai.chat.completions.create({
+      const responseSettings = await aiConfigService.getResponseSettings();
+      const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
+        temperature: responseSettings.temperature,
         max_tokens: 200,
       });
 
@@ -69,7 +74,7 @@ class AIService {
         }
       }
     } catch (error) {
-      console.error('Erro na análise de IA:', error);
+      console.error('❌ Erro na análise de IA OpenAI:', error);
     }
 
     return this.getFallbackAnalysis(message);
@@ -164,9 +169,15 @@ class AIService {
    * Gera resposta automática baseada no contexto
    */
   async generateAutoResponse(message: string, context: string): Promise<string | null> {
-    if (!this.openai) {
+    const openaiKey = await aiConfigService.getOpenAIKey();
+    if (!openaiKey) {
+      console.log('⚠️ OpenAI não configurada para resposta automática');
       return null;
     }
+
+    const openai = new OpenAI({
+      apiKey: openaiKey,
+    });
 
     try {
       const prompt = `
@@ -182,16 +193,17 @@ class AIService {
         - Em português
       `;
 
-      const response = await this.openai.chat.completions.create({
+      const responseSettings = await aiConfigService.getResponseSettings();
+      const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
+        temperature: responseSettings.temperature,
         max_tokens: 150,
       });
 
       return response.choices[0]?.message?.content || null;
     } catch (error) {
-      console.error('Erro ao gerar resposta automática:', error);
+      console.error('❌ Erro ao gerar resposta automática:', error);
       return null;
     }
   }

@@ -1,8 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { aiConfigService } from './aiConfigService';
 
 export class WebContentAnalyzer {
   static async analyzeWithAI(content: string, title: string, url: string): Promise<{
@@ -11,6 +8,16 @@ export class WebContentAnalyzer {
     improvedTitle: string;
   }> {
     try {
+      // Buscar configurações de IA
+      const anthropicKey = await aiConfigService.getAnthropicKey();
+      if (!anthropicKey) {
+        throw new Error('Chave da Anthropic não configurada');
+      }
+
+      const anthropic = new Anthropic({
+        apiKey: anthropicKey,
+      });
+
       const prompt: string = `Analise o seguinte conteúdo de site e forneça:
 
 1. Um resumo conciso (2-3 parágrafos) do conteúdo principal
@@ -23,9 +30,10 @@ ${content}
 
 Responda em JSON com as chaves: "summary", "keywords" (array), "improvedTitle"`;
 
+      const responseSettings = await aiConfigService.getResponseSettings();
       const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: responseSettings.maxTokens,
         messages: [
           {
             role: 'user',
