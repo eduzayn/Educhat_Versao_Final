@@ -276,6 +276,78 @@ export function LazyMediaContent({
         );
 
       case "document":
+        // Se temos conteúdo carregado (URL do documento), mostrar preview e botão de download
+        if (content) {
+          const isPdf = fileName.toLowerCase().includes('.pdf') || metadata?.mimeType?.includes('pdf');
+          
+          return (
+            <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center gap-4 p-4">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <Download className="w-2 h-2 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                    {fileName}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                    {isPdf ? 'PDF' : 'Documento'} • {metadata?.fileSize ? `${(metadata.fileSize / 1024).toFixed(0)} KB` : 'Disponível'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {isPdf && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // Abrir modal de preview para PDFs
+                        const previewWindow = window.open('', '_blank');
+                        if (previewWindow) {
+                          previewWindow.document.write(`
+                            <html>
+                              <head><title>${fileName}</title></head>
+                              <body style="margin:0; padding:0;">
+                                <iframe src="${content}" style="width:100%; height:100vh; border:none;"></iframe>
+                              </body>
+                            </html>
+                          `);
+                        }
+                      }}
+                      className="relative px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      Visualizar
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = content;
+                      link.download = fileName;
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="relative px-3 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Baixar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        // Se não temos conteúdo, mostrar botão para carregar
         return (
           <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center gap-4 p-4">
@@ -283,7 +355,7 @@ export function LazyMediaContent({
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center">
                   <Download className="w-2 h-2 text-white" />
                 </div>
               </div>
@@ -292,42 +364,30 @@ export function LazyMediaContent({
                   {fileName}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                  Documento • Clique para {content ? 'baixar' : 'carregar'}
+                  Documento • Clique para carregar
                 </p>
               </div>
-              {content ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(content, "_blank")}
-                  className="relative px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={error ? retry : loadMediaContent}
-                  disabled={loading || (!canRetry && !!error)}
-                  className="relative px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Carregando...
-                    </>
-                  ) : error && retryCount > 0 ? (
-                    `Tentar novamente (${retryCount})`
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Carregar
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={error ? retry : loadMediaContent}
+                disabled={loading || (!canRetry && !!error)}
+                className="relative px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Carregando...
+                  </>
+                ) : error && retryCount > 0 ? (
+                  `Tentar novamente (${retryCount})`
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Carregar
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         );
