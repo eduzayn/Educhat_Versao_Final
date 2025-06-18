@@ -9,9 +9,10 @@ import {
   systemUsers,
   conversations,
   messages,
-  teams
+  teams,
+  deals
 } from '@shared/schema';
-import { eq, and, desc, gte, lte, sql, count, avg } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql, count, avg, sum, isNotNull } from 'drizzle-orm';
 
 export interface UserStats {
   userId: number;
@@ -23,6 +24,9 @@ export interface UserStats {
   satisfactionScore: number;
   messagesExchanged: number;
   workingHours: number;
+  dealsCreated: number;
+  dealsClosed: number;
+  salesValue: number;
   totalPoints: number;
 }
 
