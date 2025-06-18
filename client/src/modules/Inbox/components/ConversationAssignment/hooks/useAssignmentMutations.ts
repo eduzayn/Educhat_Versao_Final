@@ -24,9 +24,9 @@ export function useTeamAssignment(conversationId: number) {
         updateActiveConversationAssignment(variables.teamId, null);
       }
       
-      // Invalidar queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+      // Refetch imediato para garantir atualização da interface
+      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/conversations', conversationId] });
       
       toast({
         title: 'Equipe atribuída',

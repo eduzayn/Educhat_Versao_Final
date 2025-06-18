@@ -166,18 +166,20 @@ export function useWebSocket() {
               assignmentMethod: data.assignmentMethod
             });
             
-            // Invalidar queries para atualizar o cabeçalho da conversa
-            queryClient.invalidateQueries({ 
-              queryKey: ['/api/conversations', data.conversationId] 
-            });
-            queryClient.invalidateQueries({ 
-              queryKey: ['/api/conversations'] 
-            });
-            
-            // Atualizar estado local se for a conversa ativa
+            // Atualizar estado local ANTES de invalidar queries para garantir reatividade imediata
             if (activeConversation && activeConversation.id === data.conversationId) {
               updateActiveConversationAssignment(data.assignedTeamId, data.assignedUserId);
             }
+            
+            // Forçar refetch imediato para atualizar interface
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/conversations', data.conversationId],
+              type: 'active'
+            });
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/conversations'],
+              type: 'active'
+            });
           }
           break;
         case 'crm_update':

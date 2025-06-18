@@ -34,6 +34,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           ...activeConversation,
           assignedTeamId,
           assignedUserId,
+          updatedAt: new Date().toISOString(),
         },
       });
     }
