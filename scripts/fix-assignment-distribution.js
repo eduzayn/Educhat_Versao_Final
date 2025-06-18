@@ -8,12 +8,12 @@
  * - Implementa sistema equitativo corretamente
  */
 
-const { drizzle } = require('drizzle-orm/node-postgres');
-const { Pool } = require('pg');
-const { eq, sql, count, and, gte, desc } = require('drizzle-orm');
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import { eq, sql, count, and, gte, desc } from 'drizzle-orm';
 
 // Importar schema
-const schema = require('../shared/schema');
+import * as schema from '../shared/schema.js';
 const { conversations, teams, systemUsers, userTeams } = schema;
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -284,8 +284,4 @@ async function main() {
   }
 }
 
-if (require.main === module) {
-  main();
-}
-
-module.exports = { analyzeCurrentDistribution, identifyProblems, redistributeOverloadedTeams };
+main().catch(console.error);
