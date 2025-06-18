@@ -170,7 +170,7 @@ export function MessageBubble({
       case "text":
         return (
           <div
-            className={`px-4 py-2 rounded-lg ${message.isInternalNote ? "bg-amber-50 text-amber-900 border border-amber-200" : isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"}`}
+            className={`px-4 py-2 rounded-lg ${message.isInternalNote ? "bg-amber-50 text-amber-900 border border-amber-200" : isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-400 text-white"}`}
           >
             {message.isInternalNote && (
               <div className="flex items-center gap-1.5 mb-2 text-xs text-amber-700">
