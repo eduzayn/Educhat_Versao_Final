@@ -122,15 +122,7 @@ export function TeamSelector({
         </SelectContent>
       </Select>
       
-      {/* Detecção de equipe automática */}
-      {detectedTeam && (
-        <Badge
-          variant="outline"
-          className="bg-blue-50 text-blue-600 border-blue-200 text-[10px] ml-2"
-        >
-          Detectado: {detectedTeam}
-        </Badge>
-      )}
+
     </div>
   );
 }
