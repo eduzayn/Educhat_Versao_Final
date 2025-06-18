@@ -262,160 +262,21 @@ Responda à seguinte mensagem:`;
 function generateFallbackResponse(message: string) {
   const lowerMessage = message.toLowerCase();
   
-  // Prioridade para perguntas sobre sistema/plataforma
-  if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('euchat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar') || lowerMessage.includes('como funciona') || lowerMessage.includes('funciona') || lowerMessage.includes('como trabalhar')) {
-    return {
-      message: `Sobre como usar o EduChat:
-
-💻 **Funcionalidades principais:**
-- Caixa de Entrada: Gerencie todas as conversas
-- Contatos: Organize leads e alunos
-- CRM: Acompanhe o funil de vendas
-- Relatórios: Analise performance da equipe
-
-📱 **Dicas de uso:**
-- Use respostas rápidas para agilizar atendimento
-- Configure tags para organizar contatos
-- Acompanhe métricas em tempo real
-- Use filtros para encontrar conversas específicas
-
-🎯 **Melhores práticas:**
-- Responda rapidamente aos leads
-- Use tom acolhedor e profissional
-- Registre informações importantes nos contatos
-- Transfira conversas quando necessário
-
-Precisa de ajuda com alguma funcionalidade específica?`,
-      classification: {
-        intent: 'technical_support',
-        confidence: 0.9,
-        sentiment: 'neutral',
-        urgency: 'medium'
-      }
-    };
-  }
+  // Apenas usar IA em tempo real, sem respostas automáticas
   
-  // Respostas específicas baseadas em palavras-chave
-  if (lowerMessage.includes('pós-graduação') || lowerMessage.includes('pos graduacao') || lowerMessage.includes('especialização')) {
-    return {
-      message: `Sobre nossos cursos de pós-graduação:
-
-🎓 **Oferecemos diversas especializações:**
-- Neuropsicopedagogia
-- Psicopedagogia Clínica e Institucional
-- Educação Especial e Inclusiva
-- Gestão Escolar
-- Alfabetização e Letramento
-
-📋 **Informações importantes:**
-- Modalidade: EAD com encontros presenciais opcionais
-- Duração: 12 a 18 meses
-- Certificação reconhecida pelo MEC
-- Material didático incluso
-
-💰 **Formas de pagamento:**
-- À vista com desconto
-- Parcelamento em até 18x
-- Convênios e descontos especiais
-
-Precisa de mais detalhes sobre algum curso específico?`,
-      classification: {
-        intent: 'course_inquiry',
-        confidence: 0.9,
-        sentiment: 'neutral',
-        urgency: 'medium'
-      }
-    };
-  }
-  
-  if (lowerMessage.includes('preço') || lowerMessage.includes('valor') || lowerMessage.includes('custo') || lowerMessage.includes('pagamento')) {
-    return {
-      message: `Sobre valores e formas de pagamento:
-
-💰 **Investimento nos cursos:**
-- Pós-graduação: A partir de R$ 149,90/mês
-- Cursos livres: A partir de R$ 49,90/mês
-- Graduação: Consulte condições especiais
-
-💳 **Formas de pagamento:**
-- Cartão de crédito (até 18x)
-- Boleto bancário
-- PIX com desconto à vista
-- Financiamento estudantil
-
-🎯 **Descontos disponíveis:**
-- Pagamento à vista: até 20% de desconto
-- Convênios empresariais
-- Desconto para profissionais da educação
-- Promoções sazonais
-
-Gostaria de simular um valor específico para algum curso?`,
-      classification: {
-        intent: 'financial',
-        confidence: 0.9,
-        sentiment: 'neutral',
-        urgency: 'medium'
-      }
-    };
-  }
-  
-  if (lowerMessage.includes('sistema') || lowerMessage.includes('educhat') || lowerMessage.includes('euchat') || lowerMessage.includes('plataforma') || lowerMessage.includes('como usar') || lowerMessage.includes('como funciona') || lowerMessage.includes('funciona') || lowerMessage.includes('como trabalhar')) {
-    return {
-      message: `Sobre como usar o EduChat:
-
-💻 **Funcionalidades principais:**
-- Caixa de Entrada: Gerencie todas as conversas
-- Contatos: Organize leads e alunos
-- CRM: Acompanhe o funil de vendas
-- Relatórios: Analise performance da equipe
-
-📱 **Dicas de uso:**
-- Use respostas rápidas para agilizar atendimento
-- Configure tags para organizar contatos
-- Acompanhe métricas em tempo real
-- Use filtros para encontrar conversas específicas
-
-🎯 **Melhores práticas:**
-- Responda rapidamente aos leads
-- Use tom acolhedor e profissional
-- Registre informações importantes nos contatos
-- Transfira conversas quando necessário
-
-Precisa de ajuda com alguma funcionalidade específica?`,
-      classification: {
-        intent: 'technical_support',
-        confidence: 0.9,
-        sentiment: 'neutral',
-        urgency: 'medium'
-      }
-    };
-  }
-  
-  // Resposta genérica para outras perguntas
+  // Resposta específica baseada no contexto da pergunta
   return {
-    message: `Olá! Sou a Prof. Ana, sua assistente inteligente.
+    message: `Desculpe, não tenho informações específicas sobre "${message}" no momento.
 
 Posso ajudar você com:
+- Informações sobre cursos e procedimentos
+- Orientações sobre uso do sistema EduChat
+- Dúvidas sobre processos internos
 
-📚 **Informações sobre cursos**
-- Detalhes de pós-graduação e graduação
-- Valores e formas de pagamento
-- Processo de matrícula
-
-💼 **Suporte ao trabalho**
-- Como usar o EduChat
-- Melhores práticas de atendimento
-- Processos internos
-
-🎯 **Orientações gerais**
-- Políticas da instituição
-- Procedimentos administrativos
-- Dúvidas frequentes
-
-Como posso ajudar você especificamente hoje?`,
+Poderia reformular sua pergunta ou ser mais específico sobre o que precisa?`,
     classification: {
-      intent: 'general_info',
-      confidence: 0.7,
+      intent: 'clarification_needed',
+      confidence: 0.6,
       sentiment: 'neutral',
       urgency: 'low'
     }
