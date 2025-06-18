@@ -4,6 +4,9 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/shared/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,7 +23,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
   
   const [form, setForm] = useState({
     name: '',
-    contactId: preselectedContactId || '',
+    contactId: preselectedContactId || 0 as number,
     teamType: 'comercial',
     stage: 'prospecting',
     value: '',
@@ -30,6 +33,8 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
     category: '',
     notes: ''
   });
+
+  const [openContactSelect, setOpenContactSelect] = useState(false);
 
   // Buscar contatos para seleção
   const { data: contacts = [] } = useQuery<Array<{id: number, name: string, phone?: string, email?: string}>>({
@@ -78,7 +83,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
   const handleClose = () => {
     setForm({
       name: '',
-      contactId: preselectedContactId || '',
+      contactId: preselectedContactId || 0,
       teamType: 'comercial',
       stage: 'prospecting',
       value: '',
@@ -88,6 +93,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
       category: '',
       notes: ''
     });
+    setOpenContactSelect(false);
     onClose();
   };
 
@@ -103,7 +109,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
 
     const dealData = {
       name: form.name,
-      contactId: parseInt(form.contactId.toString()),
+      contactId: typeof form.contactId === 'number' ? form.contactId : parseInt(form.contactId.toString()),
       teamType: form.teamType,
       stage: form.stage,
       value: form.value ? Math.round(parseFloat(form.value) * 100) : 0, // converter para centavos
@@ -143,24 +149,48 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 Contato *
               </label>
-              <Select value={form.contactId.toString()} onValueChange={(value) => setForm({ ...form, contactId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um contato" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contacts.length > 0 ? (
-                    contacts.map((contact) => (
-                      <SelectItem key={contact.id} value={contact.id.toString()}>
-                        {contact.name} {contact.phone && `(${contact.phone})`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-contacts" disabled>
-                      Nenhum contato encontrado
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={openContactSelect} onOpenChange={setOpenContactSelect}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openContactSelect}
+                    className="w-full justify-between"
+                  >
+                    {form.contactId && form.contactId > 0
+                      ? (() => {
+                          const selectedContact = contacts.find((contact) => contact.id === form.contactId);
+                          return selectedContact ? `${selectedContact.name}${selectedContact.phone ? ` (${selectedContact.phone})` : ''}` : "Contato não encontrado";
+                        })()
+                      : "Selecione um contato"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Digite o nome do contato..." className="h-9" />
+                    <CommandList>
+                      <CommandEmpty>Nenhum contato encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {contacts.length > 0 && contacts.map((contact) => (
+                          <CommandItem
+                            key={contact.id}
+                            onSelect={() => {
+                              setForm({ ...form, contactId: contact.id });
+                              setOpenContactSelect(false);
+                            }}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${form.contactId === contact.id ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {contact.name} {contact.phone && `(${contact.phone})`}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
 
