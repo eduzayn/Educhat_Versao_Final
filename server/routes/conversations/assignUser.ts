@@ -26,8 +26,21 @@ export function registerAssignUserRoutes(router: Router) {
 
       // Atualizar a conversa
       const updatedConversation = await storage.updateConversation(conversationId, {
-        userId: data.userId,
-        assignmentMethod: data.method
+        assignedUserId: data.userId,
+        assignmentMethod: data.method,
+        assignedAt: data.userId ? new Date() : null,
+        updatedAt: new Date()
+      });
+
+      // Notificar clientes via WebSocket sobre a mudança de atribuição
+      const { broadcast } = await import('../../routes/realtime/realtime-broadcast');
+      broadcast(conversationId, {
+        type: 'conversation_assignment_updated',
+        conversationId,
+        assignedUserId: data.userId,
+        assignmentMethod: data.method,
+        assignedAt: data.userId ? new Date().toISOString() : null,
+        updatedAt: new Date().toISOString()
       });
 
       res.json(updatedConversation);

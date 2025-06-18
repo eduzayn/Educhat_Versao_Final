@@ -60,6 +60,20 @@ export function setupSocketHandlers(io: SocketIOServer) {
       }
     });
 
+    // Handle conversation assignment updates
+    socket.on('conversation_assignment_updated', (data) => {
+      const { conversationId, assignedTeamId, assignedUserId, assignmentMethod } = data;
+      
+      // Broadcast assignment update to all clients in the conversation
+      io.to(`conversation:${conversationId}`).emit('conversation_assignment_updated', {
+        conversationId,
+        assignedTeamId,
+        assignedUserId,
+        assignmentMethod,
+        updatedAt: new Date().toISOString()
+      });
+    });
+
     // Handle disconnection
     socket.on('disconnect', (reason) => {
       console.log(`🔌 Cliente ${socket.id} desconectado: ${reason}`);
