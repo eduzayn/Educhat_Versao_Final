@@ -6,7 +6,7 @@ import { registerAuditRoutes } from './audit';
 import { registerStatsRoutes } from './stats';
 import { registerCleanupRoutes } from './cleanup';
 import { registerPublicRoutes } from './public';
-import retroactiveAssignmentRouter from './retroactive-assignment';
+import retroactiveAssignmentRouter from './retroactive-assignment-router';
 
 /**
  * Módulo Admin - Sistema de Administração
