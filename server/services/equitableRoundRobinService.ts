@@ -140,16 +140,37 @@ class EquitableRoundRobinService {
   private selectUserEquitably(users: UserLoad[]): UserLoad | null {
     if (users.length === 0) return null;
 
-    // Filtrar usuários que não estão sobrecarregados
-    const availableUsers = users.filter(u => u.activeConversations < u.maxCapacity);
+    // Primeiro, tentar usuários online e que não estão sobrecarregados
+    const onlineAvailableUsers = users.filter(u => 
+      u.isOnline && u.isActive && u.activeConversations < u.maxCapacity
+    );
     
-    if (availableUsers.length === 0) {
-      // Se todos estão no limite, pegar o com menor carga ativa
-      return users.sort((a, b) => a.activeConversations - b.activeConversations)[0];
+    if (onlineAvailableUsers.length > 0) {
+      return this.sortUsersByEquity(onlineAvailableUsers)[0];
     }
 
-    // Ordenar por score de distribuição (equidade) e depois por disponibilidade
-    const sortedUsers = availableUsers.sort((a, b) => {
+    // Se não há usuários online disponíveis, tentar todos os online (mesmo no limite)
+    const onlineUsers = users.filter(u => u.isOnline && u.isActive);
+    if (onlineUsers.length > 0) {
+      return this.sortUsersByEquity(onlineUsers)[0];
+    }
+
+    // Se ninguém está online, atribuir para quem tem menor carga total (receberá quando voltar)
+    console.log('⚠️ Nenhum usuário online encontrado, atribuindo para menor carga total');
+    const activeUsers = users.filter(u => u.isActive);
+    if (activeUsers.length > 0) {
+      return this.sortUsersByEquity(activeUsers)[0];
+    }
+
+    // Último recurso: qualquer usuário da equipe
+    return this.sortUsersByEquity(users)[0];
+  }
+
+  /**
+   * Ordena usuários por critérios de equidade
+   */
+  private sortUsersByEquity(users: UserLoad[]): UserLoad[] {
+    return users.sort((a, b) => {
       // Primeiro critério: menor score de distribuição (mais equitativo)
       if (a.distributionScore !== b.distributionScore) {
         return a.distributionScore - b.distributionScore;
@@ -165,8 +186,6 @@ class EquitableRoundRobinService {
       const bTime = b.lastAssignedAt?.getTime() || 0;
       return aTime - bTime;
     });
-
-    return sortedUsers[0];
   }
 
   /**
@@ -192,9 +211,13 @@ class EquitableRoundRobinService {
       if (!selectedUser) {
         return {
           success: false,
-          reason: 'Não foi possível selecionar usuário para atribuição'
+          reason: 'Nenhum usuário disponível na equipe para atribuição'
         };
       }
+
+      // Determinar status da atribuição
+      const isOnlineAssignment = selectedUser.isOnline && selectedUser.isActive;
+      const assignmentType = isOnlineAssignment ? 'online' : 'offline';
 
       // Calcular média da equipe para comparação
       const teamAverageLoad = teamLoad.reduce((sum, u) => sum + u.totalAssignments, 0) / teamLoad.length;

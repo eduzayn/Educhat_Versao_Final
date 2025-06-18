@@ -8,6 +8,7 @@ import type { Handoff } from '@shared/schema';
 import { HandoffsStats } from './HandoffsStats';
 import { HandoffsList } from './HandoffsList';
 import { RoundRobinDashboard } from './RoundRobinDashboard';
+import { AssignmentRulesPanel } from './components/AssignmentRulesPanel';
 
 interface HandoffWithDetails extends Handoff {
   conversation?: {
@@ -176,13 +177,18 @@ export function HandoffsPage() {
 
       {/* Abas principais */}
       <Tabs defaultValue="round-robin" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="round-robin">Rodízio Equitativo</TabsTrigger>
+          <TabsTrigger value="rules">Regras</TabsTrigger>
           <TabsTrigger value="handoffs">Transferências</TabsTrigger>
         </TabsList>
 
         <TabsContent value="round-robin" className="space-y-6">
           <RoundRobinDashboard onRefresh={loadData} />
+        </TabsContent>
+
+        <TabsContent value="rules" className="space-y-6">
+          <AssignmentRulesPanel />
         </TabsContent>
 
         <TabsContent value="handoffs" className="space-y-6">

@@ -233,9 +233,9 @@ export function RoundRobinDashboard({ onRefresh }: RoundRobinDashboardProps) {
                   <span>Fila de Rodízio ({team.users.length} atendentes)</span>
                 </div>
                 
-                {team.users.map(user => (
+                {team.users.map((user, index) => (
                   <div 
-                    key={user.userId}
+                    key={`${team.teamId}-user-${user.userId}-${index}`}
                     className={cn(
                       "flex items-center justify-between p-2 rounded-lg border",
                       user.isNext ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
