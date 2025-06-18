@@ -86,7 +86,7 @@ export class ConversationListOperations extends BaseStorage {
       status: conv.status,
       lastMessageAt: conv.lastMessageAt,
       unreadCount: conv.unreadCount,
-      teamType: null,
+      teamType: conv.assignedTeamId === 6 ? 'suporte' : conv.assignedTeamId === 5 ? 'comercial' : conv.assignedTeamId === 7 ? 'cobranca' : null,
       assignedTeamId: conv.assignedTeamId,
       assignedUserId: conv.assignedUserId,
       assignmentMethod: null,
@@ -202,5 +202,24 @@ export class ConversationListOperations extends BaseStorage {
       messages: [],
       _count: { messages: conv.unreadCount || 0 }
     } as ConversationWithContact));
+  }
+
+  /**
+   * Mapeia ID da equipe para tipo
+   */
+  private getTeamTypeById(teamId: number | null): string | null {
+    if (!teamId) return null;
+    
+    const typeMap: Record<number, string> = {
+      1: 'comercial',
+      2: 'suporte', 
+      3: 'cobranca',
+      4: 'secretaria',
+      5: 'comercial',
+      6: 'suporte',
+      7: 'cobranca'
+    };
+    
+    return typeMap[teamId] || 'geral';
   }
 } 
