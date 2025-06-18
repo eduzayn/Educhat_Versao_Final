@@ -1,174 +1,73 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* EduChat Colors */
-  --educhat-primary: 34 197 94; /* green-500 */
-  --educhat-secondary: 59 130 246; /* blue-500 */
-  --educhat-accent: 168 85 247; /* purple-500 */
-  --educhat-light: 248 250 252; /* slate-50 */
-  --educhat-medium: 100 116 139; /* slate-500 */
-  --educhat-dark: 15 23 42; /* slate-900 */
-
-  /* Base colors */
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
-  --radius: 0.5rem;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
-}
-
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
-}
-
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: 'Inter', sans-serif;
-}
-
-/* Custom animations */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+@layer base {
+  * {
+    @apply border-border;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Grid background */
-.bg-grid {
-  background-image: 
-    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Hover lift effect */
-.hover-lift {
-  transition: transform 0.3s ease, shadow 0.3s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Text gradient */
-.text-gradient {
-  background: linear-gradient(135deg, rgb(var(--educhat-primary)) 0%, rgb(var(--educhat-secondary)) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Gradient hero background */
-.bg-gradient-hero {
-  background: linear-gradient(135deg, 
-    rgb(var(--educhat-light)) 0%, 
-    rgba(255, 255, 255, 0.9) 50%, 
-    rgba(var(--educhat-primary), 0.05) 100%
-  );
-}
-
-/* EduChat specific color utilities */
-.bg-educhat-primary { background-color: rgb(var(--educhat-primary)); }
-.bg-educhat-secondary { background-color: rgb(var(--educhat-secondary)); }
-.bg-educhat-light { background-color: rgb(var(--educhat-light)); }
-.text-educhat-primary { color: rgb(var(--educhat-primary)); }
-.text-educhat-secondary { color: rgb(var(--educhat-secondary)); }
-.text-educhat-medium { color: rgb(var(--educhat-medium)); }
-.text-educhat-dark { color: rgb(var(--educhat-dark)); }
-.border-educhat-primary { border-color: rgb(var(--educhat-primary)); }
-
-/* Accordion animations */
 @keyframes accordion-down {
   from {
     height: 0;
@@ -185,6 +84,33 @@ body {
   to {
     height: 0;
   }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
 .animate-accordion-down {
