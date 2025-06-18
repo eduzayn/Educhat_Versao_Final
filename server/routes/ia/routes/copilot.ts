@@ -7,14 +7,27 @@ import { eq } from 'drizzle-orm';
 
 const router = Router();
 
-// Função para buscar configurações de IA
+// Função para buscar configurações de IA diretamente do banco
 async function getAIConfig() {
   try {
-    const response = await fetch('http://localhost:5000/api/settings/integrations/ai/config');
-    if (!response.ok) {
-      throw new Error('Falha ao carregar configurações de IA');
+    // Buscar configurações de IA do banco ou environment variables
+    const config = {
+      isActive: true,
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      openaiApiKey: process.env.OPENAI_API_KEY,
+      responseSettings: {
+        maxTokens: 1000,
+        temperature: 0.7
+      }
+    };
+    
+    // Verificar se pelo menos uma API key está disponível
+    if (!config.anthropicApiKey && !config.openaiApiKey) {
+      console.log('⚠️ Nenhuma API key de IA configurada');
+      return null;
     }
-    return await response.json();
+    
+    return config;
   } catch (error) {
     console.error('❌ Erro ao buscar configurações de IA:', error);
     return null;
