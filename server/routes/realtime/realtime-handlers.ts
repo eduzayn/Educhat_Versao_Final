@@ -78,10 +78,24 @@ export function setupSocketHandlers(io: SocketIOServer) {
       });
     });
 
-    // Handle disconnection
+    // Handle disconnection with enhanced logging
     socket.on('disconnect', (reason) => {
-      console.log(`🔌 Cliente ${socket.id} desconectado: ${reason}`);
+      const clientData = clients.get(socket.id);
+      const connectionDuration = clientData ? Date.now() - clientData.connectedAt : 0;
+      
+      console.log(`🔌 Cliente ${socket.id} desconectado: ${reason}`, {
+        reason,
+        duration: `${Math.round(connectionDuration / 1000)}s`,
+        conversationId: clientData?.conversationId,
+        wasInRoom: !!clientData?.conversationId
+      });
+      
       clients.delete(socket.id);
+    });
+
+    // Handle connection errors on server side
+    socket.on('error', (error) => {
+      console.error(`❌ Erro no socket ${socket.id}:`, error);
     });
   });
 } 

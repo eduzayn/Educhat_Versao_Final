@@ -11,7 +11,7 @@ interface SocketServer extends Server {
 export function createSocketServer(app: Express): SocketServer {
   const httpServer = createServer(app) as SocketServer;
 
-  // Socket.IO server for real-time communication with enhanced features
+  // Socket.IO server for real-time communication with enhanced stability
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: process.env.NODE_ENV === 'production'
@@ -25,12 +25,18 @@ export function createSocketServer(app: Express): SocketServer {
       methods: ["GET", "POST"],
       credentials: true
     },
-    pingTimeout: 60000,
-    pingInterval: 25000,
+    // Configurações otimizadas para estabilidade da conexão
+    pingTimeout: 120000,      // 2 minutos (aumentado de 60s)
+    pingInterval: 30000,      // 30 segundos (aumentado de 25s)
+    upgradeTimeout: 30000,    // Timeout para upgrade de polling para websocket
     transports: ['websocket', 'polling'],
     allowEIO3: true,
-    connectTimeout: 45000,
-    maxHttpBufferSize: 5e6 // 5MB
+    connectTimeout: 60000,    // 1 minuto (aumentado de 45s)
+    maxHttpBufferSize: 5e6,   // 5MB
+    // Configurações adicionais para reconexão estável
+    serveClient: false,
+    allowUpgrades: true,
+    cookie: false
   });
 
   httpServer.io = io;

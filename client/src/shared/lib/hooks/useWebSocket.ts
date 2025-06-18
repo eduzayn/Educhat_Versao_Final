@@ -53,11 +53,15 @@ export function useWebSocket() {
     try {
       socketRef.current = io(socketUrl, {
         transports: ['websocket', 'polling'],
-        timeout: 10000,
+        timeout: 20000,              // Aumentado de 10s para 20s
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        forceNew: true
+        reconnectionDelay: 2000,     // Aumentado de 1s para 2s
+        reconnectionDelayMax: 10000, // Máximo de 10s entre tentativas
+        reconnectionAttempts: 10,    // Aumentado de 5 para 10 tentativas
+        randomizationFactor: 0.3,    // Adiciona randomização para evitar thundering herd
+        forceNew: true,
+        upgrade: true,
+        rememberUpgrade: true
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -69,6 +73,12 @@ export function useWebSocket() {
     socketRef.current.on('connect', () => {
       console.log('🔌 Socket.IO conectado');
       setConnectionStatus(true);
+      
+      // Limpar timeout de reconexão ao conectar com sucesso
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       
       if (activeConversation) {
         socketRef.current?.emit('join_conversation', {
@@ -323,15 +333,22 @@ export function useWebSocket() {
       }
     });
 
-    // Handle disconnection
+    // Handle disconnection with enhanced monitoring
     socketRef.current.on('disconnect', (reason) => {
-      console.log('🔌 Socket.IO desconectado:', reason);
+      console.warn('🔌 Desconectado:', reason);
       setConnectionStatus(false);
       
-      // Reconectar automaticamente para desconexões não intencionais
-      if (reason !== 'io client disconnect' && !reconnectTimeoutRef.current) {
-        const delay = Math.min(3000 * Math.pow(2, 0), 30000); // Delay exponencial limitado a 30s
-        console.log(`🔄 Reagendando reconexão em ${delay}ms`);
+      // Reconectar automaticamente apenas para desconexões não intencionais
+      const shouldReconnect = reason !== 'io client disconnect' && 
+                             reason !== 'io server disconnect' &&
+                             !reconnectTimeoutRef.current;
+      
+      if (shouldReconnect) {
+        const baseDelay = 3000;
+        const jitter = Math.random() * 1000; // Adiciona jitter para evitar reconexões simultâneas
+        const delay = Math.min(baseDelay + jitter, 30000);
+        
+        console.log(`🔄 Reagendando reconexão em ${Math.round(delay)}ms - Motivo: ${reason}`);
         reconnectTimeoutRef.current = setTimeout(() => {
           console.log('🔄 Tentando reconectar...');
           connect();
@@ -339,9 +356,33 @@ export function useWebSocket() {
       }
     });
 
-    // Handle connection errors
+    // Handle connection errors with retry logic
     socketRef.current.on('connect_error', (error) => {
       console.error('❌ Erro de conexão Socket.IO:', error);
+      setConnectionStatus(false);
+    });
+
+    // Monitor reconnection attempts
+    socketRef.current.on('reconnect_attempt', (attempt) => {
+      console.log(`🔁 Tentativa de reconexão ${attempt}`);
+    });
+
+    // Handle successful reconnection
+    socketRef.current.on('reconnect', (attempt) => {
+      console.log(`🔁 Reconectado - tentativa ${attempt}`);
+      setConnectionStatus(true);
+      
+      // Rejoinder conversation room after reconnection
+      if (activeConversation) {
+        socketRef.current?.emit('join_conversation', {
+          conversationId: activeConversation.id,
+        });
+      }
+    });
+
+    // Handle failed reconnection attempts
+    socketRef.current.on('reconnect_failed', () => {
+      console.error('❌ Falha na reconexão após todas as tentativas');
       setConnectionStatus(false);
     });
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
