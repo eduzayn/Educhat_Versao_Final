@@ -116,7 +116,7 @@ export function AssignmentRulesPanel() {
           <div className="border-l-4 border-blue-400 pl-4">
             <h4 className="font-medium text-gray-900 mb-2">Capacidade Máxima Atingida</h4>
             <p className="text-sm text-gray-600 mb-2">
-              Quando todos atingem 15 conversas ativas:
+              Quando todos atingem 50 conversas ativas:
             </p>
             <ul className="text-sm text-gray-600 space-y-1 ml-4">
               <li>• Sistema seleciona quem tem menor sobrecarga</li>

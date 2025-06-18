@@ -121,7 +121,7 @@ class EquitableRoundRobinService {
           activeConversations,
           lastAssignedAt,
           teamId,
-          maxCapacity: 15, // Capacidade padrão mais realista
+          maxCapacity: 50, // Capacidade aumentada conforme solicitado
           distributionScore
         });
       }
