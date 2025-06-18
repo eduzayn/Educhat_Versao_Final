@@ -268,7 +268,7 @@ function DashboardTab({ data }: { data?: GamificationData }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {data.leaderboards?.weekly?.slice(0, 5).map((entry, index) => (
+            {(data.leaderboards?.weekly || []).slice(0, 5).map((entry, index) => (
               <div key={entry.userId} className="flex items-center justify-between p-2 rounded border">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
@@ -309,7 +309,7 @@ function BadgesTab({ data }: { data?: GamificationData }) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Award className="h-5 w-5 text-green-600" />
-              Badges Conquistados ({data.badges.earnedCount})
+              Badges Conquistados ({data.badges?.earnedCount || 0})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -398,7 +398,7 @@ function AchievementsTab({ data }: { data?: GamificationData }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {data.achievements?.map((achievement) => (
+          {(data.achievements || []).map((achievement) => (
             <div key={achievement.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                 <Trophy className="h-5 w-5 text-blue-600" />
