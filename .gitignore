@@ -8,3 +8,15 @@ vite.config.ts.*
 # Environment variables
 .env
 .env.local
+
+# Arquivos com potenciais chaves de API
+attached_assets/**/Pasted--*.txt
+attached_assets/**/*api*
+attached_assets/**/*key*
+attached_assets/**/*secret*
+attached_assets/**/*token*
+
+# Logs e arquivos temporários
+*.log
+temp/
+tmp/
