@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useCRMContext } from '../CRMPage/CRMPage';
 import { useEffect, useState } from 'react';
+import { CreateDealDialog } from '../components/CreateDealDialog';
+import { ScheduleActivityDialog } from '../components/ScheduleActivityDialog';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from 'date-fns';
 
 export function CRMDashboard() {
@@ -30,6 +32,10 @@ export function CRMDashboard() {
     companiesCount: 15,
     activitiesThisWeek: 67
   });
+
+  // Estados para controlar os diálogos
+  const [isCreateDealOpen, setIsCreateDealOpen] = useState(false);
+  const [isScheduleActivityOpen, setIsScheduleActivityOpen] = useState(false);
 
   useEffect(() => {
     // Simular filtro de dados baseado na data selecionada
@@ -200,7 +206,7 @@ export function CRMDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Negócios Recentes</CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsCreateDealOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Novo Negócio
             </Button>
           </CardHeader>
@@ -233,7 +239,7 @@ export function CRMDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Atividades Recentes</CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsScheduleActivityOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Nova Atividade
             </Button>
           </CardHeader>
@@ -288,6 +294,17 @@ export function CRMDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Diálogos */}
+      <CreateDealDialog 
+        isOpen={isCreateDealOpen} 
+        onClose={() => setIsCreateDealOpen(false)} 
+      />
+      
+      <ScheduleActivityDialog 
+        isOpen={isScheduleActivityOpen} 
+        onClose={() => setIsScheduleActivityOpen(false)} 
+      />
     </div>
   );
 }
