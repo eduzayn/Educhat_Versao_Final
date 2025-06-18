@@ -39,16 +39,31 @@ export function ChatHeader({
   } = activeConversation;
 
   // Buscar informações do usuário atribuído
-  const { data: assignedUser } = useQuery({
+  const { data: assignedUser, isError, error } = useQuery({
     queryKey: ['/api/users/basic', assignedUserId],
     queryFn: async () => {
       if (!assignedUserId) return null;
+      console.log(`🔍 Buscando usuário ${assignedUserId} via /api/users/${assignedUserId}/basic`);
       const response = await fetch(`/api/users/${assignedUserId}/basic`);
-      if (!response.ok) return null;
-      return response.json();
+      console.log(`📡 Resposta da API: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Erro na API: ${response.status} - ${errorText}`);
+        return null;
+      }
+      const userData = await response.json();
+      console.log(`✅ Dados do usuário recebidos:`, userData);
+      return userData;
     },
     enabled: !!assignedUserId,
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  // Log para debug em produção
+  if (assignedUserId && isError) {
+    console.error(`❌ Erro ao buscar usuário ${assignedUserId}:`, error);
+  }
 
   const channelInfo = getChannelInfo(channel);
   const phoneFormatted = contact?.phone
