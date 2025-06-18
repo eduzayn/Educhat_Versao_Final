@@ -90,7 +90,7 @@ export function ConfigPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       <ConfigHeader 
         isActive={formData.isActive} 
         onBack={handleBack} 
