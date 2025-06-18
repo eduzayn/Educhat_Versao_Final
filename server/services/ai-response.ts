@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import { MessageClassification, AIResponse } from './ai-types';
-import { db } from '../core/db';
+import { MessageClassification } from './ai-types';
+import { db } from '../db';
 import { aiLogs, aiContext, aiSessions, aiMemory } from '../../shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 
@@ -91,7 +91,7 @@ export class AIResponse {
       });
 
       return {
-        text: aiResponse,
+        response: aiResponse,
         needsHandoff,
         handoffReason: needsHandoff ? this.getHandoffReason(classification) : undefined,
         suggestedTeam: classification.suggestedTeam
@@ -246,7 +246,7 @@ export class AIResponse {
     }
     
     return {
-      text: response,
+      response: response,
       needsHandoff: true,
       handoffReason: 'Erro técnico na geração de resposta',
       suggestedTeam: classification.suggestedTeam

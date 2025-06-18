@@ -8,6 +8,23 @@ const router = Router();
 // Configuração dos clientes de IA
 import { aiConfigService } from '../../services/aiConfigService';
 
+// Funções auxiliares para instanciar clientes
+async function getOpenAI() {
+  const openaiKey = await aiConfigService.getOpenAIKey();
+  if (!openaiKey) {
+    throw new Error('OpenAI API key não configurada');
+  }
+  return new OpenAI({ apiKey: openaiKey });
+}
+
+async function getAnthropic() {
+  const anthropicKey = await aiConfigService.getAnthropicKey();
+  if (!anthropicKey) {
+    throw new Error('Anthropic API key não configurada');
+  }
+  return new Anthropic({ apiKey: anthropicKey });
+}
+
 /**
  * POST /api/admin/test-ai-connection
  * Testa a conectividade com as APIs de IA da Professora Ana
@@ -27,7 +44,8 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
   // Teste OpenAI GPT-3.5 (fallback para quota)
   try {
     const startTime = Date.now();
-    const response = await openai.chat.completions.create({
+    const openaiClient = await getOpenAI();
+    const response = await openaiClient.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
@@ -68,7 +86,8 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
   // Teste Anthropic Claude
   try {
     const startTime = Date.now();
-    const response = await anthropic.messages.create({
+    const anthropicClient = await getAnthropic();
+    const response = await anthropicClient.messages.create({
       model: "claude-3-haiku-20240307",
       max_tokens: 20,
       messages: [

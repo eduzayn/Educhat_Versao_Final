@@ -102,7 +102,7 @@ export class AIClassification {
       // Extrair e salvar memórias da mensagem (apenas se fornecido parâmetros)
       if (conversationId && contactId) {
         try {
-          await this.extractAndSaveMemories(message, classification, conversationId, contactId);
+          // await this.extractAndSaveMemories(message, classification, conversationId, contactId);
 
           // Log da classificação
           await this.logInteraction({
