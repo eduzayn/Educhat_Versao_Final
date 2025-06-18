@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useLocation } from 'wouter';
 import type { Handoff } from '@shared/schema';
 import { HandoffsStats } from './HandoffsStats';
 import { HandoffsList } from './HandoffsList';
+import { HandoffsDashboard } from './components/HandoffsDashboard';
+import { HandoffAnalytics } from './components/HandoffAnalytics';
+import { HandoffActions } from './components/HandoffActions';
+import { ArrowLeft, BarChart3, List, Activity } from 'lucide-react';
 
 interface HandoffWithDetails extends Handoff {
   conversation?: {
@@ -49,6 +54,8 @@ export function HandoffsPage() {
   const [stats, setStats] = useState<HandoffStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedHandoff, setSelectedHandoff] = useState<HandoffWithDetails | null>(null);
 
   useEffect(() => {
     loadData();
@@ -82,56 +89,42 @@ export function HandoffsPage() {
     }
   };
 
-  const handleAcceptHandoff = async (handoffId: number) => {
+  const handleHandoffAction = async (action: string, handoffId: number, data?: any) => {
     try {
-      const response = await fetch(`/api/handoffs/${handoffId}/accept`, {
+      const response = await fetch(`/api/handoffs/${handoffId}/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 57 }) // TODO: Get current user ID
+        body: JSON.stringify(data || { userId: 57 }) // TODO: Get current user ID
       });
 
       if (response.ok) {
         toast({
           title: "Sucesso",
-          description: "Handoff aceito com sucesso"
+          description: `Handoff ${action === 'accept' ? 'aceito' : action === 'reject' ? 'rejeitado' : 'processado'} com sucesso`
         });
         await loadData();
+        if (selectedHandoff?.id === handoffId) {
+          setSelectedHandoff(null);
+          setCurrentView('dashboard');
+        }
       } else {
-        throw new Error('Erro ao aceitar handoff');
+        throw new Error(`Erro ao ${action} handoff`);
       }
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível aceitar o handoff",
+        description: `Não foi possível ${action} o handoff`,
         variant: "destructive"
       });
     }
   };
 
-  const handleRejectHandoff = async (handoffId: number, reason?: string) => {
-    try {
-      const response = await fetch(`/api/handoffs/${handoffId}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      });
+  const handleAcceptHandoff = (handoffId: number) => handleHandoffAction('accept', handoffId);
+  const handleRejectHandoff = (handoffId: number, reason?: string) => handleHandoffAction('reject', handoffId, { reason });
 
-      if (response.ok) {
-        toast({
-          title: "Sucesso",
-          description: "Handoff rejeitado com sucesso"
-        });
-        await loadData();
-      } else {
-        throw new Error('Erro ao rejeitar handoff');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível rejeitar o handoff",
-        variant: "destructive"
-      });
-    }
+  const handleSelectHandoff = (handoff: HandoffWithDetails) => {
+    setSelectedHandoff(handoff);
+    setCurrentView('details');
   };
 
   if (loading) {
@@ -151,43 +144,99 @@ export function HandoffsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => setLocation('/')}
+            onClick={() => {
+              if (currentView === 'details') {
+                setCurrentView('dashboard');
+                setSelectedHandoff(null);
+              } else {
+                setLocation('/');
+              }
+            }}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <span className="icon-arrow-left h-4 w-4" />
-            Voltar
+            <ArrowLeft className="h-4 w-4" />
+            {currentView === 'details' ? 'Voltar ao Dashboard' : 'Voltar'}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sistema de Handoffs</h1>
-            <p className="text-gray-600">Gerencie transferências de conversas inteligentes</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {currentView === 'details' ? `Handoff #${selectedHandoff?.id}` : 'Sistema de Transferências'}
+            </h1>
+            <p className="text-gray-600">
+              {currentView === 'details' 
+                ? 'Detalhes e ações da transferência'
+                : 'Gerencie transferências de conversas inteligentes'
+              }
+            </p>
           </div>
         </div>
       </div>
-      {/* Estatísticas */}
-      {stats && <HandoffsStats stats={stats} />}
-      {/* Lista de Handoffs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Handoffs Recentes</CardTitle>
-          <CardDescription>
-            Visualize e gerencie todas as transferências de conversas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <HandoffsList
-            handoffs={handoffs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            handleAcceptHandoff={handleAcceptHandoff}
-            handleRejectHandoff={handleRejectHandoff}
-          />
-        </CardContent>
-      </Card>
+
+      {currentView === 'details' && selectedHandoff ? (
+        <HandoffActions 
+          handoff={selectedHandoff} 
+          onAction={handleHandoffAction}
+        />
+      ) : (
+        <Tabs value={currentView} onValueChange={setCurrentView} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Lista Completa
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Análises
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <HandoffsDashboard 
+              stats={stats} 
+              handoffs={handoffs} 
+              onRefresh={loadData}
+            />
+            {stats && <HandoffsStats stats={stats} />}
+          </TabsContent>
+
+          <TabsContent value="list" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Todas as Transferências</CardTitle>
+                <CardDescription>
+                  Lista completa com filtros avançados e ações em lote
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HandoffsList
+                  handoffs={handoffs}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  handleAcceptHandoff={handleAcceptHandoff}
+                  handleRejectHandoff={handleRejectHandoff}
+                  onSelectHandoff={handleSelectHandoff}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <HandoffAnalytics 
+              stats={stats} 
+              handoffs={handoffs}
+            />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 } 
