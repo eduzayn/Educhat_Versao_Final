@@ -468,7 +468,8 @@ export class GamificationService {
     
     const stat = stats[0];
     return {
-      ...stat,
+      userId: stat.userId,
+      period: stat.period,
       conversationsAssigned: stat.conversationsAssigned || 0,
       conversationsClosed: stat.conversationsClosed || 0,
       averageResponseTime: stat.averageResponseTime || 0,
