@@ -107,6 +107,48 @@ export const DealsHeader: React.FC<DealsHeaderProps> = ({
           Hoje
         </DropdownMenuItem>
         <DropdownMenuItem 
+          onClick={() => setDateFilter('week')}
+          className={dateFilter === 'week' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Esta semana
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('15days')}
+          className={dateFilter === '15days' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Últimos 15 dias
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('30days')}
+          className={dateFilter === '30days' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Últimos 30 dias
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('month')}
+          className={dateFilter === 'month' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Este mês
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('quarter')}
+          className={dateFilter === 'quarter' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Este trimestre
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setDateFilter('year')}
+          className={dateFilter === 'year' ? 'bg-accent' : ''}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          Este ano
+        </DropdownMenuItem>
+        <DropdownMenuItem 
           onClick={() => setDateFilter('custom')}
           className={dateFilter === 'custom' ? 'bg-accent' : ''}
         >
