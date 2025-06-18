@@ -36,20 +36,27 @@ router.get('/status', async (req, res) => {
     const { teamType } = req.query;
 
     // Buscar equipes ativas
-    const baseQuery = db
-      .select({
-        id: teams.id,
-        name: teams.name,
-        teamType: teams.teamType,
-      })
-      .from(teams);
-
-    let whereCondition = eq(teams.isActive, true);
+    let activeTeams;
+    
     if (teamType && typeof teamType === 'string') {
-      whereCondition = and(whereCondition, eq(teams.teamType, teamType));
+      activeTeams = await db
+        .select({
+          id: teams.id,
+          name: teams.name,
+          teamType: teams.teamType,
+        })
+        .from(teams)
+        .where(and(eq(teams.isActive, true), eq(teams.teamType, teamType)));
+    } else {
+      activeTeams = await db
+        .select({
+          id: teams.id,
+          name: teams.name,
+          teamType: teams.teamType,
+        })
+        .from(teams)
+        .where(eq(teams.isActive, true));
     }
-
-    const activeTeams = await baseQuery.where(whereCondition);
     const roundRobinStatus: RoundRobinStatus[] = [];
 
     for (const team of activeTeams) {

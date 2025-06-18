@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, Users, Clock, BarChart3, Settings, Target } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 

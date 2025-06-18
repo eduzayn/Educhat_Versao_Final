@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import type { Handoff } from '@shared/schema';
 import { HandoffsStats } from './HandoffsStats';
