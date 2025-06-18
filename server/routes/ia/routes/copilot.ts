@@ -88,11 +88,18 @@ async function generateAIResponse(message: string) {
   const trainingContexts = await getTrainingContexts();
   console.log(`✅ ${trainingContexts.length} contextos de treinamento carregados`);
   
+  // Usar chaves do banco de dados (já corretas)
+  const anthropicKey = config.anthropicApiKey;
+  const openaiKey = config.openaiApiKey;
+  
   console.log('✅ Configurações de IA carregadas:', {
-    hasAnthropicKey: !!config.anthropicApiKey,
-    hasOpenAIKey: !!config.openaiApiKey,
+    hasAnthropicKey: !!anthropicKey,
+    hasOpenAIKey: !!openaiKey,
     isActive: config.isActive,
-    trainingContextsCount: trainingContexts.length
+    trainingContextsCount: trainingContexts.length,
+    keysFromDB: true,
+    anthropicKeyPreview: anthropicKey ? `${anthropicKey.substring(0, 10)}...` : 'null',
+    openaiKeyPreview: openaiKey ? `${openaiKey.substring(0, 10)}...` : 'null'
   });
 
   // Construir prompt com contextos de treinamento personalizados
@@ -132,7 +139,6 @@ INSTRUÇÕES:
 Responda à seguinte mensagem:`;
 
   // Tentar Anthropic primeiro (serviço principal)
-  const anthropicKey = process.env.ANTHROPIC_API_KEY || config.anthropicApiKey;
   if (anthropicKey) {
     try {
       console.log('🔧 Usando Anthropic API...');
@@ -195,7 +201,6 @@ Responda à seguinte mensagem:`;
   }
 
   // Tentar OpenAI se Anthropic falhou (apenas se não for problema de quota)
-  const openaiKey = process.env.OPENAI_API_KEY || config.openaiApiKey;
   if (openaiKey) {
     try {
       console.log('🔧 Tentando OpenAI como fallback...');
