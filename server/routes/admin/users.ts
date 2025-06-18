@@ -53,6 +53,64 @@ export function registerUserRoutes(app: Express) {
     }
   );
 
+  // Buscar usuário específico por ID
+  app.get('/api/admin/users/:id', 
+    updateLastActivity(),
+    requirePermission('usuario:ver'), 
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const userId = parseInt(req.params.id);
+        
+        if (!userId || isNaN(userId)) {
+          return res.status(400).json({ message: 'ID do usuário inválido' });
+        }
+
+        const [user] = await db
+          .select({
+            id: systemUsers.id,
+            username: systemUsers.username,
+            displayName: systemUsers.displayName,
+            email: systemUsers.email,
+            role: systemUsers.role,
+            roleId: systemUsers.roleId,
+            teamId: systemUsers.teamId,
+            team: systemUsers.team,
+            dataKey: systemUsers.dataKey,
+            channels: systemUsers.channels,
+            teamTypes: systemUsers.teamTypes,
+            isActive: systemUsers.isActive,
+            status: systemUsers.status,
+            isOnline: systemUsers.isOnline,
+            lastLoginAt: systemUsers.lastLoginAt,
+            lastActivityAt: systemUsers.lastActivityAt,
+            createdAt: systemUsers.createdAt,
+            roleName: roles.name,
+            roleDescription: roles.displayName
+          })
+          .from(systemUsers)
+          .leftJoin(roles, eq(systemUsers.roleId, roles.id))
+          .where(eq(systemUsers.id, userId))
+          .limit(1);
+
+        if (!user) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        // Aplicar filtro de dataKey se necessário
+        if (req.user!.role !== 'admin' && req.user!.dataKey && user.dataKey) {
+          if (!user.dataKey.startsWith(req.user!.dataKey)) {
+            return res.status(403).json({ message: 'Acesso negado' });
+          }
+        }
+
+        res.json(user);
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  );
+
   // Criar novo usuário
   app.post('/api/admin/users', 
     updateLastActivity(),

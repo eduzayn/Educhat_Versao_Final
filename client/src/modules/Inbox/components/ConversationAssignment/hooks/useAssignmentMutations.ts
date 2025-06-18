@@ -70,6 +70,11 @@ export function useUserAssignment(conversationId: number) {
       queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
       queryClient.refetchQueries({ queryKey: ['/api/conversations', conversationId] });
       
+      // Invalidar cache do usuário específico para atualizar nome no cabeçalho
+      if (variables.userId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/users', variables.userId] });
+      }
+      
       toast({
         title: 'Usuário atribuído',
         description: variables.userId === null
