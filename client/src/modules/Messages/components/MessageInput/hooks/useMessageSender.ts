@@ -40,7 +40,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         contact: activeConversation?.contact
       });
 
-      notifySuccess('Mensagem enviada', 'Sua mensagem foi enviada com sucesso.');
+      // notifySuccess('Mensagem enviada', 'Sua mensagem foi enviada com sucesso.');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
@@ -91,7 +91,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         contact: activeConversation?.contact
       });
 
-      notifySuccess('Link compartilhado', 'Seu link foi compartilhado com sucesso.');
+      // notifySuccess('Link compartilhado', 'Seu link foi compartilhado com sucesso.');
       return true;
     } catch (error) {
       console.error('Erro ao compartilhar link:', error);
@@ -108,7 +108,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         duration,
         contact: activeConversation?.contact
       });
-      notifySuccess('Áudio enviado', 'Sua mensagem de áudio foi enviada com sucesso.');
+      // notifySuccess('Áudio enviado', 'Sua mensagem de áudio foi enviada com sucesso.');
       return true;
     } catch (error) {
       console.error('Erro ao enviar áudio:', error);
