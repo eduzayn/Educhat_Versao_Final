@@ -11,8 +11,8 @@ export function useMessagesArea(activeConversation: any) {
   // Garantir que sempre temos um ID válido para o hook useInfiniteMessages
   const conversationId = activeConversation?.id || null;
   
-  // Usar hook de mensagens infinitas
-  const messagesQuery = useInfiniteMessages(conversationId, 25);
+  // Usar hook de mensagens infinitas com carregamento inicial otimizado
+  const messagesQuery = useInfiniteMessages(conversationId, 30);
   
   // Consolidar todas as mensagens das páginas - mensagens antigas no topo, recentes no final
   const messages = useMemo(() => {

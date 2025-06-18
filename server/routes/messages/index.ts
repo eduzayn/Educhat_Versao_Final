@@ -18,7 +18,7 @@ export function registerMessageRoutes(app: Express) {
     try {
       const startTime = Date.now();
       const id = parseInt(req.params.id);
-      let limit = req.query.limit ? parseInt(req.query.limit as string) : 25; // Otimizado para 25
+      let limit = req.query.limit ? parseInt(req.query.limit as string) : 30; // Otimizado para 30
       const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
       const cursor = req.query.cursor as string;
       
@@ -27,10 +27,10 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'ID da conversa inválido' });
       }
       
-      // Proteção crítica: Limitar para evitar timeouts em conversas com muitas mensagens
-      if (limit > 30) {
-        console.warn(`⚠️ Limite reduzido de ${limit} para 30 mensagens para performance`);
-        limit = 30;
+      // Otimização inteligente: Permitir limites maiores mas com monitoramento de performance
+      if (limit > 50) {
+        console.log(`📋 Limite ajustado de ${limit} para 50 mensagens (máximo otimizado)`);
+        limit = 50;
       }
       
       console.log(`🔄 Carregando ${limit} mensagens para conversa ${id}`);

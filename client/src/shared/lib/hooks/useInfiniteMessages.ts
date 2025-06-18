@@ -8,7 +8,7 @@ interface MessagesResponse {
   total: number;
 }
 
-export function useInfiniteMessages(conversationId: number | null, pageSize: number = 50) {
+export function useInfiniteMessages(conversationId: number | null, pageSize: number = 30) {
   return useInfiniteQuery<MessagesResponse>({
     queryKey: ['/api/conversations', conversationId, 'messages', 'infinite'],
     queryFn: async ({ pageParam = 0 }) => {
