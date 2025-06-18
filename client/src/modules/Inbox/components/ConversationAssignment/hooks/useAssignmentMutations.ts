@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useChatStore } from '@/shared/store/chatStore';
 
 export function useTeamAssignment(conversationId: number) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { updateActiveConversationAssignment, activeConversation } = useChatStore();
 
   return useMutation({
     mutationFn: async (data: { teamId: number | null; method: 'manual' | 'automatic' }) => {
@@ -16,7 +18,12 @@ export function useTeamAssignment(conversationId: number) {
       if (!response.ok) throw new Error('Erro ao atribuir equipe');
       return response.json();
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
+      // Atualizar store local imediatamente se esta é a conversa ativa
+      if (activeConversation && activeConversation.id === conversationId) {
+        updateActiveConversationAssignment(variables.teamId, null);
+      }
+      
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
@@ -41,6 +48,7 @@ export function useTeamAssignment(conversationId: number) {
 export function useUserAssignment(conversationId: number) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { updateActiveConversationAssignment, activeConversation } = useChatStore();
 
   return useMutation({
     mutationFn: async (data: { userId: number | null; method: 'manual' | 'automatic' }) => {
