@@ -1,10 +1,31 @@
 import { Router } from 'express';
 import { validateHandoffId } from './middleware';
-import { db } from '../../db';
-import { handoffs } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from '../../core/db';
+import { handoffs } from '../../../shared/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 const router = Router();
+
+// GET /api/handoffs/pending - Buscar todos os handoffs pendentes
+router.get('/', async (req, res) => {
+  try {
+    const pendingHandoffs = await db
+      .select()
+      .from(handoffs)
+      .where(eq(handoffs.status, 'pending'))
+      .orderBy(desc(handoffs.createdAt));
+    
+    res.json({
+      success: true,
+      handoffs: pendingHandoffs
+    });
+  } catch (error) {
+    console.error('Erro ao buscar handoffs pendentes:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor'
+    });
+  }
+});
 
 // GET /api/handoffs/pending/user/:userId - Handoffs pendentes para usuário
 router.get('/user/:userId', async (req, res) => {
@@ -13,8 +34,10 @@ router.get('/user/:userId', async (req, res) => {
     const pendingHandoffs = await db
       .select()
       .from(handoffs)
-      .where(eq(handoffs.toUserId, userId))
-      .where(eq(handoffs.status, 'pending'));
+      .where(and(
+        eq(handoffs.toUserId, userId),
+        eq(handoffs.status, 'pending')
+      ));
     
     res.json({
       success: true,
@@ -35,8 +58,10 @@ router.get('/team/:teamId', async (req, res) => {
     const pendingHandoffs = await db
       .select()
       .from(handoffs)
-      .where(eq(handoffs.toTeamId, teamId))
-      .where(eq(handoffs.status, 'pending'));
+      .where(and(
+        eq(handoffs.toTeamId, teamId),
+        eq(handoffs.status, 'pending')
+      ));
     
     res.json({
       success: true,
