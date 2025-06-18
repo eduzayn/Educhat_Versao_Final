@@ -83,7 +83,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
   const handleClose = () => {
     setForm({
       name: '',
-      contactId: preselectedContactId || 0,
+      contactId: (preselectedContactId as number) || 0,
       teamType: 'comercial',
       stage: 'prospecting',
       value: '',
@@ -109,7 +109,7 @@ export function CreateDealDialog({ isOpen, onClose, preselectedContactId }: Crea
 
     const dealData = {
       name: form.name,
-      contactId: typeof form.contactId === 'number' ? form.contactId : parseInt(form.contactId.toString()),
+      contactId: form.contactId,
       teamType: form.teamType,
       stage: form.stage,
       value: form.value ? Math.round(parseFloat(form.value) * 100) : 0, // converter para centavos
