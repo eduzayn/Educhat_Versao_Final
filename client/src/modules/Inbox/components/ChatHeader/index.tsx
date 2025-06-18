@@ -1,11 +1,12 @@
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ContactAvatar } from "@/shared/ui/ContactAvatar";
-import { Clock, Phone, Video, StickyNote } from "lucide-react";
+import { Clock, Phone, Video, StickyNote, User } from "lucide-react";
 import { ConversationActionsDropdown } from "@/modules/Inbox/components/ConversationActions";
 import { ConversationAssignment } from "@/modules/Inbox/components/ConversationAssignment";
 import { InternalNotesPanel } from "@/modules/Messages/components/InternalNotes/InternalNotesPanel";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface ChatHeaderProps {
   activeConversation: any;
@@ -36,6 +37,18 @@ export function ChatHeader({
     contactId,
     status,
   } = activeConversation;
+
+  // Buscar informações do usuário atribuído
+  const { data: assignedUser } = useQuery({
+    queryKey: ['/api/admin/users', assignedUserId],
+    queryFn: async () => {
+      if (!assignedUserId) return null;
+      const response = await fetch(`/api/admin/users/${assignedUserId}`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!assignedUserId,
+  });
 
   const channelInfo = getChannelInfo(channel);
   const phoneFormatted = contact?.phone
@@ -76,7 +89,20 @@ export function ChatHeader({
                 {channelInfo.icon}
               </span>
             </div>
-            <span className="text-sm text-gray-500">{phoneFormatted}</span>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>{phoneFormatted}</span>
+              {assignedUser && (
+                <>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    <span className="font-medium text-blue-600">
+                      {assignedUser.displayName || assignedUser.username}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
