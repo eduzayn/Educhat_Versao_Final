@@ -9,12 +9,8 @@ const router = Router();
 // GET /api/handoffs/stats - Estatísticas dos handoffs
 router.get('/', async (req, res) => {
   try {
-    const stats = {
-      totalHandoffs: 0,
-      successfulHandoffs: 0,
-      pendingHandoffs: 0,
-      averageHandoffTime: 0
-    };
+    const days = parseInt(req.query.days as string) || 7;
+    const stats = await assignmentCompatibilityService.getHandoffStats(days);
     res.json({
       success: true,
       stats
