@@ -10,7 +10,7 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/shared/ui/tooltip';
-import { Building2, Plus, Users, Settings, UserPlus, Loader2, X, AlertTriangle, UserMinus } from 'lucide-react';
+import { Building2, Plus, Users, Settings, UserPlus, Loader2, X, AlertTriangle, UserMinus, Trash } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team } from '@shared/schema';
@@ -233,6 +233,37 @@ export const TeamsTab = () => {
       toast({
         title: "Erro",
         description: "Não foi possível remover o membro da equipe.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutação para excluir equipe
+  const deleteTeamMutation = useMutation({
+    mutationFn: async (teamId: number) => {
+      const response = await fetch(`/api/teams/${teamId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao excluir equipe');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      setShowConfirmDeleteTeam(false);
+      setTeamToDelete(null);
+      toast({
+        title: "Equipe excluída!",
+        description: "A equipe foi excluída com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a equipe.",
         variant: "destructive",
       });
     }
@@ -468,6 +499,24 @@ export const TeamsTab = () => {
                       <Settings className="h-4 w-4 mr-2" />
                       Configurar
                     </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setTeamToDelete(team);
+                            setShowConfirmDeleteTeam(true);
+                          }}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir equipe</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </CardContent>
@@ -812,6 +861,97 @@ export const TeamsTab = () => {
                 <div className="flex items-center gap-2">
                   <UserMinus className="h-4 w-4" />
                   Remover da Equipe
+                </div>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Confirmação para Excluir Equipe */}
+      <AlertDialog open={showConfirmDeleteTeam} onOpenChange={setShowConfirmDeleteTeam}>
+        <AlertDialogContent className="sm:max-w-[500px]">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <Trash className="h-6 w-6 text-destructive" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-left">
+                  Excluir Equipe
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-left">
+                  Esta ação não pode ser desfeita e é irreversível.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            {teamToDelete && (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{teamToDelete.name}</p>
+                    <p className="text-xs text-muted-foreground">{teamToDelete.description || 'Sem descrição'}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong>Todos os membros</strong> serão removidos desta equipe.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong>Conversas atribuídas</strong> à equipe ficarão sem atribuição.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <strong>Configurações e permissões</strong> da equipe serão perdidas.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowConfirmDeleteTeam(false);
+                setTeamToDelete(null);
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (teamToDelete) {
+                  deleteTeamMutation.mutate(teamToDelete.id);
+                }
+              }}
+              disabled={deleteTeamMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground flex-1"
+            >
+              {deleteTeamMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Excluindo...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Trash className="h-4 w-4" />
+                  Excluir Equipe
                 </div>
               )}
             </AlertDialogAction>
