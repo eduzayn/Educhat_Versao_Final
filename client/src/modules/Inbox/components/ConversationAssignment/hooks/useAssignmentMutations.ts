@@ -61,9 +61,14 @@ export function useUserAssignment(conversationId: number) {
       return response.json();
     },
     onSuccess: (_, variables) => {
-      // Invalidar queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+      // Atualizar store local imediatamente se esta é a conversa ativa
+      if (activeConversation && activeConversation.id === conversationId) {
+        updateActiveConversationAssignment(activeConversation.assignedTeamId, variables.userId);
+      }
+      
+      // Refetch imediato para garantir atualização da interface
+      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/conversations', conversationId] });
       
       toast({
         title: 'Usuário atribuído',
