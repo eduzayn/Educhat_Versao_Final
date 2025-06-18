@@ -10,7 +10,7 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/shared/ui/tooltip';
-import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-react';
+import { Building2, Plus, Users, Settings, UserPlus, Loader2, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team } from '@shared/schema';
@@ -206,6 +206,36 @@ export const TeamsTab = () => {
     }
   });
 
+  // Mutação para remover membro da equipe
+  const removeMemberMutation = useMutation({
+    mutationFn: async ({ userId, teamId }: { userId: number; teamId: number }) => {
+      const response = await fetch('/api/user-teams', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, teamId })
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao remover membro');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      toast({
+        title: "Membro removido!",
+        description: "O usuário foi removido da equipe com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o membro da equipe.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleCreateTeam = () => {
     if (!newTeamForm.name || !newTeamForm.teamType) {
       toast({
@@ -357,7 +387,7 @@ export const TeamsTab = () => {
                     {teamMembers[team.id] && teamMembers[team.id].length > 0 ? (
                       <div className="space-y-2">
                         {teamMembers[team.id].slice(0, 3).map(member => (
-                          <div key={member.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                          <div key={`team-${team.id}-member-${member.id}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md group">
                             <Avatar className="h-6 w-6">
                               <AvatarFallback className="text-xs">
                                 {member.displayName?.split(' ').map((n: string) => n[0]).join('') || 'U'}
@@ -367,7 +397,22 @@ export const TeamsTab = () => {
                               <p className="text-sm font-medium truncate">{member.displayName}</p>
                               <p className="text-xs text-muted-foreground">{member.role}</p>
                             </div>
-                            <div className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <div className="flex items-center gap-1">
+                              <div className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => {
+                                  if (confirm(`Tem certeza que deseja remover ${member.displayName} da equipe ${team.name}?`)) {
+                                    removeMemberMutation.mutate({ userId: member.id, teamId: team.id });
+                                  }
+                                }}
+                                disabled={removeMemberMutation.isPending}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                         {teamMembers[team.id].length > 3 && (
