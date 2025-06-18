@@ -2,7 +2,7 @@
  * Script para corrigir handoffs pendentes e executar atribuições
  */
 
-import { db } from '../server/core/db.js';
+import { db } from '../server/db.js';
 import { eq } from 'drizzle-orm';
 import { handoffs, conversations } from '../shared/schema.js';
 
