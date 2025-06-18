@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { channels, type Channel, type InsertChannel } from "@shared/schema";
+import { channels, type Channel, type InsertChannel } from "../../../shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 /**

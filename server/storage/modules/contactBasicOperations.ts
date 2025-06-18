@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { contacts, type Contact, type InsertContact, type ContactWithTags } from "@shared/schema";
+import { contacts, type Contact, type InsertContact, type ContactWithTags } from "../../../shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export class ContactBasicOperations extends BaseStorage {

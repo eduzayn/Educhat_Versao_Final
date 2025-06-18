@@ -1,7 +1,7 @@
 import { Express, Response } from 'express';
 import { storage } from "../../storage/index";
 import { z } from "zod";
-import { insertManychatIntegrationSchema } from "@shared/schema";
+import { insertManychatIntegrationSchema } from "../../../shared/schema";
 import { facebookRoutes } from '../integrations/facebook';
 
 // Schema para teste de conexão Manychat

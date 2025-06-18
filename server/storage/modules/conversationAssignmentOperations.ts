@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations } from "@shared/schema";
+import { conversations } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 
 export class ConversationAssignmentOperations extends BaseStorage {

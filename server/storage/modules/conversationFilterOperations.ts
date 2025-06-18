@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, contacts, channels } from "@shared/schema";
+import { conversations, contacts, channels } from "../../../shared/schema";
 import { eq, desc, and, count, sql, inArray, or, ilike, gte, lte } from "drizzle-orm";
 
 /**

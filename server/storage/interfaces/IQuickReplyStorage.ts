@@ -1,4 +1,4 @@
-import { QuickReply, InsertQuickReply, QuickReplyTeamShare, InsertQuickReplyTeamShare, QuickReplyShare, InsertQuickReplyShare } from '@shared/schema';
+import { QuickReply, InsertQuickReply, QuickReplyTeamShare, InsertQuickReplyTeamShare, QuickReplyShare, InsertQuickReplyShare } from '../../../shared/schema';
 
 export interface IQuickReplyStorage {
   getQuickReplies(): Promise<QuickReply[]>;

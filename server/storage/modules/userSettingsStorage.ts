@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { systemSettings, type SystemSetting } from "@shared/schema";
+import { systemSettings, type SystemSetting } from "../../../shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 /**

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { systemUsers, roles, permissions, rolePermissions } from "@shared/schema";
+import { systemUsers, roles, permissions, rolePermissions } from "../../../shared/schema";
 import { eq, and } from "drizzle-orm";
 import type { PermissionContext, AuditLogData } from './permissionTypes';
 

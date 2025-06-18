@@ -1,5 +1,5 @@
 import { BaseStorage } from '../base/BaseStorage';
-import { messages, type Message, type InsertMessage } from '@shared/schema';
+import { messages, type Message, type InsertMessage } from '../../../shared/schema';
 import { eq, and, desc, or } from 'drizzle-orm';
 
 export class MessageInternalNotesOperations extends BaseStorage {

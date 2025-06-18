@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { gamificationWebhook } from '../../services/gamificationWebhookIntegration';
 import { db } from '../../db';
-import { conversations } from '@shared/schema';
+import { conversations } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 const router = Router();

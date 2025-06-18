@@ -1,7 +1,7 @@
 import { Express, Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { aiConfig, systemSettings, insertAiConfigSchema, insertSystemSettingSchema } from '@shared/schema';
+import { aiConfig, systemSettings, insertAiConfigSchema, insertSystemSettingSchema } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import Anthropic from '@anthropic-ai/sdk';
 

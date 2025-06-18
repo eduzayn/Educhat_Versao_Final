@@ -2,7 +2,7 @@ import { Express, Response } from 'express';
 import { z } from "zod";
 import { eq } from 'drizzle-orm';
 import { db } from '../../db';
-import { systemSettings, insertSystemSettingSchema } from '@shared/schema';
+import { systemSettings, insertSystemSettingSchema } from '../../../shared/schema';
 
 export function registerGeneralSettingsRoutes(app: Express) {
   // Get system settings by category

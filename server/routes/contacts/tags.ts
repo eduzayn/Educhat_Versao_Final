@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../../storage/index";
-import { insertContactTagSchema } from "@shared/schema";
+import { insertContactTagSchema } from "../../../shared/schema";
 
 export function registerContactTagsRoutes(app: Express) {
   app.get('/api/contacts/:id/tags', async (req, res) => {

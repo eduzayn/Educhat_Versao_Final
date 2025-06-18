@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, contacts, channels, messages, contactTags, deals, type ConversationWithContact } from "@shared/schema";
+import { conversations, contacts, channels, messages, contactTags, deals, type ConversationWithContact } from "../../../shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 export class ConversationDetailOperations extends BaseStorage {

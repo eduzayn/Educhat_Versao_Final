@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../../db';
-import { conversations, messages, teams } from '@shared/schema';
+import { conversations, messages, teams } from '../../../shared/schema';
 import { eq, and, isNull, desc, asc } from 'drizzle-orm';
 import { broadcast } from '../realtime/realtime-broadcast';
 

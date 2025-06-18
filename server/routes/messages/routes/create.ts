@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../../../storage';
-import { insertMessageSchema } from '@shared/schema';
+import { insertMessageSchema } from '../../../shared/schema';
 import { AuthenticatedRequest } from '../../../core/permissions';
 
 const router = Router();

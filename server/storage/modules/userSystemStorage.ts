@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { systemUsers, type User, type SystemUser, type InsertSystemUser } from "@shared/schema";
+import { systemUsers, type User, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
 import { eq, desc, ilike, or } from "drizzle-orm";
 
 /**

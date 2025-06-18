@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { conversations, teams } from '@shared/schema';
+import { conversations, teams } from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { HandoffCriteria } from './handoff-types';
 

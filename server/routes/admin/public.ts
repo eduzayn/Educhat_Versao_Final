@@ -1,6 +1,6 @@
 import { Express, Response } from 'express';
 import { db } from '../../core/db';
-import { systemUsers, roles } from '@shared/schema';
+import { systemUsers, roles } from '../../../shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { AuthenticatedRequest, updateLastActivity } from '../../core/permissionsRefactored';
 

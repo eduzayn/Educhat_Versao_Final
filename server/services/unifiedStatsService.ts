@@ -1,5 +1,5 @@
 import { db } from '../core/db';
-import { conversations, handoffs, systemUsers, deals, messages, contacts } from '@shared/schema';
+import { conversations, handoffs, systemUsers, deals, messages, contacts } from '../../../shared/schema';
 import { eq, and, sql, desc, count, avg, gte, lte } from 'drizzle-orm';
 
 export interface StatsFilters {

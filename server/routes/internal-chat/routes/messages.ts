@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '../../../db';
-import { internalChatChannels, internalChatMessages, systemUsers, teams } from '@shared/schema';
+import { internalChatChannels, internalChatMessages, systemUsers, teams } from '../../../shared/schema';
 import { Message } from '../types/teams';
 
 const router = Router();

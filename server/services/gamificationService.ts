@@ -11,7 +11,7 @@ import {
   messages,
   teams,
   deals
-} from '@shared/schema';
+} from '../../shared/schema';
 import { eq, and, desc, gte, lte, sql, count, avg, sum, isNotNull } from 'drizzle-orm';
 
 export interface UserStats {

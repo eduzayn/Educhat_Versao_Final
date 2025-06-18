@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { quickReplies, quickReplyTeamShares, quickReplyShares, type QuickReply, type InsertQuickReply } from "@shared/schema";
+import { quickReplies, quickReplyTeamShares, quickReplyShares, type QuickReply, type InsertQuickReply } from "../../../shared/schema";
 import { eq, desc, and, or, inArray, ilike } from "drizzle-orm";
 
 /**

@@ -1,4 +1,4 @@
-import { Message, InsertMessage } from '@shared/schema';
+import { Message, InsertMessage } from '../../../shared/schema';
 
 export interface IMessageStorage {
   getAllMessages(): Promise<Message[]>;
