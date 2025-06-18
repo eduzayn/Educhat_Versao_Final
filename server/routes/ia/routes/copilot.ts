@@ -5,7 +5,6 @@ import { db } from '../../../db';
 import { aiContext } from '../../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { aiConfigService } from '../../../services/aiConfigService';
-import { AIErrorHandler } from '../../../middleware/aiErrorHandler';
 
 const router = Router();
 
@@ -165,7 +164,22 @@ Responda à seguinte mensagem:`;
         };
       }
     } catch (error: any) {
-      AIErrorHandler.logError('anthropic', error, 'copilot_generation');
+      console.error('❌ [ANTHROPIC] Erro detalhado:', {
+        message: error.message,
+        status: error.status,
+        type: error.type,
+        error: error.error,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Análise específica por tipo de erro
+      if (error.status === 401) {
+        console.error('🔑 [ANTHROPIC] ERRO DE AUTENTICAÇÃO - Chave de API inválida ou expirada');
+      } else if (error.status === 429) {
+        console.warn('⏱️ [ANTHROPIC] QUOTA EXCEDIDA - Rate limit atingido');
+      } else if (error.status >= 500) {
+        console.error('🚨 [ANTHROPIC] ERRO DE SERVIDOR - Problema no serviço externo');
+      }
       
       // Se for erro de timeout ou rede, tentar OpenAI
       if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.status >= 500) {

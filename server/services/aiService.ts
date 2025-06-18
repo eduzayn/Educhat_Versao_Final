@@ -1,6 +1,5 @@
 import { OpenAI } from 'openai';
 import { aiConfigService } from './aiConfigService';
-import { AIErrorHandler } from '../middleware/aiErrorHandler';
 
 /**
  * Serviço de IA para análise de conversas e atribuição inteligente
@@ -74,8 +73,13 @@ class AIService {
           return this.getFallbackAnalysis(message);
         }
       }
-    } catch (error) {
-      AIErrorHandler.logError('openai', error, 'message_analysis');
+    } catch (error: any) {
+      console.error('❌ [OPENAI] Erro na análise de mensagem:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
     }
 
     return this.getFallbackAnalysis(message);
@@ -203,8 +207,13 @@ class AIService {
       });
 
       return response.choices[0]?.message?.content || null;
-    } catch (error) {
-      AIErrorHandler.logError('openai', error, 'auto_response_generation');
+    } catch (error: any) {
+      console.error('❌ [OPENAI] Erro ao gerar resposta automática:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
       return null;
     }
   }
