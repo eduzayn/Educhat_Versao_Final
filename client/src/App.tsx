@@ -1,13 +1,12 @@
-import LandingPage from './pages/index'
-import { Toaster } from './components/ui/toaster'
-import './index.css'
+import { Route, Switch } from "wouter"
+import LandingPage from "./pages/index"
 
 function App() {
   return (
-    <>
-      <LandingPage />
-      <Toaster />
-    </>
+    <Switch>
+      <Route path="/" component={LandingPage} />
+      <Route>404 - Página não encontrada</Route>
+    </Switch>
   )
 }
 
