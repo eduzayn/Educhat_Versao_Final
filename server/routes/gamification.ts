@@ -22,26 +22,58 @@ router.get('/dashboard', async (req, res) => {
       return res.status(401).json({ error: 'Usuário não autenticado' });
     }
 
-    // Buscar dados em paralelo
+    // Buscar dados em paralelo com tratamento de erro individual
     const [
       badges,
       achievements,
-      dailyStats,
-      weeklyStats,
-      monthlyStats,
       dailyLeaderboard,
       weeklyLeaderboard,
       monthlyLeaderboard
     ] = await Promise.all([
-      gamificationService.getUserBadges(userId),
-      gamificationService.getUserAchievements(userId, 5),
-      gamificationService.getUserStats(userId, 'daily'),
-      gamificationService.getUserStats(userId, 'weekly'),
-      gamificationService.getUserStats(userId, 'monthly'),
-      gamificationService.getLeaderboard('total_points', 'daily', undefined, 5),
-      gamificationService.getLeaderboard('total_points', 'weekly', undefined, 5),
-      gamificationService.getLeaderboard('total_points', 'monthly', undefined, 5)
+      gamificationService.getUserBadges(userId).catch(err => {
+        console.error('Erro ao buscar badges:', err);
+        return [];
+      }),
+      gamificationService.getUserAchievements(userId, 5).catch(err => {
+        console.error('Erro ao buscar achievements:', err);
+        return [];
+      }),
+      gamificationService.getLeaderboard('total_points', 'daily', undefined, 5).catch(err => {
+        console.error('Erro ao buscar leaderboard diário:', err);
+        return [];
+      }),
+      gamificationService.getLeaderboard('total_points', 'weekly', undefined, 5).catch(err => {
+        console.error('Erro ao buscar leaderboard semanal:', err);
+        return [];
+      }),
+      gamificationService.getLeaderboard('total_points', 'monthly', undefined, 5).catch(err => {
+        console.error('Erro ao buscar leaderboard mensal:', err);
+        return [];
+      })
     ]);
+
+    // Buscar estatísticas individuais com fallback
+    let dailyStats = null;
+    let weeklyStats = null; 
+    let monthlyStats = null;
+
+    try {
+      dailyStats = await gamificationService.getUserStats(userId, 'daily');
+    } catch (err) {
+      console.error('Erro ao buscar stats diárias:', err);
+    }
+
+    try {
+      weeklyStats = await gamificationService.getUserStats(userId, 'weekly');
+    } catch (err) {
+      console.error('Erro ao buscar stats semanais:', err);
+    }
+
+    try {
+      monthlyStats = await gamificationService.getUserStats(userId, 'monthly');
+    } catch (err) {
+      console.error('Erro ao buscar stats mensais:', err);
+    }
 
     // Encontrar posição do usuário nos leaderboards
     const userDailyPosition = dailyLeaderboard.findIndex(entry => entry.userId === userId) + 1;

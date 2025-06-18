@@ -255,8 +255,11 @@ router.post('/assign', async (req, res) => {
     // Executar atribuição usando rodízio equitativo
     const result = await equitableRoundRobinService.assignUserToConversation(conversationId, teamId);
 
-    if (result.success) {
+    if (result.success && result.userId) {
       console.log(`✅ Atribuição manual via rodízio: Conversa ${conversationId} → ${result.userName}`);
+      
+      // Atualizar gamificação em tempo real
+      await gamificationWebhook.onConversationAssigned(result.userId, conversationId);
     }
 
     res.json(result);
