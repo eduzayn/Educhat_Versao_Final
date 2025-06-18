@@ -7,6 +7,7 @@ import { registerStatsRoutes } from './stats';
 import { registerCleanupRoutes } from './cleanup';
 import { registerPublicRoutes } from './public';
 import retroactiveAssignmentRouter from './retroactive-assignment-router';
+import aiConnectionTestRouter from './ai-connection-test';
 
 /**
  * Módulo Admin - Sistema de Administração
@@ -32,4 +33,7 @@ export function registerAdminRoutes(app: Express) {
   
   // Registro da rota de atribuição retroativa
   app.use('/api/admin', retroactiveAssignmentRouter);
+  
+  // Registro das rotas de teste de IA
+  app.use('/api/admin', aiConnectionTestRouter);
 }

@@ -29,11 +29,11 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
     }>
   };
 
-  // Teste OpenAI GPT-4
+  // Teste OpenAI GPT-3.5 (fallback para quota)
   try {
     const startTime = Date.now();
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -51,7 +51,7 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
     const responseTime = Date.now() - startTime;
     
     testResults.tests.push({
-      service: 'OpenAI GPT-4',
+      service: 'OpenAI GPT-3.5-Turbo',
       status: 'success',
       responseTime,
       details: {
@@ -62,7 +62,7 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     testResults.tests.push({
-      service: 'OpenAI GPT-4',
+      service: 'OpenAI GPT-3.5-Turbo',
       status: 'error',
       responseTime: 0,
       details: null,
@@ -74,7 +74,7 @@ router.post('/test-ai-connection', async (req: Request, res: Response) => {
   try {
     const startTime = Date.now();
     const response = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
+      model: "claude-3-haiku-20240307",
       max_tokens: 20,
       messages: [
         {
