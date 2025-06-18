@@ -7,11 +7,11 @@ const router = Router();
 
 // Configuração de palavras-chave por tipo de equipe
 const teamKeywords = {
-  'vendas': [
+  'comercial': [
     'comprar', 'preço', 'valor', 'custo', 'orçamento', 'pagamento', 
     'desconto', 'promoção', 'oferta', 'venda', 'investimento', 'compra',
     'quanto custa', 'qual o valor', 'parcelamento', 'cartão', 'boleto',
-    'vendas', 'comercial', 'negócio'
+    'vendas', 'comercial', 'negócio', 'interesse', 'quero', 'queria'
   ],
   'suporte': [
     'problema', 'erro', 'bug', 'não funciona', 'não consegue', 'dificuldade',
@@ -19,11 +19,21 @@ const teamKeywords = {
     'travou', 'parou', 'quebrado', 'defeito', 'falha', 'técnico',
     'configurar', 'instalar', 'tutorial'
   ],
-  'atendimento': [
+  'secretaria': [
     'informação', 'horário', 'funcionamento', 'localização', 'endereço',
     'contato', 'telefone', 'email', 'whatsapp', 'atendimento',
-    'quando', 'onde', 'como', 'geral', 'informações',
-    'receptivo', 'geral'
+    'quando', 'onde', 'como', 'geral', 'informações', 'como funciona',
+    'certificação', 'documentação', 'pós-graduação', 'graduação', 'curso'
+  ],
+  'tutoria': [
+    'estudando', 'estudo', 'matéria', 'disciplina', 'aula', 'professor',
+    'tutor', 'dúvida acadêmica', 'atividade', 'trabalho', 'prova',
+    'nota', 'avaliação', 'conteúdo', 'material'
+  ],
+  'financeiro': [
+    'mensalidade', 'boleto', 'pagamento', 'financeiro', 'cobrança',
+    'desconto', 'bolsa', 'financiamento', 'parcelamento', 'débito',
+    'conta', 'fatura', 'valor devido'
   ]
 };
 
@@ -62,11 +72,11 @@ function analyzeConversationContent(messageList: any[]) {
   const confidence = Math.min(bestMatch.score * 20, 100); // Max 100%
   
   return {
-    teamType: bestMatch.teamType || 'unassigned',
+    teamType: bestMatch.teamType || 'comercial',
     confidence,
     reason: bestMatch.matchedWords.length > 0 
       ? `Palavras-chave encontradas: ${bestMatch.matchedWords.join(', ')}`
-      : 'Nenhuma palavra-chave específica encontrada'
+      : 'Análise baseada em contexto geral - direcionado para comercial'
   };
 }
 
@@ -138,7 +148,7 @@ router.post('/retroactive-assignment', async (req, res) => {
         const team = await db
           .select()
           .from(teams)
-          .where(eq(teams.type, analysis.teamType))
+          .where(eq(teams.teamType, analysis.teamType))
           .limit(1);
 
         if (team.length === 0) {
