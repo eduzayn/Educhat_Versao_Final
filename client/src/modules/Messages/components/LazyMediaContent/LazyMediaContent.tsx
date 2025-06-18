@@ -19,7 +19,7 @@ export function LazyMediaContent({
   conversationId,
   isFromContact,
   metadata,
-  initialContent,
+  initialContent: propInitialContent,
 }: LazyMediaContentProps) {
   // Log detalhado dos dados recebidos para debugging
   console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
@@ -28,19 +28,27 @@ export function LazyMediaContent({
     isFromContact,
     hasMetadata: !!metadata,
     metadata,
-    hasInitialContent: !!initialContent,
-    initialContent,
-    initialContentType: typeof initialContent,
-    initialContentLength: initialContent?.length
+    hasInitialContent: !!propInitialContent,
+    propInitialContent,
+    initialContentType: typeof propInitialContent,
+    initialContentLength: propInitialContent?.length
   });
 
-  // OTIMIZAÇÃO: Usar URL direta quando disponível para renderização imediata
+  // CORREÇÃO: Carregamento automático apenas para mensagens ENVIADAS
+  // Mensagens RECEBIDAS sempre usam carregamento sob demanda
   const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl || metadata?.url;
   const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http') || directMediaUrl.startsWith('data:'));
+  
+  // Só passa URL inicial se for mensagem ENVIADA (não recebida)
+  const shouldAutoLoad = !isFromContact && hasDirectUrl;
+  const processedInitialContent = shouldAutoLoad ? directMediaUrl : null;
 
-  console.log(`🔍 Verificando URL direta para mensagem ${messageId}:`, {
+  console.log(`🔍 Verificando carregamento para mensagem ${messageId}:`, {
     directMediaUrl,
     hasDirectUrl,
+    isFromContact,
+    shouldAutoLoad,
+    processedInitialContent,
     metadata
   });
 
@@ -53,7 +61,7 @@ export function LazyMediaContent({
     loadMediaContent,
     retry,
     canRetry
-  } = useOptimizedMedia(messageId, messageType, hasDirectUrl ? directMediaUrl : null);
+  } = useOptimizedMedia(messageId, messageType, processedInitialContent);
 
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });

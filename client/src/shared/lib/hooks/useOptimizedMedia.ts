@@ -22,7 +22,7 @@ export function useOptimizedMedia(messageId: number, messageType: string, initia
   console.log(`🎯 useOptimizedMedia iniciado para mensagem ${messageId}:`, {
     messageType,
     hasInitialContent: !!initialContent,
-    initialContent,
+    initialContent: initialContent ? `${initialContent.substring(0, 50)}...` : null,
     initialContentType: typeof initialContent,
     initialContentLength: initialContent?.length
   });
