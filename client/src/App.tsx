@@ -61,6 +61,10 @@ function Router() {
           <Route path="/inbox" component={InboxPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/crm" component={CRMPage} />
+          <Route path="/crm/deals" component={CRMPage} />
+          <Route path="/crm/sales" component={CRMPage} />
+          <Route path="/crm/activities" component={CRMPage} />
+          <Route path="/crm/reports" component={CRMPage} />
           <Route path="/ia" component={IAPage} />
           <Route path="/ia/config">
             {() => (
