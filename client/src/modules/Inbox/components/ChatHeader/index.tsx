@@ -6,7 +6,7 @@ import { ConversationActionsDropdown } from "@/modules/Inbox/components/Conversa
 import { ConversationAssignment } from "@/modules/Inbox/components/ConversationAssignment";
 import { InternalNotesPanel } from "@/modules/Messages/components/InternalNotes/InternalNotesPanel";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+// Removido import useQuery - não é mais necessário
 
 interface ChatHeaderProps {
   activeConversation: any;
@@ -38,44 +38,7 @@ export function ChatHeader({
     status,
   } = activeConversation;
 
-  // Buscar informações do usuário atribuído
-  const { data: assignedUser, isError, error } = useQuery({
-    queryKey: ['/api/users/basic', assignedUserId],
-    queryFn: async () => {
-      if (!assignedUserId) return null;
-      
-      try {
-        const response = await fetch(`/api/users/${assignedUserId}/basic`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'same-origin', // Garante que cookies sejam enviados
-        });
-        
-        if (!response.ok) {
-          console.error(`Erro ${response.status}: ${response.statusText}`);
-          return null;
-        }
-        
-        const userData = await response.json();
-        console.log(`Usuário ${assignedUserId} carregado:`, userData.displayName || userData.username);
-        return userData;
-      } catch (error) {
-        console.error(`Erro ao buscar usuário ${assignedUserId}:`, error);
-        return null;
-      }
-    },
-    enabled: !!assignedUserId,
-    retry: 2,
-    retryDelay: 500,
-    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
-  });
-
-  // Log de debug apenas se houver erro persistente
-  if (assignedUserId && isError) {
-    console.error(`Falha persistente ao buscar usuário ${assignedUserId}:`, error);
-  }
+  // Removido lógica de busca do usuário - será tratada pelo UserSelector
 
   const channelInfo = getChannelInfo(channel);
   const phoneFormatted = contact?.phone
@@ -118,17 +81,6 @@ export function ChatHeader({
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>{phoneFormatted}</span>
-              {assignedUser && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    <span className="font-medium text-blue-600">
-                      {assignedUser.displayName || assignedUser.username}
-                    </span>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>

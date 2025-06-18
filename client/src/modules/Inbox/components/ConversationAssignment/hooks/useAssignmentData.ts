@@ -20,9 +20,11 @@ export function useTeams() {
 // Hook para carregar usuários do sistema
 export function useSystemUsers() {
   return useQuery<SystemUser[]>({
-    queryKey: ['/api/system-users'],
+    queryKey: ['/api/users/basic'],
     queryFn: async () => {
-      const response = await fetch('/api/system-users');
+      const response = await fetch('/api/system-users', {
+        credentials: 'same-origin'
+      });
       if (!response.ok) throw new Error('Erro ao carregar usuários');
       return response.json();
     },
