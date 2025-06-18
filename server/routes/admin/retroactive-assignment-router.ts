@@ -148,7 +148,7 @@ router.post('/retroactive-assignment', async (req, res) => {
         const team = await db
           .select()
           .from(teams)
-          .where(eq(teams.teamType, analysis.teamType))
+          .where(eq(teams.team_type, analysis.teamType))
           .limit(1);
 
         if (team.length === 0) {
