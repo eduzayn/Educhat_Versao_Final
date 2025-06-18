@@ -128,11 +128,22 @@ export async function processConversationImmediately(conversationId: number, mes
       };
     }
 
+    // Mapear tipos de análise para team_type do banco
+    const teamTypeMapping: Record<string, string> = {
+      'comercial': 'comercial',
+      'suporte': 'suporte', 
+      'secretaria': 'secretaria',
+      'tutoria': 'tutoria',
+      'financeiro': 'financeiro'
+    };
+
+    const dbTeamType = teamTypeMapping[analysis.teamType] || 'comercial';
+
     // Buscar equipe correspondente
     const team = await db
       .select()
       .from(teams)
-      .where(eq(teams.teamType, analysis.teamType))
+      .where(eq(teams.teamType, dbTeamType))
       .limit(1);
 
     if (team.length === 0) {

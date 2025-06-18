@@ -556,16 +556,36 @@ async function handleGetQRCode(req: any, res: any) {
  * Registra todas as rotas de webhooks
  */
 export function registerWebhookRoutes(app: Express) {
-  // Webhook principal Z-API
-  app.post('/api/zapi/webhook', async (req, res) => {
-    const result = await processZApiWebhook(req.body);
+  // Webhook principal Z-API (ambas as rotas para compatibilidade)
+  const webhookHandler = async (req: any, res: any) => {
+    console.log('📨 Webhook recebido:', JSON.stringify(req.body, null, 2));
     
-    if (result.success) {
-      res.status(200).json(result);
-    } else {
-      res.status(500).json(result);
+    try {
+      const result = await processZApiWebhook(req.body);
+      
+      if (result.success) {
+        res.status(200).json({ 
+          success: true, 
+          message: 'Webhook processado com sucesso',
+          type: result.type 
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          error: result.error || 'Erro no processamento do webhook' 
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erro crítico no webhook:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro interno do servidor' 
+      });
     }
-  });
+  };
+
+  app.post('/api/webhook', webhookHandler);
+  app.post('/api/zapi/webhook', webhookHandler);
   
   // Rotas Z-API auxiliares
   app.post('/api/zapi/import-contacts', handleImportContacts);
