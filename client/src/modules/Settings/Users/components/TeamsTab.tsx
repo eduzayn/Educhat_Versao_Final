@@ -388,8 +388,8 @@ export const TeamsTab = () => {
                     <span className="text-sm font-medium mb-2 block">Membros da Equipe:</span>
                     {teamMembers[team.id] && teamMembers[team.id].length > 0 ? (
                       <div className="space-y-2">
-                        {teamMembers[team.id].slice(0, 3).map(member => (
-                          <div key={`team-${team.id}-member-${member.id}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md group">
+                        {teamMembers[team.id].slice(0, 3).map((member, index) => (
+                          <div key={`team-${team.id}-member-${member.id}-${index}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md group">
                             <Avatar className="h-6 w-6">
                               <AvatarFallback className="text-xs">
                                 {member.displayName?.split(' ').map((n: string) => n[0]).join('') || 'U'}
