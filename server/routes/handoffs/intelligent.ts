@@ -128,20 +128,48 @@ router.post('/execute', async (req, res) => {
 function determineTeamType(messageContent: string): string {
   const content = messageContent.toLowerCase();
   
-  // Palavras-chave para diferentes equipes
+  // Palavras-chave para diferentes equipes (priorizando detecção comercial)
   const teamKeywords = {
-    'comercial': ['preço', 'valor', 'comprar', 'vender', 'orçamento', 'proposta', 'interesse', 'produto', 'curso', 'informação'],
-    'suporte': ['problema', 'erro', 'não funciona', 'ajuda', 'dificuldade', 'suporte', 'técnico'],
-    'financeiro': ['pagamento', 'boleto', 'pix', 'cartão', 'financeiro', 'cobrança', 'fatura'],
-    'secretaria': ['horário', 'agenda', 'contato', 'telefone', 'endereço'],
-    'tutoria': ['dúvida', 'exercício', 'matéria', 'aula', 'explicação', 'tutorial']
+    'comercial': [
+      // Intenções diretas de compra/interesse
+      'interesse', 'interessada', 'interessado', 'quero', 'queria', 'gostaria',
+      'informações', 'informação', 'info', 'detalhes',
+      // Produtos/serviços educacionais
+      'curso', 'cursos', 'graduação', 'pós', 'especialização', 'licenciatura',
+      'segunda licenciatura', 'formação', 'certificado', 'diploma',
+      // Termos comerciais
+      'preço', 'valor', 'valores', 'quanto custa', 'custo',
+      'matrícula', 'matricular', 'inscrição', 'inscrever',
+      'comprar', 'vender', 'orçamento', 'proposta'
+    ],
+    'suporte': ['problema', 'erro', 'não funciona', 'ajuda técnica', 'dificuldade técnica', 'suporte técnico', 'bug'],
+    'financeiro': ['pagamento', 'boleto', 'pix', 'cartão', 'financeiro', 'cobrança', 'fatura', 'parcela'],
+    'secretaria': ['horário', 'agenda', 'contato', 'telefone', 'endereço', 'localização'],
+    'tutoria': ['dúvida acadêmica', 'exercício', 'matéria', 'aula', 'explicação', 'tutorial', 'conteúdo']
   };
   
-  // Pontuação por tipo de equipe
+  // Sistema de pontuação com pesos para priorizar detecção comercial
   const scores: { [key: string]: number } = {};
+  const weights = {
+    'comercial': 3, // Peso maior para comercial
+    'suporte': 1,
+    'financeiro': 2,
+    'secretaria': 1,
+    'tutoria': 1
+  };
   
   for (const [teamType, keywords] of Object.entries(teamKeywords)) {
-    scores[teamType] = keywords.filter(keyword => content.includes(keyword)).length;
+    const matches = keywords.filter(keyword => content.includes(keyword)).length;
+    scores[teamType] = matches * (weights[teamType as keyof typeof weights] || 1);
+  }
+  
+  // Regras específicas para casos críticos
+  if (content.includes('interesse') && (content.includes('curso') || content.includes('licenciatura') || content.includes('graduação'))) {
+    scores['comercial'] += 10; // Boost para casos como JEYCE ACSA
+  }
+  
+  if (content.includes('informações') || content.includes('informação')) {
+    scores['comercial'] += 5; // Pedidos de informação são comerciais
   }
   
   // Retorna o tipo com maior pontuação, ou 'comercial' como padrão

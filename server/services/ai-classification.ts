@@ -60,13 +60,15 @@ export class AIClassification {
               }
             }
             
-            Regras de classificação:
-            - frustrationLevel: 0-3=baixo, 4-6=médio, 7-10=alto
+            Regras de classificação CRÍTICAS:
+            - PRIORIDADE MÁXIMA: Detectar interesse comercial (leads educacionais)
+            - Se mencionar "interesse" + qualquer termo educacional = SEMPRE "lead_generation" ou "course_inquiry"
+            - Termos como "segunda licenciatura", "graduação", "curso" = intent comercial
+            - "informações" sobre cursos = intent comercial, não suporte
+            - suggestedTeam: comercial (vendas/leads), suporte (técnico), tutoria (acadêmico), financeiro (pagamentos)
             - aiMode: "mentor" para alunos, "consultora" para leads
-            - suggestedTeam baseado na intenção: comercial (vendas), suporte (técnico), pedagogico (acadêmico), financeiro (pagamentos)
             - confidence: precisão da classificação (0-100)
-            - Detecte emojis, gírias e informalidade para sentimento
-            - Identifique menções de cursos, valores, problemas técnicos`
+            - frustrationLevel: 0-3=baixo, 4-6=médio, 7-10=alto`
           },
           {
             role: "user",
@@ -120,10 +122,14 @@ export class AIClassification {
     let sentiment = 'neutral';
     let aiMode: 'mentor' | 'consultora' = 'consultora';
     
-    // Detecção básica por palavras-chave
-    if (messageLower.includes('curso') || messageLower.includes('matrícula')) {
+    // Detecção melhorada com prioridade para casos comerciais
+    if (messageLower.includes('interesse') && (messageLower.includes('curso') || messageLower.includes('licenciatura') || messageLower.includes('graduação'))) {
+      intent = 'lead_generation';
+    } else if (messageLower.includes('informações') || messageLower.includes('informação')) {
       intent = 'course_inquiry';
-    } else if (messageLower.includes('problema') || messageLower.includes('erro')) {
+    } else if (messageLower.includes('curso') || messageLower.includes('matrícula') || messageLower.includes('segunda licenciatura')) {
+      intent = 'course_inquiry';
+    } else if (messageLower.includes('problema') && (messageLower.includes('técnico') || messageLower.includes('sistema'))) {
       intent = 'technical_support';
       sentiment = 'negative';
     } else if (messageLower.includes('certificado') || messageLower.includes('disciplina')) {

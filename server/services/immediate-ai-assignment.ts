@@ -9,11 +9,14 @@ import { eq, isNull, desc } from 'drizzle-orm';
 
 const teamKeywords = {
   'comercial': [
+    'interesse', 'interessada', 'interessado', 'quero', 'queria', 'gostaria',
+    'informações', 'informação', 'info', 'detalhes',
+    'curso', 'cursos', 'graduação', 'pós', 'especialização', 'licenciatura',
+    'segunda licenciatura', 'formação', 'certificado', 'diploma',
     'comprar', 'preço', 'valor', 'custo', 'orçamento', 'pagamento', 
     'desconto', 'promoção', 'oferta', 'venda', 'investimento', 'compra',
     'quanto custa', 'qual o valor', 'parcelamento', 'cartão', 'boleto',
-    'vendas', 'comercial', 'negócio', 'interesse', 'quero', 'queria',
-    'mensalidade', 'matricula'
+    'vendas', 'comercial', 'negócio', 'mensalidade', 'matricula'
   ],
   'suporte': [
     'problema', 'erro', 'bug', 'não funciona', 'não consegue', 'dificuldade',
@@ -22,10 +25,10 @@ const teamKeywords = {
     'configurar', 'instalar', 'tutorial', 'não consigo'
   ],
   'secretaria': [
-    'informação', 'horário', 'funcionamento', 'localização', 'endereço',
+    'horário', 'funcionamento', 'localização', 'endereço',
     'contato', 'telefone', 'email', 'whatsapp', 'atendimento',
-    'quando', 'onde', 'como funciona', 'geral', 'informações',
-    'certificação', 'documentação', 'pós-graduação', 'graduação', 'curso'
+    'quando', 'onde', 'como funciona', 'geral',
+    'certificação', 'documentação'
   ],
   'tutoria': [
     'estudando', 'estudo', 'matéria', 'disciplina', 'aula', 'professor',
