@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server.js",
+    "start": "vite --port 3001 --host 0.0.0.0",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
