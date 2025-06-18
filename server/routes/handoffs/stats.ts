@@ -47,7 +47,7 @@ router.get('/intelligent', async (req, res) => {
 });
 
 export function registerHandoffStatsRoutes(app: Express) {
-  app.get('/api/handoffs/stats', requirePermission('handoffs:read'), async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/handoffs/stats', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const days = req.query.days ? parseInt(req.query.days as string) : 7;
       const stats = await assignmentCompatibilityService.getHandoffStats(days);
