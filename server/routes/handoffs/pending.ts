@@ -40,7 +40,7 @@ router.get('/team/:teamId', async (req, res) => {
     
     res.json({
       success: true,
-      handoffs
+      handoffs: pendingHandoffs
     });
   } catch (error) {
     console.error('Erro ao buscar handoffs pendentes da equipe:', error);
@@ -62,7 +62,14 @@ router.post('/:id/accept', validateHandoffId, async (req, res) => {
       });
     }
     
-    await intelligentHandoffService.acceptHandoff(handoffId, userId);
+    await db
+      .update(handoffs)
+      .set({
+        status: 'accepted',
+        acceptedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
     
     res.json({
       success: true,
@@ -83,7 +90,14 @@ router.post('/:id/reject', validateHandoffId, async (req, res) => {
     const handoffId = parseInt(req.params.id);
     const reason = req.body.reason;
     
-    await intelligentHandoffService.rejectHandoff(handoffId, reason);
+    await db
+      .update(handoffs)
+      .set({
+        status: 'rejected',
+        reason,
+        updatedAt: new Date()
+      })
+      .where(eq(handoffs.id, handoffId));
     
     res.json({
       success: true,

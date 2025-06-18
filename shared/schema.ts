@@ -343,6 +343,141 @@ export const handoffs = pgTable("handoffs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Sistema de Gamificação
+export const gamificationBadges = pgTable("gamification_badges", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }).notNull(),
+  color: varchar("color", { length: 20 }).default("#3B82F6"),
+  category: varchar("category", { length: 50 }).notNull(), // conversas, tempo_resposta, satisfacao, vendas, colaboracao
+  condition: jsonb("condition").$type<{
+    type: 'count' | 'streak' | 'percentage' | 'time' | 'custom';
+    metric: string;
+    value: number;
+    period?: string; // daily, weekly, monthly, all_time
+    comparison?: 'gte' | 'lte' | 'eq';
+  }>().notNull(),
+  points: integer("points").default(100),
+  rarity: varchar("rarity", { length: 20 }).default("common"), // common, rare, epic, legendary
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const gamificationUserBadges = pgTable("gamification_user_badges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  badgeId: integer("badge_id").references(() => gamificationBadges.id).notNull(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+  progress: integer("progress").default(0), // Para badges com progresso
+  maxProgress: integer("max_progress").default(100),
+  metadata: jsonb("metadata").$type<{
+    streak?: number;
+    period?: string;
+    achievementData?: any;
+  }>(),
+});
+
+export const gamificationLeaderboards = pgTable("gamification_leaderboards", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  metric: varchar("metric", { length: 50 }).notNull(), // conversations_closed, response_time, satisfaction_score, sales_value
+  period: varchar("period", { length: 20 }).notNull(), // daily, weekly, monthly, quarterly, yearly
+  teamId: integer("team_id").references(() => teams.id), // null para leaderboard global
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const gamificationUserStats = pgTable("gamification_user_stats", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  period: varchar("period", { length: 20 }).notNull(), // daily, weekly, monthly
+  periodDate: timestamp("period_date").notNull(), // Data do período
+  
+  // Métricas de conversas
+  conversationsAssigned: integer("conversations_assigned").default(0),
+  conversationsClosed: integer("conversations_closed").default(0),
+  averageResponseTime: integer("average_response_time").default(0), // em segundos
+  averageResolutionTime: integer("average_resolution_time").default(0), // em segundos
+  
+  // Métricas de satisfação
+  satisfactionScore: integer("satisfaction_score").default(0), // 0-100
+  satisfactionResponses: integer("satisfaction_responses").default(0),
+  positiveRatings: integer("positive_ratings").default(0),
+  negativeRatings: integer("negative_ratings").default(0),
+  
+  // Métricas de produtividade
+  messagesExchanged: integer("messages_exchanged").default(0),
+  workingHours: integer("working_hours").default(0), // em minutos
+  onlineTime: integer("online_time").default(0), // em minutos
+  
+  // Métricas de colaboração
+  handoffsMade: integer("handoffs_made").default(0),
+  handoffsReceived: integer("handoffs_received").default(0),
+  teamCollaboration: integer("team_collaboration").default(0),
+  
+  // Métricas de vendas (para equipes comerciais)
+  dealsCreated: integer("deals_created").default(0),
+  dealsClosed: integer("deals_closed").default(0),
+  salesValue: integer("sales_value").default(0), // em centavos
+  
+  // Pontuação geral
+  totalPoints: integer("total_points").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const gamificationAchievements = pgTable("gamification_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // milestone, streak, performance, collaboration
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  points: integer("points").default(0),
+  metadata: jsonb("metadata").$type<{
+    metric?: string;
+    value?: number;
+    period?: string;
+    achievement_data?: any;
+  }>(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+});
+
+export const gamificationChallenges = pgTable("gamification_challenges", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // individual, team, global
+  metric: varchar("metric", { length: 50 }).notNull(),
+  target: integer("target").notNull(),
+  points: integer("points").default(100),
+  teamId: integer("team_id").references(() => teams.id), // null para desafios globais
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  isActive: boolean("is_active").default(true),
+  metadata: jsonb("metadata").$type<{
+    rules?: string[];
+    prizes?: string[];
+    requirements?: any;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const gamificationChallengeParticipants = pgTable("gamification_challenge_participants", {
+  id: serial("id").primaryKey(),
+  challengeId: integer("challenge_id").references(() => gamificationChallenges.id).notNull(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull(),
+  progress: integer("progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
 // Tabela para armazenamento de mídia no banco (produção-ready)
 export const mediaFiles = pgTable("media_files", {
   id: serial("id").primaryKey(),
