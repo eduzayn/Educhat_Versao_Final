@@ -351,6 +351,39 @@ export const TeamsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Membros da Equipe */}
+                  <div>
+                    <span className="text-sm font-medium mb-2 block">Membros da Equipe:</span>
+                    {teamMembers[team.id] && teamMembers[team.id].length > 0 ? (
+                      <div className="space-y-2">
+                        {teamMembers[team.id].slice(0, 3).map(member => (
+                          <div key={member.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-xs">
+                                {member.displayName?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{member.displayName}</p>
+                              <p className="text-xs text-muted-foreground">{member.role}</p>
+                            </div>
+                            <div className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          </div>
+                        ))}
+                        {teamMembers[team.id].length > 3 && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            +{teamMembers[team.id].length - 3} outros membros
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-3 text-center text-muted-foreground bg-muted/30 rounded-md">
+                        <Users className="h-4 w-4 mx-auto mb-1 opacity-50" />
+                        <p className="text-xs">Nenhum membro na equipe</p>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Tipo de Equipe:</span>
                     <div className="flex items-center gap-2">

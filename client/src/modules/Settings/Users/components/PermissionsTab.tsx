@@ -50,8 +50,29 @@ function getCategoryName(category: string) {
   return names[category] || category;
 }
 
+// Lista de permissões nativas/críticas que devem ficar ocultas da interface
+const SYSTEM_PERMISSIONS = [
+  'sistema:acesso_total',
+  'auth:login',
+  'auth:logout', 
+  'sistema:configuracao_critica',
+  'database:backup',
+  'database:restore',
+  'servidor:reiniciar',
+  'logs:sistema',
+  'seguranca:auditoria'
+];
+
+// Permissões que são apenas para configuração por administradores técnicos
+const TECHNICAL_PERMISSIONS = [
+  'webhook:configurar',
+  'api:gerenciar_chaves',
+  'integracao:configurar'
+];
+
 export const PermissionsTab = () => {
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [showTechnicalPermissions, setShowTechnicalPermissions] = useState(false);
   const { toast } = useToast();
 
   // Buscar funções
@@ -134,8 +155,25 @@ export const PermissionsTab = () => {
     });
   };
 
-  // Agrupar permissões por categoria
-  const groupedPermissions = permissions.reduce((acc, permission) => {
+  // Filtrar permissões configuráveis (excluindo nativas e técnicas)
+  const configurablePermissions = permissions.filter(permission => {
+    const permissionKey = `${permission.resource}:${permission.action}`;
+    
+    // Sempre excluir permissões do sistema
+    if (SYSTEM_PERMISSIONS.includes(permissionKey) || SYSTEM_PERMISSIONS.includes(permission.name)) {
+      return false;
+    }
+    
+    // Incluir permissões técnicas apenas se o usuário escolher visualizá-las
+    if (TECHNICAL_PERMISSIONS.includes(permissionKey) || TECHNICAL_PERMISSIONS.includes(permission.name)) {
+      return showTechnicalPermissions;
+    }
+    
+    return true;
+  });
+
+  // Agrupar permissões configuráveis por categoria
+  const groupedPermissions = configurablePermissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
@@ -169,27 +207,53 @@ export const PermissionsTab = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="role-select">Função</Label>
-              <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-                <SelectTrigger id="role-select">
-                  <SelectValue placeholder="Selecione uma função" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id.toString()}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role-select">Função</Label>
+                <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
+                  <SelectTrigger id="role-select">
+                    <SelectValue placeholder="Selecione uma função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.id.toString()}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="technical-toggle">Configurações Avançadas</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="technical-toggle"
+                    checked={showTechnicalPermissions}
+                    onCheckedChange={setShowTechnicalPermissions}
+                  />
+                  <Label htmlFor="technical-toggle" className="text-sm font-normal">
+                    Mostrar permissões técnicas
+                  </Label>
+                </div>
+              </div>
             </div>
             
             {selectedRoleId && (
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Configurando permissões para: <strong>{roles.find(r => r.id.toString() === selectedRoleId)?.name}</strong>
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Configurando permissões para: <strong>{roles.find(r => r.id.toString() === selectedRoleId)?.name}</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {configurablePermissions.length} permissões configuráveis disponíveis
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {Object.keys(groupedPermissions).length} categorias
+                  </Badge>
+                </div>
               </div>
             )}
           </div>
@@ -211,26 +275,34 @@ export const PermissionsTab = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="grid gap-3">
                   {categoryPermissions.map((permission, index) => {
                     const currentHasPermission = hasPermission(permission.id);
+                    const isTechnical = TECHNICAL_PERMISSIONS.includes(`${permission.resource}:${permission.action}`) || TECHNICAL_PERMISSIONS.includes(permission.name);
                     
                     return (
-                      <div key={permission.id}>
+                      <div key={permission.id} className={`p-3 rounded-lg border ${currentHasPermission ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'} ${isTechnical ? 'border-orange-200 bg-orange-50/50' : ''}`}>
                         <div className="flex items-center justify-between">
-                          <div className="space-y-1">
+                          <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <Label className="text-base font-medium">
+                              <Label className="text-sm font-medium">
                                 {permission.name}
                               </Label>
-                              <Badge variant={permission.isActive ? "default" : "secondary"}>
-                                {permission.isActive ? "Ativo" : "Inativo"}
-                              </Badge>
+                              <div className="flex gap-1">
+                                <Badge variant={permission.isActive ? "default" : "secondary"} className="text-xs">
+                                  {permission.isActive ? "Ativo" : "Inativo"}
+                                </Badge>
+                                {isTechnical && (
+                                  <Badge variant="outline" className="text-xs text-orange-700 border-orange-300">
+                                    Técnica
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               {permission.description}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded">
                               {permission.resource}:{permission.action}
                             </p>
                           </div>
@@ -240,7 +312,6 @@ export const PermissionsTab = () => {
                             disabled={updatePermissionMutation.isPending || !permission.isActive}
                           />
                         </div>
-                        {index < categoryPermissions.length - 1 && <Separator className="mt-4" />}
                       </div>
                     );
                   })}
