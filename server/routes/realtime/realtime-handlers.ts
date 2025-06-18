@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "../../storage/index";
+import { setIOInstance } from './realtime-broadcast';
 
 // Store connected clients with their metadata
 const clients = new Map<string, { 
@@ -10,6 +11,9 @@ const clients = new Map<string, {
 }>();
 
 export function setupSocketHandlers(io: SocketIOServer) {
+  // Configurar instância do Socket.IO para broadcasting
+  setIOInstance(io);
+  
   io.on('connection', (socket) => {
     console.log(`🔌 Cliente conectado via Socket.IO: ${socket.id}`);
     clients.set(socket.id, { 

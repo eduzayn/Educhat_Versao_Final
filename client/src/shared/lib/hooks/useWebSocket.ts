@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateActiveConversationAssignment } = useChatStore();
+  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateActiveConversationAssignment, setActiveConversation } = useChatStore();
 
   const connect = useCallback(() => {
     // Clear any existing reconnect timeout
@@ -145,6 +145,29 @@ export function useWebSocket() {
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
             });
+          }
+          break;
+        case 'conversation_assignment_updated':
+          if (data.conversationId) {
+            console.log('👥 Atribuição de conversa atualizada:', {
+              conversationId: data.conversationId,
+              assignedTeamId: data.assignedTeamId,
+              assignedUserId: data.assignedUserId,
+              assignmentMethod: data.assignmentMethod
+            });
+            
+            // Invalidar queries para atualizar o cabeçalho da conversa
+            queryClient.invalidateQueries({ 
+              queryKey: ['/api/conversations', data.conversationId] 
+            });
+            queryClient.invalidateQueries({ 
+              queryKey: ['/api/conversations'] 
+            });
+            
+            // Atualizar estado local se for a conversa ativa
+            if (activeConversation && activeConversation.id === data.conversationId) {
+              updateActiveConversationAssignment(data.assignedTeamId, data.assignedUserId);
+            }
           }
           break;
         case 'crm_update':

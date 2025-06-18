@@ -1,25 +1,42 @@
-import { getIO } from './realtime-server';
+import { Server as SocketIOServer } from "socket.io";
 
-// Broadcast function to send messages to clients in a specific conversation using Socket.IO
-export function broadcast(conversationId: number, message: any, excludeSocketId?: string) {
-  const io = getIO();
-  if (!io) return;
-  
-  const roomName = `conversation:${conversationId}`;
-  if (excludeSocketId) {
-    io.to(roomName).except(excludeSocketId).emit('broadcast_message', message);
-  } else {
-    io.to(roomName).emit('broadcast_message', message);
+let ioInstance: SocketIOServer | null = null;
+
+export function setIOInstance(io: SocketIOServer) {
+  ioInstance = io;
+  console.log('📡 Socket.IO instance configurada para broadcasting');
+}
+
+export function broadcast(conversationId: number, data: any) {
+  if (!ioInstance) {
+    console.warn('⚠️ Socket.IO instance não configurada para broadcasting');
+    return;
+  }
+
+  try {
+    // Broadcast para todos os clientes na sala da conversa
+    ioInstance.to(`conversation:${conversationId}`).emit('broadcast_message', data);
+    
+    console.log('📡 Broadcast enviado:', {
+      conversationId,
+      type: data.type,
+      room: `conversation:${conversationId}`
+    });
+  } catch (error) {
+    console.error('❌ Erro ao fazer broadcast:', error);
   }
 }
 
-export function broadcastToAll(message: any, excludeSocketId?: string) {
-  const io = getIO();
-  if (!io) return;
-  
-  if (excludeSocketId) {
-    io.except(excludeSocketId).emit('broadcast_message', message);
-  } else {
-    io.emit('broadcast_message', message);
+export function broadcastToAll(data: any) {
+  if (!ioInstance) {
+    console.warn('⚠️ Socket.IO instance não configurada para broadcasting');
+    return;
   }
-} 
+
+  try {
+    ioInstance.emit('broadcast_message', data);
+    console.log('📡 Broadcast global enviado:', { type: data.type });
+  } catch (error) {
+    console.error('❌ Erro ao fazer broadcast global:', error);
+  }
+}
