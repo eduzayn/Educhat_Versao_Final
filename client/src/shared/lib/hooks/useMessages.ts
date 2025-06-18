@@ -25,11 +25,12 @@ export function useMessages(conversationId: number | null, limit = 25) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 0, // Cache sempre fresh para atualizações imediatas
+    staleTime: 1000 * 30, // Cache por 30 segundos para evitar reloads desnecessários
     gcTime: 1000 * 60 * 5, // Reduzir tempo de cache para 5 minutos
     retry: 1, 
     retryDelay: 500,
     placeholderData: (previousData) => previousData,
+    refetchOnWindowFocus: false, // Não recarregar ao focar na janela
   });
 }
 
@@ -129,10 +130,25 @@ export function useSendMessage() {
         }
       );
       
-      // Invalidar cache da lista de conversas para atualizar contadores
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/conversations'] 
-      });
+      // Atualizar apenas o cache da lista de conversas sem invalidar (evita reload desnecessário)
+      queryClient.setQueryData(
+        ['/api/conversations'],
+        (oldConversations: any) => {
+          if (!oldConversations?.conversations) return oldConversations;
+          return {
+            ...oldConversations,
+            conversations: oldConversations.conversations.map((conv: any) => 
+              conv.id === conversationId 
+                ? { 
+                    ...conv, 
+                    lastMessageAt: newMessage.sentAt,
+                    unreadCount: conv.unreadCount || 0 
+                  }
+                : conv
+            )
+          };
+        }
+      );
     },
     onError: (err, { conversationId }, context) => {
       // Restaurar estado anterior em caso de erro
