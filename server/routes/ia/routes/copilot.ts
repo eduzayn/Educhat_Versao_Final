@@ -132,11 +132,12 @@ INSTRUÇÕES:
 Responda à seguinte mensagem:`;
 
   // Tentar Anthropic primeiro (serviço principal)
-  if (config.anthropicApiKey) {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || config.anthropicApiKey;
+  if (anthropicKey) {
     try {
       console.log('🔧 Usando Anthropic API...');
       const anthropic = new Anthropic({
-        apiKey: config.anthropicApiKey,
+        apiKey: anthropicKey,
       });
 
       const response = await anthropic.messages.create({
@@ -194,11 +195,12 @@ Responda à seguinte mensagem:`;
   }
 
   // Tentar OpenAI se Anthropic falhou (apenas se não for problema de quota)
-  if (config.openaiApiKey) {
+  const openaiKey = process.env.OPENAI_API_KEY || config.openaiApiKey;
+  if (openaiKey) {
     try {
       console.log('🔧 Tentando OpenAI como fallback...');
       const openai = new OpenAI({
-        apiKey: config.openaiApiKey,
+        apiKey: openaiKey,
       });
 
       const response = await openai.chat.completions.create({
