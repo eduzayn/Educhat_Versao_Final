@@ -3,6 +3,7 @@ import { db } from '../../db';
 import { systemUsers, teams, userTeams, conversations } from '@shared/schema';
 import { eq, and, sql, count, desc } from 'drizzle-orm';
 import { equitableRoundRobinService } from '../../services/equitableRoundRobinService';
+import { gamificationWebhook } from '../../services/gamificationWebhookIntegration';
 
 const router = Router();
 

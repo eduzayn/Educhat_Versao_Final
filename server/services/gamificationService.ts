@@ -337,8 +337,17 @@ export class GamificationService {
   async getUserBadges(userId: number): Promise<BadgeProgress[]> {
     const userBadgesQuery = await db
       .select({
-        badge: gamificationBadges,
-        userBadge: gamificationUserBadges
+        badgeId: gamificationBadges.id,
+        name: gamificationBadges.name,
+        description: gamificationBadges.description,
+        icon: gamificationBadges.icon,
+        color: gamificationBadges.color,
+        category: gamificationBadges.category,
+        points: gamificationBadges.points,
+        rarity: gamificationBadges.rarity,
+        progress: gamificationUserBadges.progress,
+        maxProgress: gamificationUserBadges.maxProgress,
+        earnedAt: gamificationUserBadges.earnedAt
       })
       .from(gamificationBadges)
       .leftJoin(
@@ -351,18 +360,18 @@ export class GamificationService {
       .where(eq(gamificationBadges.isActive, true));
 
     return userBadgesQuery.map(row => ({
-      badgeId: row.badge.id,
-      name: row.badge.name,
-      description: row.badge.description,
-      icon: row.badge.icon,
-      color: row.badge.color || '#3B82F6',
-      category: row.badge.category,
-      progress: row.userBadge?.progress || 0,
-      maxProgress: row.userBadge?.maxProgress || 100,
-      isEarned: !!row.userBadge,
-      earnedAt: row.userBadge?.earnedAt ? row.userBadge.earnedAt : undefined,
-      points: row.badge.points || 100,
-      rarity: row.badge.rarity || 'common'
+      badgeId: row.badgeId,
+      name: row.name,
+      description: row.description,
+      icon: row.icon,
+      color: row.color || '#3B82F6',
+      category: row.category,
+      progress: row.progress || 0,
+      maxProgress: row.maxProgress || 100,
+      isEarned: !!row.earnedAt,
+      earnedAt: row.earnedAt || undefined,
+      points: row.points || 100,
+      rarity: row.rarity || 'common'
     }));
   }
 
@@ -371,7 +380,14 @@ export class GamificationService {
    */
   async getUserAchievements(userId: number, limit: number = 10): Promise<Achievement[]> {
     const achievements = await db
-      .select()
+      .select({
+        id: gamificationAchievements.id,
+        type: gamificationAchievements.type,
+        title: gamificationAchievements.title,
+        description: gamificationAchievements.description,
+        points: gamificationAchievements.points,
+        earnedAt: gamificationAchievements.earnedAt
+      })
       .from(gamificationAchievements)
       .where(eq(gamificationAchievements.userId, userId))
       .orderBy(desc(gamificationAchievements.earnedAt))

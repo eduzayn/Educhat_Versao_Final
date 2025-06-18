@@ -8,6 +8,7 @@ import type { Express } from "express";
 import { storage } from "../../storage/index";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../utils/zapi";
 import { webhookHealthMonitor, validateWebhookData } from "../../webhookHealthCheck";
+import { gamificationService } from "../../services/gamificationService";
 
 // Importar handlers modulares
 import { registerZApiMediaRoutes } from './handlers/zapi';
