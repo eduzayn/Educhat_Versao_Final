@@ -34,21 +34,21 @@ export function LazyMediaContent({
     initialContentLength: propInitialContent?.length
   });
 
-  // CORREÇÃO: Carregamento automático apenas para mensagens ENVIADAS
-  // Mensagens RECEBIDAS sempre usam carregamento sob demanda
+  // CORREÇÃO: Carregamento sob demanda para TODAS as mensagens (enviadas e recebidas)
+  // Tanto mensagens enviadas quanto recebidas devem usar carregamento sob demanda
   const directMediaUrl = metadata?.fileUrl || metadata?.mediaUrl || metadata?.url;
   const hasDirectUrl = directMediaUrl && (directMediaUrl.startsWith('/') || directMediaUrl.startsWith('http') || directMediaUrl.startsWith('data:'));
   
-  // Só passa URL inicial se for mensagem ENVIADA (não recebida)
-  const shouldAutoLoad = !isFromContact && hasDirectUrl;
-  const processedInitialContent = shouldAutoLoad ? directMediaUrl : null;
+  // SEMPRE usar carregamento sob demanda - sem carregamento automático
+  const shouldAutoLoad = false;
+  const processedInitialContent = null;
 
-  console.log(`🔍 Verificando carregamento para mensagem ${messageId}:`, {
+  console.log(`🔍 Carregamento sob demanda para mensagem ${messageId}:`, {
     directMediaUrl,
     hasDirectUrl,
     isFromContact,
-    shouldAutoLoad,
-    processedInitialContent,
+    shouldAutoLoad: false,
+    processedInitialContent: null,
     metadata
   });
 
