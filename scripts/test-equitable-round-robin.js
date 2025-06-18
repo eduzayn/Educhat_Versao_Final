@@ -3,10 +3,10 @@
  * Verifica se a distribuição está verdadeiramente equitativa
  */
 
-const { db } = require('../server/db');
-const { equitableRoundRobinService } = require('../server/services/equitableRoundRobinService');
-const { conversations, systemUsers, userTeams } = require('../shared/schema');
-const { eq, and } = require('drizzle-orm');
+import { db } from '../server/db.js';
+import { equitableRoundRobinService } from '../server/services/equitableRoundRobinService.js';
+import { conversations, systemUsers, userTeams } from '../shared/schema.js';
+import { eq, and } from 'drizzle-orm';
 
 async function testEquitableDistribution() {
   console.log('🧪 Testando sistema de round-robin equitativo...\n');
@@ -154,7 +154,7 @@ async function testEquitableDistribution() {
 }
 
 // Executar teste se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   testEquitableDistribution()
     .then(() => process.exit(0))
     .catch(error => {
@@ -163,4 +163,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { testEquitableDistribution };
+export { testEquitableDistribution };

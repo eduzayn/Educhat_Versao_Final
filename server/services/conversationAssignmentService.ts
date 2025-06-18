@@ -10,8 +10,15 @@ export class ConversationAssignmentService {
     try {
       await storage.conversation.assignConversationToTeam(conversationId, teamId);
       
-      const availableUser = await storage.team.getAvailableUserFromTeam(teamId);
-      if (availableUser) {
+      // Usar round-robin equitativo para seleção de usuário
+      const { equitableRoundRobinService } = await import('./equitableRoundRobinService');
+      const roundRobinResult = await equitableRoundRobinService.assignUserToConversation(conversationId, teamId);
+      
+      const availableUser = roundRobinResult.success ? 
+        { id: roundRobinResult.userId } : 
+        await storage.team.getAvailableUserFromTeam(teamId);
+      
+      if (availableUser && !roundRobinResult.success && availableUser.id) {
         await storage.conversation.assignConversationToUser(conversationId, availableUser.id);
       }
       
