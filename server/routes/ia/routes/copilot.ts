@@ -174,6 +174,7 @@ Responda à seguinte mensagem:`;
             content: `${systemPrompt}\n\n"${message}"`
           }
         ],
+        timeout: 30000, // 30 segundos timeout
       });
 
       const content = response.content[0];
@@ -196,14 +197,23 @@ Responda à seguinte mensagem:`;
         type: error.type,
         error: error.error
       });
+      
+      // Se for erro de timeout ou rede, tentar OpenAI
+      if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.status >= 500) {
+        console.log('🔄 Erro de rede/timeout no Anthropic, tentando OpenAI...');
+        // Continua para tentar OpenAI
+      } else {
+        console.error('❌ Erro não relacionado à rede no Anthropic:', error.message);
+      }
     }
   } else {
     console.log('⚠️ Chave da API Anthropic não encontrada');
   }
 
-  // Tentar OpenAI se Anthropic falhou
+  // Tentar OpenAI se Anthropic falhou (apenas se não for problema de quota)
   if (config.openaiApiKey) {
     try {
+      console.log('🔧 Tentando OpenAI como fallback...');
       const openai = new OpenAI({
         apiKey: config.openaiApiKey,
       });
@@ -226,6 +236,7 @@ Responda à seguinte mensagem:`;
 
       const content = response.choices[0]?.message?.content;
       if (content) {
+        console.log('✅ OpenAI respondeu com sucesso');
         return {
           message: content,
           classification: {
@@ -236,9 +247,22 @@ Responda à seguinte mensagem:`;
           }
         };
       }
-    } catch (error) {
-      console.error('❌ Erro OpenAI:', error);
+    } catch (error: any) {
+      console.error('❌ Erro OpenAI detalhado:', {
+        message: error.message,
+        status: error.status,
+        type: error.type,
+        error: error.error,
+        code: error.code
+      });
+      
+      // Se for erro de quota, informar especificamente
+      if (error.code === 'insufficient_quota') {
+        console.error('🚨 OpenAI: Quota excedida - verifique billing');
+      }
     }
+  } else {
+    console.log('⚠️ Chave da API OpenAI não encontrada');
   }
 
   // Se chegou aqui, nenhuma IA funcionou
