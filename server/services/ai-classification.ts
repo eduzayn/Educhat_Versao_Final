@@ -51,6 +51,7 @@ export class AIClassification {
       // Preparar prompt para classificação
       const classificationPrompt = this.buildClassificationPrompt(message, contactHistory, previousContext);
       
+      const openai = await getOpenAI();
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [

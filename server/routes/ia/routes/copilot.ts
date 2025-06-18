@@ -131,7 +131,7 @@ INSTRUÇÕES:
 
 Responda à seguinte mensagem:`;
 
-  // Tentar Anthropic primeiro se disponível
+  // Tentar Anthropic primeiro (serviço principal)
   if (config.anthropicApiKey) {
     try {
       console.log('🔧 Usando Anthropic API...');

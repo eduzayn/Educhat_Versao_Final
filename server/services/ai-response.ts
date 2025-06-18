@@ -44,6 +44,7 @@ export class AIResponse {
         contactHistory
       );
       
+      const openai = await getOpenAI();
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
