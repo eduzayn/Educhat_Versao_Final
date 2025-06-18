@@ -14,6 +14,7 @@ import { gamificationService } from "../../services/gamificationService";
 import { registerZApiMediaRoutes } from './handlers/zapi';
 import { registerSocialWebhookRoutes } from './handlers/social';
 import { registerIntegrationRoutes, assignTeamManually } from './handlers/integration';
+import { processUnassignedConversations } from '../../services/auto-ai-assignment.js';
 
 /**
  * Processa webhook principal Z-API para mensagens recebidas
@@ -254,7 +255,33 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);
       
-      // ANÁLISE DE IA E TRANSFERÊNCIAS AUTOMÁTICAS
+      // **PROCESSAMENTO AUTOMÁTICO IMEDIATO COM IA**
+      // Verificar se a conversa precisa de atribuição automática
+      if (!conversation.assignedTeamId) {
+        console.log(`🤖 Processando conversa ${conversation.id} automaticamente com IA...`);
+        
+        // Executar análise de IA em background (não bloquear webhook)
+        setImmediate(async () => {
+          try {
+            const result = await processUnassignedConversations({
+              maxConversations: 1,
+              minConfidence: 25,
+              onlyRecent: false,
+              specificConversationId: conversation.id
+            });
+            
+            if (result.assigned > 0) {
+              console.log(`✅ Conversa ${conversation.id} atribuída automaticamente pela IA`);
+            } else {
+              console.log(`⚠️ Conversa ${conversation.id} não atendeu critérios de confiança da IA`);
+            }
+          } catch (error) {
+            console.error(`❌ Erro na análise automática da conversa ${conversation.id}:`, error);
+          }
+        });
+      }
+      
+      // ANÁLISE DE IA E TRANSFERÊNCIAS AUTOMÁTICAS (Sistema Legado)
       try {
         // Só processar mensagens de texto para IA (evitar sobrecarga)
         if (messageType === 'text' && messageContent && messageContent.length > 5) {

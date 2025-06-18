@@ -91,11 +91,13 @@ export async function processUnassignedConversations(options: {
   maxConversations?: number;
   minConfidence?: number;
   onlyRecent?: boolean;
+  specificConversationId?: number;
 } = {}) {
   const {
     maxConversations = 50,
     minConfidence = 30,
-    onlyRecent = true
+    onlyRecent = true,
+    specificConversationId
   } = options;
 
   console.log(`🤖 Iniciando processamento automático de conversas não atribuídas...`);
@@ -118,22 +120,11 @@ export async function processUnassignedConversations(options: {
 
   try {
     // Buscar conversas não atribuídas
+    let unassignedConversations;
 
-    let baseQuery = db
-      .select({
-        id: conversations.id,
-        createdAt: conversations.createdAt
-      })
-      .from(conversations)
-      .where(isNull(conversations.assignedTeamId))
-      .orderBy(desc(conversations.createdAt))
-      .limit(maxConversations);
-
-    // Filtro para conversas recentes (últimos 30 dias)  
-    if (onlyRecent) {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      baseQuery = db
+    if (specificConversationId) {
+      // Processar apenas uma conversa específica
+      unassignedConversations = await db
         .select({
           id: conversations.id,
           createdAt: conversations.createdAt
@@ -141,15 +132,45 @@ export async function processUnassignedConversations(options: {
         .from(conversations)
         .where(
           and(
-            isNull(conversations.assignedTeamId),
-            gt(conversations.createdAt, thirtyDaysAgo)
+            eq(conversations.id, specificConversationId),
+            isNull(conversations.assignedTeamId)
           )
         )
+        .limit(1);
+    } else {
+      // Buscar múltiplas conversas
+      let baseQuery = db
+        .select({
+          id: conversations.id,
+          createdAt: conversations.createdAt
+        })
+        .from(conversations)
+        .where(isNull(conversations.assignedTeamId))
         .orderBy(desc(conversations.createdAt))
         .limit(maxConversations);
-    }
 
-    const unassignedConversations = await baseQuery;
+      // Filtro para conversas recentes (últimos 30 dias)  
+      if (onlyRecent) {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        baseQuery = db
+          .select({
+            id: conversations.id,
+            createdAt: conversations.createdAt
+          })
+          .from(conversations)
+          .where(
+            and(
+              isNull(conversations.assignedTeamId),
+              gt(conversations.createdAt, thirtyDaysAgo)
+            )
+          )
+          .orderBy(desc(conversations.createdAt))
+          .limit(maxConversations);
+      }
+
+      unassignedConversations = await baseQuery;
+    }
 
     console.log(`📊 Encontradas ${unassignedConversations.length} conversas para processar`);
 
