@@ -123,8 +123,8 @@ router.post('/execute', validateConversationId, async (req, res) => {
     let roundRobinSuccess = false;
     
     try {
-      const { roundRobinService } = await import('../../services/roundRobinService');
-      const roundRobinResult = await roundRobinService.assignUserToConversation(conversationId, team.id);
+      const { equitableRoundRobinService } = await import('../../services/equitableRoundRobinService');
+      const roundRobinResult = await equitableRoundRobinService.assignUserToConversation(conversationId, team.id);
       
       if (roundRobinResult.success) {
         assignedUserId = roundRobinResult.userId;

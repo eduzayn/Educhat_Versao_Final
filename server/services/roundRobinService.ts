@@ -268,3 +268,6 @@ class RoundRobinService {
 }
 
 export const roundRobinService = new RoundRobinService();
+
+// DEPRECATED: Use equitableRoundRobinService para distribuição verdadeiramente equitativa
+// Este serviço mantido para compatibilidade durante migração
