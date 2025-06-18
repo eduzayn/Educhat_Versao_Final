@@ -379,7 +379,7 @@ export function DealsModule() {
             <DealsTable
               deals={allDeals}
               onEditDeal={handleEditDeal}
-              isLoading={dealsQuery.isLoading}
+              isLoading={isLoadingMore}
             />
           )}
         </div>

@@ -78,22 +78,22 @@ export function DealsTable({ deals, onEditDeal, onDeleteDeal, isLoading }: Deals
                   <TableCell className="font-medium">
                     <div>
                       <div className="font-semibold">{deal.name}</div>
-                      <div className="text-sm text-muted-foreground">{deal.description}</div>
+                      <div className="text-sm text-muted-foreground">{deal.notes}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{deal.company || deal.contactName}</div>
-                      {deal.contactEmail && (
+                      <div className="font-medium">{deal.clientName || deal.name}</div>
+                      {deal.clientEmail && (
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {deal.contactEmail}
+                          {deal.clientEmail}
                         </div>
                       )}
-                      {deal.contactPhone && (
+                      {deal.clientPhone && (
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Phone className="h-3 w-3" />
-                          {deal.contactPhone}
+                          {deal.clientPhone}
                         </div>
                       )}
                     </div>
@@ -107,10 +107,10 @@ export function DealsTable({ deals, onEditDeal, onDeleteDeal, isLoading }: Deals
                     {deal.value ? formatCurrency(deal.value) : '-'}
                   </TableCell>
                   <TableCell>
-                    {formatDate(deal.createdAt)}
+                    {deal.createdAt ? formatDate(deal.createdAt.toString()) : '-'}
                   </TableCell>
                   <TableCell>
-                    {deal.assignedUserName || '-'}
+                    {deal.assignedUserId ? `Usuário ${deal.assignedUserId}` : '-'}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
