@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { validateHandoffId } from './middleware';
+import { db } from '../../db';
+import { handoffs } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -8,11 +10,15 @@ const router = Router();
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    const handoffs = await intelligentHandoffService.getPendingHandoffsForUser(userId);
+    const pendingHandoffs = await db
+      .select()
+      .from(handoffs)
+      .where(eq(handoffs.toUserId, userId))
+      .where(eq(handoffs.status, 'pending'));
     
     res.json({
       success: true,
-      handoffs
+      handoffs: pendingHandoffs
     });
   } catch (error) {
     console.error('Erro ao buscar handoffs pendentes do usuário:', error);
@@ -26,7 +32,11 @@ router.get('/user/:userId', async (req, res) => {
 router.get('/team/:teamId', async (req, res) => {
   try {
     const teamId = parseInt(req.params.teamId);
-    const handoffs = await intelligentHandoffService.getPendingHandoffsForTeam(teamId);
+    const pendingHandoffs = await db
+      .select()
+      .from(handoffs)
+      .where(eq(handoffs.toTeamId, teamId))
+      .where(eq(handoffs.status, 'pending'));
     
     res.json({
       success: true,

@@ -1,12 +1,10 @@
 import { Router } from 'express';
 import { unifiedAssignmentService } from '../../services/unifiedAssignmentService';
-import { intelligentHandoffService } from '../../services/intelligentHandoffService';
 import { assignmentCompatibilityService } from '../../services/assignmentCompatibilityService';
 import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../../core/permissions';
 
 const router = Router();
-// const handoffService = intelligentHandoffService;
 
 // GET /api/handoffs/stats - Estatísticas dos handoffs
 router.get('/', async (req, res) => {
