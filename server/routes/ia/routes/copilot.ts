@@ -174,7 +174,6 @@ Responda à seguinte mensagem:`;
             content: `${systemPrompt}\n\n"${message}"`
           }
         ],
-        timeout: 30000, // 30 segundos timeout
       });
 
       const content = response.content[0];
