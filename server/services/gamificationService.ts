@@ -156,21 +156,58 @@ export class GamificationService {
         )
       );
 
+    // Deals criados
+    const dealsCreatedResult = await db
+      .select({ count: count() })
+      .from(deals)
+      .where(
+        and(
+          eq(deals.assignedUserId, userId),
+          gte(deals.createdAt, startDate),
+          lte(deals.createdAt, endDate)
+        )
+      );
+
+    // Deals fechados e valor de vendas
+    const dealsClosedResult = await db
+      .select({ 
+        count: count(),
+        totalValue: sum(deals.value)
+      })
+      .from(deals)
+      .where(
+        and(
+          eq(deals.assignedUserId, userId),
+          isNotNull(deals.actualCloseDate),
+          gte(deals.actualCloseDate, startDate),
+          lte(deals.actualCloseDate, endDate)
+        )
+      );
+
     // Calcular pontos baseados nas métricas
     const conversationsAssigned = conversationsAssignedResult[0]?.count || 0;
     const conversationsClosed = conversationsClosedResult[0]?.count || 0;
     const messagesExchanged = messagesExchangedResult[0]?.count || 0;
+    const dealsCreated = dealsCreatedResult[0]?.count || 0;
+    const dealsClosed = dealsClosedResult[0]?.count || 0;
+    const salesValue = dealsClosedResult[0]?.totalValue || 0;
     
     // Sistema de pontuação
     const totalPoints = 
       (conversationsAssigned * 10) +
       (conversationsClosed * 25) +
-      (messagesExchanged * 2);
+      (messagesExchanged * 2) +
+      (dealsCreated * 50) +
+      (dealsClosed * 100) +
+      (Number(salesValue) / 100); // Converter centavos para pontos
 
     return {
       conversationsAssigned: Number(conversationsAssigned),
       conversationsClosed: Number(conversationsClosed),
       messagesExchanged: Number(messagesExchanged),
+      dealsCreated: Number(dealsCreated),
+      dealsClosed: Number(dealsClosed),
+      salesValue: Number(salesValue),
       averageResponseTime: 0, // TODO: implementar cálculo de tempo de resposta
       averageResolutionTime: 0, // TODO: implementar cálculo de tempo de resolução
       satisfactionScore: 85, // TODO: implementar cálculo de satisfação
@@ -272,6 +309,31 @@ export class GamificationService {
             and(
               eq(conversations.assignedUserId, userId),
               period !== 'all_time' ? gte(conversations.createdAt, this.getPeriodStart(currentDate, period)) : undefined
+            )
+          );
+        break;
+
+      case 'deals_created':
+        query = db
+          .select({ count: count() })
+          .from(deals)
+          .where(
+            and(
+              eq(deals.assignedUserId, userId),
+              period !== 'all_time' ? gte(deals.createdAt, this.getPeriodStart(currentDate, period)) : undefined
+            )
+          );
+        break;
+
+      case 'deals_closed':
+        query = db
+          .select({ count: count() })
+          .from(deals)
+          .where(
+            and(
+              eq(deals.assignedUserId, userId),
+              isNotNull(deals.actualCloseDate),
+              period !== 'all_time' ? gte(deals.actualCloseDate, this.getPeriodStart(currentDate, period)) : undefined
             )
           );
         break;
