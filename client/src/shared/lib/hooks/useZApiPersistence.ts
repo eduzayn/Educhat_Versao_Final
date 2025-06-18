@@ -24,7 +24,8 @@ export function useZApiPersistence() {
     };
 
     initializeConnection();
-  }, [isConfigured, status, connectionMonitorActive, restoreConnection, startConnectionMonitor]);
+  // Remover dependências que causam loop - usar apenas na montagem inicial
+  }, []);
 
   // Retornar o estado atual para uso nos componentes
   return {

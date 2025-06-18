@@ -71,7 +71,13 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
   },
 
   startConnectionMonitor: () => {
-    const { monitorInterval, checkConnection } = get();
+    const { monitorInterval, checkConnection, connectionMonitorActive } = get();
+    
+    // Evitar múltiplas instâncias do monitor
+    if (connectionMonitorActive && monitorInterval) {
+      console.log('Monitor Z-API já ativo, ignorando nova inicialização');
+      return;
+    }
     
     // Parar monitor existente se houver
     if (monitorInterval) {
@@ -81,10 +87,12 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
     // Verificar imediatamente
     checkConnection();
     
-    // Configurar novo monitor a cada 60 segundos para reduzir carga significativamente
+    // Configurar novo monitor a cada 15 segundos - balanceado entre responsividade e carga
     const interval = setInterval(() => {
       checkConnection();
-    }, 60000);
+    }, 15000);
+    
+    console.log('Monitor Z-API iniciado com intervalo de 15s');
     
     set({ 
       connectionMonitorActive: true,
@@ -97,6 +105,7 @@ export const useZApiStore = create<ZApiState>((set, get) => ({
     
     if (monitorInterval) {
       clearInterval(monitorInterval);
+      console.log('Monitor Z-API parado');
     }
     
     set({ 

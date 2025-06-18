@@ -33,7 +33,7 @@ export function useGlobalZApiMonitor() {
     } else if (!isConfigured && connectionMonitorActive) {
       stopConnectionMonitor();
     }
-  }, [isConfigured, connectionMonitorActive]);
+  }, [isConfigured, connectionMonitorActive, startConnectionMonitor, stopConnectionMonitor]);
 
   return {
     isConfigured,
