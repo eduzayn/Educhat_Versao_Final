@@ -2,10 +2,27 @@ import { Router, RequestHandler } from 'express';
 import { storage } from '../../storage';
 import { assignTeamSchema } from './schemas';
 import { AuthenticatedRequest } from './types';
+import { PermissionService } from '../../core/permissionService';
 
 export function registerAssignTeamRoutes(router: Router) {
   // Atribuir equipe a uma conversa
   const assignTeamHandler: RequestHandler = async (req, res) => {
+    // Verificar se o usuário tem permissão para transferir conversas
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.user?.id) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
+
+    // Permitir transferências para atendentes e outros papéis
+    const canTransfer = await PermissionService.hasAnyPermission(authReq.user.id, [
+      'conversa:transferir',
+      'conversa:atribuir',
+      'teams:manage'
+    ]);
+
+    if (!canTransfer) {
+      return res.status(403).json({ error: 'Sem permissão para transferir conversas' });
+    }
     try {
       const conversationId = parseInt(req.params.id);
       const data = assignTeamSchema.parse(req.body);
