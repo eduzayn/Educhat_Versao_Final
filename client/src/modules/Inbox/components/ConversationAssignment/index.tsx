@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TeamSelector } from '@/modules/Inbox/components/ConversationAssignment/components/TeamSelector';
 import { UserSelector } from '@/modules/Inbox/components/ConversationAssignment/components/UserSelector';
 import { useChatStore } from '@/shared/store/chatStore';
@@ -14,6 +14,19 @@ export function ConversationAssignment({
   const [localTeamId, setLocalTeamId] = useState(currentTeamId);
   const [localUserId, setLocalUserId] = useState(currentUserId);
   const { updateActiveConversationAssignment } = useChatStore();
+
+  // CORREÇÃO CRÍTICA: Sincronizar estados locais quando conversa muda
+  useEffect(() => {
+    console.log(`🔄 ConversationAssignment: Sincronizando estados para conversa ${conversationId}`, {
+      currentTeamId,
+      currentUserId,
+      previousLocalTeamId: localTeamId,
+      previousLocalUserId: localUserId
+    });
+    
+    setLocalTeamId(currentTeamId);
+    setLocalUserId(currentUserId);
+  }, [conversationId, currentTeamId, currentUserId]);
 
   const handleTeamChange = (teamId: number | null) => {
     setLocalTeamId(teamId);
