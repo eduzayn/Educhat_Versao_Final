@@ -89,11 +89,11 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     textAreaRef.current?.focus();
   };
 
-  // Proteção contra duplicação otimizada - reduzida para resposta mais rápida
+  // Proteção contra duplicação otimizada - reduzida para resposta instantânea
   const isDuplicateMessage = useCallback((content: string) => {
     const now = Date.now();
     const timeDiff = now - lastSentTime;
-    const DUPLICATE_THRESHOLD_MS = 100; // Reduzido para 100ms para resposta mais rápida
+    const DUPLICATE_THRESHOLD_MS = 50; // Reduzido para 50ms para resposta instantânea
     
     return (
       content.trim() === lastSentMessage.trim() && 
@@ -132,10 +132,10 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
         await sendTextMessage(messageContent);
       }
     } finally {
-      // Desbloquear rapidamente após envio - apenas 50ms para resposta imediata
+      // Desbloquear imediatamente após envio - sem delay
       setTimeout(() => {
         setIsSendingBlocked(false);
-      }, 50);
+      }, 25);
     }
   };
 

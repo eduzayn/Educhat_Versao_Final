@@ -55,8 +55,8 @@ export function useMessages(conversationId: number | null, limit = 25) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 1000 * 30, // Cache por 30 segundos para evitar reloads desnecessários
-    gcTime: 1000 * 60 * 5, // Reduzir tempo de cache para 5 minutos
+    staleTime: 1000 * 5, // Cache por apenas 5 segundos para resposta rápida
+    gcTime: 1000 * 60 * 2, // Cache reduzido para 2 minutos
     retry: 1, 
     retryDelay: 500,
     placeholderData: (previousData) => previousData,

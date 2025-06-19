@@ -15,10 +15,10 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 
-// Configurações de timeout otimizadas para Render
+// Configurações de timeout otimizadas para resposta rápida
 app.use((req, res, next) => {
-  // Timeout mais conservador para Render (15 segundos)
-  const timeout = process.env.NODE_ENV === 'production' ? 15000 : 25000;
+  // Timeout reduzido para resposta mais rápida (5 segundos)
+  const timeout = process.env.NODE_ENV === 'production' ? 8000 : 10000;
   
   req.setTimeout(timeout, () => {
     console.warn(`⚠️ Request timeout: ${req.method} ${req.path}`);
