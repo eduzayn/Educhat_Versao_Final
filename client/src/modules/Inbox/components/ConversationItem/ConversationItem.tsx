@@ -195,7 +195,11 @@ export const ConversationItem = memo(ConversationItemComponent, (prevProps, next
     prevProps.isActive === nextProps.isActive &&
     prevProps.conversation.status === nextProps.conversation.status &&
     (prevProps.conversation as any).unreadCount === (nextProps.conversation as any).unreadCount &&
-    prevProps.conversation.messages?.[0]?.id === nextProps.conversation.messages?.[0]?.id
+    prevProps.conversation.messages?.[0]?.id === nextProps.conversation.messages?.[0]?.id &&
+    // Verificar mudanças no assignedUser para garantir que avatar seja atualizado
+    prevProps.conversation.assignedUserId === nextProps.conversation.assignedUserId &&
+    prevProps.conversation.assignedUser?.id === nextProps.conversation.assignedUser?.id &&
+    prevProps.conversation.assignedUser?.displayName === nextProps.conversation.assignedUser?.displayName
   );
 });
 

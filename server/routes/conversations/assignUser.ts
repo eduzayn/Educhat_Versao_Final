@@ -49,12 +49,24 @@ export function registerAssignUserRoutes(router: Router) {
         updatedAt: new Date()
       });
 
+      // Buscar dados completos do usuário para o broadcast (se atribuído)
+      let assignedUser = null;
+      if (data.userId) {
+        assignedUser = await storage.getUser(data.userId);
+      }
+
       // Notificar clientes via WebSocket sobre a mudança de atribuição
       const { broadcast } = await import('../../routes/realtime/realtime-broadcast');
       broadcast(conversationId, {
         type: 'conversation_assignment_updated',
         conversationId,
         assignedUserId: data.userId,
+        assignedUser: assignedUser ? {
+          id: assignedUser.id,
+          displayName: assignedUser.displayName,
+          username: assignedUser.username,
+          avatar: assignedUser.avatar
+        } : null,
         assignmentMethod: data.method,
         assignedAt: data.userId ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString()
