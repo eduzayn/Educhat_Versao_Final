@@ -15,18 +15,19 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 
-// Configurações de timeout para prevenir 502
+// Configurações de timeout otimizadas para Render
 app.use((req, res, next) => {
-  // Timeout de 25 segundos para requests (menor que o timeout do proxy)
-  req.setTimeout(25000, () => {
+  // Timeout mais conservador para Render (15 segundos)
+  const timeout = process.env.NODE_ENV === 'production' ? 15000 : 25000;
+  
+  req.setTimeout(timeout, () => {
     console.warn(`⚠️ Request timeout: ${req.method} ${req.path}`);
     if (!res.headersSent) {
       res.status(408).json({ error: 'Request timeout' });
     }
   });
   
-  // Timeout de resposta
-  res.setTimeout(25000, () => {
+  res.setTimeout(timeout, () => {
     console.warn(`⚠️ Response timeout: ${req.method} ${req.path}`);
     if (!res.headersSent) {
       res.status(408).json({ error: 'Response timeout' });
@@ -115,6 +116,16 @@ app.get('/api/roles', async (req: Request, res: Response) => {
   }
 });
 
+// Health check endpoint específico para Render (antes das outras rotas)
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Health check endpoint is handled in routes.ts
 
 // Servir arquivos estáticos de upload
@@ -136,8 +147,9 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       
-      // Alerta para requests lentos que podem causar 502
-      if (duration > 20000) {
+      // Alerta para requests lentos que podem causar 502 (ajustado para produção)
+      const slowThreshold = process.env.NODE_ENV === 'production' ? 10000 : 20000;
+      if (duration > slowThreshold) {
         console.warn(`🐌 Request muito lento detectado: ${logLine}`);
       }
       
@@ -198,21 +210,28 @@ app.use((req, res, next) => {
 
   // Middleware para capturar requests sem resposta (previne 502)
   app.use('*', (req, res, next) => {
-    // Timeout de segurança para requests sem resposta
-    const safetyTimeout = setTimeout(() => {
+    // Timeout de segurança consistente com configuração anterior
+    const safetyTimeout = process.env.NODE_ENV === 'production' ? 12000 : 18000;
+    
+    const timeoutHandler = setTimeout(() => {
       if (!res.headersSent) {
         console.warn(`⚠️ Request sem resposta detectado: ${req.method} ${req.path}`);
         res.status(404).json({ 
           error: 'Route not found',
           path: req.path,
-          method: req.method
+          method: req.method,
+          timestamp: new Date().toISOString()
         });
       }
-    }, 20000); // 20 segundos
+    }, safetyTimeout);
 
     // Limpar timeout quando response for enviado
     res.on('finish', () => {
-      clearTimeout(safetyTimeout);
+      clearTimeout(timeoutHandler);
+    });
+
+    res.on('close', () => {
+      clearTimeout(timeoutHandler);
     });
 
     next();
@@ -239,13 +258,28 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use PORT environment variable for production (Railway) or default to 5000 for development
+  // Use PORT environment variable for production (Railway/Render) or default to 5000 for development
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen({
+  
+  // Configurações otimizadas para Render
+  const serverOptions = {
     port,
     host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+    ...(process.env.NODE_ENV === 'production' && {
+      keepAliveTimeout: 65000, // Maior que o timeout do load balancer (60s)
+      headersTimeout: 66000, // Deve ser maior que keepAliveTimeout
+    })
+  };
+
+  server.listen(serverOptions, () => {
+    log(`🚀 EduChat server running on port ${port} (${process.env.NODE_ENV || 'development'})`);
+    
+    // Log de configurações importantes em produção
+    if (process.env.NODE_ENV === 'production') {
+      console.log('✅ Configurações de produção ativas:');
+      console.log(`   - Keep-alive timeout: ${serverOptions.keepAliveTimeout}ms`);
+      console.log(`   - Headers timeout: ${serverOptions.headersTimeout}ms`);
+      console.log(`   - Request timeout: 15s`);
+    }
   });
 })();
