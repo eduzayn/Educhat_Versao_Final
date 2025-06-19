@@ -58,6 +58,7 @@ export class ConversationListOperations extends BaseStorage {
 
     // Filtro por equipe
     if (filters?.team) {
+      console.log(`🔍 FILTRO EQUIPE DEBUG: filters.team="${filters.team}", type=${typeof filters.team}`);
       whereConditions.push(eq(conversations.assignedTeamId, filters.team));
     }
 
@@ -252,6 +253,7 @@ export class ConversationListOperations extends BaseStorage {
 
       // Filtro por equipe
       if (filters.team) {
+        console.log(`🔍 SEARCH FILTRO EQUIPE DEBUG: filters.team="${filters.team}", type=${typeof filters.team}`);
         whereConditions.push(eq(conversations.assignedTeamId, filters.team));
       }
 
