@@ -111,5 +111,25 @@ client/src/stores/useConversationStore.ts
 
 ## PRIORIDADE DE CORREÇÃO:
 1. **URGENTE**: Corrigir múltiplas conexões WebSocket
-2. **CRÍTICO**: Implementar debounce nas mutações
+2. **CRÍTICO**: Implementar debounce nas mutações ✅ FEITO
 3. **IMPORTANTE**: Revisar renderização de componentes
+
+## STATUS DAS CORREÇÕES:
+✅ Sistema de debounce global implementado
+✅ Proteção contra múltiplas chamadas simultâneas 
+✅ Invalidação específica de cache
+❌ **PROBLEMA PERSISTE** - Necessário investigar mais profundamente
+
+## PRÓXIMAS INVESTIGAÇÕES NECESSÁRIAS:
+1. **WebSocket Broadcast** - Verificar se broadcast está afetando múltiplas conversas
+2. **Database Queries** - Confirmar se WHERE clauses são específicas
+3. **React Query Cache** - Verificar se cache está sendo compartilhado incorretamente
+4. **Component Lifecycle** - Verificar se múltiplas instâncias estão sendo criadas
+5. **User Input Events** - Verificar se eventos estão sendo duplicados
+
+## POSSÍVEIS CAUSAS RESTANTES:
+- WebSocket broadcast enviando para salas incorretas
+- Consultas SQL sem WHERE adequado
+- Cache React Query compartilhado entre conversas
+- Eventos de DOM duplicados
+- Race conditions não capturadas pelo debounce
