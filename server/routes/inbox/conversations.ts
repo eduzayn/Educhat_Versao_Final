@@ -56,6 +56,7 @@ router.get('/', async (req, res) => {
       res.json(conversations);
     } else {
       // Busca normal paginada com filtros
+      console.log(`🔍 ROUTE - Chamando storage com:`, { limit, offset, filters });
       conversations = await storage.getConversations(limit, offset, filters);
       
       // Buscar uma conversa adicional para verificar se há mais páginas

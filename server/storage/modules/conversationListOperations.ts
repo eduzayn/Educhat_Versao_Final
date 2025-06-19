@@ -14,7 +14,7 @@ export class ConversationListOperations extends BaseStorage {
    * - Índices de banco obrigatórios
    * - Busca otimizada de prévias
    */
-  async getConversations(limit = 100, offset = 0, filters?: any): Promise<ConversationWithContact[]> {
+  async getConversations(limit = 100, offset = 0, filters?: ConversationFilters): Promise<ConversationWithContact[]> {
     console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
 
@@ -201,7 +201,7 @@ export class ConversationListOperations extends BaseStorage {
    * Busca conversas diretamente no banco de dados - independente do scroll infinito
    * Para encontrar conversas antigas com 400+ conversas diárias
    */
-  async searchConversations(searchTerm: string, limit: number = 200, filters?: any): Promise<ConversationWithContact[]> {
+  async searchConversations(searchTerm: string, limit: number = 200, filters?: ConversationFilters): Promise<ConversationWithContact[]> {
     // Construir condições de filtro
     const whereConditions = [];
     
