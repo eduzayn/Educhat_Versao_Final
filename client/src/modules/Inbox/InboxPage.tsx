@@ -98,6 +98,10 @@ export function InboxPage() {
   // Hook unificado para conversas com busca integrada
   const conversationsQuery = useInfiniteConversations(100, {
     searchTerm: searchTerm.trim(),
+    periodFilter,
+    teamFilter,
+    statusFilter,
+    agentFilter,
     refetchInterval: searchTerm.trim() ? false : 10000,
     staleTime: 5000,
     refetchOnWindowFocus: true,

@@ -9,6 +9,10 @@ interface ConversationsResponse {
 
 interface UseInfiniteConversationsOptions {
   searchTerm?: string;
+  periodFilter?: string;
+  teamFilter?: string;
+  statusFilter?: string;
+  agentFilter?: string;
   enabled?: boolean;
   refetchInterval?: number | false;
   staleTime?: number;
@@ -20,10 +24,10 @@ export function useInfiniteConversations(
   limit = 100, 
   options: UseInfiniteConversationsOptions = {}
 ) {
-  const { searchTerm, ...queryOptions } = options;
+  const { searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, ...queryOptions } = options;
   
   return useInfiniteQuery<ConversationsResponse>({
-    queryKey: ['/api/conversations', { limit, searchTerm }],
+    queryKey: ['/api/conversations', { limit, searchTerm, periodFilter, teamFilter, statusFilter, agentFilter }],
     queryFn: async ({ pageParam = 0 }: { pageParam: unknown }) => {
       const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({
@@ -33,6 +37,22 @@ export function useInfiniteConversations(
       
       if (searchTerm?.trim()) {
         params.append('search', searchTerm.trim());
+      }
+      
+      if (periodFilter && periodFilter !== 'all') {
+        params.append('periodFilter', periodFilter);
+      }
+      
+      if (teamFilter && teamFilter !== 'all') {
+        params.append('teamFilter', teamFilter);
+      }
+      
+      if (statusFilter && statusFilter !== 'all') {
+        params.append('statusFilter', statusFilter);
+      }
+      
+      if (agentFilter && agentFilter !== 'all') {
+        params.append('agentFilter', agentFilter);
       }
       
       const response = await fetch(`/api/conversations?${params}`);

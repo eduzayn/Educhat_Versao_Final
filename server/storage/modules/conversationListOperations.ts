@@ -97,7 +97,7 @@ export class ConversationListOperations extends BaseStorage {
 
     // Aplicar filtros se existirem
     if (whereConditions.length > 0) {
-      query = query.where(and(...whereConditions));
+      query = query.where(and(...whereConditions)) as any;
     }
 
     const conversationsData = await query
@@ -199,7 +199,7 @@ export class ConversationListOperations extends BaseStorage {
    * Busca conversas diretamente no banco de dados - independente do scroll infinito
    * Para encontrar conversas antigas com 400+ conversas diárias
    */
-  async searchConversations(searchTerm: string, limit: number = 200): Promise<ConversationWithContact[]> {
+  async searchConversations(searchTerm: string, limit: number = 200, filters?: any): Promise<ConversationWithContact[]> {
     const conversationsData = await this.db
       .select({
         id: conversations.id,
