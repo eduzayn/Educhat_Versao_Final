@@ -229,7 +229,6 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isLoading}
             placeholder={isInternalNote ? "Digite sua nota interna..." : "Digite sua mensagem ou use / para respostas rápidas..."}
             className={`min-h-[40px] max-h-[120px] resize-none ${isInternalNote ? 'border-amber-300 bg-amber-50' : ''}`}
             aria-label="Campo de mensagem"
