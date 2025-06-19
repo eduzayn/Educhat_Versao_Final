@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useChatStore } from '@/shared/store/chatStore';
+import { canPerformAssignment } from '@/utils/assignmentDebounce';
 
 export function useTeamAssignment(conversationId: number) {
   const { toast } = useToast();
