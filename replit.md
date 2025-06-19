@@ -67,6 +67,9 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: DESCOBERTA CRÍTICA - Problema dos filtros avançados é cache/sincronização entre dispositivos, não posicionamento. Teste de troca de posições confirmou que alguns dispositivos veem atualizações e outros não
+- June 19, 2025: Implementado sistema de invalidação forçada de cache - Botão de sincronização (ícone refresh azul) força limpeza completa do cache React Query e localStorage, com invalidação automática por versão
+- June 19, 2025: Adicionado sistema de detecção de dispositivos diferentes - Invalidação automática quando detecta novo dispositivo/navegador para garantir sincronização
 - June 19, 2025: SOLUÇÃO DEFINITIVA para filtros avançados inconsistentes - Implementado hook de monitoramento robusto (useAdvancedFiltersMonitor) com auto-correção, fallbacks múltiplos, modo debug ativável (Ctrl+Shift+D) e recuperação automática de falhas de sincronização de estado
 - June 19, 2025: Criado sistema de debug em tempo real para filtros avançados - Console logs detalhados, indicadores visuais de estado e controles manuais de recuperação
 - June 19, 2025: Implementado mecanismo de força de exibição para filtros - Sistema detecta quando dados estão disponíveis mas UI não atualiza e força renderização automaticamente

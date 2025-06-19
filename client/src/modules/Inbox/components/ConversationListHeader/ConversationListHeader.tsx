@@ -49,6 +49,8 @@ export function ConversationListHeader({
   
   // Estado local para controlar modo debug
   const [debugMode, setDebugMode] = useState(false);
+  const queryClient = useQueryClient();
+  const [cacheCleared, setCacheCleared] = useState(false);
 
   // Hook de monitoramento robusto para filtros avançados
   const {
@@ -69,6 +71,51 @@ export function ConversationListHeader({
   const isAdvancedFiltersReady = isReady;
   const hasAdvancedFiltersError = hasError;
   const hasMinimalData = hasData;
+
+  // Sistema de invalidação de cache para sincronização entre dispositivos
+  const forceCacheInvalidation = useCallback(() => {
+    console.log('🔄 [CACHE] Forçando invalidação completa do cache');
+    
+    // Limpar cache do React Query
+    queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/system-users"] });
+    queryClient.removeQueries({ queryKey: ["/api/teams"] });
+    queryClient.removeQueries({ queryKey: ["/api/system-users"] });
+    
+    // Limpar localStorage relacionado aos filtros
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('educhat') || key.includes('react-query'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Marcar versão atual
+    localStorage.setItem('educhat_cache_version', '2.0.0-sync-fix');
+    localStorage.setItem('educhat_last_invalidation', new Date().toISOString());
+    
+    setCacheCleared(true);
+    
+    // Forçar refresh do hook
+    manualRefresh();
+    
+    console.log('✅ [CACHE] Cache invalidado e refresh forçado');
+    
+    setTimeout(() => setCacheCleared(false), 3000);
+  }, [queryClient, manualRefresh]);
+
+  // Verificar versão do cache ao carregar e invalidar se necessário
+  useEffect(() => {
+    const cacheVersion = localStorage.getItem('educhat_cache_version');
+    const currentVersion = '2.0.0-sync-fix';
+    
+    if (!cacheVersion || cacheVersion !== currentVersion) {
+      console.log('🔍 [CACHE] Versão desatualizada detectada, invalidando cache automaticamente');
+      forceCacheInvalidation();
+    }
+  }, [forceCacheInvalidation]);
 
   // Logs de debug simplificados usando o hook de monitoramento
   useEffect(() => {
@@ -175,6 +222,17 @@ export function ConversationListHeader({
         </div>
 
         <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={forceCacheInvalidation}
+            className="p-2 hover:bg-gray-100 text-blue-600"
+            aria-label="Sincronizar cache"
+            title="Força sincronização dos filtros entre dispositivos"
+          >
+            <RefreshCw className={`w-4 h-4 ${cacheCleared ? 'animate-spin' : ''}`} />
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
