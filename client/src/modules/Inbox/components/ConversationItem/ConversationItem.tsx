@@ -158,7 +158,16 @@ function ConversationItemComponent({
                     className="object-cover"
                   />
                   <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-medium">
-                    {conversation.assignedUser.displayName?.charAt(0)?.toUpperCase() || '?'}
+                    {(() => {
+                      const name = conversation.assignedUser.displayName || '';
+                      const words = name.split(' ').filter(word => word.length > 0);
+                      if (words.length >= 2) {
+                        return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+                      } else if (words.length === 1) {
+                        return words[0].substring(0, 2).toUpperCase();
+                      }
+                      return '?';
+                    })()}
                   </AvatarFallback>
                 </Avatar>
               </div>
