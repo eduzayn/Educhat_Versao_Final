@@ -20,13 +20,20 @@ router.get('/', async (req, res) => {
     const startTime = Date.now();
     console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}, period=${periodFilter || 'all'}`);
     
-    // Filtros para aplicar na query
+    // Filtros para aplicar na query - CORRIGIDO
     const filters = {
-      period: periodFilter && periodFilter !== 'all' ? periodFilter : undefined,
-      team: teamFilter && teamFilter !== 'all' ? parseInt(teamFilter) : undefined,
-      status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
-      agent: agentFilter && agentFilter !== 'all' ? parseInt(agentFilter) : undefined
+      period: periodFilter && periodFilter !== 'all' ? periodFilter : null,
+      team: teamFilter && teamFilter !== 'all' ? parseInt(teamFilter) : null,
+      status: statusFilter && statusFilter !== 'all' ? statusFilter : null,
+      agent: agentFilter && agentFilter !== 'all' ? parseInt(agentFilter) : null
     };
+    
+    // Remover valores null para evitar problemas na filtragem
+    Object.keys(filters).forEach(key => {
+      if ((filters as any)[key] === null || (filters as any)[key] === undefined) {
+        delete (filters as any)[key];
+      }
+    });
     
 
     

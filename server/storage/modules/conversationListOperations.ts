@@ -56,8 +56,9 @@ export class ConversationListOperations extends BaseStorage {
       }
     }
 
-    // Filtro por equipe
-    if (filters?.team) {
+    // Filtro por equipe - CORRIGIDO E VALIDADO
+    if (filters?.team && typeof filters.team === 'number' && !isNaN(filters.team)) {
+      console.log(`🔍 APLICANDO FILTRO EQUIPE: ${filters.team}`);
       whereConditions.push(eq(conversations.assignedTeamId, filters.team));
     }
 
@@ -67,7 +68,7 @@ export class ConversationListOperations extends BaseStorage {
     }
 
     // Filtro por agente
-    if (filters?.agent) {
+    if (filters?.agent && typeof filters.agent === 'number') {
       whereConditions.push(eq(conversations.assignedUserId, filters.agent));
     }
 
@@ -250,8 +251,8 @@ export class ConversationListOperations extends BaseStorage {
         }
       }
 
-      // Filtro por equipe
-      if (filters.team) {
+      // Filtro por equipe - CORRIGIDO
+      if (filters.team && typeof filters.team === 'number') {
         whereConditions.push(eq(conversations.assignedTeamId, filters.team));
       }
 
@@ -261,7 +262,7 @@ export class ConversationListOperations extends BaseStorage {
       }
 
       // Filtro por agente
-      if (filters.agent) {
+      if (filters.agent && typeof filters.agent === 'number') {
         whereConditions.push(eq(conversations.assignedUserId, filters.agent));
       }
     }
