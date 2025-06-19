@@ -65,7 +65,7 @@ export function registerAssignUserRoutes(router: Router) {
           id: assignedUser.id,
           displayName: assignedUser.displayName,
           username: assignedUser.username,
-          avatar: assignedUser.avatar
+          avatar: (assignedUser as any).avatar || null
         } : null,
         assignmentMethod: data.method,
         assignedAt: data.userId ? new Date().toISOString() : null,

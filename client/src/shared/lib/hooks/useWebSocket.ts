@@ -164,6 +164,7 @@ export function useWebSocket() {
               conversationId: data.conversationId,
               assignedTeamId: data.assignedTeamId,
               assignedUserId: data.assignedUserId,
+              assignedUser: data.assignedUser,
               assignmentMethod: data.assignmentMethod
             });
             
@@ -172,13 +173,17 @@ export function useWebSocket() {
               updateActiveConversationAssignment(data.assignedTeamId, data.assignedUserId);
             }
             
-            // Forçar refetch imediato para atualizar interface
-            queryClient.refetchQueries({ 
-              queryKey: ['/api/conversations', data.conversationId],
-              type: 'active'
-            });
+            // Forçar refetch imediato para atualizar interface - garantindo que dados de assignedUser sejam atualizados
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
             queryClient.refetchQueries({ 
               queryKey: ['/api/conversations'],
+              type: 'active'
+            });
+            queryClient.invalidateQueries({ 
+              queryKey: ['/api/conversations', data.conversationId]
+            });
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/conversations', data.conversationId],
               type: 'active'
             });
           }
