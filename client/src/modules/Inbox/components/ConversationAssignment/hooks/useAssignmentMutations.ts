@@ -24,9 +24,18 @@ export function useTeamAssignment(conversationId: number) {
         updateActiveConversationAssignment(variables.teamId, null);
       }
       
-      // Refetch imediato para garantir atualização da interface
-      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
-      queryClient.refetchQueries({ queryKey: ['/api/conversations', conversationId] });
+      // CORREÇÃO CRÍTICA: Invalidação específica apenas da conversa afetada
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'], 
+        exact: false,
+        predicate: (query) => {
+          // Apenas invalidar queries relacionadas a conversas, mas de forma mais específica
+          return query.queryKey[0] === '/api/conversations';
+        }
+      });
+      
+      // Invalidar apenas esta conversa específica
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
       
       toast({
         title: 'Equipe atribuída',
@@ -66,9 +75,18 @@ export function useUserAssignment(conversationId: number) {
         updateActiveConversationAssignment(activeConversation.assignedTeamId, variables.userId);
       }
       
-      // Refetch imediato para garantir atualização da interface
-      queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
-      queryClient.refetchQueries({ queryKey: ['/api/conversations', conversationId] });
+      // CORREÇÃO CRÍTICA: Invalidação específica apenas da conversa afetada
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'], 
+        exact: false,
+        predicate: (query) => {
+          // Apenas invalidar queries relacionadas a conversas, mas de forma mais específica
+          return query.queryKey[0] === '/api/conversations';
+        }
+      });
+      
+      // Invalidar apenas esta conversa específica
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
       
       // Invalidar cache do usuário específico para atualizar nome no cabeçalho
       if (variables.userId) {

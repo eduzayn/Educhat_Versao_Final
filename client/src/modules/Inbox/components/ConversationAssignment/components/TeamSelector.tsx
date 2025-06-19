@@ -33,6 +33,12 @@ export function TeamSelector({
   const handleTeamChange = async (value: string) => {
     const teamId = value === "none" ? null : parseInt(value);
     
+    // CORREÇÃO CRÍTICA: Prevenir múltiplas chamadas simultâneas
+    if (teamAssignmentMutation.isPending) {
+      console.warn('⚠️ Atribuição já em andamento, ignorando chamada duplicada');
+      return;
+    }
+    
     try {
       await teamAssignmentMutation.mutateAsync({
         teamId,
