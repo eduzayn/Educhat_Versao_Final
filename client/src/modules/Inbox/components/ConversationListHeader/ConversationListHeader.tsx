@@ -283,7 +283,7 @@ export function ConversationListHeader({
                     <SelectItem value="all">Todos os agentes</SelectItem>
                     {agents.map((agent: any) => (
                       <SelectItem key={agent.id} value={agent.id.toString()}>
-                        {agent.displayName || agent.username}
+                        {agent.displayName || agent.username || agent.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
