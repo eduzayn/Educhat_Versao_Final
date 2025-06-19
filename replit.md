@@ -67,6 +67,10 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: SOLUÇÃO DEFINITIVA para filtros avançados inconsistentes - Implementado hook de monitoramento robusto (useAdvancedFiltersMonitor) com auto-correção, fallbacks múltiplos, modo debug ativável (Ctrl+Shift+D) e recuperação automática de falhas de sincronização de estado
+- June 19, 2025: Criado sistema de debug em tempo real para filtros avançados - Console logs detalhados, indicadores visuais de estado e controles manuais de recuperação
+- June 19, 2025: Implementado mecanismo de força de exibição para filtros - Sistema detecta quando dados estão disponíveis mas UI não atualiza e força renderização automaticamente
+- June 19, 2025: Adicionado monitoramento contínuo de inconsistências - Hook verifica estado a cada 5 segundos e aplica correções automáticas quando necessário
 - June 19, 2025: Corrigido problema crítico de inconsistência na exibição de filtros avançados - Implementado sistema robusto com loading states e fallback para garantir que filtros apareçam consistentemente em todos os dispositivos
 - June 19, 2025: Adicionada verificação de autenticação nas rotas /api/teams e /api/system-users para evitar falhas silenciosas
 - June 19, 2025: Implementado sistema de retry automático e tratamento de erro para queries de filtros avançados
