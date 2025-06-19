@@ -53,12 +53,12 @@ export function useWebSocket() {
     try {
       socketRef.current = io(socketUrl, {
         transports: ['websocket', 'polling'],
-        timeout: 20000,              // Aumentado de 10s para 20s
+        timeout: 5000,               // Reduzido para 5s para resposta rápida
         reconnection: true,
-        reconnectionDelay: 2000,     // Aumentado de 1s para 2s
-        reconnectionDelayMax: 10000, // Máximo de 10s entre tentativas
-        reconnectionAttempts: 10,    // Aumentado de 5 para 10 tentativas
-        randomizationFactor: 0.3,    // Adiciona randomização para evitar thundering herd
+        reconnectionDelay: 1000,     // Reduzido para 1s para reconexão rápida
+        reconnectionDelayMax: 5000,  // Máximo de 5s entre tentativas
+        reconnectionAttempts: 5,     // Reduzido para 5 tentativas
+        randomizationFactor: 0.2,    // Menor randomização para resposta mais rápida
         forceNew: true,
         upgrade: true,
         rememberUpgrade: true

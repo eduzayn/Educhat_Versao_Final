@@ -25,13 +25,13 @@ export function createSocketServer(app: Express): SocketServer {
       methods: ["GET", "POST"],
       credentials: true
     },
-    // Configurações otimizadas para estabilidade da conexão
-    pingTimeout: 120000,      // 2 minutos (aumentado de 60s)
-    pingInterval: 30000,      // 30 segundos (aumentado de 25s)
-    upgradeTimeout: 30000,    // Timeout para upgrade de polling para websocket
+    // Configurações otimizadas para resposta rápida
+    pingTimeout: 30000,       // 30 segundos para resposta rápida
+    pingInterval: 10000,      // 10 segundos para detecção rápida de desconexão
+    upgradeTimeout: 10000,    // Timeout reduzido para upgrade rápido
     transports: ['websocket', 'polling'],
     allowEIO3: true,
-    connectTimeout: 60000,    // 1 minuto (aumentado de 45s)
+    connectTimeout: 20000,    // 20 segundos para conexão mais rápida
     maxHttpBufferSize: 5e6,   // 5MB
     // Configurações adicionais para reconexão estável
     serveClient: false,
