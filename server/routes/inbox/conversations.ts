@@ -11,25 +11,37 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string;
+    const periodFilter = req.query.periodFilter as string;
+    const teamFilter = req.query.teamFilter as string;
+    const statusFilter = req.query.statusFilter as string;
+    const agentFilter = req.query.agentFilter as string;
     
     // Log para diagnóstico de performance
     const startTime = Date.now();
-    console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}`);
+    console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}, period=${periodFilter || 'all'}`);
+    
+    // Filtros para aplicar na query
+    const filters = {
+      period: periodFilter && periodFilter !== 'all' ? periodFilter : undefined,
+      team: teamFilter && teamFilter !== 'all' ? parseInt(teamFilter) : undefined,
+      status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
+      agent: agentFilter && agentFilter !== 'all' ? parseInt(agentFilter) : undefined
+    };
     
     let conversations;
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas
-      conversations = await storage.searchConversations(search.trim(), limit);
+      conversations = await storage.searchConversations(search.trim(), limit, filters);
       // Para busca, retornar formato simples
       const endTime = Date.now();
       console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
       res.json(conversations);
     } else {
-      // Busca normal paginada
-      conversations = await storage.getConversations(limit, offset);
+      // Busca normal paginada com filtros
+      conversations = await storage.getConversations(limit, offset, filters);
       
       // Buscar uma conversa adicional para verificar se há mais páginas
-      const nextPageCheck = await storage.getConversations(1, offset + limit);
+      const nextPageCheck = await storage.getConversations(1, offset + limit, filters);
       const hasNextPage = nextPageCheck.length > 0;
       
       const endTime = Date.now();

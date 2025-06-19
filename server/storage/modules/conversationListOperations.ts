@@ -1,7 +1,8 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { conversations, contacts, messages, type ConversationWithContact } from "@shared/schema";
-import { eq, desc, and, inArray, or, ilike, count } from "drizzle-orm";
+import { eq, desc, and, inArray, or, ilike, count, gte, lte } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+import type { ConversationFilters } from "../interfaces/IConversationStorage";
 
 export class ConversationListOperations extends BaseStorage {
   /**
@@ -13,11 +14,65 @@ export class ConversationListOperations extends BaseStorage {
    * - Índices de banco obrigatórios
    * - Busca otimizada de prévias
    */
-  async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversations(limit = 100, offset = 0, filters?: any): Promise<ConversationWithContact[]> {
     const startTime = Date.now();
 
+    // Construir condições de filtro
+    const whereConditions = [];
+    
+    // Filtro por período
+    if (filters?.period && filters.period !== 'all') {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (filters.period) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          whereConditions.push(gte(conversations.lastMessageAt, startDate));
+          break;
+        case 'yesterday':
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+          const yesterdayEnd = new Date(yesterdayStart);
+          yesterdayEnd.setDate(yesterdayEnd.getDate() + 1);
+          whereConditions.push(
+            and(
+              gte(conversations.lastMessageAt, yesterdayStart),
+              lte(conversations.lastMessageAt, yesterdayEnd)
+            )
+          );
+          break;
+        case 'week':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 7);
+          whereConditions.push(gte(conversations.lastMessageAt, startDate));
+          break;
+        case 'month':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 30);
+          whereConditions.push(gte(conversations.lastMessageAt, startDate));
+          break;
+      }
+    }
+
+    // Filtro por equipe
+    if (filters?.team) {
+      whereConditions.push(eq(conversations.assignedTeamId, filters.team));
+    }
+
+    // Filtro por status
+    if (filters?.status) {
+      whereConditions.push(eq(conversations.status, filters.status));
+    }
+
+    // Filtro por agente
+    if (filters?.agent) {
+      whereConditions.push(eq(conversations.assignedUserId, filters.agent));
+    }
+
     // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
-    const conversationsData = await this.db
+    let query = this.db
       .select({
         id: conversations.id,
         contactId: conversations.contactId,
@@ -38,7 +93,14 @@ export class ConversationListOperations extends BaseStorage {
         contactProfileImage: contacts.profileImageUrl
       })
       .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id));
+
+    // Aplicar filtros se existirem
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
+    }
+
+    const conversationsData = await query
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit)
       .offset(offset);

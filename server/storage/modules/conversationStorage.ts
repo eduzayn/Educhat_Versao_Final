@@ -46,10 +46,16 @@ export class ConversationStorage extends BaseStorage {
   }
 
   // List Operations
-  async getConversations(limit = 100, offset = 0): Promise<ConversationWithContact[]> {
+  async getConversations(limit = 100, offset = 0, filters?: any): Promise<ConversationWithContact[]> {
     const { ConversationListOperations } = await import('./conversationListOperations');
     const listOps = new ConversationListOperations(this.db);
-    return listOps.getConversations(limit, offset);
+    return listOps.getConversations(limit, offset, filters);
+  }
+
+  async searchConversations(searchTerm: string, limit?: number, filters?: any): Promise<ConversationWithContact[]> {
+    const { ConversationListOperations } = await import('./conversationListOperations');
+    const listOps = new ConversationListOperations(this.db);
+    return listOps.searchConversations(searchTerm, limit, filters);
   }
 
   async getConversationCount(): Promise<number> {
