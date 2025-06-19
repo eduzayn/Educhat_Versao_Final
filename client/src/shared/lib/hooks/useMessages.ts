@@ -133,17 +133,17 @@ export function useSendMessage() {
 
       // Criar mensagem temporária para exibição imediata
       const optimisticMessage = {
-        id: `temp-${Date.now()}`, // ID temporário único
+        id: Date.now(), // ID temporário único
         ...message,
         conversationId,
-        sentAt: new Date().toISOString(),
+        sentAt: new Date(),
         isFromContact: false,
-        status: 'sending',
         zapiMessageId: null,
         readAt: null,
         deliveredAt: null,
         metadata: null,
-        isDeleted: false
+        isDeleted: false,
+        messageType: message.messageType || 'text'
       };
 
       // Atualização imediata da UI - mensagem aparece instantaneamente
@@ -158,7 +158,6 @@ export function useSendMessage() {
       );
 
       return { previousMessages, optimisticMessage };
-
     },
     onSuccess: (newMessage, { conversationId }, context) => {
       // Substituir mensagem temporária pela real
