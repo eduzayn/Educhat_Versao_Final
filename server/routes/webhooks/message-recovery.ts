@@ -66,7 +66,7 @@ router.post('/recover-unrendered-messages', async (req, res) => {
     }
     
     // Processar cada conversa com mensagens não lidas
-    for (const [conversationId, messages] of messagesByConversation) {
+    for (const [conversationId, messages] of Array.from(messagesByConversation.entries())) {
       try {
         const latestMessage = messages[0]; // Mais recente primeiro
         
@@ -133,7 +133,7 @@ router.post('/recover-unrendered-messages', async (req, res) => {
     res.json({
       success: true,
       recoveredConversations: recoveredConversations.size,
-      totalMessagesProcessed: unrenderedMessages.length,
+      totalMessagesProcessed: Array.isArray(unrenderedMessages) ? unrenderedMessages.length : 0,
       message: `${recoveredConversations.size} conversas recuperadas com sucesso`
     });
     
@@ -141,7 +141,7 @@ router.post('/recover-unrendered-messages', async (req, res) => {
     console.error('❌ ERRO CRÍTICO na recuperação de mensagens:', error);
     res.status(500).json({
       error: 'Falha na recuperação de mensagens',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
 });
@@ -182,18 +182,20 @@ router.get('/check-missing-conversations', async (req, res) => {
       ORDER BY latest_message_time DESC
     `);
     
+    const conversationsArray = Array.isArray(missingConversations) ? missingConversations : [];
+    
     res.json({
       success: true,
-      missingConversations: missingConversations.length,
-      conversations: missingConversations.slice(0, 20), // Primeiras 20 para análise
-      message: `${missingConversations.length} conversas com mensagens recentes encontradas`
+      missingConversations: conversationsArray.length,
+      conversations: conversationsArray.slice(0, 20), // Primeiras 20 para análise
+      message: `${conversationsArray.length} conversas com mensagens recentes encontradas`
     });
     
   } catch (error) {
     console.error('❌ Erro ao verificar conversas perdidas:', error);
     res.status(500).json({
       error: 'Falha na verificação de conversas',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
 });
