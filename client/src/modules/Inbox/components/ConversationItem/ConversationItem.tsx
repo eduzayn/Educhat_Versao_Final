@@ -96,7 +96,7 @@ function ConversationItemComponent({
         <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
           <ChannelIcon 
             channel={conversation.channel} 
-            size="sm"
+            className="w-3 h-3"
           />
         </div>
       </div>
