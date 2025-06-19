@@ -44,7 +44,7 @@ export function registerEmergencySyncRoutes(app: Express) {
       res.json({
         success: true,
         message: 'Sincronização de emergência executada',
-        conversationsFound: recentConversations.conversations.length,
+        conversationsFound: recentConversations.length,
         timestamp: new Date().toISOString()
       });
       
