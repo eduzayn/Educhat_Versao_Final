@@ -313,7 +313,7 @@ export function ConversationListHeader({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Agente (TESTE)
+                Agente
               </label>
               <Select value={agentFilter} onValueChange={setAgentFilter}>
                 <SelectTrigger className="w-full">
@@ -443,7 +443,7 @@ export function ConversationListHeader({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Canal (TESTE)
+                    Canal
                   </label>
                   <Select value={channelFilter} onValueChange={setChannelFilter}>
                     <SelectTrigger className="w-full">
