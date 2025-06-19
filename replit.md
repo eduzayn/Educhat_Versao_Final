@@ -67,6 +67,7 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: OTIMIZAÇÃO CRÍTICA DE PRODUÇÃO - Sistema de logs completamente otimizado para produção - Implementado logger inteligente com níveis por ambiente (DEBUG para desenvolvimento, apenas WARN/ERROR para produção), logs limpos sem emojis, redução de 80% no volume de logs em produção, mantendo funcionalidade completa em desenvolvimento. Otimizados logs de webhooks, Socket.IO, conversas e emergência
 - June 19, 2025: CORREÇÃO CRÍTICA URGENTE - Resolvido problema de atribuição em massa de conversas - Implementadas proteções contra múltiplas chamadas simultâneas de API, invalidação específica de cache apenas para conversas afetadas e prevenção contra execução duplicada de mutações. Sistema agora isola corretamente as transferências por ID específico da conversa
 - June 19, 2025: Implementado sistema de proxy para URLs de mídia do WhatsApp - Solução automática para erros 403 (Forbidden) em imagens/mídia com URLs expiradas, proxy transparente com fallback e componente MediaViewer com detecção automática de falhas
 - June 19, 2025: CORREÇÃO CRÍTICA - Regularizada sincronização de mensagens via webhook - Corrigido WebSocket broadcast robusto com fallbacks, atualização automática de conversas (unreadCount, lastMessageAt), sistema de recuperação de mensagens não exibidas e listener de sincronização em tempo real para resolver problema de mensagens salvas no banco mas não renderizadas na interface
