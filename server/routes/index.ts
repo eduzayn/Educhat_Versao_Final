@@ -49,6 +49,7 @@ import activitiesRouter from "./activities/index";
 import { registerUnifiedStatsRoutes } from "./stats/index";
 import gamificationRouter from "./gamification";
 import systemUsersRouter from "./system-users/index";
+import { registerHealthMonitor } from "./health-monitor";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
@@ -105,6 +106,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas de usuários do sistema
   app.use('/api/system-users', systemUsersRouter);
+  
+  // Registrar sistema de monitoramento de saúde
+  registerHealthMonitor(app);
 
   // Registrar rotas de email
   const emailRouter = await import('./emails/index');

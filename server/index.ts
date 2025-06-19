@@ -15,22 +15,34 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 
-// Configurações de timeout otimizadas para resposta rápida
+// Configurações de timeout otimizadas para evitar 502 Bad Gateway
 app.use((req, res, next) => {
-  // Timeout reduzido para resposta mais rápida (5 segundos)
-  const timeout = process.env.NODE_ENV === 'production' ? 8000 : 10000;
+  // Timeout otimizado para evitar 502 - mais curto para resposta rápida
+  const timeout = process.env.NODE_ENV === 'production' ? 12000 : 15000;
   
   req.setTimeout(timeout, () => {
     console.warn(`⚠️ Request timeout: ${req.method} ${req.path}`);
     if (!res.headersSent) {
-      res.status(408).json({ error: 'Request timeout' });
+      res.status(408).json({ 
+        error: 'Request timeout',
+        code: 'TIMEOUT',
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      });
     }
   });
   
   res.setTimeout(timeout, () => {
     console.warn(`⚠️ Response timeout: ${req.method} ${req.path}`);
     if (!res.headersSent) {
-      res.status(408).json({ error: 'Response timeout' });
+      res.status(408).json({ 
+        error: 'Response timeout',
+        code: 'RESPONSE_TIMEOUT',
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      });
     }
   });
   
@@ -147,15 +159,20 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       
-      // Alerta para requests lentos que podem causar 502 (ajustado para produção)
-      const slowThreshold = process.env.NODE_ENV === 'production' ? 10000 : 20000;
+      // Alerta crítico para requests que podem causar 502 (otimizado)
+      const slowThreshold = process.env.NODE_ENV === 'production' ? 8000 : 12000;
       if (duration > slowThreshold) {
-        console.warn(`🐌 Request muito lento detectado: ${logLine}`);
+        console.warn(`🐌 RISCO 502 - Request lento detectado: ${logLine}`);
       }
       
-      // Alerta para status codes problemáticos
+      // Alerta para status codes problemáticos com contexto
       if (res.statusCode >= 500) {
-        console.error(`🚨 Server error: ${logLine}`);
+        console.error(`🚨 Server error ${res.statusCode}: ${logLine}`);
+      }
+      
+      // Alerta específico para timeout que pode virar 502
+      if (res.statusCode === 408) {
+        console.error(`⏰ TIMEOUT DETECTADO (pode causar 502): ${logLine}`);
       }
       
       if (capturedJsonResponse) {
@@ -176,34 +193,52 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Error handling middleware robusto para prevenir 502
+  // Error handling middleware SUPER ROBUSTO para eliminar 502 Bad Gateway
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    console.error(`❌ Error ${status} on ${req.method} ${req.path}:`, err);
+    console.error(`❌ ERRO CAPTURADO ${status} em ${req.method} ${req.path}:`, {
+      message: err.message,
+      stack: err.stack?.split('\n').slice(0, 3).join('\n'), // Stack limitado
+      timeout: err.name === 'TimeoutError' || message.includes('timeout'),
+      headers_sent: res.headersSent
+    });
     
-    // Prevenir headers duplos que causam 502
+    // CRÍTICO: Prevenir headers duplos que causam 502
     if (res.headersSent) {
-      console.warn(`⚠️ Headers já enviados para ${req.path}, ignorando erro`);
+      console.warn(`⚠️ Headers já enviados para ${req.path} - conexão pode estar quebrada`);
       return;
     }
 
-    // Garantir resposta JSON válida
+    // Garantir resposta JSON válida com fallback triplo
     try {
-      res.status(status).json({ 
+      // Tentativa 1: Resposta estruturada
+      res.status(status >= 400 && status < 600 ? status : 500).json({ 
         error: message,
+        code: err.code || 'INTERNAL_ERROR',
         path: req.path,
         method: req.method,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        fallback_level: 1
       });
     } catch (sendError) {
-      console.error(`❌ Erro ao enviar resposta de erro para ${req.path}:`, sendError);
-      // Última tentativa com resposta simples
+      console.error(`❌ Falha na resposta JSON para ${req.path}:`, sendError);
       try {
-        res.status(500).end('Internal Server Error');
-      } catch (finalError) {
-        console.error(`❌ Erro crítico na resposta final:`, finalError);
+        // Tentativa 2: Resposta simples JSON
+        res.status(500).json({ error: 'Internal Server Error', fallback_level: 2 });
+      } catch (jsonError) {
+        console.error(`❌ Falha na resposta JSON simples para ${req.path}:`, jsonError);
+        try {
+          // Tentativa 3: Resposta texto puro (último recurso)
+          res.status(500).setHeader('Content-Type', 'text/plain').end('Internal Server Error');
+        } catch (finalError) {
+          console.error(`❌ ERRO CRÍTICO - Falha total na resposta para ${req.path}:`, finalError);
+          // Último recurso: forçar encerramento da conexão
+          if (!res.destroyed) {
+            res.destroy();
+          }
+        }
       }
     }
   });
