@@ -39,7 +39,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       };
     }
 
-    // Normalizar número de telefone (remover espaços, caracteres especiais, etc.)
+    // Normalizar número de telefone
     const normalizedPhone = this.normalizePhone(phone);
 
     // Buscar contatos com o mesmo número
@@ -48,7 +48,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       eq(contacts.phone, normalizedPhone)
     ];
 
-    // Se há variações do número, incluí-las na busca
+    // Gerar variações do número
     const phoneVariations = this.generatePhoneVariations(normalizedPhone);
     phoneVariations.forEach(variation => {
       whereConditions.push(eq(contacts.phone, variation));
@@ -64,7 +64,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       );
     }
 
-    const duplicateContacts = await this.db
+    const foundContacts = await this.db
       .select({
         id: contacts.id,
         name: contacts.name,
@@ -78,7 +78,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       .from(contacts)
       .where(whereClause);
 
-    if (duplicateContacts.length === 0) {
+    if (foundContacts.length === 0) {
       return {
         isDuplicate: false,
         duplicates: [],
@@ -87,19 +87,19 @@ export class ContactDuplicateDetection extends BaseStorage {
       };
     }
 
-    // Buscar informações adicionais sobre conversas para cada contato duplicado
+    // Processar informações de cada contato duplicado
     const duplicatesWithInfo: DuplicateContactInfo[] = [];
     const channels: Set<string> = new Set();
 
-    for (const contact of duplicateContacts) {
+    for (const contact of foundContacts) {
       // Contar conversas do contato
-      const conversationCount = await this.db
+      const [countResult] = await this.db
         .select({ count: sql<number>`count(*)` })
         .from(conversations)
         .where(eq(conversations.contactId, contact.id));
 
       // Buscar última atividade
-      const lastConversation = await this.db
+      const [lastConversation] = await this.db
         .select({ lastMessageAt: conversations.lastMessageAt })
         .from(conversations)
         .where(eq(conversations.contactId, contact.id))
@@ -113,8 +113,8 @@ export class ContactDuplicateDetection extends BaseStorage {
         canalOrigem: contact.canalOrigem,
         nomeCanal: contact.nomeCanal,
         idCanal: contact.idCanal,
-        conversationCount: conversationCount[0]?.count || 0,
-        lastActivity: lastConversation[0]?.lastMessageAt || contact.createdAt
+        conversationCount: countResult?.count || 0,
+        lastActivity: lastConversation?.lastMessageAt || contact.createdAt
       });
 
       // Coletar canais únicos
@@ -165,7 +165,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       phoneGroups[normalizedPhone].push(contact);
     }
 
-    // Filtrar apenas grupos com duplicados e adicionar informações de conversas
+    // Filtrar apenas grupos com duplicados
     const duplicateGroups: {[phone: string]: DuplicateContactInfo[]} = {};
 
     for (const [phone, contactGroup] of Object.entries(phoneGroups)) {
@@ -174,13 +174,13 @@ export class ContactDuplicateDetection extends BaseStorage {
 
         for (const contact of contactGroup) {
           // Contar conversas
-          const conversationCount = await this.db
+          const [countResult] = await this.db
             .select({ count: sql<number>`count(*)` })
             .from(conversations)
             .where(eq(conversations.contactId, contact.id));
 
           // Buscar última atividade
-          const lastConversation = await this.db
+          const [lastConversation] = await this.db
             .select({ lastMessageAt: conversations.lastMessageAt })
             .from(conversations)
             .where(eq(conversations.contactId, contact.id))
@@ -194,8 +194,8 @@ export class ContactDuplicateDetection extends BaseStorage {
             canalOrigem: contact.canalOrigem,
             nomeCanal: contact.nomeCanal,
             idCanal: contact.idCanal,
-            conversationCount: conversationCount[0]?.count || 0,
-            lastActivity: lastConversation[0]?.lastMessageAt || contact.createdAt
+            conversationCount: countResult?.count || 0,
+            lastActivity: lastConversation?.lastMessageAt || contact.createdAt
           });
         }
 
@@ -218,15 +218,6 @@ export class ContactDuplicateDetection extends BaseStorage {
     // Remover código do país Brasil se presente
     if (normalized.startsWith('55') && normalized.length === 13) {
       normalized = normalized.substring(2);
-    }
-    
-    // Remover 9 adicional em celulares se presente
-    if (normalized.length === 11 && normalized.substring(2, 3) === '9') {
-      // Verificar se é um celular (DDD + 9 + 8 dígitos)
-      const ddd = normalized.substring(0, 2);
-      if (this.isValidDDD(ddd)) {
-        return normalized; // Manter como está se for celular
-      }
     }
     
     return normalized;
@@ -261,50 +252,7 @@ export class ContactDuplicateDetection extends BaseStorage {
       variations.push(`55${withNine}`);
     }
     
-    // Formatos com símbolos comuns
-    if (cleanPhone.length === 11) {
-      const formatted = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
-      variations.push(formatted);
-    }
-    
     return variations;
-  }
-
-  /**
-   * Verificar se é um DDD válido brasileiro
-   */
-  private isValidDDD(ddd: string): boolean {
-    const validDDDs = [
-      '11', '12', '13', '14', '15', '16', '17', '18', '19', // São Paulo
-      '21', '22', '24', // Rio de Janeiro
-      '27', '28', // Espírito Santo
-      '31', '32', '33', '34', '35', '37', '38', // Minas Gerais
-      '41', '42', '43', '44', '45', '46', // Paraná
-      '47', '48', '49', // Santa Catarina
-      '51', '53', '54', '55', // Rio Grande do Sul
-      '61', // Distrito Federal
-      '62', '64', // Goiás
-      '63', // Tocantins
-      '65', '66', // Mato Grosso
-      '67', // Mato Grosso do Sul
-      '68', // Acre
-      '69', // Rondônia
-      '71', '73', '74', '75', '77', // Bahia
-      '79', // Sergipe
-      '81', '87', // Pernambuco
-      '82', // Alagoas
-      '83', // Paraíba
-      '84', // Rio Grande do Norte
-      '85', '88', // Ceará
-      '86', '89', // Piauí
-      '91', '93', '94', // Pará
-      '92', '97', // Amazonas
-      '95', // Roraima
-      '96', // Amapá
-      '98', '99' // Maranhão
-    ];
-    
-    return validDDDs.includes(ddd);
   }
 
   /**

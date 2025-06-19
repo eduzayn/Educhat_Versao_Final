@@ -10,6 +10,7 @@ import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
 import { registerMessageRoutes } from "./messages/index";
 import { registerContactRoutes } from "./contacts/index";
+import contactDuplicatesRouter from "./contacts/duplicates";
 import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
 import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
