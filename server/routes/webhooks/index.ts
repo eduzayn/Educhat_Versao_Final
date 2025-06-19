@@ -344,7 +344,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       try {
         // Só processar mensagens de texto para IA (evitar sobrecarga)
         if (messageType === 'text' && messageContent && messageContent.length > 5) {
-          console.log(`🤖 Iniciando análise de IA para mensagem: "${messageContent}"`);
+          logger.debug(`Iniciando análise de IA para mensagem: "${messageContent}"`);
           
           // Chamar endpoint de handoff inteligente
           const handoffResponse = await fetch('http://localhost:5000/api/handoffs/intelligent/execute', {
@@ -362,51 +362,48 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
 
           if (handoffResponse.ok) {
             const handoffResult = await handoffResponse.json();
-            console.log(`✅ Análise de IA concluída:`, {
+            logger.debug('Análise de IA concluída', {
               handoffCreated: handoffResult.handoffCreated,
               confidence: handoffResult.recommendation?.confidence,
               reason: handoffResult.recommendation?.reason
             });
             
             if (handoffResult.handoffCreated && handoffResult.assignedUserId) {
-              console.log(`🔄 Transferência automática executada com sucesso para conversa ${conversation.id}`);
+              logger.info(`Transferência automática executada com sucesso para conversa ${conversation.id}`);
               
               // Atualizar gamificação para o usuário que recebeu a conversa
               try {
                 await gamificationService.updateUserStats(handoffResult.assignedUserId, 'daily', new Date());
                 await gamificationService.updateUserStats(handoffResult.assignedUserId, 'weekly', new Date());
                 await gamificationService.updateUserStats(handoffResult.assignedUserId, 'monthly', new Date());
-                console.log(`🎮 Gamificação atualizada via webhook para usuário ${handoffResult.assignedUserId}`);
+                logger.debug(`Gamificação atualizada via webhook para usuário ${handoffResult.assignedUserId}`);
               } catch (gamError) {
-                console.error(`❌ Erro ao atualizar gamificação via webhook:`, gamError);
+                logger.error('Erro ao atualizar gamificação via webhook', gamError);
               }
               
               // Criar deal automático quando conversa é atribuída
               if (handoffResult.assignedTeamId) {
                 try {
-                  console.log(`💼 Iniciando criação automática de deal para conversa ${conversation.id}`);
+                  logger.debug(`Iniciando criação automática de deal para conversa ${conversation.id}`);
                   const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, handoffResult.assignedTeamId);
                   if (dealId) {
-                    console.log(`✅ Deal automático criado com sucesso: ID ${dealId}`);
+                    logger.info(`Deal automático criado com sucesso: ID ${dealId}`);
                   } else {
-                    console.log(`ℹ️ Deal automático não criado (pode já existir ou não atender critérios)`);
+                    logger.debug('Deal automático não criado (pode já existir ou não atender critérios)');
                   }
                 } catch (dealError) {
-                  console.error(`❌ Erro ao criar deal automático:`, dealError);
-                  // Não falhar o webhook por causa do deal
+                  logger.error('Erro ao criar deal automático', dealError);
                 }
               }
             }
           } else {
-            console.error(`❌ Erro na análise de IA:`, await handoffResponse.text());
+            logger.error('Erro na análise de IA', await handoffResponse.text());
           }
 
-          // RESPOSTA AUTOMÁTICA DA PROF. ANA - TEMPORARIAMENTE DESABILITADA
-          // A Prof. Ana está configurada para responder apenas internamente no sistema
-          console.log(`ℹ️ Resposta automática da Prof. Ana desabilitada para WhatsApp - apenas respostas internas ativas`);
+          logger.debug('Resposta automática da Prof. Ana desabilitada para WhatsApp - apenas respostas internas ativas');
         }
       } catch (aiError) {
-        console.error('❌ Erro na análise de IA para transferências:', aiError);
+        logger.error('Erro na análise de IA para transferências', aiError);
         // Não falhar o webhook por causa da IA
       }
       
@@ -418,19 +415,18 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
     }
     
     // Tipo de webhook não reconhecido
-    console.log(`⚠️ Tipo de webhook não processado: ${webhookData.type}`);
+    logger.warn(`Tipo de webhook não processado: ${webhookData.type}`);
     return { success: true, type: 'unhandled' };
     
   } catch (error) {
     const processingTime = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     
-    console.error('❌ Erro ao processar webhook Z-API:', {
+    logger.error('Erro ao processar webhook Z-API', {
       error: errorMessage,
       webhookType: webhookData?.type,
       phone: webhookData?.phone,
-      processingTime: `${processingTime}ms`,
-      timestamp: new Date().toISOString()
+      processingTime: `${processingTime}ms`
     });
     
     // Registrar erro no monitor de saúde
@@ -445,7 +441,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
  */
 async function handleImportContacts(req: any, res: any) {
   try {
-    console.log('📇 Iniciando importação de contatos Z-API');
+    logger.info('Iniciando importação de contatos Z-API');
     
     // Validar credenciais Z-API
     const credentials = validateZApiCredentials();
