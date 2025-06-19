@@ -124,33 +124,52 @@ export function registerZApiRoutes(app: Express) {
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
       console.log('📤 Enviando para Z-API:', { url: url.replace(token!, '****'), payload });
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Client-Token': clientToken || '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      // Configurar timeout de 30 segundos para requisições Z-API
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const responseText = await response.text();
-      console.log('📥 Resposta Z-API:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText
-      });
-
-      if (!response.ok) {
-        console.error('❌ Erro na Z-API:', responseText);
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-      }
-
-      let data;
       try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
-        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Client-Token': clientToken || '',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+
+        const responseText = await response.text();
+        console.log('📥 Resposta Z-API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+
+        if (!response.ok) {
+          console.error('❌ Erro na Z-API:', responseText);
+          throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        }
+
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ Erro ao parsear resposta JSON:', parseError);
+          throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+        }
+        
+        return data;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error('Timeout: Requisição cancelada após 30 segundos');
+        }
+        
+        throw fetchError;
       }
 
       console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
