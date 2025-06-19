@@ -3,13 +3,22 @@ import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
 import { Button } from '@/shared/ui/button';
-import { Send, Mic, StickyNote } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Send, Mic, StickyNote, Smile } from 'lucide-react';
 import { AudioRecorder, AudioRecorderRef } from '@/modules/Messages/components/AudioRecorder/AudioRecorder';
 import { QuickReplyDropdown } from './QuickReplyDropdown';
 import { MediaAttachmentModal } from '@/modules/Messages/components/MediaAttachmentModal';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { QuickReply } from '@shared/schema';
+
+// Lista de emojis frequentes
+const FREQUENT_EMOJIS = [
+  '😀', '😃', '😄', '😁', '😊', '😍', '🥰', '😘',
+  '😂', '🤣', '😭', '😢', '😅', '😉', '😌', '😔',
+  '👍', '👎', '👏', '🙌', '🤝', '🙏', '💪', '🔥',
+  '❤️', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍'
+];
 
 interface MessageInputProps {
   conversationId: number;
@@ -28,6 +37,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const [isSendingBlocked, setIsSendingBlocked] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const { data: quickReplies = [] } = useQuickReplies();
   const incrementUsageMutation = useIncrementQuickReplyUsage();
@@ -199,6 +209,12 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     setShowAudioRecorder(false);
   };
 
+  const insertEmoji = (emoji: string) => {
+    setMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+    textAreaRef.current?.focus();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (showQuickReplies && filteredReplies.length > 0) {
       if (e.key === 'ArrowDown') {
@@ -278,6 +294,38 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
         {/* Botões de ação */}
         <div className="flex items-center gap-2">
+          {/* Emoji Picker */}
+          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Adicionar emoji"
+                title="Adicionar emoji"
+              >
+                <Smile className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-3" align="start">
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-700">Emojis frequentes</h4>
+                <div className="grid grid-cols-8 gap-1">
+                  {FREQUENT_EMOJIS.map((emoji) => (
+                    <Button
+                      key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-lg hover:bg-muted"
+                      onClick={() => insertEmoji(emoji)}
+                    >
+                      {emoji}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button
             variant="ghost"
             size="sm"
