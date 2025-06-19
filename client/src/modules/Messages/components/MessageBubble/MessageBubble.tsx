@@ -213,7 +213,7 @@ export function MessageBubble({
 
   return (
     <div
-      className={`flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
+      className={`group flex items-start gap-3 mb-4 ${isFromContact ? "" : "flex-row-reverse"}`}
     >
       <Avatar className="w-9 h-9 flex-shrink-0">
         <AvatarImage src={isFromContact ? contact.profileImageUrl || "" : ""} />
@@ -248,7 +248,7 @@ export function MessageBubble({
                   variant="ghost"
                   size="sm"
                   disabled={isDeleting}
-                  className="h-7 px-2.5 text-xs opacity-60 hover:opacity-100 text-red-500"
+                  className="h-7 px-2.5 text-xs opacity-0 group-hover:opacity-60 hover:!opacity-100 text-red-500 transition-opacity duration-200"
                 >
                   <Trash2 className="w-3.5 h-3.5 mr-1" />
                   {isDeleting ? "Excluindo..." : "Excluir"}
