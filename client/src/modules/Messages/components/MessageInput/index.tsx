@@ -93,7 +93,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const isDuplicateMessage = useCallback((content: string) => {
     const now = Date.now();
     const timeDiff = now - lastSentTime;
-    const DUPLICATE_THRESHOLD_MS = 300; // Reduzido para 300ms
+    const DUPLICATE_THRESHOLD_MS = 100; // Reduzido para 100ms para resposta mais rápida
     
     return (
       content.trim() === lastSentMessage.trim() && 
@@ -115,31 +115,33 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
       return;
     }
 
+    // Limpar campo imediatamente para resposta visual instantânea
+    setMessage("");
+    
     // Bloquear envios temporariamente
     setIsSendingBlocked(true);
+    
+    // Registrar o envio para evitar duplicatas
+    setLastSentMessage(messageContent);
+    setLastSentTime(Date.now());
     
     try {
       if (isInternalNote) {
         await handleSendInternalNote();
       } else {
-        const success = await sendTextMessage(messageContent);
-        if (success) {
-          // Registrar o envio para evitar duplicatas
-          setLastSentMessage(messageContent);
-          setLastSentTime(Date.now());
-          setMessage("");
-        }
+        await sendTextMessage(messageContent);
       }
     } finally {
-      // Desbloquear rapidamente após envio - apenas 200ms para evitar duplo clique
+      // Desbloquear rapidamente após envio - apenas 50ms para resposta imediata
       setTimeout(() => {
         setIsSendingBlocked(false);
-      }, 200);
+      }, 50);
     }
   };
 
   const handleSendInternalNote = async () => {
-    if (!message.trim()) return;
+    const noteContent = message.trim();
+    if (!noteContent) return;
 
     try {
       const response = await fetch(`/api/conversations/${conversationId}/internal-notes`, {
@@ -148,7 +150,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: message,
+          content: noteContent,
           noteType: 'general',
           notePriority: 'normal',
           noteTags: [],
@@ -157,7 +159,6 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
       });
 
       if (response.ok) {
-        setMessage("");
         setIsInternalNote(false);
         
         // Invalidar cache de mensagens para recarregar a conversa
