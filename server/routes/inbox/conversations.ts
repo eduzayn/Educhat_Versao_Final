@@ -15,6 +15,7 @@ router.get('/', async (req, res) => {
     const teamFilter = req.query.teamFilter as string;
     const statusFilter = req.query.statusFilter as string;
     const agentFilter = req.query.agentFilter as string;
+    const channelFilter = req.query.channelFilter as string;
     
     // Log para diagnóstico de performance
     const startTime = Date.now();
@@ -38,6 +39,11 @@ router.get('/', async (req, res) => {
     
     if (agentFilter && agentFilter !== 'all') {
       filters.agent = parseInt(agentFilter);
+    }
+    
+    if (channelFilter && channelFilter !== 'all') {
+      filters.channel = channelFilter;
+      console.log(`🔍 FILTRO CANAL DEFINIDO: ${filters.channel}`);
     }
     
     console.log(`🔍 ROUTE - Filtros enviados para storage:`, JSON.stringify(filters));

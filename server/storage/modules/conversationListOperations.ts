@@ -73,6 +73,12 @@ export class ConversationListOperations extends BaseStorage {
       whereConditions.push(eq(conversations.assignedUserId, filters.agent));
     }
 
+    // Filtro por canal
+    if (filters?.channel && filters.channel !== 'all') {
+      console.log(`🔍 APLICANDO FILTRO CANAL NO STORAGE: ${filters.channel}`);
+      whereConditions.push(eq(conversations.channel, filters.channel));
+    }
+
     // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
     let query = this.db
       .select({

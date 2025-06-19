@@ -19,4 +19,5 @@ export interface ConversationFilters {
   team?: number;
   status?: string;
   agent?: number;
+  channel?: string;
 } 
