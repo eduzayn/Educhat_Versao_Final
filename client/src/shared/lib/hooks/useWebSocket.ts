@@ -115,8 +115,9 @@ export function useWebSocket() {
           }
         );
         
-        // Invalidar apenas lista de conversas para atualizar contadores
+        // Invalidar lista de conversas e forçar refetch imediato para garantir sincronização
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
         
         return;
       }

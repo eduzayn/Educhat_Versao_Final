@@ -160,12 +160,15 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
       
       // Buscar ou criar conversa
       let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+      let isNewConversation = false;
       if (!conversation) {
         conversation = await storage.createConversation({
           contactId: contact.id,
           channel: 'whatsapp',
           status: 'open'
         });
+        isNewConversation = true;
+        console.log(`✅ Nova conversa criada: ID ${conversation.id} para contato ${contact.name} (${contact.phone})`);
       }
       
       // Garantir que a conversa foi criada com sucesso
