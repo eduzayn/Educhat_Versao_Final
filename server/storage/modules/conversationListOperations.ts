@@ -15,7 +15,7 @@ export class ConversationListOperations extends BaseStorage {
    * - Busca otimizada de prévias
    */
   async getConversations(limit = 100, offset = 0, filters?: any): Promise<ConversationWithContact[]> {
-    console.log(`🔍 STORAGE - Filtros recebidos:`, JSON.stringify(filters));
+    console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
 
     // Construir condições de filtro
