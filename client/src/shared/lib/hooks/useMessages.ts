@@ -4,7 +4,7 @@ import type { Message, InsertMessage } from '@shared/schema';
 
 // Cache global otimizado para resposta rápida
 const recentMessages = new Map<string, number>();
-const DUPLICATE_PREVENTION_TIME = 100; // Reduzido para 100ms para resposta imediata
+const DUPLICATE_PREVENTION_TIME = 50; // Reduzido para 50ms para resposta instantânea
 
 function generateMessageKey(conversationId: number, content: string): string {
   return `${conversationId}:${content.trim()}`;
