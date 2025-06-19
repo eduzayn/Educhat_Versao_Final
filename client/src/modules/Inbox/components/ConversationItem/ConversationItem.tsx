@@ -49,7 +49,7 @@ function ConversationItemComponent({
     
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor(diffInHours * 60);
-      return diffInMinutes < 1 ? 'agora' : `${diffInMinutes}m`;
+      return diffInMinutes <= 1 ? 'agora' : `${diffInMinutes}m`;
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}h`;
     } else {
@@ -88,61 +88,46 @@ function ConversationItemComponent({
             className="object-cover"
           />
           <AvatarFallback className="bg-educhat-light text-educhat-medium font-medium">
-            {conversation.contact.name.substring(0, 2).toUpperCase()}
+            {conversation.contact.name?.charAt(0)?.toUpperCase() || '?'}
           </AvatarFallback>
         </Avatar>
         
-        {/* Indicador de canal */}
-        <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+        {/* Ícone do canal */}
+        <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
           <ChannelIcon 
-            channel={conversation.channelInfo?.type || 'whatsapp'} 
-            className="w-3 h-3"
+            channel={conversation.channel} 
+            size="sm"
           />
         </div>
       </div>
 
       {/* Conteúdo da conversa */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between mb-1">
-          <div className="flex-1 min-w-0 mr-2">
-            <div className="flex items-center space-x-2 mb-1">
-              <h3 className={cn(
-                "font-medium text-gray-900 text-sm leading-tight",
-                hasUnreadMessages && "font-semibold"
-              )} 
-              style={{ 
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                wordBreak: 'break-word'
-              }}>
-                {conversation.contact.name}
-              </h3>
-            </div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center space-x-2">
+            <h3 className={cn(
+              "font-medium text-gray-900 truncate",
+              hasUnreadMessages && "font-semibold"
+            )}>
+              {conversation.contact.name}
+            </h3>
             
             {/* Status da conversa */}
-            <div className="flex items-center space-x-1">
-              {getStatusIcon(conversation.status || 'open')}
-              <Badge 
-                variant="secondary" 
-                className={cn(
-                  "text-xs px-2 py-0.5",
-                  statusConfig.color
-                )}
-              >
-                {statusConfig.label}
-              </Badge>
-            </div>
+            {getStatusIcon(conversation.status || 'open')}
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "text-xs px-2 py-0.5",
+                statusConfig.color
+              )}
+            >
+              {statusConfig.label}
+            </Badge>
           </div>
 
           {/* Hora da última mensagem */}
-          <div className="flex-shrink-0 text-right">
-            {lastMessage && (
-              <span className="text-xs text-gray-500">
-                {formatLastMessageTime(lastMessage.sentAt)}
-              </span>
-            )}
+          <div className="text-xs text-gray-500">
+            {lastMessage && formatLastMessageTime(lastMessage.sentAt)}
           </div>
         </div>
 
@@ -173,8 +158,6 @@ function ConversationItemComponent({
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
   );
