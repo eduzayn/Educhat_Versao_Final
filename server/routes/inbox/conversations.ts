@@ -40,6 +40,11 @@ router.get('/', async (req, res) => {
       filters.agent = parseInt(agentFilter);
     }
     
+    console.log(`🔍 ROUTE - Filtros enviados para storage:`, JSON.stringify(filters));
+    
+    // Garantir que filtros seja um objeto válido
+    const validFilters = Object.keys(filters).length > 0 ? filters : undefined;
+    
 
     
 
@@ -47,17 +52,17 @@ router.get('/', async (req, res) => {
     let conversations;
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas
-      conversations = await storage.searchConversations(search.trim(), limit, filters);
+      conversations = await storage.searchConversations(search.trim(), limit, validFilters);
       // Para busca, retornar formato simples
       const endTime = Date.now();
       console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
       res.json(conversations);
     } else {
       // Busca normal paginada com filtros
-      conversations = await storage.getConversations(limit, offset, filters);
+      conversations = await storage.getConversations(limit, offset, validFilters);
       
       // Buscar uma conversa adicional para verificar se há mais páginas
-      const nextPageCheck = await storage.getConversations(1, offset + limit, filters);
+      const nextPageCheck = await storage.getConversations(1, offset + limit, validFilters);
       const hasNextPage = nextPageCheck.length > 0;
       
       const endTime = Date.now();
