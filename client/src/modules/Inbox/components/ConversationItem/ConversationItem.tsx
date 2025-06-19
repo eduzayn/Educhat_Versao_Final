@@ -160,18 +160,12 @@ function ConversationItemComponent({
                   <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-medium">
                     {(() => {
                       const name = conversation.assignedUser.displayName || '';
-                      console.log(`🔍 DEBUG Avatar - Conversa ID: ${conversation.id}, Contato: ${conversation.contact.name}, Agente: ${name}`);
                       const words = name.split(' ').filter(word => word.length > 0);
                       if (words.length >= 2) {
-                        const initials = (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
-                        console.log(`🔍 DEBUG Avatar - Iniciais calculadas: ${initials}`);
-                        return initials;
+                        return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
                       } else if (words.length === 1) {
-                        const initials = words[0].substring(0, 2).toUpperCase();
-                        console.log(`🔍 DEBUG Avatar - Iniciais calculadas (nome único): ${initials}`);
-                        return initials;
+                        return words[0].substring(0, 2).toUpperCase();
                       }
-                      console.log(`🔍 DEBUG Avatar - Nome vazio, usando fallback`);
                       return '?';
                     })()}
                   </AvatarFallback>
