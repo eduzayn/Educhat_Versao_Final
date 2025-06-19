@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-// Cache global para evitar mensagens duplicadas
+// Cache global otimizado para resposta rápida
 const recentMessages = new Map<string, number>();
-const DUPLICATE_PREVENTION_TIME = 3000; // 3 segundos
+const DUPLICATE_PREVENTION_TIME = 500; // Reduzido para 500ms
 
 function generateMessageKey(conversationId: number, content: string): string {
   return `${conversationId}:${content.trim()}`;
@@ -121,42 +121,44 @@ export function useSendMessage() {
       return savedMessage;
     },
     onMutate: async ({ conversationId, message }) => {
-      console.log('🚀 Exibindo mensagem imediatamente no bubble');
+      console.log('🚀 Atualização otimística - mensagem aparece IMEDIATAMENTE');
       
-      // Cancelar qualquer refetch em andamento
+      // Cancelar qualquer refetch em andamento para evitar conflitos
       await queryClient.cancelQueries({ 
         queryKey: ['/api/conversations', conversationId, 'messages'] 
       });
 
-      // Snapshot do estado anterior
+      // Snapshot do estado anterior para rollback se necessário
       const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
 
-      // Atualização otimista - adicionar mensagem temporária IMEDIATAMENTE
-      const tempMessage = {
-        id: Date.now(), // ID temporário único
+      // Criar mensagem temporária para exibição imediata
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`, // ID temporário único
         ...message,
         conversationId,
-        sentAt: new Date(),
+        sentAt: new Date().toISOString(),
         isFromContact: false,
         status: 'sending',
         zapiMessageId: null,
         readAt: null,
         deliveredAt: null,
-        metadata: null
+        metadata: null,
+        isDeleted: false
       };
 
-      // Forçar atualização imediata da UI
+      // Atualização imediata da UI - mensagem aparece instantaneamente
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (old: Message[] | undefined) => {
           const messages = old || [];
-          const updatedMessages = [...messages, tempMessage as Message];
-          console.log('✅ Mensagem adicionada ao bubble imediatamente:', tempMessage.id);
+          const updatedMessages = [...messages, optimisticMessage as Message];
+          console.log('✅ Mensagem adicionada ao bubble imediatamente:', optimisticMessage.id);
           return updatedMessages;
         }
       );
 
-      return { previousMessages, tempMessage };
+      return { previousMessages, optimisticMessage };
+
     },
     onSuccess: (newMessage, { conversationId }, context) => {
       // Substituir mensagem temporária pela real
@@ -166,7 +168,7 @@ export function useSendMessage() {
           if (!oldMessages) return [newMessage];
           // Substituir mensagem temporária pela real
           return oldMessages.map(msg => 
-            msg.id === context?.tempMessage.id ? newMessage : msg
+            msg.id === context?.optimisticMessage.id ? newMessage : msg
           );
         }
       );
