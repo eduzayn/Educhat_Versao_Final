@@ -148,6 +148,22 @@ function ConversationItemComponent({
               </Badge>
             )}
 
+            {/* Avatar do agente responsável */}
+            {conversation.assignedUser && (
+              <div className="flex-shrink-0" title={`Responsável: ${conversation.assignedUser.displayName}`}>
+                <Avatar className="w-6 h-6">
+                  <AvatarImage 
+                    src={conversation.assignedUser.avatar || undefined} 
+                    alt={conversation.assignedUser.displayName}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-medium">
+                    {conversation.assignedUser.displayName?.charAt(0)?.toUpperCase() || '?'}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+
             {/* Menu de ações (visível no hover) */}
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
               <ConversationActionsDropdown
