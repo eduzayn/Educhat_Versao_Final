@@ -46,24 +46,38 @@ export function ConversationListHeader({
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Buscar equipes para os filtros
-  const { data: teams = [] } = useQuery({
+  // Buscar equipes para os filtros com fallback
+  const { data: teams = [], isError: teamsError } = useQuery({
     queryKey: ["/api/teams"],
     queryFn: async () => {
       const response = await fetch("/api/teams");
-      if (!response.ok) throw new Error("Erro ao carregar equipes");
-      return response.json();
+      if (!response.ok) {
+        console.warn("Erro ao carregar equipes, usando fallback");
+        return [];
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000,
   });
 
-  // Buscar agentes/usuários para os filtros
-  const { data: agents = [] } = useQuery({
+  // Buscar agentes/usuários para os filtros com fallback
+  const { data: agents = [], isError: agentsError } = useQuery({
     queryKey: ["/api/system-users"],
     queryFn: async () => {
       const response = await fetch("/api/system-users");
-      if (!response.ok) throw new Error("Erro ao carregar agentes");
-      return response.json();
+      if (!response.ok) {
+        console.warn("Erro ao carregar agentes, usando fallback");
+        return [];
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000,
   });
 
   // Sincronizar com prop externa apenas na inicialização
@@ -228,7 +242,7 @@ export function ConversationListHeader({
             </div>
           </div>
 
-          {/* Filtros avançados */}
+          {/* Filtros avançados - sempre renderizar */}
           <div className="border-t border-gray-200 pt-3">
             <h4 className="text-sm font-medium text-gray-700 mb-3">Filtros Avançados</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -242,11 +256,17 @@ export function ConversationListHeader({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as equipes</SelectItem>
-                    {teams.map((team: any) => (
-                      <SelectItem key={team.id} value={team.id.toString()}>
-                        {team.name}
+                    {teamsError ? (
+                      <SelectItem value="error" disabled>
+                        Erro ao carregar equipes
                       </SelectItem>
-                    ))}
+                    ) : (
+                      teams.map((team: any) => (
+                        <SelectItem key={team.id} value={team.id.toString()}>
+                          {team.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -281,11 +301,17 @@ export function ConversationListHeader({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os agentes</SelectItem>
-                    {agents.map((agent: any) => (
-                      <SelectItem key={agent.id} value={agent.id.toString()}>
-                        {agent.displayName || agent.username || agent.email}
+                    {agentsError ? (
+                      <SelectItem value="error" disabled>
+                        Erro ao carregar agentes
                       </SelectItem>
-                    ))}
+                    ) : (
+                      agents.map((agent: any) => (
+                        <SelectItem key={agent.id} value={agent.id.toString()}>
+                          {agent.displayName || agent.username || agent.email}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

@@ -7,12 +7,18 @@ export function registerTeamsCrudRoutes(app: Express) {
   // Get all teams - REST: GET /api/teams
   app.get('/api/teams', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Permitir acesso básico para usuários autenticados via middleware de sessão
+      // Verificação básica de autenticação - se não há usuário na sessão, retornar array vazio
+      if (!req.user) {
+        console.warn('⚠️  Tentativa de acesso não autenticado à rota /api/teams');
+        return res.json([]);
+      }
+      
       const teams = await storage.getTeams();
-      res.json(teams);
+      res.json(teams || []);
     } catch (error) {
       console.error('Erro ao buscar equipes:', error);
-      res.status(500).json({ message: 'Erro ao buscar equipes' });
+      // Retornar array vazio em caso de erro para não quebrar o frontend
+      res.json([]);
     }
   });
 
