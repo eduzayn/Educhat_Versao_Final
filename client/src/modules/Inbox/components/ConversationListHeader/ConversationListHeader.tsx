@@ -255,21 +255,26 @@ export function ConversationListHeader({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Canal
+                Agente (TESTE)
               </label>
-              <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <Select value={agentFilter} onValueChange={setAgentFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todos os canais" />
+                  <SelectValue placeholder="Todos os agentes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os canais</SelectItem>
-                  {channels.map((channel) => (
-                    <SelectItem key={channel.id} value={channel.id.toString()}>
-                      {channel.name}
+                  <SelectItem value="all">Todos os agentes</SelectItem>
+                  {agents.map((agent: any) => (
+                    <SelectItem key={agent.id} value={agent.id.toString()}>
+                      {agent.displayName || agent.username || agent.email}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {debugMode && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {agents.length} agentes carregados na posição superior
+                </div>
+              )}
             </div>
           </div>
 
@@ -380,24 +385,24 @@ export function ConversationListHeader({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Agente
+                    Canal (TESTE)
                   </label>
-                  <Select value={agentFilter} onValueChange={setAgentFilter}>
+                  <Select value={channelFilter} onValueChange={setChannelFilter}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Todos os agentes" />
+                      <SelectValue placeholder="Todos os canais" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os agentes</SelectItem>
-                      {agents.map((agent: any) => (
-                        <SelectItem key={agent.id} value={agent.id.toString()}>
-                          {agent.displayName || agent.username || agent.email}
+                      <SelectItem value="all">Todos os canais</SelectItem>
+                      {channels.map((channel) => (
+                        <SelectItem key={channel.id} value={channel.id.toString()}>
+                          {channel.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {debugMode && (
                     <div className="text-xs text-gray-500 mt-1">
-                      {agents.length} agentes carregados
+                      Canal movido para posição inferior (teste)
                     </div>
                   )}
                 </div>
