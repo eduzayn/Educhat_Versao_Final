@@ -71,6 +71,10 @@ export function InboxPage() {
   const [channelFilter, setChannelFilter] = useState("all");
   const [canalOrigemFilter, setCanalOrigemFilter] = useState("all");
   const [nomeCanalFilter, setNomeCanalFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [periodFilter, setPeriodFilter] = useState("all");
+  const [messageTypeFilter, setMessageTypeFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
 
   const { data: channels = [] } = useChannels();
@@ -401,6 +405,14 @@ export function InboxPage() {
           setStatusFilter={setStatusFilter}
           channelFilter={channelFilter}
           setChannelFilter={setChannelFilter}
+          teamFilter={teamFilter}
+          setTeamFilter={setTeamFilter}
+          periodFilter={periodFilter}
+          setPeriodFilter={setPeriodFilter}
+          messageTypeFilter={messageTypeFilter}
+          setMessageTypeFilter={setMessageTypeFilter}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
           onLoadMore={async () => {

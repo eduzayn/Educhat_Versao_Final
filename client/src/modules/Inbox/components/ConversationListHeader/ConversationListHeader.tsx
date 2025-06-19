@@ -4,6 +4,7 @@ import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Search, Filter, X, ArrowLeft, Plus } from 'lucide-react';
 import { Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 interface ConversationListHeaderProps {
   searchTerm: string;
@@ -16,6 +17,14 @@ interface ConversationListHeaderProps {
   showFilters: boolean;
   setShowFilters: (show: boolean) => void;
   onNewContact?: () => void;
+  teamFilter?: string;
+  setTeamFilter?: (team: string) => void;
+  periodFilter?: string;
+  setPeriodFilter?: (period: string) => void;
+  messageTypeFilter?: string;
+  setMessageTypeFilter?: (type: string) => void;
+  priorityFilter?: string;
+  setPriorityFilter?: (priority: string) => void;
 }
 
 export function ConversationListHeader({
@@ -28,10 +37,28 @@ export function ConversationListHeader({
   channels = [],
   showFilters,
   setShowFilters,
-  onNewContact
+  onNewContact,
+  teamFilter = 'all',
+  setTeamFilter = () => {},
+  periodFilter = 'all',
+  setPeriodFilter = () => {},
+  messageTypeFilter = 'all',
+  setMessageTypeFilter = () => {},
+  priorityFilter = 'all',
+  setPriorityFilter = () => {}
 }: ConversationListHeaderProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const debounceRef = useRef<NodeJS.Timeout>();
+
+  // Buscar equipes para os filtros
+  const { data: teams = [] } = useQuery({
+    queryKey: ["/api/teams"],
+    queryFn: async () => {
+      const response = await fetch("/api/teams");
+      if (!response.ok) throw new Error("Erro ao carregar equipes");
+      return response.json();
+    },
+  });
 
   // Sincronizar com prop externa apenas na inicialização
   useEffect(() => {
@@ -69,10 +96,15 @@ export function ConversationListHeader({
     setSearchTerm('');
     setStatusFilter('all');
     setChannelFilter('all');
+    setTeamFilter('all');
+    setPeriodFilter('all');
+    setMessageTypeFilter('all');
+    setPriorityFilter('all');
     setShowFilters(false);
   };
 
-  const hasActiveFilters = searchTerm || statusFilter !== 'all' || channelFilter !== 'all';
+  const hasActiveFilters = searchTerm || statusFilter !== 'all' || channelFilter !== 'all' || 
+    teamFilter !== 'all' || periodFilter !== 'all' || messageTypeFilter !== 'all' || priorityFilter !== 'all';
 
   return (
     <div className="border-b border-gray-200 bg-white">
@@ -150,7 +182,8 @@ export function ConversationListHeader({
 
       {/* Filtros expandidos */}
       {showFilters && (
-        <div className="px-4 pb-4 space-y-3 bg-gray-50 border-t border-gray-100">
+        <div className="px-4 pb-4 space-y-4 bg-gray-50 border-t border-gray-100">
+          {/* Filtros básicos */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -187,6 +220,90 @@ export function ConversationListHeader({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Filtros avançados */}
+          <div className="border-t border-gray-200 pt-3">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Filtros Avançados</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Equipe
+                </label>
+                <Select value={teamFilter} onValueChange={setTeamFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Todas as equipes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as equipes</SelectItem>
+                    {teams.map((team: any) => (
+                      <SelectItem key={team.id} value={team.id.toString()}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Período
+                </label>
+                <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Todos os períodos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os períodos</SelectItem>
+                    <SelectItem value="today">Hoje</SelectItem>
+                    <SelectItem value="yesterday">Ontem</SelectItem>
+                    <SelectItem value="this_week">Esta semana</SelectItem>
+                    <SelectItem value="last_week">Semana passada</SelectItem>
+                    <SelectItem value="this_month">Este mês</SelectItem>
+                    <SelectItem value="last_month">Mês passado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo de Mensagem
+                </label>
+                <Select value={messageTypeFilter} onValueChange={setMessageTypeFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Todos os tipos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="text">Texto</SelectItem>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="audio">Áudio</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                    <SelectItem value="document">Documento</SelectItem>
+                    <SelectItem value="contact">Contato</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prioridade
+                </label>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Todas as prioridades" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as prioridades</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="low">Baixa</SelectItem>
+                    <SelectItem value="unread">Não lidas</SelectItem>
+                    <SelectItem value="with_deals">Com negócios</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
