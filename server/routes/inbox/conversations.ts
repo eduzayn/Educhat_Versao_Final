@@ -28,6 +28,8 @@ router.get('/', async (req, res) => {
       agent: agentFilter && agentFilter !== 'all' ? parseInt(agentFilter) : undefined
     };
     
+    console.log(`🔍 Filtros recebidos:`, { periodFilter, teamFilter, statusFilter, agentFilter, parsedFilters: filters });
+    
     let conversations;
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas

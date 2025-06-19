@@ -68,6 +68,7 @@ export class ConversationListOperations extends BaseStorage {
 
     // Filtro por agente - apenas conversas atribuídas ao agente específico
     if (filters?.agent) {
+      console.log(`🔍 Aplicando filtro de agente: ${filters.agent}`);
       whereConditions.push(eq(conversations.assignedUserId, filters.agent));
     }
 
