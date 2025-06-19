@@ -163,14 +163,7 @@ function ConversationItemComponent({
           </div>
         </div>
 
-        {/* Informações adicionais do contato */}
-        {conversation.contact.phone && (
-          <div className="mt-1">
-            <span className="text-xs text-gray-500">
-              {conversation.contact.phone}
-            </span>
-          </div>
-        )}
+
       </div>
     </div>
   );
