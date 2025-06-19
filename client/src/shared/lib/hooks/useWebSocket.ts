@@ -348,9 +348,17 @@ export function useWebSocket() {
             queryClient.refetchQueries({ 
               queryKey: ['/api/conversations'], 
               type: 'active'
+            }).then(() => {
+              console.log('✅ Cache atualizado após nova conversa');
             }).catch(error => {
               console.error('❌ Erro ao atualizar cache após nova conversa:', error);
             });
+            
+            // Remover cache antigo e forçar busca nova
+            queryClient.removeQueries({ queryKey: ['/api/conversations'] });
+            setTimeout(() => {
+              queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+            }, 100);
           }
           break;
         default:
