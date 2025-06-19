@@ -44,12 +44,6 @@ export function UserSelector({
   const handleUserChange = async (value: string) => {
     const userId = value === "none" ? null : parseInt(value);
     
-    // CORREÇÃO CRÍTICA: Prevenir múltiplas chamadas simultâneas
-    if (userAssignmentMutation.isPending) {
-      console.warn('⚠️ Atribuição de usuário já em andamento, ignorando chamada duplicada');
-      return;
-    }
-    
     try {
       await userAssignmentMutation.mutateAsync({
         userId,
@@ -58,6 +52,7 @@ export function UserSelector({
       onUserChange(userId);
     } catch (error) {
       // Error handling is done in the mutation hook
+      console.warn('Erro na atribuição de usuário:', error);
     }
   };
 

@@ -33,12 +33,6 @@ export function TeamSelector({
   const handleTeamChange = async (value: string) => {
     const teamId = value === "none" ? null : parseInt(value);
     
-    // CORREÇÃO CRÍTICA: Prevenir múltiplas chamadas simultâneas
-    if (teamAssignmentMutation.isPending) {
-      console.warn('⚠️ Atribuição já em andamento, ignorando chamada duplicada');
-      return;
-    }
-    
     try {
       await teamAssignmentMutation.mutateAsync({
         teamId,
@@ -47,6 +41,7 @@ export function TeamSelector({
       onTeamChange(teamId);
     } catch (error) {
       // Error handling is done in the mutation hook
+      console.warn('Erro na atribuição de equipe:', error);
     }
   };
 

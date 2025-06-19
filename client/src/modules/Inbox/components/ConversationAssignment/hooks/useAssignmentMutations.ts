@@ -11,6 +11,11 @@ export function useTeamAssignment(conversationId: number) {
 
   return useMutation({
     mutationFn: async (data: { teamId: number | null; method: 'manual' | 'automatic' }) => {
+      // CORREÇÃO CRÍTICA: Verificar se atribuição pode ser executada
+      if (!canPerformAssignment(conversationId, 'team')) {
+        throw new Error('Atribuição de equipe já em andamento para esta conversa');
+      }
+      
       const response = await fetch(`/api/conversations/${conversationId}/assign-team`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,6 +67,11 @@ export function useUserAssignment(conversationId: number) {
 
   return useMutation({
     mutationFn: async (data: { userId: number | null; method: 'manual' | 'automatic' }) => {
+      // CORREÇÃO CRÍTICA: Verificar se atribuição pode ser executada
+      if (!canPerformAssignment(conversationId, 'user')) {
+        throw new Error('Atribuição de usuário já em andamento para esta conversa');
+      }
+      
       const response = await fetch(`/api/conversations/${conversationId}/assign-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
