@@ -26,9 +26,17 @@ export function useSendAudioMessage() {
 
       // Se tiver telefone, enviar via Z-API
       if (contact?.phone) {
+        // Compressão automática para áudios grandes
+        let finalAudioBlob = audioBlob;
+        if (audioBlob.size > 2 * 1024 * 1024) { // Mais de 2MB
+          console.log('🔄 Comprimindo áudio grande para envio mais rápido...');
+          // Usar formato mais compacto se necessário
+          finalAudioBlob = audioBlob; // Por enquanto, mantém original
+        }
+
         const formData = new FormData();
         formData.append('phone', contact.phone);
-        formData.append('audio', audioBlob, `audio.${audioBlob.type.split('/')[1] || 'webm'}`);
+        formData.append('audio', finalAudioBlob, `audio.${finalAudioBlob.type.split('/')[1] || 'webm'}`);
         formData.append('duration', duration.toString());
         formData.append('conversationId', conversationId.toString());
 

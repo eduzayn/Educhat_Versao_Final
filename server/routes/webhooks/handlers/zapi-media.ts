@@ -3,15 +3,16 @@ import { storage } from "../../../storage";
 import multer from "multer";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../../utils/zapi";
 
-// Configurar multer para upload de áudio em memória
+// Configurar multer para upload de áudio em memória - otimizado para velocidade
 const uploadAudio = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB máximo
+    fileSize: 25 * 1024 * 1024, // 25MB máximo para áudios (reduzido para mais velocidade)
+    fieldSize: 25 * 1024 * 1024, // Limite de campo também reduzido
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
-      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mpeg', 'audio/mp4'
+      'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/mp3', 'audio/wav', 'audio/mpeg'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {

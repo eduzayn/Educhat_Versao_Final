@@ -135,13 +135,20 @@ const AudioRecorderComponent = ({
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         
-        // Calcular a duração real do áudio
-        const tempAudio = new Audio(url);
-        tempAudio.onloadedmetadata = () => {
-          const realDurationSeconds = Math.round(tempAudio.duration);
-          setRealDuration(realDurationSeconds);
-          console.log(`🎵 Duração timer: ${duration}s, Duração real: ${realDurationSeconds}s`);
-        };
+        // Otimização: Usar duração do timer por padrão para evitar processamento extra
+        setRealDuration(duration);
+        
+        // Validar duração real apenas se necessário (áudios > 5s)
+        if (duration > 5) {
+          const tempAudio = new Audio(url);
+          tempAudio.onloadedmetadata = () => {
+            const realDurationSeconds = Math.round(tempAudio.duration);
+            if (Math.abs(realDurationSeconds - duration) > 2) { // Apenas se diferença > 2s
+              setRealDuration(realDurationSeconds);
+              console.log(`🎵 Duração corrigida: ${duration}s → ${realDurationSeconds}s`);
+            }
+          };
+        }
         
         setState("preview");
 
@@ -235,12 +242,15 @@ const AudioRecorderComponent = ({
     // Usar duração real se disponível, senão usar timer
     const finalDuration = realDuration > 0 ? realDuration : duration;
     
-    // Executar envio em background e resetar interface imediatamente
-    onSendAudio(audioBlob, finalDuration).then(() => {
-      console.log('🎵 Áudio enviado com sucesso');
-    }).catch((error) => {
-      console.error('❌ Erro ao enviar áudio:', error);
-    });
+    // Executar envio em background para não bloquear interface
+    setTimeout(async () => {
+      try {
+        await onSendAudio(audioBlob, finalDuration);
+        console.log('🎵 Áudio enviado com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao enviar áudio:', error);
+      }
+    }, 0);
 
     // Reset imediato da interface para responsividade
     if (audioUrl) {
