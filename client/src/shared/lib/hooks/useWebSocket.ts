@@ -178,6 +178,8 @@ export function useWebSocket() {
             queryClient.refetchQueries({ 
               queryKey: ['/api/conversations'],
               type: 'active'
+            }).catch(error => {
+              console.error('Erro ao atualizar cache de conversas:', error);
             });
             queryClient.invalidateQueries({ 
               queryKey: ['/api/conversations', data.conversationId]
@@ -185,6 +187,8 @@ export function useWebSocket() {
             queryClient.refetchQueries({ 
               queryKey: ['/api/conversations', data.conversationId],
               type: 'active'
+            }).catch(error => {
+              console.error('Erro ao atualizar cache da conversa:', error);
             });
           }
           break;
@@ -266,7 +270,7 @@ export function useWebSocket() {
                 type: 'active'
               })
             ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após atualização da conversa:', error);
+              console.error('Erro ao atualizar cache após atualização da conversa:', error);
             });
           }
           break;
@@ -303,7 +307,7 @@ export function useWebSocket() {
                 type: 'active'
               })
             ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após atribuição:', error);
+              console.error('Erro ao atualizar cache após atribuição:', error);
             });
           }
           break;
@@ -332,7 +336,7 @@ export function useWebSocket() {
                 type: 'active'
               })
             ]).catch(error => {
-              console.error('❌ Erro ao atualizar cache após remoção:', error);
+              console.error('Erro ao atualizar cache após remoção:', error);
             });
           }
           break;
@@ -353,10 +357,8 @@ export function useWebSocket() {
             queryClient.refetchQueries({ 
               queryKey: ['/api/conversations'], 
               type: 'active'
-            }).then(() => {
-              console.log('✅ Cache atualizado após nova conversa');
             }).catch(error => {
-              console.error('❌ Erro ao atualizar cache após nova conversa:', error);
+              console.error('Erro ao atualizar cache de conversas:', error);
             });
             
             // Remover cache antigo e forçar busca nova
