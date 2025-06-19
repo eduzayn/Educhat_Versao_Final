@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
     const startTime = Date.now();
     logger.debug(`Buscando conversas: limit=${limit}, offset=${offset}`);
     
-    let conversations;
+    let conversations: any;
     
     if (search && search.trim()) {
       // Busca com timeout mais curto
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Search timeout')), 15000)
         )
-      ]);
+      ]) as any;
       
       clearTimeout(requestTimeout);
       const duration = Date.now() - startTime;
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Query timeout')), 20000)
         )
-      ]);
+      ]) as any;
       
       // Verificação simples de próxima página (sem query extra)
       const hasNextPage = conversations.length === limit;
