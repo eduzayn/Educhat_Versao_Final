@@ -8,6 +8,7 @@ import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';
 import { useMediaUrl } from '@/shared/lib/utils/whatsappProxy';
 import { cn } from '@/lib/utils';
+import { DuplicateContactAlert } from '@/shared/components/DuplicateContactAlert';
 
 interface ConversationItemProps {
   conversation: ConversationWithContact;
@@ -141,6 +142,14 @@ function ConversationItemComponent({
           </p>
 
           <div className="flex items-center space-x-2 ml-2">
+            {/* Alerta de contato duplicado */}
+            <DuplicateContactAlert 
+              phone={conversation.contact.phone}
+              contactId={conversation.contact.id}
+              mode="tooltip"
+              className="flex-shrink-0"
+            />
+            
             {/* Contador de mensagens não lidas */}
             {hasUnreadMessages && (
               <Badge className="bg-educhat-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center">

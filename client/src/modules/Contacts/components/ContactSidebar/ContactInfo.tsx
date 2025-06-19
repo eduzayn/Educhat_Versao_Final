@@ -1,7 +1,9 @@
 import { Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { DuplicateContactAlert } from '@/shared/components/DuplicateContactAlert';
 
 interface ContactInfoProps {
   contact: {
+    id?: number;
     phone?: string;
     email?: string;
     address?: string;
@@ -15,9 +17,18 @@ export function ContactInfo({ contact }: ContactInfoProps) {
       <h4 className="font-medium text-sm text-gray-900">Contato</h4>
       
       {contact.phone && (
-        <div className="flex items-center space-x-3 text-sm">
-          <Phone className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-700">{contact.phone}</span>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-3 text-sm">
+            <Phone className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-700">{contact.phone}</span>
+          </div>
+          {/* Alerta de contato duplicado */}
+          <DuplicateContactAlert 
+            phone={contact.phone}
+            contactId={contact.id}
+            mode="card"
+            className="ml-7"
+          />
         </div>
       )}
       

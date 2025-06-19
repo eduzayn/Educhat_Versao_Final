@@ -67,6 +67,7 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: Implementado sistema completo de detecção de contatos duplicados - Sistema identifica automaticamente números de telefone duplicados em múltiplos canais (WhatsApp Comercial e Suporte), exibe alertas discretos na lista de conversas e detalhes na sidebar, mantendo históricos separados mas sinalizando duplicidade aos atendentes
 - June 19, 2025: Corrigido sistema de avatares dos agentes responsáveis - Implementado cálculo correto de iniciais para nomes compostos (ex: "Amanda Joice" = "AJ", "Elaine Cristina" = "EC") com fallback para nomes únicos
 - June 19, 2025: Revertido commit 7c165067a7bda031209dbea5712f7e30cb50c642 - Desfez alterações indesejadas na exibição de nomes e horários dos itens de conversa
 - June 19, 2025: Otimizado delay de envio de mensagens - Reduzido de 2s para 300ms proteção duplicação, bloqueio para 200ms, cache para 500ms
