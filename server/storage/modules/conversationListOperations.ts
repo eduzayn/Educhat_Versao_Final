@@ -66,6 +66,11 @@ export class ConversationListOperations extends BaseStorage {
       whereConditions.push(eq(conversations.status, filters.status));
     }
 
+    // Filtro por agente
+    if (filters?.agent) {
+      whereConditions.push(eq(conversations.assignedUserId, filters.agent));
+    }
+
     // 🔒 PROTEGIDO: Query otimizada - buscar apenas campos essenciais
     let query = this.db
       .select({
@@ -90,12 +95,7 @@ export class ConversationListOperations extends BaseStorage {
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id));
 
-    // Filtro por agente - deve ser aplicado separadamente
-    if (filters?.agent) {
-      whereConditions.push(eq(conversations.assignedUserId, filters.agent));
-    }
-
-    // Aplicar todos os filtros se existirem
+    // Aplicar filtros se existirem
     if (whereConditions.length > 0) {
       query = query.where(and(...whereConditions)) as any;
     }
