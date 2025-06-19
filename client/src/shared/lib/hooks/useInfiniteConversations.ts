@@ -13,6 +13,7 @@ interface UseInfiniteConversationsOptions {
   teamFilter?: string;
   statusFilter?: string;
   agentFilter?: string;
+  channelFilter?: string;
   enabled?: boolean;
   refetchInterval?: number | false;
   staleTime?: number;
@@ -24,10 +25,10 @@ export function useInfiniteConversations(
   limit = 100, 
   options: UseInfiniteConversationsOptions = {}
 ) {
-  const { searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, ...queryOptions } = options;
+  const { searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, channelFilter, ...queryOptions } = options;
   
   return useInfiniteQuery<ConversationsResponse>({
-    queryKey: ['/api/conversations', { limit, searchTerm, periodFilter, teamFilter, statusFilter, agentFilter }],
+    queryKey: ['/api/conversations', { limit, searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, channelFilter }],
     queryFn: async ({ pageParam = 0 }: { pageParam: unknown }) => {
       const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({
@@ -53,6 +54,10 @@ export function useInfiniteConversations(
       
       if (agentFilter && agentFilter !== 'all') {
         params.append('agentFilter', agentFilter);
+      }
+      
+      if (channelFilter && channelFilter !== 'all') {
+        params.append('channelFilter', channelFilter);
       }
       
       const response = await fetch(`/api/conversations?${params}`);

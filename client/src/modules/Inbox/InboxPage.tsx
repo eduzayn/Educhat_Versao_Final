@@ -106,6 +106,7 @@ export function InboxPage() {
     teamFilter,
     statusFilter,
     agentFilter,
+    channelFilter,
     refetchInterval: searchTerm.trim() ? false : 10000,
     staleTime: 5000,
     refetchOnWindowFocus: true,

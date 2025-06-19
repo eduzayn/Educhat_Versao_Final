@@ -282,6 +282,11 @@ export class ConversationListOperations extends BaseStorage {
       if (filters.agent && typeof filters.agent === 'number') {
         whereConditions.push(eq(conversations.assignedUserId, filters.agent));
       }
+
+      // Filtro por canal
+      if (filters.channel && filters.channel !== 'all') {
+        whereConditions.push(eq(conversations.channel, filters.channel));
+      }
     }
 
     const conversationsData = await this.db
