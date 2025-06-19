@@ -260,7 +260,9 @@ export async function handleSendAudio(req: Request, res: Response) {
     const response = await fetch(url, {
       method: 'POST',
       headers: getZApiHeaders(clientToken),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      // Otimizações de timeout para envio rápido
+      signal: AbortSignal.timeout(15000) // 15s timeout
     });
 
     const responseText = await response.text();
@@ -285,36 +287,39 @@ export async function handleSendAudio(req: Request, res: Response) {
 
     console.log('✅ Áudio enviado com sucesso via Z-API:', data);
     
-    // Salvar mensagem no banco de dados se conversationId foi fornecido
-    if (conversationId) {
-      try {
-        await storage.createMessage({
-          conversationId: parseInt(conversationId),
-          content: dataUrl,
-          isFromContact: false,
-          messageType: 'audio',
-          sentAt: new Date(),
-          metadata: {
-            zaapId: data.messageId || data.id,
-            audioSent: true,
-            duration: duration ? parseFloat(duration) : 0,
-            mimeType: req.file.mimetype,
-            originalContent: `Áudio (${duration ? Math.floor(parseFloat(duration)) + 's' : 'duração desconhecida'})`
-          }
-        });
-
-        // Broadcast para WebSocket
-        const { broadcast } = await import('../../realtime');
-        broadcast(parseInt(conversationId), {
-          type: 'message_sent',
-          conversationId: parseInt(conversationId)
-        });
-      } catch (dbError) {
-        console.error('❌ Erro ao salvar mensagem de áudio no banco:', dbError);
-      }
-    }
-
+    // Responder imediatamente sem aguardar banco/WebSocket
     res.json(data);
+    
+    // Processar banco de dados e WebSocket de forma assíncrona para não bloquear resposta
+    if (conversationId) {
+      setImmediate(async () => {
+        try {
+          await storage.createMessage({
+            conversationId: parseInt(conversationId),
+            content: dataUrl,
+            isFromContact: false,
+            messageType: 'audio',
+            sentAt: new Date(),
+            metadata: {
+              zaapId: data.messageId || data.id,
+              audioSent: true,
+              duration: duration ? parseFloat(duration) : 0,
+              mimeType: req.file?.mimetype || 'audio/webm',
+              originalContent: `Áudio (${duration ? Math.floor(parseFloat(duration)) + 's' : 'duração desconhecida'})`
+            }
+          });
+
+          // Broadcast para WebSocket
+          const { broadcast } = await import('../../realtime');
+          broadcast(parseInt(conversationId), {
+            type: 'message_sent',
+            conversationId: parseInt(conversationId)
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem de áudio no banco:', dbError);
+        }
+      });
+    }
   } catch (error) {
     console.error('❌ Erro ao enviar áudio via Z-API:', error);
     res.status(500).json({ 

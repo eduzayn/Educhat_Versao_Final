@@ -42,7 +42,9 @@ export function useSendAudioMessage() {
 
         const response = await fetch('/api/zapi/send-audio', {
           method: 'POST',
-          body: formData
+          body: formData,
+          // Otimizações de timeout para envio rápido
+          signal: AbortSignal.timeout(20000) // 20s timeout
         });
 
         const responseText = await response.text();

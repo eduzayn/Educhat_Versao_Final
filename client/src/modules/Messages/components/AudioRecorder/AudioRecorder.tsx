@@ -95,21 +95,31 @@ const AudioRecorderComponent = ({
       setPermission("granted");
 
       chunksRef.current = [];
-      // Verificar formatos suportados e escolher o melhor para WhatsApp
+      // Otimização: Escolher formato mais compacto e compatível
       let mimeType = "audio/webm;codecs=opus";
+      let recorderOptions: MediaRecorderOptions = {
+        mimeType: mimeType,
+        audioBitsPerSecond: 64000  // 64kbps para maior compressão
+      };
+
+      // Priorizar formatos mais compactos
       if (MediaRecorder.isTypeSupported("audio/mp4")) {
         mimeType = "audio/mp4";
-      } else if (MediaRecorder.isTypeSupported("audio/mpeg")) {
-        mimeType = "audio/mpeg";
-      } else if (MediaRecorder.isTypeSupported("audio/wav")) {
-        mimeType = "audio/wav";
+        recorderOptions = {
+          mimeType: mimeType,
+          audioBitsPerSecond: 64000
+        };
+      } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+        recorderOptions = {
+          mimeType: mimeType,
+          audioBitsPerSecond: 64000
+        };
       }
 
       console.log("🎤 Formato de áudio selecionado:", mimeType);
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType,
-      });
+      const mediaRecorder = new MediaRecorder(stream, recorderOptions);
 
       mediaRecorderRef.current = mediaRecorder;
 
@@ -224,9 +234,15 @@ const AudioRecorderComponent = ({
     setState("sending");
     // Usar duração real se disponível, senão usar timer
     const finalDuration = realDuration > 0 ? realDuration : duration;
-    await onSendAudio(audioBlob, finalDuration);
+    
+    // Executar envio em background e resetar interface imediatamente
+    onSendAudio(audioBlob, finalDuration).then(() => {
+      console.log('🎵 Áudio enviado com sucesso');
+    }).catch((error) => {
+      console.error('❌ Erro ao enviar áudio:', error);
+    });
 
-    // Reset após envio
+    // Reset imediato da interface para responsividade
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
