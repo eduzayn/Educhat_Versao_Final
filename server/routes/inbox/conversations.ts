@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { storage } from '../../storage';
 import { insertConversationSchema } from '@shared/schema';
 import { CONVERSATION_STATUS } from './types';
+import { logger } from '../../utils/logger';
 
 const router = Router();
 
@@ -17,11 +18,10 @@ router.get('/', async (req, res) => {
     const agentFilter = req.query.agentFilter as string;
     const channelFilter = req.query.channelFilter as string;
     
-    // Log para diagnóstico de performance
     const startTime = Date.now();
-    console.log(`🔄 Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}, period=${periodFilter || 'all'}`);
+    logger.debug(`Iniciando busca de conversas: limit=${limit}, offset=${offset}, search=${search || 'N/A'}, period=${periodFilter || 'all'}`);
     
-    // Filtros para aplicar na query - CORREÇÃO DEFINITIVA
+    // Filtros para aplicar na query
     const filters: any = {};
     
     if (periodFilter && periodFilter !== 'all') {
@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
     
     if (teamFilter && teamFilter !== 'all') {
       filters.team = parseInt(teamFilter);
-      console.log(`🔍 FILTRO EQUIPE DEFINIDO: ${filters.team}`);
+      logger.debug(`Filtro equipe definido: ${filters.team}`);
     }
     
     if (statusFilter && statusFilter !== 'all') {
@@ -43,10 +43,10 @@ router.get('/', async (req, res) => {
     
     if (channelFilter && channelFilter !== 'all') {
       filters.channel = channelFilter;
-      console.log(`🔍 FILTRO CANAL DEFINIDO: ${filters.channel}`);
+      logger.debug(`Filtro canal definido: ${filters.channel}`);
     }
     
-    console.log(`🔍 ROUTE - Filtros enviados para storage:`, JSON.stringify(filters));
+    logger.debug('Filtros enviados para storage', filters);
     
 
     
@@ -58,19 +58,21 @@ router.get('/', async (req, res) => {
       conversations = await storage.searchConversations(search.trim(), limit, filters);
       // Para busca, retornar formato simples
       const endTime = Date.now();
-      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens)`);
+      const duration = Date.now() - startTime;
+      logger.performance('Busca de conversas', duration, { count: conversations.length });
       res.json(conversations);
     } else {
-      // Busca normal paginada com filtros
-      console.log(`🔍 ROUTE - Chamando storage com:`, { limit, offset, filters });
+      logger.debug('Chamando storage com', { limit, offset, filters });
       conversations = await storage.getConversations(limit, offset, filters);
       
-      // Buscar uma conversa adicional para verificar se há mais páginas
       const nextPageCheck = await storage.getConversations(1, offset + limit, filters);
       const hasNextPage = nextPageCheck.length > 0;
       
-      const endTime = Date.now();
-      console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversations.length} itens) - hasNextPage: ${hasNextPage}`);
+      const duration = Date.now() - startTime;
+      logger.performance('Carregamento de conversas', duration, { 
+        count: conversations.length, 
+        hasNextPage 
+      });
       
       // Retornar formato compatível com scroll infinito
       res.json({
