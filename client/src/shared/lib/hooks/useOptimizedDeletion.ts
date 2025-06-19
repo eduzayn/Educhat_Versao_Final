@@ -137,8 +137,26 @@ export function useOptimizedDeletion(messageId: number, conversationId?: number)
     
     const now = new Date();
     const messageDate = new Date(sentAt);
+    
+    // Verificar se a data é válida
+    if (isNaN(messageDate.getTime())) {
+      console.warn('Data inválida fornecida para canDelete:', sentAt);
+      return false;
+    }
+    
     const timeDifference = now.getTime() - messageDate.getTime();
     const sevenMinutesInMs = 7 * 60 * 1000;
+    
+    // Debug para entender o problema
+    console.log('🕐 Verificação de tempo para exclusão:', {
+      sentAt,
+      messageDate: messageDate.toISOString(),
+      now: now.toISOString(),
+      timeDifferenceMs: timeDifference,
+      timeDifferenceMinutes: Math.round(timeDifference / (60 * 1000)),
+      sevenMinutesMs: sevenMinutesInMs,
+      canDelete: timeDifference <= sevenMinutesInMs
+    });
     
     return timeDifference <= sevenMinutesInMs;
   }, []);
