@@ -15,6 +15,14 @@ interface ConversationListVirtualizedProps {
   setStatusFilter: (status: string) => void;
   channelFilter: string;
   setChannelFilter: (channel: string) => void;
+  teamFilter?: string;
+  setTeamFilter?: (team: string) => void;
+  periodFilter?: string;
+  setPeriodFilter?: (period: string) => void;
+  messageTypeFilter?: string;
+  setMessageTypeFilter?: (type: string) => void;
+  priorityFilter?: string;
+  setPriorityFilter?: (priority: string) => void;
   activeConversation: ConversationWithContact | null;
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
@@ -32,6 +40,14 @@ export function ConversationListVirtualized({
   setStatusFilter,
   channelFilter,
   setChannelFilter,
+  teamFilter = 'all',
+  setTeamFilter = () => {},
+  periodFilter = 'all',
+  setPeriodFilter = () => {},
+  messageTypeFilter = 'all',
+  setMessageTypeFilter = () => {},
+  priorityFilter = 'all',
+  setPriorityFilter = () => {},
   activeConversation,
   onSelectConversation,
   onLoadMore,
@@ -45,6 +61,7 @@ export function ConversationListVirtualized({
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((conversation) => {
+      // Filtro de busca
       const matchesSearch =
         !searchTerm ||
         conversation.contact.name
@@ -55,15 +72,105 @@ export function ConversationListVirtualized({
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase());
 
+      // Filtro de status
       const matchesStatus =
         statusFilter === "all" || conversation.status === statusFilter;
+      
+      // Filtro de canal
       const matchesChannel =
         channelFilter === "all" ||
         conversation.channelInfo?.type === channelFilter;
 
-      return matchesSearch && matchesStatus && matchesChannel;
+      // Filtro de equipe
+      const matchesTeam = teamFilter === "all" || 
+        (conversation.assignedTeamId && conversation.assignedTeamId.toString() === teamFilter);
+
+      // Filtro de período
+      const matchesPeriod = (() => {
+        if (periodFilter === "all") return true;
+        
+        const now = new Date();
+        const conversationDate = new Date(conversation.updatedAt || conversation.createdAt);
+        
+        switch (periodFilter) {
+          case "today":
+            return conversationDate.toDateString() === now.toDateString();
+          case "yesterday":
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            return conversationDate.toDateString() === yesterday.toDateString();
+          case "this_week":
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay());
+            return conversationDate >= weekStart;
+          case "last_week":
+            const lastWeekStart = new Date(now);
+            lastWeekStart.setDate(now.getDate() - now.getDay() - 7);
+            const lastWeekEnd = new Date(lastWeekStart);
+            lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+            return conversationDate >= lastWeekStart && conversationDate <= lastWeekEnd;
+          case "this_month":
+            return conversationDate.getMonth() === now.getMonth() && 
+                   conversationDate.getFullYear() === now.getFullYear();
+          case "last_month":
+            const lastMonth = new Date(now);
+            lastMonth.setMonth(now.getMonth() - 1);
+            return conversationDate.getMonth() === lastMonth.getMonth() && 
+                   conversationDate.getFullYear() === lastMonth.getFullYear();
+          default:
+            return true;
+        }
+      })();
+
+      // Filtro de tipo de mensagem
+      const matchesMessageType = (() => {
+        if (messageTypeFilter === "all") return true;
+        
+        const lastMessage = conversation.messages?.[0];
+        if (!lastMessage) return false;
+        
+        switch (messageTypeFilter) {
+          case "text":
+            return lastMessage.type === "text" && !lastMessage.media;
+          case "image":
+            return lastMessage.type === "image" || lastMessage.media?.type === "image";
+          case "audio":
+            return lastMessage.type === "audio" || lastMessage.media?.type === "audio";
+          case "video":
+            return lastMessage.type === "video" || lastMessage.media?.type === "video";
+          case "document":
+            return lastMessage.type === "document" || lastMessage.media?.type === "document";
+          case "contact":
+            return lastMessage.type === "contact";
+          default:
+            return true;
+        }
+      })();
+
+      // Filtro de prioridade
+      const matchesPriority = (() => {
+        if (priorityFilter === "all") return true;
+        
+        switch (priorityFilter) {
+          case "high":
+            return conversation.priority === "high";
+          case "medium":
+            return conversation.priority === "medium";
+          case "low":
+            return conversation.priority === "low";
+          case "unread":
+            return conversation.unreadCount > 0;
+          case "with_deals":
+            return conversation.hasDeals === true;
+          default:
+            return true;
+        }
+      })();
+
+      return matchesSearch && matchesStatus && matchesChannel && 
+             matchesTeam && matchesPeriod && matchesMessageType && matchesPriority;
     });
-  }, [conversations, searchTerm, statusFilter, channelFilter]);
+  }, [conversations, searchTerm, statusFilter, channelFilter, teamFilter, periodFilter, messageTypeFilter, priorityFilter]);
 
   const visibleConversations = filteredConversations;
 
@@ -126,6 +233,14 @@ export function ConversationListVirtualized({
         setStatusFilter={setStatusFilter}
         channelFilter={channelFilter}
         setChannelFilter={setChannelFilter}
+        teamFilter={teamFilter}
+        setTeamFilter={setTeamFilter}
+        periodFilter={periodFilter}
+        setPeriodFilter={setPeriodFilter}
+        messageTypeFilter={messageTypeFilter}
+        setMessageTypeFilter={setMessageTypeFilter}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
         channels={channels}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
