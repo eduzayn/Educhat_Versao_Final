@@ -53,15 +53,16 @@ export function useWebSocket() {
     try {
       socketRef.current = io(socketUrl, {
         transports: ['websocket', 'polling'],
-        timeout: 5000,               // Reduzido para 5s para resposta rápida
+        timeout: 20000,              // Aumentado para 20s para evitar timeout prematuros
         reconnection: true,
-        reconnectionDelay: 1000,     // Reduzido para 1s para reconexão rápida
-        reconnectionDelayMax: 5000,  // Máximo de 5s entre tentativas
-        reconnectionAttempts: 5,     // Reduzido para 5 tentativas
-        randomizationFactor: 0.2,    // Menor randomização para resposta mais rápida
-        forceNew: true,
+        reconnectionDelay: 2000,     // Aumentado para 2s para reconexão estável
+        reconnectionDelayMax: 10000, // Máximo de 10s entre tentativas
+        reconnectionAttempts: 10,    // Aumentado para 10 tentativas
+        randomizationFactor: 0.3,    // Randomização para evitar thundering herd
+        forceNew: false,             // Reutilizar conexões quando possível
         upgrade: true,
-        rememberUpgrade: true
+        rememberUpgrade: true,
+        autoConnect: true
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -402,6 +403,22 @@ export function useWebSocket() {
     socketRef.current.on('connect_error', (error) => {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
+    });
+
+    // Tratamento específico para timeout - CORREÇÃO CRÍTICA
+    socketRef.current.on('connect_timeout', () => {
+      console.warn('⏰ Timeout de conexão Socket.IO detectado - ignorando para evitar crash');
+      // Não alterar connectionStatus para evitar loops desnecessários
+    });
+
+    // Tratamento de erros genéricos - PROTEÇÃO CONTRA TIMEOUTS
+    socketRef.current.on('error', (error) => {
+      if (error && typeof error === 'object' && 'message' in error && 
+          error.message && error.message.toString().toLowerCase().includes('timeout')) {
+        console.warn('⏰ Timeout Socket.IO detectado - ignorando para manter estabilidade');
+        return; // Ignorar timeouts silenciosamente para não quebrar a aplicação
+      }
+      console.error('❌ Erro genérico Socket.IO:', error);
     });
 
     // Monitor reconnection attempts
