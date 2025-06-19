@@ -48,6 +48,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMessages } from "@/shared/lib/hooks/useMessages";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useZApiStore } from "@/shared/store/zapiStore";
+import { useMessageSyncListener } from "@/shared/lib/hooks/useMessageSyncListener";
 import { useCreateContact } from "@/shared/lib/hooks/useContacts";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
@@ -96,6 +97,9 @@ export function InboxPage() {
   useWebSocket();
 
   // Hook unificado para conversas com busca integrada
+  // CORREÇÃO CRÍTICA: Inicializar listener de sincronização de mensagens
+  const { triggerMessageRecovery } = useMessageSyncListener();
+
   const conversationsQuery = useInfiniteConversations(100, {
     searchTerm: searchTerm.trim(),
     periodFilter,
