@@ -67,6 +67,9 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: Corrigido problema crítico de inconsistência na exibição de filtros avançados - Implementado sistema robusto com loading states e fallback para garantir que filtros apareçam consistentemente em todos os dispositivos
+- June 19, 2025: Adicionada verificação de autenticação nas rotas /api/teams e /api/system-users para evitar falhas silenciosas
+- June 19, 2025: Implementado sistema de retry automático e tratamento de erro para queries de filtros avançados
 - June 19, 2025: Corrigido sistema de permissões para transferências - Atendentes agora podem transferir conversas entre equipes e usuários
 - June 19, 2025: Implementada proteção robusta contra duplicação de mensagens - Sistema de debounce, cache temporal e bloqueio de botão
 - June 19, 2025: Removido número de telefone da lista de conversas para reduzir poluição visual

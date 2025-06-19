@@ -47,13 +47,17 @@ export function ConversationListHeader({
   const debounceRef = useRef<NodeJS.Timeout>();
 
   // Buscar equipes para os filtros com fallback
-  const { data: teams = [], isError: teamsError } = useQuery({
+  const { 
+    data: teams = [], 
+    isError: teamsError, 
+    isLoading: teamsLoading,
+    refetch: refetchTeams 
+  } = useQuery({
     queryKey: ["/api/teams"],
     queryFn: async () => {
       const response = await fetch("/api/teams");
       if (!response.ok) {
-        console.warn("Erro ao carregar equipes, usando fallback");
-        return [];
+        throw new Error("Erro ao carregar equipes");
       }
       const data = await response.json();
       return Array.isArray(data) ? data : [];
@@ -64,13 +68,17 @@ export function ConversationListHeader({
   });
 
   // Buscar agentes/usuários para os filtros com fallback
-  const { data: agents = [], isError: agentsError } = useQuery({
+  const { 
+    data: agents = [], 
+    isError: agentsError, 
+    isLoading: agentsLoading,
+    refetch: refetchAgents 
+  } = useQuery({
     queryKey: ["/api/system-users"],
     queryFn: async () => {
       const response = await fetch("/api/system-users");
       if (!response.ok) {
-        console.warn("Erro ao carregar agentes, usando fallback");
-        return [];
+        throw new Error("Erro ao carregar agentes");
       }
       const data = await response.json();
       return Array.isArray(data) ? data : [];
@@ -79,6 +87,10 @@ export function ConversationListHeader({
     retryDelay: 1000,
     staleTime: 30000,
   });
+
+  // Estado para controlar se deve mostrar os filtros avançados
+  const isAdvancedFiltersReady = !teamsLoading && !agentsLoading;
+  const hasAdvancedFiltersError = teamsError || agentsError;
 
   // Sincronizar com prop externa apenas na inicialização
   useEffect(() => {
@@ -242,80 +254,108 @@ export function ConversationListHeader({
             </div>
           </div>
 
-          {/* Filtros avançados - sempre renderizar */}
+          {/* Filtros avançados - renderizar apenas quando dados estão prontos */}
           <div className="border-t border-gray-200 pt-3">
             <h4 className="text-sm font-medium text-gray-700 mb-3">Filtros Avançados</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Equipe
-                </label>
-                <Select value={teamFilter} onValueChange={setTeamFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todas as equipes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as equipes</SelectItem>
-                    {teamsError ? (
-                      <SelectItem value="error" disabled>
-                        Erro ao carregar equipes
-                      </SelectItem>
-                    ) : (
-                      teams.map((team: any) => (
+            
+            {!isAdvancedFiltersReady ? (
+              // Estado de carregamento
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+              </div>
+            ) : hasAdvancedFiltersError ? (
+              // Estado de erro com opção de recarregar
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 mb-3">
+                  Não foi possível carregar os filtros avançados. Tente atualizar a página ou recarregar os filtros.
+                </p>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      refetchTeams();
+                      refetchAgents();
+                    }}
+                    className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+                  >
+                    Recarregar filtros
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Filtros avançados normais
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Equipe
+                  </label>
+                  <Select value={teamFilter} onValueChange={setTeamFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todas as equipes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as equipes</SelectItem>
+                      {teams.map((team: any) => (
                         <SelectItem key={team.id} value={team.id.toString()}>
                           {team.name}
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Período
-                </label>
-                <Select value={periodFilter} onValueChange={setPeriodFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todos os períodos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os períodos</SelectItem>
-                    <SelectItem value="today">Hoje</SelectItem>
-                    <SelectItem value="yesterday">Ontem</SelectItem>
-                    <SelectItem value="this_week">Esta semana</SelectItem>
-                    <SelectItem value="last_week">Semana passada</SelectItem>
-                    <SelectItem value="this_month">Este mês</SelectItem>
-                    <SelectItem value="last_month">Mês passado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Período
+                  </label>
+                  <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todos os períodos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os períodos</SelectItem>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="yesterday">Ontem</SelectItem>
+                      <SelectItem value="this_week">Esta semana</SelectItem>
+                      <SelectItem value="last_week">Semana passada</SelectItem>
+                      <SelectItem value="this_month">Este mês</SelectItem>
+                      <SelectItem value="last_month">Mês passado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Agente
-                </label>
-                <Select value={agentFilter} onValueChange={setAgentFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todos os agentes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os agentes</SelectItem>
-                    {agentsError ? (
-                      <SelectItem value="error" disabled>
-                        Erro ao carregar agentes
-                      </SelectItem>
-                    ) : (
-                      agents.map((agent: any) => (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Agente
+                  </label>
+                  <Select value={agentFilter} onValueChange={setAgentFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Todos os agentes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os agentes</SelectItem>
+                      {agents.map((agent: any) => (
                         <SelectItem key={agent.id} value={agent.id.toString()}>
                           {agent.displayName || agent.username || agent.email}
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {hasActiveFilters && (
