@@ -21,10 +21,8 @@ interface ConversationListHeaderProps {
   setTeamFilter?: (team: string) => void;
   periodFilter?: string;
   setPeriodFilter?: (period: string) => void;
-  messageTypeFilter?: string;
-  setMessageTypeFilter?: (type: string) => void;
-  priorityFilter?: string;
-  setPriorityFilter?: (priority: string) => void;
+  agentFilter?: string;
+  setAgentFilter?: (agent: string) => void;
 }
 
 export function ConversationListHeader({
@@ -42,10 +40,8 @@ export function ConversationListHeader({
   setTeamFilter = () => {},
   periodFilter = 'all',
   setPeriodFilter = () => {},
-  messageTypeFilter = 'all',
-  setMessageTypeFilter = () => {},
-  priorityFilter = 'all',
-  setPriorityFilter = () => {}
+  agentFilter = 'all',
+  setAgentFilter = () => {}
 }: ConversationListHeaderProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -56,6 +52,16 @@ export function ConversationListHeader({
     queryFn: async () => {
       const response = await fetch("/api/teams");
       if (!response.ok) throw new Error("Erro ao carregar equipes");
+      return response.json();
+    },
+  });
+
+  // Buscar agentes/usuários para os filtros
+  const { data: agents = [] } = useQuery({
+    queryKey: ["/api/system-users"],
+    queryFn: async () => {
+      const response = await fetch("/api/system-users");
+      if (!response.ok) throw new Error("Erro ao carregar agentes");
       return response.json();
     },
   });
@@ -98,13 +104,12 @@ export function ConversationListHeader({
     setChannelFilter('all');
     setTeamFilter('all');
     setPeriodFilter('all');
-    setMessageTypeFilter('all');
-    setPriorityFilter('all');
+    setAgentFilter('all');
     setShowFilters(false);
   };
 
   const hasActiveFilters = searchTerm || statusFilter !== 'all' || channelFilter !== 'all' || 
-    teamFilter !== 'all' || periodFilter !== 'all' || messageTypeFilter !== 'all' || priorityFilter !== 'all';
+    teamFilter !== 'all' || periodFilter !== 'all' || agentFilter !== 'all';
 
   return (
     <div className="border-b border-gray-200 bg-white">
@@ -226,7 +231,7 @@ export function ConversationListHeader({
           {/* Filtros avançados */}
           <div className="border-t border-gray-200 pt-3">
             <h4 className="text-sm font-medium text-gray-700 mb-3">Filtros Avançados</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Equipe
@@ -268,39 +273,19 @@ export function ConversationListHeader({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de Mensagem
+                  Agente
                 </label>
-                <Select value={messageTypeFilter} onValueChange={setMessageTypeFilter}>
+                <Select value={agentFilter} onValueChange={setAgentFilter}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todos os tipos" />
+                    <SelectValue placeholder="Todos os agentes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="text">Texto</SelectItem>
-                    <SelectItem value="image">Imagem</SelectItem>
-                    <SelectItem value="audio">Áudio</SelectItem>
-                    <SelectItem value="video">Vídeo</SelectItem>
-                    <SelectItem value="document">Documento</SelectItem>
-                    <SelectItem value="contact">Contato</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Prioridade
-                </label>
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todas as prioridades" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as prioridades</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="unread">Não lidas</SelectItem>
-                    <SelectItem value="with_deals">Com negócios</SelectItem>
+                    <SelectItem value="all">Todos os agentes</SelectItem>
+                    {agents.map((agent: any) => (
+                      <SelectItem key={agent.id} value={agent.id.toString()}>
+                        {agent.displayName || agent.username}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

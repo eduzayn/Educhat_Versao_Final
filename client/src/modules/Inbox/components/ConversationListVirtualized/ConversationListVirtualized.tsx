@@ -19,10 +19,8 @@ interface ConversationListVirtualizedProps {
   setTeamFilter?: (team: string) => void;
   periodFilter?: string;
   setPeriodFilter?: (period: string) => void;
-  messageTypeFilter?: string;
-  setMessageTypeFilter?: (type: string) => void;
-  priorityFilter?: string;
-  setPriorityFilter?: (priority: string) => void;
+  agentFilter?: string;
+  setAgentFilter?: (agent: string) => void;
   activeConversation: ConversationWithContact | null;
   onSelectConversation: (conversation: ConversationWithContact) => void;
   onLoadMore: () => void;
