@@ -67,7 +67,8 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
-- June 17, 2025. Initial setup
+- June 19, 2025: Correções para erro 502 no Render - Otimizações de timeout, configurações de produção e health checks
+- June 17, 2025: Initial setup
 
 ## User Preferences
 
