@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Search, Filter, X, ArrowLeft, Plus } from 'lucide-react';
+import { Search, Filter, X, ArrowLeft, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAdvancedFiltersMonitor } from '@/shared/hooks/useAdvancedFiltersMonitor';
 
 interface ConversationListHeaderProps {
