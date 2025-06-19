@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
 import { BackButton } from '@/shared/components/BackButton';
-import { Plus, Search, MessageSquare, Mic, Image, Video, Edit, Trash2, Eye, Upload, X, FileAudio, FileImage, FileVideo, FileText, Paperclip } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Plus, Search, MessageSquare, Edit, Trash2, Eye, Upload, X, FileAudio, FileImage, FileVideo, FileText, Paperclip } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
@@ -14,8 +14,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { AudioRecorder } from '@/modules/Messages/components/AudioRecorder';
-import { useHasPermission, useHasAnyPermission, PermissionGate } from '@/shared/lib/permissions';
+import { useHasPermission, PermissionGate } from '@/shared/lib/permissions';
 import type { QuickReply } from '@shared/schema';
 
 // Helper function to validate document file types
@@ -29,9 +28,7 @@ const isDocumentFile = (file: File): boolean => {
     'application/vnd.ms-powerpoint',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'text/plain',
-    'text/csv',
-    'application/zip',
-    'application/x-rar-compressed'
+    'text/csv'
   ];
   
   return documentTypes.includes(file.type) || 
@@ -43,42 +40,18 @@ const isDocumentFile = (file: File): boolean => {
          file.name.toLowerCase().endsWith('.ppt') ||
          file.name.toLowerCase().endsWith('.pptx') ||
          file.name.toLowerCase().endsWith('.txt') ||
-         file.name.toLowerCase().endsWith('.csv') ||
-         file.name.toLowerCase().endsWith('.zip') ||
-         file.name.toLowerCase().endsWith('.rar');
+         file.name.toLowerCase().endsWith('.csv');
 };
 
-const getTypeIcon = (type: string) => {
-  switch (type) {
-    case 'text':
-      return <MessageSquare className="h-4 w-4" />;
-    case 'audio':
-      return <Mic className="h-4 w-4" />;
-    case 'image':
-      return <Image className="h-4 w-4" />;
-    case 'video':
-      return <Video className="h-4 w-4" />;
-    case 'document':
-      return <FileText className="h-4 w-4" />;
-    default:
-      return <MessageSquare className="h-4 w-4" />;
-  }
-};
-
+// Helper function to get badge color
 const getTypeBadgeColor = (type: string) => {
   switch (type) {
-    case 'text':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-    case 'audio':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    case 'image':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-    case 'video':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-    case 'document':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    case 'text': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    case 'audio': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+    case 'image': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+    case 'video': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+    case 'document': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
   }
 };
 
@@ -89,9 +62,6 @@ const formSchema = z.object({
   additionalText: z.string().optional(),
   category: z.string().optional(),
   isActive: z.boolean().default(true),
-  shareScope: z.string().optional(),
-  selectedTeams: z.array(z.number()).optional(),
-  selectedUsers: z.array(z.string()).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -106,11 +76,6 @@ export default function QuickRepliesSettingsPage() {
   const [previewQuickReply, setPreviewQuickReply] = useState<QuickReply | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
-  const [recordedAudio, setRecordedAudio] = useState<{ blob: Blob; duration: number } | null>(null);
-  const [shareScope, setShareScope] = useState<string>('private');
-  const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,26 +88,6 @@ export default function QuickRepliesSettingsPage() {
     queryFn: async () => {
       const response = await fetch('/api/user');
       if (!response.ok) throw new Error('Failed to fetch user');
-      return response.json();
-    },
-  });
-
-  // Fetch teams
-  const { data: teams = [] } = useQuery({
-    queryKey: ['/api/teams'],
-    queryFn: async () => {
-      const response = await fetch('/api/teams');
-      if (!response.ok) throw new Error('Failed to fetch teams');
-      return response.json();
-    },
-  });
-
-  // Fetch system users
-  const { data: systemUsers = [] } = useQuery({
-    queryKey: ['/api/system-users'],
-    queryFn: async () => {
-      const response = await fetch('/api/system-users');
-      if (!response.ok) throw new Error('Failed to fetch users');
       return response.json();
     },
   });
@@ -162,7 +107,6 @@ export default function QuickRepliesSettingsPage() {
   const canEditQuickReplyPermission = useHasPermission('resposta_rapida:editar');
   const canDeleteQuickReply = useHasPermission('resposta_rapida:excluir');
   const canManageGlobalQuickReplies = useHasPermission('resposta_rapida:global_gerenciar');
-  const canShareQuickReplies = useHasPermission('resposta_rapida:compartilhar');
 
   // Check if user can edit a specific quick reply
   const canEditQuickReply = (quickReply: QuickReply) => {
@@ -299,11 +243,6 @@ export default function QuickRepliesSettingsPage() {
       toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de documento válido (PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT).', variant: 'destructive' });
       return;
     }
-    // For text type, allow images, videos, and documents as attachments
-    if (formType === 'text' && !file.type.startsWith('image/') && !file.type.startsWith('video/') && !isDocumentFile(file)) {
-      toast({ title: 'Erro', description: 'Para anexos em texto, selecione uma imagem, vídeo ou documento.', variant: 'destructive' });
-      return;
-    }
 
     setSelectedFile(file);
     
@@ -324,29 +263,9 @@ export default function QuickRepliesSettingsPage() {
   const resetFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
-    setRecordedAudio(null);
-    setShowAudioRecorder(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  // Handle audio recording
-  const handleAudioRecorded = async (audioBlob: Blob, duration: number) => {
-    setRecordedAudio({ blob: audioBlob, duration });
-    setShowAudioRecorder(false);
-    
-    // Create a file from the blob for consistency with file handling
-    const audioFile = new File([audioBlob], `audio_${Date.now()}.mp4`, { type: 'audio/mp4' });
-    setSelectedFile(audioFile);
-    
-    // Set content as audio description
-    form.setValue('content', `Áudio gravado (${Math.round(duration)}s)`);
-  };
-
-  const handleCancelAudioRecording = () => {
-    setShowAudioRecorder(false);
-    setRecordedAudio(null);
   };
 
   const onSubmit = (data: FormData) => {
@@ -360,30 +279,8 @@ export default function QuickRepliesSettingsPage() {
       return;
     }
 
-    // Validate granular sharing selections
-    if (shareScope === 'team' && selectedTeams.length === 0) {
-      toast({
-        title: 'Erro',
-        description: 'Selecione pelo menos uma equipe para compartilhar.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    if (shareScope === 'users' && selectedUsers.length === 0) {
-      toast({
-        title: 'Erro', 
-        description: 'Selecione pelo menos um usuário para compartilhar.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     mutation.mutate({
       ...data,
-      shareScope: shareScope,
-      selectedTeams: shareScope === 'team' ? selectedTeams : [],
-      selectedUsers: shareScope === 'users' ? selectedUsers : [],
       ...(editingQuickReply && { id: editingQuickReply.id }),
     });
   };
@@ -493,22 +390,20 @@ export default function QuickRepliesSettingsPage() {
           </SelectContent>
         </Select>
 
-        <PermissionGate permission="resposta_rapida:criar">
-          <Button onClick={() => {
-            setEditingQuickReply(null);
-            form.reset({
-              title: '',
-              content: '',
-              type: 'text',
-              category: '',
-              isActive: true,
-            });
-            setIsFormOpen(true);
-          }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Resposta
-          </Button>
-        </PermissionGate>
+        <Button onClick={() => {
+          setEditingQuickReply(null);
+          form.reset({
+            title: '',
+            content: '',
+            type: 'text',
+            category: '',
+            isActive: true,
+          });
+          setIsFormOpen(true);
+        }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Resposta
+        </Button>
       </div>
 
       {/* Dialog for form */}
@@ -528,429 +423,184 @@ export default function QuickRepliesSettingsPage() {
                   <FormItem>
                     <FormLabel>Título</FormLabel>
                     <FormControl>
-                        <Input placeholder="Digite o título da resposta" {...field} />
+                      <Input placeholder="Digite o título da resposta" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="text">Texto</SelectItem>
+                        <SelectItem value="audio">Áudio</SelectItem>
+                        <SelectItem value="image">Imagem</SelectItem>
+                        <SelectItem value="video">Vídeo</SelectItem>
+                        <SelectItem value="document">Documento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => {
+                  const selectedType = form.watch('type');
+                  
+                  return (
                     <FormItem>
-                      <FormLabel>Tipo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="text">Texto</SelectItem>
-                          <SelectItem value="audio">Áudio</SelectItem>
-                          <SelectItem value="image">Imagem</SelectItem>
-                          <SelectItem value="video">Vídeo</SelectItem>
-                          <SelectItem value="document">Documento</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <FormLabel>Conteúdo</FormLabel>
+                      <FormControl>
+                        {selectedType === 'text' ? (
+                          <Textarea
+                            placeholder="Digite o conteúdo da resposta"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        ) : (
+                          <div className="space-y-4">
+                            {/* File Upload Area */}
+                            <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                              <div className="text-center">
+                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                <div className="mt-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => fileInputRef.current?.click()}
+                                  >
+                                    <Paperclip className="mr-2 h-4 w-4" />
+                                    Selecionar Arquivo
+                                  </Button>
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="hidden"
+                                    onChange={handleFileSelect}
+                                    accept={
+                                      selectedType === 'audio' ? 'audio/*' :
+                                      selectedType === 'image' ? 'image/*' :
+                                      selectedType === 'video' ? 'video/*' :
+                                      selectedType === 'document' ? '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt' :
+                                      '*'
+                                    }
+                                  />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {selectedType === 'audio' && 'Selecione um arquivo de áudio'}
+                                  {selectedType === 'image' && 'Selecione uma imagem'}
+                                  {selectedType === 'video' && 'Selecione um vídeo'}
+                                  {selectedType === 'document' && 'Selecione um documento (PDF, DOC, XLS, PPT, TXT)'}
+                                </p>
+                              </div>
 
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => {
-                    const selectedType = form.watch('type');
-                    
-                    return (
-                      <FormItem>
-                        <FormLabel>Conteúdo</FormLabel>
-                        <FormControl>
-                          {selectedType === 'text' ? (
-                            <div className="space-y-4">
-                              <Textarea
-                                placeholder="Digite o conteúdo da resposta"
-                                className="min-h-[100px]"
-                                {...field}
-                              />
-                              
-                              {/* Media Attachment for Text */}
-                              <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="text-sm font-medium">Anexar Mídia (opcional)</h4>
-                                  {selectedFile && (
+                              {/* File Preview */}
+                              {selectedFile && (
+                                <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      {selectedType === 'audio' && <FileAudio className="h-5 w-5 text-green-600" />}
+                                      {selectedType === 'image' && <FileImage className="h-5 w-5 text-purple-600" />}
+                                      {selectedType === 'video' && <FileVideo className="h-5 w-5 text-red-600" />}
+                                      {selectedType === 'document' && <FileText className="h-5 w-5 text-yellow-600" />}
+                                      <span className="text-sm font-medium">{selectedFile.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                      </span>
+                                    </div>
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
                                       onClick={resetFile}
                                     >
-                                      <X className="w-4 h-4" />
+                                      <X className="h-4 w-4" />
                                     </Button>
+                                  </div>
+
+                                  {/* Image Preview */}
+                                  {filePreview && (
+                                    <div className="mt-3">
+                                      <img
+                                        src={filePreview}
+                                        alt="Preview"
+                                        className="max-w-full h-32 object-cover rounded"
+                                      />
+                                    </div>
                                   )}
                                 </div>
-                                
-                                <input
-                                  ref={fileInputRef}
-                                  type="file"
-                                  accept="image/*,video/*,.pdf,.doc,.docx"
-                                  onChange={handleFileSelect}
-                                  className="hidden"
-                                />
-                                
-                                {!selectedFile ? (
-                                  <div className="text-center">
-                                    <div className="mx-auto w-8 h-8 text-gray-400 mb-2">
-                                      <Paperclip className="w-full h-full" />
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => fileInputRef.current?.click()}
-                                    >
-                                      <Upload className="w-4 h-4 mr-2" />
-                                      Anexar Arquivo
-                                    </Button>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                      Imagens, vídeos ou documentos pequenos
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center space-x-3">
-                                    {filePreview ? (
-                                      <div className="w-12 h-12 rounded border overflow-hidden">
-                                        <img 
-                                          src={filePreview} 
-                                          alt="Preview" 
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="w-12 h-12 rounded border flex items-center justify-center bg-gray-50">
-                                        <FileText className="w-6 h-6 text-gray-400" />
-                                      </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-                                      <p className="text-xs text-gray-500">
-                                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          ) : (
-                            <div className="space-y-4">
-                              {/* File Upload Area */}
-                              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                                <input
-                                  ref={fileInputRef}
-                                  type="file"
-                                  accept={
-                                    selectedType === 'audio' ? 'audio/*' :
-                                    selectedType === 'image' ? 'image/*' :
-                                    selectedType === 'video' ? 'video/*' :
-                                    selectedType === 'document' ? '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar' : ''
-                                  }
-                                  onChange={handleFileSelect}
-                                  className="hidden"
-                                />
-                                
-                                {!selectedFile ? (
-                                  <div className="space-y-3">
-                                    <div className="mx-auto w-12 h-12 text-gray-400">
-                                      {selectedType === 'audio' && <FileAudio className="w-full h-full" />}
-                                      {selectedType === 'image' && <FileImage className="w-full h-full" />}
-                                      {selectedType === 'video' && <FileVideo className="w-full h-full" />}
-                                      {selectedType === 'document' && <FileText className="w-full h-full" />}
-                                    </div>
-                                    <div>
-                                      {selectedType === 'audio' && !showAudioRecorder ? (
-                                        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => fileInputRef.current?.click()}
-                                          >
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Selecionar Arquivo
-                                          </Button>
-                                          <span className="text-sm text-gray-500">ou</span>
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setShowAudioRecorder(true)}
-                                          >
-                                            <Mic className="w-4 h-4 mr-2" />
-                                            Gravar Áudio
-                                          </Button>
-                                        </div>
-                                      ) : selectedType !== 'audio' ? (
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          onClick={() => fileInputRef.current?.click()}
-                                          className="mb-2"
-                                        >
-                                          <Upload className="w-4 h-4 mr-2" />
-                                          Selecionar {selectedType === 'image' ? 'Imagem' : selectedType === 'video' ? 'Vídeo' : 'Documento'}
-                                        </Button>
-                                      ) : null}
-                                      
-                                      {selectedType === 'audio' && showAudioRecorder && (
-                                        <div className="mt-4">
-                                          <AudioRecorder
-                                            onAudioRecorded={handleAudioRecorded}
-                                            onCancel={handleCancelAudioRecording}
-                                            className="w-full"
-                                          />
-                                        </div>
-                                      )}
-                                      
-                                      <p className="text-sm text-gray-500 mt-2">
-                                        Formatos suportados: {
-                                          selectedType === 'audio' ? 'MP3, WAV, OGG ou grave diretamente' :
-                                          selectedType === 'image' ? 'JPG, PNG, GIF, WEBP' :
-                                          selectedType === 'video' ? 'MP4, AVI, MOV, WEBM' :
-                                          'PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR'
-                                        }
-                                      </p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="space-y-3">
-                                    {/* File Preview */}
-                                    {filePreview && selectedType === 'image' && (
-                                      <div className="mx-auto w-32 h-32 rounded-lg overflow-hidden border">
-                                        <img 
-                                          src={filePreview} 
-                                          alt="Preview" 
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    )}
-                                    
-                                    {/* File Info */}
-                                    <div className="flex items-center justify-center space-x-2 text-sm">
-                                      {selectedType === 'audio' && <Mic className="w-4 h-4" />}
-                                      {selectedType === 'image' && <Image className="w-4 h-4" />}
-                                      {selectedType === 'video' && <Video className="w-4 h-4" />}
-                                      {selectedType === 'document' && <FileText className="w-4 h-4" />}
-                                      <span className="font-medium">{selectedFile.name}</span>
-                                      <span className="text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
-                                    </div>
-                                    
-                                    {/* Actions */}
-                                    <div className="flex justify-center space-x-2">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => fileInputRef.current?.click()}
-                                      >
-                                        Trocar arquivo
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={resetFile}
-                                      >
-                                        <X className="w-4 h-4 mr-1" />
-                                        Remover
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Hidden textarea for form validation */}
-                              <Textarea
-                                {...field}
-                                className="hidden"
-                              />
-                            </div>
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
 
-                {/* Additional Text Field for Media Types */}
-                {(form.watch('type') === 'audio' || form.watch('type') === 'image' || form.watch('type') === 'video' || form.watch('type') === 'document') && (
-                  <FormField
-                    control={form.control}
-                    name="additionalText"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Texto Adicional (opcional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={`Digite um texto que será enviado junto com ${
-                              form.watch('type') === 'audio' ? 'o áudio' :
-                              form.watch('type') === 'image' ? 'a imagem' : 
-                              form.watch('type') === 'video' ? 'o vídeo' : 'o documento'
-                            }...`}
-                            className="min-h-[80px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <p className="text-sm text-muted-foreground">
-                          Este texto será enviado junto com {
-                            form.watch('type') === 'audio' ? 'o áudio' :
-                            form.watch('type') === 'image' ? 'a imagem' : 
-                            form.watch('type') === 'video' ? 'o vídeo' : 'o documento'
-                          } para complementar a mensagem
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
+              {/* Additional Text for media types */}
+              {form.watch('type') !== 'text' && (
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="additionalText"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria (opcional)</FormLabel>
+                      <FormLabel>Texto Adicional (opcional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite a categoria" {...field} />
+                        <Textarea
+                          placeholder="Texto que acompanha o arquivo"
+                          className="min-h-[60px]"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
 
-                {/* Compartilhamento */}
-                <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                  <h3 className="text-sm font-medium">Compartilhamento</h3>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Visibilidade</label>
-                    <Select value={shareScope} onValueChange={setShareScope}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a visibilidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="private">🔒 Apenas eu</SelectItem>
-                        <SelectItem value="team">👥 Compartilhada com equipes</SelectItem>
-                        <SelectItem value="users">👤 Compartilhada com usuários</SelectItem>
-                        <SelectItem value="global">🌐 Global (todos)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Defina quem pode ver e usar esta resposta rápida
-                    </p>
-                  </div>
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria (opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Saudação, Atendimento, Informações" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  {/* Seleção de Equipes */}
-                  {shareScope === 'team' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Selecionar Equipes</label>
-                      <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
-                        {teams.length === 0 ? (
-                          <p className="text-xs text-muted-foreground text-center py-2">
-                            Nenhuma equipe disponível
-                          </p>
-                        ) : (
-                          teams.map((team: any) => (
-                            <div key={team.id} className="flex items-center space-x-2 py-1">
-                              <input
-                                type="checkbox"
-                                id={`team-${team.id}`}
-                                checked={selectedTeams.includes(team.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedTeams([...selectedTeams, team.id]);
-                                  } else {
-                                    setSelectedTeams(selectedTeams.filter(id => id !== team.id));
-                                  }
-                                }}
-                                className="rounded border-gray-300"
-                              />
-                              <label htmlFor={`team-${team.id}`} className="text-sm flex-1 cursor-pointer">
-                                {team.name}
-                              </label>
-                              {team.color && (
-                                <div 
-                                  className="w-3 h-3 rounded-full" 
-                                  style={{ backgroundColor: team.color }}
-                                />
-                              )}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Selecione as equipes que podem acessar esta resposta
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Seleção de Usuários */}
-                  {shareScope === 'users' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Selecionar Usuários</label>
-                      <div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
-                        {systemUsers.length === 0 ? (
-                          <p className="text-xs text-muted-foreground text-center py-2">
-                            Nenhum usuário disponível
-                          </p>
-                        ) : (
-                          systemUsers.map((user: any) => (
-                            <div key={user.id} className="flex items-center space-x-2 py-1">
-                              <input
-                                type="checkbox"
-                                id={`user-${user.id}`}
-                                checked={selectedUsers.includes(user.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedUsers([...selectedUsers, user.id]);
-                                  } else {
-                                    setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                                  }
-                                }}
-                                className="rounded border-gray-300"
-                              />
-                              <label htmlFor={`user-${user.id}`} className="text-sm flex-1 cursor-pointer">
-                                {user.displayName || `${user.firstName} ${user.lastName}`}
-                              </label>
-                              <span className="text-xs text-muted-foreground">
-                                {user.email}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Selecione os usuários que podem acessar esta resposta
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={handleFormClose}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={mutation.isPending}>
-                    {mutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={handleFormClose}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={mutation.isPending}>
+                  {mutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Replies Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -969,11 +619,13 @@ export default function QuickRepliesSettingsPage() {
         ) : filteredQuickReplies.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+            <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
               Nenhuma resposta rápida encontrada
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Comece criando sua primeira resposta rápida.
+              {searchTerm || selectedCategory !== 'all' || selectedType !== 'all'
+                ? 'Tente ajustar os filtros de busca.'
+                : 'Comece criando sua primeira resposta rápida.'}
             </p>
           </div>
         ) : (
@@ -981,8 +633,7 @@ export default function QuickRepliesSettingsPage() {
             <Card key={quickReply.id} className="relative">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getTypeIcon(quickReply.type)}
+                  <div className="flex-1">
                     <CardTitle className="text-base">{quickReply.title}</CardTitle>
                   </div>
                   <div className="flex space-x-1">
@@ -1069,8 +720,8 @@ export default function QuickRepliesSettingsPage() {
           {previewQuickReply && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium">{previewQuickReply.title}</h4>
-                <div className="flex items-center space-x-2 mt-1">
+                <h3 className="font-semibold text-lg">{previewQuickReply.title}</h3>
+                <div className="flex items-center space-x-2 mt-2">
                   <Badge className={getTypeBadgeColor(previewQuickReply.type)}>
                     {previewQuickReply.type === 'text' && 'Texto'}
                     {previewQuickReply.type === 'audio' && 'Áudio'}
@@ -1083,11 +734,14 @@ export default function QuickRepliesSettingsPage() {
                   )}
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div>
+                <h4 className="font-medium mb-2">Conteúdo:</h4>
                 <p className="text-sm whitespace-pre-wrap">{previewQuickReply.content}</p>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Usado {previewQuickReply.usageCount || 0} vez(es)
+                {previewQuickReply.additionalText && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {previewQuickReply.additionalText}
+                  </p>
+                )}
               </div>
             </div>
           )}
