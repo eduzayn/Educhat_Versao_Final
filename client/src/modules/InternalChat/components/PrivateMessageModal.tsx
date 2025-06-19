@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/shared/ui/dropdown-menu";
-import { useInternalChatStore } from "../store/internalChatStore";
+import { useInternalChatStore, type InternalChatMessage } from "../store/internalChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import {
@@ -72,7 +72,7 @@ export function PrivateMessageModal({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { playNotificationSound } = useInternalChatStore();
+  const { playNotificationSound, addMessage, setActiveChannel, addChannel } = useInternalChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
@@ -120,7 +120,7 @@ export function PrivateMessageModal({
           const existingMessages = await messagesResponse.json();
           const formattedMessages = existingMessages.map((msg: any, index: number) => ({
             id: msg.id || `msg-${Date.now()}-${index}`,
-            channelId: channel.id,
+            channelId: `direct-${channel.id}`,
             userId: msg.userId,
             userName: msg.userName || 'Usuário',
             userAvatar: msg.userAvatar,
@@ -129,7 +129,28 @@ export function PrivateMessageModal({
             timestamp: new Date(msg.createdAt),
             reactions: {},
           }));
+          
+          // Adicionar ao estado local do modal
           setMessages(formattedMessages);
+
+          // Adicionar ao store principal para aparecer na área central
+          formattedMessages.forEach((message: any) => addMessage(message));
+
+          // Criar/atualizar canal no store principal
+          if (formattedMessages.length > 0) {
+            const directChannel = {
+              id: `direct-${channel.id}`,
+              name: targetUser.displayName,
+              description: `Conversa privada com ${targetUser.displayName}`,
+              type: 'direct' as const,
+              participants: [currentUser.id, targetUser.id],
+              isPrivate: true,
+              unreadCount: 0,
+              lastMessage: formattedMessages[formattedMessages.length - 1],
+              lastActivity: new Date(),
+            };
+            addChannel(directChannel);
+          }
         }
       }
     } catch (error) {
@@ -145,7 +166,7 @@ export function PrivateMessageModal({
 
       const newMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        channelId: channelId,
+        channelId: `direct-${channelId}`,
         userId: currentUser.id,
         userName: currentUser.displayName || currentUser.username || "Usuário",
         userAvatar: currentUser.avatar,
@@ -160,7 +181,12 @@ export function PrivateMessageModal({
         },
       };
 
+      // Adicionar ao estado local do modal
       setMessages((prev) => [...prev, newMessage]);
+
+      // Adicionar ao store principal
+      addMessage(newMessage);
+
       playNotificationSound("send");
       setShowAudioRecorder(false);
       setIsRecording(false);
@@ -302,10 +328,10 @@ export function PrivateMessageModal({
 
       const { message: savedMessage } = messageData;
 
-      // Adicionar mensagem ao estado local
+      // Criar mensagem para o store principal
       const newMessage = {
         id: savedMessage.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        channelId: channel.id,
+        channelId: `direct-${channel.id}`,
         userId: currentUser.id,
         userName: currentUser.displayName || currentUser.username || "Usuário",
         userAvatar: currentUser.avatar,
@@ -315,7 +341,26 @@ export function PrivateMessageModal({
         reactions: {},
       };
 
+      // Adicionar ao estado local do modal
       setMessages((prev) => [...prev, newMessage]);
+
+      // Adicionar ao store principal para aparecer na área central
+      addMessage(newMessage);
+
+      // Criar/atualizar canal no store principal
+      const directChannel = {
+        id: `direct-${channel.id}`,
+        name: targetUser.displayName,
+        description: `Conversa privada com ${targetUser.displayName}`,
+        type: 'direct' as const,
+        participants: [currentUser.id, targetUser.id],
+        isPrivate: true,
+        unreadCount: 0,
+        lastMessage: newMessage,
+        lastActivity: new Date(),
+      };
+      addChannel(directChannel);
+
       playNotificationSound("send");
       setMessage("");
 
