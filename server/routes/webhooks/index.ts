@@ -239,9 +239,24 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         }
       });
       
-      // Broadcast para WebSocket
+      // Broadcast para WebSocket - NOVA CONVERSA E MENSAGEM
       try {
         const { broadcast, broadcastToAll } = await import('../realtime');
+        
+        // Se é uma nova conversa, notificar sobre a criação
+        if (isNewConversation) {
+          console.log(`📡 Broadcasting nova conversa criada: ID ${conversation.id}`);
+          broadcastToAll({
+            type: 'new_conversation_created',
+            conversationId: conversation.id,
+            contactId: contact.id,
+            contactName: contact.name,
+            contactPhone: contact.phone,
+            channel: 'whatsapp'
+          });
+        }
+        
+        // Broadcast da nova mensagem
         broadcast(conversation.id, {
           type: 'new_message',
           conversationId: conversation.id,

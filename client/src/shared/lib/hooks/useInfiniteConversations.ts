@@ -90,9 +90,10 @@ export function useInfiniteConversations(
       return totalLoaded;
     },
     initialPageParam: 0,
-    staleTime: searchTerm?.trim() ? 30000 : 5000, // Cache mais longo para buscas
+    staleTime: searchTerm?.trim() ? 30000 : 2000, // Cache reduzido para melhor sincronização
     refetchInterval: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Ativar refetch ao focar janela
+    refetchOnMount: true, // Sempre refetch ao montar
     ...queryOptions
   });
 }

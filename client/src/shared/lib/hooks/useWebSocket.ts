@@ -331,6 +331,28 @@ export function useWebSocket() {
             });
           }
           break;
+        case 'new_conversation_created':
+          if (data.conversationId && data.contactName) {
+            console.log('🆕 Nova conversa criada em tempo real:', {
+              conversationId: data.conversationId,
+              contactId: data.contactId,
+              contactName: data.contactName,
+              contactPhone: data.contactPhone,
+              channel: data.channel
+            });
+            
+            // Invalidar cache de conversas para forçar recarregamento imediato
+            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+            
+            // Force refetch imediato para garantir que a nova conversa apareça
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/conversations'], 
+              type: 'active'
+            }).catch(error => {
+              console.error('❌ Erro ao atualizar cache após nova conversa:', error);
+            });
+          }
+          break;
         default:
           console.log('📨 Evento Socket.IO não mapeado:', data.type);
       }
