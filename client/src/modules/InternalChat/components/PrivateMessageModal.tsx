@@ -134,7 +134,7 @@ export function PrivateMessageModal({
           setMessages(formattedMessages);
 
           // Adicionar ao store principal para aparecer na área central
-          formattedMessages.forEach((message: any) => addMessage(message));
+          formattedMessages.forEach((message: InternalChatMessage) => addMessage(message));
 
           // Criar/atualizar canal no store principal
           if (formattedMessages.length > 0) {
@@ -215,7 +215,7 @@ export function PrivateMessageModal({
 
     const newMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      channelId: channelId || 'temp',
+      channelId: `direct-${channelId}` || 'temp',
       userId: currentUser.id,
       userName: currentUser.displayName || currentUser.username || "Usuário",
       userAvatar: currentUser.avatar,
@@ -231,7 +231,12 @@ export function PrivateMessageModal({
       },
     };
 
+    // Adicionar ao estado local do modal
     setMessages((prev) => [...prev, newMessage]);
+
+    // Adicionar ao store principal
+    addMessage(newMessage);
+
     playNotificationSound("send");
 
     toast({
