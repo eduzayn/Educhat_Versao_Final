@@ -364,7 +364,9 @@ export function useWebSocket() {
             // Remover cache antigo e forçar busca nova
             queryClient.removeQueries({ queryKey: ['/api/conversations'] });
             setTimeout(() => {
-              queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+              queryClient.refetchQueries({ queryKey: ['/api/conversations'] }).catch(error => {
+                console.error('Erro ao recarregar conversas:', error);
+              });
             }, 100);
           }
           break;

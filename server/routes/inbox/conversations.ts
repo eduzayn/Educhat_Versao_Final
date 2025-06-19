@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
     let conversations;
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas
-      conversations = await storage.searchConversations(search.trim(), limit, filters);
+      conversations = await storage.searchConversations(search.trim(), limit);
       // Para busca, retornar formato simples
       const endTime = Date.now();
       const duration = Date.now() - startTime;
@@ -63,9 +63,9 @@ router.get('/', async (req, res) => {
       res.json(conversations);
     } else {
       logger.debug('Chamando storage com', { limit, offset, filters });
-      conversations = await storage.getConversations(limit, offset, filters);
+      conversations = await storage.getConversations(limit);
       
-      const nextPageCheck = await storage.getConversations(1, offset + limit, filters);
+      const nextPageCheck = await storage.getConversations(1);
       const hasNextPage = nextPageCheck.length > 0;
       
       const duration = Date.now() - startTime;
