@@ -11,7 +11,7 @@ interface SocketServer extends Server {
 export function createSocketServer(app: Express): SocketServer {
   const httpServer = createServer(app) as SocketServer;
 
-  // Socket.IO server for real-time communication with enhanced stability
+  // Socket.IO server com configurações otimizadas para baixa latência
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: process.env.NODE_ENV === 'production'
@@ -25,21 +25,45 @@ export function createSocketServer(app: Express): SocketServer {
       methods: ["GET", "POST"],
       credentials: true
     },
-    // Configurações otimizadas para resposta rápida
-    pingTimeout: 30000,       // 30 segundos para resposta rápida
-    pingInterval: 10000,      // 10 segundos para detecção rápida de desconexão
-    upgradeTimeout: 10000,    // Timeout reduzido para upgrade rápido
-    transports: ['websocket', 'polling'],
-    allowEIO3: true,
-    connectTimeout: 20000,    // 20 segundos para conexão mais rápida
-    maxHttpBufferSize: 5e6,   // 5MB
-    // Configurações adicionais para reconexão estável
-    serveClient: false,
+    // Configurações otimizadas para baixa latência
+    pingTimeout: 10000,        // 10 segundos para timeout
+    pingInterval: 5000,        // 5 segundos para ping
+    upgradeTimeout: 5000,      // 5 segundos para upgrade
+    connectTimeout: 10000,     // 10 segundos para conexão
+    transports: ['websocket'], // Forçar WebSocket para melhor performance
+    maxHttpBufferSize: 1e6,    // 1MB (reduzido para otimização)
+    // Configurações adicionais para estabilidade
     allowUpgrades: true,
-    cookie: false
+    serveClient: false,
+    cookie: false,
+    // Configurações de reconexão
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    // Otimizações de buffer
+    perMessageDeflate: {
+      threshold: 1024, // Comprimir apenas mensagens maiores que 1KB
+      zlibInflateOptions: {
+        chunkSize: 10 * 1024 // 10KB
+      },
+      zlibDeflateOptions: {
+        level: 6 // Nível de compressão balanceado
+      }
+    }
   });
 
   httpServer.io = io;
+  
+  // Log de diagnóstico
+  io.engine.on("connection_error", (err) => {
+    console.error("❌ Erro de conexão Socket.IO:", {
+      type: err.type,
+      description: err.description,
+      context: err.context
+    });
+  });
+
   return httpServer;
 }
 

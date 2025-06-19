@@ -36,10 +36,7 @@ export function setupPassport(app: Express) {
           }
 
           // Buscar informações de equipe
-          let teamInfo = null;
-          if (systemUser.teamId) {
-            teamInfo = await storage.getTeam(systemUser.teamId);
-          }
+          const team = systemUser.teamId ? await storage.getTeam(systemUser.teamId) : null;
 
           const userWithTeam: Express.User = {
             id: systemUser.id,
@@ -49,11 +46,11 @@ export function setupPassport(app: Express) {
             role: systemUser.role,
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
-            channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-            teams: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : (systemUser.team ? [systemUser.team] : []),
-            teamTypes: Array.isArray(systemUser.teamTypes) ? systemUser.teamTypes : (systemUser.team ? [systemUser.team] : []),
+            channels: systemUser.channels || [],
+            teams: team?.name ? [team.name] : [],
+            teamTypes: team?.teamType ? [team.teamType] : [],
             teamId: systemUser.teamId || undefined,
-            team: teamInfo?.name || undefined,
+            team: team?.name || undefined,
           };
 
           return done(null, userWithTeam);
@@ -76,11 +73,7 @@ export function setupPassport(app: Express) {
         return done(null, false);
       }
 
-      // Buscar informações de equipe
-      let teamInfo = null;
-      if (user.teamId) {
-        teamInfo = await storage.getTeam(user.teamId);
-      }
+      const team = user.teamId ? await storage.getTeam(user.teamId) : null;
 
       const userWithTeam = {
         id: user.id,
@@ -89,12 +82,12 @@ export function setupPassport(app: Express) {
         displayName: user.displayName,
         role: user.role,
         roleId: user.roleId || 1,
-        dataKey: user.dataKey || undefined,
-        channels: Array.isArray(user.channels) ? user.channels : [],
-        teams: Array.isArray(user.teams) ? user.teams : [],
-        teamTypes: Array.isArray(user.teams) ? user.teams : [],
+        dataKey: user.dataKey,
+        channels: user.channels || [],
+        teams: team?.name ? [team.name] : [],
+        teamTypes: team?.teamType ? [team.teamType] : [],
         teamId: user.teamId,
-        team: teamInfo?.name || null,
+        team: team?.name || null,
       };
 
       done(null, userWithTeam as any);

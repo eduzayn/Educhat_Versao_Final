@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+  },
+  "include": ["src", "src/types/custom.d.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+} 

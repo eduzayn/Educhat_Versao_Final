@@ -1,139 +1,136 @@
-import { memo, useRef, useEffect, useState, useLayoutEffect } from "react";
-import { VariableSizeList as List } from "react-window";
-import { MessageBubble } from "./MessageBubble";
-import type { Message, Contact } from "@shared/schema";
+import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { useVirtualization } from '@/shared/lib/hooks/useVirtualization';
+import { MessageBubble } from '../MessageBubble/MessageBubble';
+import type { Message, Contact } from '@shared/schema';
 
 interface VirtualizedMessageListProps {
   messages: Message[];
   contact: Contact;
   conversationId?: number;
-  height: number;
+  onReply?: (message: Message) => void;
+  className?: string;
+  estimatedItemHeight?: number;
+  overscan?: number;
 }
 
-interface MessageItemProps {
-  index: number;
-  style: React.CSSProperties;
-  data: {
-    messages: Message[];
-    contact: Contact;
-    conversationId?: number;
-  };
-}
+export function VirtualizedMessageList({
+  messages,
+  contact,
+  conversationId,
+  onReply,
+  className = '',
+  estimatedItemHeight = 80,
+  overscan = 10
+}: VirtualizedMessageListProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(0);
 
-const MessageItem = memo(({ index, style, data }: MessageItemProps) => {
-  const { messages, contact, conversationId } = data;
-  const message = messages[index];
+  // Calcular altura estimada baseada no tipo de mensagem
+  const getEstimatedHeight = useCallback((message: Message): number => {
+    switch (message.messageType) {
+      case 'image':
+        return 200;
+      case 'video':
+        return 250;
+      case 'audio':
+        return 60;
+      case 'document':
+        return 100;
+      case 'sticker':
+        return 150;
+      default:
+        // Calcular altura baseada no conteúdo de texto
+        const textLength = message.content?.length || 0;
+        const lines = Math.ceil(textLength / 50); // ~50 caracteres por linha
+        return Math.max(60, lines * 20 + 40); // 20px por linha + padding
+    }
+  }, []);
 
-  if (!message) return null;
+  // Calcular alturas dinâmicas das mensagens
+  const messageHeights = useMemo(() => {
+    return messages.map((message, index) => ({
+      index,
+      height: getEstimatedHeight(message)
+    }));
+  }, [messages, getEstimatedHeight]);
+
+  // Hook de virtualização com alturas dinâmicas
+  const {
+    virtualItems,
+    totalHeight,
+    containerRef: setVirtualContainerRef,
+    scrollToBottom
+  } = useVirtualization(messages, {
+    itemHeight: estimatedItemHeight,
+    overscan,
+    containerHeight
+  });
+
+  // Atualizar altura do container
+  useEffect(() => {
+    const updateContainerHeight = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.clientHeight;
+        setContainerHeight(height);
+      }
+    };
+
+    updateContainerHeight();
+    window.addEventListener('resize', updateContainerHeight);
+    return () => window.removeEventListener('resize', updateContainerHeight);
+  }, []);
+
+  // Scroll para o final quando novas mensagens chegarem
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Pequeno delay para garantir que o DOM foi atualizado
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length, scrollToBottom]);
+
+  // Combinar refs
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    setVirtualContainerRef(node);
+  }, [setVirtualContainerRef]);
+
+  // Renderizar item virtualizado
+  const renderVirtualItem = useCallback(({ index, data: message, offsetTop }: any) => {
+    return (
+      <div
+        key={`${message.id}-${index}`}
+        style={{
+          position: 'absolute',
+          top: offsetTop,
+          left: 0,
+          right: 0,
+          height: messageHeights[index]?.height || estimatedItemHeight
+        }}
+      >
+        <MessageBubble
+          message={message}
+          contact={contact}
+          conversationId={conversationId}
+          onReply={onReply}
+          index={index}
+          isVisible={true}
+        />
+      </div>
+    );
+  }, [contact, conversationId, onReply, messageHeights, estimatedItemHeight]);
 
   return (
-    <div style={style} key={message.id}>
-      <MessageBubble
-        message={message}
-        contact={contact}
-        conversationId={conversationId}
-      />
+    <div
+      ref={combinedRef}
+      className={`relative overflow-auto ${className}`}
+      style={{ height: '100%' }}
+    >
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        {virtualItems.map(renderVirtualItem)}
+      </div>
     </div>
   );
-});
-
-MessageItem.displayName = "MessageItem";
-
-export const VirtualizedMessageList = memo(
-  ({
-    messages,
-    contact,
-    conversationId,
-    height,
-  }: VirtualizedMessageListProps) => {
-    const listRef = useRef<List>(null);
-    const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
-    const prevConversationId = useRef<number | undefined>(conversationId);
-    const prevMessageCount = useRef<number>(0);
-
-    // Estimar tamanho dinâmico por mensagem
-    const getItemSize = (index: number) => {
-      const message = messages[index];
-      if (!message) return 100;
-
-      const type = message.messageType;
-      if (type === "image" || type === "video") return 300;
-      if (type === "audio") return 160;
-      if (type === "document") return 140;
-
-      const base = 80;
-      const contentLength = message.content?.length || 0;
-      return base + Math.min(contentLength * 0.3, 300);
-    };
-
-    // Scroll para o final
-    const scrollToBottom = () => {
-      if (listRef.current && messages.length > 0) {
-        listRef.current.scrollToItem(messages.length - 1, "end");
-      }
-    };
-
-    // Scroll no início da conversa
-    useEffect(() => {
-      if (conversationId !== prevConversationId.current) {
-        setShouldScrollToBottom(true);
-        prevConversationId.current = conversationId;
-        prevMessageCount.current = messages.length;
-      }
-    }, [conversationId]);
-
-    // Scroll quando novas mensagens chegam
-    useEffect(() => {
-      if (messages.length > prevMessageCount.current && shouldScrollToBottom) {
-        scrollToBottom();
-      }
-      prevMessageCount.current = messages.length;
-    }, [messages.length, shouldScrollToBottom]);
-
-    // Scroll quando carregar inicialmente
-    useLayoutEffect(() => {
-      if (messages.length > 0 && shouldScrollToBottom) {
-        requestAnimationFrame(() => scrollToBottom());
-      }
-    }, [messages.length, shouldScrollToBottom]);
-
-    const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }: any) => {
-      if (!scrollUpdateWasRequested && messages.length > 0) {
-        const totalApproxHeight = messages.reduce(
-          (sum, _, i) => sum + getItemSize(i),
-          0,
-        );
-        const isNearBottom = scrollOffset + height >= totalApproxHeight - 200;
-        setShouldScrollToBottom(isNearBottom);
-      }
-    };
-
-    const itemData = useMemo(
-      () => ({
-        messages,
-        contact,
-        conversationId,
-      }),
-      [messages, contact, conversationId],
-    );
-
-    return (
-      <List
-        ref={listRef}
-        height={height}
-        width="100%"
-        itemCount={messages.length}
-        itemSize={getItemSize}
-        itemData={itemData}
-        onScroll={handleScroll}
-        style={{ overflowX: "hidden" }}
-      >
-        {MessageItem}
-      </List>
-    );
-  },
-);
-
-VirtualizedMessageList.displayName = "VirtualizedMessageList";
-
-export default VirtualizedMessageList;
+}

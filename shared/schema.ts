@@ -82,41 +82,27 @@ export const conversations = pgTable("conversations", {
 // Messages table
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  conversationId: integer("conversation_id").notNull(),
   content: text("content").notNull(),
-  isFromContact: boolean("is_from_contact").notNull(),
-  messageType: varchar("message_type", { length: 20 }).default("text"), // text, image, file
-  metadata: jsonb("metadata"), // for attachments, etc.
+  messageType: varchar("message_type", { length: 20 }).default('text'),
+  isFromContact: boolean("is_from_contact").default(false),
   isDeleted: boolean("is_deleted").default(false),
   sentAt: timestamp("sent_at").defaultNow(),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),
-  // Campos adicionais da Z-API
-  whatsappMessageId: varchar("whatsapp_message_id", { length: 50 }), // messageId do WhatsApp
-  zapiStatus: varchar("zapi_status", { length: 20 }), // PENDING, SENT, RECEIVED, READ, PLAYED
-  isGroup: boolean("is_group").default(false), // se a mensagem veio de grupo
-  referenceMessageId: varchar("reference_message_id", { length: 50 }), // para respostas
-  // Campos para notas internas
-  isInternalNote: boolean("is_internal_note").default(false), // indica se é uma nota interna
-  authorId: integer("author_id").references(() => systemUsers.id), // ID do usuário que criou a nota
-  authorName: varchar("author_name", { length: 100 }), // nome do autor para facilitar
-  noteType: varchar("note_type", { length: 20 }).default("general"), // general, reminder, important, follow_up
-  notePriority: varchar("note_priority", { length: 20 }).default("normal"), // low, normal, high, urgent
-  noteTags: text("note_tags").array(), // tags para categorização
-  isPrivate: boolean("is_private").default(false), // se a nota é privada para o autor
-  // Campo para ocultação local de mensagens
-  isHiddenForUser: boolean("is_hidden_for_user").default(false), // oculta mensagem apenas localmente exibição
-  // Campo para indicar que mensagem foi deletada pelo usuário (mas deve mostrar placeholder)
-  isDeletedByUser: boolean("is_deleted_by_user").default(false), // mensagem deletada mas deve mostrar "Esta mensagem foi apagada"
-  deletedAt: timestamp("deleted_at"), // quando foi deletada
-  deletedBy: integer("deleted_by").references(() => systemUsers.id), // ID do usuário que deletou a mensagem
-}, (table) => [
-  // 🚀 ÍNDICES CRÍTICOS PARA PERFORMANCE DE MENSAGENS
-  index("idx_messages_conversation_deleted_sent").on(table.conversationId, table.isDeleted, table.sentAt),
-  index("idx_messages_conversation_sent").on(table.conversationId, table.sentAt),
-  index("idx_messages_whatsapp_id").on(table.whatsappMessageId),
-  index("idx_messages_deleted_by").on(table.deletedBy),
-]);
+  metadata: jsonb("metadata").default({}),
+  status: varchar("status", { length: 20 }).default('sent'),
+  tempId: varchar("temp_id", { length: 36 }),
+  error: text("error"),
+  retryCount: integer("retry_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  conversationIdx: index("messages_conversation_id_idx").on(table.conversationId),
+  tempIdIdx: index("messages_temp_id_idx").on(table.tempId),
+  statusIdx: index("messages_status_idx").on(table.status),
+  createdAtIdx: index("messages_created_at_idx").on(table.createdAt)
+}));
 
 // Contact tags table
 export const contactTags = pgTable("contact_tags", {
@@ -639,8 +625,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-
-
 export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({
   id: true,
   isOnline: true,
@@ -702,7 +686,7 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertMessage = typeof messages.$inferInsert;
 export type ContactTag = typeof contactTags.$inferSelect;
 export type InsertContactTag = z.infer<typeof insertContactTagSchema>;
 export type SystemUser = typeof systemUsers.$inferSelect;
@@ -789,8 +773,6 @@ export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
   id: true,
   joinedAt: true,
 });
-
-
 
 export type UserTeam = typeof userTeams.$inferSelect;
 export type InsertUserTeam = z.infer<typeof insertUserTeamSchema>;

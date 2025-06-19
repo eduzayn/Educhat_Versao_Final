@@ -1,1 +1,1 @@
-export { default } from './VirtualizedMessageList'; 
+export { VirtualizedMessageList } from './VirtualizedMessageList'; 

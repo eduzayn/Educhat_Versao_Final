@@ -8,11 +8,12 @@
  * Status: SISTEMA ESTÁVEL - NÃO MODIFICAR
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
 import { useOptimizedMedia } from "@/shared/lib/hooks/useOptimizedMedia";
+import { useIntersectionObserver } from "@/shared/lib/hooks/useIntersectionObserver";
 
 interface LazyMediaContentProps {
   messageId: number;
@@ -21,16 +22,18 @@ interface LazyMediaContentProps {
   isFromContact: boolean;
   metadata?: any;
   initialContent?: string | null;
+  isVisible?: boolean; // Nova prop para controle de visibilidade
 }
 
-export function LazyMediaContent({
+export const LazyMediaContent = memo(({
   messageId,
   messageType,
   conversationId,
   isFromContact,
   metadata,
   initialContent: propInitialContent,
-}: LazyMediaContentProps) {
+  isVisible = true,
+}: LazyMediaContentProps) => {
   // Log detalhado dos dados recebidos para debugging
   console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
     messageType,
@@ -41,7 +44,8 @@ export function LazyMediaContent({
     hasInitialContent: !!propInitialContent,
     propInitialContent,
     initialContentType: typeof propInitialContent,
-    initialContentLength: propInitialContent?.length
+    initialContentLength: propInitialContent?.length,
+    isVisible
   });
 
   // CORREÇÃO: Carregamento sob demanda para TODAS as mensagens (enviadas e recebidas)
@@ -59,7 +63,8 @@ export function LazyMediaContent({
     isFromContact,
     shouldAutoLoad: false,
     processedInitialContent: null,
-    metadata
+    metadata,
+    isVisible
   });
 
   const {
@@ -73,11 +78,33 @@ export function LazyMediaContent({
     canRetry
   } = useOptimizedMedia(messageId, messageType, processedInitialContent);
 
+  // Intersection Observer para lazy loading
+  const { ref: intersectionRef, isIntersecting } = useIntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && isVisible && !loaded && !loading && !content) {
+          console.log(`👁️ LazyMediaContent ${messageId} entrou na viewport, carregando...`);
+          loadMediaContent();
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '100px' }
+  );
+
+  // Auto-carregar quando se tornar visível
+  useEffect(() => {
+    if (isVisible && isIntersecting && !loaded && !loading && !content) {
+      console.log(`🚀 Auto-carregando mídia ${messageId} (visível e em viewport)`);
+      loadMediaContent();
+    }
+  }, [isVisible, isIntersecting, loaded, loading, content, messageId, loadMediaContent]);
+
   const setError = (errorMsg: string) => {
     console.error(`❌ ${errorMsg}`, { messageId });
   };
 
-  const renderMediaPreview = () => {
+  // Memoização do preview da mídia
+  const mediaPreview = useMemo(() => {
     const fileName = metadata?.fileName || metadata?.caption || "Arquivo";
 
     switch (messageType) {
@@ -90,6 +117,7 @@ export function LazyMediaContent({
                 alt="Imagem enviada"
                 className="rounded-lg max-w-full h-auto cursor-pointer"
                 onClick={() => window.open(content, "_blank")}
+                loading="lazy"
               />
             </div>
           );
@@ -393,11 +421,19 @@ export function LazyMediaContent({
         );
 
       default:
-        return null;
+        return (
+          <div className="p-3 rounded-lg bg-gray-100 text-gray-600">
+            Tipo de mídia não suportado: {messageType}
+          </div>
+        );
     }
-  };
+  }, [messageType, content, metadata, loading, error, retryCount, canRetry, retry, loadMediaContent]);
 
-  return <div className="my-1">{renderMediaPreview()}</div>;
-}
+  return (
+    <div ref={intersectionRef}>
+      {mediaPreview}
+    </div>
+  );
+});
 
-export default LazyMediaContent;
+LazyMediaContent.displayName = 'LazyMediaContent';

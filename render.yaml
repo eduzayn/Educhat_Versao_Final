@@ -1,4 +1,54 @@
 services:
+  # Serviço para o banco de dados PostgreSQL
+  - type: pserv
+    name: educhat-db
+    env: postgresql
+    region: oregon # Você pode alterar para a região mais próxima de seus usuários
+    plan: free # Ou o plano pago que desejar
+
+  # Serviço para o Backend (API)
+  - type: web
+    name: educhat-server
+    env: node
+    region: oregon
+    plan: free
+    healthCheckPath: /api/health
+    buildCommand: "npm install && npm run build:server"
+    startCommand: "npm run start:server"
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: educhat-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true # O Render irá gerar um valor aleatório e seguro
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          type: static
+          name: educhat-client
+          property: url
+
+  # Serviço para o Frontend (Cliente React)
+  - type: static
+    name: educhat-client
+    buildCommand: "cd client && npm install && npm run build"
+    publishDir: "client/dist"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: educhat-server
+          property: url
+
   - type: web
     name: educhat-platform
     env: node
