@@ -121,7 +121,6 @@ export class ConversationListOperations extends BaseStorage {
       messages: messagesByConversation.has(conv.id) ? 
         [messagesByConversation.get(conv.id)] : 
         [],
-      unreadCount: conv.unreadCount || 0,
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }
@@ -201,7 +200,6 @@ export class ConversationListOperations extends BaseStorage {
       },
       channelInfo: undefined,
       messages: [],
-      unreadCount: conv.unreadCount || 0,
       _count: { messages: conv.unreadCount || 0 }
     } as ConversationWithContact));
   }
