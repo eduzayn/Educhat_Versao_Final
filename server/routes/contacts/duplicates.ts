@@ -6,7 +6,7 @@ const router = Router();
 
 // Schema para validação
 const checkDuplicatesSchema = z.object({
-  phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
+  phone: z.string().nullish(),
   excludeContactId: z.number().optional()
 });
 
