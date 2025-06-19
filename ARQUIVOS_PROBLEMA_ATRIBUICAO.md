@@ -120,16 +120,33 @@ client/src/stores/useConversationStore.ts
 ✅ Invalidação específica de cache
 ❌ **PROBLEMA PERSISTE** - Necessário investigar mais profundamente
 
-## PRÓXIMAS INVESTIGAÇÕES NECESSÁRIAS:
-1. **WebSocket Broadcast** - Verificar se broadcast está afetando múltiplas conversas
-2. **Database Queries** - Confirmar se WHERE clauses são específicas
-3. **React Query Cache** - Verificar se cache está sendo compartilhado incorretamente
-4. **Component Lifecycle** - Verificar se múltiplas instâncias estão sendo criadas
-5. **User Input Events** - Verificar se eventos estão sendo duplicados
+## 🔍 DESCOBERTA CRÍTICA CONFIRMADA:
+**CAUSA RAIZ IDENTIFICADA** - Estado do cabeçalho persistindo globalmente
 
-## POSSÍVEIS CAUSAS RESTANTES:
-- WebSocket broadcast enviando para salas incorretas
-- Consultas SQL sem WHERE adequado
-- Cache React Query compartilhado entre conversas
-- Eventos de DOM duplicados
-- Race conditions não capturadas pelo debounce
+### Arquivo: `client/src/modules/Inbox/components/ConversationAssignment/index.tsx`
+**Linhas 14-15:**
+```typescript
+const [localTeamId, setLocalTeamId] = useState(currentTeamId);
+const [localUserId, setLocalUserId] = useState(currentUserId);
+```
+
+### 🚨 O PROBLEMA:
+1. Estados locais (`localTeamId`, `localUserId`) são inicializados apenas UMA VEZ
+2. Quando muda de conversa, os states NÃO são atualizados com os novos props
+3. Estado "contamina" entre conversas diferentes
+4. Resultado: atribuição afeta múltiplas conversas simultaneamente
+
+### 🔧 SOLUÇÃO NECESSÁRIA:
+Adicionar `useEffect` para sincronizar states locais com props quando conversa muda:
+
+```typescript
+useEffect(() => {
+  setLocalTeamId(currentTeamId);
+  setLocalUserId(currentUserId);
+}, [conversationId, currentTeamId, currentUserId]);
+```
+
+### 📍 IMPACTO:
+- **Crítico**: Afeta produtividade operacional
+- **Escopo**: Toda transferência de conversas
+- **Urgência**: Correção imediata necessária
