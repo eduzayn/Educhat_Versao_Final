@@ -39,6 +39,7 @@ export const TeamsTab = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<{user: any, team: Team} | null>(null);
+  const [expandedTeams, setExpandedTeams] = useState<Set<number>>(new Set());
   
   // Estados do formulário de nova equipe
   const [newTeamForm, setNewTeamForm] = useState({
@@ -332,6 +333,19 @@ export const TeamsTab = () => {
     });
   };
 
+  // Alternar expansão dos membros da equipe
+  const toggleTeamExpansion = (teamId: number) => {
+    setExpandedTeams(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(teamId)) {
+        newSet.delete(teamId);
+      } else {
+        newSet.add(teamId);
+      }
+      return newSet;
+    });
+  };
+
   // Atualizar formulário quando uma equipe for selecionada para configuração
   const handleOpenConfigDialog = (team: Team) => {
     setSelectedTeam(team);
@@ -419,7 +433,7 @@ export const TeamsTab = () => {
                     <span className="text-sm font-medium mb-2 block">Membros da Equipe:</span>
                     {teamMembers[team.id] && teamMembers[team.id].length > 0 ? (
                       <div className="space-y-2">
-                        {teamMembers[team.id].slice(0, 3).map((member, index) => (
+                        {(expandedTeams.has(team.id) ? teamMembers[team.id] : teamMembers[team.id].slice(0, 3)).map((member, index) => (
                           <div key={`team-${team.id}-member-${member.id}-${index}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md group">
                             <Avatar className="h-6 w-6">
                               <AvatarFallback className="text-xs">
@@ -448,9 +462,17 @@ export const TeamsTab = () => {
                           </div>
                         ))}
                         {teamMembers[team.id].length > 3 && (
-                          <div className="text-xs text-muted-foreground text-center">
-                            +{teamMembers[team.id].length - 3} outros membros
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+                            onClick={() => toggleTeamExpansion(team.id)}
+                          >
+                            {expandedTeams.has(team.id) 
+                              ? 'Mostrar menos'
+                              : `+${teamMembers[team.id].length - 3} outros membros`
+                            }
+                          </Button>
                         )}
                       </div>
                     ) : (
