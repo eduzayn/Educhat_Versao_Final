@@ -30,10 +30,7 @@ router.get('/', async (req, res) => {
     
 
     
-    // Log de diagnóstico para filtro de agente
-    if (agentFilter && agentFilter !== 'all') {
-      console.log(`🔍 FILTRO AGENTE DEBUG: agentFilter="${agentFilter}", parsed=${parseInt(agentFilter)}, type=${typeof parseInt(agentFilter)}`);
-    }
+
     
     let conversations;
     if (search && search.trim()) {
