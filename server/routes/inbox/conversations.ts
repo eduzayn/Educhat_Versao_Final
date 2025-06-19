@@ -6,8 +6,90 @@ import { logger } from '../../utils/logger';
 
 const router = Router();
 
-// Listar conversas
+// Listar conversas - OTIMIZADO PARA RESOLVER 502 BAD GATEWAY
 router.get('/', async (req, res) => {
+  const requestTimeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(504).json({ 
+        message: 'Request timeout',
+        error: 'Database query exceeded time limit'
+      });
+    }
+  }, 25000); // 25s timeout para evitar 502
+
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 150);
+    const offset = parseInt(req.query.offset as string) || 0;
+    const search = req.query.search as string;
+    
+    const startTime = Date.now();
+    logger.debug(`Buscando conversas: limit=${limit}, offset=${offset}`);
+    
+    let conversations;
+    
+    if (search && search.trim()) {
+      // Busca com timeout mais curto
+      conversations = await Promise.race([
+        storage.searchConversations(search.trim(), Math.min(limit, 50)),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Search timeout')), 15000)
+        )
+      ]);
+      
+      clearTimeout(requestTimeout);
+      const duration = Date.now() - startTime;
+      logger.performance('Busca de conversas', duration, { count: conversations.length });
+      
+      return res.json(conversations);
+    } else {
+      // Carregamento padrão com timeout
+      conversations = await Promise.race([
+        storage.getConversations(limit, offset),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 20000)
+        )
+      ]);
+      
+      // Verificação simples de próxima página (sem query extra)
+      const hasNextPage = conversations.length === limit;
+      
+      clearTimeout(requestTimeout);
+      const duration = Date.now() - startTime;
+      logger.performance('Carregamento de conversas', duration, { 
+        count: conversations.length, 
+        hasNextPage
+      });
+      
+      return res.json({
+        conversations,
+        hasNextPage,
+        total: conversations.length,
+        offset,
+        limit
+      });
+    }
+  } catch (error) {
+    clearTimeout(requestTimeout);
+    
+    if (res.headersSent) {
+      return;
+    }
+    
+    console.error('Erro na busca de conversas:', error);
+    
+    if (error instanceof Error && 
+        (error.message.includes('timeout') || error.message.includes('TIMEOUT'))) {
+      return res.status(504).json({ 
+        message: 'Database timeout',
+        error: 'Query execution exceeded time limit'
+      });
+    }
+    
+    return res.status(500).json({ 
+      message: 'Database error',
+      error: error instanceof Error ? error.message : 'Unknown database error'
+    });
+  }
   try {
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -63,15 +145,21 @@ router.get('/', async (req, res) => {
       res.json(conversations);
     } else {
       logger.debug('Chamando storage com', { limit, offset, filters });
-      conversations = await storage.getConversations(limit);
       
-      const nextPageCheck = await storage.getConversations(1);
+      // Usar método correto do storage que aceita filtros
+      conversations = await storage.getConversations(limit, offset);
+      
+      // Verificar próxima página de forma mais eficiente  
+      const nextOffset = offset + limit;
+      const nextPageCheck = await storage.getConversations(1, nextOffset);
       const hasNextPage = nextPageCheck.length > 0;
       
       const duration = Date.now() - startTime;
       logger.performance('Carregamento de conversas', duration, { 
         count: conversations.length, 
-        hasNextPage 
+        hasNextPage,
+        offset,
+        nextOffset
       });
       
       // Retornar formato compatível com scroll infinito
