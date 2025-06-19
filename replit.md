@@ -67,6 +67,10 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: Implementada proteção robusta contra duplicação de mensagens - Sistema de debounce, cache temporal e bloqueio de botão
+- June 19, 2025: Removido número de telefone da lista de conversas para reduzir poluição visual
+- June 19, 2025: Removida restrição de digitação durante envio de mensagens no textarea
+- June 19, 2025: Implementado efeito hover discreto para lixeira de exclusão de mensagens
 - June 19, 2025: Correções para erro 502 no Render - Otimizações de timeout, configurações de produção e health checks
 - June 17, 2025: Initial setup
 

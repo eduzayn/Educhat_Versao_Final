@@ -301,7 +301,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
           <Button
             onClick={handleSendMessage}
-            disabled={!message.trim() || isLoading}
+            disabled={!message.trim() || isLoading || isSendingBlocked}
             size="sm"
             aria-label={isInternalNote ? "Criar nota interna" : "Enviar mensagem"}
             className={isInternalNote ? 'bg-amber-600 hover:bg-amber-700' : ''}
