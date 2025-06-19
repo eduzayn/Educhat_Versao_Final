@@ -6,7 +6,7 @@ const router = Router();
 
 // Schema para validação
 const checkDuplicatesSchema = z.object({
-  phone: z.string().min(1, "Telefone é obrigatório"),
+  phone: z.union([z.string(), z.null(), z.undefined()]).optional(),
   excludeContactId: z.number().optional()
 });
 
@@ -17,6 +17,16 @@ const checkDuplicatesSchema = z.object({
 router.post("/check-duplicates", async (req, res) => {
   try {
     const { phone, excludeContactId } = checkDuplicatesSchema.parse(req.body);
+    
+    // Se não há telefone válido, retornar sem duplicação
+    if (!phone || typeof phone !== 'string' || !phone.trim()) {
+      return res.json({
+        isDuplicate: false,
+        duplicates: [],
+        totalDuplicates: 0,
+        channels: []
+      });
+    }
     
     const result = await storage.contacts.checkPhoneDuplicates(phone, excludeContactId);
     
