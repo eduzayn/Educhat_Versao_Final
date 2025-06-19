@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useMessageSender } from './hooks/useMessageSender';
 import { useQuickReplies, useIncrementQuickReplyUsage } from '@/shared/lib/hooks/useQuickReplies';
 import { Textarea } from '@/shared/ui/textarea';
@@ -23,6 +23,9 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isInternalNote, setIsInternalNote] = useState(false);
+  const [lastSentMessage, setLastSentMessage] = useState<string>('');
+  const [lastSentTime, setLastSentTime] = useState<number>(0);
+  const [isSendingBlocked, setIsSendingBlocked] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const audioRecorderRef = useRef<AudioRecorderRef>(null);
 
@@ -76,14 +79,52 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     textAreaRef.current?.focus();
   };
 
+  // Proteção contra duplicação de mensagens por duplo clique
+  const isDuplicateMessage = useCallback((content: string) => {
+    const now = Date.now();
+    const timeDiff = now - lastSentTime;
+    const DUPLICATE_THRESHOLD_MS = 2000; // 2 segundos
+    
+    return (
+      content.trim() === lastSentMessage.trim() && 
+      timeDiff < DUPLICATE_THRESHOLD_MS
+    );
+  }, [lastSentMessage, lastSentTime]);
+
   const handleSendMessage = async () => {
-    if (isInternalNote) {
-      await handleSendInternalNote();
-    } else {
-      const success = await sendTextMessage(message);
-      if (success) {
-        setMessage("");
+    const messageContent = message.trim();
+    
+    // Verificar se já está bloqueado ou é uma mensagem duplicada
+    if (isSendingBlocked) {
+      console.warn('Envio bloqueado - aguarde o anterior completar');
+      return;
+    }
+
+    if (isDuplicateMessage(messageContent)) {
+      console.warn('Tentativa de envio duplicado bloqueada:', messageContent);
+      return;
+    }
+
+    // Bloquear envios temporariamente
+    setIsSendingBlocked(true);
+    
+    try {
+      if (isInternalNote) {
+        await handleSendInternalNote();
+      } else {
+        const success = await sendTextMessage(messageContent);
+        if (success) {
+          // Registrar o envio para evitar duplicatas
+          setLastSentMessage(messageContent);
+          setLastSentTime(Date.now());
+          setMessage("");
+        }
       }
+    } finally {
+      // Desbloquear após 1.5 segundos para evitar duplo clique
+      setTimeout(() => {
+        setIsSendingBlocked(false);
+      }, 1500);
     }
   };
 

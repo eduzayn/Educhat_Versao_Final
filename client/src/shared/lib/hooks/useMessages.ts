@@ -2,6 +2,36 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
+// Cache global para evitar mensagens duplicadas
+const recentMessages = new Map<string, number>();
+const DUPLICATE_PREVENTION_TIME = 3000; // 3 segundos
+
+function generateMessageKey(conversationId: number, content: string): string {
+  return `${conversationId}:${content.trim()}`;
+}
+
+function isDuplicateMessage(conversationId: number, content: string): boolean {
+  const key = generateMessageKey(conversationId, content);
+  const lastSent = recentMessages.get(key);
+  const now = Date.now();
+  
+  if (lastSent && (now - lastSent) < DUPLICATE_PREVENTION_TIME) {
+    return true;
+  }
+  
+  return false;
+}
+
+function markMessageAsSent(conversationId: number, content: string): void {
+  const key = generateMessageKey(conversationId, content);
+  recentMessages.set(key, Date.now());
+  
+  // Limpar entradas antigas para evitar vazamento de memória
+  setTimeout(() => {
+    recentMessages.delete(key);
+  }, DUPLICATE_PREVENTION_TIME);
+}
+
 export function useMessages(conversationId: number | null, limit = 25) {
   return useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
@@ -43,6 +73,17 @@ export function useSendMessage() {
       message: Omit<InsertMessage, 'conversationId'>;
       contact?: any;
     }) => {
+      // Verificar se é uma mensagem duplicada
+      if (message.content && isDuplicateMessage(conversationId, message.content)) {
+        console.warn('🚫 Mensagem duplicada bloqueada:', message.content);
+        throw new Error('Mensagem duplicada detectada');
+      }
+
+      // Marcar mensagem como enviada para evitar duplicatas
+      if (message.content) {
+        markMessageAsSent(conversationId, message.content);
+      }
+
       // Se for nota interna, NUNCA enviar via Z-API - apenas salvar localmente
       if (message.isInternalNote) {
         console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
