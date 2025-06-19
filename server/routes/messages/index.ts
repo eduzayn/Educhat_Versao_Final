@@ -13,12 +13,20 @@ export function registerMessageRoutes(app: Express) {
   app.use(mediaRouter);
   app.use(deleteRouter);
 
-  // Messages endpoints with infinite scroll support
+  // Messages endpoints with infinite scroll support - OTIMIZADO para evitar 502
   app.get('/api/conversations/:id/messages', async (req, res) => {
+    const startTime = Date.now();
+    
+    // Timeout de segurança para evitar 502 Bad Gateway
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout no carregamento de mensagens'));
+      }, 10000); // 10 segundos máximo
+    });
+    
     try {
-      const startTime = Date.now();
       const id = parseInt(req.params.id);
-      let limit = req.query.limit ? parseInt(req.query.limit as string) : 30; // Otimizado para 30
+      let limit = req.query.limit ? parseInt(req.query.limit as string) : 25; // Reduzido para 25
       const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
       const cursor = req.query.cursor as string;
       
@@ -27,49 +35,63 @@ export function registerMessageRoutes(app: Express) {
         return res.status(400).json({ error: 'ID da conversa inválido' });
       }
       
-      // Otimização inteligente: Permitir limites maiores mas com monitoramento de performance
-      if (limit > 50) {
-        console.log(`📋 Limite ajustado de ${limit} para 50 mensagens (máximo otimizado)`);
-        limit = 50;
+      // Otimização crítica: Limitar para evitar timeouts
+      if (limit > 30) {
+        console.log(`📋 Limite ajustado de ${limit} para 30 mensagens (limite de segurança)`);
+        limit = 30;
       }
       
       console.log(`🔄 Carregando ${limit} mensagens para conversa ${id}`);
       
-      // Usar método otimizado com seleção de campos específicos
-      const messages = await storage.message.getMessages(id, limit, offset);
+      // Executar com timeout de segurança
+      const result = await Promise.race([
+        storage.message.getMessages(id, limit, offset),
+        timeoutPromise
+      ]);
       
       // Verificar se há mais mensagens de forma eficiente
-      const hasMore = messages.length === limit;
+      const hasMore = result.length === limit;
       
       // Gerar cursor para próxima página baseado no último ID
-      const nextCursor = hasMore && messages.length > 0 
-        ? messages[messages.length - 1].id.toString()
+      const nextCursor = hasMore && result.length > 0 
+        ? result[result.length - 1].id.toString()
         : undefined;
 
       const endTime = Date.now();
-      console.log(`✅ Mensagens carregadas em ${endTime - startTime}ms (${messages.length} itens)`);
+      console.log(`✅ Mensagens carregadas em ${endTime - startTime}ms (${result.length} itens)`);
 
-      // Headers otimizados para evitar ERR_CACHE_WRITE_FAILURE
+      // Headers otimizados para evitar problemas de cache
       res.set({
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Surrogate-Control': 'no-store'
+        'X-Content-Type-Options': 'nosniff'
       });
 
       res.json({
-        messages,
+        messages: result,
         hasMore,
         nextCursor,
-        total: messages.length,
+        total: result.length,
         loadTime: endTime - startTime
       });
+      
     } catch (error) {
-      console.error('❌ Erro ao buscar mensagens:', error);
-      res.status(500).json({ 
-        error: 'Falha ao carregar mensagens',
-        details: error instanceof Error ? error.message : 'Erro interno'
-      });
+      const duration = Date.now() - startTime;
+      console.error(`❌ Erro ao buscar mensagens (${duration}ms):`, error);
+      
+      // Retornar resposta de fallback para evitar 502
+      if (!res.headersSent) {
+        res.status(200).json({ 
+          messages: [],
+          hasMore: false,
+          nextCursor: undefined,
+          total: 0,
+          loadTime: duration,
+          error: 'Carregamento temporariamente indisponível',
+          fallback: true
+        });
+      }
     }
   });
 

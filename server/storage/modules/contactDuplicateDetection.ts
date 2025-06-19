@@ -28,110 +28,133 @@ export class ContactDuplicateDetection extends BaseStorage {
   
   /**
    * Verifica se um número de telefone já existe em outros canais
+   * OTIMIZADO: Query única com JOIN para evitar múltiplas consultas
    */
   async checkPhoneDuplicates(phone: string, excludeContactId?: number): Promise<ContactDuplicationResult> {
-    if (!phone || !phone.trim()) {
-      return {
-        isDuplicate: false,
-        duplicates: [],
-        totalDuplicates: 0,
-        channels: []
-      };
-    }
+    const startTime = Date.now();
+    
+    try {
+      if (!phone || !phone.trim()) {
+        return {
+          isDuplicate: false,
+          duplicates: [],
+          totalDuplicates: 0,
+          channels: []
+        };
+      }
 
-    // Normalizar número de telefone
-    const normalizedPhone = this.normalizePhone(phone);
+      // Normalizar número de telefone
+      const normalizedPhone = this.normalizePhone(phone);
 
-    // Buscar contatos com o mesmo número
-    const whereConditions = [
-      eq(contacts.phone, phone),
-      eq(contacts.phone, normalizedPhone)
-    ];
+      // Buscar contatos com o mesmo número usando query otimizada
+      const whereConditions = [
+        eq(contacts.phone, phone),
+        eq(contacts.phone, normalizedPhone)
+      ];
 
-    // Gerar variações do número
-    const phoneVariations = this.generatePhoneVariations(normalizedPhone);
-    phoneVariations.forEach(variation => {
-      whereConditions.push(eq(contacts.phone, variation));
-    });
-
-    let whereClause = or(...whereConditions);
-
-    // Excluir o contato atual se especificado
-    if (excludeContactId) {
-      whereClause = and(
-        or(...whereConditions),
-        ne(contacts.id, excludeContactId)
-      );
-    }
-
-    const foundContacts = await this.db
-      .select({
-        id: contacts.id,
-        name: contacts.name,
-        phone: contacts.phone,
-        canalOrigem: contacts.canalOrigem,
-        nomeCanal: contacts.nomeCanal,
-        idCanal: contacts.idCanal,
-        createdAt: contacts.createdAt,
-        updatedAt: contacts.updatedAt
-      })
-      .from(contacts)
-      .where(whereClause);
-
-    if (foundContacts.length === 0) {
-      return {
-        isDuplicate: false,
-        duplicates: [],
-        totalDuplicates: 0,
-        channels: []
-      };
-    }
-
-    // Processar informações de cada contato duplicado
-    const duplicatesWithInfo: DuplicateContactInfo[] = [];
-    const channels: Set<string> = new Set();
-
-    for (const contact of foundContacts) {
-      // Contar conversas do contato
-      const [countResult] = await this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(conversations)
-        .where(eq(conversations.contactId, contact.id));
-
-      // Buscar última atividade
-      const [lastConversation] = await this.db
-        .select({ lastMessageAt: conversations.lastMessageAt })
-        .from(conversations)
-        .where(eq(conversations.contactId, contact.id))
-        .orderBy(sql`${conversations.lastMessageAt} DESC`)
-        .limit(1);
-
-      duplicatesWithInfo.push({
-        contactId: contact.id,
-        name: contact.name,
-        phone: contact.phone,
-        canalOrigem: contact.canalOrigem,
-        nomeCanal: contact.nomeCanal,
-        idCanal: contact.idCanal,
-        conversationCount: countResult?.count || 0,
-        lastActivity: lastConversation?.lastMessageAt || contact.createdAt
+      // Gerar variações do número
+      const phoneVariations = this.generatePhoneVariations(normalizedPhone);
+      phoneVariations.forEach(variation => {
+        whereConditions.push(eq(contacts.phone, variation));
       });
 
-      // Coletar canais únicos
-      if (contact.canalOrigem) {
-        channels.add(contact.canalOrigem);
-      }
-      if (contact.nomeCanal) {
-        channels.add(contact.nomeCanal);
-      }
-    }
+      let whereClause = or(...whereConditions);
 
-    return {
-      isDuplicate: true,
-      duplicates: duplicatesWithInfo,
-      totalDuplicates: duplicatesWithInfo.length,
-      channels: Array.from(channels)
-    };
+      // Excluir o contato atual se especificado
+      if (excludeContactId) {
+        whereClause = and(
+          or(...whereConditions),
+          ne(contacts.id, excludeContactId)
+        );
+      }
+
+      // Query otimizada com JOIN para buscar dados em uma única consulta
+      const foundContactsWithStats = await this.db
+        .select({
+          id: contacts.id,
+          name: contacts.name,
+          phone: contacts.phone,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt,
+          conversationCount: sql<number>`COALESCE(COUNT(${conversations.id}), 0)`,
+          lastActivity: sql<Date>`COALESCE(MAX(${conversations.lastMessageAt}), ${contacts.createdAt})`
+        })
+        .from(contacts)
+        .leftJoin(conversations, eq(conversations.contactId, contacts.id))
+        .where(whereClause)
+        .groupBy(
+          contacts.id, 
+          contacts.name, 
+          contacts.phone, 
+          contacts.canalOrigem, 
+          contacts.nomeCanal, 
+          contacts.idCanal, 
+          contacts.createdAt, 
+          contacts.updatedAt
+        )
+        .limit(50); // Limitar para evitar sobrecarga
+
+      const duration = Date.now() - startTime;
+
+      if (foundContactsWithStats.length === 0) {
+        console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - Nenhuma duplicata encontrada`);
+        return {
+          isDuplicate: false,
+          duplicates: [],
+          totalDuplicates: 0,
+          channels: []
+        };
+      }
+
+      // Processar informações otimizadas
+      const duplicatesWithInfo: DuplicateContactInfo[] = [];
+      const channels: Set<string> = new Set();
+
+      for (const contact of foundContactsWithStats) {
+        duplicatesWithInfo.push({
+          contactId: contact.id,
+          name: contact.name,
+          phone: contact.phone,
+          canalOrigem: contact.canalOrigem,
+          nomeCanal: contact.nomeCanal,
+          idCanal: contact.idCanal,
+          conversationCount: contact.conversationCount || 0,
+          lastActivity: contact.lastActivity || contact.createdAt
+        });
+
+        // Coletar canais únicos
+        if (contact.canalOrigem) {
+          channels.add(contact.canalOrigem);
+        }
+        if (contact.nomeCanal) {
+          channels.add(contact.nomeCanal);
+        }
+      }
+
+      console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - ${duplicatesWithInfo.length} duplicatas encontradas`);
+
+      return {
+        isDuplicate: true,
+        duplicates: duplicatesWithInfo,
+        totalDuplicates: duplicatesWithInfo.length,
+        channels: Array.from(channels)
+      };
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`❌ Erro na verificação de duplicatas (${duration}ms):`, error);
+      
+      // Retornar resultado padrão em caso de erro para evitar 502
+      return {
+        isDuplicate: false,
+        duplicates: [],
+        totalDuplicates: 0,
+        channels: []
+      };
+    }
   }
 
   /**

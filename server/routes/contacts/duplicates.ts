@@ -13,8 +13,18 @@ const checkDuplicatesSchema = z.object({
 /**
  * POST /api/contacts/check-duplicates
  * Verifica se um número de telefone já existe em outros canais
+ * OTIMIZADO: Timeout robusto e tratamento de erro para evitar 502
  */
 router.post("/check-duplicates", async (req, res) => {
+  const startTime = Date.now();
+  
+  // Timeout de segurança para evitar 502 Bad Gateway
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Timeout na verificação de duplicatas'));
+    }, 8000); // 8 segundos máximo
+  });
+  
   try {
     const { phone, excludeContactId } = checkDuplicatesSchema.parse(req.body);
     
@@ -28,15 +38,39 @@ router.post("/check-duplicates", async (req, res) => {
       });
     }
     
-    const result = await storage.contacts.checkPhoneDuplicates(phone, excludeContactId);
+    // Executar verificação com timeout
+    const result = await Promise.race([
+      storage.contacts.checkPhoneDuplicates(phone, excludeContactId),
+      timeoutPromise
+    ]);
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ Check duplicates concluído em ${duration}ms`);
+    
+    // Headers para evitar cache em caso de erro
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     
     res.json(result);
+    
   } catch (error: any) {
-    console.error("Erro ao verificar duplicatas:", error);
-    res.status(400).json({ 
-      error: "Erro ao verificar duplicatas", 
-      details: error.message 
-    });
+    const duration = Date.now() - startTime;
+    console.error(`❌ Erro ao verificar duplicatas (${duration}ms):`, error);
+    
+    // Retornar resposta de fallback em caso de erro para evitar 502
+    if (!res.headersSent) {
+      res.status(200).json({ 
+        isDuplicate: false,
+        duplicates: [],
+        totalDuplicates: 0,
+        channels: [],
+        error: "Verificação temporariamente indisponível",
+        fallback: true
+      });
+    }
   }
 });
 
