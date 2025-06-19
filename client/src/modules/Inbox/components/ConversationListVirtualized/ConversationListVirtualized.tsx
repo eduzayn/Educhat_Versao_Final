@@ -42,10 +42,8 @@ export function ConversationListVirtualized({
   setTeamFilter = () => {},
   periodFilter = 'all',
   setPeriodFilter = () => {},
-  messageTypeFilter = 'all',
-  setMessageTypeFilter = () => {},
-  priorityFilter = 'all',
-  setPriorityFilter = () => {},
+  agentFilter = 'all',
+  setAgentFilter = () => {},
   activeConversation,
   onSelectConversation,
   onLoadMore,
@@ -88,7 +86,9 @@ export function ConversationListVirtualized({
         if (periodFilter === "all") return true;
         
         const now = new Date();
-        const conversationDate = new Date(conversation.updatedAt || conversation.createdAt);
+        const dateValue = conversation.updatedAt || conversation.createdAt;
+        if (!dateValue) return true;
+        const conversationDate = new Date(dateValue);
         
         switch (periodFilter) {
           case "today":
@@ -120,55 +120,14 @@ export function ConversationListVirtualized({
         }
       })();
 
-      // Filtro de tipo de mensagem
-      const matchesMessageType = (() => {
-        if (messageTypeFilter === "all") return true;
-        
-        const lastMessage = conversation.messages?.[0];
-        if (!lastMessage) return false;
-        
-        switch (messageTypeFilter) {
-          case "text":
-            return lastMessage.type === "text" && !lastMessage.media;
-          case "image":
-            return lastMessage.type === "image" || lastMessage.media?.type === "image";
-          case "audio":
-            return lastMessage.type === "audio" || lastMessage.media?.type === "audio";
-          case "video":
-            return lastMessage.type === "video" || lastMessage.media?.type === "video";
-          case "document":
-            return lastMessage.type === "document" || lastMessage.media?.type === "document";
-          case "contact":
-            return lastMessage.type === "contact";
-          default:
-            return true;
-        }
-      })();
-
-      // Filtro de prioridade
-      const matchesPriority = (() => {
-        if (priorityFilter === "all") return true;
-        
-        switch (priorityFilter) {
-          case "high":
-            return conversation.priority === "high";
-          case "medium":
-            return conversation.priority === "medium";
-          case "low":
-            return conversation.priority === "low";
-          case "unread":
-            return conversation.unreadCount > 0;
-          case "with_deals":
-            return conversation.hasDeals === true;
-          default:
-            return true;
-        }
-      })();
+      // Filtro de agente
+      const matchesAgent = agentFilter === "all" || 
+        (conversation.assignedUserId && conversation.assignedUserId.toString() === agentFilter);
 
       return matchesSearch && matchesStatus && matchesChannel && 
-             matchesTeam && matchesPeriod && matchesMessageType && matchesPriority;
+             matchesTeam && matchesPeriod && matchesAgent;
     });
-  }, [conversations, searchTerm, statusFilter, channelFilter, teamFilter, periodFilter, messageTypeFilter, priorityFilter]);
+  }, [conversations, searchTerm, statusFilter, channelFilter, teamFilter, periodFilter, agentFilter]);
 
   const visibleConversations = filteredConversations;
 
@@ -235,10 +194,8 @@ export function ConversationListVirtualized({
         setTeamFilter={setTeamFilter}
         periodFilter={periodFilter}
         setPeriodFilter={setPeriodFilter}
-        messageTypeFilter={messageTypeFilter}
-        setMessageTypeFilter={setMessageTypeFilter}
-        priorityFilter={priorityFilter}
-        setPriorityFilter={setPriorityFilter}
+        agentFilter={agentFilter}
+        setAgentFilter={setAgentFilter}
         channels={channels}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
