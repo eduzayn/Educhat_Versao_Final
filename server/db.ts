@@ -2,16 +2,17 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
+import { config } from './config/env';
 
 neonConfig.webSocketConstructor = ws;
 
 // Configurações otimizadas para Render
-if (process.env.NODE_ENV === 'production') {
+if (config.isProduction) {
   neonConfig.poolQueryViaFetch = true;
   neonConfig.fetchConnectionCache = true;
 }
 
-if (!process.env.DATABASE_URL) {
+if (!config.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
@@ -19,8 +20,8 @@ if (!process.env.DATABASE_URL) {
 
 // Pool otimizado para produção
 const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
-  ...(process.env.NODE_ENV === 'production' && {
+  connectionString: config.DATABASE_URL,
+  ...(config.isProduction && {
     connectionTimeoutMillis: 5000,
     idleTimeoutMillis: 30000,
     max: 10,

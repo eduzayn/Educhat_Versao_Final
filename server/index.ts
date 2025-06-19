@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
@@ -5,6 +6,7 @@ import path from "path";
 import fs from "fs";
 import cors from "cors";
 import { pool } from "./db";
+import { config } from './config/env';
 
 // Garantir que o diretório de uploads exista
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -41,19 +43,19 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 // Configuração de CORS adequada para produção
-const allowedOrigins = process.env.NODE_ENV === 'production' 
+const allowedOrigins = config.isProduction 
   ? [
       'https://educhat.com.br', 
       'https://www.educhat.com.br',
       'https://educhat.galaxiasistemas.com.br',
       ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : []),
       ...(process.env.RAILWAY_STATIC_URL ? [process.env.RAILWAY_STATIC_URL] : []),
-      ...(process.env.REPLIT_DOMAINS ? 
-          process.env.REPLIT_DOMAINS.split(',').map(domain => `https://${domain.trim()}`) : [])
+      ...(config.REPLIT_DOMAINS ? 
+          config.REPLIT_DOMAINS.split(',').map(domain => `https://${domain.trim()}`) : [])
     ] 
   : true;
 
-console.log("🌐 CORS configurado para:", { allowedOrigins, env: process.env.NODE_ENV });
+console.log("🌐 CORS configurado para:", { allowedOrigins, env: config.NODE_ENV });
 
 app.use(cors({
   origin: allowedOrigins,
@@ -252,30 +254,30 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "development") {
+  if (config.isDevelopment) {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
   // Use PORT environment variable for production (Railway/Render) or default to 5000 for development
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = parseInt(config.PORT, 10);
   
   // Configurações otimizadas para Render
   const serverOptions = {
     port,
     host: "0.0.0.0",
-    ...(process.env.NODE_ENV === 'production' && {
+    ...(config.isProduction && {
       keepAliveTimeout: 65000, // Maior que o timeout do load balancer (60s)
       headersTimeout: 66000, // Deve ser maior que keepAliveTimeout
     })
   };
 
   server.listen(serverOptions, () => {
-    log(`🚀 EduChat server running on port ${port} (${process.env.NODE_ENV || 'development'})`);
+    log(`🚀 EduChat server running on port ${port} (${config.NODE_ENV})`);
     
     // Log de configurações importantes em produção
-    if (process.env.NODE_ENV === 'production') {
+    if (config.isProduction) {
       console.log('✅ Configurações de produção ativas:');
       console.log(`   - Keep-alive timeout: ${serverOptions.keepAliveTimeout}ms`);
       console.log(`   - Headers timeout: ${serverOptions.headersTimeout}ms`);
