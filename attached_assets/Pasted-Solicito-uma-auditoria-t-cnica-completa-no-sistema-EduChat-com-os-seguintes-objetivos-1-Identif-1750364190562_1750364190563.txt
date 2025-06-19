@@ -1,0 +1,46 @@
+Solicito uma auditoria técnica completa no sistema EduChat com os seguintes objetivos:
+
+✅ 1. Identificar estruturas duplicadas ou redundantes
+Verificar se existem componentes duplicados ou reaproveitados de forma inconsistente no sistema (ex: hooks, stores, rotas, schemas, tipos ou serviços repetidos).
+
+Auditar possíveis cópias de lógica entre módulos (por exemplo: duplicação de validações no front e no back).
+
+Mapear arquivos com código obsoleto, não utilizado ou que pode ser centralizado para melhorar a manutenção.
+
+Detectar endpoints e stores que foram criados e não estão sendo consumidos.
+
+✅ 2. Garantir comunicação em tempo real entre módulos
+Validar se a sincronização entre front e back-end está funcionando corretamente em:
+
+Atribuições de atendentes.
+
+Recebimento e visualização de mensagens.
+
+Atualização de status da conversa e leitura.
+
+Verificar se todos os eventos de WebSocket estão:
+
+Sendo emitidos corretamente.
+
+Sendo recebidos e atualizados em tempo real nos módulos certos.
+
+Garantir que conversas, usuários e mensagens estejam sempre atualizados na interface sem necessidade de recarregar a página.
+
+✅ 3. Avaliar e corrigir pontos críticos de performance
+Auditar se há carregamento excessivo de dados (ex: muitas mensagens, conversas, usuários carregados ao mesmo tempo).
+
+Verificar se há componentes com re-renderizações desnecessárias ou stores globais com dados não paginados.
+
+Verificar o uso do refetch, react-query, zustand ou websocket para garantir que tudo seja otimizado e seguro.
+
+✅ 4. Relatório com sugestões de refatoração
+Ao final, pedimos um relatório com:
+
+✅ Pontos onde o sistema pode ser mais leve.
+
+⚠️ Trechos onde há redundância perigosa.
+
+🚀 Sugestões de melhorias com impacto direto na estabilidade, escalabilidade e experiência do usuário.
+
+⚠️ Observação:
+O sistema está em produção, então toda a auditoria deve ser feita com cuidado, e as sugestões de mudança devem ser aplicadas de forma segura, progressiva e bem documentada para não comprometer o que já funciona bem.

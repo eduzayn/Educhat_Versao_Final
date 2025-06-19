@@ -110,14 +110,29 @@ export default function QuickRepliesSettingsPage() {
 
   // Check if user can edit a specific quick reply
   const canEditQuickReply = (quickReply: QuickReply) => {
-    if (!currentUser || !canEditQuickReplyPermission) return false;
+    if (!currentUser) {
+      console.log('canEditQuickReply: No currentUser');
+      return false;
+    }
+    
+    // Admin sempre pode editar
+    if (currentUser.role === 'admin' || currentUser.role === 'Administrador') {
+      console.log('canEditQuickReply: User is admin, allowing edit');
+      return true;
+    }
+    
+    // Se não tem permissão básica, não pode editar
+    if (!canEditQuickReplyPermission) {
+      console.log('canEditQuickReply: No edit permission');
+      return false;
+    }
     
     // Atendentes só podem editar respostas criadas por eles próprios
     if (currentUser.role === 'atendente') {
       return quickReply.createdBy === currentUser.id;
     }
     
-    // Para outros papéis (supervisores, gestores, admin)
+    // Para outros papéis (supervisores, gestores)
     // Se pode gerenciar respostas globais, pode editar qualquer uma
     if (canManageGlobalQuickReplies) return true;
     
@@ -130,19 +145,26 @@ export default function QuickRepliesSettingsPage() {
     // Se for resposta da equipe e o usuário pertencer à mesma equipe
     if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
     
-    return false;
+    // Por padrão, permitir edição se o usuário criou a resposta
+    return quickReply.createdBy === currentUser.id;
   };
 
   // Check if user can delete a specific quick reply
   const canDeleteSpecificQuickReply = (quickReply: QuickReply) => {
-    if (!currentUser || !canDeleteQuickReply) return false;
+    if (!currentUser) return false;
+    
+    // Admin sempre pode excluir
+    if (currentUser.role === 'admin' || currentUser.role === 'Administrador') return true;
+    
+    // Se não tem permissão básica, não pode excluir
+    if (!canDeleteQuickReply) return false;
     
     // Atendentes só podem excluir respostas criadas por eles próprios
     if (currentUser.role === 'atendente') {
       return quickReply.createdBy === currentUser.id;
     }
     
-    // Para outros papéis (supervisores, gestores, admin)
+    // Para outros papéis (supervisores, gestores)
     // Se pode gerenciar respostas globais, pode excluir qualquer uma
     if (canManageGlobalQuickReplies) return true;
     
@@ -155,7 +177,8 @@ export default function QuickRepliesSettingsPage() {
     // Se for resposta da equipe e o usuário pertencer à mesma equipe
     if (quickReply.shareScope === 'team' && currentUser.teamId === quickReply.teamId) return true;
     
-    return false;
+    // Por padrão, permitir exclusão se o usuário criou a resposta
+    return quickReply.createdBy === currentUser.id;
   };
 
   // Create/Update mutation
@@ -655,6 +678,7 @@ export default function QuickRepliesSettingsPage() {
                           ? "Editar resposta rápida" 
                           : "Você não tem permissão para editar esta resposta rápida"
                       }
+                      className="hover:bg-blue-50 hover:text-blue-600"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -668,6 +692,7 @@ export default function QuickRepliesSettingsPage() {
                           ? "Excluir resposta rápida" 
                           : "Você não tem permissão para excluir esta resposta rápida"
                       }
+                      className="hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
