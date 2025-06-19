@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: educhat-dev
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: ZAPI_TOKEN
+        sync: false
+      - key: ZAPI_INSTANCE_ID
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+    autoDeploy: false
+    branch: feature/development-environment 
