@@ -67,6 +67,7 @@ The application supports multiple deployment platforms with automatic configurat
 - Database connection pooling for scalability
 
 ## Changelog
+- June 19, 2025: Implementado sistema de proxy para URLs de mídia do WhatsApp - Solução automática para erros 403 (Forbidden) em imagens/mídia com URLs expiradas, proxy transparente com fallback e componente MediaViewer com detecção automática de falhas
 - June 19, 2025: CORREÇÃO CRÍTICA - Regularizada sincronização de mensagens via webhook - Corrigido WebSocket broadcast robusto com fallbacks, atualização automática de conversas (unreadCount, lastMessageAt), sistema de recuperação de mensagens não exibidas e listener de sincronização em tempo real para resolver problema de mensagens salvas no banco mas não renderizadas na interface
 - June 19, 2025: Implementado sistema completo de detecção de contatos duplicados - Sistema identifica automaticamente números de telefone duplicados em múltiplos canais (WhatsApp Comercial e Suporte), exibe alertas discretos na lista de conversas e detalhes na sidebar, mantendo históricos separados mas sinalizando duplicidade aos atendentes
 - June 19, 2025: Corrigido sistema de avatares dos agentes responsáveis - Implementado cálculo correto de iniciais para nomes compostos (ex: "Amanda Joice" = "AJ", "Elaine Cristina" = "EC") com fallback para nomes únicos

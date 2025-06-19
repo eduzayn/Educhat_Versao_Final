@@ -28,6 +28,7 @@ import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import { registerSettingsRoutes } from "./settings/index";
 import { registerFunnelRoutes } from "./funnels/index";
+import { registerMediaProxyRoutes } from "./media-proxy";
 import { registerConversationDetailsRoutes } from "./conversations/details";
 import { setupSearchRoutes } from "./search";
 import conversationsRouter from "./conversations/index";
@@ -121,6 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas de recuperação de mensagens (CORREÇÃO CRÍTICA)
   app.use('/api/webhooks', messageRecoveryRouter);
+  
+  // Registrar proxy de mídia para URLs do WhatsApp
+  registerMediaProxyRoutes(app);
 
   // Registrar rotas de configuração de APIs
   const apisRouter = await import('./settings/apis');
