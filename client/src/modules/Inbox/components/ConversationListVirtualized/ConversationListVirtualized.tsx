@@ -179,7 +179,7 @@ export function ConversationListVirtualized({
     [visibleConversations, activeConversation, onSelectConversation],
   );
 
-  const itemHeight = 88;
+  const itemHeight = 96;
 
   return (
     <div className="flex flex-col h-full bg-white">

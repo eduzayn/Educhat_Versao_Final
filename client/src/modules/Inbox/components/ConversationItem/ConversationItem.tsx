@@ -103,14 +103,23 @@ function ConversationItemComponent({
 
       {/* Conteúdo da conversa */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center space-x-2">
-            <h3 className={cn(
-              "font-medium text-gray-900 truncate",
-              hasUnreadMessages && "font-semibold"
-            )}>
-              {conversation.contact.name}
-            </h3>
+        <div className="flex items-start justify-between mb-1">
+          <div className="flex-1 min-w-0 mr-2">
+            <div className="flex items-center space-x-2 mb-1">
+              <h3 className={cn(
+                "font-medium text-gray-900 text-sm leading-tight",
+                hasUnreadMessages && "font-semibold"
+              )} 
+              style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                wordBreak: 'break-word'
+              }}>
+                {conversation.contact.name}
+              </h3>
+            </div>
             
             {/* Status da conversa */}
             <div className="flex items-center space-x-1">
@@ -128,11 +137,13 @@ function ConversationItemComponent({
           </div>
 
           {/* Hora da última mensagem */}
-          {lastMessage && (
-            <span className="text-xs text-gray-500 flex-shrink-0">
-              {formatLastMessageTime(lastMessage.sentAt)}
-            </span>
-          )}
+          <div className="flex-shrink-0 text-right">
+            {lastMessage && (
+              <span className="text-xs text-gray-500">
+                {formatLastMessageTime(lastMessage.sentAt)}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Última mensagem */}
