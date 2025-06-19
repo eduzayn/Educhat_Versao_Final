@@ -239,37 +239,85 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         }
       });
       
-      // Broadcast para WebSocket - NOVA CONVERSA E MENSAGEM
+      // CORREÇÃO CRÍTICA: Atualizar conversa com unreadCount e lastMessageAt
+      try {
+        await storage.updateConversation(conversation.id, {
+          lastMessageAt: new Date(),
+          unreadCount: (conversation.unreadCount || 0) + 1,
+          isRead: false,
+          updatedAt: new Date()
+        });
+        console.log(`✅ Conversa ${conversation.id} atualizada com nova mensagem`);
+      } catch (updateError) {
+        console.error('❌ Erro ao atualizar conversa:', updateError);
+      }
+
+      // CORREÇÃO CRÍTICA: WebSocket broadcast robusto com fallbacks
       try {
         const { broadcast, broadcastToAll } = await import('../realtime');
         
-        // Se é uma nova conversa, notificar sobre a criação
+        // Dados completos da conversa para sincronização
+        const conversationData = {
+          id: conversation.id,
+          contactId: contact.id,
+          contactName: contact.name,
+          contactPhone: contact.phone,
+          channel: 'whatsapp',
+          lastMessage: {
+            id: message.id,
+            content: messageContent,
+            sentAt: new Date().toISOString(),
+            isFromContact: true,
+            messageType: messageType
+          },
+          unreadCount: (conversation.unreadCount || 0) + 1,
+          lastMessageAt: new Date().toISOString(),
+          isRead: false
+        };
+        
+        // Se é uma nova conversa, enviar evento de criação PRIMEIRO
         if (isNewConversation) {
           console.log(`📡 Broadcasting nova conversa criada: ID ${conversation.id}`);
           broadcastToAll({
-            type: 'new_conversation_created',
-            conversationId: conversation.id,
-            contactId: contact.id,
-            contactName: contact.name,
-            contactPhone: contact.phone,
-            channel: 'whatsapp'
+            type: 'conversation_list_update',
+            action: 'new_conversation',
+            conversation: conversationData
           });
+          
+          // Aguardar para garantir ordem de eventos
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        // Broadcast da nova mensagem
+        // Broadcast da nova mensagem para todos os clientes
+        broadcastToAll({
+          type: 'conversation_list_update',
+          action: 'message_received',
+          conversationId: conversation.id,
+          conversation: conversationData,
+          message: message
+        });
+        
+        // Broadcast específico para a sala da conversa
         broadcast(conversation.id, {
           type: 'new_message',
           conversationId: conversation.id,
           message: message
         });
         
-        broadcastToAll({
-          type: 'new_message',
-          conversationId: conversation.id,
-          message: message
-        });
+        console.log(`📡 WebSocket broadcast enviado para conversa ${conversation.id}`);
       } catch (wsError) {
-        console.error('❌ Erro no WebSocket broadcast:', wsError);
+        console.error('❌ CRÍTICO: Falha no WebSocket broadcast:', wsError);
+        
+        // FALLBACK: Forçar invalidação de cache via evento alternativo
+        try {
+          const { broadcastToAll } = await import('../realtime');
+          broadcastToAll({
+            type: 'force_conversation_refresh',
+            timestamp: new Date().toISOString()
+          });
+        } catch (fallbackError) {
+          console.error('❌ CRÍTICO: Falha no fallback do WebSocket:', fallbackError);
+        }
       }
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);

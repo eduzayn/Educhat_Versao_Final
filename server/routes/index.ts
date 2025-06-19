@@ -14,6 +14,7 @@ import contactDuplicatesRouter from "./contacts/duplicates";
 import { registerUserRoutes } from "./users/index";
 import { registerChannelRoutes } from "./channels/index";
 import { registerWebhookRoutes, assignTeamManually } from "./webhooks/index";
+import messageRecoveryRouter from "./webhooks/message-recovery";
 import { registerRealtimeConfig } from "./realtime/index";
 import dealsRouter from "./deals/index";
 import { registerAnalyticsRoutes } from "./analytics";
@@ -117,6 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Registrar rotas de detecção de duplicatas de contatos
   app.use('/api/contacts', contactDuplicatesRouter);
+  
+  // Registrar rotas de recuperação de mensagens (CORREÇÃO CRÍTICA)
+  app.use('/api/webhooks', messageRecoveryRouter);
 
   // Registrar rotas de configuração de APIs
   const apisRouter = await import('./settings/apis');
