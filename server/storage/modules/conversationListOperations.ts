@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, contacts, messages, type ConversationWithContact } from "@shared/schema";
+import { conversations, contacts, messages, systemUsers, type ConversationWithContact } from "@shared/schema";
 import { eq, desc, and, inArray, or, ilike, count, gte, lte } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { ConversationFilters } from "../interfaces/IConversationStorage";
@@ -92,10 +92,15 @@ export class ConversationListOperations extends BaseStorage {
         // Apenas campos essenciais do contato
         contactName: contacts.name,
         contactPhone: contacts.phone,
-        contactProfileImage: contacts.profileImageUrl
+        contactProfileImage: contacts.profileImageUrl,
+        
+        // Dados do usuário atribuído
+        assignedUserName: systemUsers.displayName,
+        assignedUserAvatar: systemUsers.avatar
       })
       .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id));
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(systemUsers, eq(conversations.assignedUserId, systemUsers.id));
 
     // Aplicar filtros se existirem
     if (whereConditions.length > 0) {
@@ -185,6 +190,11 @@ export class ConversationListOperations extends BaseStorage {
       messages: messagesByConversation.has(conv.id) ? 
         [messagesByConversation.get(conv.id)] : 
         [],
+      assignedUser: conv.assignedUserId ? {
+        id: conv.assignedUserId,
+        displayName: conv.assignedUserName || 'Sem nome',
+        avatar: conv.assignedUserAvatar
+      } : undefined,
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
   }

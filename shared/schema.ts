@@ -746,6 +746,11 @@ export type ConversationWithContact = Conversation & {
   };
   channelInfo?: Channel;
   messages: Message[];
+  assignedUser?: {
+    id: number;
+    displayName: string;
+    avatar?: string;
+  };
   _count?: {
     messages: number;
   };
