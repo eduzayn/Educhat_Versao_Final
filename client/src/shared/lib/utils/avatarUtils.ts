@@ -46,8 +46,41 @@ export function getAvatarInitials(name?: string | null): string {
 }
 
 /**
- * Hook para URLs de avatar com sanitização automática
+ * Verifica se uma URL é do WhatsApp
+ */
+export function isWhatsAppUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  
+  return url.includes('pps.whatsapp.net') || 
+         url.includes('mmg.whatsapp.net') ||
+         url.includes('media.whatsapp.net');
+}
+
+/**
+ * Converte URL do WhatsApp para usar o proxy interno
+ */
+export function getProxiedWhatsAppUrl(originalUrl: string): string {
+  if (!isWhatsAppUrl(originalUrl)) {
+    return originalUrl;
+  }
+  
+  // Encode a URL original para passar como query parameter
+  const encodedUrl = encodeURIComponent(originalUrl);
+  
+  // Retornar URL do proxy interno
+  return `/api/proxy/whatsapp-image?url=${encodedUrl}`;
+}
+
+/**
+ * Hook para URLs de avatar com sanitização automática e proxy para WhatsApp
  */
 export function useSafeAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  
+  // Se for URL do WhatsApp, usar proxy para evitar erro 403
+  if (isWhatsAppUrl(url)) {
+    return getProxiedWhatsAppUrl(url);
+  }
+  
   return sanitizeAvatarUrl(url);
 }

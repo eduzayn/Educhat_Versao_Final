@@ -23,13 +23,33 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
+>(({ className, src, ...props }, ref) => {
+  // Função para detectar URLs do WhatsApp
+  const isWhatsAppUrl = (url: string | undefined): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    return url.includes('pps.whatsapp.net') || 
+           url.includes('mmg.whatsapp.net') ||
+           url.includes('media.whatsapp.net');
+  };
+
+  // Função para converter para proxy
+  const getProxiedUrl = (originalUrl: string): string => {
+    const encodedUrl = encodeURIComponent(originalUrl);
+    return `/api/proxy/whatsapp-image?url=${encodedUrl}`;
+  };
+
+  // Determinar URL final
+  const finalSrc = src && isWhatsAppUrl(src) ? getProxiedUrl(src) : src;
+
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
+      src={finalSrc}
+      {...props}
+    />
+  );
+})
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<
