@@ -10,6 +10,7 @@ import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../uti
 import { webhookHealthMonitor, validateWebhookData } from "../../webhookHealthCheck";
 import { gamificationService } from "../../services/gamificationService";
 import { dealAutomationService } from "../../services/dealAutomationService";
+import { logger } from "../../utils/logger";
 
 // Importar handlers modulares
 import { registerZApiMediaRoutes } from './handlers/zapi';
@@ -24,14 +25,12 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
   const startTime = Date.now();
   
   try {
-    console.log('📨 Webhook Z-API recebido (handler principal):', JSON.stringify(webhookData, null, 2));
-    console.log('📊 Dados do webhook processados:', {
+    logger.webhook('Z-API recebido (handler principal)', {
       type: webhookData?.type,
       phone: webhookData?.phone,
       hasText: !!(webhookData?.text && webhookData.text.message),
       hasImage: !!webhookData?.image,
-      hasAudio: !!webhookData?.audio,
-      timestamp: new Date().toISOString()
+      hasAudio: !!webhookData?.audio
     });
     
     // Validação robusta dos dados recebidos
@@ -54,13 +53,13 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
     
     // Verificar se é um callback de status (não precisa processar como mensagem)
     if (webhookData.type === 'MessageStatusCallback') {
-      console.log(`📋 Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
+      logger.debug(`Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
       return { success: true, type: 'status_update' };
     }
     
     // Verificar callbacks de presença
     if (webhookData.type === 'PresenceChatCallback') {
-      console.log(`👤 Status de presença: ${webhookData.status} para ${webhookData.phone}`);
+      logger.debug(`Status de presença: ${webhookData.status} para ${webhookData.phone}`);
       return { success: true, type: 'presence_update' };
     }
     
@@ -141,8 +140,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         messageType = 'template';
         messageContent = `📨 Template: ${webhookData.template.name || 'Mensagem template'}`;
       } else {
-        // Para tipos verdadeiramente desconhecidos, registrar no log para análise
-        console.log('🔍 Tipo de mensagem não reconhecido:', JSON.stringify(webhookData, null, 2));
+        logger.warn('Tipo de mensagem não reconhecido', { type: webhookData?.type, keys: Object.keys(webhookData || {}) });
         messageContent = `⚠️ Tipo de mensagem ainda não suportado pelo sistema`;
         messageType = 'unsupported';
       }
@@ -168,7 +166,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           status: 'open'
         });
         isNewConversation = true;
-        console.log(`✅ Nova conversa criada: ID ${conversation.id} para contato ${contact.name} (${contact.phone})`);
+        logger.info(`Nova conversa criada: ID ${conversation.id} para contato ${contact.name} (${contact.phone})`);
       }
       
       // Garantir que a conversa foi criada com sucesso
@@ -247,9 +245,9 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           isRead: false,
           updatedAt: new Date()
         });
-        console.log(`✅ Conversa ${conversation.id} atualizada com nova mensagem`);
+        logger.debug(`Conversa ${conversation.id} atualizada com nova mensagem`);
       } catch (updateError) {
-        console.error('❌ Erro ao atualizar conversa:', updateError);
+        logger.error('Erro ao atualizar conversa', updateError);
       }
 
       // CORREÇÃO CRÍTICA: WebSocket broadcast robusto com fallbacks
@@ -277,7 +275,7 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
         
         // Se é uma nova conversa, enviar evento de criação PRIMEIRO
         if (isNewConversation) {
-          console.log(`📡 Broadcasting nova conversa criada: ID ${conversation.id}`);
+          logger.socket(`Broadcasting nova conversa criada: ID ${conversation.id}`);
           broadcastToAll({
             type: 'conversation_list_update',
             action: 'new_conversation',
@@ -304,9 +302,9 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
           message: message
         });
         
-        console.log(`📡 WebSocket broadcast enviado para conversa ${conversation.id}`);
+        logger.socket(`WebSocket broadcast enviado para conversa ${conversation.id}`);
       } catch (wsError) {
-        console.error('❌ CRÍTICO: Falha no WebSocket broadcast:', wsError);
+        logger.error('CRÍTICO: Falha no WebSocket broadcast', wsError);
         
         // FALLBACK: Forçar invalidação de cache via evento alternativo
         try {
@@ -316,33 +314,29 @@ async function processZApiWebhook(webhookData: any): Promise<{ success: boolean;
             timestamp: new Date().toISOString()
           });
         } catch (fallbackError) {
-          console.error('❌ CRÍTICO: Falha no fallback do WebSocket:', fallbackError);
+          logger.error('CRÍTICO: Falha no fallback do WebSocket', fallbackError);
         }
       }
       
-      console.log(`📱 Mensagem processada para contato:`, contact.name);
+      logger.debug(`Mensagem processada para contato: ${contact.name}`);
       
       // **PROCESSAMENTO AUTOMÁTICO IMEDIATO COM IA**
-      // Apenas para mensagens de texto relevantes
       if (messageType === 'text' && messageContent && messageContent.length > 10) {
         await autoAssignIfNeeded(conversation.id, messageContent);
       }
 
       // **CRIAÇÃO AUTOMÁTICA DE DEALS PARA CONVERSAS NÃO ATRIBUÍDAS**
-      // Verificar se a conversa não possui atribuição e criar deal se necessário
       if (!conversation.assignedUserId && !conversation.assignedTeamId && messageType === 'text') {
         try {
-          console.log(`💼 Verificando necessidade de deal automático para conversa não atribuída ${conversation.id}`);
-          // Usar equipe comercial como padrão para conversas não atribuídas
-          // Buscar equipe comercial dinamicamente
-          const comercialTeam = await storage.getTeamByType('comercial');
+          logger.debug(`Verificando necessidade de deal automático para conversa não atribuída ${conversation.id}`);
+          const comercialTeam = await storage.getTeamByTeamType('comercial');
           const teamId = comercialTeam?.id || 1;
           const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, teamId);
           if (dealId) {
-            console.log(`✅ Deal automático criado para conversa não atribuída: ID ${dealId}`);
+            logger.info(`Deal automático criado para conversa não atribuída: ID ${dealId}`);
           }
         } catch (dealError) {
-          console.error(`❌ Erro ao criar deal para conversa não atribuída:`, dealError);
+          logger.error('Erro ao criar deal para conversa não atribuída', dealError);
         }
       }
       
