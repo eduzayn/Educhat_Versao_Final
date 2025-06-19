@@ -494,40 +494,41 @@ export default function QuickRepliesSettingsPage() {
         </Select>
 
         <PermissionGate permission="resposta_rapida:criar">
-          <Button onClick={() => {
-            setEditingQuickReply(null);
-            form.reset({
-              title: '',
-              content: '',
-              type: 'text',
-              category: '',
-              isActive: true,
-            });
-            setIsFormOpen(true);
-          }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Resposta
-          </Button>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => {
+                setEditingQuickReply(null);
+                form.reset({
+                  title: '',
+                  content: '',
+                  type: 'text',
+                  category: '',
+                  isActive: true,
+                });
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Resposta
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </PermissionGate>
-      </div>
 
-      {/* Dialog for form */}
-      <Dialog open={isFormOpen} onOpenChange={handleFormClose}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingQuickReply ? 'Editar Resposta Rápida' : 'Nova Resposta Rápida'}
-            </DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título</FormLabel>
-                    <FormControl>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingQuickReply ? 'Editar Resposta Rápida' : 'Nova Resposta Rápida'}
+              </DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título</FormLabel>
+                      <FormControl>
                         <Input placeholder="Digite o título da resposta" {...field} />
                       </FormControl>
                       <FormMessage />
