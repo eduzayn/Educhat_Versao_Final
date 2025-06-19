@@ -72,10 +72,10 @@ export function ConversationListVirtualized({
       const matchesStatus =
         statusFilter === "all" || conversation.status === statusFilter;
       
-      // Filtro de canal
+      // Filtro de canal - CORREÇÃO CRÍTICA: usar conversation.channel em vez de channelInfo?.type
       const matchesChannel =
         channelFilter === "all" ||
-        conversation.channelInfo?.type === channelFilter;
+        conversation.channel === channelFilter;
 
       // Filtro de equipe
       const matchesTeam = teamFilter === "all" || 
