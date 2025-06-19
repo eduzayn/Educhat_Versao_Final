@@ -182,7 +182,7 @@ router.get('/check-missing-conversations', async (req, res) => {
       ORDER BY latest_message_time DESC
     `);
     
-    const conversationsArray = Array.isArray(missingConversations) ? missingConversations : [];
+    const conversationsArray = Array.isArray(missingConversations.rows) ? missingConversations.rows : [];
     
     res.json({
       success: true,
