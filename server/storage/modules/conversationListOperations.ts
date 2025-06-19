@@ -56,9 +56,9 @@ export class ConversationListOperations extends BaseStorage {
       }
     }
 
-    // Filtro por equipe - CORRIGIDO E VALIDADO
-    if (filters?.team && typeof filters.team === 'number' && !isNaN(filters.team)) {
-      console.log(`🔍 APLICANDO FILTRO EQUIPE: ${filters.team}`);
+    // Filtro por equipe - CORREÇÃO DEFINITIVA COM DEBUG
+    if (filters?.team) {
+      console.log(`🔍 APLICANDO FILTRO EQUIPE NO STORAGE: ${filters.team}`);
       whereConditions.push(eq(conversations.assignedTeamId, filters.team));
     }
 
@@ -251,8 +251,8 @@ export class ConversationListOperations extends BaseStorage {
         }
       }
 
-      // Filtro por equipe - CORRIGIDO
-      if (filters.team && typeof filters.team === 'number') {
+      // Filtro por equipe - CORREÇÃO DEFINITIVA
+      if (filters.team) {
         whereConditions.push(eq(conversations.assignedTeamId, filters.team));
       }
 
