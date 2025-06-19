@@ -1,18 +1,13 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../../core/db';
 import { systemUsers, roles } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { AuthenticatedRequest } from '../../core/permissionsRefactored';
 
 const router = Router();
 
-// GET /api/system-users - Buscar todos os usuários do sistema
-router.get('/', async (req: AuthenticatedRequest, res) => {
+// GET /api/system-users - Buscar todos os usuários do sistema (público para interface)
+router.get('/', async (req: Request, res: Response) => {
   try {
-    // Verificar se o usuário está autenticado
-    if (!req.user?.id) {
-      return res.status(401).json({ error: 'Usuário não autenticado' });
-    }
 
     // Buscar usuários ativos do sistema com informações básicas
     const users = await db
@@ -50,18 +45,13 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// GET /api/system-users/:id - Buscar usuário específico
-router.get('/:id', async (req: AuthenticatedRequest, res) => {
+// GET /api/system-users/:id - Buscar usuário específico (público para interface)
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.id);
     
     if (!userId || isNaN(userId)) {
       return res.status(400).json({ error: 'ID do usuário inválido' });
-    }
-
-    // Verificar se o usuário está autenticado
-    if (!req.user?.id) {
-      return res.status(401).json({ error: 'Usuário não autenticado' });
     }
 
     const [user] = await db
