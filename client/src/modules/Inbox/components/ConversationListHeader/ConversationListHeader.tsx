@@ -45,13 +45,19 @@ export function ConversationListHeader({
 }: ConversationListHeaderProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const debounceRef = useRef<NodeJS.Timeout>();
+  
+  // Estado local para controlar a renderização dos filtros avançados
+  const [forceShowAdvancedFilters, setForceShowAdvancedFilters] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
   // Buscar equipes para os filtros com fallback
   const { 
     data: teams = [], 
     isError: teamsError, 
     isLoading: teamsLoading,
-    refetch: refetchTeams 
+    refetch: refetchTeams,
+    isSuccess: teamsSuccess,
+    status: teamsStatus
   } = useQuery({
     queryKey: ["/api/teams"],
     queryFn: async () => {
@@ -72,7 +78,9 @@ export function ConversationListHeader({
     data: agents = [], 
     isError: agentsError, 
     isLoading: agentsLoading,
-    refetch: refetchAgents 
+    refetch: refetchAgents,
+    isSuccess: agentsSuccess,
+    status: agentsStatus
   } = useQuery({
     queryKey: ["/api/system-users"],
     queryFn: async () => {
@@ -88,14 +96,77 @@ export function ConversationListHeader({
     staleTime: 30000,
   });
 
-  // Estado para controlar se deve mostrar os filtros avançados
-  const isAdvancedFiltersReady = !teamsLoading && !agentsLoading;
+  // Estados computados para filtros avançados
+  const isAdvancedFiltersReady = (!teamsLoading && !agentsLoading) || forceShowAdvancedFilters;
   const hasAdvancedFiltersError = teamsError || agentsError;
+  const hasMinimalData = teams.length > 0 || agents.length > 0;
+
+  // Logs de debug para investigar problemas de renderização
+  useEffect(() => {
+    const debugState = {
+      timestamp: new Date().toISOString(),
+      showFilters,
+      teamsStatus,
+      agentsStatus,
+      teamsData: teams?.length || 0,
+      agentsData: agents?.length || 0,
+      teamsLoading,
+      agentsLoading,
+      teamsError: !!teamsError,
+      agentsError: !!agentsError,
+      isAdvancedFiltersReady,
+      hasAdvancedFiltersError,
+      hasMinimalData,
+      forceShowAdvancedFilters
+    };
+    
+    if (debugMode || window.localStorage.getItem('educhat_debug_filters') === 'true') {
+      console.log('🔍 [DEBUG] Estado dos Filtros Avançados:', debugState);
+    }
+    
+    // Detectar quando filtros devem aparecer mas não aparecem
+    if (showFilters && !teamsLoading && !agentsLoading && !isAdvancedFiltersReady) {
+      console.warn('⚠️ [PROBLEMA] Filtros avançados deveriam estar prontos mas não estão:', debugState);
+      // Forçar exibição após 2 segundos se dados existirem
+      const timer = setTimeout(() => {
+        if (hasMinimalData && !forceShowAdvancedFilters) {
+          console.log('🔧 [CORREÇÃO] Forçando exibição dos filtros avançados');
+          setForceShowAdvancedFilters(true);
+        }
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showFilters, teamsStatus, agentsStatus, teams, agents, teamsLoading, agentsLoading, 
+      teamsError, agentsError, isAdvancedFiltersReady, hasAdvancedFiltersError, 
+      hasMinimalData, forceShowAdvancedFilters, debugMode]);
 
   // Sincronizar com prop externa apenas na inicialização
   useEffect(() => {
     setLocalSearchTerm(searchTerm);
   }, []);
+
+  // Ativar modo debug com tecla especial (Ctrl+Shift+D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        const newDebugMode = !debugMode;
+        setDebugMode(newDebugMode);
+        window.localStorage.setItem('educhat_debug_filters', newDebugMode.toString());
+        console.log(`🔍 [DEBUG] Modo debug ${newDebugMode ? 'ATIVADO' : 'DESATIVADO'}`);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Verificar se debug já estava ativo
+    if (window.localStorage.getItem('educhat_debug_filters') === 'true') {
+      setDebugMode(true);
+    }
+    
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [debugMode]);
 
   const handleSearchChange = useCallback((value: string) => {
     setLocalSearchTerm(value);
@@ -108,7 +179,7 @@ export function ConversationListHeader({
     // Definir novo timeout para debounce
     debounceRef.current = setTimeout(() => {
       setSearchTerm(value);
-    }, 500); // Aumentei para 500ms para reduzir ainda mais as requisições
+    }, 500);
   }, [setSearchTerm]);
 
   // Cleanup do timeout
@@ -254,11 +325,18 @@ export function ConversationListHeader({
             </div>
           </div>
 
-          {/* Filtros avançados - renderizar apenas quando dados estão prontos */}
+          {/* Filtros avançados - renderização com fallback robusto */}
           <div className="border-t border-gray-200 pt-3">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Filtros Avançados</h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-700">Filtros Avançados</h4>
+              {debugMode && (
+                <div className="text-xs bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                  Debug: T:{teams.length} A:{agents.length} R:{isAdvancedFiltersReady ? '✓' : '✗'}
+                </div>
+              )}
+            </div>
             
-            {!isAdvancedFiltersReady ? (
+            {!isAdvancedFiltersReady && !hasMinimalData ? (
               // Estado de carregamento
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="animate-pulse">
@@ -274,7 +352,7 @@ export function ConversationListHeader({
                   <div className="h-10 bg-gray-100 rounded"></div>
                 </div>
               </div>
-            ) : hasAdvancedFiltersError ? (
+            ) : hasAdvancedFiltersError && !hasMinimalData ? (
               // Estado de erro com opção de recarregar
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800 mb-3">
@@ -285,17 +363,30 @@ export function ConversationListHeader({
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log('🔄 [AÇÃO] Recarregando filtros manualmente');
                       refetchTeams();
                       refetchAgents();
+                      setForceShowAdvancedFilters(false);
                     }}
                     className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
                   >
                     Recarregar filtros
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔧 [AÇÃO] Forçando exibição dos filtros');
+                      setForceShowAdvancedFilters(true);
+                    }}
+                    className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+                  >
+                    Forçar exibição
+                  </Button>
                 </div>
               </div>
             ) : (
-              // Filtros avançados normais
+              // Filtros avançados normais - mostrar sempre que tiver dados ou for forçado
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -314,6 +405,11 @@ export function ConversationListHeader({
                       ))}
                     </SelectContent>
                   </Select>
+                  {debugMode && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      {teams.length} equipes carregadas
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -353,6 +449,24 @@ export function ConversationListHeader({
                       ))}
                     </SelectContent>
                   </Select>
+                  {debugMode && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      {agents.length} agentes carregados
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Indicador de modo debug */}
+            {debugMode && (
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                <div className="font-medium text-blue-800 mb-1">Modo Debug Ativo (Ctrl+Shift+D para desativar)</div>
+                <div className="text-blue-700">
+                  Status: Loading={teamsLoading || agentsLoading ? 'SIM' : 'NÃO'} | 
+                  Ready={isAdvancedFiltersReady ? 'SIM' : 'NÃO'} | 
+                  Error={hasAdvancedFiltersError ? 'SIM' : 'NÃO'} | 
+                  Forced={forceShowAdvancedFilters ? 'SIM' : 'NÃO'}
                 </div>
               </div>
             )}
