@@ -200,6 +200,72 @@ export class ConversationListOperations extends BaseStorage {
    * Para encontrar conversas antigas com 400+ conversas diárias
    */
   async searchConversations(searchTerm: string, limit: number = 200, filters?: any): Promise<ConversationWithContact[]> {
+    // Construir condições de filtro
+    const whereConditions = [];
+    
+    // Filtro de busca por termo
+    whereConditions.push(
+      or(
+        ilike(contacts.name, `%${searchTerm}%`),
+        ilike(contacts.phone, `%${searchTerm}%`),
+        ilike(contacts.email, `%${searchTerm}%`)
+      )
+    );
+    
+    // Aplicar filtros adicionais se fornecidos
+    if (filters) {
+      // Filtro por período
+      if (filters.period && filters.period !== 'all') {
+        const now = new Date();
+        let startDate: Date;
+        
+        switch (filters.period) {
+          case 'today':
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            whereConditions.push(gte(conversations.lastMessageAt, startDate));
+            break;
+          case 'yesterday':
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+            const yesterdayEnd = new Date(yesterdayStart);
+            yesterdayEnd.setDate(yesterdayEnd.getDate() + 1);
+            whereConditions.push(
+              and(
+                gte(conversations.lastMessageAt, yesterdayStart),
+                lte(conversations.lastMessageAt, yesterdayEnd)
+              )
+            );
+            break;
+          case 'week':
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+            whereConditions.push(gte(conversations.lastMessageAt, startDate));
+            break;
+          case 'month':
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 30);
+            whereConditions.push(gte(conversations.lastMessageAt, startDate));
+            break;
+        }
+      }
+
+      // Filtro por equipe
+      if (filters.team) {
+        whereConditions.push(eq(conversations.assignedTeamId, filters.team));
+      }
+
+      // Filtro por status
+      if (filters.status) {
+        whereConditions.push(eq(conversations.status, filters.status));
+      }
+
+      // Filtro por agente
+      if (filters.agent) {
+        whereConditions.push(eq(conversations.assignedUserId, filters.agent));
+      }
+    }
+
     const conversationsData = await this.db
       .select({
         id: conversations.id,
@@ -243,13 +309,7 @@ export class ConversationListOperations extends BaseStorage {
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .where(
-        or(
-          ilike(contacts.name, `%${searchTerm}%`),
-          ilike(contacts.phone, `%${searchTerm}%`),
-          ilike(contacts.email, `%${searchTerm}%`)
-        )
-      )
+      .where(and(...whereConditions))
       .orderBy(desc(conversations.lastMessageAt))
       .limit(limit);
 

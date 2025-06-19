@@ -28,6 +28,11 @@ router.get('/', async (req, res) => {
       agent: agentFilter && agentFilter !== 'all' ? parseInt(agentFilter) : undefined
     };
     
+    // Log de diagnóstico para filtro de agente
+    if (agentFilter && agentFilter !== 'all') {
+      console.log(`🔍 FILTRO AGENTE DEBUG: agentFilter="${agentFilter}", parsed=${parseInt(agentFilter)}, type=${typeof parseInt(agentFilter)}`);
+    }
+    
     let conversations;
     if (search && search.trim()) {
       // Busca direta no banco para encontrar conversas antigas
