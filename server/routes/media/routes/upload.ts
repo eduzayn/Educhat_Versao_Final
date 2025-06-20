@@ -54,25 +54,43 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
 
     const savedMessage = await storage.createMessage(messageData);
 
-    // ENVIO VIA Z-API PARA O WHATSAPP
-    try {
-      // Buscar dados da conversa para obter o telefone do contato
-      const conversation = await storage.getConversation(parseInt(conversationId));
-      if (conversation?.contact?.phone) {
-        const { validateZApiCredentials, buildZApiUrl } = await import('../../../utils/zapi');
-        const credentials = validateZApiCredentials();
-        
-        if (credentials.valid) {
+    // Resposta imediata para frontend (não espera Z-API)
+    res.json({
+      fileUrl,
+      originalName: req.file.originalname,
+      fileType,
+      size: req.file.size,
+      mimeType: req.file.mimetype,
+      message: savedMessage
+    });
+
+    // ENVIO VIA Z-API EM BACKGROUND (não bloqueia resposta)
+    setImmediate(async () => {
+      try {
+        // Buscar dados da conversa para obter o telefone do contato
+        const conversation = await storage.getConversation(parseInt(conversationId));
+        if (conversation?.contact?.phone) {
+          const { validateZApiCredentials, buildZApiUrl } = await import('../../../utils/zapi');
+          const credentials = validateZApiCredentials();
+          
+          if (credentials.valid) {
           const { instanceId, token, clientToken } = credentials;
           const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
           
-          // Converter arquivo para base64 para envio via Z-API
+          // Converter arquivo para base64 de forma otimizada (não bloqueia resposta)
           const fs = await import('fs');
           const path = await import('path');
           const filePath = path.join(process.cwd(), 'uploads', 'media', req.file.filename);
-          const fileBuffer = fs.readFileSync(filePath);
-          const fileBase64 = fileBuffer.toString('base64');
-          const dataUrl = `data:${req.file.mimetype};base64,${fileBase64}`;
+          
+          // Para arquivos grandes (>1MB), usar processamento assíncrono
+          let dataUrl: string;
+          if (req.file.size > 1024 * 1024) {
+            const fileBuffer = await fs.promises.readFile(filePath);
+            dataUrl = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
+          } else {
+            const fileBuffer = fs.readFileSync(filePath);
+            dataUrl = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
+          }
           
           let endpoint = '';
           let payload: any = {

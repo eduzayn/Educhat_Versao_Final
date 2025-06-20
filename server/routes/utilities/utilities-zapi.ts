@@ -124,9 +124,9 @@ export function registerZApiRoutes(app: Express) {
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
       console.log('📤 Enviando para Z-API:', { url: url.replace(token!, '****'), payload });
 
-      // Configurar timeout de 15 segundos para requisições Z-API (otimizado para velocidade)
+      // Configurar timeout otimizado de 8 segundos para máxima velocidade de resposta
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       let data;
 
       try {
@@ -167,7 +167,7 @@ export function registerZApiRoutes(app: Express) {
         clearTimeout(timeoutId);
         
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          throw new Error('Timeout: Requisição cancelada após 15 segundos');
+          throw new Error('Timeout: Requisição cancelada após 8 segundos - verifique conectividade Z-API');
         }
         
         throw fetchError;
