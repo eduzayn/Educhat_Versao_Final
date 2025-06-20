@@ -124,6 +124,8 @@ export function useSendMessage() {
       return savedMessage;
     },
     onMutate: async ({ conversationId, message }) => {
+      // BENCHMARK: Iniciar medição do tempo de renderização do bubble
+      performanceBenchmark.startTimer('enter-to-bubble-render');
       console.log('🚀 Atualização otimística - mensagem aparece IMEDIATAMENTE');
       
       // Cancelar qualquer refetch em andamento para evitar conflitos
@@ -156,6 +158,13 @@ export function useSendMessage() {
           const messages = old || [];
           const updatedMessages = [...messages, optimisticMessage as Message];
           console.log('✅ Mensagem adicionada ao bubble imediatamente:', optimisticMessage.id);
+          
+          // BENCHMARK: Finalizar medição - bubble renderizado
+          const bubbleRenderTime = performanceBenchmark.endTimer('enter-to-bubble-render');
+          if (bubbleRenderTime > 0) {
+            console.log(`🎯 PERFORMANCE: ENTER → Bubble em ${bubbleRenderTime.toFixed(1)}ms (Target Chatwoot: <50ms)`);
+          }
+          
           return updatedMessages;
         }
       );

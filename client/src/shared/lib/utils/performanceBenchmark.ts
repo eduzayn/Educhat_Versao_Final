@@ -12,7 +12,7 @@ interface PerformanceMetric {
 
 class PerformanceBenchmark {
   private metrics: Map<string, PerformanceMetric> = new Map();
-  private isEnabled = process.env.NODE_ENV === 'development';
+  private isEnabled = import.meta.env.DEV;
 
   startTimer(name: string): void {
     if (!this.isEnabled) return;
@@ -29,19 +29,19 @@ class PerformanceBenchmark {
     const metric = this.metrics.get(name);
     if (!metric) return 0;
 
-    const endTime = performance.now();
-    const duration = endTime - metric.startTime;
+    const endTime: number = performance.now();
+    const duration: number = endTime - metric.startTime;
     
     metric.endTime = endTime;
     metric.duration = duration;
 
     // Log resultados com comparação Chatwoot (referência: ~50ms)
     const chatwootTarget = 50; // ms
-    const performance = duration <= chatwootTarget ? '🚀 CHATWOOT-LEVEL' : 
-                       duration <= 100 ? '⚡ RÁPIDO' : 
-                       duration <= 200 ? '⚠️ LENTO' : '🔴 CRÍTICO';
+    const performanceLevel: string = duration <= chatwootTarget ? '🚀 CHATWOOT-LEVEL' : 
+                                    duration <= 100 ? '⚡ RÁPIDO' : 
+                                    duration <= 200 ? '⚠️ LENTO' : '🔴 CRÍTICO';
     
-    console.log(`📊 [BENCHMARK] ${name}: ${duration.toFixed(1)}ms ${performance}`);
+    console.log(`📊 [BENCHMARK] ${name}: ${duration.toFixed(1)}ms ${performanceLevel}`);
     
     return duration;
   }
@@ -88,12 +88,12 @@ class PerformanceBenchmark {
 
 export const performanceBenchmark = new PerformanceBenchmark();
 
-// Hook para benchmark automático de componentes
-export function useBenchmark(componentName: string) {
-  const metric = performanceBenchmark.benchmarkMessageBubble();
-  
-  React.useEffect(() => {
-    metric.start();
-    return () => metric.end();
-  }, []);
+// Função para iniciar benchmark de envio de mensagem
+export function startMessageSendBenchmark(): void {
+  performanceBenchmark.startTimer('message-send-to-bubble');
+}
+
+// Função para finalizar benchmark de envio de mensagem
+export function endMessageSendBenchmark(): number {
+  return performanceBenchmark.endTimer('message-send-to-bubble');
 }
