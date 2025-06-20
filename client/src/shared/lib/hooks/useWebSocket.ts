@@ -52,20 +52,28 @@ export function useWebSocket() {
     
     try {
       socketRef.current = io(socketUrl, {
-        transports: ['polling'],     // APENAS polling
-        timeout: 20000,              // 20s timeout
+        // Apenas polling para máxima compatibilidade
+        transports: ['polling'],
+        // Timeouts mais generosos para produção
+        timeout: 60000,              // 1 min timeout
         reconnection: true,
-        reconnectionDelay: 2000,     // 2s reconexão
-        reconnectionDelayMax: 10000, // 10s máximo
-        reconnectionAttempts: 10,    // Mais tentativas
-        randomizationFactor: 0.3,    // Baixa randomização
-        forceNew: false,
-        upgrade: false,              // NUNCA fazer upgrade
-        rememberUpgrade: false,      // Sempre usar polling
+        reconnectionDelay: 1000,     // 1s reconexão
+        reconnectionDelayMax: 5000,  // 5s máximo
+        reconnectionAttempts: 20,    // Mais tentativas
+        randomizationFactor: 0.5,    // Randomização moderada
+        // Configurações de conexão
+        forceNew: true,              // Nova conexão sempre
+        upgrade: false,              // Sem upgrade
+        rememberUpgrade: false,      // Sempre polling
         autoConnect: true,
-        closeOnBeforeunload: false,
-        forceJSONP: false,
-        compress: false              // Sem compressão
+        closeOnBeforeunload: true,
+        // Headers e configurações adicionais
+        extraHeaders: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        withCredentials: true,
+        forceJSONP: false
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -488,28 +496,56 @@ export function useWebSocket() {
       console.warn('🔌 Desconectado:', reason);
       setConnectionStatus(false);
       
-      // Reconectar automaticamente apenas para desconexões não intencionais
-      const shouldReconnect = reason !== 'io client disconnect' && 
-                             reason !== 'io server disconnect' &&
-                             !reconnectTimeoutRef.current;
+      // Clear global instance on disconnect
+      (window as any).socketInstance = null;
       
-      if (shouldReconnect) {
-        const baseDelay = 3000;
-        const jitter = Math.random() * 1000; // Adiciona jitter para evitar reconexões simultâneas
-        const delay = Math.min(baseDelay + jitter, 30000);
+      // Enhanced reconnection logic for different disconnection types
+      const shouldReconnect = reason !== 'io client disconnect';
+      
+      if (shouldReconnect && !reconnectTimeoutRef.current) {
+        let delay = 2000; // Base delay
         
-        console.log(`🔄 Reagendando reconexão em ${Math.round(delay)}ms - Motivo: ${reason}`);
+        // Adjust delay based on disconnection reason
+        if (reason === 'xhr poll error' || reason === 'transport error') {
+          delay = 5000; // Longer delay for transport issues
+        } else if (reason === 'transport close') {
+          delay = 3000;
+        }
+        
+        const jitter = Math.random() * 1000;
+        const finalDelay = Math.min(delay + jitter, 15000);
+        
+        console.log(`🔄 Reagendando reconexão em ${Math.round(finalDelay)}ms - Motivo: ${reason}`);
         reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
           console.log('🔄 Tentando reconectar...');
           connect();
-        }, delay);
+        }, finalDelay);
       }
     });
 
-    // Handle connection errors with retry logic
+    // Handle connection errors with specific treatment for xhr poll error
     socketRef.current.on('connect_error', (error) => {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
+      
+      // Specific handling for xhr poll error
+      if (error && error.toString().includes('xhr poll error')) {
+        console.warn('⚠️ Erro de polling XHR detectado - aguardando antes de tentar reconectar');
+        
+        // Clear any existing reconnection timeout
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = null;
+        }
+        
+        // Schedule reconnection with longer delay for xhr poll errors
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          console.log('🔄 Reconectando após erro de polling XHR...');
+          connect();
+        }, 8000); // 8 second delay for xhr poll errors
+      }
     });
 
     // Tratamento específico para timeout - CORREÇÃO CRÍTICA

@@ -11,38 +11,35 @@ interface SocketServer extends Server {
 export function createSocketServer(app: Express): SocketServer {
   const httpServer = createServer(app) as SocketServer;
 
-  // Socket.IO server for real-time communication - Chatwoot optimized
+  // Socket.IO server for real-time communication - Production optimized
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.NODE_ENV === 'production'
-        ? [
-            'https://educhat.com.br', 
-            'https://www.educhat.com.br',
-            'https://educhat.galaxiasistemas.com.br',
-            ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : []),
-            // Adicionar domínios Replit para produção
-            /^https:\/\/.*\.replit\.dev$/,
-            /^https:\/\/.*\.replit\.app$/
-          ]
-        : '*',
-      methods: ["GET", "POST"],
-      credentials: true
+      origin: true, // Allow all origins to avoid CORS issues in production
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["*"]
     },
-    // FORÇAR APENAS POLLING - Sem WebSocket
-    transports: ['polling'],  // APENAS polling
-    allowUpgrades: false,     // BLOQUEAR upgrades
-    pingTimeout: 60000,       // 1 min timeout
-    pingInterval: 25000,      // 25s ping
-    upgradeTimeout: 1000,     // 1s timeout upgrade (impossível)
-    connectTimeout: 45000,    // 45s conexão
-    maxHttpBufferSize: 1e6,   // 1MB buffer
-    // Configurações anti-WebSocket
+    // FORÇAR APENAS POLLING para máxima compatibilidade
+    transports: ['polling'],
+    allowUpgrades: false,
+    // Timeouts otimizados para produção
+    pingTimeout: 120000,      // 2 min timeout
+    pingInterval: 30000,      // 30s ping
+    upgradeTimeout: 30000,    // 30s timeout upgrade
+    connectTimeout: 60000,    // 1 min conexão
+    maxHttpBufferSize: 5e6,   // 5MB buffer
+    // Configurações de produção
     serveClient: false,
-    cookie: false,
-    compression: false,
-    allowEIO3: false,
-    destroyUpgrade: true,
-    destroyUpgradeTimeout: 1
+    cookie: {
+      name: "io",
+      httpOnly: false,
+      sameSite: "none",
+      secure: false
+    },
+    compression: true,
+    allowEIO3: true,          // Allow older clients
+    destroyUpgrade: false,    // Don't destroy upgrades
+    destroyUpgradeTimeout: 1000
   });
 
   httpServer.io = io;
