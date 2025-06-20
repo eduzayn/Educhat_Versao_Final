@@ -22,6 +22,7 @@ import { registerTeamsRoutes } from "./teams/index";
 import { registerUserTeamsRoutes } from "./user-teams/index";
 import { registerQuickRepliesRoutes } from "./quick-replies/index";
 import { registerUtilitiesRoutes } from "./utilities/index";
+import { registerZApiRoutes } from "./utilities/utilities-zapi";
 import { registerBIRoutes } from "./bi";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
@@ -57,6 +58,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
+  
+  // Registrar rotas Z-API CRÍTICAS para envio de mensagens
+  registerZApiRoutes(app);
   
   // Authentication routes now integrated in setupAuthWithRoutes
   registerAdminRoutes(app);
