@@ -75,7 +75,7 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
           
           if (credentials.valid) {
             const { instanceId, token, clientToken } = credentials;
-          const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
+            const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
           
           // Converter arquivo para base64 de forma otimizada (não bloqueia resposta)
           const fs = await import('fs');
@@ -148,16 +148,16 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
             const errorText = await response.text();
             console.error(`❌ Erro ao enviar ${fileType} via Z-API:`, errorText);
           }
+          } else {
+            console.warn('⚠️ Credenciais Z-API não configuradas, mídia salva apenas localmente');
+          }
         } else {
-          console.warn('⚠️ Credenciais Z-API não configuradas, mídia salva apenas localmente');
+          console.warn('⚠️ Telefone do contato não encontrado, mídia salva apenas localmente');
         }
-      } else {
-        console.warn('⚠️ Telefone do contato não encontrado, mídia salva apenas localmente');
+      } catch (zapiError) {
+        console.error('❌ Erro na integração Z-API:', zapiError);
       }
-    } catch (zapiError) {
-      console.error('❌ Erro na integração Z-API:', zapiError);
-      // Continuar mesmo se o envio Z-API falhar
-    }
+    });
 
     // Broadcast via WebSocket
     const { broadcast } = await import('../../realtime');
