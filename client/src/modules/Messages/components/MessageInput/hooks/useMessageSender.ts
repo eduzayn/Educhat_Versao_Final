@@ -26,108 +26,110 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
     toast({ title, description, variant: 'destructive' });
   };
 
-  const sendTextMessage = async (content: string) => {
+  const sendTextMessage = async (content: string, isInternalNote = false) => {
     if (!content.trim()) return false;
     
     // BENCHMARK: Iniciar cronômetro para medir ENTER → Bubble
     const startTime = performance.now();
-    console.log('🚀 INICIANDO envio otimístico - mensagem aparece IMEDIATAMENTE');
     
-    // RENDERIZAÇÃO INSTANTÂNEA: Criar ID único para mensagem otimística
-    const optimisticId = Date.now();
+    // RENDERIZAÇÃO INSTANTÂNEA: Criar ID único para mensagem otimística (usando timestamp negativo para evitar conflitos)
+    const optimisticId = -Date.now();
     
-    try {
-      // Criar mensagem otimística para renderização imediata
-      const optimisticMessage = {
-        id: optimisticId,
-        conversationId,
-        content: content.trim(),
-        messageType: 'text' as const,
-        isFromContact: false,
-        sentAt: new Date(),
-        deliveredAt: null,
-        readAt: null,
-        whatsappMessageId: null,
-        zapiStatus: 'PENDING',
-        isGroup: false,
-        referenceMessageId: null,
-        isDeleted: false,
-        metadata: null,
-        isInternalNote: false,
-        authorId: null,
-        authorName: null,
-        noteType: 'general' as const,
-        notePriority: 'normal' as const,
-        noteTags: null,
-        isPrivate: false,
-        isHiddenForUser: false,
-        isDeletedByUser: false,
-        deletedAt: null,
-        deletedBy: null
-      };
+    // Criar mensagem otimística para renderização imediata
+    const optimisticMessage = {
+      id: optimisticId,
+      conversationId,
+      content: content.trim(),
+      messageType: 'text' as const,
+      isFromContact: false,
+      sentAt: new Date(),
+      deliveredAt: null,
+      readAt: null,
+      whatsappMessageId: null,
+      zapiStatus: 'PENDING',
+      isGroup: false,
+      referenceMessageId: null,
+      isDeleted: false,
+      metadata: null,
+      isInternalNote,
+      authorId: null,
+      authorName: null,
+      noteType: 'general' as const,
+      notePriority: 'normal' as const,
+      noteTags: null,
+      isPrivate: false,
+      isHiddenForUser: false,
+      isDeletedByUser: false,
+      deletedAt: null,
+      deletedBy: null,
+      // Status otimista para UI
+      status: 'sending' as const
+    };
 
-      // ATUALIZAÇÃO IMEDIATA DO CACHE - Bubble aparece instantaneamente
+    // ATUALIZAÇÃO IMEDIATA DO CACHE - Bubble aparece instantaneamente
+    queryClient.setQueryData(
+      ['/api/conversations', conversationId, 'messages'],
+      (oldMessages: any[] | undefined) => {
+        const messages = oldMessages || [];
+        const updatedMessages = [...messages, optimisticMessage];
+        
+        // FINALIZAR BENCHMARK
+        const renderTime = performance.now() - startTime;
+        console.log(`🎯 RENDERIZAÇÃO OTIMISTA: ENTER → Bubble em ${renderTime.toFixed(1)}ms (Target Chatwoot: <50ms)`);
+        
+        return updatedMessages;
+      }
+    );
+
+    // PROCESSAMENTO EM BACKGROUND: Salvar no banco e enviar via Z-API
+    try {
+      // Enviar para o banco
+      const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
+        content: content.trim(),
+        messageType: 'text',
+        isFromContact: false,
+        isInternalNote,
+      });
+      const realMessage = await response.json();
+
+      // Substituir mensagem otimística pela real
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: any[] | undefined) => {
-          const messages = oldMessages || [];
-          const updatedMessages = [...messages, optimisticMessage];
+          if (!oldMessages) return [realMessage];
           
-          // FINALIZAR BENCHMARK
-          const renderTime = performance.now() - startTime;
-          console.log(`🎯 PERFORMANCE OTIMIZADA: ENTER → Bubble em ${renderTime.toFixed(1)}ms (Target: <50ms)`);
-          
-          return updatedMessages;
+          return oldMessages.map(msg => 
+            msg.id === optimisticId ? { ...realMessage, status: 'sent' } : msg
+          );
         }
       );
 
-      // SEGUNDO: Processar API APENAS para Z-API, sem usar o sistema otimístico duplicado
-      try {
-        // Enviar diretamente para o banco
-        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
-          content: content.trim(),
-          messageType: 'text',
-          isFromContact: false,
+      // Z-API em background apenas para mensagens não internas
+      if (!isInternalNote && activeConversation?.contact?.phone) {
+        apiRequest("POST", "/api/zapi/send-message", {
+          phone: activeConversation.contact.phone,
+          message: content.trim(),
+          conversationId: conversationId
+        }).catch(error => {
+          console.error('❌ Erro Z-API (mensagem já salva):', error);
         });
-        const realMessage = await response.json();
-
-        // Substituir mensagem otimística pela real
-        queryClient.setQueryData(
-          ['/api/conversations', conversationId, 'messages'],
-          (oldMessages: any[] | undefined) => {
-            if (!oldMessages) return [realMessage];
-            
-            return oldMessages.map(msg => 
-              msg.id === optimisticId ? realMessage : msg
-            );
-          }
-        );
-
-        // Z-API em background se tiver telefone
-        if (activeConversation?.contact?.phone) {
-          apiRequest("POST", "/api/zapi/send-message", {
-            phone: activeConversation.contact.phone,
-            message: content.trim(),
-            conversationId: conversationId
-          }).catch(error => {
-            console.error('❌ Erro Z-API (mensagem já salva):', error);
-          });
-        }
-
-        console.log('✅ Mensagem sincronizada - performance Chatwoot level');
-      } catch (apiError) {
-        throw apiError; // Repassar erro para o catch principal
       }
+
+      console.log('✅ Mensagem sincronizada com backend');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
-      // ROLLBACK: Remover mensagem otimística em caso de erro
+      // ROLLBACK: Marcar mensagem otimística como erro
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: any[] | undefined) => {
           if (!oldMessages) return [];
-          return oldMessages.filter(msg => msg.id !== optimisticId);
+          return oldMessages.map(msg => 
+            msg.id === optimisticId 
+              ? { ...msg, status: 'error', content: `❌ ${msg.content}` }
+              : msg
+          );
         }
       );
       

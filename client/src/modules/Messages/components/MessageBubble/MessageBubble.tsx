@@ -79,21 +79,44 @@ export function MessageBubble({
       );
     }
     
-    // Mensagem sendo enviada (status temporário)
-    if ((message as any).status === 'sending') {
+    // Estados otimistas para renderização instantânea
+    const optimisticStatus = (message as any).status;
+    
+    // Mensagem com erro (falha no envio)
+    if (optimisticStatus === 'error') {
       return (
         <div className="flex items-center">
-          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse mr-1" />
-          <span className="text-xs text-yellow-600">Enviando...</span>
+          <div className="w-2 h-2 bg-red-500 rounded-full mr-1" />
+          <span className="text-xs text-red-500">Erro</span>
         </div>
       );
     }
     
+    // Mensagem sendo enviada (renderização otimista)
+    if (optimisticStatus === 'sending' || message.id < 0) {
+      return (
+        <div className="flex items-center">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse mr-1" />
+          <span className="text-xs text-blue-600">Enviando...</span>
+        </div>
+      );
+    }
+    
+    // Mensagem enviada com sucesso
+    if (optimisticStatus === 'sent') {
+      return (
+        <div className="flex items-center">
+          <Check className="w-3 h-3 text-green-500" />
+          <span className="text-xs text-green-600 ml-1">Enviado</span>
+        </div>
+      );
+    }
+    
+    // Estados padrão do WhatsApp
     if (message.readAt) return <CheckCheck className="w-3 h-3 text-blue-500" />;
-    if (message.deliveredAt)
-      return <CheckCheck className="w-3 h-3 text-gray-400" />;
+    if (message.deliveredAt) return <CheckCheck className="w-3 h-3 text-gray-400" />;
     return <Check className="w-3 h-3 text-gray-400" />;
-  }, [isFromContact, message.readAt, message.deliveredAt, (message as any).status]);
+  }, [isFromContact, message.readAt, message.deliveredAt, (message as any).status, message.id, isDeleting]);
 
   const handleDeleteMessage = async () => {
     const success = await deleteMessage(isFromContact, contact.phone, message.metadata);

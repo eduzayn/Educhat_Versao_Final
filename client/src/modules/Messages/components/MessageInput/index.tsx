@@ -103,6 +103,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
 
   const handleSendMessage = async () => {
     const messageContent = message.trim();
+    if (!messageContent) return;
     
     // Verificar se já está bloqueado ou é uma mensagem duplicada
     if (isSendingBlocked) {
@@ -115,7 +116,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
       return;
     }
 
-    // Limpar campo imediatamente para resposta visual instantânea
+    // RENDERIZAÇÃO OTIMISTA: Limpar campo IMEDIATAMENTE para feedback visual instantâneo
     setMessage("");
     
     // Bloquear envios temporariamente
@@ -127,10 +128,20 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     
     try {
       if (isInternalNote) {
-        await handleSendInternalNote();
+        // Para notas internas, usar sistema otimista também
+        await sendTextMessage(messageContent, true);
+        setIsInternalNote(false);
       } else {
-        await sendTextMessage(messageContent);
+        // Envio otimista de mensagem regular
+        await sendTextMessage(messageContent, false);
       }
+      
+      // Callback de sucesso
+      onSendMessage?.();
+    } catch (error) {
+      // Em caso de erro, restaurar mensagem no campo
+      console.error('Erro no envio:', error);
+      setMessage(messageContent);
     } finally {
       // Desbloquear imediatamente após envio - sem delay
       setTimeout(() => {
@@ -139,51 +150,7 @@ export function MessageInput({ conversationId, onSendMessage }: MessageInputProp
     }
   };
 
-  const handleSendInternalNote = async () => {
-    const noteContent = message.trim();
-    if (!noteContent) return;
 
-    try {
-      const response = await fetch(`/api/conversations/${conversationId}/internal-notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          content: noteContent,
-          noteType: 'general',
-          notePriority: 'normal',
-          noteTags: [],
-          isPrivate: false
-        })
-      });
-
-      if (response.ok) {
-        setIsInternalNote(false);
-        
-        // Invalidar cache de mensagens para recarregar a conversa
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId, 'messages'] });
-        
-        toast({
-          title: 'Sucesso',
-          description: 'Nota interna criada com sucesso'
-        });
-
-        if (onSendMessage) {
-          onSendMessage();
-        }
-      } else {
-        throw new Error('Erro ao criar nota interna');
-      }
-    } catch (error) {
-      console.error('Erro ao enviar nota interna:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível criar a nota interna',
-        variant: 'destructive'
-      });
-    }
-  };
 
   const handleFileUpload = async (file: File, caption?: string) => {
     await uploadFile(file, caption);
