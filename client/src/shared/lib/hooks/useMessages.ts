@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
+import { performanceBenchmark } from '@/shared/lib/utils/performanceBenchmark';
 
 // Cache global otimizado para resposta rápida
 const recentMessages = new Map<string, number>();
@@ -55,12 +56,14 @@ export function useMessages(conversationId: number | null, limit = 25) {
     enabled: !!conversationId,
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    staleTime: 1000 * 5, // Cache por apenas 5 segundos para resposta rápida
-    gcTime: 1000 * 60 * 2, // Cache reduzido para 2 minutos
-    retry: 1, 
-    retryDelay: 500,
+    staleTime: 1000 * 30, // OTIMIZADO: 30s de cache para performance Chatwoot-level
+    gcTime: 1000 * 60 * 5, // OTIMIZADO: 5 minutos de cache em memória
+    retry: 0, // OTIMIZADO: Sem retry para resposta instantânea
+    retryDelay: 0,
     placeholderData: (previousData) => previousData,
-    refetchOnWindowFocus: false, // Não recarregar ao focar na janela
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // CRÍTICO: Não recarregar ao montar componente
+    refetchOnReconnect: false, // CRÍTICO: Não recarregar ao reconectar
   });
 }
 
@@ -160,19 +163,19 @@ export function useSendMessage() {
       return { previousMessages, optimisticMessage };
     },
     onSuccess: (newMessage, { conversationId }, context) => {
-      // Substituir mensagem temporária pela real
+      // PERFORMANCE CRÍTICA: Substituir mensagem temporária pela real SEM invalidar cache
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: Message[] | undefined) => {
           if (!oldMessages) return [newMessage];
-          // Substituir mensagem temporária pela real
+          // Substituir mensagem temporária pela real mantendo ordem
           return oldMessages.map(msg => 
             msg.id === context?.optimisticMessage.id ? newMessage : msg
           );
         }
       );
       
-      // Atualizar apenas o cache da lista de conversas sem invalidar (evita reload desnecessário)
+      // Atualizar lista de conversas de forma silenciosa (sem refetch)
       queryClient.setQueryData(
         ['/api/conversations'],
         (oldConversations: any) => {
@@ -191,6 +194,8 @@ export function useSendMessage() {
           };
         }
       );
+      
+      console.log('✅ Mensagem sincronizada sem reload - performance Chatwoot level');
     },
     onError: (err, { conversationId }, context) => {
       // Restaurar estado anterior em caso de erro

@@ -53,11 +53,11 @@ export function useWebSocket() {
     try {
       socketRef.current = io(socketUrl, {
         transports: ['websocket', 'polling'],
-        timeout: 20000,              // Aumentado para 20s para evitar timeout prematuros
+        timeout: 5000,               // OTIMIZADO: 5s para resposta rápida estilo Chatwoot
         reconnection: true,
-        reconnectionDelay: 2000,     // Aumentado para 2s para reconexão estável
-        reconnectionDelayMax: 10000, // Máximo de 10s entre tentativas
-        reconnectionAttempts: 10,    // Aumentado para 10 tentativas
+        reconnectionDelay: 500,      // OTIMIZADO: 500ms para reconexão imediata
+        reconnectionDelayMax: 2000,  // OTIMIZADO: Máximo 2s para evitar delays
+        reconnectionAttempts: 5,     // OTIMIZADO: 5 tentativas suficientes
         randomizationFactor: 0.3,    // Randomização para evitar thundering herd
         forceNew: false,             // Reutilizar conexões quando possível
         upgrade: true,
@@ -102,23 +102,40 @@ export function useWebSocket() {
       // Handle new_message within broadcast_message
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
+        
+        // PERFORMANCE CRÍTICA: NÃO recarregar mensagens se são da conversa ativa
+        // Evita reload desnecessário que causa delay no bubble
+        if (activeConversation?.id === data.conversationId) {
+          console.log('⚡ Broadcast para conversa ativa - IGNORANDO para evitar delay no bubble');
+          // Apenas atualizar store local sem refetch (mensagem já está na UI via optimistic)
+          addMessage(data.conversationId, data.message);
+          return;
+        }
+        
+        // Para outras conversas, atualizar cache silenciosamente
         addMessage(data.conversationId, data.message);
-
-        // Atualizar cache imediatamente sem refetch para melhor performance
         queryClient.setQueryData(
           ['/api/conversations', data.conversationId, 'messages'],
           (oldMessages: any[] | undefined) => {
             if (!oldMessages) return [data.message];
-            // Verificar se mensagem já existe para evitar duplicatas
             const exists = oldMessages.find(msg => msg.id === data.message.id);
             if (exists) return oldMessages;
             return [...oldMessages, data.message];
           }
         );
         
-        // Invalidar lista de conversas e forçar refetch imediato para garantir sincronização
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+        // Atualizar lista de conversas sem refetch para manter performance
+        queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+          if (!oldData?.conversations) return oldData;
+          return {
+            ...oldData,
+            conversations: oldData.conversations.map((conv: any) => 
+              conv.id === data.conversationId 
+                ? { ...conv, lastMessageAt: data.message.sentAt, unreadCount: (conv.unreadCount || 0) + 1 }
+                : conv
+            )
+          };
+        });
         
         return;
       }
