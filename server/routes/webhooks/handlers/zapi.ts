@@ -258,18 +258,8 @@ export async function handleSendAudio(req: Request, res: Response) {
     zapiLogger.logApiResponse(response.status, response.statusText, data, requestDuration, requestId);
 
     if (!response.ok) {
-      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${JSON.stringify(data)}`);
     }
-
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('❌ Erro ao parsear resposta JSON (áudio):', parseError);
-      throw new Error(`Resposta inválida da Z-API: ${responseText}`);
-    }
-
-    console.log('✅ Áudio enviado com sucesso via Z-API:', data);
     
     // Salvar mensagem no banco de dados se conversationId foi fornecido
     if (conversationId) {
@@ -295,16 +285,22 @@ export async function handleSendAudio(req: Request, res: Response) {
           type: 'message_sent',
           conversationId: parseInt(conversationId)
         });
+        
+        zapiLogger.logDatabaseUpdate(0, true, undefined, requestId);
       } catch (dbError) {
-        console.error('❌ Erro ao salvar mensagem de áudio no banco:', dbError);
+        zapiLogger.logDatabaseUpdate(0, false, dbError instanceof Error ? dbError.message : String(dbError), requestId);
       }
     }
 
     res.json(data);
   } catch (error) {
-    console.error('❌ Erro ao enviar áudio via Z-API:', error);
+    const duration = Date.now() - startTime;
+    zapiLogger.logError('SEND_AUDIO_ERROR', error, requestId!);
+    
     res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor',
+      requestId: requestId!,
+      duration
     });
   }
 }

@@ -259,6 +259,8 @@ export default function PermissionsPanel() {
           <TabsTrigger value="permissions">Permissões</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
+          <TabsTrigger value="retroactive">Atribuição Retroativa</TabsTrigger>
+          <TabsTrigger value="zapi-diagnostic">Z-API Diagnóstico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="roles" className="space-y-4">
@@ -463,6 +465,14 @@ export default function PermissionsPanel() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="retroactive" className="space-y-6">
+          <RetroactiveAssignment />
+        </TabsContent>
+
+        <TabsContent value="zapi-diagnostic" className="space-y-6">
+          <ZApiDiagnostic />
         </TabsContent>
       </Tabs>
 
