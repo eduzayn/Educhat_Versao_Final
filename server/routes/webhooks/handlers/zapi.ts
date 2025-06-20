@@ -229,28 +229,35 @@ export async function handleSendAudio(req: Request, res: Response) {
     };
 
     const url = buildZApiUrl(instanceId, token, 'send-audio');
-    console.log('🎵 Enviando áudio para Z-API:', { 
-      url: url.replace(token, '****'), 
-      phone: cleanPhone,
-      audioSize: audioBase64.length,
-      mimeType: req.file.mimetype
-    });
+    const headers = getZApiHeaders(clientToken);
+    
+    zapiLogger.logApiRequest(url, {
+      ...payload,
+      audio: `[BASE64_AUDIO_${audioBase64.length}_BYTES]`
+    }, headers, requestId);
 
+    const requestStartTime = Date.now();
     const response = await fetch(url, {
       method: 'POST',
-      headers: getZApiHeaders(clientToken),
+      headers,
       body: JSON.stringify(payload)
     });
 
+    const requestDuration = Date.now() - requestStartTime;
     const responseText = await response.text();
-    console.log('📥 Resposta Z-API (áudio):', {
-      status: response.status,
-      statusText: response.statusText,
-      body: responseText.substring(0, 200) + '...'
-    });
+    
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      zapiLogger.logError('JSON_PARSE_ERROR', parseError, requestId);
+      zapiLogger.logApiResponse(response.status, response.statusText, responseText, requestDuration, requestId);
+      throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+    }
+
+    zapiLogger.logApiResponse(response.status, response.statusText, data, requestDuration, requestId);
 
     if (!response.ok) {
-      console.error('❌ Erro na Z-API (áudio):', responseText);
       throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
     }
 

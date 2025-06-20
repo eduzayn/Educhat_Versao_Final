@@ -8,9 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { Shield, Users, Settings, Edit, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Users, Settings, Edit, ChevronDown, ChevronUp, Zap, Clock, BarChart3 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { PermissionItem } from './components/PermissionItem';
+import { ZApiDiagnostic } from './components/ZApiDiagnostic';
+import { RetroactiveAssignment } from './components/RetroactiveAssignment';
 
 interface Permission {
   id: number;
