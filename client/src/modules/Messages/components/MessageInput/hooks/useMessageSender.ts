@@ -1,215 +1,74 @@
-import { useState } from 'react';
-import { useToast } from '@/shared/lib/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useSendMessage } from '@/shared/lib/hooks/useMessages';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { useChatStore } from '@/shared/store/chatStore';
-import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
 
-interface UseMessageSenderProps {
-  conversationId: number;
-  onSendMessage?: () => void;
-}
+export function useMessageSender() {
+  const queryClient = useQueryClient();
+  const { activeConversation, conversationId } = useActiveConversation();
 
-export function useMessageSender({ conversationId, onSendMessage }: UseMessageSenderProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
-  const sendMessageMutation = useSendMessage();
-  const { activeConversation } = useChatStore();
-  const sendAudioMutation = useSendAudioMessage();
+  const sendMessage = useCallback(async (content: string): Promise<boolean> => {
+    if (!activeConversation || !conversationId) {
+      console.error('❌ Conversa não encontrada');
+      return false;
+    }
 
-  const notifySuccess = (title: string, description: string) => {
-    toast({ title, description });
-    onSendMessage?.();
-  };
+    if (!content.trim()) {
+      console.error('❌ Mensagem vazia');
+      return false;
+    }
 
-  const notifyError = (title: string, description: string) => {
-    toast({ title, description, variant: 'destructive' });
-  };
-
-  const sendTextMessage = async (content: string) => {
-    if (!content.trim()) return false;
-    
-    // BENCHMARK: Iniciar cronômetro para medir ENTER → Bubble
-    const startTime = performance.now();
-    console.log('🚀 INICIANDO envio otimístico - mensagem aparece IMEDIATAMENTE');
-    
-    // RENDERIZAÇÃO INSTANTÂNEA: Criar ID único para mensagem otimística
-    const optimisticId = Date.now();
-    
     try {
-      // Criar mensagem otimística para renderização imediata
-      const optimisticMessage = {
-        id: optimisticId,
-        conversationId,
-        content: content.trim(),
-        messageType: 'text' as const,
-        isFromContact: false,
-        sentAt: new Date(),
-        deliveredAt: null,
-        readAt: null,
-        whatsappMessageId: null,
-        zapiStatus: 'PENDING',
-        isGroup: false,
-        referenceMessageId: null,
-        isDeleted: false,
-        metadata: null,
-        isInternalNote: false,
-        authorId: null,
-        authorName: null,
-        noteType: 'general' as const,
-        notePriority: 'normal' as const,
-        noteTags: null,
-        isPrivate: false,
-        isHiddenForUser: false,
-        isDeletedByUser: false,
-        deletedAt: null,
-        deletedBy: null
-      };
+      // BENCHMARK: Iniciar medição de performance
+      const startTime = performance.now();
+      console.log('🚀 INICIANDO envio direto - sem otimização');
 
-      // ATUALIZAÇÃO IMEDIATA DO CACHE - Bubble aparece instantaneamente
+      // ENVIO DIRETO PARA O BANCO
+      const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
+        content: content.trim(),
+        messageType: 'text',
+        isFromContact: false,
+      });
+      const realMessage = await response.json();
+
+      // ATUALIZAR CACHE COM MENSAGEM REAL
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: any[] | undefined) => {
           const messages = oldMessages || [];
-          const updatedMessages = [...messages, optimisticMessage];
           
           // FINALIZAR BENCHMARK
           const renderTime = performance.now() - startTime;
-          console.log(`🎯 PERFORMANCE OTIMIZADA: ENTER → Bubble em ${renderTime.toFixed(1)}ms (Target: <50ms)`);
+          console.log(`🎯 PERFORMANCE: ENTER → Bubble em ${renderTime.toFixed(1)}ms`);
           
-          return updatedMessages;
+          // Adicionar mensagem real ao final da lista
+          return [...messages, realMessage];
         }
       );
 
-      // SEGUNDO: Processar API APENAS para Z-API, sem usar o sistema otimístico duplicado
-      try {
-        // Enviar diretamente para o banco
-        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
-          content: content.trim(),
-          messageType: 'text',
-          isFromContact: false,
+      // INVALIDAR QUERIES PARA FORÇAR ATUALIZAÇÃO
+      queryClient.invalidateQueries({
+        queryKey: ['/api/conversations', conversationId, 'messages']
+      });
+
+      // Z-API em background se tiver telefone
+      if (activeConversation?.contact?.phone) {
+        apiRequest("POST", "/api/zapi/send-message", {
+          phone: activeConversation.contact.phone,
+          message: content.trim(),
+          conversationId: conversationId
+        }).catch(error => {
+          console.error('❌ Erro Z-API (mensagem já salva):', error);
         });
-        const realMessage = await response.json();
-
-        // Substituir mensagem otimística pela real
-        queryClient.setQueryData(
-          ['/api/conversations', conversationId, 'messages'],
-          (oldMessages: any[] | undefined) => {
-            if (!oldMessages) return [realMessage];
-            
-            return oldMessages.map(msg => 
-              msg.id === optimisticId ? realMessage : msg
-            );
-          }
-        );
-
-        // Z-API em background se tiver telefone
-        if (activeConversation?.contact?.phone) {
-          apiRequest("POST", "/api/zapi/send-message", {
-            phone: activeConversation.contact.phone,
-            message: content.trim(),
-            conversationId: conversationId
-          }).catch(error => {
-            console.error('❌ Erro Z-API (mensagem já salva):', error);
-          });
-        }
-
-        console.log('✅ Mensagem sincronizada - performance Chatwoot level');
-      } catch (apiError) {
-        throw apiError; // Repassar erro para o catch principal
       }
+
+      console.log('✅ Mensagem enviada e renderizada');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      
-      // ROLLBACK: Remover mensagem otimística em caso de erro
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (oldMessages: any[] | undefined) => {
-          if (!oldMessages) return [];
-          return oldMessages.filter(msg => msg.id !== optimisticId);
-        }
-      );
-      
-      notifyError('Erro ao enviar', 'Não foi possível enviar a mensagem. Tente novamente.');
       return false;
     }
-  };
+  }, [activeConversation, conversationId, queryClient]);
 
-  const uploadFile = async (file: File, caption?: string) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('conversationId', conversationId.toString());
-      if (caption) formData.append('caption', caption);
-
-      const response = await fetch('/api/messages/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Falha no upload do arquivo');
-
-      queryClient.invalidateQueries({
-        queryKey: ['/api/conversations', conversationId, 'messages'],
-      });
-      notifySuccess('Arquivo enviado', 'Seu arquivo foi enviado com sucesso.');
-      return true;
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      notifyError('Erro no upload', 'Não foi possível enviar o arquivo. Tente novamente.');
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const shareLink = async (url: string, caption?: string) => {
-    try {
-      const content = caption ? `${caption}\n\n${url}` : url;
-      await sendMessageMutation.mutateAsync({
-        conversationId,
-        message: {
-          content,
-          messageType: 'text',
-          isFromContact: false,
-        },
-        contact: activeConversation?.contact
-      });
-
-      // notifySuccess('Link compartilhado', 'Seu link foi compartilhado com sucesso.');
-      return true;
-    } catch (error) {
-      console.error('Erro ao compartilhar link:', error);
-      notifyError('Erro ao compartilhar', 'Não foi possível compartilhar o link. Tente novamente.');
-      return false;
-    }
-  };
-
-  const sendAudio = async (audioBlob: Blob, duration: number) => {
-    try {
-      await sendAudioMutation.mutateAsync({
-        conversationId,
-        audioBlob,
-        duration,
-        contact: activeConversation?.contact
-      });
-      // notifySuccess('Áudio enviado', 'Sua mensagem de áudio foi enviada com sucesso.');
-      return true;
-    } catch (error) {
-      console.error('Erro ao enviar áudio:', error);
-      notifyError('Erro ao enviar áudio', 'Não foi possível enviar o áudio. Tente novamente.');
-      return false;
-    }
-  };
-
-  return {
-    isLoading: sendMessageMutation.isPending || sendAudioMutation.isPending,
-    isUploading,
-    sendTextMessage,
-    uploadFile,
-    shareLink,
-    sendAudio,
-  };
+  return { sendMessage };
 }
