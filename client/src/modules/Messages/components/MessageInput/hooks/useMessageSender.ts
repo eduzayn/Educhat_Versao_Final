@@ -87,18 +87,51 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       if ((window as any).socketInstance?.connected) {
         console.log('📡 SOCKET-FIRST: Enviando mensagem via WebSocket');
         
-        // Emitir mensagem via WebSocket
-        (window as any).socketInstance.emit('send_message', {
-          conversationId,
-          content: content.trim(),
-          messageType: 'text',
-          isFromContact: false,
-          isInternalNote,
-          optimisticId
-        });
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            console.warn('⚠️ Timeout no envio via WebSocket, usando fallback REST');
+            resolve(false); // Trigger fallback
+          }, 3000);
 
-        // WebSocket confirmará entrega via broadcast_message
-        return true;
+          // Listener para sucesso via broadcast_message
+          const handleBroadcast = (data: any) => {
+            if (data.type === 'new_message' && data.optimisticId === optimisticId) {
+              clearTimeout(timeout);
+              (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
+              (window as any).socketInstance?.off('message_error', handleError);
+              console.log('✅ Mensagem confirmada via WebSocket');
+              resolve(true);
+            }
+          };
+
+          // Listener para erro
+          const handleError = (errorData: any) => {
+            if (errorData.optimisticId === optimisticId) {
+              clearTimeout(timeout);
+              (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
+              (window as any).socketInstance?.off('message_error', handleError);
+              console.error('❌ Erro confirmado via WebSocket:', errorData);
+              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));
+            }
+          };
+
+          // Registrar listeners
+          (window as any).socketInstance.on('broadcast_message', handleBroadcast);
+          (window as any).socketInstance.on('message_error', handleError);
+          
+          // Emitir mensagem via WebSocket
+          (window as any).socketInstance.emit('send_message', {
+            conversationId,
+            content: content.trim(),
+            messageType: 'text',
+            isFromContact: false,
+            isInternalNote,
+            optimisticId
+          });
+        }).catch(error => {
+          console.error('❌ Erro no WebSocket, usando fallback:', error);
+          return false; // Trigger fallback
+        });
       }
 
       // FALLBACK: Se WebSocket não disponível, usar REST API
@@ -136,6 +169,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
       console.log('✅ Mensagem sincronizada via REST fallback');
       return true;
+      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       

@@ -94,6 +94,26 @@ export function useWebSocket() {
       }
     });
 
+    // Handle message send errors
+    socketRef.current.on('message_error', (data) => {
+      console.error('❌ Erro no envio de mensagem via Socket.IO:', data);
+      
+      // Marcar mensagem otimística como erro se existir
+      if (data.optimisticId) {
+        queryClient.setQueryData(
+          ['/api/conversations', activeConversation?.id, 'messages'],
+          (oldMessages: any[] | undefined) => {
+            if (!oldMessages) return [];
+            return oldMessages.map(msg => 
+              msg.id === data.optimisticId 
+                ? { ...msg, status: 'error', content: `❌ ${msg.content}` }
+                : msg
+            );
+          }
+        );
+      }
+    });
+
     // All events are now handled via broadcast_message
 
     // Handle typing indicators

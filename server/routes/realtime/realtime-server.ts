@@ -19,7 +19,10 @@ export function createSocketServer(app: Express): SocketServer {
             'https://educhat.com.br', 
             'https://www.educhat.com.br',
             'https://educhat.galaxiasistemas.com.br',
-            ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : [])
+            ...(process.env.RENDER_EXTERNAL_URL ? [process.env.RENDER_EXTERNAL_URL] : []),
+            // Adicionar domínios Replit para produção
+            /^https:\/\/.*\.replit\.dev$/,
+            /^https:\/\/.*\.replit\.app$/
           ]
         : '*',
       methods: ["GET", "POST"],

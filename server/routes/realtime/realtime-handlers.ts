@@ -92,8 +92,14 @@ export function setupSocketHandlers(io: SocketIOServer) {
           }
         }
       } catch (error) {
-        console.error('Erro ao processar mensagem Socket.IO:', error);
-        socket.emit('error', { message: 'Erro ao enviar mensagem' });
+        console.error('❌ Erro ao processar mensagem Socket.IO:', error);
+        // Enviar erro detalhado para debug em produção
+        socket.emit('message_error', { 
+          message: 'Erro ao enviar mensagem',
+          error: error.message,
+          optimisticId,
+          timestamp: new Date().toISOString()
+        });
       }
     });
 
