@@ -84,11 +84,11 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
     // PROCESSAMENTO EM BACKGROUND: Salvar no banco via WebSocket se possível
     try {
       // SOCKET-FIRST: Tentar envio via WebSocket para tempo real
-      if (window.socketInstance?.connected) {
+      if ((window as any).socketInstance?.connected) {
         console.log('📡 SOCKET-FIRST: Enviando mensagem via WebSocket');
         
         // Emitir mensagem via WebSocket
-        window.socketInstance.emit('send_message', {
+        (window as any).socketInstance.emit('send_message', {
           conversationId,
           content: content.trim(),
           messageType: 'text',

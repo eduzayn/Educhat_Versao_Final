@@ -75,7 +75,7 @@ export function useOptimisticMessages(conversationId: number) {
       ['/api/conversations', conversationId, 'messages'],
       (oldMessages: Message[] | undefined) => {
         const messages = oldMessages || [];
-        const updatedMessages = [...messages, optimisticMessage as Message];
+        const updatedMessages = [...messages, optimisticMessage as any];
         
         // BENCHMARK: Finalizar cronômetro - mensagem renderizada
         const renderTime = performanceBenchmark.endTimer('enter-to-bubble');
@@ -105,8 +105,8 @@ export function useOptimisticMessages(conversationId: number) {
         
         return oldMessages.map(msg => {
           // Se for a mensagem otimística, substituir pela real
-          const optimisticMsg = msg as OptimisticMessage;
-          if (optimisticMsg.optimisticId === optimisticId || String(msg.id) === optimisticId) {
+          const optimisticMsg = msg as any;
+          if (optimisticMsg.optimisticId === optimisticId || String(optimisticMsg.id) === optimisticId) {
             return realMessage;
           }
           return msg;
@@ -128,7 +128,8 @@ export function useOptimisticMessages(conversationId: number) {
         if (!oldMessages) return [];
         
         return oldMessages.filter(msg => {
-          const isOptimistic = (msg as OptimisticMessage).optimisticId === optimisticId || msg.id === optimisticId;
+          const msgAny = msg as any;
+          const isOptimistic = msgAny.optimisticId === optimisticId || String(msgAny.id) === optimisticId;
           return !isOptimistic;
         });
       }

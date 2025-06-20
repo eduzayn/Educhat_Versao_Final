@@ -77,6 +77,9 @@ export function useWebSocket() {
       console.log('🔌 Socket.IO conectado');
       setConnectionStatus(true);
       
+      // SOCKET-FIRST: Registrar instância global para envio de mensagens
+      (window as any).socketInstance = socketRef.current;
+      
       // Limpar timeout de reconexão ao conectar com sucesso
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);

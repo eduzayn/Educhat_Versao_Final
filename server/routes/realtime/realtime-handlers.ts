@@ -53,14 +53,44 @@ export function setupSocketHandlers(io: SocketIOServer) {
         const newMessage = await storage.message.createMessage({
           conversationId,
           content,
+          messageType,
           isFromContact,
+          isInternalNote
         });
         
-        // Broadcast to all clients in the conversation
-        io.to(`conversation:${conversationId}`).emit('new_message', {
+        console.log('📡 SOCKET-FIRST: Mensagem salva, broadcasting via WebSocket:', newMessage.id);
+        
+        // SOCKET-FIRST: Broadcast para todos os clientes da conversa via WebSocket
+        io.to(`conversation:${conversationId}`).emit('broadcast_message', {
+          type: 'new_message',
           message: newMessage,
-          conversationId
+          conversationId,
+          optimisticId // Para substituição de mensagem otimista
         });
+        
+        // Z-API em background para mensagens não internas
+        if (!isInternalNote) {
+          const conversation = await storage.conversation.getConversation(conversationId);
+          if (conversation?.contact?.phone) {
+            // Processar Z-API de forma assíncrona
+            setImmediate(async () => {
+              try {
+                const response = await fetch(`${process.env.WEBHOOK_URL || 'http://localhost:5000'}/api/zapi/send-message`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    phone: conversation.contact.phone,
+                    message: content,
+                    conversationId: conversationId
+                  })
+                });
+                console.log('📡 Z-API processado em background via WebSocket');
+              } catch (error) {
+                console.error('❌ Erro Z-API em background:', error);
+              }
+            });
+          }
+        }
       } catch (error) {
         console.error('Erro ao processar mensagem Socket.IO:', error);
         socket.emit('error', { message: 'Erro ao enviar mensagem' });
