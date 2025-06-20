@@ -22,13 +22,6 @@ const checkDuplicatesSchema = z.object({
 router.post("/check-duplicates", async (req, res) => {
   const startTime = Date.now();
   
-  // Timeout de segurança para evitar 502 Bad Gateway
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error('Timeout na verificação de duplicatas'));
-    }, 8000); // 8 segundos máximo
-  });
-  
   try {
     const { phone, excludeContactId } = checkDuplicatesSchema.parse(req.body);
     
@@ -42,11 +35,38 @@ router.post("/check-duplicates", async (req, res) => {
       });
     }
     
-    // Executar verificação com timeout
-    const result = await Promise.race([
+    // Chave única para debounce baseada nos parâmetros
+    const requestKey = `${phone}_${excludeContactId || 'none'}`;
+    
+    // Verificar se já existe uma requisição pendente para os mesmos parâmetros
+    if (pendingRequests.has(requestKey)) {
+      console.log(`⏰ Reutilizando verificação de duplicatas em andamento para ${phone}`);
+      const result = await pendingRequests.get(requestKey);
+      return res.json(result);
+    }
+    
+    // Timeout de segurança para evitar 502 Bad Gateway
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout na verificação de duplicatas'));
+      }, 6000); // Reduzido para 6 segundos máximo
+    });
+    
+    // Criar e armazenar a promise da verificação
+    const verificationPromise = Promise.race([
       storage.contacts.checkPhoneDuplicates(phone, excludeContactId),
       timeoutPromise
-    ]);
+    ]).finally(() => {
+      // Remover da lista de pendentes após conclusão
+      setTimeout(() => {
+        pendingRequests.delete(requestKey);
+      }, DEBOUNCE_TIME);
+    });
+    
+    pendingRequests.set(requestKey, verificationPromise);
+    
+    // Executar verificação
+    const result = await verificationPromise;
     
     const duration = Date.now() - startTime;
     console.log(`✅ Check duplicates concluído em ${duration}ms`);

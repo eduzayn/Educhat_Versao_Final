@@ -21,6 +21,14 @@ export class ConversationListOperations extends BaseStorage {
     // Otimização direta para reduzir 800ms-1200ms identificado nos logs de produção
     // Limitar resultados pesados quando sem filtros específicos
     const optimizedLimit = (!filters || Object.keys(filters).length === 0) ? Math.min(limit, 75) : limit;
+    
+    // Cache inteligente para requisições sem filtros (evita reprocessamento constante)
+    const cacheKey = `conversations_${optimizedLimit}_${offset}_${JSON.stringify(filters || {})}`;
+    const cached = super.getFromCache(cacheKey);
+    if (cached && (!filters || Object.keys(filters).length === 0)) {
+      console.log(`✅ Conversas carregadas (cache) em ${Date.now() - startTime}ms (${cached.length} itens)`);
+      return cached;
+    }
 
     // Construir condições de filtro
     const whereConditions = [];
@@ -156,8 +164,8 @@ export class ConversationListOperations extends BaseStorage {
     const endTime = Date.now();
     console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
 
-    // Retornar dados das conversas com prévias otimizadas
-    return conversationsData.map(conv => ({
+    // Mapear dados das conversas com prévias otimizadas
+    const result = conversationsData.map(conv => ({
       id: conv.id,
       contactId: conv.contactId,
       channel: conv.channel,
@@ -211,6 +219,13 @@ export class ConversationListOperations extends BaseStorage {
       } : undefined,
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
+
+    // Cache resultado para requisições sem filtros
+    if (!filters || Object.keys(filters).length === 0) {
+      super.setCache(cacheKey, result);
+    }
+
+    return result;
   }
 
   async getConversationCount(): Promise<number> {
