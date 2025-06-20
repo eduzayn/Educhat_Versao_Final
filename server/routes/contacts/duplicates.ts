@@ -4,6 +4,10 @@ import { storage } from "../../storage";
 
 const router = Router();
 
+// Sistema de debounce para evitar múltiplas chamadas simultâneas
+const pendingRequests = new Map<string, Promise<any>>();
+const DEBOUNCE_TIME = 500; // 500ms para agrupar requisições idênticas
+
 // Schema para validação
 const checkDuplicatesSchema = z.object({
   phone: z.string().nullish(),

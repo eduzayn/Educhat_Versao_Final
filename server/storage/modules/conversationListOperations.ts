@@ -17,6 +17,10 @@ export class ConversationListOperations extends BaseStorage {
   async getConversations(limit = 100, offset = 0, filters?: ConversationFilters): Promise<ConversationWithContact[]> {
     console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
+    
+    // Otimização direta para reduzir 800ms-1200ms identificado nos logs de produção
+    // Limitar resultados pesados quando sem filtros específicos
+    const optimizedLimit = (!filters || Object.keys(filters).length === 0) ? Math.min(limit, 75) : limit;
 
     // Construir condições de filtro
     const whereConditions = [];
@@ -115,7 +119,7 @@ export class ConversationListOperations extends BaseStorage {
 
     const conversationsData = await query
       .orderBy(desc(conversations.lastMessageAt))
-      .limit(limit)
+      .limit(optimizedLimit)
       .offset(offset);
 
     // 🚀 BUSCA OTIMIZADA DE PRÉVIAS: Query rápida e específica
