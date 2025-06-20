@@ -87,7 +87,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       if ((window as any).socketInstance?.connected) {
         console.log('📡 SOCKET-FIRST: Enviando mensagem via WebSocket');
         
-        return new Promise((resolve, reject) => {
+        const socketResult = await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
             console.warn('⚠️ Timeout no envio via WebSocket, usando fallback REST');
             resolve(false); // Trigger fallback
@@ -132,9 +132,14 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
           console.error('❌ Erro no WebSocket, usando fallback:', error);
           return false; // Trigger fallback
         });
+
+        // Se WebSocket funcionou, retornar sucesso
+        if (socketResult) {
+          return true;
+        }
       }
 
-      // FALLBACK: Se WebSocket não disponível, usar REST API
+      // FALLBACK: Se WebSocket não disponível ou falhou, usar REST API
       console.log('📡 FALLBACK: WebSocket não disponível, usando REST API');
       const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content: content.trim(),
@@ -169,7 +174,6 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
       console.log('✅ Mensagem sincronizada via REST fallback');
       return true;
-      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
