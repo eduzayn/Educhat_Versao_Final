@@ -81,41 +81,53 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         }
       );
 
-      // SEGUNDO: Processar API em background (não bloqueia UI)
-      const realMessage = await sendMessageMutation.mutateAsync({
-        conversationId,
-        message: {
+      // SEGUNDO: Processar API APENAS para Z-API, sem usar o sistema otimístico duplicado
+      try {
+        // Enviar diretamente para o banco
+        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
           content: content.trim(),
           messageType: 'text',
           isFromContact: false,
-        },
-        contact: activeConversation?.contact
-      });
+        });
+        const realMessage = await response.json();
 
-      // TERCEIRO: Substituir mensagem otimística pela real
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (oldMessages: any[] | undefined) => {
-          if (!oldMessages) return [realMessage];
-          
-          return oldMessages.map(msg => 
-            msg.id === optimisticId ? realMessage : msg
-          );
+        // Substituir mensagem otimística pela real
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages'],
+          (oldMessages: any[] | undefined) => {
+            if (!oldMessages) return [realMessage];
+            
+            return oldMessages.map(msg => 
+              msg.id === optimisticId ? realMessage : msg
+            );
+          }
+        );
+
+        // Z-API em background se tiver telefone
+        if (activeConversation?.contact?.phone) {
+          apiRequest("POST", "/api/zapi/send-message", {
+            phone: activeConversation.contact.phone,
+            message: content.trim(),
+            conversationId: conversationId
+          }).catch(error => {
+            console.error('❌ Erro Z-API (mensagem já salva):', error);
+          });
         }
-      );
 
-      console.log('✅ Mensagem sincronizada - performance Chatwoot level');
+        console.log('✅ Mensagem sincronizada - performance Chatwoot level');
+      } catch (apiError) {
+        throw apiError; // Repassar erro para o catch principal
+      }
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
       // ROLLBACK: Remover mensagem otimística em caso de erro
-      const optimisticIdToRemove = optimisticId;
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: any[] | undefined) => {
           if (!oldMessages) return [];
-          return oldMessages.filter(msg => msg.id !== optimisticIdToRemove);
+          return oldMessages.filter(msg => msg.id !== optimisticId);
         }
       );
       
