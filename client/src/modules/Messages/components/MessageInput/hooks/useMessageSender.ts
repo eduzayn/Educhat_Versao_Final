@@ -29,8 +29,60 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   const sendTextMessage = async (content: string) => {
     if (!content.trim()) return false;
     
+    // BENCHMARK: Iniciar cronômetro para medir ENTER → Bubble
+    const startTime = performance.now();
+    console.log('🚀 INICIANDO envio otimístico - mensagem aparece IMEDIATAMENTE');
+    
+    // RENDERIZAÇÃO INSTANTÂNEA: Criar ID único para mensagem otimística
+    const optimisticId = Date.now();
+    
     try {
-      await sendMessageMutation.mutateAsync({
+      // Criar mensagem otimística para renderização imediata
+      const optimisticMessage = {
+        id: optimisticId,
+        conversationId,
+        content: content.trim(),
+        messageType: 'text' as const,
+        isFromContact: false,
+        sentAt: new Date(),
+        deliveredAt: null,
+        readAt: null,
+        whatsappMessageId: null,
+        zapiStatus: 'PENDING',
+        isGroup: false,
+        referenceMessageId: null,
+        isDeleted: false,
+        metadata: null,
+        isInternalNote: false,
+        authorId: null,
+        authorName: null,
+        noteType: 'general' as const,
+        notePriority: 'normal' as const,
+        noteTags: null,
+        isPrivate: false,
+        isHiddenForUser: false,
+        isDeletedByUser: false,
+        deletedAt: null,
+        deletedBy: null
+      };
+
+      // ATUALIZAÇÃO IMEDIATA DO CACHE - Bubble aparece instantaneamente
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (oldMessages: any[] | undefined) => {
+          const messages = oldMessages || [];
+          const updatedMessages = [...messages, optimisticMessage];
+          
+          // FINALIZAR BENCHMARK
+          const renderTime = performance.now() - startTime;
+          console.log(`🎯 PERFORMANCE OTIMIZADA: ENTER → Bubble em ${renderTime.toFixed(1)}ms (Target: <50ms)`);
+          
+          return updatedMessages;
+        }
+      );
+
+      // SEGUNDO: Processar API em background (não bloqueia UI)
+      const realMessage = await sendMessageMutation.mutateAsync({
         conversationId,
         message: {
           content: content.trim(),
@@ -40,10 +92,33 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         contact: activeConversation?.contact
       });
 
-      // notifySuccess('Mensagem enviada', 'Sua mensagem foi enviada com sucesso.');
+      // TERCEIRO: Substituir mensagem otimística pela real
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (oldMessages: any[] | undefined) => {
+          if (!oldMessages) return [realMessage];
+          
+          return oldMessages.map(msg => 
+            msg.id === optimisticId ? realMessage : msg
+          );
+        }
+      );
+
+      console.log('✅ Mensagem sincronizada - performance Chatwoot level');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      
+      // ROLLBACK: Remover mensagem otimística em caso de erro
+      const optimisticIdToRemove = optimisticId;
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (oldMessages: any[] | undefined) => {
+          if (!oldMessages) return [];
+          return oldMessages.filter(msg => msg.id !== optimisticIdToRemove);
+        }
+      );
+      
       notifyError('Erro ao enviar', 'Não foi possível enviar a mensagem. Tente novamente.');
       return false;
     }

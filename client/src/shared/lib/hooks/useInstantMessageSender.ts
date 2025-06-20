@@ -118,8 +118,9 @@ export function useInstantMessageSender() {
       const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
 
       // RENDERIZAÇÃO INSTANTÂNEA: Criar mensagem otimística
+      const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const optimisticMessage = {
-        id: `optimistic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: Date.now(), // ID numérico temporário
         ...message,
         conversationId,
         sentAt: new Date(),
@@ -143,7 +144,9 @@ export function useInstantMessageSender() {
         isHiddenForUser: false,
         isDeletedByUser: false,
         deletedAt: null,
-        deletedBy: null
+        deletedBy: null,
+        // Marcador para identificação
+        optimisticId
       };
 
       // ATUALIZAÇÃO IMEDIATA DA UI - Bubble aparece instantaneamente

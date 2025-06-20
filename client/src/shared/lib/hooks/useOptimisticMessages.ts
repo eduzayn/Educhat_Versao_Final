@@ -3,7 +3,7 @@ import { queryClient } from '@/lib/queryClient';
 import type { Message } from '@shared/schema';
 
 interface OptimisticMessage extends Omit<Message, 'id'> {
-  id: number | string;
+  id: string;
   isOptimistic?: boolean;
   optimisticId?: string;
 }
