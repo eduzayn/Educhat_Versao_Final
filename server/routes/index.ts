@@ -49,26 +49,6 @@ import activitiesRouter from "./activities/index";
 import { registerUnifiedStatsRoutes } from "./stats/index";
 import gamificationRouter from "./gamification";
 import systemUsersRouter from "./system-users/index";
-import { webhooksRouter } from "./webhooks";
-import { internalChatRouter } from "./internal-chat";
-import { publicProcedure } from "./trpc";
-import { createCallerFactory } from "./trpc";
-
-const appRouter = router({
-  admin: adminRouter,
-  analytics: analyticsRouter,
-  // ... existing code ...
-  webCapture: webCaptureRouter,
-  webhooks: webhooksRouter,
-  internalChat: internalChatRouter,
-
-  // Rota de Health Check para monitoramento do Render
-  health: publicProcedure.get(async ({ ctx }) => {
-    return { status: "OK" };
-  }),
-});
-
-export const appRouter = createCallerFactory(createContext)(appRouter);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação consolidado PRIMEIRO
