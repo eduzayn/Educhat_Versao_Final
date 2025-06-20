@@ -194,7 +194,12 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
   
   // Inicializar monitor de sessão Z-API
-  startSessionMonitor();
+  try {
+    const { startSessionMonitor } = await import('./routes/zapi/session-monitor');
+    startSessionMonitor();
+  } catch (error) {
+    console.log('Monitor de sessão Z-API não disponível:', error);
+  }
 
   // Error handling middleware SUPER ROBUSTO para eliminar 502 Bad Gateway
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
