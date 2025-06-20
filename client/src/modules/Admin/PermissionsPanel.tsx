@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { PermissionItem } from './components/PermissionItem';
 import { ZApiDiagnostic } from './components/ZApiDiagnostic';
 import { RetroactiveAssignment } from './components/RetroactiveAssignment';
+import { SessionMonitor } from './components/SessionMonitor';
 
 interface Permission {
   id: number;
@@ -261,6 +262,7 @@ export default function PermissionsPanel() {
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
           <TabsTrigger value="retroactive">Atribuição Retroativa</TabsTrigger>
           <TabsTrigger value="zapi-diagnostic">Z-API Diagnóstico</TabsTrigger>
+          <TabsTrigger value="session-monitor">Sessão WhatsApp</TabsTrigger>
         </TabsList>
 
         <TabsContent value="roles" className="space-y-4">
@@ -473,6 +475,10 @@ export default function PermissionsPanel() {
 
         <TabsContent value="zapi-diagnostic" className="space-y-6">
           <ZApiDiagnostic />
+        </TabsContent>
+
+        <TabsContent value="session-monitor" className="space-y-6">
+          <SessionMonitor />
         </TabsContent>
       </Tabs>
 
