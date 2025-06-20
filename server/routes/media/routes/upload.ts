@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../../../core/permissionsRefactored';
 import { upload } from '../config/upload';
+import { zapiLogger } from '../../../utils/zapiLogger';
 
 const router = Router();
 

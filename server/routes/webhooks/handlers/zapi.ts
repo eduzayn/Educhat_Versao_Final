@@ -8,6 +8,7 @@ import { storage } from "../../../storage";
 import multer from "multer";
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from "../../../utils/zapi";
 import { extractMediaUrl, normalizeMessageMetadata } from "../../../utils/mediaUrlExtractor";
+import { zapiLogger } from "../../../utils/zapiLogger";
 
 // Configurar multer para upload de áudio em memória
 const uploadAudio = multer({
@@ -71,18 +72,18 @@ const uploadVideo = multer({
  * Handler para envio de imagens via Z-API
  */
 export async function handleSendImage(req: Request, res: Response) {
+  const startTime = Date.now();
+  let requestId: string;
+  
   try {
-    console.log('🖼️ Recebendo solicitação de envio de imagem:', {
-      hasPhone: !!req.body.phone,
-      hasFile: !!req.file,
-      contentType: req.headers['content-type']
-    });
-    
     const phone = req.body.phone;
     const conversationId = req.body.conversationId;
     const caption = req.body.caption || '';
     
+    requestId = zapiLogger.logSendStart(phone, `[IMAGEM] ${caption}`, undefined);
+    
     if (!phone || !req.file) {
+      zapiLogger.logError('VALIDATION_ERROR', 'Phone e arquivo de imagem são obrigatórios', requestId);
       return res.status(400).json({ 
         error: 'Phone e arquivo de imagem são obrigatórios' 
       });
@@ -90,8 +91,11 @@ export async function handleSendImage(req: Request, res: Response) {
 
     const credentials = validateZApiCredentials();
     if (!credentials.valid) {
+      zapiLogger.logCredentialsValidation(false, 'env', credentials.error, requestId);
       return res.status(400).json({ error: credentials.error });
     }
+    
+    zapiLogger.logCredentialsValidation(true, 'env', undefined, requestId);
 
     const { instanceId, token, clientToken } = credentials;
     const cleanPhone = phone.replace(/\D/g, '');
@@ -107,44 +111,40 @@ export async function handleSendImage(req: Request, res: Response) {
     };
 
     const url = buildZApiUrl(instanceId, token, 'send-image');
-    console.log('🖼️ Enviando imagem para Z-API:', { 
-      url: url.replace(token, '****'), 
-      phone: cleanPhone,
-      imageSize: imageBase64.length,
-      mimeType: req.file.mimetype,
-      hasCaption: !!caption
-    });
+    const headers = {
+      'Content-Type': 'application/json',
+      'Client-Token': clientToken,
+    };
+    
+    zapiLogger.logApiRequest(url, {
+      ...payload,
+      image: `[BASE64_IMAGE_${imageBase64.length}_BYTES]`
+    }, headers, requestId);
 
+    const requestStartTime = Date.now();
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Client-Token': clientToken,
-      },
+      headers,
       body: JSON.stringify(payload)
     });
 
+    const requestDuration = Date.now() - requestStartTime;
     const responseText = await response.text();
-    console.log('📥 Resposta Z-API (imagem):', {
-      status: response.status,
-      statusText: response.statusText,
-      body: responseText.substring(0, 200) + '...'
-    });
-
-    if (!response.ok) {
-      console.error('❌ Erro na Z-API (imagem):', responseText);
-      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-    }
-
+    
     let data;
     try {
-      data = JSON.parse(responseText);
+      data = responseText ? JSON.parse(responseText) : {};
     } catch (parseError) {
-      console.error('❌ Erro ao parsear resposta JSON (imagem):', parseError);
+      zapiLogger.logError('JSON_PARSE_ERROR', parseError, requestId);
+      zapiLogger.logApiResponse(response.status, response.statusText, responseText, requestDuration, requestId);
       throw new Error(`Resposta inválida da Z-API: ${responseText}`);
     }
 
-    console.log('✅ Imagem enviada com sucesso via Z-API:', data);
+    zapiLogger.logApiResponse(response.status, response.statusText, data, requestDuration, requestId);
+
+    if (!response.ok) {
+      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${JSON.stringify(data)}`);
+    }
     
     // Salvar mensagem no banco de dados se conversationId foi fornecido
     if (conversationId) {
@@ -191,18 +191,18 @@ export async function handleSendImage(req: Request, res: Response) {
  * Handler para envio de áudio via Z-API
  */
 export async function handleSendAudio(req: Request, res: Response) {
+  const startTime = Date.now();
+  let requestId: string;
+  
   try {
-    console.log('🎵 Recebendo solicitação de envio de áudio:', {
-      hasPhone: !!req.body.phone,
-      hasFile: !!req.file,
-      contentType: req.headers['content-type']
-    });
-    
     const phone = req.body.phone;
     const conversationId = req.body.conversationId;
     const duration = req.body.duration;
     
+    requestId = zapiLogger.logSendStart(phone, `[AUDIO] ${duration || 'unknown'}s`, undefined);
+    
     if (!phone || !req.file) {
+      zapiLogger.logError('VALIDATION_ERROR', 'Phone e arquivo de áudio são obrigatórios', requestId);
       return res.status(400).json({ 
         error: 'Phone e arquivo de áudio são obrigatórios' 
       });
@@ -210,8 +210,11 @@ export async function handleSendAudio(req: Request, res: Response) {
 
     const credentials = validateZApiCredentials();
     if (!credentials.valid) {
+      zapiLogger.logCredentialsValidation(false, 'env', credentials.error, requestId);
       return res.status(400).json({ error: credentials.error });
     }
+    
+    zapiLogger.logCredentialsValidation(true, 'env', undefined, requestId);
 
     const { instanceId, token, clientToken } = credentials;
     const cleanPhone = phone.replace(/\D/g, '');
