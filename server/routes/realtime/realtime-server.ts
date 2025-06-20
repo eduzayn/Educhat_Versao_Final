@@ -25,18 +25,21 @@ export function createSocketServer(app: Express): SocketServer {
       methods: ["GET", "POST"],
       credentials: true
     },
-    // Configurações otimizadas para tempo real - Socket-first como Chatwoot
-    pingTimeout: 5000,        // 5s - resposta rápida para tempo real
-    pingInterval: 2000,       // 2s - heartbeat frequente para responsividade
-    upgradeTimeout: 5000,     // 5s - upgrade rápido para WebSocket
-    transports: ['websocket', 'polling'], // WebSocket prioritário
-    allowEIO3: true,
-    connectTimeout: 10000,    // 10s - conexão rápida
-    maxHttpBufferSize: 5e6,   // 5MB
-    // Configurações para performance socket-first
+    // FORÇAR APENAS POLLING - Sem WebSocket
+    transports: ['polling'],  // APENAS polling
+    allowUpgrades: false,     // BLOQUEAR upgrades
+    pingTimeout: 60000,       // 1 min timeout
+    pingInterval: 25000,      // 25s ping
+    upgradeTimeout: 1000,     // 1s timeout upgrade (impossível)
+    connectTimeout: 45000,    // 45s conexão
+    maxHttpBufferSize: 1e6,   // 1MB buffer
+    // Configurações anti-WebSocket
     serveClient: false,
-    allowUpgrades: true,
-    cookie: false
+    cookie: false,
+    compression: false,
+    allowEIO3: false,
+    destroyUpgrade: true,
+    destroyUpgradeTimeout: 1
   });
 
   httpServer.io = io;

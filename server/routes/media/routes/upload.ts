@@ -74,7 +74,7 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
           const credentials = validateZApiCredentials();
           
           if (credentials.valid) {
-          const { instanceId, token, clientToken } = credentials;
+            const { instanceId, token, clientToken } = credentials;
           const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
           
           // Converter arquivo para base64 de forma otimizada (não bloqueia resposta)

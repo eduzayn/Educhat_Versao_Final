@@ -52,19 +52,20 @@ export function useWebSocket() {
     
     try {
       socketRef.current = io(socketUrl, {
-        transports: ['websocket', 'polling'], // WebSocket prioritário
-        timeout: 3000,               // 3s - resposta ultra rápida socket-first
+        transports: ['polling'],     // APENAS polling
+        timeout: 20000,              // 20s timeout
         reconnection: true,
-        reconnectionDelay: 200,      // 200ms - reconexão instantânea
-        reconnectionDelayMax: 1000,  // 1s máximo - sem delays longos
-        reconnectionAttempts: 10,    // Mais tentativas para estabilidade
-        randomizationFactor: 0.2,    // Menos randomização para velocidade
+        reconnectionDelay: 2000,     // 2s reconexão
+        reconnectionDelayMax: 10000, // 10s máximo
+        reconnectionAttempts: 10,    // Mais tentativas
+        randomizationFactor: 0.3,    // Baixa randomização
         forceNew: false,
-        upgrade: true,
-        rememberUpgrade: true,
+        upgrade: false,              // NUNCA fazer upgrade
+        rememberUpgrade: false,      // Sempre usar polling
         autoConnect: true,
-        // Configurações socket-first otimizadas
-        closeOnBeforeunload: false   // Manter conexão ao trocar tabs
+        closeOnBeforeunload: false,
+        forceJSONP: false,
+        compress: false              // Sem compressão
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
