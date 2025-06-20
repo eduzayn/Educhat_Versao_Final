@@ -5,7 +5,8 @@ import { useChatStore } from '@/shared/store/chatStore';
 
 export function useMessageSender() {
   const queryClient = useQueryClient();
-  const { activeConversation, conversationId } = useActiveConversation();
+  const { activeConversation } = useChatStore();
+  const conversationId = activeConversation?.id;
 
   const sendMessage = useCallback(async (content: string): Promise<boolean> => {
     if (!activeConversation || !conversationId) {
