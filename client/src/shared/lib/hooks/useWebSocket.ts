@@ -52,28 +52,14 @@ export function useWebSocket() {
     
     try {
       socketRef.current = io(socketUrl, {
-        // Apenas polling para máxima compatibilidade
         transports: ['polling'],
-        // Timeouts mais generosos para produção
-        timeout: 60000,              // 1 min timeout
-        reconnection: true,
-        reconnectionDelay: 1000,     // 1s reconexão
-        reconnectionDelayMax: 5000,  // 5s máximo
-        reconnectionAttempts: 20,    // Mais tentativas
-        randomizationFactor: 0.5,    // Randomização moderada
-        // Configurações de conexão
-        forceNew: true,              // Nova conexão sempre
-        upgrade: false,              // Sem upgrade
-        rememberUpgrade: false,      // Sempre polling
+        upgrade: false,
+        rememberUpgrade: false,
+        timeout: 20000,
+        reconnection: false,
         autoConnect: true,
-        closeOnBeforeunload: true,
-        // Headers e configurações adicionais
-        extraHeaders: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        withCredentials: true,
-        forceJSONP: false
+        forceNew: false,
+        withCredentials: false
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -491,60 +477,32 @@ export function useWebSocket() {
       }
     });
 
-    // Handle disconnection with enhanced monitoring
+    // Handle disconnection - SIMPLIFIED
     socketRef.current.on('disconnect', (reason) => {
       console.warn('🔌 Desconectado:', reason);
       setConnectionStatus(false);
-      
-      // Clear global instance on disconnect
       (window as any).socketInstance = null;
       
-      // Enhanced reconnection logic for different disconnection types
-      const shouldReconnect = reason !== 'io client disconnect';
-      
-      if (shouldReconnect && !reconnectTimeoutRef.current) {
-        let delay = 2000; // Base delay
-        
-        // Adjust delay based on disconnection reason
-        if (reason === 'xhr poll error' || reason === 'transport error') {
-          delay = 5000; // Longer delay for transport issues
-        } else if (reason === 'transport close') {
-          delay = 3000;
-        }
-        
-        const jitter = Math.random() * 1000;
-        const finalDelay = Math.min(delay + jitter, 15000);
-        
-        console.log(`🔄 Reagendando reconexão em ${Math.round(finalDelay)}ms - Motivo: ${reason}`);
+      // Simple reconnection for all disconnections except client-initiated
+      if (reason !== 'io client disconnect' && !reconnectTimeoutRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
-          console.log('🔄 Tentando reconectar...');
           connect();
-        }, finalDelay);
+        }, 3000);
       }
     });
 
-    // Handle connection errors with specific treatment for xhr poll error
+    // Handle connection errors - SIMPLIFIED
     socketRef.current.on('connect_error', (error) => {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
       
-      // Specific handling for xhr poll error
-      if (error && error.toString().includes('xhr poll error')) {
-        console.warn('⚠️ Erro de polling XHR detectado - aguardando antes de tentar reconectar');
-        
-        // Clear any existing reconnection timeout
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-          reconnectTimeoutRef.current = null;
-        }
-        
-        // Schedule reconnection with longer delay for xhr poll errors
+      // Manual reconnection for xhr poll errors
+      if (!reconnectTimeoutRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
-          console.log('🔄 Reconectando após erro de polling XHR...');
           connect();
-        }, 8000); // 8 second delay for xhr poll errors
+        }, 5000);
       }
     });
 
