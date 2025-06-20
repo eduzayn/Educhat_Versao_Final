@@ -52,17 +52,19 @@ export function useWebSocket() {
     
     try {
       socketRef.current = io(socketUrl, {
-        transports: ['websocket', 'polling'],
-        timeout: 5000,               // OTIMIZADO: 5s para resposta rápida estilo Chatwoot
+        transports: ['websocket', 'polling'], // WebSocket prioritário
+        timeout: 3000,               // 3s - resposta ultra rápida socket-first
         reconnection: true,
-        reconnectionDelay: 500,      // OTIMIZADO: 500ms para reconexão imediata
-        reconnectionDelayMax: 2000,  // OTIMIZADO: Máximo 2s para evitar delays
-        reconnectionAttempts: 5,     // OTIMIZADO: 5 tentativas suficientes
-        randomizationFactor: 0.3,    // Randomização para evitar thundering herd
-        forceNew: false,             // Reutilizar conexões quando possível
+        reconnectionDelay: 200,      // 200ms - reconexão instantânea
+        reconnectionDelayMax: 1000,  // 1s máximo - sem delays longos
+        reconnectionAttempts: 10,    // Mais tentativas para estabilidade
+        randomizationFactor: 0.2,    // Menos randomização para velocidade
+        forceNew: false,
         upgrade: true,
         rememberUpgrade: true,
-        autoConnect: true
+        autoConnect: true,
+        // Configurações socket-first otimizadas
+        closeOnBeforeunload: false   // Manter conexão ao trocar tabs
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -97,17 +99,43 @@ export function useWebSocket() {
       }
     });
 
-    // Handle broadcast messages for other events
+    // SOCKET-FIRST: Handler otimizado para mensagens em tempo real
     socketRef.current.on('broadcast_message', (data) => {
-      // Handle new_message within broadcast_message
+      // Handle new_message - Sistema socket-first como Chatwoot
       if (data.type === 'new_message' && data.message && data.conversationId) {
-        console.log('📨 Nova mensagem via broadcast:', data);
+        console.log('📨 Nova mensagem via WebSocket:', data);
         
-        // PERFORMANCE CRÍTICA: NÃO recarregar mensagens se são da conversa ativa
-        // Evita reload desnecessário que causa delay no bubble
+        // SOCKET-FIRST: Para conversa ativa, aplicar mensagem diretamente via WebSocket
         if (activeConversation?.id === data.conversationId) {
-          console.log('⚡ Broadcast para conversa ativa - IGNORANDO para evitar delay no bubble');
-          // Apenas atualizar store local sem refetch (mensagem já está na UI via optimistic)
+          console.log('⚡ SOCKET-FIRST: Aplicando mensagem via WebSocket para conversa ativa');
+          
+          // Atualizar cache diretamente sem refetch - elimina polling
+          queryClient.setQueryData(
+            ['/api/conversations', data.conversationId, 'messages'],
+            (oldMessages: any[] | undefined) => {
+              if (!oldMessages) return [data.message];
+              
+              // Verificar se é atualização de mensagem otimista ou nova mensagem
+              const optimisticIndex = oldMessages.findIndex(msg => 
+                msg.id < 0 && msg.content === data.message.content
+              );
+              
+              if (optimisticIndex !== -1) {
+                // Substituir mensagem otimista pela real
+                const updatedMessages = [...oldMessages];
+                updatedMessages[optimisticIndex] = { ...data.message, status: 'delivered' };
+                return updatedMessages;
+              }
+              
+              // Nova mensagem via WebSocket
+              const exists = oldMessages.find(msg => msg.id === data.message.id);
+              if (exists) return oldMessages;
+              
+              return [...oldMessages, { ...data.message, status: 'received' }];
+            }
+          );
+          
+          // Atualizar store local
           addMessage(data.conversationId, data.message);
           return;
         }
@@ -124,7 +152,7 @@ export function useWebSocket() {
           }
         );
         
-        // Atualizar lista de conversas sem refetch para manter performance
+        // SOCKET-FIRST: Atualizar lista de conversas sem polling
         queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
           if (!oldData?.conversations) return oldData;
           return {

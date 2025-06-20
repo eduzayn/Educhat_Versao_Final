@@ -42,12 +42,15 @@ export function setupSocketHandlers(io: SocketIOServer) {
       });
     });
 
-    // Handle new messages
+    // SOCKET-FIRST: Handle envio de mensagens em tempo real
     socket.on('send_message', async (data) => {
       try {
-        const { conversationId, content, isFromContact = false } = data;
+        const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false, optimisticId } = data;
         
-        const newMessage = await storage.createMessage({
+        console.log('📡 SOCKET-FIRST: Recebendo mensagem via WebSocket:', { conversationId, content, optimisticId });
+        
+        // Salvar mensagem no banco
+        const newMessage = await storage.message.createMessage({
           conversationId,
           content,
           isFromContact,

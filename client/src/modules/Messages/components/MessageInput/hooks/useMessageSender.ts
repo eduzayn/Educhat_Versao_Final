@@ -81,9 +81,28 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       }
     );
 
-    // PROCESSAMENTO EM BACKGROUND: Salvar no banco e enviar via Z-API
+    // PROCESSAMENTO EM BACKGROUND: Salvar no banco via WebSocket se possível
     try {
-      // Enviar para o banco
+      // SOCKET-FIRST: Tentar envio via WebSocket para tempo real
+      if (window.socketInstance?.connected) {
+        console.log('📡 SOCKET-FIRST: Enviando mensagem via WebSocket');
+        
+        // Emitir mensagem via WebSocket
+        window.socketInstance.emit('send_message', {
+          conversationId,
+          content: content.trim(),
+          messageType: 'text',
+          isFromContact: false,
+          isInternalNote,
+          optimisticId
+        });
+
+        // WebSocket confirmará entrega via broadcast_message
+        return true;
+      }
+
+      // FALLBACK: Se WebSocket não disponível, usar REST API
+      console.log('📡 FALLBACK: WebSocket não disponível, usando REST API');
       const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
         content: content.trim(),
         messageType: 'text',
@@ -115,7 +134,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         });
       }
 
-      console.log('✅ Mensagem sincronizada com backend');
+      console.log('✅ Mensagem sincronizada via REST fallback');
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
