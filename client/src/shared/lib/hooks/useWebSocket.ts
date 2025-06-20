@@ -112,7 +112,8 @@ export function useWebSocket() {
         if (activeConversation?.id === data.conversationId) {
           console.log('⚡ SOCKET-FIRST: Aplicando mensagem via WebSocket para conversa ativa');
           
-          // Atualizar cache diretamente sem refetch - elimina polling
+          // CORREÇÃO CRÍTICA: Atualizar ambas as query keys para sincronização
+          // Query key principal para mensagens
           queryClient.setQueryData(
             ['/api/conversations', data.conversationId, 'messages'],
             (oldMessages: any[] | undefined) => {
@@ -136,6 +137,39 @@ export function useWebSocket() {
               if (exists) return oldMessages;
               
               return [...oldMessages, { ...data.message, status: 'received' }];
+            }
+          );
+
+          // CORREÇÃO CRÍTICA: Atualizar também a query key das mensagens infinitas
+          queryClient.setQueryData(
+            ['/api/conversations', data.conversationId, 'messages', 'infinite'],
+            (oldData: any) => {
+              if (!oldData?.pages) return oldData;
+              
+              // Atualizar a primeira página (mensagens mais recentes)
+              const updatedPages = [...oldData.pages];
+              if (updatedPages[0]) {
+                const firstPage = updatedPages[0];
+                const optimisticIndex = firstPage.messages.findIndex((msg: any) => 
+                  msg.id < 0 && msg.content === data.message.content
+                );
+                
+                if (optimisticIndex !== -1) {
+                  // Substituir mensagem otimista
+                  const updatedMessages = [...firstPage.messages];
+                  updatedMessages[optimisticIndex] = { ...data.message, status: 'delivered' };
+                  updatedPages[0] = { ...firstPage, messages: updatedMessages };
+                } else {
+                  // Adicionar nova mensagem se não existe
+                  const exists = firstPage.messages.find((msg: any) => msg.id === data.message.id);
+                  if (!exists) {
+                    const updatedMessages = [...firstPage.messages, { ...data.message, status: 'received' }];
+                    updatedPages[0] = { ...firstPage, messages: updatedMessages };
+                  }
+                }
+              }
+              
+              return { ...oldData, pages: updatedPages };
             }
           );
           
