@@ -2,8 +2,44 @@ import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { validateZApiCredentials } from '../../utils/zapi';
+import { zapiLogger } from '../../utils/zapiLogger';
 
 export function registerZApiRoutes(app: Express) {
+  
+  // Endpoint para diagnóstico de logs Z-API
+  app.get('/api/zapi/diagnostic', async (req, res) => {
+    try {
+      const report = zapiLogger.generateDiagnosticReport();
+      res.json({
+        success: true,
+        report,
+        recentLogs: zapiLogger.getRecentLogs(20)
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Erro ao gerar relatório de diagnóstico',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Endpoint para buscar logs por requestId
+  app.get('/api/zapi/logs/:requestId', async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const logs = zapiLogger.getLogsByRequestId(requestId);
+      res.json({
+        success: true,
+        requestId,
+        logs
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Erro ao buscar logs',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
   // Cache para o status Z-API (10 segundos)
   let statusCache: { data: any; timestamp: number } | null = null;
   const CACHE_DURATION = 10000; // 10 segundos para reduzir ainda mais a carga
@@ -60,12 +96,17 @@ export function registerZApiRoutes(app: Express) {
 
   // Send message via Z-API - REST: POST /api/zapi/send-message
   app.post('/api/zapi/send-message', async (req, res) => {
+    const startTime = Date.now();
+    let requestId: string;
+    
     try {
-      console.log('📤 Enviando mensagem via Z-API:', req.body);
-      
       const { phone, message, conversationId, channelId } = req.body;
       
+      // Iniciar rastreamento detalhado
+      requestId = zapiLogger.logSendStart(phone, message, channelId);
+      
       if (!phone || !message) {
+        zapiLogger.logError('VALIDATION_ERROR', 'Phone e message são obrigatórios', requestId);
         return res.status(400).json({ 
           error: 'Phone e message são obrigatórios' 
         });
@@ -78,10 +119,13 @@ export function registerZApiRoutes(app: Express) {
         try {
           const channel = await storage.getChannel(channelId);
           if (!channel || !channel.isActive || channel.type !== 'whatsapp') {
+            zapiLogger.logError('CHANNEL_NOT_FOUND', 'Canal WhatsApp não encontrado ou inativo', requestId);
             return res.status(400).json({ 
               error: 'Canal WhatsApp não encontrado ou inativo' 
             });
           }
+          
+          zapiLogger.logChannelConfig(channel, requestId);
           
           const config = (channel.configuration as any) || {};
           credentials = {
@@ -92,14 +136,15 @@ export function registerZApiRoutes(app: Express) {
           };
           
           if (!credentials.instanceId || !credentials.token || !credentials.clientToken) {
+            zapiLogger.logCredentialsValidation(false, 'channel', 'Credenciais incompletas no canal', requestId);
             return res.status(400).json({ 
               error: 'Canal WhatsApp não configurado corretamente' 
             });
           }
           
-          console.log(`📱 Usando canal específico: ${channel.name} (ID: ${channelId})`);
+          zapiLogger.logCredentialsValidation(true, 'channel', undefined, requestId);
         } catch (error) {
-          console.error('❌ Erro ao buscar canal:', error);
+          zapiLogger.logError('CHANNEL_FETCH_ERROR', error, requestId);
           return res.status(500).json({ 
             error: 'Erro ao buscar configurações do canal' 
           });
@@ -108,9 +153,10 @@ export function registerZApiRoutes(app: Express) {
         // Fallback para credenciais padrão (compatibilidade)
         credentials = validateZApiCredentials();
         if (!credentials.valid) {
+          zapiLogger.logCredentialsValidation(false, 'env', credentials.error, requestId);
           return res.status(400).json({ error: credentials.error });
         }
-        console.log('📱 Usando credenciais padrão Z-API');
+        zapiLogger.logCredentialsValidation(true, 'env', undefined, requestId);
       }
 
       const { instanceId, token, clientToken } = credentials;
@@ -122,54 +168,62 @@ export function registerZApiRoutes(app: Express) {
       };
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-      console.log('📤 Enviando para Z-API:', { url: url.replace(token!, '****'), payload });
+      const headers = {
+        'Client-Token': clientToken || '',
+        'Content-Type': 'application/json'
+      };
+      
+      zapiLogger.logApiRequest(url, payload, headers, requestId);
 
       // Configurar timeout otimizado de 8 segundos para máxima velocidade de resposta
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        zapiLogger.logTimeout(8000, requestId);
+      }, 8000);
       let data;
 
       try {
+        const requestStartTime = Date.now();
         const response = await fetch(url, {
           method: 'POST',
-          headers: {
-            'Client-Token': clientToken || '',
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal
         });
         
+        const requestDuration = Date.now() - requestStartTime;
         clearTimeout(timeoutId);
 
         const responseText = await response.text();
-        console.log('📥 Resposta Z-API:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText
-        });
-
-        if (!response.ok) {
-          console.error('❌ Erro na Z-API:', responseText);
-          throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-        }
-
+        let parsedResponse;
+        
         try {
-          data = JSON.parse(responseText);
+          parsedResponse = responseText ? JSON.parse(responseText) : {};
         } catch (parseError) {
-          console.error('❌ Erro ao parsear resposta JSON:', parseError);
+          zapiLogger.logError('JSON_PARSE_ERROR', parseError, requestId);
+          zapiLogger.logApiResponse(response.status, response.statusText, responseText, requestDuration, requestId);
           throw new Error(`Resposta inválida da Z-API: ${responseText}`);
         }
-        
-        console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
+
+        zapiLogger.logApiResponse(response.status, response.statusText, parsedResponse, requestDuration, requestId);
+
+        if (!response.ok) {
+          throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${JSON.stringify(parsedResponse)}`);
+        }
+
+        data = parsedResponse;
         
       } catch (fetchError) {
         clearTimeout(timeoutId);
         
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          throw new Error('Timeout: Requisição cancelada após 8 segundos - verifique conectividade Z-API');
+          const timeoutError = new Error('Timeout: Requisição cancelada após 8 segundos - verifique conectividade Z-API');
+          zapiLogger.logError('FETCH_TIMEOUT', timeoutError, requestId);
+          throw timeoutError;
         }
         
+        zapiLogger.logError('FETCH_ERROR', fetchError, requestId);
         throw fetchError;
       }
 
@@ -192,10 +246,10 @@ export function registerZApiRoutes(app: Express) {
                   instanceId: instanceId
                 }
               });
-              console.log('✅ Metadados Z-API atualizados na mensagem:', recentMessage.id);
+              zapiLogger.logDatabaseUpdate(recentMessage.id, true, undefined, requestId);
             }
           } catch (dbError) {
-            console.error('❌ Erro ao atualizar metadados da mensagem:', dbError);
+            zapiLogger.logDatabaseUpdate(0, false, dbError instanceof Error ? dbError.message : String(dbError), requestId);
           }
         });
       }
@@ -204,9 +258,13 @@ export function registerZApiRoutes(app: Express) {
       res.json(data);
       
     } catch (error) {
-      console.error('❌ Erro ao enviar mensagem via Z-API:', error);
+      const duration = Date.now() - startTime;
+      zapiLogger.logError('SEND_MESSAGE_ERROR', error, requestId!);
+      
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor',
+        requestId: requestId!,
+        duration
       });
     }
   });
