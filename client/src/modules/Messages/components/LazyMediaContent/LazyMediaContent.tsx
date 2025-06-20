@@ -8,7 +8,7 @@
  * Status: SISTEMA ESTÁVEL - NÃO MODIFICAR
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/shared/ui/button";
 import { Download, Play, FileText, Image } from "lucide-react";
 import { secureLog } from "@/lib/secureLogger";
@@ -31,18 +31,20 @@ export function LazyMediaContent({
   metadata,
   initialContent: propInitialContent,
 }: LazyMediaContentProps) {
-  // Log detalhado dos dados recebidos para debugging
-  console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
-    messageType,
-    conversationId,
-    isFromContact,
-    hasMetadata: !!metadata,
-    metadata,
-    hasInitialContent: !!propInitialContent,
-    propInitialContent,
-    initialContentType: typeof propInitialContent,
-    initialContentLength: propInitialContent?.length
-  });
+  // Referência para evitar logs repetitivos
+  const loggedRef = useRef(false);
+  
+  // Log apenas na primeira renderização para evitar spam nos logs
+  if (!loggedRef.current) {
+    console.log(`🎬 LazyMediaContent iniciado para mensagem ${messageId}:`, {
+      messageType,
+      conversationId,
+      isFromContact,
+      hasMetadata: !!metadata,
+      hasInitialContent: !!propInitialContent
+    });
+    loggedRef.current = true;
+  }
 
   // CORREÇÃO: Carregamento sob demanda para TODAS as mensagens (enviadas e recebidas)
   // Tanto mensagens enviadas quanto recebidas devem usar carregamento sob demanda
@@ -52,15 +54,6 @@ export function LazyMediaContent({
   // SEMPRE usar carregamento sob demanda - sem carregamento automático
   const shouldAutoLoad = false;
   const processedInitialContent = null;
-
-  console.log(`🔍 Carregamento sob demanda para mensagem ${messageId}:`, {
-    directMediaUrl,
-    hasDirectUrl,
-    isFromContact,
-    shouldAutoLoad: false,
-    processedInitialContent: null,
-    metadata
-  });
 
   const {
     content,

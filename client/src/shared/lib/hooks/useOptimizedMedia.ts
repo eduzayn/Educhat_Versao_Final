@@ -28,14 +28,17 @@ const CACHE_DURATION = 5 * 60 * 1000;
 const MAX_RETRIES = 3;
 
 export function useOptimizedMedia(messageId: number, messageType: string, initialContent?: string | null) {
-  // Log detalhado do que está sendo recebido no hook
-  console.log(`🎯 useOptimizedMedia iniciado para mensagem ${messageId}:`, {
-    messageType,
-    hasInitialContent: !!initialContent,
-    initialContent: initialContent ? `${initialContent.substring(0, 50)}...` : null,
-    initialContentType: typeof initialContent,
-    initialContentLength: initialContent?.length
-  });
+  // Referência para evitar logs repetitivos
+  const loggedRef = useRef(false);
+  
+  // Log apenas na primeira renderização para evitar spam nos logs
+  if (!loggedRef.current) {
+    console.log(`🎯 useOptimizedMedia iniciado para mensagem ${messageId}:`, {
+      messageType,
+      hasInitialContent: !!initialContent
+    });
+    loggedRef.current = true;
+  }
 
   const [content, setContent] = useState<string | null>(initialContent || null);
   const [loading, setLoading] = useState(false);
