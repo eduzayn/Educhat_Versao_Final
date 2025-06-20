@@ -192,6 +192,9 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Inicializar monitor de sessão Z-API
+  startSessionMonitor();
 
   // Error handling middleware SUPER ROBUSTO para eliminar 502 Bad Gateway
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {

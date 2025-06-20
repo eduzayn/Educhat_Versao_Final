@@ -118,6 +118,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const emailRouter = await import('./emails/index');
   app.use('/api/emails', emailRouter.default);
 
+  // Z-API Session Monitor
+  const sessionMonitorRoutes = await import('./zapi/session-monitor');
+  app.use('/api/zapi', sessionMonitorRoutes.default);
+
   // Registrar rotas de contatos para email
   const contactEmailRouter = await import('./contacts/email-list');
   app.use('/api/contacts/email-list', contactEmailRouter.default);
