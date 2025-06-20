@@ -120,13 +120,14 @@ export function useWebSocket() {
               
               // Verificar se é atualização de mensagem otimista ou nova mensagem
               const optimisticIndex = oldMessages.findIndex(msg => 
-                msg.id < 0 && msg.content === data.message.content
+                (msg as any).id < 0 && msg.content === data.message.content
               );
               
               if (optimisticIndex !== -1) {
                 // Substituir mensagem otimista pela real
                 const updatedMessages = [...oldMessages];
                 updatedMessages[optimisticIndex] = { ...data.message, status: 'delivered' };
+                console.log('✅ SOCKET-FIRST: Mensagem otimista substituída pela real:', data.message.id);
                 return updatedMessages;
               }
               
@@ -137,6 +138,9 @@ export function useWebSocket() {
               return [...oldMessages, { ...data.message, status: 'received' }];
             }
           );
+          
+          // SOCKET-FIRST: NÃO invalidar queries - usar apenas WebSocket updates
+          // queryClient.invalidateQueries({ queryKey: ['/api/conversations', data.conversationId, 'messages'] });
           
           // Atualizar store local
           addMessage(data.conversationId, data.message);
