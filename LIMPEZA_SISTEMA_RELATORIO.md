@@ -51,6 +51,11 @@
 - Rota duplicates.ts agora usa ContactDuplicateDetection diretamente
 - Eliminada camada intermediária redundante
 
+### Consolidação de Message Operations
+- 5 módulos de operações de mensagens consolidados em messageStorage.ts único
+- Removidos: messageBasicOperations.ts, messageStatusOperations.ts, messageMediaOperations.ts, messageInternalNotesOperations.ts, messageZApiOperations.ts
+- Performance melhorada: eliminado overhead de wrappers e múltiplas importações
+
 ---
 
 ## 🖼️ LIMPEZA DE ASSETS

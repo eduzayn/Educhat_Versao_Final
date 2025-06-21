@@ -1,53 +1,71 @@
 import { BaseStorage } from '../base/BaseStorage';
-import { messages, type Message, type InsertMessage } from '@shared/schema';
-import { MessageBasicOperations } from './messageBasicOperations';
-import { MessageStatusOperations } from './messageStatusOperations';
-import { MessageMediaOperations } from './messageMediaOperations';
-import { MessageInternalNotesOperations } from './messageInternalNotesOperations';
-import { MessageZApiOperations } from './messageZApiOperations';
+import { messages, conversations, type Message, type InsertMessage } from '@shared/schema';
+import { eq, desc, asc, and, isNull } from 'drizzle-orm';
 
 /**
- * Message storage module - manages messages and media handling
+ * Message storage module - consolidated operations for messages and media handling
+ * CONSOLIDADO: Integra todas as operações de mensagens em uma única classe
  */
 export class MessageStorage extends BaseStorage {
-  private basicOps: MessageBasicOperations;
-  private statusOps: MessageStatusOperations;
-  private mediaOps: MessageMediaOperations;
-  private notesOps: MessageInternalNotesOperations;
-  private zapiOps: MessageZApiOperations;
 
-  constructor() {
-    super();
-    this.basicOps = new MessageBasicOperations();
-    this.statusOps = new MessageStatusOperations();
-    this.mediaOps = new MessageMediaOperations();
-    this.notesOps = new MessageInternalNotesOperations();
-    this.zapiOps = new MessageZApiOperations();
-  }
-
-  // Basic operations
+  // ==================== BASIC OPERATIONS ====================
   async getAllMessages(): Promise<Message[]> {
-    return this.basicOps.getAllMessages();
+    return this.db.select().from(messages).orderBy(asc(messages.sentAt), asc(messages.id));
   }
 
   async getMessage(id: number): Promise<Message | undefined> {
-    return this.basicOps.getMessage(id);
+    const [message] = await this.db.select().from(messages).where(eq(messages.id, id));
+    return message;
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    return this.basicOps.getMessages(conversationId, limit, offset);
+    const totalCount = await this.db.select({
+      count: messages.id
+    }).from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false)
+      ));
+
+    const total = totalCount.length;
+    
+    if (offset === 0) {
+      return this.db.select().from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false)
+        ))
+        .orderBy(asc(messages.sentAt), asc(messages.id))
+        .limit(limit);
+    } else {
+      return this.db.select().from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false)
+        ))
+        .orderBy(asc(messages.sentAt), asc(messages.id))
+        .limit(limit)
+        .offset(Math.max(0, total - limit - offset));
+    }
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    return this.basicOps.createMessage(message);
+    const [newMessage] = await this.db.insert(messages).values(message).returning();
+    return newMessage;
   }
 
   async updateMessage(id: number, messageData: Partial<InsertMessage>): Promise<Message> {
-    return this.basicOps.updateMessage(id, messageData);
+    const [updated] = await this.db.update(messages)
+      .set(messageData)
+      .where(eq(messages.id, id))
+      .returning();
+    return updated;
   }
 
   async deleteMessage(id: number): Promise<void> {
-    return this.basicOps.deleteMessage(id);
+    await this.db.update(messages)
+      .set({ isDeleted: true })
+      .where(eq(messages.id, id));
   }
 
   async getMessagesByConversation(conversationId: number): Promise<Message[]> {
