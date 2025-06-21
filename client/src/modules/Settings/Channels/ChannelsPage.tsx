@@ -145,7 +145,7 @@ export default function ChannelsPage() {
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
     mutationFn: async (channelId: number) => {
-      const response = await apiRequest(`/api/channels/${channelId}/qrcode`);
+      const response = await apiRequest('GET', `/api/channels/${channelId}/qrcode`);
       return response;
     },
     onSuccess: (data: any) => {

@@ -22,10 +22,10 @@ export function createSocketServer(app: Express): SocketServer {
       credentials: false,
       allowedHeaders: ["Content-Type"]
     },
-    // Configuração otimizada para produção Replit
-    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
-    allowUpgrades: true,
-    upgradeTimeout: 10000,
+    // SOLUÇÃO xhr poll error: WebSocket apenas em produção Replit
+    transports: isReplit ? ['websocket'] : ['polling', 'websocket'],
+    allowUpgrades: false, // Evitar upgrade que causa xhr poll error
+    upgradeTimeout: 30000,
     pingTimeout: 60000,
     pingInterval: 25000,
     maxHttpBufferSize: 1e6,

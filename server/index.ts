@@ -20,12 +20,18 @@ const app = express();
 if (process.env.NODE_ENV === 'production' && (process.env.REPLIT_DEPLOYMENT_ID || process.env.REPL_ID)) {
   app.set('trust proxy', 1);
   
-  // Headers específicos para Socket.IO polling
+  // Headers otimizados para Socket.IO WebSocket em produção
   app.use('/socket.io/', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Connection, Upgrade');
     res.header('Access-Control-Allow-Credentials', 'false');
+    
+    // Suporte para WebSocket upgrade
+    if (req.headers.upgrade === 'websocket') {
+      res.header('Connection', 'Upgrade');
+      res.header('Upgrade', 'websocket');
+    }
     
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);

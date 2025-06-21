@@ -134,15 +134,53 @@ export async function handleGetChannelQRCode(req: any, res: any) {
           message: 'Instância conectada mas sem sessão WhatsApp. Escaneie o QR Code para ativar.'
         });
       } else {
-        // Se não conseguiu obter QR Code, pode ser que já esteja em processo de conexão
-        console.warn('QR Code não disponível, dados recebidos:', qrData);
+        // Tentar reiniciar instância para gerar novo QR Code
+        console.warn('QR Code não disponível, tentando reiniciar instância:', qrData);
+        
+        try {
+          const restartUrl = buildZApiUrl(instanceId, token, 'restart');
+          const restartResponse = await fetch(restartUrl, {
+            method: 'POST',
+            headers: getZApiHeaders(clientToken)
+          });
+          
+          if (restartResponse.ok) {
+            console.log('Instância reiniciada, aguardando QR Code...');
+            
+            // Aguardar 3 segundos e tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            const newQrResponse = await fetch(qrUrl, {
+              method: 'GET',
+              headers: getZApiHeaders(clientToken)
+            });
+            
+            if (newQrResponse.ok) {
+              const newQrData = await newQrResponse.json();
+              const newQrCode = newQrData.value || newQrData.qrcode || newQrData.qr_code || newQrData.data;
+              
+              if (newQrCode) {
+                return res.json({ 
+                  connected: true,
+                  session: false,
+                  qrCode: newQrCode,
+                  needsQrCode: true,
+                  message: 'QR Code gerado após reinicialização da instância. Escaneie rapidamente.'
+                });
+              }
+            }
+          }
+        } catch (restartError) {
+          console.error('Erro ao reiniciar instância:', restartError);
+        }
+        
         return res.json({
           connected: true,
           session: false,
           needsQrCode: true,
           error: 'QR Code temporariamente indisponível',
-          message: 'Instância conectada mas QR Code não está disponível. Verifique se o WhatsApp não está sendo usado em outro dispositivo.',
-          rawResponse: qrData
+          message: 'Instância conectada mas QR Code não está disponível. Tente novamente em alguns segundos.',
+          suggestion: 'Verifique se o WhatsApp não está sendo usado em outro dispositivo.'
         });
       }
     }

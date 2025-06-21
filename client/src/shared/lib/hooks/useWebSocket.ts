@@ -57,9 +57,9 @@ export function useWebSocket() {
                        window.location.hostname.includes('replit.dev');
       
       socketRef.current = io(socketUrl, {
-        // Priorizar WebSocket em produção, polling em desenvolvimento
-        transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
-        upgrade: true,
+        // SOLUÇÃO xhr poll error: Usar apenas WebSocket em produção Replit
+        transports: isReplit ? ['websocket'] : ['polling', 'websocket'],
+        upgrade: false, // Evitar upgrade que causa xhr poll error
         rememberUpgrade: false,
         timeout: isReplit ? 30000 : 20000,
         reconnection: true,
