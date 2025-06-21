@@ -2,12 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { formatAudioTime } from "@/shared/lib/utils/formatters";
+import AudioMessageWithRetry from './AudioMessageWithRetry';
 
 interface AudioMessageProps {
   audioUrl: string | null;
   duration?: number;
   isFromContact: boolean;
   messageIdForFetch?: string;
+  messageId?: number;
+  content?: string;
+  metadata?: any;
+  zapiStatus?: string;
 }
 
 export function AudioMessage({
@@ -15,7 +20,23 @@ export function AudioMessage({
   duration,
   isFromContact,
   messageIdForFetch,
+  messageId,
+  content,
+  metadata,
+  zapiStatus,
 }: AudioMessageProps) {
+  
+  // Usar componente otimizado para mensagens com retry ou em estado de envio
+  if (messageId && (metadata?.canRetry || zapiStatus === 'FAILED' || zapiStatus === 'SENDING')) {
+    return (
+      <AudioMessageWithRetry
+        messageId={messageId}
+        content={content || '🎵 Áudio enviado'}
+        metadata={metadata || {}}
+        zapiStatus={zapiStatus as any}
+      />
+    );
+  }
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration || 0);

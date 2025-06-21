@@ -24,6 +24,51 @@ export function useSendAudioMessage() {
         contactPhone: contact?.phone
       });
 
+      // OTIMIZAÇÃO CHATWOOT: Renderização otimista
+      const optimisticId = -Date.now();
+      const optimisticMessage = {
+        id: optimisticId,
+        conversationId,
+        content: '🎵 Áudio enviado',
+        isFromContact: false,
+        messageType: 'audio' as const,
+        metadata: {
+          phone: contact?.phone,
+          mimeType: audioBlob.type,
+          audioSize: audioBlob.size,
+          duration,
+          isOptimistic: true
+        },
+        isDeleted: false,
+        sentAt: new Date().toISOString(),
+        deliveredAt: null,
+        readAt: null,
+        whatsappMessageId: null,
+        zapiStatus: 'SENDING' as const,
+        isGroup: false,
+        referenceMessageId: null,
+        isInternalNote: false,
+        authorId: null,
+        authorName: null,
+        noteType: 'general' as const,
+        notePriority: 'normal' as const,
+        noteTags: null,
+        isPrivate: false,
+        isHiddenForUser: false,
+        isDeletedByUser: false,
+        deletedAt: null,
+        deletedBy: null
+      };
+
+      // Atualizar UI instantaneamente
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (old: any[] | undefined) => {
+          const messages = old || [];
+          return [...messages, optimisticMessage];
+        }
+      );
+
       // Se tiver telefone, enviar via Z-API
       if (contact?.phone) {
         // Compressão automática para áudios grandes
@@ -55,37 +100,94 @@ export function useSendAudioMessage() {
           signal: AbortSignal.timeout(20000) // 20s timeout
         });
 
-        const responseText = await response.text();
-        console.log('📥 Resposta do servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText
-        });
-
         if (!response.ok) {
-          console.error('❌ Erro ao enviar áudio via Z-API:', responseText);
-          throw new Error(`Erro na API Z-API: ${response.status} - ${responseText}`);
+          throw new Error(`Erro no envio: ${response.status} - ${response.statusText}`);
         }
 
-        try {
-          return JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('❌ Erro ao parsear resposta:', parseError);
-          throw new Error(`Resposta inválida do servidor: ${responseText}`);
-        }
+        const result = await response.json();
+        console.log('📥 Resposta do servidor:', response);
+        console.log('✅ Áudio enviado com sucesso:', result);
+        
+        return { ...result, optimisticId };
+      } else {
+        // Envio direto para mensagens internas
+        const response = await apiRequest(`/api/conversations/${conversationId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({
+            content: '🎵 Áudio enviado',
+            messageType: 'audio',
+            metadata: {
+              mimeType: audioBlob.type,
+              audioSize: audioBlob.size,
+              duration
+            }
+          })
+        });
+        
+        return { ...response, optimisticId };
       }
-
-      // Sistema só funciona com WhatsApp, não há outros canais
-      throw new Error('Contato deve ter um número de telefone para envio de áudio');
     },
-    onSuccess: (data, { conversationId }) => {
-      console.log('✅ Áudio enviado com sucesso:', data);
-      // Invalidar com a chave correta para atualizar mensagens imediatamente
-      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    
+    onSuccess: (result, variables, context) => {
+      const { conversationId, optimisticId } = result;
+      
+      // OTIMIZAÇÃO CHATWOOT: Substituir mensagem otimista pela real via WebSocket
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (old: any[] | undefined) => {
+          if (!old) return old;
+          
+          return old.map(msg => {
+            if (msg.id === optimisticId) {
+              return {
+                ...msg,
+                id: result.id || result.messageId,
+                zapiStatus: 'SENT',
+                metadata: {
+                  ...msg.metadata,
+                  zaapId: result.zaapId,
+                  messageId: result.messageId,
+                  isOptimistic: false
+                }
+              };
+            }
+            return msg;
+          });
+        }
+      );
+      
+      console.log('✅ SOCKET-FIRST: Mensagem otimista substituída pela real:', result.id || result.messageId);
     },
-    onError: (error) => {
-      console.error('💥 Erro ao enviar áudio:', error);
-    },
+    
+    onError: (error, variables, context) => {
+      const { conversationId } = variables;
+      const optimisticId = context?.optimisticId || -Date.now();
+      
+      // OTIMIZAÇÃO CHATWOOT: Marcar mensagem como erro com botão retry
+      queryClient.setQueryData(
+        ['/api/conversations', conversationId, 'messages'],
+        (old: any[] | undefined) => {
+          if (!old) return old;
+          
+          return old.map(msg => {
+            if (msg.id === optimisticId) {
+              return {
+                ...msg,
+                zapiStatus: 'FAILED',
+                metadata: {
+                  ...msg.metadata,
+                  error: error.message,
+                  canRetry: true,
+                  isOptimistic: false
+                }
+              };
+            }
+            return msg;
+          });
+        }
+      );
+      
+      console.error('❌ Erro no envio de áudio:', error);
+    }
   });
 }
