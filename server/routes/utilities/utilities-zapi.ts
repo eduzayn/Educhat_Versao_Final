@@ -1,8 +1,22 @@
 import { Express, Response } from 'express';
+import multer from 'multer';
 import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
-import { validateZApiCredentials } from '../../utils/zapi';
+import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../utils/zapi';
 import { zapiLogger } from '../../utils/zapiLogger';
+
+// Configure multer for audio upload in memory
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('audio/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'), false);
+    }
+  }
+});
 
 export function registerZApiRoutes(app: Express) {
   
@@ -287,6 +301,176 @@ export function registerZApiRoutes(app: Express) {
     } catch (error) {
       const duration = Date.now() - startTime;
       zapiLogger.logError('SEND_MESSAGE_ERROR', error, requestId!);
+      
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor',
+        requestId: requestId!,
+        duration
+      });
+    }
+  });
+
+  // Send audio via Z-API - REST: POST /api/zapi/send-audio
+  app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
+    const startTime = Date.now();
+    let requestId: string;
+    
+    try {
+      const { phone, conversationId } = req.body;
+      const audioFile = req.file;
+      
+      if (!phone || !audioFile) {
+        return res.status(400).json({ 
+          error: 'Phone e arquivo de áudio são obrigatórios' 
+        });
+      }
+
+      // Iniciar rastreamento
+      requestId = zapiLogger.logSendStart(phone, 'audio', undefined);
+
+      // Buscar credenciais do canal ativo
+      const channel = await storage.channel.getActiveWhatsAppChannel();
+      let credentials;
+      
+      if (channel?.settings?.zapiInstanceId) {
+        credentials = {
+          valid: true,
+          instanceId: channel.settings.zapiInstanceId,
+          token: channel.settings.zapiToken,
+          clientToken: channel.settings.zapiClientToken
+        };
+        zapiLogger.logCredentialsValidation(true, 'active_channel', undefined, requestId);
+      } else {
+        credentials = validateZApiCredentials();
+        zapiLogger.logCredentialsValidation(credentials.valid, 'env_fallback', credentials.error, requestId);
+      }
+
+      if (!credentials.valid) {
+        zapiLogger.logError('INVALID_CREDENTIALS', credentials.error, requestId);
+        return res.status(400).json({ 
+          error: `Configuração Z-API inválida: ${credentials.error}` 
+        });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+
+      // Converter áudio para base64
+      let audioBase64;
+      if (audioFile.buffer) {
+        audioBase64 = audioFile.buffer.toString('base64');
+      } else {
+        const fs = await import('fs');
+        const audioBuffer = await fs.promises.readFile(audioFile.path);
+        audioBase64 = audioBuffer.toString('base64');
+      }
+
+      const dataUrl = `data:${audioFile.mimetype || 'audio/webm'};base64,${audioBase64}`;
+      
+      const url = buildZApiUrl(instanceId, token, 'send-audio');
+      const payload = {
+        phone: cleanPhone,
+        audio: dataUrl
+      };
+
+      const headers = {
+        'Client-Token': clientToken,
+        'Content-Type': 'application/json'
+      };
+      
+      zapiLogger.logApiRequest(url, { phone: cleanPhone, audioSize: audioBase64.length }, headers, requestId);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        zapiLogger.logTimeout(15000, requestId);
+      }, 15000); // 15s timeout para áudios
+
+      try {
+        const requestStartTime = Date.now();
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        
+        const requestDuration = Date.now() - requestStartTime;
+        clearTimeout(timeoutId);
+
+        const responseText = await response.text();
+        let parsedResponse;
+        
+        try {
+          parsedResponse = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          zapiLogger.logError('JSON_PARSE_ERROR', parseError, requestId);
+          throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+        }
+
+        zapiLogger.logApiResponse(response.status, response.statusText, parsedResponse, requestDuration, requestId);
+
+        if (!response.ok) {
+          throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText} - ${JSON.stringify(parsedResponse)}`);
+        }
+
+        // Criar mensagem no banco de dados
+        if (conversationId) {
+          const message = await storage.message.createMessage({
+            conversationId: parseInt(conversationId),
+            content: '🎵 Áudio enviado',
+            isFromContact: false,
+            messageType: 'audio',
+            sentAt: new Date(),
+            isDeleted: false,
+            metadata: {
+              zaapId: parsedResponse.messageId || parsedResponse.id,
+              messageId: parsedResponse.messageId || parsedResponse.id,
+              phone: cleanPhone,
+              instanceId: instanceId,
+              audioSize: audioBase64.length,
+              mimeType: audioFile.mimetype || 'audio/webm'
+            }
+          });
+
+          zapiLogger.logDatabaseUpdate(message.id, true, undefined, requestId);
+
+          // Broadcast via WebSocket
+          try {
+            const { broadcast, broadcastToAll } = await import('../realtime');
+            broadcast(parseInt(conversationId), {
+              type: 'new_message',
+              conversationId: parseInt(conversationId),
+              message: message
+            });
+            broadcastToAll({
+              type: 'new_message',
+              conversationId: parseInt(conversationId),
+              message: message
+            });
+          } catch (wsError) {
+            console.error('Erro no WebSocket broadcast:', wsError);
+          }
+        }
+        
+        res.json(parsedResponse);
+        
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          const timeoutError = new Error('Timeout: Envio de áudio cancelado após 15 segundos');
+          zapiLogger.logError('FETCH_TIMEOUT', timeoutError, requestId);
+          throw timeoutError;
+        }
+        
+        zapiLogger.logError('FETCH_ERROR', fetchError, requestId);
+        throw fetchError;
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      zapiLogger.logError('SEND_AUDIO_ERROR', error, requestId!);
       
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor',
