@@ -46,9 +46,10 @@ export function SessionMonitor() {
   });
 
   // Buscar QR Code
-  const { data: qrData, isLoading: qrLoading } = useQuery({
+  const { data: qrData, isLoading: qrLoading, error: qrError } = useQuery({
     queryKey: ['/api/zapi/qr-code'],
     enabled: qrCodeVisible,
+    retry: 1
   });
 
   // Mutation para reiniciar sessão
@@ -228,17 +229,45 @@ export function SessionMonitor() {
                 {qrCodeVisible ? 'Ocultar QR Code' : 'Mostrar QR Code'}
               </Button>
               
-              {qrCodeVisible && qrData?.qrCode && (
-                <div className="text-center">
-                  <img 
-                    src={`data:image/png;base64,${qrData.qrCode}`}
-                    alt="QR Code WhatsApp"
-                    className="mx-auto border rounded-lg"
-                    style={{ maxWidth: '200px' }}
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Abra WhatsApp → Aparelhos conectados → Conectar aparelho
-                  </p>
+              {qrCodeVisible && (
+                <div className="text-center space-y-4">
+                  {qrError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-700">
+                        Erro ao gerar QR Code. Verifique a conexão com a Z-API.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {qrData?.connected && qrData?.session && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-700">
+                        WhatsApp já está conectado e ativo!
+                      </p>
+                    </div>
+                  )}
+                  
+                  {qrData?.qrCode && (
+                    <>
+                      <img 
+                        src={`data:image/png;base64,${qrData.qrCode}`}
+                        alt="QR Code WhatsApp"
+                        className="mx-auto border rounded-lg"
+                        style={{ maxWidth: '200px' }}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Abra WhatsApp → Aparelhos conectados → Conectar aparelho
+                      </p>
+                    </>
+                  )}
+                  
+                  {qrData?.message && !qrData?.qrCode && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        {qrData.message}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
