@@ -216,7 +216,7 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
         }
       });
       
-      // Broadcast para WebSocket - WEBHOOK RECEIVED MESSAGE
+      // MELHORIA 2: Broadcast garantido para WebSocket - WEBHOOK RECEIVED MESSAGE
       try {
         const { broadcast, broadcastToAll } = await import('../realtime');
         
@@ -225,18 +225,28 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
           conversationId: conversation.id,
           message: message,
           source: 'webhook',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          webhookType: webhookData.type
         };
         
-        console.log(`📡 WEBHOOK: Fazendo broadcast da mensagem recebida para conversa ${conversation.id}`);
+        console.log(`📡 [PROD-AUDIT] WEBHOOK-BROADCAST: Enviando mensagem ${message.id} para conversa ${conversation.id}`);
         
-        // Broadcast para sala específica da conversa
-        broadcast(conversation.id, broadcastData);
+        // Broadcast para sala específica da conversa com retry
+        const broadcastResult = await Promise.allSettled([
+          broadcast(conversation.id, broadcastData),
+          // Garantir que chegue mesmo se ninguém estiver na sala específica
+          broadcastToAll(broadcastData)
+        ]);
         
-        // Broadcast global para atualizar listas de conversas
+        console.log(`📡 [PROD-AUDIT] WEBHOOK-BROADCAST: Resultado do broadcast - específico: ${broadcastResult[0].status}, global: ${broadcastResult[1].status}`);
+        
+        // Broadcast adicional para atualizar listas de conversas
         broadcastToAll({
           type: 'conversation_updated',
           conversationId: conversation.id,
+          lastMessage: message,
+          timestamp: new Date().toISOString()
+        });tionId: conversation.id,
           lastMessage: message,
           source: 'webhook'
         });

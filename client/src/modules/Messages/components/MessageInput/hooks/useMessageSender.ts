@@ -93,13 +93,21 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
             resolve(false); // Trigger fallback
           }, 3000);
 
+          // MELHORIA 1: Listener otimizado para confirmação rápida
+          const handleMessageReceived = (data: any) => {
+            if (data.optimisticId === optimisticId && data.status === 'processing') {
+              console.log('⚡ SOCKET-FIRST: Mensagem aceita para processamento');
+            }
+          };
+
           // Listener para sucesso via broadcast_message
           const handleBroadcast = (data: any) => {
             if (data.type === 'new_message' && data.optimisticId === optimisticId) {
               clearTimeout(timeout);
               (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
               (window as any).socketInstance?.off('message_error', handleError);
-              console.log('✅ Mensagem confirmada via WebSocket');
+              (window as any).socketInstance?.off('message_received', handleMessageReceived);
+              console.log('✅ SOCKET-FIRST: Mensagem confirmada via WebSocket');
               resolve(true);
             }
           };
@@ -110,8 +118,9 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
               clearTimeout(timeout);
               (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
               (window as any).socketInstance?.off('message_error', handleError);
+              (window as any).socketInstance?.off('message_received', handleMessageReceived);
               console.error('❌ Erro confirmado via WebSocket:', errorData);
-              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));
+              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));m'));
             }
           };
 

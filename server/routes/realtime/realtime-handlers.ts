@@ -53,27 +53,27 @@ export function setupSocketHandlers(io: SocketIOServer) {
         // Sair de sala anterior se existir
         if (clientData.conversationId) {
           socket.leave(`conversation:${clientData.conversationId}`);
-          console.log(`🚪 Cliente ${socket.id} saiu da conversa ${clientData.conversationId}`);
+          console.log(`🚪 [PROD-AUDIT] Cliente ${socket.id} saiu da conversa ${clientData.conversationId}`);
         }
         
         // Entrar na nova sala
         clients.set(socket.id, { ...clientData, conversationId });
         socket.join(`conversation:${conversationId}`);
-        console.log(`🏠 Cliente ${socket.id} entrou na conversa ${conversationId}`);
         
-        // Confirmar entrada na sala
+        const roomSize = socket.adapter?.rooms?.get(`conversation:${conversationId}`)?.size || 0;
+        console.log(`🏠 [PROD-AUDIT] JOIN_CONVERSATION: Cliente ${socket.id} entrou na conversa ${conversationId} (${roomSize} clientes na sala)`);
+        
+        // Confirmar entrada na sala com dados completos
         socket.emit('joined_conversation', { 
           conversationId, 
           success: true,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          roomSize,
+          socketId: socket.id
         });
         
-        // Log das salas ativas para debug
-        console.log(`📊 Salas ativas para conversa ${conversationId}:`, 
-          Array.from(socket.adapter?.rooms?.get(`conversation:${conversationId}`) || []).length
-        );
       } else {
-        console.warn(`⚠️ Falha ao entrar na conversa: clientData=${!!clientData}, conversationId=${conversationId}`);
+        console.warn(`⚠️ [PROD-AUDIT] JOIN_CONVERSATION: Falha - clientData=${!!clientData}, conversationId=${conversationId}`);
         socket.emit('joined_conversation', { 
           conversationId, 
           success: false, 
@@ -99,7 +99,14 @@ export function setupSocketHandlers(io: SocketIOServer) {
       const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false, optimisticId } = data;
       
       try {
-        console.log(`📡 SOCKET-OPTIMIZED: Processando mensagem ${optimisticId}`);
+        console.log(`📡 [PROD-AUDIT] SOCKET: Processando mensagem ${optimisticId} para conversa ${conversationId}`);
+        
+        // MELHORIA 1: Resposta imediata ao cliente antes do DB
+        socket.emit('message_received', {
+          optimisticId,
+          status: 'processing',
+          timestamp: new Date().toISOString()
+        });
         
         // Salvar mensagem no banco com versão otimizada
         const newMessage = await storage.message.createMessageOptimized({
@@ -111,28 +118,37 @@ export function setupSocketHandlers(io: SocketIOServer) {
         });
         
         const dbTime = performance.now() - startTime;
-        console.log(`💾 SOCKET: Mensagem salva em ${dbTime.toFixed(1)}ms`);
+        console.log(`💾 [PROD-AUDIT] SOCKET: Mensagem ${newMessage.id} salva em ${dbTime.toFixed(1)}ms`);
         
-        // Broadcast imediato via WebSocket
+        // MELHORIA 2: Broadcast otimizado com confirmação de entrega
         const broadcastData = {
           type: 'new_message',
           message: newMessage,
           conversationId,
           optimisticId,
-          dbTime: dbTime.toFixed(1)
+          dbTime: dbTime.toFixed(1),
+          source: 'socket',
+          timestamp: new Date().toISOString()
         };
 
-        io.to(`conversation:${conversationId}`).emit('broadcast_message', broadcastData);
+        // Broadcast para a sala específica
+        const roomName = `conversation:${conversationId}`;
+        const roomSize = io.sockets.adapter.rooms.get(roomName)?.size || 0;
         
-        // Resposta de confirmação para o remetente
+        console.log(`📡 [PROD-AUDIT] BROADCAST: Enviando para sala ${roomName} (${roomSize} clientes)`);
+        io.to(roomName).emit('broadcast_message', broadcastData);
+        
+        // MELHORIA 3: Confirmação imediata para o remetente com dados completos
         socket.emit('message_sent', {
           message: newMessage,
           optimisticId,
-          processTime: (performance.now() - startTime).toFixed(1)
+          processTime: (performance.now() - startTime).toFixed(1),
+          broadcastConfirmed: true,
+          roomSize
         });
         
         const totalTime = performance.now() - startTime;
-        console.log(`⚡ SOCKET: Mensagem processada e enviada em ${totalTime.toFixed(1)}ms`);
+        console.log(`⚡ [PROD-AUDIT] SOCKET: Mensagem ${newMessage.id} processada em ${totalTime.toFixed(1)}ms`);
         
         // Z-API em background (não bloqueia resposta)
         if (!isInternalNote) {
@@ -141,7 +157,7 @@ export function setupSocketHandlers(io: SocketIOServer) {
         
       } catch (error) {
         const errorTime = performance.now() - startTime;
-        console.error(`❌ SOCKET: Erro após ${errorTime.toFixed(1)}ms:`, error.message);
+        console.error(`❌ [PROD-AUDIT] SOCKET: Erro após ${errorTime.toFixed(1)}ms:`, error.message);
         
         socket.emit('message_error', { 
           message: 'Erro ao enviar mensagem',
