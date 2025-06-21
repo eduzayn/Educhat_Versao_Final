@@ -36,7 +36,7 @@ export function AudioMessage({
     // Verificar cache de falhas
     const failedKey = getCacheKey(messageIdForFetch);
     if (sessionStorage.getItem(failedKey)) {
-      setError("Áudio não disponível");
+      setError("Áudio enviado via WhatsApp");
       return false;
     }
 
@@ -60,12 +60,15 @@ export function AudioMessage({
         setFetchedAudioUrl(data.audioUrl);
         return true;
       } else {
-        throw new Error("Áudio não disponível");
+        // Para áudios Z-API que não podem ser reproduzidos
+        setError("Áudio enviado via WhatsApp");
+        sessionStorage.setItem(failedKey, "true");
+        return false;
       }
     } catch (err) {
       console.error("Erro ao buscar áudio:", err);
       sessionStorage.setItem(failedKey, "true");
-      setError("Áudio não disponível");
+      setError("Áudio enviado via WhatsApp");
       return false;
     } finally {
       setIsLoading(false);
@@ -136,6 +139,35 @@ export function AudioMessage({
   const progressPercentage =
     audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
+  // Para áudios enviados via Z-API que não podem ser reproduzidos
+  if (error === "Áudio enviado via WhatsApp") {
+    return (
+      <div
+        className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
+          isFromContact ? "bg-gray-200 text-gray-800" : "bg-blue-600 text-white"
+        }`}
+      >
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+          isFromContact ? "bg-gray-300" : "bg-blue-500"
+        }`}>
+          <Volume2 className="w-5 h-5 opacity-80" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <Volume2 className="w-4 h-4 opacity-80" />
+            <span className="text-sm opacity-90 font-medium">
+              Áudio enviado
+            </span>
+          </div>
+          <p className="text-xs opacity-75">
+            Enviado via WhatsApp
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
@@ -157,7 +189,7 @@ export function AudioMessage({
         variant="ghost"
         size="sm"
         onClick={handlePlayPause}
-        disabled={isLoading}
+        disabled={isLoading || !!error}
         className={`w-10 h-10 p-0 rounded-full ${
           isFromContact
             ? "hover:bg-gray-300 text-gray-700"
