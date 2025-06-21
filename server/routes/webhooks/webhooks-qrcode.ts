@@ -147,12 +147,15 @@ export async function handleGetChannelQRCode(req: any, res: any) {
     }
       
     // Obter QR Code usando endpoint correto da Z-API
-    const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
+    const qrUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code`;
     console.log('🔍 Solicitando QR Code da Z-API:', qrUrl);
     
     const qrResponse = await fetch(qrUrl, {
       method: 'GET',
-      headers: getZApiHeaders(clientToken)
+      headers: {
+        'Client-Token': clientToken,
+        'Content-Type': 'application/json'
+      }
     });
 
     if (!qrResponse.ok) {
