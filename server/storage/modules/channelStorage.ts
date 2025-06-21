@@ -47,4 +47,13 @@ export class ChannelStorage extends BaseStorage {
       })
       .where(eq(channels.id, id));
   }
+
+  async getActiveWhatsAppChannel(): Promise<Channel | undefined> {
+    const [channel] = await this.db.select().from(channels)
+      .where(eq(channels.type, 'whatsapp'))
+      .where(eq(channels.isActive, true))
+      .orderBy(desc(channels.createdAt))
+      .limit(1);
+    return channel;
+  }
 }

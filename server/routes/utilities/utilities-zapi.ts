@@ -150,13 +150,40 @@ export function registerZApiRoutes(app: Express) {
           });
         }
       } else {
-        // Fallback para credenciais padrão (compatibilidade)
-        credentials = validateZApiCredentials();
-        if (!credentials.valid) {
-          zapiLogger.logCredentialsValidation(false, 'env', credentials.error, requestId);
-          return res.status(400).json({ error: credentials.error });
+        // CORREÇÃO: Buscar canal ativo padrão em vez de usar credenciais ENV obsoletas
+        try {
+          const activeChannel = await storage.channel.getActiveWhatsAppChannel();
+          if (!activeChannel) {
+            zapiLogger.logError('NO_ACTIVE_CHANNEL', 'Nenhum canal WhatsApp ativo encontrado', requestId);
+            return res.status(400).json({ 
+              error: 'Nenhum canal WhatsApp ativo configurado' 
+            });
+          }
+
+          credentials = {
+            valid: true,
+            instanceId: activeChannel.instanceId,
+            token: activeChannel.token,
+            clientToken: activeChannel.clientToken
+          };
+
+          if (!credentials.instanceId || !credentials.token || !credentials.clientToken) {
+            zapiLogger.logCredentialsValidation(false, 'active_channel', 'Credenciais incompletas no canal ativo', requestId);
+            return res.status(400).json({ 
+              error: 'Canal WhatsApp ativo não possui credenciais completas' 
+            });
+          }
+
+          zapiLogger.logCredentialsValidation(true, 'active_channel', undefined, requestId);
+        } catch (error) {
+          // Fallback para credenciais padrão apenas se busca do canal falhar
+          credentials = validateZApiCredentials();
+          if (!credentials.valid) {
+            zapiLogger.logCredentialsValidation(false, 'env_fallback', credentials.error, requestId);
+            return res.status(400).json({ error: credentials.error });
+          }
+          zapiLogger.logCredentialsValidation(true, 'env_fallback', undefined, requestId);
         }
-        zapiLogger.logCredentialsValidation(true, 'env', undefined, requestId);
       }
 
       const { instanceId, token, clientToken } = credentials;
