@@ -146,8 +146,10 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       }
     }
       
-    // Obter QR Code
+    // Obter QR Code usando endpoint correto da Z-API
     const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
+    console.log('🔍 Solicitando QR Code da Z-API:', qrUrl);
+    
     const qrResponse = await fetch(qrUrl, {
       method: 'GET',
       headers: getZApiHeaders(clientToken)
@@ -159,10 +161,13 @@ export async function handleGetChannelQRCode(req: any, res: any) {
 
     const qrData = await qrResponse.json();
     
-    console.log('DEBUG - QR Code response:', qrData);
+    console.log('DEBUG - QR Code response completa:', JSON.stringify(qrData, null, 2));
     
-    // Z-API pode retornar o QR Code em diferentes campos
-    const qrCode = qrData.value || qrData.qrcode || qrData.qr_code || qrData.data;
+    // Z-API pode retornar o QR Code em diferentes formatos conforme documentação
+    const qrCode = qrData.value || qrData.qrcode || qrData.qr_code || qrData.data || qrData.qr;
+    
+    console.log('🔍 QR Code extraído:', qrCode ? 'Disponível' : 'Não encontrado');
+    console.log('🔍 Campos disponíveis:', Object.keys(qrData));
     
     if (qrCode) {
       return res.json({ 
@@ -171,7 +176,14 @@ export async function handleGetChannelQRCode(req: any, res: any) {
         qrCode: qrCode,
         needsQrCode: true,
         message: 'QR Code disponível. Escaneie rapidamente com seu WhatsApp para conectar.',
-        instructions: 'Abra o WhatsApp > Menu (3 pontos) > Dispositivos conectados > Conectar dispositivo'
+        instructions: 'Abra o WhatsApp > Menu (3 pontos) > Dispositivos conectados > Conectar dispositivo',
+        debug: {
+          responseKeys: Object.keys(qrData),
+          hasValue: !!qrData.value,
+          hasQrcode: !!qrData.qrcode,
+          hasQrCode: !!qrData.qr_code,
+          hasData: !!qrData.data
+        }
       });
     }
     
