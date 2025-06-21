@@ -37,6 +37,10 @@
 - `setup-test-db.sql`
 - `QuickRepliesSettingsPage.tsx.backup`
 
+### Cache Vite Incorreto
+- `client/node_modules/.vite/` - Cache mal posicionado removido
+- Configuração corrigida para usar `node_modules/.vite/`
+
 ---
 
 ## 🖼️ LIMPEZA DE ASSETS
