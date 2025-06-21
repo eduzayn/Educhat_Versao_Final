@@ -216,19 +216,14 @@ export function MessageBubble({
           </div>
         );
       default:
-        // Fallback para tipos desconhecidos
+        // Fallback para tipos desconhecidos - mas NUNCA substituir o conteúdo original
         return (
-          <div className="px-4 py-2 rounded-lg bg-red-50 text-red-900 border border-red-200">
-            <div className="mb-1 font-semibold text-xs flex items-center gap-1">
-              <span>Tipo de mensagem não suportado:</span>
-              <span className="font-mono bg-red-100 px-2 py-0.5 rounded">{message.messageType || 'desconhecido'}</span>
-            </div>
+          <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-900">
             {message.content ? (
               <p className="text-sm break-words">{message.content}</p>
             ) : (
-              <p className="text-sm italic">Mensagem sem conteúdo</p>
+              <p className="text-sm italic">Conteúdo não disponível</p>
             )}
-
           </div>
         );
     }

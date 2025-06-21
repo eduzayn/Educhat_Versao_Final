@@ -60,7 +60,7 @@ export function AudioMessage({
         setFetchedAudioUrl(data.audioUrl);
         return true;
       } else {
-        // Para áudios Z-API que não podem ser reproduzidos
+        // Para áudios Z-API que não podem ser reproduzidos - manter conteúdo original
         setError("Áudio enviado via WhatsApp");
         sessionStorage.setItem(failedKey, "true");
         return false;
@@ -139,8 +139,8 @@ export function AudioMessage({
   const progressPercentage =
     audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
-  // Para áudios enviados via Z-API que não podem ser reproduzidos
-  if (error === "Áudio enviado via WhatsApp") {
+  // Para áudios enviados via Z-API que não podem ser reproduzidos - mas mantém o conteúdo original
+  if (error === "Áudio enviado via WhatsApp" || (!fetchedAudioUrl && !audioUrl && messageIdForFetch)) {
     return (
       <div
         className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
@@ -157,11 +157,11 @@ export function AudioMessage({
           <div className="flex items-center gap-2 mb-1">
             <Volume2 className="w-4 h-4 opacity-80" />
             <span className="text-sm opacity-90 font-medium">
-              Áudio enviado
+              🎵 Áudio enviado
             </span>
           </div>
           <p className="text-xs opacity-75">
-            Enviado via WhatsApp
+            Via WhatsApp
           </p>
         </div>
       </div>
@@ -210,7 +210,7 @@ export function AudioMessage({
           <div className="flex items-center gap-2">
             <Volume2 className="w-4 h-4 opacity-80" />
             <span className="text-sm opacity-90 font-medium">
-              {isLoading ? "Carregando..." : error ? error : "Áudio"}
+              {isLoading ? "Carregando..." : "Áudio"}
             </span>
           </div>
           <span className="text-sm opacity-80 font-mono">
