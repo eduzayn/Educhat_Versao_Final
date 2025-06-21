@@ -12,62 +12,16 @@ import { gamificationService } from "../../services/gamificationService";
 import { dealAutomationService } from "../../services/dealAutomationService";
 import { logger } from "../../utils/logger";
 
-// Importar handlers modulares
-// Media routes now handled by utilities/zapi module
+// Importar handlers modulares consolidados
 import { registerSocialWebhookRoutes } from './handlers/social';
 import { registerIntegrationRoutes, assignTeamManually } from './handlers/integration';
 import { autoAssignIfNeeded } from '../../services/immediate-ai-assignment.js';
+import { processZApiWebhook } from './webhooks-zapi';
 
 /**
- * Processa webhook principal Z-API para mensagens recebidas
+ * CONSOLIDADO: Usando handler específico de webhooks-zapi.ts
+ * Removida duplicação da função processZApiWebhook local
  */
-async function processZApiWebhook(webhookData: any): Promise<{ success: boolean; type?: string; error?: string }> {
-  const startTime = Date.now();
-  
-  try {
-    logger.webhook('Z-API recebido (handler principal)', {
-      type: webhookData?.type,
-      phone: webhookData?.phone,
-      hasText: !!(webhookData?.text && webhookData.text.message),
-      hasImage: !!webhookData?.image,
-      hasAudio: !!webhookData?.audio
-    });
-    
-    // Validação robusta dos dados recebidos
-    if (!webhookData || typeof webhookData !== 'object') {
-      throw new Error('Dados do webhook inválidos');
-    }
-    
-    if (!webhookData.type) {
-      throw new Error('Tipo do webhook não definido');
-    }
-    
-    // Sanitização básica para evitar problemas de processamento
-    if (webhookData.phone && typeof webhookData.phone === 'string') {
-      webhookData.phone = webhookData.phone.replace(/\D/g, '');
-    }
-    
-    if (webhookData.senderName && typeof webhookData.senderName === 'string') {
-      webhookData.senderName = webhookData.senderName.trim();
-    }
-    
-    // Verificar se é um callback de status (não precisa processar como mensagem)
-    if (webhookData.type === 'MessageStatusCallback') {
-      logger.debug(`Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
-      return { success: true, type: 'status_update' };
-    }
-    
-    // Verificar callbacks de presença
-    if (webhookData.type === 'PresenceChatCallback') {
-      logger.debug(`Status de presença: ${webhookData.status} para ${webhookData.phone}`);
-      return { success: true, type: 'presence_update' };
-    }
-    
-    // Verificar se é um callback de mensagem recebida
-    if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
-      const phone = webhookData.phone.replace(/\D/g, '');
-      let messageContent = '';
-      let messageType = 'text';
       let mediaUrl = null;
       let fileName = null;
       
