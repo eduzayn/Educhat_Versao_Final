@@ -71,34 +71,60 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       });
     }
     
-    const url = buildZApiUrl(instanceId, token, 'qr-code');
-    const response = await fetch(url, {
+    // Primeiro verificar status da sessão
+    const statusUrl = buildZApiUrl(instanceId, token, 'status');
+    const statusResponse = await fetch(statusUrl, {
       method: 'GET',
       headers: getZApiHeaders(clientToken)
     });
 
-    if (!response.ok) {
-      throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+    if (!statusResponse.ok) {
+      throw new Error(`Erro ao verificar status: ${statusResponse.status} - ${statusResponse.statusText}`);
     }
 
-    const data = await response.json();
+    const statusData = await statusResponse.json();
     
-    if (data.connected === true) {
+    // Se conectado E com sessão ativa, não precisa de QR Code
+    if (statusData.connected === true && statusData.session === true) {
       return res.json({ 
-        connected: true, 
-        message: 'WhatsApp já está conectado' 
+        connected: true,
+        session: true,
+        message: 'WhatsApp já está conectado e com sessão ativa',
+        needsQrCode: false
       });
     }
     
-    if (data.value) {
-      return res.json({ 
-        qrCode: data.value,
-        connected: false 
+    // Se conectado mas SEM sessão, precisa de QR Code
+    if (statusData.connected === true && statusData.session === false) {
+      const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
+      const qrResponse = await fetch(qrUrl, {
+        method: 'GET',
+        headers: getZApiHeaders(clientToken)
       });
+
+      if (!qrResponse.ok) {
+        throw new Error(`Erro ao obter QR Code: ${qrResponse.status} - ${qrResponse.statusText}`);
+      }
+
+      const qrData = await qrResponse.json();
+      
+      if (qrData.value) {
+        return res.json({ 
+          connected: true,
+          session: false,
+          qrCode: qrData.value,
+          needsQrCode: true,
+          message: 'Instância conectada mas sem sessão WhatsApp. Escaneie o QR Code para ativar.'
+        });
+      }
     }
     
-    res.status(400).json({ 
-      error: 'QR Code não disponível. Verifique as credenciais da Z-API.' 
+    // Se não conectado
+    return res.status(400).json({ 
+      connected: false,
+      session: false,
+      error: 'Instância Z-API não está conectada',
+      message: 'Verifique as credenciais da Z-API.'
     });
     
   } catch (error) {

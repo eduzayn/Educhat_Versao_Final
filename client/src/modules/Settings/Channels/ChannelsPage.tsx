@@ -150,7 +150,20 @@ export default function ChannelsPage() {
     },
     onSuccess: (data: any) => {
       console.log('QR Code response:', data);
-      if (data?.qrCode) {
+      
+      if (data?.connected && data?.session) {
+        toast({
+          title: "WhatsApp já ativo",
+          description: data.message || "A instância já está conectada e com sessão ativa.",
+        });
+      } else if (data?.connected && !data?.session && data?.qrCode) {
+        setQrCodeData(data.qrCode);
+        setIsQrDialogOpen(true);
+        toast({
+          title: "Sessão inativa",
+          description: data.message || "Instância conectada mas precisa escanear QR Code para ativar sessão.",
+        });
+      } else if (data?.qrCode) {
         setQrCodeData(data.qrCode);
         setIsQrDialogOpen(true);
         toast({
@@ -158,10 +171,9 @@ export default function ChannelsPage() {
           description: "Escaneie o QR Code com seu WhatsApp para conectar",
         });
       } else {
-        console.error('QR Code not found in response:', data);
         toast({
-          title: "Erro ao gerar QR Code",
-          description: "Não foi possível obter o QR Code da Z-API",
+          title: "QR Code indisponível",
+          description: data?.message || "Não foi possível obter o QR Code da Z-API",
           variant: "destructive",
         });
       }
