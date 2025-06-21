@@ -150,33 +150,48 @@ export default function ChannelsPage() {
     },
     onSuccess: (data: any) => {
       console.log('QR Code response:', data);
+      console.log('QR Code data keys:', data ? Object.keys(data) : 'no data');
+      console.log('Has qrCode:', !!data?.qrCode);
       
+      // Verificar se retornou dados vazios
+      if (!data || Object.keys(data).length === 0) {
+        console.error('Resposta vazia do servidor');
+        toast({
+          title: "Erro interno",
+          description: "Resposta vazia do servidor. Tente novamente em alguns segundos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Se está conectado com sessão ativa
       if (data?.connected && data?.session) {
         toast({
           title: "WhatsApp já ativo",
           description: data.message || "A instância já está conectada e com sessão ativa.",
         });
-      } else if (data?.connected && !data?.session && data?.qrCode) {
-        setQrCodeData(data.qrCode);
-        setIsQrDialogOpen(true);
-        toast({
-          title: "Sessão inativa",
-          description: data.message || "Instância conectada mas precisa escanear QR Code para ativar sessão.",
-        });
-      } else if (data?.qrCode) {
+        return;
+      }
+      
+      // Se tem QR Code, exibir (prioridade)
+      if (data?.qrCode) {
+        console.log('Configurando QR Code no estado:', data.qrCode.substring(0, 50) + '...');
         setQrCodeData(data.qrCode);
         setIsQrDialogOpen(true);
         toast({
           title: "QR Code gerado",
-          description: "Escaneie o QR Code com seu WhatsApp para conectar",
+          description: data.message || "Escaneie o QR Code com seu WhatsApp para conectar",
         });
-      } else {
-        toast({
-          title: "QR Code indisponível",
-          description: data?.message || "Não foi possível obter o QR Code da Z-API",
-          variant: "destructive",
-        });
+        return;
       }
+      
+      // Fallback para outras situações
+      const errorMsg = data?.error || data?.message || "QR Code não disponível";
+      toast({
+        title: "QR Code indisponível",
+        description: errorMsg,
+        variant: "destructive",
+      });
     },
     onError: (error: any) => {
       console.error('QR Code generation error:', error);
