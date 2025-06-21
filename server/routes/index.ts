@@ -58,8 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
   
-  // Registrar rotas Z-API CRÍTICAS para envio de mensagens
-
+  // Z-API routes handled by utilities module
   
   // Authentication routes now integrated in setupAuthWithRoutes
   registerAdminRoutes(app);

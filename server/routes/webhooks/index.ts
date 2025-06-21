@@ -13,7 +13,7 @@ import { dealAutomationService } from "../../services/dealAutomationService";
 import { logger } from "../../utils/logger";
 
 // Importar handlers modulares
-import { registerZApiMediaRoutes } from './handlers/zapi';
+// Media routes now handled by utilities/zapi module
 import { registerSocialWebhookRoutes } from './handlers/social';
 import { registerIntegrationRoutes, assignTeamManually } from './handlers/integration';
 import { autoAssignIfNeeded } from '../../services/immediate-ai-assignment.js';
@@ -686,8 +686,7 @@ export function registerWebhookRoutes(app: Express) {
   app.get('/api/zapi/qrcode', handleGetQRCode);
   // ❌ Status handler removido - consolidado em handlers/zapi.ts
   
-  // Registrar rotas de mídia Z-API
-  registerZApiMediaRoutes(app);
+  // Media routes handled by utilities module
   
   // QR Code para canal específico
   app.get('/api/channels/:id/qrcode', async (req, res) => {
@@ -746,7 +745,7 @@ export function registerWebhookRoutes(app: Express) {
   });
   
   // Registrar handlers modulares
-  registerZApiMediaRoutes(app);
+  // Media routes now handled by utilities module
   registerSocialWebhookRoutes(app);
   registerIntegrationRoutes(app);
   
