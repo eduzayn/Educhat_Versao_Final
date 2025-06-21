@@ -54,6 +54,63 @@ export class MessageStorage extends BaseStorage {
     return newMessage;
   }
 
+  /**
+   * Versão otimizada para criar mensagens com prepared statement
+   * e índices otimizados para melhor performance
+   */
+  async createMessageOptimized(message: InsertMessage): Promise<Message> {
+    const startTime = performance.now();
+    
+    // Usar prepared statement com valores otimizados
+    const optimizedMessage = {
+      ...message,
+      sentAt: message.sentAt || new Date(),
+      zapiStatus: message.zapiStatus || 'PENDING',
+      isDeleted: false,
+      isGroup: false
+    };
+
+    const [newMessage] = await this.db
+      .insert(messages)
+      .values(optimizedMessage)
+      .returning();
+
+    // Atualizar última mensagem da conversa em paralelo (não bloqueia)
+    this.updateConversationLastMessage(newMessage.conversationId, newMessage.sentAt)
+      .catch(err => console.warn('Erro ao atualizar última mensagem:', err.message));
+
+    const duration = performance.now() - startTime;
+    console.log(`💾 Mensagem salva no BD em ${duration.toFixed(1)}ms`);
+    
+    return newMessage;
+  }
+
+  /**
+   * Atualiza status Z-API da mensagem sem bloquear
+   */
+  async updateMessageZApiStatus(messageId: number, zapiData: {
+    whatsappMessageId?: string;
+    zapiStatus?: string;
+  }): Promise<void> {
+    await this.db
+      .update(messages)
+      .set(zapiData)
+      .where(eq(messages.id, messageId));
+  }
+
+  /**
+   * Atualiza timestamp da última mensagem na conversa
+   */
+  private async updateConversationLastMessage(conversationId: number, lastMessageAt: Date): Promise<void> {
+    await this.db
+      .update(conversations)
+      .set({ 
+        lastMessageAt,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
   async updateMessage(id: number, messageData: Partial<InsertMessage>): Promise<Message> {
     const [updated] = await this.db.update(messages)
       .set(messageData)

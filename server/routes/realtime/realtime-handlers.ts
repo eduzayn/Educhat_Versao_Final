@@ -66,15 +66,16 @@ export function setupSocketHandlers(io: SocketIOServer) {
       });
     });
 
-    // SOCKET-FIRST: Handle envio de mensagens em tempo real
+    // SOCKET-FIRST: Handle envio de mensagens em tempo real OTIMIZADO
     socket.on('send_message', async (data) => {
+      const startTime = performance.now();
+      const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false, optimisticId } = data;
+      
       try {
-        const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false, optimisticId } = data;
+        console.log(`📡 SOCKET-OPTIMIZED: Processando mensagem ${optimisticId}`);
         
-        console.log('📡 SOCKET-FIRST: Recebendo mensagem via WebSocket:', { conversationId, content, optimisticId });
-        
-        // Salvar mensagem no banco
-        const newMessage = await storage.message.createMessage({
+        // Salvar mensagem no banco com versão otimizada
+        const newMessage = await storage.message.createMessageOptimized({
           conversationId,
           content,
           messageType,
@@ -82,46 +83,44 @@ export function setupSocketHandlers(io: SocketIOServer) {
           isInternalNote
         });
         
-        console.log('📡 SOCKET-FIRST: Mensagem salva, broadcasting via WebSocket:', newMessage.id);
+        const dbTime = performance.now() - startTime;
+        console.log(`💾 SOCKET: Mensagem salva em ${dbTime.toFixed(1)}ms`);
         
-        // SOCKET-FIRST: Broadcast para todos os clientes da conversa via WebSocket
-        io.to(`conversation:${conversationId}`).emit('broadcast_message', {
+        // Broadcast imediato via WebSocket
+        const broadcastData = {
           type: 'new_message',
           message: newMessage,
           conversationId,
-          optimisticId // Para substituição de mensagem otimista
+          optimisticId,
+          dbTime: dbTime.toFixed(1)
+        };
+
+        io.to(`conversation:${conversationId}`).emit('broadcast_message', broadcastData);
+        
+        // Resposta de confirmação para o remetente
+        socket.emit('message_sent', {
+          message: newMessage,
+          optimisticId,
+          processTime: (performance.now() - startTime).toFixed(1)
         });
         
-        // Z-API em background para mensagens não internas
+        const totalTime = performance.now() - startTime;
+        console.log(`⚡ SOCKET: Mensagem processada e enviada em ${totalTime.toFixed(1)}ms`);
+        
+        // Z-API em background (não bloqueia resposta)
         if (!isInternalNote) {
-          const conversation = await storage.conversation.getConversation(conversationId);
-          if (conversation?.contact?.phone) {
-            // Processar Z-API de forma assíncrona
-            setImmediate(async () => {
-              try {
-                const response = await fetch(`${process.env.WEBHOOK_URL || 'http://localhost:5000'}/api/zapi/send-message`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    phone: conversation.contact.phone,
-                    message: content,
-                    conversationId: conversationId
-                  })
-                });
-                console.log('📡 Z-API processado em background via WebSocket');
-              } catch (error) {
-                console.error('❌ Erro Z-API em background:', error);
-              }
-            });
-          }
+          processZApiBackground(conversationId, content, newMessage.id);
         }
+        
       } catch (error) {
-        console.error('❌ Erro ao processar mensagem Socket.IO:', error);
-        // Enviar erro detalhado para debug em produção
+        const errorTime = performance.now() - startTime;
+        console.error(`❌ SOCKET: Erro após ${errorTime.toFixed(1)}ms:`, error.message);
+        
         socket.emit('message_error', { 
           message: 'Erro ao enviar mensagem',
           error: error.message,
           optimisticId,
+          processTime: errorTime.toFixed(1),
           timestamp: new Date().toISOString()
         });
       }
@@ -161,4 +160,47 @@ export function setupSocketHandlers(io: SocketIOServer) {
       console.error(`❌ Erro no socket ${socket.id}:`, error);
     });
   });
+}
+
+/**
+ * Processa Z-API em background sem bloquear Socket.IO
+ */
+async function processZApiBackground(conversationId: number, content: string, messageId: number) {
+  try {
+    // Usar método otimizado para buscar apenas dados necessários
+    const conversation = await storage.conversation.getConversationWithContact(conversationId);
+    
+    if (conversation?.contact?.phone) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
+      const response = await fetch(`${process.env.WEBHOOK_URL || 'http://localhost:5000'}/api/zapi/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: conversation.contact.phone,
+          message: content,
+          conversationId,
+          messageId
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const zapiData = await response.json();
+        await storage.message.updateMessageZApiStatus(messageId, {
+          whatsappMessageId: zapiData.messageId,
+          zapiStatus: 'SENT'
+        });
+        console.log(`📱 Z-API background: Sucesso para mensagem ${messageId}`);
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ Z-API background falhou para mensagem ${messageId}:`, error.message);
+    await storage.message.updateMessageZApiStatus(messageId, {
+      zapiStatus: 'ERROR'
+    }).catch(() => {}); // Ignorar erro secundário
+  }
 } 
