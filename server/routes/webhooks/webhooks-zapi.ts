@@ -296,6 +296,43 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
       return { success: true, type: 'message_processed' };
     }
     
+    // Processar webhooks de conexão/desconexão
+    if (webhookData.type === 'ConnectedCallback') {
+      console.log('📱 WhatsApp conectado via webhook');
+      try {
+        const channels = await storage.getChannels();
+        const channel = channels.find(c => c.instanceId === webhookData.instanceId);
+        if (channel) {
+          await storage.updateChannel(channel.id, {
+            isConnected: true,
+            connectionStatus: 'connected'
+          });
+          console.log(`✅ Canal ${channel.id} marcado como conectado`);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao atualizar status do canal:', error);
+      }
+      return { success: true, type: 'connection_updated' };
+    }
+    
+    if (webhookData.type === 'DisconnectedCallback') {
+      console.log('📱 WhatsApp desconectado via webhook');
+      try {
+        const channels = await storage.getChannels();
+        const channel = channels.find(c => c.instanceId === webhookData.instanceId);
+        if (channel) {
+          await storage.updateChannel(channel.id, {
+            isConnected: false,
+            connectionStatus: 'disconnected'
+          });
+          console.log(`❌ Canal ${channel.id} marcado como desconectado`);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao atualizar status do canal:', error);
+      }
+      return { success: true, type: 'disconnection_updated' };
+    }
+    
     // Tipo de webhook não reconhecido
     console.log(`⚠️ Tipo de webhook não processado: ${webhookData.type}`);
     return { success: true, type: 'unhandled' };

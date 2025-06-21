@@ -31,7 +31,16 @@ export function registerChannelTestConnectionRoutes(app: Express) {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Erro Z-API Response: ${response.status} - ${errorText}`);
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error(`❌ Resposta não é JSON: ${responseText.substring(0, 200)}`);
+        throw new Error('Resposta da Z-API não é JSON válido');
       }
 
       const data = await response.json();
