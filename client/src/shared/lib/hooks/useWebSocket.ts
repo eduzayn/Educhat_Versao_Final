@@ -138,11 +138,46 @@ export function useWebSocket() {
       }
     });
 
+    // Handler para atualizações de lista de conversas
+    socketRef.current.on('conversation_list_update', (data) => {
+      console.log('📋 Atualização de lista de conversas:', data);
+      
+      // Forçar atualização da lista de conversas
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/conversations'],
+        type: 'active'
+      }).catch(error => {
+        console.error('Erro ao atualizar lista de conversas:', error);
+      });
+    });
+
     // SOCKET-FIRST: Handler otimizado para mensagens em tempo real
     socketRef.current.on('broadcast_message', (data) => {
       // Handle new_message - Sistema socket-first como Chatwoot
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log(`📨 Nova mensagem via WebSocket (${data.source || 'unknown'}):`, data);
+        
+        // CORREÇÃO: Sempre atualizar lista de conversas quando nova mensagem chegar
+        queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+          if (!oldData?.pages) return oldData;
+          
+          const updatedPages = oldData.pages.map((page: any) => ({
+            ...page,
+            conversations: page.conversations.map((conv: any) => 
+              conv.id === data.conversationId 
+                ? { 
+                    ...conv, 
+                    lastMessage: data.message.content,
+                    lastMessageAt: data.message.sentAt,
+                    unreadCount: data.message.isFromContact ? (conv.unreadCount || 0) + 1 : conv.unreadCount
+                  }
+                : conv
+            )
+          }));
+          
+          return { ...oldData, pages: updatedPages };
+        });
         
         // SOCKET-FIRST: Para conversa ativa, aplicar mensagem diretamente via WebSocket
         if (activeConversation?.id === data.conversationId) {
@@ -229,17 +264,41 @@ export function useWebSocket() {
           }
         );
         
-        // SOCKET-FIRST: Atualizar lista de conversas sem polling
+        return;
+      }
+
+      // Handle conversation_updated para atualizar listas
+      if (data.type === 'conversation_updated' && data.conversation) {
+        console.log('🔄 Conversa atualizada via WebSocket:', data.conversationId);
+        
+        // Atualizar lista de conversas com novos dados
         queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-          if (!oldData?.conversations) return oldData;
-          return {
-            ...oldData,
-            conversations: oldData.conversations.map((conv: any) => 
-              conv.id === data.conversationId 
-                ? { ...conv, lastMessageAt: data.message.sentAt, unreadCount: (conv.unreadCount || 0) + 1 }
-                : conv
-            )
-          };
+          if (!oldData?.pages) return oldData;
+          
+          const updatedPages = oldData.pages.map((page: any) => {
+            const conversationIndex = page.conversations.findIndex((conv: any) => conv.id === data.conversationId);
+            
+            if (conversationIndex !== -1) {
+              const updatedConversations = [...page.conversations];
+              updatedConversations[conversationIndex] = {
+                ...updatedConversations[conversationIndex],
+                ...data.conversation,
+                lastMessage: data.lastMessage?.content || updatedConversations[conversationIndex].lastMessage
+              };
+              
+              // Mover conversa para o topo se tiver nova mensagem
+              if (data.lastMessage) {
+                const [conversation] = updatedConversations.splice(conversationIndex, 1);
+                updatedConversations.unshift(conversation);
+              }
+              
+              return { ...page, conversations: updatedConversations };
+            }
+            
+            return page;
+          });
+          
+          return { ...oldData, pages: updatedPages };
         });
         
         return;
