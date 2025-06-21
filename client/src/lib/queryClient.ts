@@ -22,7 +22,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   try {
     const headers: Record<string, string> = {};
     
@@ -38,7 +38,10 @@ export async function apiRequest(
     });
 
     await throwIfResNotOk(res);
-    return res;
+    
+    // Parse JSON response
+    const responseData = await res.json();
+    return responseData;
   } catch (error) {
     console.error(`❌ Erro na requisição ${method} ${url}:`, error);
     
@@ -60,7 +63,10 @@ export async function apiRequest(
         });
 
         await throwIfResNotOk(res);
-        return res;
+        
+        // Parse JSON response on retry
+        const responseData = await res.json();
+        return responseData;
       } catch (retryError) {
         console.error(`❌ Erro na segunda tentativa ${method} ${url}:`, retryError);
         throw retryError;
