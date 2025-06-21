@@ -129,6 +129,8 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
           (window as any).socketInstance.on('broadcast_message', handleBroadcast);
           (window as any).socketInstance.on('message_error', handleError);
           
+          console.log(`📤 [PROD-AUDIT] SOCKET-SEND: Enviando mensagem ${optimisticId} via WebSocket`);
+          
           // Emitir mensagem via WebSocket
           (window as any).socketInstance.emit('send_message', {
             conversationId,

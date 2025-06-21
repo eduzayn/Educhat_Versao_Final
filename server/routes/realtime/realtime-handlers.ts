@@ -131,12 +131,19 @@ export function setupSocketHandlers(io: SocketIOServer) {
           timestamp: new Date().toISOString()
         };
 
-        // Broadcast para a sala específica
+        // Broadcast para a sala específica primeiro (prioridade)
         const roomName = `conversation:${conversationId}`;
         const roomSize = io.sockets.adapter.rooms.get(roomName)?.size || 0;
         
         console.log(`📡 [PROD-AUDIT] BROADCAST: Enviando para sala ${roomName} (${roomSize} clientes)`);
-        io.to(roomName).emit('broadcast_message', broadcastData);
+        
+        // Garantir entrega mesmo se sala estiver vazia
+        if (roomSize > 0) {
+          io.to(roomName).emit('broadcast_message', broadcastData);
+        } else {
+          console.log(`⚠️ [PROD-AUDIT] Sala vazia, usando broadcast global como fallback`);
+          io.emit('broadcast_message', broadcastData);
+        }
         
         // MELHORIA 3: Confirmação imediata para o remetente com dados completos
         socket.emit('message_sent', {

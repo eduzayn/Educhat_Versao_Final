@@ -231,12 +231,19 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
         
         console.log(`📡 [PROD-AUDIT] WEBHOOK-BROADCAST: Enviando mensagem ${message.id} para conversa ${conversation.id}`);
         
-        // Broadcast para sala específica da conversa com retry
+        // MELHORIA: Broadcast garantido para mensagens de webhook
         const broadcastResult = await Promise.allSettled([
           broadcast(conversation.id, broadcastData),
-          // Garantir que chegue mesmo se ninguém estiver na sala específica
           broadcastToAll(broadcastData)
         ]);
+        
+        // Verificar se broadcast foi bem-sucedido
+        const specificBroadcastOk = broadcastResult[0].status === 'fulfilled';
+        const globalBroadcastOk = broadcastResult[1].status === 'fulfilled';
+        
+        if (!specificBroadcastOk && !globalBroadcastOk) {
+          console.error(`🚨 [PROD-CRITICAL] Falha total no broadcast para conversa ${conversation.id}`);
+        }
         
         console.log(`📡 [PROD-AUDIT] WEBHOOK-BROADCAST: Resultado do broadcast - específico: ${broadcastResult[0].status}, global: ${broadcastResult[1].status}`);
         
