@@ -106,107 +106,76 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       });
     }
     
-    // Se NÃO conectado ou sem sessão, tentar restaurar e obter QR Code
-    if (statusData.connected === false || statusData.session === false) {
-      console.log('🔄 Z-API desconectado, tentando restaurar sessão...');
+    // Se NÃO conectado, forçar restauração completa da instância
+    if (statusData.connected === false) {
+      console.log('🔄 Z-API completamente desconectado, forçando restauração...');
       
-      // Tentar restaurar sessão primeiro
+      // Primeiro: restaurar sessão
       const restoreUrl = buildZApiUrl(instanceId, token, 'restore-session');
       try {
-        const restoreResponse = await fetch(restoreUrl, {
+        await fetch(restoreUrl, {
           method: 'GET',
           headers: getZApiHeaders(clientToken)
         });
-        
-        if (restoreResponse.ok) {
-          console.log('✅ Sessão restaurada com sucesso');
-          // Aguardar um momento para a sessão se estabelecer
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      } catch (restoreError) {
-        console.log('⚠️ Falha ao restaurar sessão, prosseguindo com QR Code');
+        console.log('📡 Comando de restauração enviado');
+      } catch (error) {
+        console.log('⚠️ Falha no restore, continuando...');
       }
       
-      // Obter QR Code
-      const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
-      const qrResponse = await fetch(qrUrl, {
+      // Aguardar e verificar status novamente
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const newStatusResponse = await fetch(statusUrl, {
         method: 'GET',
         headers: getZApiHeaders(clientToken)
       });
-
-      if (!qrResponse.ok) {
-        throw new Error(`Erro ao obter QR Code: ${qrResponse.status} - ${qrResponse.statusText}`);
-      }
-
-      const qrData = await qrResponse.json();
       
-      console.log('DEBUG - QR Code response:', qrData);
-      
-      // Z-API pode retornar o QR Code em diferentes campos
-      const qrCode = qrData.value || qrData.qrcode || qrData.qr_code || qrData.data;
-      
-      if (qrCode) {
-        return res.json({ 
-          connected: statusData.connected || false,
-          session: statusData.session || false,
-          qrCode: qrCode,
-          needsQrCode: true,
-          message: 'QR Code disponível. Escaneie rapidamente com seu WhatsApp para conectar.',
-          instructions: 'Abra o WhatsApp > Menu (3 pontos) > Dispositivos conectados > Conectar dispositivo'
-        });
-      } else {
-        // Tentar reiniciar instância para gerar novo QR Code
-        console.warn('QR Code não disponível, tentando reiniciar instância:', qrData);
+      if (newStatusResponse.ok) {
+        const newStatus = await newStatusResponse.json();
+        console.log('📊 Novo status após restauração:', newStatus);
         
-        try {
-          const restartUrl = buildZApiUrl(instanceId, token, 'restart');
-          const restartResponse = await fetch(restartUrl, {
-            method: 'POST',
-            headers: getZApiHeaders(clientToken)
+        // Se agora está conectado com sessão, retornar sucesso
+        if (newStatus.connected === true && newStatus.session === true) {
+          return res.json({
+            connected: true,
+            session: true,
+            message: 'WhatsApp conectado com sucesso após restauração',
+            needsQrCode: false
           });
-          
-          if (restartResponse.ok) {
-            console.log('Instância reiniciada, aguardando QR Code...');
-            
-            // Aguardar 3 segundos e tentar novamente
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            const newQrResponse = await fetch(qrUrl, {
-              method: 'GET',
-              headers: getZApiHeaders(clientToken)
-            });
-            
-            if (newQrResponse.ok) {
-              const newQrData = await newQrResponse.json();
-              const newQrCode = newQrData.value || newQrData.qrcode || newQrData.qr_code || newQrData.data;
-              
-              if (newQrCode) {
-                return res.json({ 
-                  connected: true,
-                  session: false,
-                  qrCode: newQrCode,
-                  needsQrCode: true,
-                  message: 'QR Code gerado após reinicialização da instância. Escaneie rapidamente.'
-                });
-              }
-            }
-          }
-        } catch (restartError) {
-          console.error('Erro ao reiniciar instância:', restartError);
         }
-        
-        return res.json({
-          connected: true,
-          session: false,
-          needsQrCode: true,
-          error: 'QR Code temporariamente indisponível',
-          message: 'Instância conectada mas QR Code não está disponível. Tente novamente em alguns segundos.',
-          suggestion: 'Verifique se o WhatsApp não está sendo usado em outro dispositivo.'
-        });
       }
     }
+      
+    // Obter QR Code
+    const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
+    const qrResponse = await fetch(qrUrl, {
+      method: 'GET',
+      headers: getZApiHeaders(clientToken)
+    });
+
+    if (!qrResponse.ok) {
+      throw new Error(`Erro ao obter QR Code: ${qrResponse.status} - ${qrResponse.statusText}`);
+    }
+
+    const qrData = await qrResponse.json();
     
-    // Se não conectado (statusData.connected === false)
+    console.log('DEBUG - QR Code response:', qrData);
+    
+    // Z-API pode retornar o QR Code em diferentes campos
+    const qrCode = qrData.value || qrData.qrcode || qrData.qr_code || qrData.data;
+    
+    if (qrCode) {
+      return res.json({ 
+        connected: statusData.connected || false,
+        session: statusData.session || false,
+        qrCode: qrCode,
+        needsQrCode: true,
+        message: 'QR Code disponível. Escaneie rapidamente com seu WhatsApp para conectar.',
+        instructions: 'Abra o WhatsApp > Menu (3 pontos) > Dispositivos conectados > Conectar dispositivo'
+      });
+    }
+    
+    // Se não conseguiu obter QR Code, retornar erro
     return res.status(400).json({ 
       connected: statusData.connected || false,
       session: statusData.session || false,
@@ -220,4 +189,4 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       error: error instanceof Error ? error.message : 'Erro interno do servidor' 
     });
   }
-} 
+}
