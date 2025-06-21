@@ -262,6 +262,13 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
           type: 'conversation_updated',
           conversationId: conversation.id,
           lastMessage: message,
+          conversation: {
+            id: conversation.id,
+            channel: conversation.channel,
+            status: conversation.status,
+            lastMessageAt: message.sentAt,
+            unreadCount: conversation.unreadCount || 0
+          },
           timestamp: new Date().toISOString()
         });
         

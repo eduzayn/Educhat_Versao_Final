@@ -52,7 +52,23 @@ export function broadcastToAll(data: any) {
   }
 
   try {
-    ioInstance.emit('broadcast_message', data);
+    // CORREÇÃO: Broadcast global com namespace correto
+    ioInstance.emit('broadcast_message', {
+      ...data,
+      timestamp: new Date().toISOString(),
+      globalBroadcast: true
+    });
+    
+    // Broadcast adicional para garantir que conversas sejam atualizadas
+    if (data.type === 'new_message' || data.type === 'conversation_updated') {
+      ioInstance.emit('conversation_list_update', {
+        type: 'refresh_conversations',
+        conversationId: data.conversationId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    console.log(`📡 [BROADCAST-ALL] Enviado globalmente: ${data.type} para conversa ${data.conversationId}`);
     logger.socket('Broadcast global enviado', { type: data.type });
   } catch (error) {
     logger.error('Erro ao fazer broadcast global', error);
