@@ -16,6 +16,25 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 
+// Configuração específica para Socket.IO em produção Replit
+if (process.env.NODE_ENV === 'production' && (process.env.REPLIT_DEPLOYMENT_ID || process.env.REPL_ID)) {
+  app.set('trust proxy', 1);
+  
+  // Headers específicos para Socket.IO polling
+  app.use('/socket.io/', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Credentials', 'false');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
+}
+
 // Configurações de timeout otimizadas para evitar 502 Bad Gateway
 app.use((req, res, next) => {
   // Timeout otimizado para evitar 502 - mais curto para resposta rápida

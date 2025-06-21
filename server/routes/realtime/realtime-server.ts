@@ -11,19 +11,28 @@ interface SocketServer extends Server {
 export function createSocketServer(app: Express): SocketServer {
   const httpServer = createServer(app) as SocketServer;
 
-  // Socket.IO server - MINIMAL CONFIG for Replit compatibility
+  // Socket.IO server - PRODUÇÃO OTIMIZADA para Replit
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isReplit = process.env.REPLIT_DEPLOYMENT_ID || process.env.REPL_ID;
+  
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: "*",
+      origin: isDevelopment ? ["http://localhost:5000", "http://127.0.0.1:5000"] : "*",
       methods: ["GET", "POST"],
-      credentials: false
+      credentials: false,
+      allowedHeaders: ["Content-Type"]
     },
-    transports: ['polling'],
-    allowUpgrades: false,
+    // Configuração otimizada para produção Replit
+    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
+    allowUpgrades: true,
+    upgradeTimeout: 10000,
     pingTimeout: 60000,
     pingInterval: 25000,
+    maxHttpBufferSize: 1e6,
     serveClient: false,
-    cookie: false
+    cookie: false,
+    // Configurações específicas para polling no Replit
+    allowEIO3: true
   });
 
   httpServer.io = io;

@@ -120,20 +120,29 @@ export async function handleGetChannelQRCode(req: any, res: any) {
 
       const qrData = await qrResponse.json();
       
-      if (qrData.value) {
+      console.log('DEBUG - QR Code response:', qrData);
+      
+      // Z-API pode retornar o QR Code em diferentes campos
+      const qrCode = qrData.value || qrData.qrcode || qrData.qr_code || qrData.data;
+      
+      if (qrCode) {
         return res.json({ 
           connected: true,
           session: false,
-          qrCode: qrData.value,
+          qrCode: qrCode,
           needsQrCode: true,
           message: 'Instância conectada mas sem sessão WhatsApp. Escaneie o QR Code para ativar.'
         });
       } else {
+        // Se não conseguiu obter QR Code, pode ser que já esteja em processo de conexão
+        console.warn('QR Code não disponível, dados recebidos:', qrData);
         return res.json({
           connected: true,
           session: false,
           needsQrCode: true,
-          message: 'Instância conectada mas QR Code não está disponível no momento. Tente novamente.'
+          error: 'QR Code temporariamente indisponível',
+          message: 'Instância conectada mas QR Code não está disponível. Verifique se o WhatsApp não está sendo usado em outro dispositivo.',
+          rawResponse: qrData
         });
       }
     }

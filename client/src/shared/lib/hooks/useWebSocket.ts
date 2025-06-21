@@ -51,15 +51,26 @@ export function useWebSocket() {
     console.log('🔌 Conectando ao Socket.IO:', socketUrl);
     
     try {
+      // Configuração otimizada para produção Replit
+      const isDevelopment = window.location.hostname === 'localhost';
+      const isReplit = window.location.hostname.includes('replit.app') || 
+                       window.location.hostname.includes('replit.dev');
+      
       socketRef.current = io(socketUrl, {
-        transports: ['polling'],
-        upgrade: false,
+        // Priorizar WebSocket em produção, polling em desenvolvimento
+        transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
+        upgrade: true,
         rememberUpgrade: false,
-        timeout: 20000,
-        reconnection: false,
+        timeout: isReplit ? 30000 : 20000,
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 1000,
         autoConnect: true,
         forceNew: false,
-        withCredentials: false
+        withCredentials: false,
+        // Configurações específicas para Replit
+        forceBase64: false,
+        enablesXDR: false
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
@@ -69,7 +80,8 @@ export function useWebSocket() {
 
     // Handle successful connection
     socketRef.current.on('connect', () => {
-      console.log('🔌 Socket.IO conectado');
+      const transport = socketRef.current?.io.engine.transport.name;
+      console.log(`🔌 Socket.IO conectado via ${transport}`);
       setConnectionStatus(true);
       
       // SOCKET-FIRST: Registrar instância global para envio de mensagens

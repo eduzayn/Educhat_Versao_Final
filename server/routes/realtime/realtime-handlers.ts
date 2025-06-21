@@ -14,11 +14,35 @@ export function setupSocketHandlers(io: SocketIOServer) {
   // Configurar instância do Socket.IO para broadcasting
   setIOInstance(io);
   
+  // Logging específico para produção
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isReplit = process.env.REPLIT_DEPLOYMENT_ID || process.env.REPL_ID;
+  
+  if (isProduction && isReplit) {
+    console.log('🔌 [PRODUÇÃO] Socket.IO configurado para Replit:', {
+      transports: io.engine.transports,
+      cors: io.engine.opts.cors,
+      allowUpgrades: io.engine.opts.allowUpgrades
+    });
+  }
+  
   io.on('connection', (socket) => {
-    console.log(`🔌 Cliente conectado via Socket.IO: ${socket.id}`);
+    const transport = socket.conn.transport.name;
+    console.log(`🔌 Cliente conectado via Socket.IO: ${socket.id} (${transport})`);
+    
     clients.set(socket.id, { 
       socketId: socket.id, 
       connectedAt: Date.now() 
+    });
+    
+    // Log transport upgrades em produção
+    socket.conn.on('upgrade', () => {
+      const newTransport = socket.conn.transport.name;
+      console.log(`🔄 Transport upgrade: ${transport} → ${newTransport} (${socket.id})`);
+    });
+    
+    socket.conn.on('upgradeError', (error) => {
+      console.error(`❌ Upgrade error para ${socket.id}:`, error.message);
     });
 
     // Handle joining a conversation room
