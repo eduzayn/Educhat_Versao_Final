@@ -41,6 +41,11 @@
 - `client/node_modules/.vite/` - Cache mal posicionado removido
 - Configuração corrigida para usar `node_modules/.vite/`
 
+### Consolidação de Rotas
+- `contacts/list.ts` - Rota duplicada removida (conflito com contacts/index.ts)
+- Rotas Z-API consolidadas (4 implementações → 3 específicas)
+- Rotas de conversas consolidadas (duplicação inbox + conversations resolvida)
+
 ---
 
 ## 🖼️ LIMPEZA DE ASSETS
