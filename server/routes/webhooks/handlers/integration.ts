@@ -116,24 +116,46 @@ export async function handleTestWebhook(req: Request, res: Response) {
  */
 export async function assignTeamManually(conversationId: number, teamId?: number) {
   try {
-    if (!teamId) return;
+    // ISOLAMENTO: Validação estrita de entrada para evitar efeitos colaterais
+    if (!conversationId || typeof conversationId !== 'number' || conversationId <= 0) {
+      console.warn(`⚠️ conversationId inválido para atribuição manual: ${conversationId}`);
+      return;
+    }
     
+    if (!teamId || typeof teamId !== 'number' || teamId <= 0) {
+      console.warn(`⚠️ teamId inválido para atribuição manual: ${teamId}`);
+      return;
+    }
+    
+    console.log(`🔒 ISOLADO: Iniciando atribuição manual para conversa ${conversationId} → equipe ${teamId}`);
+    
+    // ISOLAMENTO: Buscar conversa específica com WHERE explícito
     const currentConversation = await storage.getConversation(conversationId);
+    if (!currentConversation) {
+      console.warn(`⚠️ Conversa ${conversationId} não encontrada para atribuição manual`);
+      return;
+    }
+    
     const shouldReassign = !currentConversation?.assignedTeamId || 
                           currentConversation.assignedTeamId !== teamId;
     
     if (shouldReassign) {
+      // ISOLAMENTO: Atribuição com conversationId específico
       await conversationAssignmentService.assignConversationToTeam(conversationId, teamId, { method: 'manual' });
-      console.log(`✅ Conversa ID ${conversationId} atribuída manualmente à equipe`);
+      console.log(`✅ ISOLADO: Conversa ID ${conversationId} atribuída manualmente à equipe ${teamId}`);
       
+      // ISOLAMENTO: Buscar usuário disponível apenas para esta equipe específica
       const availableUser = await storage.getAvailableUserFromTeam(teamId);
       if (availableUser) {
+        // ISOLAMENTO: Atribuir usuário apenas para esta conversa específica
         await conversationAssignmentService.assignConversationToUser(conversationId, availableUser.id, { method: 'manual' });
-        console.log(`👤 Conversa atribuída manualmente ao usuário ${availableUser.displayName}`);
+        console.log(`👤 ISOLADO: Conversa ${conversationId} atribuída manualmente ao usuário ${availableUser.displayName} (ID: ${availableUser.id})`);
       }
+    } else {
+      console.log(`ℹ️ ISOLADO: Conversa ${conversationId} já está atribuída à equipe correta (${teamId})`);
     }
   } catch (assignmentError) {
-    console.error('❌ Erro na atribuição manual de equipes:', assignmentError);
+    console.error(`❌ ISOLADO: Erro na atribuição manual para conversa ${conversationId}:`, assignmentError);
   }
 }
 

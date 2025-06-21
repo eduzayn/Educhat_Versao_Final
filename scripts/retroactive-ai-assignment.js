@@ -137,16 +137,21 @@ class RetroactiveAIAssignment {
         return;
       }
 
-      // Atualizar conversa
-      await db
+      // ISOLAMENTO RETROATIVO: Atualizar apenas conversa específica
+      console.log(`🔒 ISOLAMENTO RETROATIVO: Atualizando conversa ${conversation.id} → equipe ${targetTeam.id}`);
+      
+      const updateResult = await db
         .update(conversations)
         .set({
           assignedTeamId: targetTeam.id,
           teamType: analysis.teamType,
           assignmentMethod: 'ai_retroactive',
+          assignedAt: new Date(),
           updatedAt: new Date()
         })
         .where(eq(conversations.id, conversation.id));
+
+      console.log(`✅ ISOLAMENTO RETROATIVO: Conversa ${conversation.id} atualizada com sucesso`);
 
       this.updatedCount++;
       console.log(`🤖 Conversa ${conversation.id}: Atribuída à ${targetTeam.name} (confiança: ${analysis.confidence}%)`);

@@ -217,15 +217,19 @@ export async function processUnassignedConversations(options: {
           continue;
         }
 
-        // Atribuir conversa à equipe
-        await db
+        // ISOLAMENTO: Atribuir conversa específica à equipe com WHERE explícito
+        const updateResult = await db
           .update(conversations)
           .set({ 
             assignedTeamId: team[0].id,
             teamType: analysis.teamType,
+            assignmentMethod: 'auto_ai',
+            assignedAt: new Date(),
             updatedAt: new Date()
           })
           .where(eq(conversations.id, conversation.id));
+
+        console.log(`🔒 ISOLAMENTO AUTO-AI: Conversa ${conversation.id} atribuída individualmente à equipe ${team[0].id}`);
 
         results.assigned++;
         results.assignments.push({
