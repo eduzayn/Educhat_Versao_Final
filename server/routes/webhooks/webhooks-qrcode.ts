@@ -96,13 +96,8 @@ export async function handleGetChannelQRCode(req: any, res: any) {
     
     console.log('DEBUG - Status Z-API:', statusData);
     
-    // Z-API retorna connected=true mesmo sem sessão ativa
-    // Verificar se realmente tem sessão através do campo 'session' ou ausência de erro
-    const hasActiveSession = statusData.session === true || 
-                            (statusData.connected === true && !statusData.error);
-    
     // Se conectado E com sessão ativa, não precisa de QR Code
-    if (statusData.connected === true && hasActiveSession) {
+    if (statusData.connected === true && statusData.session === true) {
       return res.json({ 
         connected: true,
         session: true,
@@ -112,7 +107,7 @@ export async function handleGetChannelQRCode(req: any, res: any) {
     }
     
     // Se conectado mas SEM sessão, precisa de QR Code
-    if (statusData.connected === true && !hasActiveSession) {
+    if (statusData.connected === true && statusData.session === false) {
       const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
       const qrResponse = await fetch(qrUrl, {
         method: 'GET',
@@ -133,13 +128,20 @@ export async function handleGetChannelQRCode(req: any, res: any) {
           needsQrCode: true,
           message: 'Instância conectada mas sem sessão WhatsApp. Escaneie o QR Code para ativar.'
         });
+      } else {
+        return res.json({
+          connected: true,
+          session: false,
+          needsQrCode: true,
+          message: 'Instância conectada mas QR Code não está disponível no momento. Tente novamente.'
+        });
       }
     }
     
-    // Se não conectado
+    // Se não conectado (statusData.connected === false)
     return res.status(400).json({ 
-      connected: false,
-      session: false,
+      connected: statusData.connected || false,
+      session: statusData.session || false,
       error: 'Instância Z-API não está conectada',
       message: 'Verifique as credenciais da Z-API.'
     });
