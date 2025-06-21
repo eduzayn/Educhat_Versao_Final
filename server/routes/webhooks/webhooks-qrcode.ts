@@ -63,9 +63,19 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       return res.status(404).json({ error: 'Canal não encontrado' });
     }
 
-    const { instanceId, token, clientToken } = channel;
+    const instanceId = channel.instanceId || channel.instance_id;
+    const token = channel.token;
+    const clientToken = channel.clientToken || channel.client_token;
+    
+    console.log('DEBUG - Credenciais do canal:', { 
+      channelId, 
+      instanceId: instanceId?.substring(0, 8) + '...', 
+      token: token?.substring(0, 8) + '...', 
+      clientToken: clientToken?.substring(0, 8) + '...' 
+    });
     
     if (!instanceId || !token || !clientToken) {
+      console.log('Credenciais incompletas:', { instanceId: !!instanceId, token: !!token, clientToken: !!clientToken });
       return res.status(400).json({ 
         error: 'Canal não possui credenciais Z-API configuradas' 
       });
@@ -84,8 +94,15 @@ export async function handleGetChannelQRCode(req: any, res: any) {
 
     const statusData = await statusResponse.json();
     
+    console.log('DEBUG - Status Z-API:', statusData);
+    
+    // Z-API retorna connected=true mesmo sem sessão ativa
+    // Verificar se realmente tem sessão através do campo 'session' ou ausência de erro
+    const hasActiveSession = statusData.session === true || 
+                            (statusData.connected === true && !statusData.error);
+    
     // Se conectado E com sessão ativa, não precisa de QR Code
-    if (statusData.connected === true && statusData.session === true) {
+    if (statusData.connected === true && hasActiveSession) {
       return res.json({ 
         connected: true,
         session: true,
@@ -95,7 +112,7 @@ export async function handleGetChannelQRCode(req: any, res: any) {
     }
     
     // Se conectado mas SEM sessão, precisa de QR Code
-    if (statusData.connected === true && statusData.session === false) {
+    if (statusData.connected === true && !hasActiveSession) {
       const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
       const qrResponse = await fetch(qrUrl, {
         method: 'GET',

@@ -145,8 +145,8 @@ export default function ChannelsPage() {
   // Generate QR Code mutation
   const generateQrMutation = useMutation({
     mutationFn: async (channelId: number) => {
-      const response = await apiRequest('GET', `/api/channels/${channelId}/qrcode`);
-      return await response.json();
+      const response = await apiRequest(`/api/channels/${channelId}/qrcode`);
+      return response;
     },
     onSuccess: (data: any) => {
       console.log('QR Code response:', data);
@@ -180,11 +180,21 @@ export default function ChannelsPage() {
     },
     onError: (error: any) => {
       console.error('QR Code generation error:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar QR Code",
-        variant: "destructive",
-      });
+      const message = error.message || "Erro interno do servidor";
+      
+      if (message.includes("Unexpected token '<'") || message.includes("DOCTYPE")) {
+        toast({
+          title: "Erro de comunicação",
+          description: "Problema na comunicação com a Z-API. Verifique a conectividade.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao gerar QR Code",
+          description: message,
+          variant: "destructive",
+        });
+      }
     },
   });
 
