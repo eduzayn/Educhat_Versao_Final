@@ -165,6 +165,10 @@ export function MessageBubble({
             isFromContact={isFromContact}
             messageIdForFetch={message.id.toString()}
             duration={(message.metadata as any)?.duration}
+            messageId={message.id}
+            content={message.content}
+            metadata={message.metadata}
+            zapiStatus={message.zapiStatus}
           />
         );
       case "image":
