@@ -129,11 +129,20 @@ export function useWebSocket() {
       }
     });
 
+    // Handler para confirmação de entrada na sala
+    socketRef.current.on('joined_conversation', (data) => {
+      if (data.success) {
+        console.log(`✅ Confirmação: Entrou na sala da conversa ${data.conversationId}`);
+      } else {
+        console.error(`❌ Falha ao entrar na sala da conversa ${data.conversationId}:`, data.error);
+      }
+    });
+
     // SOCKET-FIRST: Handler otimizado para mensagens em tempo real
     socketRef.current.on('broadcast_message', (data) => {
       // Handle new_message - Sistema socket-first como Chatwoot
       if (data.type === 'new_message' && data.message && data.conversationId) {
-        console.log('📨 Nova mensagem via WebSocket:', data);
+        console.log(`📨 Nova mensagem via WebSocket (${data.source || 'unknown'}):`, data);
         
         // SOCKET-FIRST: Para conversa ativa, aplicar mensagem diretamente via WebSocket
         if (activeConversation?.id === data.conversationId) {

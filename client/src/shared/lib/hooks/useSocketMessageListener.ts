@@ -136,12 +136,27 @@ export function useSocketMessageListener(conversationId: number | null) {
     socket.on('message_error', handleMessageError);
 
     // Entrar na sala da conversa
+    console.log(`🏠 Listener: Entrando na sala da conversa ${conversationId}`);
     socket.emit('join_conversation', { conversationId });
+    
+    // Confirmar entrada na sala
+    const handleJoinedConversation = (data: any) => {
+      if (data.conversationId === conversationId) {
+        if (data.success) {
+          console.log(`✅ Listener: Confirmado entrada na sala da conversa ${conversationId}`);
+        } else {
+          console.error(`❌ Listener: Falha ao entrar na sala da conversa ${conversationId}:`, data.error);
+        }
+      }
+    };
+    
+    socket.on('joined_conversation', handleJoinedConversation);
 
     return () => {
       socket.off('broadcast_message', handleBroadcastMessage);
       socket.off('message_sent', handleMessageSent);
       socket.off('message_error', handleMessageError);
+      socket.off('joined_conversation', handleJoinedConversation);
     };
   }, [conversationId, queryClient]);
 }

@@ -49,10 +49,37 @@ export function setupSocketHandlers(io: SocketIOServer) {
     socket.on('join_conversation', (data) => {
       const { conversationId } = data;
       const clientData = clients.get(socket.id);
-      if (clientData) {
+      if (clientData && conversationId) {
+        // Sair de sala anterior se existir
+        if (clientData.conversationId) {
+          socket.leave(`conversation:${clientData.conversationId}`);
+          console.log(`🚪 Cliente ${socket.id} saiu da conversa ${clientData.conversationId}`);
+        }
+        
+        // Entrar na nova sala
         clients.set(socket.id, { ...clientData, conversationId });
         socket.join(`conversation:${conversationId}`);
         console.log(`🏠 Cliente ${socket.id} entrou na conversa ${conversationId}`);
+        
+        // Confirmar entrada na sala
+        socket.emit('joined_conversation', { 
+          conversationId, 
+          success: true,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Log das salas ativas para debug
+        console.log(`📊 Salas ativas para conversa ${conversationId}:`, 
+          Array.from(socket.adapter?.rooms?.get(`conversation:${conversationId}`) || []).length
+        );
+      } else {
+        console.warn(`⚠️ Falha ao entrar na conversa: clientData=${!!clientData}, conversationId=${conversationId}`);
+        socket.emit('joined_conversation', { 
+          conversationId, 
+          success: false, 
+          error: 'Dados inválidos',
+          timestamp: new Date().toISOString()
+        });
       }
     });
 

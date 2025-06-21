@@ -216,22 +216,35 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
         }
       });
       
-      // Broadcast para WebSocket
+      // Broadcast para WebSocket - WEBHOOK RECEIVED MESSAGE
       try {
         const { broadcast, broadcastToAll } = await import('../realtime');
-        broadcast(conversation.id, {
+        
+        const broadcastData = {
           type: 'new_message',
           conversationId: conversation.id,
-          message: message
+          message: message,
+          source: 'webhook',
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log(`📡 WEBHOOK: Fazendo broadcast da mensagem recebida para conversa ${conversation.id}`);
+        
+        // Broadcast para sala específica da conversa
+        broadcast(conversation.id, broadcastData);
+        
+        // Broadcast global para atualizar listas de conversas
+        broadcastToAll({
+          type: 'conversation_updated',
+          conversationId: conversation.id,
+          lastMessage: message,
+          source: 'webhook'
         });
         
-        broadcastToAll({
-          type: 'new_message',
-          conversationId: conversation.id,
-          message: message
-        });
+        console.log(`✅ WEBHOOK: Broadcast enviado com sucesso para conversa ${conversation.id}`);
+        
       } catch (wsError) {
-        console.error('❌ Erro no WebSocket broadcast:', wsError);
+        console.error('❌ WEBHOOK: Erro no broadcast:', wsError);
       }
       
       console.log(`📱 Mensagem processada para contato:`, contact.name);

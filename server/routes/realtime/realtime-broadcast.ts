@@ -15,12 +15,31 @@ export function broadcast(conversationId: number, data: any) {
   }
 
   try {
-    ioInstance.to(`conversation:${conversationId}`).emit('broadcast_message', data);
+    const roomName = `conversation:${conversationId}`;
+    const roomClients = ioInstance.sockets.adapter.rooms.get(roomName);
+    const clientCount = roomClients ? roomClients.size : 0;
+    
+    console.log(`📡 Enviando broadcast para conversa ${conversationId}: ${clientCount} clientes conectados`);
+    
+    // Broadcast para sala específica
+    ioInstance.to(roomName).emit('broadcast_message', {
+      ...data,
+      timestamp: new Date().toISOString(),
+      roomClients: clientCount
+    });
+    
     logger.socket('Broadcast enviado', {
       conversationId,
       type: data.type,
-      room: `conversation:${conversationId}`
+      room: roomName,
+      clientCount
     });
+    
+    // Log detalhado para debug
+    if (clientCount === 0) {
+      console.warn(`⚠️ Nenhum cliente na sala ${roomName} - broadcast pode não ter efeito`);
+    }
+    
   } catch (error) {
     logger.error('Erro ao fazer broadcast', error);
   }
