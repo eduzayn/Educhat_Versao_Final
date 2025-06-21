@@ -6,6 +6,7 @@ import fs from "fs";
 import cors from "cors";
 import { pool } from "./db";
 import { registerAudioStreamingRoutes } from "./routes/messages/audio-streaming";
+import autoReplySettingsRouter from "./routes/settings/auto-reply-settings";
 
 // Garantir que o diretório de uploads exista
 const uploadsDir = path.join(process.cwd(), 'uploads');

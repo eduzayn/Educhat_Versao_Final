@@ -153,6 +153,16 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
         });
       }
       
+      // Verificar se deve bloquear resposta automática antes de processar
+      const { autoReplyBlocker } = await import('../../middleware/auto-reply-blocker');
+      const blockResult = await autoReplyBlocker.shouldBlockMessage(messageContent, conversation.id);
+      
+      if (blockResult.blocked) {
+        console.log(`🚫 [WEBHOOK] Mensagem automática bloqueada: ${blockResult.reason}`);
+        await autoReplyBlocker.blockAutoReply(conversation.id, messageContent, blockResult.reason || 'Padrão bloqueado');
+        return { success: true, type: 'auto_reply_blocked' };
+      }
+      
       // Criar mensagem
       const message = await storage.createMessage({
         conversationId: conversation.id,

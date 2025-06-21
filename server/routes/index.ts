@@ -48,6 +48,7 @@ import reportsRouter from "./reports";
 import activitiesRouter from "./activities/index";
 import { registerUnifiedStatsRoutes } from "./stats/index";
 import gamificationRouter from "./gamification";
+import autoReplySettingsRouter from "./settings/auto-reply-settings";
 import systemUsersRouter from "./system-users/index";
 import { registerHealthMonitor } from "./health-monitor";
 
@@ -147,6 +148,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas de atribuição retroativa de IA
   const retroactiveAssignmentRouter = await import('./admin/retroactive-assignment');
   app.use('/api/admin/retroactive-assignment', retroactiveAssignmentRouter.default);
+  
+  // Registrar rotas de configuração de auto-reply
+  app.use('/api/settings', autoReplySettingsRouter);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
