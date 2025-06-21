@@ -52,9 +52,14 @@ router.post("/check-duplicates", async (req, res) => {
       }, 6000); // Reduzido para 6 segundos máximo
     });
     
+    // Usar módulo direto para evitar overhead do wrapper
+    const { ContactDuplicateDetection } = await import('../../storage/modules/contactDuplicateDetection');
+    const { db } = await import('../../db');
+    const duplicateDetector = new ContactDuplicateDetection(db);
+    
     // Criar e armazenar a promise da verificação
     const verificationPromise = Promise.race([
-      storage.contacts.checkPhoneDuplicates(phone, excludeContactId),
+      duplicateDetector.checkPhoneDuplicates(phone, excludeContactId),
       timeoutPromise
     ]).finally(() => {
       // Remover da lista de pendentes após conclusão
@@ -104,7 +109,8 @@ router.post("/check-duplicates", async (req, res) => {
  */
 router.get("/duplicates", async (req, res) => {
   try {
-    const duplicates = await storage.contacts.findAllDuplicateContacts();
+    const duplicateDetector = new (await import('../../storage/modules/contactDuplicateDetection')).ContactDuplicateDetection((await import('../../db')).db);
+    const duplicates = await duplicateDetector.findAllDuplicateContacts();
     
     res.json(duplicates);
   } catch (error: any) {

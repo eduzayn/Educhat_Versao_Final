@@ -25,24 +25,8 @@ export class ContactStorage extends BaseStorage {
     return basicOps.createContact(contact);
   }
 
-  // Duplicate Detection Operations
-  async checkPhoneDuplicates(phone: string, excludeContactId?: number) {
-    const { ContactDuplicateDetection } = await import('./contactDuplicateDetection');
-    const duplicateOps = new ContactDuplicateDetection(this.db);
-    return duplicateOps.checkPhoneDuplicates(phone, excludeContactId);
-  }
-
-  async findAllDuplicateContacts() {
-    const { ContactDuplicateDetection } = await import('./contactDuplicateDetection');
-    const duplicateOps = new ContactDuplicateDetection(this.db);
-    return duplicateOps.findAllDuplicateContacts();
-  }
-
-  async checkBeforeCreate(contactData: { phone?: string | null, userIdentity?: string | null }) {
-    const { ContactDuplicateDetection } = await import('./contactDuplicateDetection');
-    const duplicateOps = new ContactDuplicateDetection(this.db);
-    return duplicateOps.checkBeforeCreate(contactData);
-  }
+  // Duplicate Detection Operations - REMOVIDOS: Usar ContactDuplicateDetection diretamente
+  // Métodos consolidados no módulo específico para evitar wrapper desnecessário
 
   async updateContact(id: number, contactData: Partial<InsertContact>): Promise<Contact> {
     const { ContactBasicOperations } = await import('./contactBasicOperations');

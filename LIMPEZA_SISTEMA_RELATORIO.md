@@ -46,6 +46,11 @@
 - Rotas Z-API consolidadas (4 implementações → 3 específicas)
 - Rotas de conversas consolidadas (duplicação inbox + conversations resolvida)
 
+### Consolidação de Storage Modules
+- Detecção de duplicatas: removido wrapper desnecessário em contactStorage.ts
+- Rota duplicates.ts agora usa ContactDuplicateDetection diretamente
+- Eliminada camada intermediária redundante
+
 ---
 
 ## 🖼️ LIMPEZA DE ASSETS
