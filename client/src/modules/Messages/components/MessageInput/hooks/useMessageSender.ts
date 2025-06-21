@@ -120,11 +120,12 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
               (window as any).socketInstance?.off('message_error', handleError);
               (window as any).socketInstance?.off('message_received', handleMessageReceived);
               console.error('❌ Erro confirmado via WebSocket:', errorData);
-              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));m'));
+              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));
             }
           };
 
           // Registrar listeners
+          (window as any).socketInstance.on('message_received', handleMessageReceived);
           (window as any).socketInstance.on('broadcast_message', handleBroadcast);
           (window as any).socketInstance.on('message_error', handleError);
           
