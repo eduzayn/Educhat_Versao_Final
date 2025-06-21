@@ -15,6 +15,21 @@ export class ConversationStorage extends BaseStorage {
     return basicOps.createConversation(conversation);
   }
 
+  async getConversation(id: number): Promise<any> {
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.getConversation(id);
+  }
+
+  /**
+   * Busca conversa com dados do contato - otimizado para Z-API
+   */
+  async getConversationWithContact(id: number): Promise<any> {
+    const { ConversationBasicOperations } = await import('./conversationBasicOperations');
+    const basicOps = new ConversationBasicOperations(this.db);
+    return basicOps.getConversationWithContact(id);
+  }
+
   async updateConversation(id: number, conversationData: Partial<InsertConversation>): Promise<Conversation> {
     const { ConversationBasicOperations } = await import('./conversationBasicOperations');
     const basicOps = new ConversationBasicOperations(this.db);

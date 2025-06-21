@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { conversations, type Conversation, type InsertConversation } from "@shared/schema";
+import { conversations, contacts, type Conversation, type InsertConversation } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export class ConversationBasicOperations extends BaseStorage {
@@ -57,5 +57,41 @@ export class ConversationBasicOperations extends BaseStorage {
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));
+  }
+
+  async getConversation(id: number): Promise<any> {
+    const [conversation] = await this.db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, id))
+      .limit(1);
+    
+    return conversation || null;
+  }
+
+  /**
+   * Busca conversa com dados do contato - otimizado para Z-API
+   */
+  async getConversationWithContact(id: number): Promise<any> {
+    const [result] = await this.db
+      .select({
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        contact: {
+          id: contacts.id,
+          name: contacts.name,
+          phone: contacts.phone,
+          email: contacts.email
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.id, id))
+      .limit(1);
+    
+    return result || null;
   }
 } 

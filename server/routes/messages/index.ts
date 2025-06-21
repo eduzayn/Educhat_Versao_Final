@@ -6,12 +6,14 @@ import { extractMediaUrl, isValidMediaUrl } from "../../utils/mediaUrlExtractor"
 import createRouter from './routes/create';
 import mediaRouter from './routes/media';
 import deleteRouter from './routes/delete';
+import optimizedRouter from './optimized-handlers';
 
 export function registerMessageRoutes(app: Express) {
   // Registrar apenas os routers específicos (createRouter já tem a rota POST)
   app.use(createRouter);
   app.use(mediaRouter);
   app.use(deleteRouter);
+  app.use(optimizedRouter); // Handlers otimizados para UI otimista
 
   // Messages endpoints with infinite scroll support - OTIMIZADO para evitar 502
   app.get('/api/conversations/:id/messages', async (req, res) => {
