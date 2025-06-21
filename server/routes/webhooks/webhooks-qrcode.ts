@@ -106,8 +106,28 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       });
     }
     
-    // Se conectado mas SEM sessão, precisa de QR Code
-    if (statusData.connected === true && statusData.session === false) {
+    // Se NÃO conectado ou sem sessão, tentar restaurar e obter QR Code
+    if (statusData.connected === false || statusData.session === false) {
+      console.log('🔄 Z-API desconectado, tentando restaurar sessão...');
+      
+      // Tentar restaurar sessão primeiro
+      const restoreUrl = buildZApiUrl(instanceId, token, 'restore-session');
+      try {
+        const restoreResponse = await fetch(restoreUrl, {
+          method: 'GET',
+          headers: getZApiHeaders(clientToken)
+        });
+        
+        if (restoreResponse.ok) {
+          console.log('✅ Sessão restaurada com sucesso');
+          // Aguardar um momento para a sessão se estabelecer
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (restoreError) {
+        console.log('⚠️ Falha ao restaurar sessão, prosseguindo com QR Code');
+      }
+      
+      // Obter QR Code
       const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
       const qrResponse = await fetch(qrUrl, {
         method: 'GET',
@@ -127,11 +147,12 @@ export async function handleGetChannelQRCode(req: any, res: any) {
       
       if (qrCode) {
         return res.json({ 
-          connected: true,
-          session: false,
+          connected: statusData.connected || false,
+          session: statusData.session || false,
           qrCode: qrCode,
           needsQrCode: true,
-          message: 'Instância conectada mas sem sessão WhatsApp. Escaneie o QR Code para ativar.'
+          message: 'QR Code disponível. Escaneie rapidamente com seu WhatsApp para conectar.',
+          instructions: 'Abra o WhatsApp > Menu (3 pontos) > Dispositivos conectados > Conectar dispositivo'
         });
       } else {
         // Tentar reiniciar instância para gerar novo QR Code
