@@ -194,6 +194,14 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
   
+  // Registrar rotas de streaming de áudio
+  try {
+    registerAudioStreamingRoutes(app);
+    console.log('✅ Rotas de streaming de áudio registradas');
+  } catch (error) {
+    console.log('⚠️ Erro ao registrar rotas de áudio:', error);
+  }
+
   // Inicializar monitor de sessão Z-API
   try {
     const { startSessionMonitor } = await import('./routes/zapi/session-monitor');

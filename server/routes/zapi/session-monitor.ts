@@ -198,31 +198,74 @@ router.get('/qr-code', async (req: Request, res: Response) => {
     }
 
     const { instanceId, token, clientToken } = credentials;
-    const url = buildZApiUrl(instanceId, token, 'qr-code');
-    const headers = getZApiHeaders(clientToken);
-
-    const response = await fetch(url, {
+    
+    // Primeiro verificar status
+    const statusUrl = buildZApiUrl(instanceId, token, 'status');
+    const statusResponse = await fetch(statusUrl, {
       method: 'GET',
-      headers,
-      timeout: 10000
+      headers: getZApiHeaders(clientToken)
     });
 
-    const data = await response.json();
+    if (!statusResponse.ok) {
+      throw new Error(`Erro ao verificar status: ${statusResponse.status}`);
+    }
 
-    res.json({
-      success: response.ok,
-      qrCode: data.value || data.qrCode,
-      instructions: [
-        '1. Abra o WhatsApp no seu celular',
-        '2. Vá em Configurações > Aparelhos conectados',
-        '3. Toque em "Conectar um aparelho"',
-        '4. Escaneie o QR Code abaixo',
-        '5. Aguarde a confirmação da conexão'
-      ],
-      data
+    const statusData = await statusResponse.json();
+    
+    // Se já conectado e com sessão ativa
+    if (statusData.connected === true && statusData.session === true) {
+      return res.json({
+        success: true,
+        connected: true,
+        session: true,
+        message: 'WhatsApp já está conectado e ativo',
+        qrCode: null
+      });
+    }
+
+    // Se conectado mas sem sessão, tentar obter QR Code
+    if (statusData.connected === true && statusData.session === false) {
+      const qrUrl = buildZApiUrl(instanceId, token, 'qr-code');
+      const qrResponse = await fetch(qrUrl, {
+        method: 'GET',
+        headers: getZApiHeaders(clientToken)
+      });
+
+      if (!qrResponse.ok) {
+        throw new Error(`Erro ao obter QR Code: ${qrResponse.status}`);
+      }
+
+      const qrData = await qrResponse.json();
+      
+      if (qrData.value) {
+        return res.json({
+          success: true,
+          connected: true,
+          session: false,
+          qrCode: qrData.value,
+          message: 'QR Code disponível para conexão',
+          instructions: [
+            '1. Abra o WhatsApp no seu celular',
+            '2. Vá em Configurações > Aparelhos conectados',
+            '3. Toque em "Conectar um aparelho"',
+            '4. Escaneie o QR Code abaixo',
+            '5. Aguarde a confirmação da conexão'
+          ]
+        });
+      }
+    }
+
+    // Fallback
+    return res.status(400).json({
+      success: false,
+      connected: statusData.connected || false,
+      session: statusData.session || false,
+      error: 'QR Code não disponível no momento',
+      message: 'Verifique o status da instância Z-API'
     });
 
   } catch (error) {
+    console.error('Erro ao obter QR Code:', error);
     res.status(500).json({
       success: false,
       error: 'Erro ao obter QR Code',
