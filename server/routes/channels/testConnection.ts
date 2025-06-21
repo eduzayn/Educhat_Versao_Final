@@ -51,11 +51,18 @@ export function registerChannelTestConnectionRoutes(app: Express) {
         connectionStatus: data.connected ? 'connected' : 'disconnected'
       });
       
-      res.json({ 
+      const result = { 
         connected: data.connected || false,
         session: data.session || false,
-        smartphoneConnected: data.smartphoneConnected || false
-      });
+        smartphoneConnected: data.smartphoneConnected || false,
+        status: data.connected ? 'connected' : 'disconnected',
+        message: data.connected 
+          ? 'WhatsApp conectado com sucesso' 
+          : 'WhatsApp não conectado - use QR Code para conectar'
+      };
+      
+      console.log(`✅ Teste de conexão canal ${channelId}:`, result);
+      res.json(result);
       
     } catch (error) {
       console.error(`❌ Erro ao testar conexão do canal ${req.params.id}:`, error);
