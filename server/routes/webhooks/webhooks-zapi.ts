@@ -246,9 +246,6 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
           conversationId: conversation.id,
           lastMessage: message,
           timestamp: new Date().toISOString()
-        });tionId: conversation.id,
-          lastMessage: message,
-          source: 'webhook'
         });
         
         console.log(`✅ WEBHOOK: Broadcast enviado com sucesso para conversa ${conversation.id}`);
