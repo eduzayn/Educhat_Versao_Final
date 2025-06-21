@@ -55,16 +55,6 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
 
     const savedMessage = await storage.createMessage(messageData);
 
-    // Resposta imediata para frontend (não espera Z-API)
-    res.json({
-      fileUrl,
-      originalName: req.file.originalname,
-      fileType,
-      size: req.file.size,
-      mimeType: req.file.mimetype,
-      message: savedMessage
-    });
-
     // ENVIO VIA Z-API EM BACKGROUND (não bloqueia resposta)
     setImmediate(async () => {
       try {
@@ -168,6 +158,7 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
       message: savedMessage
     });
 
+    // Única resposta para o frontend
     res.json({
       fileUrl,
       originalName: req.file.originalname,
