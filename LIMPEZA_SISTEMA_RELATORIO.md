@@ -56,6 +56,11 @@
 - Removidos: messageBasicOperations.ts, messageStatusOperations.ts, messageMediaOperations.ts, messageInternalNotesOperations.ts, messageZApiOperations.ts
 - Performance melhorada: eliminado overhead de wrappers e múltiplas importações
 
+### Consolidação de Webhook Handlers Z-API
+- Função processZApiWebhook duplicada removida de index.ts
+- Sistema agora usa exclusivamente webhooks-zapi.ts para processamento
+- Arquivo index.ts limpo e funcionando apenas como roteador principal
+
 ---
 
 ## 🖼️ LIMPEZA DE ASSETS

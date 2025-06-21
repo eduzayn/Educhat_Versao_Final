@@ -1,7 +1,7 @@
 /**
  * Sistema de Webhooks Consolidado - EduChat
  * Arquivo principal que integra todos os handlers modulares
- * Reduzido de 1950 linhas para uma arquitetura modular organizada
+ * CONSOLIDADO: Removida duplicação da função processZApiWebhook
  */
 
 import type { Express } from "express";
@@ -22,375 +22,6 @@ import { processZApiWebhook } from './webhooks-zapi';
  * CONSOLIDADO: Usando handler específico de webhooks-zapi.ts
  * Removida duplicação da função processZApiWebhook local
  */
-      let mediaUrl = null;
-      let fileName = null;
-      
-      // Determinar o conteúdo da mensagem baseado no tipo
-      if (webhookData.text && webhookData.text.message) {
-        messageContent = webhookData.text.message;
-        messageType = 'text';
-      } else if (webhookData.image) {
-        messageType = 'image';
-        // Para imagens, armazenar a URL no content para exibição direta
-        const imageUrl = webhookData.image.imageUrl || webhookData.image.url;
-        let finalFileName = webhookData.image.fileName || 'image.jpg';
-        
-        // Detectar GIFs baseado no tipo MIME ou extensão do arquivo
-        if (webhookData.image.mimeType === 'image/gif' || finalFileName.toLowerCase().endsWith('.gif')) {
-          messageType = 'gif';
-          messageContent = imageUrl || `🎬 ${webhookData.image.caption || 'GIF'}`;
-        } else {
-          messageContent = imageUrl || `📷 ${webhookData.image.caption || 'Imagem'}`;
-        }
-        
-        mediaUrl = imageUrl;
-        fileName = finalFileName;
-      } else if (webhookData.audio) {
-        messageType = 'audio';
-        const audioSeconds = webhookData.audio.seconds || webhookData.audio.duration || 0;
-        const audioUrl = webhookData.audio.audioUrl || webhookData.audio.url;
-        // Para áudios, armazenar a URL no content para reprodução direta
-        messageContent = audioUrl || `🎵 Áudio (${audioSeconds}s)`;
-        mediaUrl = audioUrl;
-        fileName = webhookData.audio.fileName || 'audio.ogg';
-      } else if (webhookData.video) {
-        messageType = 'video';
-        const videoUrl = webhookData.video.videoUrl || webhookData.video.url;
-        // Para vídeos, armazenar a URL no content
-        messageContent = videoUrl || `🎥 ${webhookData.video.caption || 'Vídeo'}`;
-        mediaUrl = videoUrl;
-        fileName = webhookData.video.fileName || 'video.mp4';
-      } else if (webhookData.document) {
-        messageType = 'document';
-        const documentUrl = webhookData.document.documentUrl || webhookData.document.url;
-        messageContent = documentUrl || `📄 ${webhookData.document.fileName || 'Documento'}`;
-        mediaUrl = documentUrl;
-        fileName = webhookData.document.fileName;
-      } else if (webhookData.sticker) {
-        messageType = 'sticker';
-        const stickerUrl = webhookData.sticker.stickerUrl || webhookData.sticker.url;
-        messageContent = stickerUrl || '🎭 Figurinha';
-        mediaUrl = stickerUrl;
-        fileName = webhookData.sticker.fileName || 'sticker.webp';
-      } else if (webhookData.location) {
-        messageType = 'location';
-        messageContent = `📍 Localização: ${webhookData.location.latitude}, ${webhookData.location.longitude}`;
-      } else if (webhookData.contact) {
-        messageType = 'contact';
-        messageContent = `👤 Contato: ${webhookData.contact.displayName || webhookData.contact.name || 'Contato compartilhado'}`;
-      } else if (webhookData.reaction) {
-        messageType = 'reaction';
-        messageContent = `${webhookData.reaction.emoji || '👍'} Reação à mensagem`;
-      } else if (webhookData.poll) {
-        messageType = 'poll';
-        messageContent = `📊 Enquete: ${webhookData.poll.name || 'Nova enquete'}`;
-      } else if (webhookData.button) {
-        messageType = 'button';
-        messageContent = `🔘 Botão: ${webhookData.button.text || 'Botão clicado'}`;
-      } else if (webhookData.list) {
-        messageType = 'list';
-        messageContent = `📋 Lista: ${webhookData.list.title || 'Lista interativa'}`;
-      } else if (webhookData.template) {
-        messageType = 'template';
-        messageContent = `📨 Template: ${webhookData.template.name || 'Mensagem template'}`;
-      } else {
-        logger.warn('Tipo de mensagem não reconhecido', { type: webhookData?.type, keys: Object.keys(webhookData || {}) });
-        messageContent = `⚠️ Tipo de mensagem ainda não suportado pelo sistema`;
-        messageType = 'unsupported';
-      }
-      
-      // Buscar ou criar contato
-      let contact = await storage.getContactByPhone(phone);
-      if (!contact) {
-        contact = await storage.createContact({
-          phone: phone,
-          name: webhookData.senderName || `WhatsApp ${phone}`,
-          canalOrigem: 'whatsapp',
-          userIdentity: phone
-        });
-      }
-      
-      // Buscar ou criar conversa
-      let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
-      let isNewConversation = false;
-      if (!conversation) {
-        const newConversation = await storage.createConversation({
-          contactId: contact.id,
-          channel: 'whatsapp',
-          status: 'open'
-        });
-        // Buscar conversa completa com todos os dados necessários
-        conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
-        isNewConversation = true;
-        logger.info(`Nova conversa criada: ID ${newConversation.id} para contato ${contact.name} (${contact.phone})`);
-      }
-      
-      // Garantir que a conversa foi criada com sucesso
-      if (!conversation || !conversation.id) {
-        throw new Error('Falha ao criar ou recuperar conversa');
-      }
-      
-      // Criar mensagem
-      const message = await storage.createMessage({
-        conversationId: conversation.id,
-        content: messageContent,
-        isFromContact: true,
-        messageType: messageType,
-        sentAt: new Date(),
-        metadata: {
-          zaapId: webhookData.messageId,
-          instanceId: webhookData.instanceId,
-          phone: phone,
-          senderName: webhookData.senderName,
-          mediaUrl: mediaUrl,
-          fileName: fileName,
-          originalContent: messageContent,
-          // Metadados específicos por tipo de mídia
-          ...(messageType === 'image' && webhookData.image ? {
-            image: {
-              imageUrl: webhookData.image.imageUrl || webhookData.image.url,
-              url: webhookData.image.imageUrl || webhookData.image.url,
-              fileName: webhookData.image.fileName || 'image.jpg',
-              mimeType: webhookData.image.mimeType || 'image/jpeg',
-              caption: webhookData.image.caption
-            }
-          } : {}),
-          ...(messageType === 'audio' && webhookData.audio ? {
-            audio: {
-              audioUrl: webhookData.audio.audioUrl || webhookData.audio.url,
-              url: webhookData.audio.audioUrl || webhookData.audio.url,
-              duration: webhookData.audio.seconds || webhookData.audio.duration || 0,
-              seconds: webhookData.audio.seconds || webhookData.audio.duration || 0,
-              fileName: webhookData.audio.fileName || 'audio.ogg',
-              mimeType: webhookData.audio.mimeType || 'audio/ogg'
-            }
-          } : {}),
-          ...(messageType === 'video' && webhookData.video ? {
-            video: {
-              videoUrl: webhookData.video.videoUrl || webhookData.video.url,
-              url: webhookData.video.videoUrl || webhookData.video.url,
-              fileName: webhookData.video.fileName || 'video.mp4',
-              mimeType: webhookData.video.mimeType || 'video/mp4',
-              caption: webhookData.video.caption
-            }
-          } : {}),
-          ...(messageType === 'document' && webhookData.document ? {
-            document: {
-              documentUrl: webhookData.document.documentUrl || webhookData.document.url,
-              url: webhookData.document.documentUrl || webhookData.document.url,
-              fileName: webhookData.document.fileName || 'document.pdf',
-              mimeType: webhookData.document.mimeType || 'application/pdf'
-            }
-          } : {}),
-          ...(messageType === 'sticker' && webhookData.sticker ? {
-            sticker: {
-              stickerUrl: webhookData.sticker.stickerUrl || webhookData.sticker.url,
-              url: webhookData.sticker.stickerUrl || webhookData.sticker.url,
-              fileName: webhookData.sticker.fileName || 'sticker.webp',
-              mimeType: webhookData.sticker.mimeType || 'image/webp'
-            }
-          } : {})
-        }
-      });
-      
-      // CORREÇÃO CRÍTICA: Atualizar conversa com unreadCount e lastMessageAt
-      try {
-        await storage.updateConversation(conversation.id, {
-          lastMessageAt: new Date(),
-          unreadCount: (conversation.unreadCount || 0) + 1,
-          isRead: false,
-          updatedAt: new Date()
-        });
-        logger.debug(`Conversa ${conversation.id} atualizada com nova mensagem`);
-      } catch (updateError) {
-        logger.error('Erro ao atualizar conversa', updateError);
-      }
-
-      // CORREÇÃO CRÍTICA: WebSocket broadcast robusto com fallbacks
-      try {
-        const { broadcast, broadcastToAll } = await import('../realtime');
-        
-        // Dados completos da conversa para sincronização
-        const conversationData = {
-          id: conversation.id,
-          contactId: contact.id,
-          contactName: contact.name,
-          contactPhone: contact.phone,
-          channel: 'whatsapp',
-          lastMessage: {
-            id: message.id,
-            content: messageContent,
-            sentAt: new Date().toISOString(),
-            isFromContact: true,
-            messageType: messageType
-          },
-          unreadCount: (conversation.unreadCount || 0) + 1,
-          lastMessageAt: new Date().toISOString(),
-          isRead: false
-        };
-        
-        // Se é uma nova conversa, enviar evento de criação PRIMEIRO
-        if (isNewConversation) {
-          logger.socket(`Broadcasting nova conversa criada: ID ${conversation.id}`);
-          broadcastToAll({
-            type: 'conversation_list_update',
-            action: 'new_conversation',
-            conversation: conversationData
-          });
-          
-          // Aguardar para garantir ordem de eventos
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
-        // Broadcast da nova mensagem para todos os clientes
-        broadcastToAll({
-          type: 'conversation_list_update',
-          action: 'message_received',
-          conversationId: conversation.id,
-          conversation: conversationData,
-          message: message
-        });
-        
-        // Broadcast específico para a sala da conversa
-        broadcast(conversation.id, {
-          type: 'new_message',
-          conversationId: conversation.id,
-          message: message
-        });
-        
-        logger.socket(`WebSocket broadcast enviado para conversa ${conversation.id}`);
-      } catch (wsError) {
-        logger.error('CRÍTICO: Falha no WebSocket broadcast', wsError);
-        
-        // FALLBACK: Forçar invalidação de cache via evento alternativo
-        try {
-          const { broadcastToAll } = await import('../realtime');
-          broadcastToAll({
-            type: 'force_conversation_refresh',
-            timestamp: new Date().toISOString()
-          });
-        } catch (fallbackError) {
-          logger.error('CRÍTICO: Falha no fallback do WebSocket', fallbackError);
-        }
-      }
-      
-      logger.debug(`Mensagem processada para contato: ${contact.name}`);
-      
-      // **PROCESSAMENTO AUTOMÁTICO IMEDIATO COM IA**
-      if (messageType === 'text' && messageContent && messageContent.length > 10) {
-        await autoAssignIfNeeded(conversation.id, messageContent);
-      }
-
-      // **CRIAÇÃO AUTOMÁTICA DE DEALS PARA CONVERSAS NÃO ATRIBUÍDAS**
-      if (!conversation.assignedUserId && !conversation.assignedTeamId && messageType === 'text') {
-        try {
-          logger.debug(`Verificando necessidade de deal automático para conversa não atribuída ${conversation.id}`);
-          const comercialTeam = await storage.getTeamByTeamType('comercial');
-          const teamId = comercialTeam?.id || 1;
-          const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, teamId);
-          if (dealId) {
-            logger.info(`Deal automático criado para conversa não atribuída: ID ${dealId}`);
-          }
-        } catch (dealError) {
-          logger.error('Erro ao criar deal para conversa não atribuída', dealError);
-        }
-      }
-      
-      // ANÁLISE DE IA E TRANSFERÊNCIAS AUTOMÁTICAS (Sistema Legado)
-      try {
-        // Só processar mensagens de texto para IA (evitar sobrecarga)
-        if (messageType === 'text' && messageContent && messageContent.length > 5) {
-          logger.debug(`Iniciando análise de IA para mensagem: "${messageContent}"`);
-          
-          // Chamar endpoint de handoff inteligente
-          const handoffResponse = await fetch('http://localhost:5000/api/handoffs/intelligent/execute', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-internal-call': 'true'
-            },
-            body: JSON.stringify({
-              conversationId: parseInt(conversation.id.toString()),
-              messageContent: messageContent,
-              type: 'automatic'
-            })
-          });
-
-          if (handoffResponse.ok) {
-            const handoffResult = await handoffResponse.json();
-            logger.debug('Análise de IA concluída', {
-              handoffCreated: handoffResult.handoffCreated,
-              confidence: handoffResult.recommendation?.confidence,
-              reason: handoffResult.recommendation?.reason
-            });
-            
-            if (handoffResult.handoffCreated && handoffResult.assignedUserId) {
-              logger.info(`Transferência automática executada com sucesso para conversa ${conversation.id}`);
-              
-              // Atualizar gamificação para o usuário que recebeu a conversa
-              try {
-                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'daily', new Date());
-                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'weekly', new Date());
-                await gamificationService.updateUserStats(handoffResult.assignedUserId, 'monthly', new Date());
-                logger.debug(`Gamificação atualizada via webhook para usuário ${handoffResult.assignedUserId}`);
-              } catch (gamError) {
-                logger.error('Erro ao atualizar gamificação via webhook', gamError);
-              }
-              
-              // Criar deal automático quando conversa é atribuída
-              if (handoffResult.assignedTeamId) {
-                try {
-                  logger.debug(`Iniciando criação automática de deal para conversa ${conversation.id}`);
-                  const dealId = await dealAutomationService.createAutomaticDeal(conversation.id, handoffResult.assignedTeamId);
-                  if (dealId) {
-                    logger.info(`Deal automático criado com sucesso: ID ${dealId}`);
-                  } else {
-                    logger.debug('Deal automático não criado (pode já existir ou não atender critérios)');
-                  }
-                } catch (dealError) {
-                  logger.error('Erro ao criar deal automático', dealError);
-                }
-              }
-            }
-          } else {
-            logger.error('Erro na análise de IA', await handoffResponse.text());
-          }
-
-          logger.debug('Resposta automática da Prof. Ana desabilitada para WhatsApp - apenas respostas internas ativas');
-        }
-      } catch (aiError) {
-        logger.error('Erro na análise de IA para transferências', aiError);
-        // Não falhar o webhook por causa da IA
-      }
-      
-      // Registrar sucesso no monitor de saúde
-      const processingTime = Date.now() - startTime;
-      webhookHealthMonitor.recordSuccess(processingTime);
-      
-      return { success: true, type: 'message_processed' };
-    }
-    
-    // Tipo de webhook não reconhecido
-    logger.warn(`Tipo de webhook não processado: ${webhookData.type}`);
-    return { success: true, type: 'unhandled' };
-    
-  } catch (error) {
-    const processingTime = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    
-    logger.error('Erro ao processar webhook Z-API', {
-      error: errorMessage,
-      webhookType: webhookData?.type,
-      phone: webhookData?.phone,
-      processingTime: `${processingTime}ms`
-    });
-    
-    // Registrar erro no monitor de saúde
-    webhookHealthMonitor.recordError(errorMessage, processingTime);
-    
-    return { success: false, error: errorMessage };
-  }
-}
 
 /**
  * Importa contatos do Z-API
@@ -458,91 +89,75 @@ async function handleImportContacts(req: any, res: any) {
     let errorCount = 0;
 
     if (data && Array.isArray(data)) {
-      console.log(`🔄 Processando ${data.length} contatos...`);
+      console.log(`📋 Processando ${data.length} contatos da Z-API...`);
       
-      for (const zapiContact of data) {
+      for (const contact of data) {
         try {
-          // Validar dados básicos do contato
-          if (!zapiContact.id) {
-            console.warn('⚠️ Contato sem ID, pulando...', zapiContact);
-            errorCount++;
-            continue;
-          }
-
-          const phone = zapiContact.id.replace(/\D/g, '');
-          if (!phone || phone.length < 10) {
-            console.warn('⚠️ Telefone inválido, pulando...', { id: zapiContact.id, phone });
-            errorCount++;
-            continue;
-          }
-
-          // Verificar se já existe
-          const existingContact = await storage.getContact(phone);
-          if (existingContact) {
+          if (!contact.id || !contact.phone) {
+            console.log('⚠️ Contato ignorado - dados incompletos:', { id: contact.id, phone: contact.phone });
             skippedCount++;
             continue;
           }
-
+          
+          // Normalizar o telefone (remover caracteres especiais)
+          const normalizedPhone = contact.phone.replace(/\D/g, '');
+          
+          // Verificar se o contato já existe
+          const existingContact = await storage.contact.getContactByPhone(normalizedPhone);
+          if (existingContact) {
+            console.log(`📞 Contato já existe: ${normalizedPhone}`);
+            skippedCount++;
+            continue;
+          }
+          
           // Criar novo contato
           const contactData = {
-            phone: phone,
-            name: zapiContact.name || zapiContact.pushname || `WhatsApp ${phone}`,
-            profileImageUrl: zapiContact.profilePicUrl || null,
-            source: 'zapi_import'
+            name: contact.pushname || contact.name || `Contato ${normalizedPhone}`,
+            phone: normalizedPhone,
+            channel: 'whatsapp',
+            lastMessageAt: new Date(),
+            isActive: true,
+            tags: [],
+            metadata: {
+              zapiId: contact.id,
+              pushname: contact.pushname,
+              importedAt: new Date().toISOString()
+            }
           };
-
-          await storage.createContact(contactData);
-          console.log(`✅ Contato importado: ${contactData.name} (${phone})`);
+          
+          await storage.contact.createContact(contactData);
+          console.log(`✅ Contato importado: ${contactData.name} (${normalizedPhone})`);
           importedCount++;
           
         } catch (contactError) {
-          console.error('❌ Erro ao processar contato individual:', {
-            contact: zapiContact,
-            error: contactError instanceof Error ? contactError.message : contactError
-          });
+          console.error(`❌ Erro ao processar contato ${contact.phone}:`, contactError);
           errorCount++;
         }
       }
     } else {
-      console.error('❌ Formato de dados inválido da Z-API:', typeof data);
-      return res.status(500).json({ 
-        error: 'Formato de resposta inválido da Z-API',
-        details: `Esperado: array, Recebido: ${typeof data}`
-      });
+      console.log('⚠️ Nenhum contato encontrado na resposta da Z-API');
     }
 
     const summary = {
       success: true,
-      imported: importedCount,
-      skipped: skippedCount,
-      errors: errorCount,
-      total: data?.length || 0
+      importedCount,
+      skippedCount,
+      errorCount,
+      totalProcessed: importedCount + skippedCount + errorCount,
+      message: `Importação concluída: ${importedCount} importados, ${skippedCount} já existiam, ${errorCount} erros`
     };
 
-    console.log(`✅ Importação concluída:`, summary);
+    console.log('📊 Resumo da importação:', summary);
     res.json(summary);
-    
+
   } catch (error) {
-    console.error('❌ Erro crítico na importação de contatos:', {
-      message: error instanceof Error ? error.message : 'Erro desconhecido',
-      stack: error instanceof Error ? error.stack : undefined,
-      type: typeof error
-    });
-    
-    let errorMessage = 'Erro interno do servidor';
-    if (error instanceof Error) {
-      if (error.message.includes('fetch')) {
-        errorMessage = 'Erro de conexão com a Z-API. Verifique a conectividade';
-      } else if (error.message.includes('timeout')) {
-        errorMessage = 'Timeout na conexão com Z-API. Tente novamente';
-      } else {
-        errorMessage = error.message;
-      }
-    }
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('❌ Erro geral na importação de contatos:', error);
     
     res.status(500).json({ 
-      error: errorMessage,
-      details: 'Verifique os logs do servidor para mais informações'
+      success: false,
+      error: 'Erro interno durante a importação',
+      details: errorMessage
     });
   }
 }
@@ -597,8 +212,6 @@ async function handleGetQRCode(req: any, res: any) {
   }
 }
 
-// ❌ HANDLER DE STATUS REMOVIDO - CONSOLIDADO EM handlers/zapi.ts
-
 /**
  * Registra todas as rotas de webhooks
  */
@@ -633,78 +246,16 @@ export function registerWebhookRoutes(app: Express) {
 
   app.post('/api/webhook', webhookHandler);
   app.post('/api/zapi/webhook', webhookHandler);
-  
-  // Rotas Z-API auxiliares
+
+  // Importação de contatos
   app.post('/api/zapi/import-contacts', handleImportContacts);
-  // ❌ Rota duplicada /api/webhooks/zapi/import-contacts removida - usar apenas /api/zapi/import-contacts
-  app.get('/api/zapi/qrcode', handleGetQRCode);
-  // ❌ Status handler removido - consolidado em handlers/zapi.ts
-  
-  // Media routes handled by utilities module
-  
-  // QR Code para canal específico
-  app.get('/api/channels/:id/qrcode', async (req, res) => {
-    try {
-      const channelId = parseInt(req.params.id);
-      const channel = await storage.getChannel(channelId);
-      
-      if (!channel) {
-        return res.status(404).json({ error: 'Canal não encontrado' });
-      }
 
-      const { instanceId, token, clientToken } = channel;
-      
-      if (!instanceId || !token || !clientToken) {
-        return res.status(400).json({ 
-          error: 'Canal não possui credenciais Z-API configuradas' 
-        });
-      }
-      
-      const url = buildZApiUrl(instanceId, token, 'qr-code');
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: getZApiHeaders(clientToken)
-      });
+  // QR Code para conexão
+  app.get('/api/zapi/qr-code', handleGetQRCode);
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.connected === true) {
-        return res.json({ 
-          connected: true, 
-          message: 'WhatsApp já está conectado' 
-        });
-      }
-      
-      if (data.value) {
-        return res.json({ 
-          qrCode: data.value,
-          connected: false 
-        });
-      }
-      
-      res.status(400).json({ 
-        error: 'QR Code não disponível. Verifique as credenciais da Z-API.' 
-      });
-      
-    } catch (error) {
-      console.error(`❌ Erro ao obter QR Code do canal ${req.params.id}:`, error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
-      });
-    }
-  });
-  
-  // Registrar handlers modulares
-  // Media routes now handled by utilities module
+  // Registrar rotas modulares
   registerSocialWebhookRoutes(app);
   registerIntegrationRoutes(app);
-  
+
   console.log('✅ Sistema de webhooks consolidado registrado com sucesso');
 }
-
-// Exportar função auxiliar
-export { assignTeamManually };
