@@ -126,8 +126,22 @@ export function InboxPage() {
   } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
-  const handleSelectConversation = (conversation: any) => {
-    setActiveConversation(conversation);
+  const handleSelectConversation = async (conversation: any) => {
+    // Buscar informações do canal se a conversa tem channelId
+    let conversationWithChannelInfo = { ...conversation };
+    
+    if (conversation.channelId && channels.length > 0) {
+      const channel = channels.find(c => c.id === conversation.channelId);
+      if (channel) {
+        conversationWithChannelInfo.channelInfo = {
+          id: channel.id,
+          name: channel.name,
+          type: channel.type
+        };
+      }
+    }
+    
+    setActiveConversation(conversationWithChannelInfo);
     // Marcar como lida na API (store local não precisa mais gerenciar isso)
     markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
