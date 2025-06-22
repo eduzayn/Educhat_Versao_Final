@@ -58,13 +58,56 @@ router.post('/upload', upload.single('file'), async (req: AuthenticatedRequest, 
     // ENVIO VIA Z-API EM BACKGROUND (não bloqueia resposta)
     setImmediate(async () => {
       try {
-        // Buscar dados da conversa para obter o telefone do contato
+        // 🔒 CORREÇÃO CRÍTICA: Buscar dados da conversa incluindo canal para manter consistência
         const conversation = await storage.getConversation(parseInt(conversationId));
         if (conversation?.contact?.phone) {
-          const { validateZApiCredentials, buildZApiUrl } = await import('../../../utils/zapi');
-          const credentials = validateZApiCredentials();
+          let credentials;
           
-          if (credentials.valid) {
+          // Se conversa tem canal definido, usar suas credenciais
+          if (conversation.channelId) {
+            try {
+              const channel = await storage.getChannel(conversation.channelId);
+              if (channel && channel.isActive && channel.type === 'whatsapp') {
+                const config = (channel.configuration as any) || {};
+                credentials = {
+                  valid: true,
+                  instanceId: config.instanceId || channel.instanceId,
+                  token: config.token || channel.token,
+                  clientToken: config.clientToken || channel.clientToken
+                };
+                console.log(`🔒 MÍDIA-CANAL-LOCK: Usando canal ${conversation.channelId} para mídia na conversa ${conversationId}`);
+              }
+            } catch (error) {
+              console.warn(`⚠️ Erro ao buscar canal ${conversation.channelId}:`, error);
+            }
+          }
+          
+          // Fallback para canal ativo padrão se não conseguiu usar canal específico
+          if (!credentials || !credentials.valid) {
+            try {
+              const activeChannel = await storage.channel.getActiveWhatsAppChannel();
+              if (activeChannel) {
+                credentials = {
+                  valid: true,
+                  instanceId: activeChannel.instanceId,
+                  token: activeChannel.token,
+                  clientToken: activeChannel.clientToken
+                };
+                
+                // Atualizar conversa com canal ativo se não tinha canal definido
+                if (!conversation.channelId) {
+                  await storage.updateConversation(parseInt(conversationId), { channelId: activeChannel.id });
+                  console.log(`📌 MÍDIA-CANAL-SET: Conversa ${conversationId} definindo canal ${activeChannel.id} para mídia`);
+                }
+              }
+            } catch (error) {
+              // Fallback final para credenciais ENV
+              const { validateZApiCredentials } = await import('../../../utils/zapi');
+              credentials = validateZApiCredentials();
+            }
+          }
+          
+          if (credentials && credentials.valid) {
             const { instanceId, token, clientToken } = credentials;
             const cleanPhone = conversation.contact.phone.replace(/\D/g, '');
           

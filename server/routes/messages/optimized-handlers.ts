@@ -94,7 +94,7 @@ async function processZApiInBackground(conversationId: number, content: string, 
         body: JSON.stringify({
           phone: conversation.contact.phone,
           message: content,
-          conversationId,
+          conversationId, // CRÍTICO: Incluir conversationId para manter canal consistente
           messageId
         }),
         signal: AbortSignal.timeout(10000) // Timeout de 10s para Z-API

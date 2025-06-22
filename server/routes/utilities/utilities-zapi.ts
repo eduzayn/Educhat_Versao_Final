@@ -127,11 +127,32 @@ export function registerZApiRoutes(app: Express) {
       }
 
       let credentials;
+      let finalChannelId = channelId;
       
-      // Se channelId foi fornecido, buscar credenciais específicas do canal
-      if (channelId) {
+      // 🔒 CORREÇÃO CRÍTICA: Verificar canal original da conversa para manter consistência
+      if (conversationId) {
         try {
-          const channel = await storage.getChannel(channelId);
+          const conversation = await storage.getConversation(conversationId);
+          if (conversation && conversation.channelId) {
+            // Se a conversa já tem um canal definido, SEMPRE usar esse canal
+            finalChannelId = conversation.channelId;
+            console.log(`🔒 CANAL-LOCK: Conversa ${conversationId} mantendo canal original ${finalChannelId}`);
+          } else if (conversation && !conversation.channelId && channelId) {
+            // Se conversa existe mas não tem canal, atualizar com o canal fornecido
+            await storage.updateConversation(conversationId, { channelId });
+            finalChannelId = channelId;
+            console.log(`📌 CANAL-SET: Conversa ${conversationId} definindo canal inicial ${channelId}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erro ao verificar canal da conversa ${conversationId}:`, error);
+          // Continua com channelId fornecido ou busca canal ativo
+        }
+      }
+      
+      // Se finalChannelId foi definido, buscar credenciais específicas do canal
+      if (finalChannelId) {
+        try {
+          const channel = await storage.getChannel(finalChannelId);
           if (!channel || !channel.isActive || channel.type !== 'whatsapp') {
             zapiLogger.logError('CHANNEL_NOT_FOUND', 'Canal WhatsApp não encontrado ou inativo', requestId);
             return res.status(400).json({ 
@@ -164,7 +185,7 @@ export function registerZApiRoutes(app: Express) {
           });
         }
       } else {
-        // CORREÇÃO: Buscar canal ativo padrão em vez de usar credenciais ENV obsoletas
+        // Buscar canal ativo padrão apenas se não há canal específico
         try {
           const activeChannel = await storage.channel.getActiveWhatsAppChannel();
           if (!activeChannel) {
@@ -172,6 +193,18 @@ export function registerZApiRoutes(app: Express) {
             return res.status(400).json({ 
               error: 'Nenhum canal WhatsApp ativo configurado' 
             });
+          }
+
+          finalChannelId = activeChannel.id;
+          
+          // Se há conversationId, atualizar com o canal ativo padrão
+          if (conversationId) {
+            try {
+              await storage.updateConversation(conversationId, { channelId: finalChannelId });
+              console.log(`📌 CANAL-DEFAULT: Conversa ${conversationId} usando canal ativo padrão ${finalChannelId}`);
+            } catch (updateError) {
+              console.warn(`⚠️ Erro ao atualizar canal da conversa:`, updateError);
+            }
           }
 
           credentials = {

@@ -143,14 +143,39 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
         });
       }
       
-      // Buscar ou criar conversa
+      // 🔒 CORREÇÃO CRÍTICA: Buscar ou criar conversa associando ao canal Z-API correto
       let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+      let channelId = null;
+      
+      // Identificar canal correto baseado no instanceId do webhook
+      if (webhookData.instanceId) {
+        try {
+          const channels = await storage.getChannelsByType('whatsapp');
+          const matchingChannel = channels.find(ch => 
+            ch.instanceId === webhookData.instanceId && ch.isActive
+          );
+          if (matchingChannel) {
+            channelId = matchingChannel.id;
+            console.log(`🔒 WEBHOOK-CANAL: Identificado canal ${channelId} para instanceId ${webhookData.instanceId}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erro ao identificar canal pelo instanceId:`, error);
+        }
+      }
+      
       if (!conversation) {
         conversation = await storage.createConversation({
           contactId: contact.id,
           channel: 'whatsapp',
+          channelId: channelId, // CRÍTICO: Associar canal desde a criação
           status: 'open'
         });
+        console.log(`📌 WEBHOOK-NOVA-CONVERSA: Criada conversa ${conversation.id} com canal ${channelId}`);
+      } else if (conversation && !conversation.channelId && channelId) {
+        // Se conversa existe mas não tem canal, atualizar
+        await storage.updateConversation(conversation.id, { channelId });
+        conversation.channelId = channelId;
+        console.log(`📌 WEBHOOK-CANAL-UPDATE: Conversa ${conversation.id} atualizada com canal ${channelId}`);
       }
       
       // Verificar se deve bloquear resposta automática antes de processar
