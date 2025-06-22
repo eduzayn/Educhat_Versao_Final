@@ -33,9 +33,9 @@ export function ContactInfo({ contact, channelInfo }: ContactInfoProps) {
       
       {/* Canal de origem */}
       {channelInfo && (
-        <div className="flex items-center space-x-3 text-sm">
-          <Hash className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-700">
+        <div className="flex items-center space-x-3 text-sm bg-blue-50 p-2 rounded border">
+          <Hash className="w-4 h-4 text-blue-600" />
+          <span className="text-gray-700 font-medium">
             <span className="mr-1">{getChannelIcon(channelInfo.name)}</span>
             Canal de origem: {channelInfo.name}
           </span>
