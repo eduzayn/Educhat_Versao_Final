@@ -1,5 +1,4 @@
 import { storage } from "../storage/index";
-import { getIOInstance } from "../routes/realtime/realtime-broadcast";
 
 interface ChannelStatus {
   channelId: number;
@@ -133,17 +132,22 @@ class ChannelMonitor {
         });
 
         // Broadcast via Socket.IO para clientes conectados
-        const io = getIOInstance();
-        if (io) {
-          io.emit('channel_status_update', {
-            channelId: status.channelId,
-            isConnected: status.isConnected,
-            connectionStatus: status.connectionStatus,
-            smartphoneConnected: status.smartphoneConnected,
-            timestamp: new Date().toISOString()
-          });
+        try {
+          const { getIOInstance } = await import("../routes/realtime/realtime-broadcast");
+          const io = getIOInstance();
+          if (io) {
+            io.emit('channel_status_update', {
+              channelId: status.channelId,
+              isConnected: status.isConnected,
+              connectionStatus: status.connectionStatus,
+              smartphoneConnected: status.smartphoneConnected,
+              timestamp: new Date().toISOString()
+            });
 
-          console.log(`📡 Status do canal ${status.channelId} enviado via Socket.IO`);
+            console.log(`📡 Status do canal ${status.channelId} enviado via Socket.IO`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Erro ao enviar atualização via Socket.IO:', error);
         }
       }
 
