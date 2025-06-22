@@ -127,18 +127,29 @@ export function InboxPage() {
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = async (conversation: any) => {
-    // Buscar informações do canal se a conversa tem channelId
+    // Criar informações do canal baseado na equipe atribuída
     let conversationWithChannelInfo = { ...conversation };
     
-    if (conversation.channelId && channels.length > 0) {
-      const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel) {
-        conversationWithChannelInfo.channelInfo = {
-          id: channel.id,
-          name: channel.name,
-          type: channel.type
-        };
-      }
+    // Mapear equipe para canal
+    const teamChannelMap: Record<number, { name: string; type: string }> = {
+      5: { name: "WhatsApp Comercial", type: "whatsapp" },
+      6: { name: "WhatsApp Suporte", type: "whatsapp" },
+      7: { name: "WhatsApp Financeiro", type: "whatsapp" }
+    };
+    
+    if (conversation.assignedTeamId && teamChannelMap[conversation.assignedTeamId]) {
+      conversationWithChannelInfo.channelInfo = {
+        id: conversation.assignedTeamId,
+        name: teamChannelMap[conversation.assignedTeamId].name,
+        type: teamChannelMap[conversation.assignedTeamId].type
+      };
+    } else {
+      // Fallback para canal genérico se não houver equipe
+      conversationWithChannelInfo.channelInfo = {
+        id: 1,
+        name: "WhatsApp Principal",
+        type: "whatsapp"
+      };
     }
     
     setActiveConversation(conversationWithChannelInfo);
