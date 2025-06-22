@@ -38,7 +38,10 @@ export function ContactSidebar({
         }} />
 
         {/* Informações de Contato */}
-        <ContactInfo contact={contact} />
+        <ContactInfo 
+          contact={contact} 
+          channelInfo={activeConversation.channelInfo}
+        />
 
         {/* Negócios */}
         <DealsSection 

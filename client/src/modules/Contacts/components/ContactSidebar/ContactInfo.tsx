@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { Phone, Mail, MapPin, Calendar, Hash } from 'lucide-react';
 import { DuplicateContactAlert } from '@/shared/components/DuplicateContactAlert';
 
 interface ContactInfoProps {
@@ -9,12 +9,38 @@ interface ContactInfoProps {
     address?: string;
     createdAt: string;
   };
+  channelInfo?: {
+    id: number;
+    name: string;
+    type: string;
+  };
 }
 
-export function ContactInfo({ contact }: ContactInfoProps) {
+export function ContactInfo({ contact, channelInfo }: ContactInfoProps) {
+  const getChannelIcon = (channelName: string) => {
+    if (channelName.toLowerCase().includes('comercial')) {
+      return '🟢';
+    } else if (channelName.toLowerCase().includes('suporte')) {
+      return '🟡';
+    } else {
+      return '🔵';
+    }
+  };
+
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-sm text-gray-900">Contato</h4>
+      
+      {/* Canal de origem */}
+      {channelInfo && (
+        <div className="flex items-center space-x-3 text-sm">
+          <Hash className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-700">
+            <span className="mr-1">{getChannelIcon(channelInfo.name)}</span>
+            Canal de origem: {channelInfo.name}
+          </span>
+        </div>
+      )}
       
       {contact.phone && (
         <div className="space-y-2">
