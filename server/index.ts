@@ -352,6 +352,13 @@ app.use((req, res, next) => {
   server.listen(serverOptions, () => {
     log(`🚀 EduChat server running on port ${port} (${process.env.NODE_ENV || 'development'})`);
     
+    // Inicializar monitor de canais
+    import('./services/channelMonitor').then(({ channelMonitor }) => {
+      channelMonitor.start();
+    }).catch(error => {
+      console.error('❌ Erro ao inicializar monitor de canais:', error);
+    });
+    
     // Log de configurações importantes em produção
     if (process.env.NODE_ENV === 'production') {
       console.log('✅ Configurações de produção ativas:');

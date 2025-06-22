@@ -12,6 +12,8 @@ import { useToast } from "@/shared/lib/hooks/use-toast";
 import { ArrowLeft, Plus, Settings, Trash2, Edit, CheckCircle, XCircle, AlertCircle, Copy, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { QRCodeCanvas } from "qrcode.react";
+import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
+import { io } from "socket.io-client";
 import type { Channel } from "@shared/schema";
 
 interface ChannelFormData {
@@ -47,6 +49,67 @@ export default function ChannelsPage() {
 
     generateWebhookUrl();
   }, []);
+
+  // Socket.IO para atualizações de status em tempo real
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+    const host = window.location.host;
+    const socketUrl = `${protocol}//${host}`;
+    
+    const socket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      reconnection: true,
+      reconnectionAttempts: 3
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket conectado para monitoramento de canais');
+    });
+
+    // Listener para atualizações de status de canal
+    socket.on('channel_status_update', (data: { channelId: number; isConnected: boolean; connectionStatus: string }) => {
+      console.log('Atualização de status do canal recebida:', data);
+      
+      // Atualizar cache dos canais
+      queryClient.setQueryData(['/api/channels'], (oldData: Channel[] | undefined) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map(channel => 
+          channel.id === data.channelId 
+            ? { 
+                ...channel, 
+                isConnected: data.isConnected,
+                connectionStatus: data.connectionStatus,
+                lastConnectionCheck: new Date().toISOString()
+              }
+            : channel
+        );
+      });
+
+      // Mostrar notificação se canal se desconectar
+      if (!data.isConnected) {
+        const channel = queryClient.getQueryData<Channel[]>(['/api/channels'])
+          ?.find(c => c.id === data.channelId);
+        
+        if (channel) {
+          toast({
+            title: "Canal Desconectado",
+            description: `Canal ${channel.name} perdeu conexão com WhatsApp`,
+            variant: "destructive",
+          });
+        }
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket desconectado do monitoramento de canais');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [queryClient, toast]);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({

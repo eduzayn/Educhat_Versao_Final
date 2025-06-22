@@ -66,8 +66,22 @@ export function registerChannelTestConnectionRoutes(app: Express) {
       // Atualizar status do canal
       await storage.updateChannel(channelId, {
         isConnected: data.connected || false,
-        connectionStatus: data.connected ? 'connected' : 'disconnected'
+        connectionStatus: data.connected ? 'connected' : 'disconnected',
+        lastConnectionCheck: new Date()
       });
+
+      // Broadcast atualização via Socket.IO
+      const { getIOInstance } = await import('../realtime/realtime-broadcast');
+      const io = getIOInstance();
+      if (io) {
+        io.emit('channel_status_update', {
+          channelId: channelId,
+          isConnected: data.connected || false,
+          connectionStatus: data.connected ? 'connected' : 'disconnected',
+          smartphoneConnected: data.smartphoneConnected || false,
+          timestamp: new Date().toISOString()
+        });
+      }
       
       const result = { 
         connected: data.connected || false,
