@@ -79,12 +79,6 @@ export class ConversationStorage extends BaseStorage {
     return listOps.getConversationCount();
   }
 
-  async searchConversations(searchTerm: string, limit: number = 200): Promise<ConversationWithContact[]> {
-    const { ConversationListOperations } = await import('./conversationListOperations');
-    const listOps = new ConversationListOperations(this.db);
-    return listOps.searchConversations(searchTerm, limit);
-  }
-
   // Status Operations
   async markConversationAsRead(conversationId: number): Promise<void> {
     const { ConversationStatusOperations } = await import('./conversationStatusOperations');
