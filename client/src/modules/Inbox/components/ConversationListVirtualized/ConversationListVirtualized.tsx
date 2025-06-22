@@ -160,8 +160,12 @@ export function ConversationListVirtualized({
 
   const ItemRenderer = useCallback(
     ({ index, style }: { index: number; style: any }) => {
-      const conversation = visibleConversations[index];
+      // Verificações de segurança
+      if (!style || index < 0 || index >= visibleConversations.length) {
+        return <div style={style || {}} />;
+      }
 
+      const conversation = visibleConversations[index];
       if (!conversation) {
         return <div style={style} />;
       }
@@ -205,19 +209,30 @@ export function ConversationListVirtualized({
       <div className="flex-1 overflow-hidden">
         {visibleConversations.length > 0 ? (
           <AutoSizer>
-            {({ height, width }: { height: number; width: number }) => (
-              <FixedSizeList
-                ref={listRef}
-                outerRef={outerRef}
-                height={height}
-                width={width}
-                itemCount={visibleConversations.length}
-                itemSize={itemHeight}
-                overscanCount={5}
-              >
-                {ItemRenderer}
-              </FixedSizeList>
-            )}
+            {({ height, width }: { height: number; width: number }) => {
+              // Verificação de segurança para dimensões
+              if (!height || !width || height <= 0 || width <= 0) {
+                return (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-gray-500">Carregando...</div>
+                  </div>
+                );
+              }
+
+              return (
+                <FixedSizeList
+                  ref={listRef}
+                  outerRef={outerRef}
+                  height={height}
+                  width={width}
+                  itemCount={visibleConversations.length}
+                  itemSize={itemHeight}
+                  overscanCount={5}
+                >
+                  {ItemRenderer}
+                </FixedSizeList>
+              );
+            }}
           </AutoSizer>
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">

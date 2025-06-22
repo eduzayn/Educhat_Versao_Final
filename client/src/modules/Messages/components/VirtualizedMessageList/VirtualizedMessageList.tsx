@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect, useState, useLayoutEffect } from "react";
+import { memo, useRef, useEffect, useState, useLayoutEffect, useMemo } from "react";
 import { VariableSizeList as List } from "react-window";
 import { MessageBubble } from "./MessageBubble";
 import type { Message, Contact } from "@shared/schema";
@@ -66,10 +66,14 @@ export const VirtualizedMessageList = memo(
       return base + Math.min(contentLength * 0.3, 300);
     };
 
-    // Scroll para o final
+    // Scroll para o final com verificação de segurança
     const scrollToBottom = () => {
       if (listRef.current && messages.length > 0) {
-        listRef.current.scrollToItem(messages.length - 1, "end");
+        try {
+          listRef.current.scrollToItem(messages.length - 1, "end");
+        } catch (error) {
+          console.warn('Erro ao fazer scroll para o final:', error);
+        }
       }
     };
 
@@ -99,12 +103,16 @@ export const VirtualizedMessageList = memo(
 
     const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }: any) => {
       if (!scrollUpdateWasRequested && messages.length > 0) {
-        const totalApproxHeight = messages.reduce(
-          (sum, _, i) => sum + getItemSize(i),
-          0,
-        );
-        const isNearBottom = scrollOffset + height >= totalApproxHeight - 200;
-        setShouldScrollToBottom(isNearBottom);
+        try {
+          const totalApproxHeight = messages.reduce(
+            (sum, _, i) => sum + getItemSize(i),
+            0,
+          );
+          const isNearBottom = scrollOffset + height >= totalApproxHeight - 200;
+          setShouldScrollToBottom(isNearBottom);
+        } catch (error) {
+          console.warn('Erro ao calcular scroll:', error);
+        }
       }
     };
 
@@ -116,6 +124,11 @@ export const VirtualizedMessageList = memo(
       }),
       [messages, contact, conversationId],
     );
+
+    // Verificação de segurança para dimensões
+    if (!height || height <= 0) {
+      return <div className="flex-1">Carregando mensagens...</div>;
+    }
 
     return (
       <List
