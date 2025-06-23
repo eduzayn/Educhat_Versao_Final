@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 23, 2025 (18:59): Sistema restaurado ao commit `3c93bd55822ce4afe0260edd3d644cb5cff44597` 
+  - Removidas todas as referências obsoletas a "macrosetor" e "macrosetores"
+  - Atualizadas queries do banco para usar apenas sistema de equipes
+  - Corrigidos erros de colunas inexistentes em `conversations` e `systemUsers`
+  - Criado módulo `contactBasicOperations.ts` para operações básicas de contatos
+  - Webhooks Z-API funcionando corretamente sem erros de banco
 - June 23, 2025. Initial setup
 
 ## User Preferences

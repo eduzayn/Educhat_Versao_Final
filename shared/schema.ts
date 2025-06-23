@@ -220,7 +220,6 @@ export const systemUsers = pgTable("system_users", {
   team: varchar("team", { length: 100 }),
   dataKey: varchar("data_key", { length: 200 }), // ex: "zayn", "zayn.piracema", "zayn.piracema.tutoria"
   channels: jsonb("channels").default([]), // array of channels user can access
-  macrosetores: jsonb("macrosetores").default([]), // array of macrosetores user can access
   isActive: boolean("is_active").default(true),
   isOnline: boolean("is_online").default(false),
   status: varchar("status", { length: 20 }).default("active"), // active, inactive, blocked

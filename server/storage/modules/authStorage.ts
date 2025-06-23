@@ -50,8 +50,7 @@ export class AuthStorage extends BaseStorage {
         role: userData.role || 'user',
         roleId: 1,
         isActive: true,
-        channels: [],
-        macrosetores: []
+        channels: []
       })
       .returning();
     
@@ -99,7 +98,7 @@ export class AuthStorage extends BaseStorage {
         roleId: updated.roleId || 1,
         dataKey: updated.dataKey || undefined,
         channels: Array.isArray(updated.channels) ? updated.channels : [],
-        macrosetores: Array.isArray(updated.macrosetores) ? updated.macrosetores : [],
+        macrosetores: [], // Removido - agora usamos sistema de equipes
         teamId: updated.teamId || undefined,
         team: updated.team || undefined
       };
