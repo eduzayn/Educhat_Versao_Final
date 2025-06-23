@@ -8,6 +8,10 @@ export function setIOInstance(io: SocketIOServer) {
   logger.socket('Socket.IO instance configurada para broadcasting');
 }
 
+export function getIOInstance(): SocketIOServer | null {
+  return ioInstance;
+}
+
 export function broadcast(conversationId: number, data: any) {
   if (!ioInstance) {
     logger.warn('Socket.IO instance não configurada para broadcasting');

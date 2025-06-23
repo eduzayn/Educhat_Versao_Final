@@ -71,16 +71,21 @@ export function registerChannelTestConnectionRoutes(app: Express) {
       });
 
       // Broadcast atualização via Socket.IO
-      const { getIOInstance } = await import('../realtime/realtime-broadcast');
-      const io = getIOInstance();
-      if (io) {
-        io.emit('channel_status_update', {
-          channelId: channelId,
-          isConnected: data.connected || false,
-          connectionStatus: data.connected ? 'connected' : 'disconnected',
-          smartphoneConnected: data.smartphoneConnected || false,
-          timestamp: new Date().toISOString()
-        });
+      try {
+        const { getIOInstance } = await import('../realtime/realtime-broadcast');
+        const io = getIOInstance();
+        if (io) {
+          io.emit('channel_status_update', {
+            channelId: channelId,
+            isConnected: data.connected || false,
+            connectionStatus: data.connected ? 'connected' : 'disconnected',
+            smartphoneConnected: data.smartphoneConnected || false,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (socketError) {
+        console.warn('⚠️ Erro ao enviar broadcast Socket.IO:', socketError);
+        // Continuar sem falhar o teste de conexão
       }
       
       const result = { 
