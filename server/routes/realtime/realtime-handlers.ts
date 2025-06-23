@@ -45,20 +45,29 @@ export function setupSocketHandlers(io: SocketIOServer) {
       console.error(`❌ Upgrade error para ${socket.id}:`, error.message);
     });
     
-    // Tratar erros de transporte
+    // Tratar erros de transporte com logging melhorado
     socket.conn.on('error', (error) => {
-      console.error(`❌ Transport error para cliente ${socket.id}:`, {
+      const connectionTime = Date.now() - clients.get(socket.id)?.connectedAt || 0;
+      console.error(`❌ Transport error detectado para cliente ${socket.id}:`, {
         reason: error.message || 'transport error',
         transport: socket.conn.transport.name,
+        connectionTime: Math.round(connectionTime / 1000),
         readyState: socket.conn.readyState
       });
+      
+      // Forçar desconexão limpa em caso de transport error
+      if (error.message?.includes('transport error')) {
+        socket.disconnect(true);
+      }
     });
-    
-    // Tratar fechamento de conexão
-    socket.conn.on('close', (reason) => {
+
+    // Monitorar problemas de transporte
+    socket.conn.on('close', (reason, description) => {
+      const connectionTime = Date.now() - clients.get(socket.id)?.connectedAt || 0;
       console.log(`🔌 Conexão fechada para ${socket.id}:`, {
-        reason,
-        transport: socket.conn.transport.name
+        reason: reason || 'unknown',
+        transport: socket.conn.transport.name,
+        connectionTime: Math.round(connectionTime / 1000)
       });
     });
 

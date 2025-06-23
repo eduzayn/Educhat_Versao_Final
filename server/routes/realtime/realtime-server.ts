@@ -20,20 +20,30 @@ export function createSocketServer(app: Express): SocketServer {
       origin: isDevelopment ? ["http://localhost:5000", "http://127.0.0.1:5000"] : "*",
       methods: ["GET", "POST"],
       credentials: false,
-      allowedHeaders: ["Content-Type"]
+      allowedHeaders: ["Content-Type", "Connection", "Upgrade"]
     },
-    // Configuração otimizada para reduzir transport errors
-    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
-    allowUpgrades: true, // Permitir upgrade para melhor performance
-    upgradeTimeout: 30000,
+    // Forçar WebSocket em produção para evitar transport errors
+    transports: isReplit ? ['websocket'] : ['websocket', 'polling'],
+    allowUpgrades: false, // Desabilitar upgrades para evitar instabilidades
+    upgradeTimeout: 10000,
     pingTimeout: 60000,
     pingInterval: 25000,
     maxHttpBufferSize: 1e6,
     serveClient: false,
     cookie: false,
-    // Configurações de estabilidade
-    allowEIO3: true,
-    connectTimeout: 45000
+    // Configurações de estabilidade para WebSocket
+    allowEIO3: false,
+    connectTimeout: 30000,
+    // Headers específicos para WebSocket
+    allowRequest: (req, callback) => {
+      // Validar headers de WebSocket
+      const isWebSocket = req.headers.upgrade === 'websocket' || 
+                         req.headers.connection?.toLowerCase().includes('upgrade');
+      if (isReplit && !isWebSocket) {
+        return callback('WebSocket required in production', false);
+      }
+      callback(null, true);
+    }
   });
 
   httpServer.io = io;

@@ -30,21 +30,26 @@ export class SocketFallback {
     const isReplit = window.location.hostname.includes('replit.app') || 
                      window.location.hostname.includes('replit.dev');
     
-    // Forçar WebSocket em produção Replit para evitar xhr poll error
+    // Forçar WebSocket em produção Replit para evitar transport errors
     const transports = this.config.forceWebSocket || isReplit ? 
-      ['websocket'] : ['websocket', 'polling'];
+      ['websocket'] : ['websocket'];
 
     console.log(`🔌 Conectando Socket.IO (tentativa ${this.retryCount + 1}) com transports:`, transports);
 
     this.socket = io(this.config.url, {
       transports,
-      upgrade: false, // Evitar upgrade polling → websocket que causa xhr poll error
+      upgrade: false, // Desabilitar upgrades para evitar instabilidades
       rememberUpgrade: false,
       timeout: 30000,
       reconnection: false, // Controle manual de reconexão
       autoConnect: true,
       forceNew: true,
-      withCredentials: false
+      withCredentials: false,
+      // Headers para WebSocket em produção
+      extraHeaders: isReplit ? {
+        'Connection': 'Upgrade',
+        'Upgrade': 'websocket'
+      } : {}
     });
 
     this.setupEventHandlers();

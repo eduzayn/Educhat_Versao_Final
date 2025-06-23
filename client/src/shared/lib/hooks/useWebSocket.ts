@@ -57,10 +57,10 @@ export function useWebSocket() {
                        window.location.hostname.includes('replit.dev');
       
       socketRef.current = io(socketUrl, {
-        // Configuração otimizada para estabilidade
-        transports: ['websocket', 'polling'],
-        upgrade: true, // Permitir upgrade para melhor performance
-        rememberUpgrade: true,
+        // Forçar WebSocket em produção para evitar transport errors
+        transports: isReplit ? ['websocket'] : ['websocket', 'polling'],
+        upgrade: false, // Desabilitar upgrades para evitar instabilidades
+        rememberUpgrade: false,
         timeout: 30000,
         reconnection: true,
         reconnectionAttempts: 5,
@@ -70,9 +70,14 @@ export function useWebSocket() {
         autoConnect: true,
         forceNew: false,
         withCredentials: false,
-        // Configurações de robustez
+        // Configurações específicas para WebSocket
         forceBase64: false,
-        enablesXDR: false
+        enablesXDR: false,
+        // Headers para WebSocket
+        extraHeaders: isReplit ? {
+          'Connection': 'Upgrade',
+          'Upgrade': 'websocket'
+        } : {}
       });
     } catch (error) {
       console.error('❌ Erro ao criar Socket.IO:', error);
