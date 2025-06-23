@@ -168,14 +168,17 @@ export function registerContactRoutes(app: Express) {
         return res.status(400).json({ error: 'ID do contato inválido' });
       }
       
+      console.log(`[DELETE][Contact] Iniciando exclusão do contato ${contactId}`);
       await storage.deleteContact(contactId);
+      console.log(`[DELETE][Contact] Contato ${contactId} excluído com sucesso`);
       res.json({ success: true, message: 'Contato excluído com sucesso' });
     } catch (error) {
-      console.error('Erro ao deletar contato:', error);
+      console.error(`[DELETE][Contact] Erro ao deletar contato ${contactId}:`, error);
       
-      // Retornar mensagem de erro específica se disponível
+      // Retornar status code apropriado baseado no tipo de erro
       if (error instanceof Error) {
-        return res.status(400).json({ error: error.message });
+        const statusCode = (error as any).statusCode || 500;
+        return res.status(statusCode).json({ error: error.message });
       }
       
       res.status(500).json({ error: 'Erro interno do servidor' });
