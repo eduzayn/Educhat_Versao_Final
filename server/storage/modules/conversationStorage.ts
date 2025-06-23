@@ -18,7 +18,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -104,7 +104,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -230,7 +230,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -290,7 +290,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -507,7 +507,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -567,7 +567,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -627,7 +627,7 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-        macrosetor: conversations.macrosetor,
+
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
