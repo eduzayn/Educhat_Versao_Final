@@ -3,6 +3,8 @@ import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { BIUserStats, BIUserResponse, BIDailyActivity } from './types';
 import { User } from '../../types/user';
+import { conversations } from '@shared/schema';
+import { gte } from 'drizzle-orm';
 
 export function registerProductivityRoutes(app: Express) {
   // Produtividade Individual - REST: GET /api/bi/productivity
@@ -13,12 +15,20 @@ export function registerProductivityRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Para BI, buscar conversas diretamente sem limitações de performance
-      const allConversations = await storage.conversation.getConversationsForBI(days);
+      // Para BI, usar query SQL direta para obter todos os dados
+      const { db } = await import('../../core/database');
+      const allConversations = await db
+        .select({
+          id: conversations.id,
+          contactId: conversations.contactId,
+          assignedUserId: conversations.assignedUserId,
+          createdAt: conversations.createdAt
+        })
+        .from(conversations)
+        .where(gte(conversations.createdAt, startDate));
       const messages = await storage.getAllMessages();
       const users = await storage.getAllUsers();
 
-      // Conversas já filtradas por período no método BI
       const periodConversations = allConversations;
       const periodMessages = messages.filter(m => 
         m.sentAt && new Date(m.sentAt) >= startDate && !m.isFromContact

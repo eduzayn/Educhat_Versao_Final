@@ -3,6 +3,8 @@ import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { BITeamStats } from './types';
 import { Team } from '../../types/team';
+import { conversations } from '@shared/schema';
+import { gte } from 'drizzle-orm';
 
 export function registerTeamRoutes(app: Express) {
   // Performance de Equipes - REST: GET /api/bi/teams
@@ -14,7 +16,15 @@ export function registerTeamRoutes(app: Express) {
       startDate.setDate(startDate.getDate() - days);
 
       const teams = await storage.getTeams();
-      const allConversations = await storage.conversation.getConversationsForBI(days);
+      const { db } = await import('../../core/database');
+      const allConversations = await db
+        .select({
+          id: conversations.id,
+          assignedTeamId: conversations.assignedTeamId,
+          createdAt: conversations.createdAt
+        })
+        .from(conversations)
+        .where(gte(conversations.createdAt, startDate));
       const users = await storage.getAllUsers();
 
       const periodConversations = allConversations;
