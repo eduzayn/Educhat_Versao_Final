@@ -36,14 +36,21 @@ export class PermissionService {
       
       // Para outros roles, verificar permissões específicas através do banco
       if (user?.roleId) {
-        const result = await storage.db.query(`
-          SELECT COUNT(*) as count
-          FROM role_permissions rp
-          JOIN permissions p ON rp.permission_id = p.id
-          WHERE rp.role_id = $1 AND p.name = $2
-        `, [user.roleId, permissionName]);
-        
-        return result.rows[0]?.count > 0;
+        try {
+          const result = await db
+            .select()
+            .from(rolePermissions)
+            .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+            .where(and(
+              eq(rolePermissions.roleId, user.roleId),
+              eq(permissions.name, permissionName)
+            ));
+          
+          return result.length > 0;
+        } catch (error) {
+          console.error('Erro ao verificar permissões específicas:', error);
+          return false;
+        }
       }
       
       return false;
