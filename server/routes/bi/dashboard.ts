@@ -16,15 +16,16 @@ export function registerDashboardRoutes(app: Express) {
 
       // Buscar dados diretamente do banco para incluir todas as conversas
       const { db } = await import('../../core/db');
+      const { conversations: conversationsTable } = await import('@shared/schema');
       const conversationsData = await db
         .select({
-          id: conversations.id,
-          createdAt: conversations.createdAt,
-          lastMessageAt: conversations.lastMessageAt,
-          channel: conversations.channel
+          id: conversationsTable.id,
+          createdAt: conversationsTable.createdAt,
+          lastMessageAt: conversationsTable.lastMessageAt,
+          channel: conversationsTable.channel
         })
-        .from(conversations)
-        .where(gte(conversations.createdAt, startDate));
+        .from(conversationsTable)
+        .where(gte(conversationsTable.createdAt, startDate));
       const messages = await storage.getAllMessages();
       const deals = await storage.getDeals();
 

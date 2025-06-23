@@ -17,14 +17,15 @@ export function registerTeamRoutes(app: Express) {
 
       const teams = await storage.getTeams();
       const { db } = await import('../../core/db');
+      const { conversations: conversationsTable } = await import('@shared/schema');
       const allConversations = await db
         .select({
-          id: conversations.id,
-          assignedTeamId: conversations.assignedTeamId,
-          createdAt: conversations.createdAt
+          id: conversationsTable.id,
+          assignedTeamId: conversationsTable.assignedTeamId,
+          createdAt: conversationsTable.createdAt
         })
-        .from(conversations)
-        .where(gte(conversations.createdAt, startDate));
+        .from(conversationsTable)
+        .where(gte(conversationsTable.createdAt, startDate));
       const users = await storage.getAllUsers();
 
       const periodConversations = allConversations;

@@ -17,15 +17,16 @@ export function registerProductivityRoutes(app: Express) {
 
       // Buscar conversas diretamente do storage sem limitações de 75 itens
       const { db } = await import('../../core/db');
+      const { conversations: conversationsTable } = await import('@shared/schema');
       const allConversations = await db
         .select({
-          id: conversations.id,
-          contactId: conversations.contactId,
-          assignedUserId: conversations.assignedUserId,
-          createdAt: conversations.createdAt
+          id: conversationsTable.id,
+          contactId: conversationsTable.contactId,
+          assignedUserId: conversationsTable.assignedUserId,
+          createdAt: conversationsTable.createdAt
         })
-        .from(conversations)
-        .where(gte(conversations.createdAt, startDate));
+        .from(conversationsTable)
+        .where(gte(conversationsTable.createdAt, startDate));
       const messages = await storage.getAllMessages();
       const users = await storage.getAllUsers();
 
