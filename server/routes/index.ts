@@ -28,12 +28,12 @@ import { registerMacrosetorRoutes } from "./settings/macrosetores";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO
   setupAuth(app);
-  
+
   // Registrar rotas críticas de webhook PRIMEIRO para evitar interceptação pelo Vite
   registerWebhookRoutes(app);
   registerZApiRoutes(app);
   registerFacebookWebhookRoutes(app);
-  
+
   // Registrar rotas de autenticação após webhooks
   registerAuthRoutes(app);
   registerAdminRoutes(app);
