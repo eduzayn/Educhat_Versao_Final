@@ -26,11 +26,17 @@ export function useSocketMessageListener(conversationId: number | null) {
     if (!socket) return;
 
     const handleBroadcastMessage = (data: SocketMessageData) => {
-      // Evitar processamento duplicado
+      // CORREÇÃO CRÍTICA: Evitar processamento duplicado mas permitir atualizações legítimas
       const messageKey = `${data.message.id}_${data.conversationId}`;
-      if (processedMessages.current.has(messageKey)) {
+      
+      // Permitir reprocessamento se for uma mensagem com ID temporário sendo substituída
+      const isOptimisticUpdate = data.optimisticId && data.message.id > 0;
+      
+      if (processedMessages.current.has(messageKey) && !isOptimisticUpdate) {
+        console.log(`⏩ Mensagem ${messageKey} já processada, ignorando duplicata`);
         return;
       }
+      
       processedMessages.current.add(messageKey);
 
       // Limpar cache antigas (manter apenas últimas 100)

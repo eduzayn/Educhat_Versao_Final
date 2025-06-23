@@ -185,16 +185,25 @@ export function useSendMessage() {
             return messageExists ? oldMessages : [...oldMessages, newMessage];
           }
           
-          // Substituir mensagem temporária pela real mantendo ordem e protegendo contra falha
+          // CORREÇÃO CRÍTICA: Sempre manter mensagem otimística E adicionar mensagem real
+          // Isso evita que mensagens desapareçam durante race conditions
+          const messageExists = oldMessages.some(msg => msg.id === newMessage.id);
+          if (messageExists) {
+            // Se mensagem real já existe, apenas remover otimística se for diferente
+            return oldMessages.filter(msg => msg.id !== context.optimisticMessage.id);
+          }
+          
+          // Substituir mensagem temporária pela real mantendo ordem
           const updatedMessages = oldMessages.map(msg => 
             msg.id === context.optimisticMessage.id ? newMessage : msg
           );
           
-          // FALLBACK: Se não encontrou mensagem otimística para substituir, adicionar ao final
+          // FALLBACK ROBUSTO: Se não encontrou para substituir, manter ambas temporariamente
           const wasReplaced = updatedMessages.some(msg => msg.id === newMessage.id);
           if (!wasReplaced) {
-            console.warn(`⚠️ Mensagem otimística ${context.optimisticMessage.id} não encontrada, adicionando mensagem real ${newMessage.id}`);
-            return [...oldMessages.filter(msg => msg.id !== context.optimisticMessage.id), newMessage];
+            console.warn(`⚠️ Race condition detectado - mantendo mensagem otimística ${context.optimisticMessage.id} e adicionando real ${newMessage.id}`);
+            // Adicionar mensagem real e manter otimística por enquanto
+            return [...oldMessages, newMessage];
           }
           
           return updatedMessages;

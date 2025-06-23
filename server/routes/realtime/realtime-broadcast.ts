@@ -27,18 +27,24 @@ export function broadcast(conversationId: number, data: any) {
       roomClients: clientCount
     };
     
-    // CORREÇÃO: Sempre usar broadcast global como fallback para garantir entrega
+    // CORREÇÃO CRÍTICA: Sempre usar broadcast duplo para garantir entrega
     if (clientCount > 0) {
-      // Preferir sala específica quando há clientes conectados
+      // Enviar para sala específica
       ioInstance.to(roomName).emit('broadcast_message', broadcastData);
       console.log(`✅ Broadcast enviado para sala específica ${roomName} (${clientCount} clientes)`);
     } else {
-      // FALLBACK: Broadcast global quando sala está vazia
-      ioInstance.emit('broadcast_message', {
-        ...broadcastData,
-        fallbackBroadcast: true,
-        originalRoom: roomName
-      });
+      console.log(`⚠️ Nenhum cliente na sala ${roomName} - broadcast pode não ter efeito`);
+    }
+    
+    // SEMPRE fazer broadcast global como backup para garantir entrega
+    ioInstance.emit('broadcast_message', {
+      ...broadcastData,
+      fallbackBroadcast: clientCount === 0,
+      originalRoom: roomName,
+      deliveryMethod: clientCount > 0 ? 'room-and-global' : 'global-only'
+    });
+    
+    if (clientCount === 0) {
       console.log(`🔄 Fallback: Broadcast global enviado para conversa ${conversationId} (sala vazia)`);
     }
     
