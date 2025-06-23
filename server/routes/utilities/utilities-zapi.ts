@@ -1,6 +1,6 @@
 import type { Express } from 'express';
 import multer from 'multer';
-import * as storage from '../../storage';
+import { storage } from '../../storage';
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../utils/zapi';
 import { zapiLogger } from '../../utils/zapiLogger';
 
@@ -63,7 +63,7 @@ export function registerZApiRoutes(app: Express) {
       // Se não temos phone, buscar da conversa
       let targetPhone = phone;
       if (!targetPhone && conversationId) {
-        const conversation = await storage.getConversation(parseInt(conversationId));
+        const conversation = await storage.conversation.getConversationById(parseInt(conversationId));
         if (conversation?.contact?.phone) {
           targetPhone = conversation.contact.phone;
         }
@@ -181,7 +181,7 @@ export function registerZApiRoutes(app: Express) {
           }
 
           // Criar mensagem no banco de dados após sucesso na Z-API
-          const message = await storage.createMessage({
+          const message = await storage.message.createMessage({
             conversationId: parseInt(conversationId),
             content: '🎵 Áudio enviado',
             isFromContact: false,
