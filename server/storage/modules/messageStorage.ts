@@ -146,24 +146,38 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getUnreadMessages(conversationId: number): Promise<Message[]> {
-    return this.basicOps.getUnreadMessages(conversationId);
+    return this.db.select().from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false),
+        isNull(messages.readAt)
+      ))
+      .orderBy(asc(messages.sentAt));
   }
 
   // Status operations
   async markMessageAsRead(id: number): Promise<void> {
-    return this.statusOps.markMessageAsRead(id);
+    await this.db.update(messages)
+      .set({ readAt: new Date() })
+      .where(eq(messages.id, id));
   }
 
   async markMessageAsUnread(id: number): Promise<void> {
-    return this.statusOps.markMessageAsUnread(id);
+    await this.db.update(messages)
+      .set({ readAt: null })
+      .where(eq(messages.id, id));
   }
 
   async markMessageAsDelivered(id: number): Promise<void> {
-    return this.statusOps.markMessageAsDelivered(id);
+    await this.db.update(messages)
+      .set({ deliveredAt: new Date() })
+      .where(eq(messages.id, id));
   }
 
   async markMessageAsDeleted(id: number): Promise<void> {
-    return this.statusOps.markMessageAsDeleted(id);
+    await this.db.update(messages)
+      .set({ isDeleted: true })
+      .where(eq(messages.id, id));
   }
 
   async markMessageAsDeletedByUser(messageId: number, deletedByUser: boolean, userId?: number): Promise<boolean> {

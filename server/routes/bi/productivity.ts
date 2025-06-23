@@ -30,19 +30,16 @@ export function registerProductivityRoutes(app: Express) {
         }
 
         const userConversations = periodConversations.filter(c => c.assignedUserId === user.id);
-        const conversationIds = userConversations.map(c => c.id);
         
-        if (conversationIds.length === 0) continue;
+        if (userConversations.length === 0) continue;
 
-        // Buscar mensagens apenas para conversas do usuário no período
+        const conversationIds = userConversations.map(c => c.id);
         const userMessages = await storage.getMessagesByConversationIds(conversationIds);
         const userOutgoingMessages = userMessages.filter(m => 
           m.sentAt && 
           new Date(m.sentAt) >= startDate && 
           !m.isFromContact
         );
-
-        if (userConversations.length === 0 && userOutgoingMessages.length === 0) continue;
 
         // Calcular produtividade baseada em dados reais
         const productivity = Math.min(100, Math.round(
