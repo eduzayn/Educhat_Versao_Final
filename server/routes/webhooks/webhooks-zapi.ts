@@ -250,6 +250,38 @@ export async function processZApiWebhook(webhookData: any): Promise<{ success: b
           } : {})
         }
       });
+
+      // Baixar e salvar arquivo de mídia se necessário
+      if (messageType === 'audio' && mediaUrl) {
+        try {
+          console.log(`📤 Baixando áudio do webhook: ${mediaUrl}`);
+          const response = await fetch(mediaUrl);
+          if (response.ok) {
+            const buffer = await response.arrayBuffer();
+            const base64Data = Buffer.from(buffer).toString('base64');
+            
+            const { mediaFiles } = await import('@shared/schema');
+            const { db } = await import('../../db');
+            
+            await db.insert(mediaFiles).values({
+              messageId: message.id,
+              fileName: fileName || `audio_${message.id}.ogg`,
+              originalName: fileName || `audio_${message.id}.ogg`,
+              mimeType: webhookData.audio?.mimeType || 'audio/ogg',
+              fileSize: buffer.byteLength,
+              fileData: base64Data,
+              mediaType: 'audio',
+              duration: webhookData.audio?.seconds || webhookData.audio?.duration || 0,
+              isCompressed: false,
+              zapiSent: false
+            });
+            
+            console.log(`💾 Arquivo de áudio salvo no banco para mensagem ${message.id}`);
+          }
+        } catch (error) {
+          console.error('Erro ao baixar e salvar áudio:', error);
+        }
+      }
       
       // MELHORIA 2: Broadcast garantido para WebSocket - WEBHOOK RECEIVED MESSAGE
       try {

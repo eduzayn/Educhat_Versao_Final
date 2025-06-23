@@ -73,20 +73,14 @@ export function AudioMessage({
         throw new Error("Áudio não encontrado");
       }
 
-      const data = await response.json();
-
-      if (data.success && data.audioUrl) {
-        setFetchedAudioUrl(data.audioUrl);
-        return true;
-      } else if (data.audioUrl) {
-        // Fallback para formato antigo da API
-        setFetchedAudioUrl(data.audioUrl);
+      // Resposta é o próprio arquivo de áudio (blob)
+      const blob = await response.blob();
+      if (blob.size > 0) {
+        const audioUrl = URL.createObjectURL(blob);
+        setFetchedAudioUrl(audioUrl);
         return true;
       } else {
-        // Para áudios Z-API que não podem ser reproduzidos - manter conteúdo original
-        setError("Áudio enviado via WhatsApp");
-        sessionStorage.setItem(failedKey, "true");
-        return false;
+        throw new Error("Arquivo de áudio vazio");
       }
     } catch (err) {
       console.error("Erro ao buscar áudio:", err);
