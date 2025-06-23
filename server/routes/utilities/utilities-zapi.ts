@@ -462,9 +462,34 @@ export function registerZApiRoutes(app: Express) {
               phone: cleanPhone,
               instanceId: instanceId,
               audioSize: audioBase64.length,
-              mimeType: audioFile.mimetype || 'audio/webm'
+              mimeType: audioFile.mimetype || 'audio/webm',
+              duration: req.body.duration ? parseInt(req.body.duration) : undefined
             }
           });
+
+          // Salvar arquivo de áudio no banco para streaming
+          const { mediaFiles } = await import('@shared/schema');
+          const { db } = await import('../../db');
+          
+          try {
+            await db.insert(mediaFiles).values({
+              messageId: message.id,
+              fileName: `audio_${message.id}.${audioFile.mimetype?.split('/')[1] || 'webm'}`,
+              originalName: audioFile.originalname || `audio_${message.id}.webm`,
+              mimeType: audioFile.mimetype || 'audio/webm',
+              fileSize: audioFile.size || audioBase64.length,
+              fileData: audioBase64,
+              mediaType: 'audio',
+              duration: req.body.duration ? parseInt(req.body.duration) : undefined,
+              isCompressed: false,
+              zapiSent: true,
+              zapiMessageId: parsedResponse.messageId || parsedResponse.id
+            });
+            
+            console.log(`💾 Arquivo de áudio salvo no banco para mensagem ${message.id}`);
+          } catch (dbError) {
+            console.error('Erro ao salvar arquivo de áudio no banco:', dbError);
+          }
 
           zapiLogger.logDatabaseUpdate(message.id, true, undefined, requestId);
 

@@ -197,6 +197,41 @@ export class MessageStorage extends BaseStorage {
     return this.mediaOps.getMessagesByMetadata(key, value);
   }
 
+  /**
+   * Get media file data for a message (for audio streaming)
+   */
+  async getMediaFile(messageId: number): Promise<{
+    fileData: string;
+    mimeType: string;
+    fileSize: number;
+    duration?: number;
+    fileName: string;
+    isCompressed?: boolean;
+    compressionQuality?: number;
+  } | null> {
+    const { mediaFiles } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const [mediaFile] = await this.db
+      .select()
+      .from(mediaFiles)
+      .where(eq(mediaFiles.messageId, messageId));
+    
+    if (!mediaFile) {
+      return null;
+    }
+    
+    return {
+      fileData: mediaFile.fileData,
+      mimeType: mediaFile.mimeType,
+      fileSize: mediaFile.fileSize,
+      duration: mediaFile.duration || undefined,
+      fileName: mediaFile.fileName,
+      isCompressed: mediaFile.isCompressed || undefined,
+      compressionQuality: mediaFile.compressionQuality || undefined
+    };
+  }
+
   // Internal notes operations
   async getInternalNotes(conversationId: number): Promise<Message[]> {
     return this.notesOps.getInternalNotes(conversationId);

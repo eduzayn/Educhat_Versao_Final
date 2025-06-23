@@ -445,6 +445,10 @@ export class CentralStorage {
     return this.message.markMessageAsDeletedByUser(messageId, deletedByUser, userId);
   }
 
+  async getMediaFile(messageId: number) {
+    return this.message.getMediaFile(messageId);
+  }
+
   // Soft delete methods available through message module
 
   // ==================== QUICK REPLY OPERATIONS ====================
