@@ -14,7 +14,7 @@ export function registerTeamRoutes(app: Express) {
       startDate.setDate(startDate.getDate() - days);
 
       const teams = await storage.getTeams();
-      const conversations = await storage.getConversations(10000, 0);
+      const conversations = await storage.getConversations(20000, 0);
       const allConversations = conversations.filter(c => 
         c.createdAt && new Date(c.createdAt) >= startDate
       );

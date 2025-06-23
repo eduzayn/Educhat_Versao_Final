@@ -12,8 +12,8 @@ export function registerDashboardRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados sem limitação artificial
-      const conversations = await storage.getConversations(10000, 0);
+      // Buscar TODAS as conversas para relatórios precisos
+      const conversations = await storage.getConversations(20000, 0);
       const conversationsData = conversations.filter(c => 
         c.createdAt && new Date(c.createdAt) >= startDate
       );

@@ -13,8 +13,8 @@ export function registerProductivityRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar todas as conversas usando storage sem limitação artificial
-      const conversations = await storage.getConversations(10000, 0);
+      // Buscar TODAS as conversas dos últimos 30 dias
+      const conversations = await storage.getConversations(20000, 0);
       const allConversations = conversations.filter(c => 
         c.createdAt && new Date(c.createdAt) >= startDate
       );

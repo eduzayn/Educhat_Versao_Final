@@ -12,15 +12,15 @@ export function registerKPIRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados reais sem limitação artificial de 75 itens
-      const allConversations = await storage.getConversations(10000, 0);
+      // Buscar TODAS as conversas dos últimos 30 dias sem limitação
+      const allConversations = await storage.getConversations(20000, 0);
       const conversationsData = allConversations.filter(c => 
         c.createdAt && new Date(c.createdAt) >= startDate
       );
       const allContacts = await storage.searchContacts('');
       const allDeals = await storage.getDeals();
 
-      // Dados já filtrados por período
+      // Para BI, usar dados reais
       const filteredConversations = conversationsData;
       
       const filteredContacts = allContacts.filter(contact => {
