@@ -1,0 +1,238 @@
+🔄 Carregando 30 mensagens para conversa 2549
+✅ Verificação de duplicatas concluída em 206ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 206ms
+4:34:06 PM [express] GET /api/conversations/2777/messages 200 in 998ms :: {"messages":[{"id":19326,"…
+4:34:06 PM [express] POST /api/contacts/check-duplicates 200 in 888ms :: {"isDuplicate":false,"dupli…
+4:34:06 PM [express] POST /api/conversations/2777/assign-user 200 in 1989ms :: {"id":2777,"contactId…
+✅ Mensagens carregadas em 401ms (1 itens)
+✅ Mensagens carregadas em 500ms (30 itens)
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+4:34:06 PM [express] POST /api/contacts/check-duplicates 200 in 1092ms :: {"isDuplicate":false,"dupl…
+4:34:06 PM [express] GET /api/conversations/1084/messages 200 in 1207ms :: {"messages":[{"id":3760,"…
+4:34:06 PM [express] GET /api/conversations/2777/messages 200 in 1196ms :: {"messages":[{"id":19326,…
+🔍 Verificando status de 2 canais ativos
+✅ Verificação de duplicatas concluída em 294ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 294ms
+✅ Mensagens carregadas em 703ms (1 itens)
+✅ Verificação de duplicatas concluída em 295ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 295ms
+🚨 Server error 500: GET /api/conversations 500 in 999ms
+4:34:07 PM [express] GET /api/conversations 500 in 999ms :: {"message":"Database error","error":"opt…
+✅ Verificação de duplicatas concluída em 292ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 292ms
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1404ms :: {"isDuplicate":false,"dupl…
+4:34:07 PM [express] GET /api/conversations/2549/messages 200 in 1598ms :: {"messages":[{"id":16023,…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1103ms :: {"isDuplicate":false,"dupl…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1505ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 109ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 110ms
+✅ Verificação de duplicatas concluída em 193ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 193ms
+🚨 Server error 500: GET /api/conversations 500 in 706ms
+4:34:07 PM [express] GET /api/conversations 500 in 706ms :: {"message":"Database error","error":"opt…
+✅ Verificação de duplicatas concluída em 108ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 108ms
+✅ Verificação de duplicatas concluída em 197ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 197ms
+🚨 Server error 500: GET /api/conversations 500 in 807ms
+4:34:07 PM [express] GET /api/conversations 500 in 807ms :: {"message":"Database error","error":"opt…
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1206ms :: {"isDuplicate":false,"dupl…
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1208ms :: {"isDuplicate":false,"dupl…
+🔄 Carregando 30 mensagens para conversa 1084
+✅ Verificação de duplicatas concluída em 190ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 191ms
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2777
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1397ms :: {"isDuplicate":false,"dupl…
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 1199ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 194ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 195ms
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 909ms :: {"isDuplicate":false,"dupli…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+4:34:07 PM [express] POST /api/contacts/check-duplicates 200 in 799ms :: {"isDuplicate":false,"dupli…
+✅ Mensagens carregadas em 299ms (30 itens)
+🔌 Cliente conectado via Socket.IO: f7PLK641vZMAng11AAA5 (websocket)
+✅ Mensagens carregadas em 301ms (1 itens)
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 1084
+🚨 Server error 500: GET /api/conversations 500 in 403ms
+4:34:08 PM [express] GET /api/conversations 500 in 403ms :: {"message":"Database error","error":"opt…
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+🔄 Carregando 30 mensagens para conversa 2549
+4:34:08 PM [express] GET /api/conversations/1084/messages 200 in 799ms :: {"messages":[{"id":3760,"c…
+🔄 Carregando 30 mensagens para conversa 1084
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+4:34:08 PM [express] POST /api/contacts/check-duplicates 200 in 709ms :: {"isDuplicate":false,"dupli…
+4:34:08 PM [express] GET /api/conversations/2777/messages 200 in 907ms :: {"messages":[{"id":19326,"…
+✅ Mensagens carregadas em 299ms (30 itens)
+✅ Mensagens carregadas em 296ms (1 itens)
+[SESSION-MONITOR] Status: connected=true, session=false
+[SESSION-MONITOR] ⚠️  WhatsApp desconectado - QR Code necessário
+🚨 Server error 500: GET /api/conversations 500 in 499ms
+4:34:08 PM [express] GET /api/conversations 500 in 499ms :: {"message":"Database error","error":"opt…
+🚨 Server error 500: GET /api/conversations 500 in 407ms
+4:34:08 PM [express] GET /api/conversations 500 in 407ms :: {"message":"Database error","error":"opt…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2549
+✅ Mensagens carregadas em 295ms (30 itens)
+🚨 Server error 500: GET /api/conversations 500 in 497ms
+4:34:08 PM [express] GET /api/conversations/2549/messages 200 in 799ms :: {"messages":[{"id":16023,"…
+4:34:08 PM [express] GET /api/conversations/1084/messages 200 in 602ms :: {"messages":[{"id":3760,"c…
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 1007
+4:34:08 PM [express] GET /api/conversations 500 in 497ms :: {"message":"Database error","error":"opt…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+4:34:08 PM [express] GET /api/conversations/1084/messages 200 in 605ms :: {"messages":[{"id":3760,"c…
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+🔄 Carregando 30 mensagens para conversa 1007
+✅ Mensagens carregadas em 200ms (1 itens)
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+✅ Mensagens carregadas em 200ms (30 itens)
+🚨 Server error 500: GET /api/conversations 500 in 300ms
+4:34:08 PM [express] GET /api/conversations 500 in 300ms :: {"message":"Database error","error":"opt…
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2777
+✅ Mensagens carregadas em 293ms (30 itens)
+4:34:08 PM [express] GET /api/conversations 500 in 492ms :: {"message":"Database error","error":"opt…
+🚨 Server error 500: GET /api/conversations 500 in 492ms
+4:34:08 PM [express] GET /api/conversations/1007/messages 200 in 607ms :: {"messages":[{"id":3064,"c…
+4:34:08 PM [express] GET /api/conversations/2549/messages 200 in 814ms :: {"messages":[{"id":16023,"…
+4:34:08 PM [express] GET /api/conversations/1007/messages 200 in 595ms :: {"messages":[{"id":3064,"c…
+🔄 Carregando 30 mensagens para conversa 2777
+✅ Mensagens carregadas em 248ms (1 itens)
+🔄 Carregando 30 mensagens para conversa 1084
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 1084
+🔄 Carregando 30 mensagens para conversa 1084
+🔄 Carregando 30 mensagens para conversa 2549
+4:34:09 PM [express] GET /api/conversations/2777/messages 200 in 596ms :: {"messages":[{"id":19326,"…
+✅ Mensagens carregadas em 200ms (1 itens)
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+🔌 Cliente conectado via Socket.IO: Qy6EIkT3QbOTG1KvAAA7 (websocket)
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+✅ Mensagens carregadas em 708ms (30 itens)
+✅ Mensagens carregadas em 797ms (30 itens)
+4:34:09 PM [express] GET /api/conversations/2777/messages 200 in 1100ms :: {"messages":[{"id":19326,…
+4:34:09 PM [express] GET /api/conversations 500 in 1103ms :: {"message":"Database error","error":"op…
+✅ Mensagens carregadas em 712ms (30 itens)
+🚨 Server error 500: GET /api/conversations 500 in 1103ms
+✅ Mensagens carregadas em 797ms (1 itens)
+🚨 Server error 500: GET /api/conversations 500 in 992ms
+4:34:09 PM [express] GET /api/conversations 500 in 992ms :: {"message":"Database error","error":"opt…
+4:34:09 PM [express] GET /api/conversations/1084/messages 200 in 1088ms :: {"messages":[{"id":3760,"…
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 1007
+4:34:10 PM [express] GET /api/conversations/1084/messages 200 in 1188ms :: {"messages":[{"id":3760,"…
+4:34:10 PM [express] GET /api/conversations/2549/messages 200 in 1298ms :: {"messages":[{"id":16023,…
+4:34:10 PM [express] GET /api/conversations/1084/messages 200 in 1189ms :: {"messages":[{"id":3760,"…
+🚨 Server error 500: GET /api/conversations 500 in 810ms
+4:34:10 PM [express] GET /api/conversations 500 in 810ms :: {"message":"Database error","error":"opt…
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2549
+🔄 Carregando 30 mensagens para conversa 2777
+🔄 Carregando 30 mensagens para conversa 1007
+✅ Mensagens carregadas em 205ms (30 itens)
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2777
+4:34:10 PM [express] GET /api/conversations/1007/messages 200 in 1103ms :: {"messages":[{"id":3064,"…
+🔌 Cliente conectado via Socket.IO: AhnK4H_4_BsejYpEAAA9 (websocket)
+🔍 STORAGE - Filtros: undefined
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+✅ Mensagens carregadas em 199ms (1 itens)
+✅ Mensagens carregadas em 197ms (30 itens)
+✅ Mensagens carregadas em 200ms (1 itens)
+🔄 Carregando 30 mensagens para conversa 1084
+🚨 Server error 500: GET /api/conversations 500 in 401ms
+4:34:10 PM [express] GET /api/conversations 500 in 401ms :: {"message":"Database error","error":"opt…
+✅ Mensagens carregadas em 202ms (1 itens)
+4:34:10 PM [express] GET /api/conversations/2777/messages 200 in 496ms :: {"messages":[{"id":19326,"…
+4:34:10 PM [express] GET /api/conversations/1007/messages 200 in 495ms :: {"messages":[{"id":3064,"c…
+4:34:10 PM [express] GET /api/conversations/2549/messages 200 in 694ms :: {"messages":[{"id":16023,"…
+4:34:10 PM [express] GET /api/conversations/2777/messages 200 in 589ms :: {"messages":[{"id":19326,"…
+✅ Mensagens carregadas em 206ms (30 itens)
+🔄 Carregando 30 mensagens para conversa 1084
+4:34:10 PM [express] GET /api/conversations/1084/messages 200 in 438ms :: {"messages":[{"id":3760,"c…
+✅ Mensagens carregadas em 155ms (30 itens)
+4:34:10 PM [express] GET /api/conversations/1084/messages 200 in 360ms :: {"messages":[{"id":3760,"c…
+🔄 Carregando 30 mensagens para conversa 2777
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 2777
+🚨 Server error 500: GET /api/conversations 500 in 160ms
+4:34:10 PM [express] GET /api/conversations 500 in 160ms :: {"message":"Database error","error":"opt…
+✅ Mensagens carregadas em 103ms (1 itens)
+4:34:11 PM [express] GET /api/conversations/2777/messages 200 in 267ms :: {"messages":[{"id":19326,"…
+✅ Mensagens carregadas em 119ms (1 itens)
+🔌 Cliente conectado via Socket.IO: DWDlt0bG95wxju6WAAA_ (websocket)
+4:34:11 PM [express] GET /api/conversations/2777/messages 200 in 285ms :: {"messages":[{"id":19326,"…
+🔄 Carregando 30 mensagens para conversa 1084
+Erro na busca de conversas: ReferenceError: optimizedLimit is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2504:97)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3111:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:17987:24
+🚨 Server error 500: GET /api/conversations 500 in 152ms
+4:34:11 PM [express] GET /api/conversations 500 in 152ms :: {"message":"Database error","error":"opt…
+✅ Mensagens carregadas em 172ms (30 itens)
+4:34:11 PM [express] GET /api/conversations/1084/messages 200 in 323ms :: {"messages":[{"id":3760,"c…

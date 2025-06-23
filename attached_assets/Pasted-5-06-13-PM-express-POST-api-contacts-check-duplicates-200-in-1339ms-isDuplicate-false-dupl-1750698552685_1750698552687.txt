@@ -1,0 +1,637 @@
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1339ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1339ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1341ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 203ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 203ms
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1311ms :: {"isDuplicate":true,"dupli…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 996ms :: {"isDuplicate":false,"dupli…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 602ms :: {"isDuplicate":false,"dupli…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1319ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1292ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1384ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 67ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 68ms
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1502ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1524ms :: {"isDuplicate":false,"dupl…
+5:06:13 PM [express] POST /api/contacts/check-duplicates 200 in 1753ms :: {"isDuplicate":false,"dupl…
+5:06:14 PM [express] GET /api/zapi/status 200 in 416ms :: {"connected":true,"session":false,"created…
+🔍 Verificando status de 2 canais ativos
+[SESSION-MONITOR] Status: connected=true, session=false
+[SESSION-MONITOR] ⚠️  WhatsApp desconectado - QR Code necessário
+✅ Verificação de duplicatas concluída em 58ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 59ms
+5:06:18 PM [express] POST /api/contacts/check-duplicates 200 in 211ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 155ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 155ms
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:18 PM [express] POST /api/contacts/check-duplicates 200 in 313ms :: {"isDuplicate":false,"dupli…
+5:06:18 PM [express] POST /api/contacts/check-duplicates 200 in 323ms :: {"isDuplicate":false,"dupli…
+5:06:19 PM [express] GET /api/zapi/status 200 in 154ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:06:20 PM [express] POST /api/contacts/check-duplicates 200 in 219ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 59ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+5:06:21 PM [express] POST /api/contacts/check-duplicates 200 in 273ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 95ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 96ms
+5:06:23 PM [express] POST /api/contacts/check-duplicates 200 in 287ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 261ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 261ms
+✅ Verificação de duplicatas concluída em 50ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+✅ Verificação de duplicatas concluída em 250ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 250ms
+5:06:23 PM [express] POST /api/contacts/check-duplicates 200 in 416ms :: {"isDuplicate":false,"dupli…
+5:06:23 PM [express] POST /api/contacts/check-duplicates 200 in 433ms :: {"isDuplicate":false,"dupli…
+5:06:23 PM [express] POST /api/contacts/check-duplicates 200 in 261ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 51ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 51ms
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:25 PM [express] POST /api/contacts/check-duplicates 200 in 208ms :: {"isDuplicate":false,"dupli…
+5:06:25 PM [express] POST /api/contacts/check-duplicates 200 in 202ms :: {"isDuplicate":false,"dupli…
+5:06:25 PM [express] POST /api/contacts/check-duplicates 200 in 198ms :: {"isDuplicate":false,"dupli…
+5:06:25 PM [express] POST /api/contacts/check-duplicates 200 in 227ms :: {"isDuplicate":false,"dupli…
+5:06:27 PM [express] GET /api/zapi/status 200 in 392ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:28 PM [express] POST /api/contacts/check-duplicates 200 in 232ms :: {"isDuplicate":false,"dupli…
+5:06:28 PM [express] GET /api/zapi/status 200 in 168ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 130ms
+✅ Verificação de duplicatas concluída em 100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 100ms
+5:06:29 PM [express] POST /api/contacts/check-duplicates 200 in 284ms :: {"isDuplicate":false,"dupli…
+5:06:29 PM [express] POST /api/contacts/check-duplicates 200 in 279ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 202ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 202ms
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+✅ Verificação de duplicatas concluída em 250ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 250ms
+5:06:29 PM [express] POST /api/contacts/check-duplicates 200 in 372ms :: {"isDuplicate":false,"dupli…
+5:06:29 PM [express] POST /api/contacts/check-duplicates 200 in 398ms :: {"isDuplicate":false,"dupli…
+5:06:29 PM [express] POST /api/contacts/check-duplicates 200 in 429ms :: {"isDuplicate":false,"dupli…
+5:06:29 PM [express] GET /api/zapi/status 200 in 155ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 67ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 67ms
+✅ Verificação de duplicatas concluída em 51ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 51ms
+✅ Verificação de duplicatas concluída em 50ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 50ms
+✅ Verificação de duplicatas concluída em 69ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 69ms
+✅ Verificação de duplicatas concluída em 85ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 85ms
+5:06:30 PM [express] POST /api/contacts/check-duplicates 200 in 230ms :: {"isDuplicate":false,"dupli…
+5:06:30 PM [express] POST /api/contacts/check-duplicates 200 in 219ms :: {"isDuplicate":false,"dupli…
+5:06:30 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":true,"duplic…
+5:06:30 PM [express] POST /api/contacts/check-duplicates 200 in 228ms :: {"isDuplicate":false,"dupli…
+5:06:30 PM [express] POST /api/contacts/check-duplicates 200 in 239ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 68ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 68ms
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 99ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+✅ Verificação de duplicatas concluída em 98ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 328ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 309ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 367ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 416ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 385ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 96ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 96ms
+✅ Verificação de duplicatas concluída em 100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 100ms
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 473ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 470ms :: {"isDuplicate":false,"dupli…
+5:06:31 PM [express] POST /api/contacts/check-duplicates 200 in 511ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 59ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 59ms
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+5:06:33 PM [express] POST /api/contacts/check-duplicates 200 in 232ms :: {"isDuplicate":false,"dupli…
+5:06:33 PM [express] POST /api/contacts/check-duplicates 200 in 237ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:34 PM [express] POST /api/contacts/check-duplicates 200 in 240ms :: {"isDuplicate":false,"dupli…
+5:06:34 PM [express] POST /api/contacts/check-duplicates 200 in 250ms :: {"isDuplicate":false,"dupli…
+5:06:34 PM [express] GET /api/zapi/status 200 in 151ms :: {"connected":true,"session":false,"created…
+5:06:36 PM [express] GET /api/notifications 200 in 153ms :: [{"id":1,"type":"message","title":"Nova …
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+5:06:36 PM [express] POST /api/contacts/check-duplicates 200 in 216ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 88ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 88ms
+✅ Verificação de duplicatas concluída em 85ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 85ms
+5:06:38 PM [express] POST /api/contacts/check-duplicates 200 in 476ms :: {"isDuplicate":false,"dupli…
+5:06:38 PM [express] POST /api/contacts/check-duplicates 200 in 476ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:40 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:41 PM [express] POST /api/contacts/check-duplicates 200 in 208ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 51ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 51ms
+✅ Verificação de duplicatas concluída em 56ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+5:06:42 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+5:06:42 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+5:06:44 PM [express] GET /api/zapi/status 200 in 397ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 63ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 63ms
+5:06:44 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+5:06:48 PM [express] GET /api/zapi/status 200 in 168ms :: {"connected":true,"session":false,"created…
+5:06:49 PM [express] GET /api/zapi/status 200 in 155ms :: {"connected":true,"session":false,"created…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 154ms
+5:06:49 PM [express] GET /api/conversations 500 in 154ms :: {"message":"Database error","error":"wit…
+5:06:49 PM [express] GET /api/user 304 in 154ms :: {"id":78,"email":"pedagogico@grupozayneducacional…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 58ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 58ms
+5:06:50 PM [express] POST /api/contacts/check-duplicates 200 in 221ms :: {"isDuplicate":false,"dupli…
+5:06:50 PM [express] POST /api/contacts/check-duplicates 200 in 235ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:06:50 PM [express] POST /api/contacts/check-duplicates 200 in 314ms :: {"isDuplicate":false,"dupli…
+5:06:51 PM [express] GET /api/zapi/status 200 in 208ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 63ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 63ms
+5:06:52 PM [express] POST /api/contacts/check-duplicates 200 in 302ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:53 PM [express] POST /api/contacts/check-duplicates 200 in 257ms :: {"isDuplicate":false,"dupli…
+5:06:53 PM [express] GET /api/zapi/status 200 in 156ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 63ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 63ms
+5:06:54 PM [express] POST /api/contacts/check-duplicates 200 in 221ms :: {"isDuplicate":false,"dupli…
+5:06:54 PM [express] GET /api/zapi/status 200 in 402ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:06:56 PM [express] POST /api/contacts/check-duplicates 200 in 217ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 167ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 167ms
+5:06:56 PM [express] POST /api/contacts/check-duplicates 200 in 321ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 297ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 297ms
+5:06:56 PM [express] POST /api/contacts/check-duplicates 200 in 450ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+5:06:57 PM [express] POST /api/contacts/check-duplicates 200 in 208ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:06:58 PM [express] POST /api/contacts/check-duplicates 200 in 205ms :: {"isDuplicate":false,"dupli…
+5:06:58 PM [express] POST /api/contacts/check-duplicates 200 in 218ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 62ms
+5:06:58 PM [express] POST /api/contacts/check-duplicates 200 in 227ms :: {"isDuplicate":false,"dupli…
+5:06:58 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+5:06:59 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+5:07:00 PM [express] GET /api/conversations 500 in 156ms :: {"message":"Database error","error":"wit…
+🚨 Server error 500: GET /api/conversations 500 in 156ms
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 62ms
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 208ms :: {"isDuplicate":false,"dupli…
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 217ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 169ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 170ms
+✅ Verificação de duplicatas concluída em 56ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 319ms :: {"isDuplicate":true,"duplic…
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 314ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 66ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 66ms
+5:07:01 PM [express] POST /api/contacts/check-duplicates 200 in 234ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 189ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 189ms
+✅ Verificação de duplicatas concluída em 188ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 188ms
+✅ Verificação de duplicatas concluída em 201ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 201ms
+✅ Verificação de duplicatas concluída em 599ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 601ms
+5:07:02 PM [express] POST /api/contacts/check-duplicates 200 in 891ms :: {"isDuplicate":false,"dupli…
+5:07:02 PM [express] POST /api/contacts/check-duplicates 200 in 910ms :: {"isDuplicate":false,"dupli…
+5:07:02 PM [express] POST /api/contacts/check-duplicates 200 in 983ms :: {"isDuplicate":false,"dupli…
+5:07:02 PM [express] POST /api/contacts/check-duplicates 200 in 1115ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+✅ Verificação de duplicatas concluída em 109ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 109ms
+✅ Verificação de duplicatas concluída em 109ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 109ms
+✅ Verificação de duplicatas concluída em 99ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+✅ Verificação de duplicatas concluída em 95ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 95ms
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1490ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 108ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 109ms
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1503ms :: {"isDuplicate":false,"dupl…
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1500ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 401ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 402ms
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1591ms :: {"isDuplicate":false,"dupl…
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 499ms :: {"isDuplicate":false,"dupli…
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 805ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 497ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 497ms
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1501ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 100ms
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 1800ms :: {"isDuplicate":false,"dupl…
+5:07:03 PM [express] POST /api/contacts/check-duplicates 200 in 401ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+⏰ Reutilizando verificação de duplicatas em andamento para 553799476692
+✅ Verificação de duplicatas concluída em 198ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 198ms
+✅ Verificação de duplicatas concluída em 197ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 197ms
+✅ Verificação de duplicatas concluída em 206ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 206ms
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 589ms :: {"isDuplicate":false,"dupli…
+5:07:04 PM [express] GET /api/zapi/status 200 in 488ms :: {"connected":true,"session":false,"created…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 494ms :: {"isDuplicate":false,"dupli…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 2180ms :: {"isDuplicate":false,"dupl…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 494ms :: {"isDuplicate":false,"dupli…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 595ms :: {"isDuplicate":false,"dupli…
+🔌 Nova conexão estabelecida com o banco
+✅ Verificação de duplicatas concluída em 66ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 66ms
+✅ Verificação de duplicatas concluída em 79ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 79ms
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 2012ms :: {"isDuplicate":false,"dupl…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 225ms :: {"isDuplicate":false,"dupli…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 235ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 56ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 209ms :: {"isDuplicate":false,"dupli…
+5:07:04 PM [express] POST /api/contacts/check-duplicates 200 in 207ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+✅ Verificação de duplicatas concluída em 71ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 71ms
+5:07:05 PM [express] POST /api/contacts/check-duplicates 200 in 209ms :: {"isDuplicate":false,"dupli…
+5:07:05 PM [express] POST /api/contacts/check-duplicates 200 in 229ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 64ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 64ms
+✅ Verificação de duplicatas concluída em 59ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 59ms
+5:07:05 PM [express] POST /api/contacts/check-duplicates 200 in 229ms :: {"isDuplicate":false,"dupli…
+5:07:05 PM [express] POST /api/contacts/check-duplicates 200 in 211ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 68ms - 2 duplicatas encontradas
+✅ Check duplicates concluído em 68ms
+5:07:06 PM [express] POST /api/contacts/check-duplicates 200 in 228ms :: {"isDuplicate":true,"duplic…
+✅ Verificação de duplicatas concluída em 61ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 61ms
+5:07:06 PM [express] POST /api/contacts/check-duplicates 200 in 229ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+✅ Verificação de duplicatas concluída em 59ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+5:07:06 PM [express] POST /api/contacts/check-duplicates 200 in 217ms :: {"isDuplicate":false,"dupli…
+5:07:06 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+5:07:06 PM [express] GET /api/notifications 200 in 161ms :: [{"id":1,"type":"message","title":"Nova …
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:07:07 PM [express] POST /api/contacts/check-duplicates 200 in 221ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 62ms
+5:07:07 PM [express] POST /api/contacts/check-duplicates 200 in 221ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+5:07:07 PM [express] POST /api/contacts/check-duplicates 200 in 214ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 61ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 61ms
+5:07:07 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 105ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 105ms
+✅ Verificação de duplicatas concluída em 101ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 101ms
+✅ Verificação de duplicatas concluída em 100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 100ms
+5:07:08 PM [express] POST /api/contacts/check-duplicates 200 in 277ms :: {"isDuplicate":false,"dupli…
+5:07:08 PM [express] POST /api/contacts/check-duplicates 200 in 263ms :: {"isDuplicate":false,"dupli…
+5:07:08 PM [express] POST /api/contacts/check-duplicates 200 in 268ms :: {"isDuplicate":true,"duplic…
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:07:08 PM [express] POST /api/contacts/check-duplicates 200 in 300ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+✅ Verificação de duplicatas concluída em 59ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 59ms
+5:07:09 PM [express] POST /api/contacts/check-duplicates 200 in 275ms :: {"isDuplicate":false,"dupli…
+5:07:09 PM [express] POST /api/contacts/check-duplicates 200 in 276ms :: {"isDuplicate":false,"dupli…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 153ms
+5:07:10 PM [express] GET /api/conversations 500 in 153ms :: {"message":"Database error","error":"wit…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+5:07:11 PM [express] POST /api/contacts/check-duplicates 200 in 209ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:07:13 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+⏰ Reutilizando verificação de duplicatas em andamento para 556499766050
+✅ Verificação de duplicatas concluída em 174ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 174ms
+5:07:13 PM [express] POST /api/contacts/check-duplicates 200 in 285ms :: {"isDuplicate":false,"dupli…
+5:07:13 PM [express] POST /api/contacts/check-duplicates 200 in 332ms :: {"isDuplicate":false,"dupli…
+5:07:14 PM [express] GET /api/zapi/status 200 in 398ms :: {"connected":true,"session":false,"created…
+🔍 Verificando status de 2 canais ativos
+[SESSION-MONITOR] Status: connected=true, session=false
+[SESSION-MONITOR] ⚠️  WhatsApp desconectado - QR Code necessário
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:07:16 PM [express] POST /api/contacts/check-duplicates 200 in 211ms :: {"isDuplicate":false,"dupli…
+5:07:18 PM [express] GET /api/zapi/status 200 in 168ms :: {"connected":true,"session":false,"created…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 153ms
+5:07:21 PM [express] GET /api/conversations 500 in 153ms :: {"message":"Database error","error":"wit…
+5:07:22 PM [express] GET /api/zapi/status 200 in 154ms :: {"connected":true,"session":false,"created…
+5:07:22 PM [express] GET /api/user 304 in 267ms :: {"id":45,"email":"miguelmourazayn@gmail.com","use…
+5:07:22 PM [express] GET /api/notifications 200 in 166ms :: [{"id":1,"type":"message","title":"Nova …
+✅ Verificação de duplicatas concluída em 65ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 66ms
+5:07:23 PM [express] POST /api/contacts/check-duplicates 200 in 238ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:07:23 PM [express] POST /api/contacts/check-duplicates 200 in 321ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 138ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 138ms
+5:07:23 PM [express] POST /api/contacts/check-duplicates 200 in 394ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 64ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 64ms
+5:07:23 PM [express] POST /api/contacts/check-duplicates 200 in 222ms :: {"isDuplicate":false,"dupli…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+📋 Limite ajustado de 100 para 30 mensagens (limite de segurança)
+🔄 Carregando 30 mensagens para conversa 1711
+🚨 Server error 500: GET /api/conversations 500 in 200ms
+5:07:24 PM [express] GET /api/conversations 500 in 200ms :: {"message":"Database error","error":"wit…
+5:07:24 PM [express] GET /api/contacts/8067/deals 304 in 231ms :: {"deals":[{"id":7910,"name":"Monal…
+✅ Mensagens carregadas em 166ms (30 itens)
+5:07:24 PM [express] GET /api/teams 304 in 336ms :: [{"id":5,"name":"Equipe Comercial","description"…
+5:07:24 PM [express] GET /api/conversations/1711/messages 200 in 363ms :: {"messages":[{"id":7654,"c…
+5:07:24 PM [express] GET /api/channels 200 in 351ms :: [{"id":2,"name":"Suporte","type":"whatsapp","…
+🔗 URL recebida: /api/proxy/whatsapp-image?url=https%3A%2F%2Fpps.wh...
+🔗 URL decodificada: /api/proxy/whatsapp-image?url=https://pps.whatsapp...
+❌ URL inválida após decodificação: TypeError: Invalid URL
+    at new URL (node:internal/url:818:25)
+    at file:///opt/render/project/src/dist/index.js:15659:9
+    at Layer.handle [as handle_request] (/opt/render/project/src/node_modules/express/lib/router/layer.js:95:5)
+    at next (/opt/render/project/src/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/opt/render/project/src/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/opt/render/project/src/node_modules/express/lib/router/layer.js:95:5)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/opt/render/project/src/node_modules/express/lib/router/index.js:346:12)
+    at next (/opt/render/project/src/node_modules/express/lib/router/index.js:280:10)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:646:15 {
+  code: 'ERR_INVALID_URL',
+  input: '/api/proxy/whatsapp-image?url=https://pps.whatsapp.net/v/t61.24694-24/462421059_582920674270911_5564372762469870137_n.jpg?ccb=11-4&oh=01_Q5Aa1wF1-rZIQ9faH04nQ3DK44_wXawR-ESLAdYKcGNdR4osHg&oe=6856AB22&_nc_sid=5e03e0&_nc_cat=101'
+}
+5:07:24 PM [express] GET /api/contacts/8067/notes 304 in 264ms :: []
+5:07:24 PM [express] GET /api/contacts/8067/avatar 200 in 233ms
+✅ Verificação de duplicatas concluída em 50ms - 3 duplicatas encontradas
+✅ Check duplicates concluído em 50ms
+5:07:24 PM [express] GET /api/proxy/whatsapp-image 304 in 278ms
+5:07:24 PM [express] POST /api/contacts/check-duplicates 200 in 201ms :: {"isDuplicate":true,"duplic…
+5:07:24 PM [express] GET /api/system-users 200 in 340ms :: [{"id":57,"username":"admin","displayName…
+5:07:24 PM [express] GET /api/quick-replies 200 in 309ms :: [{"id":102,"title":"Modelo Diploma - Mús…
+🔄 Carregando 30 mensagens para conversa 1711
+5:07:25 PM [express] GET /api/teams/5/users 200 in 299ms :: [{"id":29,"username":"elaine.cristina","…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:07:25 PM [express] GET /api/contacts/8067/notes 304 in 250ms :: []
+5:07:25 PM [express] POST /api/contacts/check-duplicates 200 in 256ms :: {"isDuplicate":false,"dupli…
+✅ Mensagens carregadas em 151ms (30 itens)
+5:07:25 PM [express] GET /api/zapi/status 200 in 500ms :: {"connected":true,"session":false,"created…
+5:07:25 PM [express] GET /api/system-users 304 in 209ms :: [{"id":57,"username":"admin","displayName…
+5:07:25 PM [express] GET /api/conversations/1711/messages 200 in 305ms :: {"messages":[{"id":7654,"c…
+🔗 URL recebida: https://pps.whatsapp.net/v/t61.24694-24/462421059_...
+🔗 URL decodificada: https://pps.whatsapp.net/v/t61.24694-24/462421059_...
+🖼️ Tentando carregar imagem WhatsApp: https://pps.whatsapp.net/v/t61.24694-24/462421059_582920674270911_5564372762469870137_n.jpg?ccb=11-4...
+🔄 Tentando estratégia: WhatsApp Web
+⚠️ URL WhatsApp expirada (403) com WhatsApp Web - parando tentativas
+5:07:26 PM [express] GET /api/proxy/whatsapp-image 304 in 376ms
+🔄 Carregando 30 mensagens para conversa 1711
+✅ Mensagens carregadas em 499ms (30 itens)
+5:07:26 PM [express] GET /api/conversations/1711/messages 200 in 708ms :: {"messages":[{"id":7654,"c…
+✅ Verificação de duplicatas concluída em 103ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 103ms
+5:07:26 PM [express] POST /api/contacts/check-duplicates 200 in 638ms :: {"isDuplicate":false,"dupli…
+5:07:26 PM [express] GET /api/user 304 in 209ms :: {"id":45,"email":"miguelmourazayn@gmail.com","use…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+✅ Verificação de duplicatas concluída em 56ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+✅ Verificação de duplicatas concluída em 58ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 58ms
+5:07:27 PM [express] POST /api/contacts/check-duplicates 200 in 215ms :: {"isDuplicate":false,"dupli…
+5:07:27 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+5:07:27 PM [express] POST /api/contacts/check-duplicates 200 in 214ms :: {"isDuplicate":false,"dupli…
+5:07:27 PM [express] GET /api/zapi/status 200 in 149ms :: {"connected":true,"session":false,"created…
+5:07:28 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+✅ Verificação de duplicatas concluída em 58ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 58ms
+5:07:29 PM [express] POST /api/contacts/check-duplicates 200 in 216ms :: {"isDuplicate":false,"dupli…
+5:07:29 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+5:07:29 PM [express] POST /api/contacts/check-duplicates 200 in 213ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 58ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 58ms
+5:07:30 PM [express] POST /api/contacts/check-duplicates 200 in 209ms :: {"isDuplicate":false,"dupli…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 169ms
+5:07:31 PM [express] GET /api/conversations 500 in 169ms :: {"message":"Database error","error":"wit…
+🔍 STORAGE - Filtros: undefined
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+5:07:32 PM [express] GET /api/contacts/8067/notes 304 in 219ms :: []
+🚨 Server error 500: GET /api/conversations 500 in 159ms
+5:07:32 PM [express] GET /api/conversations 500 in 159ms :: {"message":"Database error","error":"wit…
+5:07:32 PM [express] GET /api/contacts/8067/deals 304 in 243ms :: {"deals":[{"id":7910,"name":"Monal…
+✅ Verificação de duplicatas concluída em 51ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 51ms
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 62ms
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:07:32 PM [express] POST /api/contacts/check-duplicates 200 in 217ms :: {"isDuplicate":false,"dupli…
+5:07:32 PM [express] POST /api/contacts/check-duplicates 200 in 222ms :: {"isDuplicate":false,"dupli…
+5:07:32 PM [express] POST /api/contacts/check-duplicates 200 in 248ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 57ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 57ms
+✅ Verificação de duplicatas concluída em 180ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 180ms
+5:07:32 PM [express] POST /api/contacts/check-duplicates 200 in 207ms :: {"isDuplicate":true,"duplic…
+5:07:32 PM [express] POST /api/contacts/check-duplicates 200 in 374ms :: {"isDuplicate":false,"dupli…
+5:07:32 PM [express] GET /api/contacts/8067/notes 304 in 214ms :: []
+5:07:32 PM [express] GET /api/contacts/8067/avatar 304 in 233ms
+🔄 Carregando 30 mensagens para conversa 1711
+✅ Mensagens carregadas em 175ms (30 itens)
+5:07:32 PM [express] GET /api/conversations/1711/messages 200 in 348ms :: {"messages":[{"id":7654,"c…
+5:07:33 PM [express] GET /api/zapi/status 200 in 229ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+5:07:33 PM [express] POST /api/contacts/check-duplicates 200 in 204ms :: {"isDuplicate":false,"dupli…
+5:07:34 PM [express] GET /api/system-users 200 in 206ms :: [{"id":57,"username":"admin","displayName…
+5:07:34 PM [express] GET /api/teams 200 in 227ms :: [{"id":5,"name":"Equipe Comercial","description"…
+✅ Verificação de duplicatas concluída em 101ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 101ms
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 328ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 315ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 315ms
+✅ Verificação de duplicatas concluída em 297ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 297ms
+✅ Verificação de duplicatas concluída em 301ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 301ms
+✅ Verificação de duplicatas concluída em 295ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 295ms
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 621ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 608ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 633ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 615ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 611ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+✅ Verificação de duplicatas concluída em 92ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 92ms
+✅ Verificação de duplicatas concluída em 94ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 94ms
+✅ Verificação de duplicatas concluída em 97ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 98ms
+✅ Verificação de duplicatas concluída em 93ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 93ms
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 712ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 747ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 752ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 560ms :: {"isDuplicate":false,"dupli…
+5:07:35 PM [express] POST /api/contacts/check-duplicates 200 in 795ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+5:07:36 PM [express] POST /api/contacts/check-duplicates 200 in 996ms :: {"isDuplicate":false,"dupli…
+5:07:36 PM [express] POST /api/contacts/check-duplicates 200 in 1016ms :: {"isDuplicate":false,"dupl…
+5:07:37 PM [express] GET /api/notifications 200 in 174ms :: [{"id":1,"type":"message","title":"Nova …
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 57ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 57ms
+5:07:38 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+5:07:38 PM [express] POST /api/contacts/check-duplicates 200 in 212ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 55ms
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+5:07:39 PM [express] POST /api/contacts/check-duplicates 200 in 205ms :: {"isDuplicate":false,"dupli…
+5:07:39 PM [express] POST /api/contacts/check-duplicates 200 in 218ms :: {"isDuplicate":false,"dupli…
+5:07:39 PM [express] POST /api/contacts/check-duplicates 200 in 201ms :: {"isDuplicate":false,"dupli…
+5:07:40 PM [express] GET /api/zapi/status 200 in 407ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 54ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 54ms
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 62ms
+5:07:41 PM [express] POST /api/contacts/check-duplicates 200 in 281ms :: {"isDuplicate":false,"dupli…
+5:07:41 PM [express] POST /api/contacts/check-duplicates 200 in 276ms :: {"isDuplicate":false,"dupli…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 151ms
+5:07:42 PM [express] GET /api/conversations 500 in 151ms :: {"message":"Database error","error":"wit…
+Erro na busca de conversas: ReferenceError: withRetry is not defined
+    at ConversationListOperations.getConversations (file:///opt/render/project/src/dist/index.js:2505:35)
+    at ConversationStorage.getConversations (file:///opt/render/project/src/dist/index.js:3117:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/dist/index.js:18024:24
+🚨 Server error 500: GET /api/conversations 500 in 152ms
+5:07:42 PM [express] GET /api/conversations 500 in 152ms :: {"message":"Database error","error":"wit…
+5:07:42 PM [express] GET /api/contacts/8067/avatar 304 in 153ms
+🔄 Carregando 30 mensagens para conversa 1711
+✅ Mensagens carregadas em 162ms (30 itens)
+5:07:43 PM [express] GET /api/conversations/1711/messages 200 in 317ms :: {"messages":[{"id":7654,"c…
+5:07:43 PM [express] GET /api/zapi/status 200 in 181ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 60ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 60ms
+5:07:44 PM [express] POST /api/contacts/check-duplicates 200 in 225ms :: {"isDuplicate":false,"dupli…
+⏰ Reutilizando verificação de duplicatas em andamento para 556499766050
+5:07:44 PM [express] POST /api/contacts/check-duplicates 200 in 161ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 62ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 63ms
+5:07:44 PM [express] POST /api/contacts/check-duplicates 200 in 229ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 52ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 52ms
+5:07:45 PM [express] POST /api/contacts/check-duplicates 200 in 206ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+5:07:47 PM [express] POST /api/contacts/check-duplicates 200 in 200ms :: {"isDuplicate":false,"dupli…
+5:07:48 PM [express] GET /api/zapi/status 200 in 150ms :: {"connected":true,"session":false,"created…
+5:07:48 PM [express] GET /api/zapi/status 200 in 149ms :: {"connected":true,"session":false,"created…
