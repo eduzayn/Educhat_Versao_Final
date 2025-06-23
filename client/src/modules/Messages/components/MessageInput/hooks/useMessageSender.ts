@@ -252,5 +252,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
     sendFile,
     sendLink,
     sendAudio,
+    uploadFile: sendFile, // Alias para compatibilidade
+    shareLink: sendLink,  // Alias para compatibilidade
   };
 }
