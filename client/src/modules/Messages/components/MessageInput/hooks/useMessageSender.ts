@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useToast } from '@/shared/lib/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useSendMessage } from '@/shared/lib/hooks/useMessages';
-import { useChatStore } from '@/shared/store/chatStore';
-import { useSendAudioMessage } from '@/shared/lib/hooks/useAudioMessage';
+import { useQueryClient } from '@tanstack/react-query';
+import { useChatStore } from '@shared/lib/store/useChatStore';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@shared/lib/queryClient';
 
 interface UseMessageSenderProps {
   conversationId: number;
@@ -13,9 +12,8 @@ interface UseMessageSenderProps {
 export function useMessageSender({ conversationId, onSendMessage }: UseMessageSenderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const sendMessageMutation = useSendMessage();
   const { activeConversation } = useChatStore();
-  const sendAudioMutation = useSendAudioMessage();
+  const queryClient = useQueryClient();
 
   const notifySuccess = (title: string, description: string) => {
     toast({ title, description });
@@ -28,62 +26,11 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
   const sendTextMessage = async (content: string, isInternalNote = false) => {
     if (!content.trim()) return false;
-    
-    // BENCHMARK: Iniciar cronômetro para medir ENTER → Bubble
-    const startTime = performance.now();
-    
-    // RENDERIZAÇÃO INSTANTÂNEA: Criar ID único para mensagem otimística (usando timestamp negativo para evitar conflitos)
-    const optimisticId = -Date.now();
-    
-    // Criar mensagem otimística para renderização imediata
-    const optimisticMessage = {
-      id: optimisticId,
-      conversationId,
-      content: content.trim(),
-      messageType: 'text' as const,
-      isFromContact: false,
-      sentAt: new Date(),
-      deliveredAt: null,
-      readAt: null,
-      whatsappMessageId: null,
-      zapiStatus: 'PENDING',
-      isGroup: false,
-      referenceMessageId: null,
-      isDeleted: false,
-      metadata: null,
-      isInternalNote,
-      authorId: null,
-      authorName: null,
-      noteType: 'general' as const,
-      notePriority: 'normal' as const,
-      noteTags: null,
-      isPrivate: false,
-      isHiddenForUser: false,
-      isDeletedByUser: false,
-      deletedAt: null,
-      deletedBy: null,
-      // Status otimista para UI
-      status: 'sending' as const
-    };
 
-    // ATUALIZAÇÃO IMEDIATA DO CACHE - Bubble aparece instantaneamente
-    queryClient.setQueryData(
-      ['/api/conversations', conversationId, 'messages'],
-      (oldMessages: any[] | undefined) => {
-        const messages = oldMessages || [];
-        const updatedMessages = [...messages, optimisticMessage];
-        
-        // FINALIZAR BENCHMARK
-        const renderTime = performance.now() - startTime;
-        console.log(`🎯 RENDERIZAÇÃO OTIMISTA: ENTER → Bubble em ${renderTime.toFixed(1)}ms (Target Chatwoot: <50ms)`);
-        
-        return updatedMessages;
-      }
-    );
-
-    // PROCESSAMENTO EM BACKGROUND: Salvar no banco via WebSocket se possível
     try {
-      // SOCKET-FIRST: Tentar envio via WebSocket para tempo real
+      // Sistema simplificado: WebSocket primeiro, REST como fallback
+      
+      // PRIMEIRO: Tentar WebSocket para máxima velocidade
       if ((window as any).socketInstance?.connected) {
         console.log('📡 SOCKET-FIRST: Enviando mensagem via WebSocket');
         
@@ -93,20 +40,12 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
             resolve(false); // Trigger fallback
           }, 3000);
 
-          // MELHORIA 1: Listener otimizado para confirmação rápida
-          const handleMessageReceived = (data: any) => {
-            if (data.optimisticId === optimisticId && data.status === 'processing') {
-              console.log('⚡ SOCKET-FIRST: Mensagem aceita para processamento');
-            }
-          };
-
-          // Listener para sucesso via broadcast_message
+          // Listener para sucesso via broadcast
           const handleBroadcast = (data: any) => {
-            if (data.type === 'new_message' && data.optimisticId === optimisticId) {
+            if (data.message?.content === content.trim() && data.conversationId === conversationId) {
               clearTimeout(timeout);
               (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
               (window as any).socketInstance?.off('message_error', handleError);
-              (window as any).socketInstance?.off('message_received', handleMessageReceived);
               console.log('✅ SOCKET-FIRST: Mensagem confirmada via WebSocket');
               resolve(true);
             }
@@ -114,22 +53,18 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
           // Listener para erro
           const handleError = (errorData: any) => {
-            if (errorData.optimisticId === optimisticId) {
-              clearTimeout(timeout);
-              (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
-              (window as any).socketInstance?.off('message_error', handleError);
-              (window as any).socketInstance?.off('message_received', handleMessageReceived);
-              console.error('❌ Erro confirmado via WebSocket:', errorData);
-              reject(new Error(errorData.message || 'Erro ao enviar mensagem'));
-            }
+            clearTimeout(timeout);
+            (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
+            (window as any).socketInstance?.off('message_error', handleError);
+            console.error('❌ Erro confirmado via WebSocket:', errorData);
+            reject(new Error(errorData.message || 'Erro ao enviar mensagem'));
           };
 
           // Registrar listeners
-          (window as any).socketInstance.on('message_received', handleMessageReceived);
           (window as any).socketInstance.on('broadcast_message', handleBroadcast);
           (window as any).socketInstance.on('message_error', handleError);
           
-          console.log(`📤 [PROD-AUDIT] SOCKET-SEND: Enviando mensagem ${optimisticId} via WebSocket`);
+          console.log(`📤 [PROD-AUDIT] SOCKET-SEND: Enviando mensagem via WebSocket`);
           
           // Emitir mensagem via WebSocket
           (window as any).socketInstance.emit('send_message', {
@@ -137,8 +72,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
             content: content.trim(),
             messageType: 'text',
             isFromContact: false,
-            isInternalNote,
-            optimisticId
+            isInternalNote
           });
         }).catch(error => {
           console.error('❌ Erro no WebSocket, usando fallback:', error);
@@ -153,31 +87,32 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
       // FALLBACK: Se WebSocket não disponível ou falhou, usar REST API
       console.log('📡 FALLBACK: WebSocket não disponível, usando REST API');
-      const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
-        content: content.trim(),
-        messageType: 'text',
-        isFromContact: false,
-        isInternalNote,
-      });
-      
-      // Verificar se response é válido antes de chamar .json()
-      if (!response || typeof response.json !== 'function') {
-        throw new Error('Resposta inválida do servidor');
-      }
-      
-      const realMessage = await response.json();
-
-      // Substituir mensagem otimística pela real
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (oldMessages: any[] | undefined) => {
-          if (!oldMessages) return [realMessage];
-          
-          return oldMessages.map(msg => 
-            msg.id === optimisticId ? { ...realMessage, status: 'sent' } : msg
-          );
+      try {
+        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
+          content: content.trim(),
+          messageType: 'text',
+          isFromContact: false,
+          isInternalNote,
+        });
+        
+        // Verificar se response é um Response válido
+        if (!response || !response.ok) {
+          throw new Error(`Erro HTTP: ${response?.status || 'Resposta inválida'}`);
         }
-      );
+        
+        const realMessage = await response.json();
+        console.log('📥 Resposta do servidor:', realMessage);
+        
+        // Sistema simplificado: Apenas refetch das mensagens após sucesso
+        queryClient.invalidateQueries({
+          queryKey: ['/api/conversations', conversationId, 'messages']
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Erro no fallback REST:', error);
+        throw new Error(`Falha ao enviar mensagem: ${error.message}`);
+      }
 
       // Z-API em background apenas para mensagens não internas
       if (!isInternalNote && activeConversation?.contact?.phone) {
@@ -194,85 +129,80 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
       return true;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      
-      // ROLLBACK: Marcar mensagem otimística como erro
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (oldMessages: any[] | undefined) => {
-          if (!oldMessages) return [];
-          return oldMessages.map(msg => 
-            msg.id === optimisticId 
-              ? { ...msg, status: 'error', content: `❌ ${msg.content}` }
-              : msg
-          );
-        }
-      );
-      
-      notifyError('Erro ao enviar', 'Não foi possível enviar a mensagem. Tente novamente.');
+      notifyError('Erro ao enviar mensagem', error.message || 'Tente novamente.');
       return false;
     }
   };
 
-  const uploadFile = async (file: File, caption?: string) => {
-    setIsUploading(true);
+  const sendFile = async (file: File, messageType: 'image' | 'document' | 'audio' = 'document') => {
+    if (!file) return false;
+
     try {
+      setIsUploading(true);
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('conversationId', conversationId.toString());
-      if (caption) formData.append('caption', caption);
+      formData.append('messageType', messageType);
 
-      const response = await fetch('/api/messages/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Falha no upload do arquivo');
+      if (!response.ok) {
+        throw new Error('Erro no upload do arquivo');
+      }
 
+      const result = await response.json();
+      
+      // Invalidar queries para recarregar mensagens
       queryClient.invalidateQueries({
-        queryKey: ['/api/conversations', conversationId, 'messages'],
+        queryKey: ['/api/conversations', conversationId, 'messages']
       });
+
       notifySuccess('Arquivo enviado', 'Seu arquivo foi enviado com sucesso.');
       return true;
     } catch (error) {
-      console.error('Erro no upload:', error);
-      notifyError('Erro no upload', 'Não foi possível enviar o arquivo. Tente novamente.');
+      console.error('Erro ao enviar arquivo:', error);
+      notifyError('Erro ao enviar arquivo', 'Não foi possível enviar o arquivo. Tente novamente.');
       return false;
     } finally {
       setIsUploading(false);
     }
   };
 
-  const shareLink = async (url: string, caption?: string) => {
+  const sendLink = async (url: string, description?: string) => {
     try {
-      const content = caption ? `${caption}\n\n${url}` : url;
-      await sendMessageMutation.mutateAsync({
-        conversationId,
-        message: {
-          content,
-          messageType: 'text',
-          isFromContact: false,
-        },
-        contact: activeConversation?.contact
-      });
-
-      // notifySuccess('Link compartilhado', 'Seu link foi compartilhado com sucesso.');
-      return true;
+      const content = description ? `${description}\n${url}` : url;
+      return await sendTextMessage(content);
     } catch (error) {
-      console.error('Erro ao compartilhar link:', error);
-      notifyError('Erro ao compartilhar', 'Não foi possível compartilhar o link. Tente novamente.');
+      console.error('Erro ao enviar link:', error);
+      notifyError('Erro ao enviar link', 'Não foi possível enviar o link. Tente novamente.');
       return false;
     }
   };
 
   const sendAudio = async (audioBlob: Blob, duration: number) => {
     try {
-      await sendAudioMutation.mutateAsync({
-        conversationId,
-        audioBlob,
-        duration,
-        contact: activeConversation?.contact
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('conversationId', conversationId.toString());
+      formData.append('duration', duration.toString());
+
+      const response = await fetch('/api/upload/audio', {
+        method: 'POST',
+        body: formData,
       });
-      // notifySuccess('Áudio enviado', 'Sua mensagem de áudio foi enviada com sucesso.');
+
+      if (!response.ok) {
+        throw new Error('Erro no upload do áudio');
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ['/api/conversations', conversationId, 'messages']
+      });
+
       return true;
     } catch (error) {
       console.error('Erro ao enviar áudio:', error);
@@ -282,11 +212,11 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   };
 
   return {
-    isLoading: sendMessageMutation.isPending || sendAudioMutation.isPending,
+    isLoading: false,
     isUploading,
     sendTextMessage,
-    uploadFile,
-    shareLink,
+    sendFile,
+    sendLink,
     sendAudio,
   };
 }
