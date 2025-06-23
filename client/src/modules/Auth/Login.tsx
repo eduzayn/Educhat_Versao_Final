@@ -35,7 +35,7 @@ export function Login() {
 
     try {
       const response = await apiRequest('POST', '/api/auth/login', loginData);
-      const user = await response.json();
+      const user = response;
       
       // Invalidar cache de autenticação para forçar refresh do estado
       await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
@@ -90,7 +90,7 @@ export function Login() {
         email: registerData.email,
         password: registerData.password,
       });
-      const user = await response.json();
+      const user = response;
       
       // Invalidar cache de autenticação para forçar refresh do estado
       await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
