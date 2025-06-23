@@ -173,7 +173,7 @@ export function registerContactRoutes(app: Express) {
       console.log(`[DELETE][Contact] Contato ${contactId} excluído com sucesso`);
       res.json({ success: true, message: 'Contato excluído com sucesso' });
     } catch (error) {
-      console.error(`[DELETE][Contact] Erro ao deletar contato ${contactId}:`, error);
+      console.error(`[DELETE][Contact] Erro ao deletar contato ${req.params.id}:`, error);
       
       // Retornar status code apropriado baseado no tipo de erro
       if (error instanceof Error) {
