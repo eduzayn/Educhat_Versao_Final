@@ -13,14 +13,13 @@ export function registerProductivityRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const conversations = await storage.getConversations(1000, 0);
+      // Para BI, buscar conversas diretamente sem limitações de performance
+      const allConversations = await storage.conversation.getConversationsForBI(days);
       const messages = await storage.getAllMessages();
       const users = await storage.getAllUsers();
 
-      // Filtrar por período
-      const periodConversations = conversations.filter(c => 
-        c.createdAt && new Date(c.createdAt) >= startDate
-      );
+      // Conversas já filtradas por período no método BI
+      const periodConversations = allConversations;
       const periodMessages = messages.filter(m => 
         m.sentAt && new Date(m.sentAt) >= startDate && !m.isFromContact
       );

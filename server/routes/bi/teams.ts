@@ -14,13 +14,10 @@ export function registerTeamRoutes(app: Express) {
       startDate.setDate(startDate.getDate() - days);
 
       const teams = await storage.getTeams();
-      const conversations = await storage.getConversations(1000, 0);
+      const allConversations = await storage.conversation.getConversationsForBI(days);
       const users = await storage.getAllUsers();
 
-      // Filtrar por período
-      const periodConversations = conversations.filter(c => 
-        c.createdAt && new Date(c.createdAt) >= startDate
-      );
+      const periodConversations = allConversations;
 
       // Dados por equipe
       const teamStats: BITeamStats[] = await Promise.all(teams.map(async (team: Team) => {

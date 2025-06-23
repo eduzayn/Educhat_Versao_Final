@@ -13,7 +13,7 @@ export function registerDashboardRoutes(app: Express) {
       startDate.setDate(startDate.getDate() - days);
 
       // Buscar dados de conversas, mensagens e negócios
-      const conversations = await storage.getConversations(1000, 0);
+      const conversations = await storage.getConversations(5000, 0);
       const messages = await storage.getAllMessages();
       const deals = await storage.getDeals();
 

@@ -12,7 +12,7 @@ export function registerReportRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const conversations = await storage.getConversations(1000, 0);
+      const conversations = await storage.getConversations(5000, 0);
       const messages = await storage.getAllMessages();
       const deals = await storage.getDeals();
       const channels = await storage.getChannels();
