@@ -2,8 +2,6 @@ import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { BIKPIResponse } from './types';
-import { conversations } from '@shared/schema';
-import { gte } from 'drizzle-orm';
 
 export function registerKPIRoutes(app: Express) {
   // KPIs do Dashboard - REST: GET /api/bi/kpis
@@ -14,20 +12,11 @@ export function registerKPIRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados reais diretamente do banco para BI
-      const { db } = await import('../../core/db');
-      const { conversations: conversationsTable } = await import('@shared/schema');
-      const conversationsData = await db
-        .select({
-          id: conversationsTable.id,
-          contactId: conversationsTable.contactId,
-          assignedUserId: conversationsTable.assignedUserId,
-          status: conversationsTable.status,
-          createdAt: conversationsTable.createdAt,
-          lastMessageAt: conversationsTable.lastMessageAt
-        })
-        .from(conversationsTable)
-        .where(gte(conversationsTable.createdAt, startDate));
+      // Buscar dados reais sem limitação artificial de 75 itens
+      const allConversations = await storage.getConversations(10000, 0);
+      const conversationsData = allConversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
       const allContacts = await storage.searchContacts('');
       const allDeals = await storage.getDeals();
 

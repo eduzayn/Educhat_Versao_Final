@@ -18,9 +18,8 @@ export class ConversationListOperations extends BaseStorage {
     console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
     
-    // Otimização direta para reduzir 800ms-1200ms identificado nos logs de produção
-    // Limitar resultados pesados quando sem filtros específicos
-    const optimizedLimit = (!filters || Object.keys(filters).length === 0) ? Math.min(limit, 75) : limit;
+    // Para BI, permitir busca de todas as conversas quando necessário
+    const optimizedLimit = (limit >= 5000) ? limit : ((!filters || Object.keys(filters).length === 0) ? Math.min(limit, 75) : limit);
     
     // Cache inteligente para requisições sem filtros (evita reprocessamento constante)
     const cacheKey = `conversations_${optimizedLimit}_${offset}_${JSON.stringify(filters || {})}`;

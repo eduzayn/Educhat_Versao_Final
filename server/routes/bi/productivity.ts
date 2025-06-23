@@ -3,8 +3,6 @@ import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { BIUserStats, BIUserResponse, BIDailyActivity } from './types';
 import { User } from '../../types/user';
-import { conversations } from '@shared/schema';
-import { gte } from 'drizzle-orm';
 
 export function registerProductivityRoutes(app: Express) {
   // Produtividade Individual - REST: GET /api/bi/productivity
@@ -15,18 +13,11 @@ export function registerProductivityRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar conversas diretamente do storage sem limitações de 75 itens
-      const { db } = await import('../../core/db');
-      const { conversations: conversationsTable } = await import('@shared/schema');
-      const allConversations = await db
-        .select({
-          id: conversationsTable.id,
-          contactId: conversationsTable.contactId,
-          assignedUserId: conversationsTable.assignedUserId,
-          createdAt: conversationsTable.createdAt
-        })
-        .from(conversationsTable)
-        .where(gte(conversationsTable.createdAt, startDate));
+      // Buscar todas as conversas usando storage sem limitação artificial
+      const conversations = await storage.getConversations(10000, 0);
+      const allConversations = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
       const messages = await storage.getAllMessages();
       const users = await storage.getAllUsers();
 

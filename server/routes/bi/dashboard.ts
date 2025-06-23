@@ -2,8 +2,6 @@ import { Express, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/permissions';
 import { storage } from "../../storage/index";
 import { BIDashboardResponse, BIChannelData, BIDailyTrend } from './types';
-import { conversations } from '@shared/schema';
-import { gte } from 'drizzle-orm';
 
 export function registerDashboardRoutes(app: Express) {
   // Dashboard Estratégico - REST: GET /api/bi/dashboard
@@ -14,18 +12,11 @@ export function registerDashboardRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados diretamente do banco para incluir todas as conversas
-      const { db } = await import('../../core/db');
-      const { conversations: conversationsTable } = await import('@shared/schema');
-      const conversationsData = await db
-        .select({
-          id: conversationsTable.id,
-          createdAt: conversationsTable.createdAt,
-          lastMessageAt: conversationsTable.lastMessageAt,
-          channel: conversationsTable.channel
-        })
-        .from(conversationsTable)
-        .where(gte(conversationsTable.createdAt, startDate));
+      // Buscar dados sem limitação artificial
+      const conversations = await storage.getConversations(10000, 0);
+      const conversationsData = conversations.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= startDate
+      );
       const messages = await storage.getAllMessages();
       const deals = await storage.getDeals();
 
