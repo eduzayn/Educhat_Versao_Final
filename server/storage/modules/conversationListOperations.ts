@@ -24,6 +24,9 @@ export class ConversationListOperations extends BaseStorage {
       return cached;
     }
     
+    // Usar limite real solicitado
+    const optimizedLimit = limit;
+    
     // Reduzir logging verboso
     if (Math.random() < 0.1) { // Log apenas 10% das requests
       console.log(`🔍 STORAGE - Filtros:`, filters);
