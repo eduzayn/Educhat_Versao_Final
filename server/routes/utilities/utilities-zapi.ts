@@ -401,7 +401,7 @@ export function registerZApiRoutes(app: Express) {
       }
 
       const { instanceId, token, clientToken } = credentials;
-      const cleanPhone = phone.replace(/\D/g, '');
+      const cleanPhone = targetPhone.replace(/\D/g, '');
 
       // Converter áudio para base64
       let audioBase64;
