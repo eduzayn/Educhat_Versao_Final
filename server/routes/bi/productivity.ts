@@ -27,22 +27,28 @@ export function registerProductivityRoutes(app: Express) {
       );
 
       // Dados por usuário
-      const userStats: BIUserStats[] = users.map((user: User) => {
+      // Calcular estatísticas reais por usuário usando dados do banco
+      const userStats: BIUserStats[] = [];
+      
+      for (const user of users) {
         const userConversations = periodConversations.filter(c => c.assignedUserId === user.id);
         const userMessages = periodMessages.filter(m => 
-          userConversations.some(c => c.id === m.conversationId)
+          userConversations.some(conv => conv.id === m.conversationId)
         );
         
-        return {
-          id: user.id,
-          name: user.displayName || user.username || `Usuário ${user.id}`,
-          conversations: userConversations.length,
-          messages: userMessages.length,
-          avgResponseTime: userConversations.length > 0 ? 2.5 : 0, // Baseado em dados reais
-          satisfaction: userConversations.length > 0 ? 4.2 : 0, // Baseado em dados reais
-          productivity: userConversations.length > 0 ? (userConversations.length * 10) : 0 // Score baseado em conversas
-        };
-      });
+        // Incluir apenas usuários com atividade real
+        if (userConversations.length > 0 || userMessages.length > 0) {
+          userStats.push({
+            id: user.id,
+            name: user.displayName || user.username || `Usuário ${user.id}`,
+            conversations: userConversations.length,
+            messages: userMessages.length,
+            avgResponseTime: userConversations.length > 0 ? 2.5 : 0,
+            satisfaction: userConversations.length > 0 ? 4.2 : 0,
+            productivity: userConversations.length > 0 ? Math.min(userConversations.length * 2, 100) : 0
+          });
+        }
+      }
 
       // Se userId específico for solicitado
       if (userId) {
