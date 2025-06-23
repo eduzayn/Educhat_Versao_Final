@@ -216,8 +216,8 @@ export function useWebSocket() {
             }
           );
           
-          // SOCKET-FIRST: NÃO invalidar queries - usar apenas WebSocket updates
-          // queryClient.invalidateQueries({ queryKey: ['/api/conversations', data.conversationId, 'messages'] });
+          // GARANTIA ANTI-DESAPARECIMENTO: Nunca invalidar queries após WebSocket updates
+          // Mensagens devem persistir no cache uma vez adicionadas
           
           // Atualizar store local
           addMessage(data.conversationId, data.message);

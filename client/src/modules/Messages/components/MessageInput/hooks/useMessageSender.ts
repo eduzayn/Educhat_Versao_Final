@@ -44,6 +44,20 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
               clearTimeout(timeout);
               (window as any).socketInstance?.off('broadcast_message', handleBroadcast);
               (window as any).socketInstance?.off('message_error', handleError);
+              
+              // GARANTIR que a mensagem está no cache
+              queryClient.setQueryData(
+                ['/api/conversations', conversationId, 'messages'],
+                (oldMessages: any[] | undefined) => {
+                  if (!oldMessages) return [data.message];
+                  
+                  const exists = oldMessages.some(msg => msg.id === data.message.id);
+                  if (exists) return oldMessages;
+                  
+                  return [...oldMessages, data.message];
+                }
+              );
+              
               console.log('✅ SOCKET-FIRST: Mensagem confirmada via WebSocket');
               resolve(true);
             }
@@ -101,10 +115,41 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         const realMessage = await response.json();
         console.log('📥 Resposta do servidor:', realMessage);
         
-        // Sistema simplificado: Apenas refetch das mensagens após sucesso
-        queryClient.invalidateQueries({
-          queryKey: ['/api/conversations', conversationId, 'messages']
-        });
+        // CORREÇÃO CRÍTICA: Adicionar mensagem diretamente no cache ao invés de invalidar
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages'],
+          (oldMessages: any[] | undefined) => {
+            if (!oldMessages) return [realMessage];
+            
+            // Verificar se mensagem já existe
+            const exists = oldMessages.some(msg => msg.id === realMessage.id);
+            if (exists) return oldMessages;
+            
+            // Adicionar nova mensagem ao final mantendo ordem cronológica
+            return [...oldMessages, realMessage];
+          }
+        );
+        
+        // Também atualizar cache de mensagens infinitas se existir
+        queryClient.setQueryData(
+          ['/api/conversations', conversationId, 'messages', 'infinite'],
+          (oldData: any) => {
+            if (!oldData?.pages) return oldData;
+            
+            const updatedPages = [...oldData.pages];
+            if (updatedPages[0]) {
+              const firstPage = updatedPages[0];
+              const exists = firstPage.messages.some((msg: any) => msg.id === realMessage.id);
+              
+              if (!exists) {
+                const updatedMessages = [...firstPage.messages, realMessage];
+                updatedPages[0] = { ...firstPage, messages: updatedMessages };
+              }
+            }
+            
+            return { ...oldData, pages: updatedPages };
+          }
+        );
         
         return true;
       } catch (error) {
