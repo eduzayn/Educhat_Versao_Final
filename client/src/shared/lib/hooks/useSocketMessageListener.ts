@@ -26,18 +26,26 @@ export function useSocketMessageListener(conversationId: number | null) {
     if (!socket) return;
 
     const handleBroadcastMessage = (data: SocketMessageData) => {
-      // CORREÇÃO CRÍTICA: Evitar processamento duplicado mas permitir atualizações legítimas
+      // CORREÇÃO CRÍTICA: Sistema inteligente de deduplicação
       const messageKey = `${data.message.id}_${data.conversationId}`;
-      
-      // Permitir reprocessamento se for uma mensagem com ID temporário sendo substituída
       const isOptimisticUpdate = data.optimisticId && data.message.id > 0;
+      const isGlobalFallback = data.fallbackBroadcast === true;
       
-      if (processedMessages.current.has(messageKey) && !isOptimisticUpdate) {
+      // Permitir reprocessamento para:
+      // 1. Atualizações otimistas (ID temporário sendo substituído)
+      // 2. Fallback global (quando sala estava vazia)
+      if (processedMessages.current.has(messageKey) && !isOptimisticUpdate && !isGlobalFallback) {
         console.log(`⏩ Mensagem ${messageKey} já processada, ignorando duplicata`);
         return;
       }
       
       processedMessages.current.add(messageKey);
+      
+      console.log(`📡 Processando mensagem ${data.message.id} para conversa ${data.conversationId}`, {
+        isOptimisticUpdate,
+        isGlobalFallback,
+        deliveryMethod: data.deliveryMethod || 'unknown'
+      });
 
       // Limpar cache antigas (manter apenas últimas 100)
       if (processedMessages.current.size > 100) {

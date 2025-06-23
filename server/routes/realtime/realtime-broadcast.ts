@@ -53,7 +53,8 @@ export function broadcast(conversationId: number, data: any) {
       type: data.type,
       room: roomName,
       clientCount,
-      method: clientCount > 0 ? 'room-specific' : 'global-fallback'
+      method: clientCount > 0 ? 'room-and-global' : 'global-only',
+      messageId: data.message?.id || 'no-id'
     });
     
   } catch (error) {

@@ -194,9 +194,17 @@ export function useWebSocket() {
             (oldMessages: any[] | undefined) => {
               if (!oldMessages) return [data.message];
               
-              // Verificar se é atualização de mensagem otimista ou nova mensagem
+              // CORREÇÃO: Verificar duplicatas por ID real primeiro
+              const exists = oldMessages.find(msg => msg.id === data.message.id);
+              if (exists) {
+                console.log('⏩ WebSocket: Mensagem já existe, ignorando duplicata:', data.message.id);
+                return oldMessages;
+              }
+              
+              // Verificar se é atualização de mensagem otimista
               const optimisticIndex = oldMessages.findIndex(msg => 
-                (msg as any).id < 0 && msg.content === data.message.content
+                msg.id < 0 && msg.content === data.message.content && 
+                Math.abs(new Date(msg.sentAt).getTime() - new Date(data.message.sentAt).getTime()) < 5000
               );
               
               if (optimisticIndex !== -1) {
@@ -206,10 +214,6 @@ export function useWebSocket() {
                 console.log('✅ SOCKET-FIRST: Mensagem otimista substituída pela real:', data.message.id);
                 return updatedMessages;
               }
-              
-              // Nova mensagem via WebSocket
-              const exists = oldMessages.find(msg => msg.id === data.message.id);
-              if (exists) return oldMessages;
               
               return [...oldMessages, { ...data.message, status: 'received' }];
             }

@@ -185,28 +185,27 @@ export function useSendMessage() {
             return messageExists ? oldMessages : [...oldMessages, newMessage];
           }
           
-          // CORREÇÃO CRÍTICA: Sempre manter mensagem otimística E adicionar mensagem real
-          // Isso evita que mensagens desapareçam durante race conditions
+          // CORREÇÃO DEFINITIVA: Sistema robusto para evitar desaparecimento de mensagens
           const messageExists = oldMessages.some(msg => msg.id === newMessage.id);
           if (messageExists) {
-            // Se mensagem real já existe, apenas remover otimística se for diferente
+            // Mensagem real já existe, remover apenas otimística
             return oldMessages.filter(msg => msg.id !== context.optimisticMessage.id);
           }
           
-          // Substituir mensagem temporária pela real mantendo ordem
-          const updatedMessages = oldMessages.map(msg => 
-            msg.id === context.optimisticMessage.id ? newMessage : msg
-          );
+          // Encontrar e substituir mensagem otimística
+          const optimisticIndex = oldMessages.findIndex(msg => msg.id === context.optimisticMessage.id);
           
-          // FALLBACK ROBUSTO: Se não encontrou para substituir, manter ambas temporariamente
-          const wasReplaced = updatedMessages.some(msg => msg.id === newMessage.id);
-          if (!wasReplaced) {
-            console.warn(`⚠️ Race condition detectado - mantendo mensagem otimística ${context.optimisticMessage.id} e adicionando real ${newMessage.id}`);
-            // Adicionar mensagem real e manter otimística por enquanto
+          if (optimisticIndex !== -1) {
+            // Substituição direta da mensagem otimística pela real
+            const updatedMessages = [...oldMessages];
+            updatedMessages[optimisticIndex] = newMessage;
+            console.log(`✅ Mensagem otimística ${context.optimisticMessage.id} substituída por real ${newMessage.id}`);
+            return updatedMessages;
+          } else {
+            // FALLBACK: Se não encontrou otimística, adicionar mensagem real ao final
+            console.warn(`⚠️ Mensagem otimística ${context.optimisticMessage.id} não encontrada, adicionando real ${newMessage.id}`);
             return [...oldMessages, newMessage];
           }
-          
-          return updatedMessages;
         }
       );
       

@@ -67,6 +67,7 @@ import { ChatHeader } from "@/modules/Inbox/components/ChatHeader";
 import { MessagesArea } from "@/modules/Messages/components/MessagesArea";
 
 export function InboxPage() {
+  // CORREÇÃO CRÍTICA: Todos os hooks devem ser chamados sempre na mesma ordem
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [channelFilter, setChannelFilter] = useState("all");
@@ -75,12 +76,10 @@ export function InboxPage() {
   const [teamFilter, setTeamFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
   const [agentFilter, setAgentFilter] = useState("all");
-
-
-  const { data: channels = [] } = useChannels();
   const [showMobileChat, setShowMobileChat] = useState(false);
 
-  // Carregar equipes para identificação de canais
+  // ORDEM FIXA: Hooks sempre na mesma sequência para evitar "Should have a queue"
+  const { data: channels = [] } = useChannels();
   const { data: teams = [] } = useQuery({
     queryKey: ["/api/teams"],
     queryFn: async () => {
@@ -89,15 +88,10 @@ export function InboxPage() {
       return response.json();
     },
   });
-
-  // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
-
-  // Inicializar WebSocket para mensagens em tempo real
+  
+  // WebSocket e listeners sempre inicializados na mesma ordem
   useWebSocket();
-
-  // Hook unificado para conversas com busca integrada
-  // CORREÇÃO CRÍTICA: Inicializar listener de sincronização de mensagens
   const { triggerMessageRecovery } = useMessageSyncListener();
 
   const conversationsQuery = useInfiniteConversations(100, {
