@@ -3,6 +3,7 @@ import { conversations, contacts, messages, systemUsers, type ConversationWithCo
 import { eq, desc, and, inArray, or, ilike, count, gte, lte } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { ConversationFilters } from "../interfaces/IConversationStorage";
+import { withRetry } from "../../core/db-retry";
 
 export class ConversationListOperations extends BaseStorage {
   /**
