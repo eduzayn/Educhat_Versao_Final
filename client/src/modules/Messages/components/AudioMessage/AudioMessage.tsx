@@ -39,7 +39,9 @@ export function AudioMessage({
   }
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(duration || 0);
+  const [audioDuration, setAudioDuration] = useState(
+    duration || (metadata as any)?.audio?.duration || (metadata as any)?.audio?.seconds || 0
+  );
   const [fetchedAudioUrl, setFetchedAudioUrl] = useState<string | null>(
     audioUrl,
   );
@@ -147,7 +149,7 @@ export function AudioMessage({
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current) {
+    if (audioRef.current && audioRef.current.duration) {
       setAudioDuration(audioRef.current.duration);
     }
   };
@@ -160,7 +162,78 @@ export function AudioMessage({
   const progressPercentage =
     audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
-  // Para áudios enviados via Z-API que não podem ser reproduzidos - mas mantém o conteúdo original
+  // Para áudios do Z-API com URL externa válida
+  if (audioUrl && audioUrl.startsWith('https://')) {
+    return (
+      <div
+        className={`flex items-center gap-4 p-4 rounded-xl min-w-[280px] max-w-md ${
+          isFromContact ? "bg-gray-200 text-gray-800" : "bg-blue-600 text-white"
+        }`}
+      >
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          preload="metadata"
+          crossOrigin="anonymous"
+        />
+
+        <button
+          onClick={togglePlayPause}
+          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            isFromContact ? "bg-gray-400 hover:bg-gray-500" : "bg-blue-500 hover:bg-blue-400"
+          } transition-colors`}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying ? (
+            <Pause className="w-5 h-5 text-white" />
+          ) : (
+            <Play className="w-5 h-5 text-white ml-0.5" />
+          )}
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <Volume2 className="w-4 h-4 opacity-80" />
+            <span className="text-sm opacity-90 font-medium">
+              Mensagem de áudio
+            </span>
+            {audioDuration > 0 && (
+              <span className="text-xs opacity-75">
+                {Math.floor(audioDuration / 60)}:{Math.floor(audioDuration % 60).toString().padStart(2, '0')}
+              </span>
+            )}
+          </div>
+
+          <div className="relative">
+            <div
+              className={`w-full h-2 rounded-full ${
+                isFromContact ? "bg-gray-400" : "bg-blue-400"
+              }`}
+            >
+              <div
+                className={`h-full rounded-full transition-all duration-200 ${
+                  isFromContact ? "bg-gray-700" : "bg-white"
+                }`}
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-between text-xs opacity-75 mt-1">
+            <span>{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
+            <span>{Math.floor(audioDuration / 60)}:{Math.floor(audioDuration % 60).toString().padStart(2, '0')}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Para áudios que não podem ser reproduzidos
   if (error === "Áudio enviado via WhatsApp" || (!fetchedAudioUrl && !audioUrl && messageIdForFetch)) {
     return (
       <div
