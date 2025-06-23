@@ -1,0 +1,321 @@
+STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 216ms (100 itens)
+4:24:32 PM [express] GET /api/conversations 304 in 371ms :: {"conversations":[{"id":2614,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 215ms (100 itens)
+4:24:33 PM [express] GET /api/conversations 304 in 411ms :: {"conversations":[{"id":2363,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 283ms (100 itens)
+4:24:34 PM [express] GET /api/conversations 304 in 439ms :: {"conversations":[{"id":2489,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 218ms (100 itens)
+4:24:35 PM [express] GET /api/conversations 304 in 380ms :: {"conversations":[{"id":2429,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 193ms (100 itens)
+4:24:35 PM [express] GET /api/conversations 304 in 344ms :: {"conversations":[{"id":2378,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+4:24:36 PM [express] GET /api/zapi/status 200 in 411ms :: {"connected":true,"session":false,"created…
+✅ Conversas carregadas em 239ms (100 itens)
+4:24:36 PM [express] GET /api/conversations 304 in 411ms :: {"conversations":[{"id":2266,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 217ms (100 itens)
+4:24:37 PM [express] GET /api/conversations 304 in 368ms :: {"conversations":[{"id":1377,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 287ms (100 itens)
+4:24:37 PM [express] GET /api/conversations 304 in 442ms :: {"conversations":[{"id":2146,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 289ms (100 itens)
+4:24:38 PM [express] GET /api/conversations 304 in 440ms :: {"conversations":[{"id":1854,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 216ms (100 itens)
+4:24:39 PM [express] GET /api/conversations 304 in 373ms :: {"conversations":[{"id":1894,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 217ms (100 itens)
+4:24:40 PM [express] GET /api/conversations 304 in 368ms :: {"conversations":[{"id":1812,"contactId"…
+✅ Verificação de duplicatas concluída em 97ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 97ms
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 421ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 156ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 156ms
+✅ Verificação de duplicatas concluída em 294ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 295ms
+✅ Verificação de duplicatas concluída em 303ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 304ms
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 904ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 98ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 98ms
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1011ms :: {"isDuplicate":false,"dupl…
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1009ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 306ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 307ms
+✅ Verificação de duplicatas concluída em 105ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 105ms
+✅ Verificação de duplicatas concluída em 108ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 108ms
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1104ms :: {"isDuplicate":false,"dupl…
+🔌 Cliente Xh3Oqg-5v1xXp1q3AAAh desconectado: transport error {
+  reason: 'transport error',
+  transport: 'polling',
+  duration: '123s',
+  conversationId: undefined,
+  wasInRoom: false,
+  readyState: 'closed'
+}
+❌ Transport error detectado para cliente Xh3Oqg-5v1xXp1q3AAAh: {
+  reason: 'transport error',
+  transport: 'polling',
+  connectionTime: 123
+}
+🔌 Conexão fechada para Xh3Oqg-5v1xXp1q3AAAh: { reason: 'transport error', transport: 'polling', connectionTime: 0 }
+✅ Verificação de duplicatas concluída em 102ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 102ms
+✅ Verificação de duplicatas concluída em 101ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 101ms
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1186ms :: {"isDuplicate":false,"dupl…
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1190ms :: {"isDuplicate":false,"dupl…
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1191ms :: {"isDuplicate":false,"dupl…
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1239ms :: {"isDuplicate":false,"dupl…
+4:24:41 PM [express] POST /api/contacts/check-duplicates 200 in 1246ms :: {"isDuplicate":false,"dupl…
+🔌 Cliente conectado via Socket.IO: yESYrdX7DsTFFmSBAAA9 (polling)
+4:24:45 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+4:24:49 PM [express] GET /api/zapi/status 200 in 406ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+4:24:51 PM [express] GET /api/zapi/status 200 in 149ms :: {"connected":true,"session":false,"created…
+✅ Conversas carregadas em 642ms (100 itens)
+4:24:51 PM [express] GET /api/conversations 304 in 825ms :: {"conversations":[{"id":2775,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+4:24:52 PM [express] GET /api/zapi/status 200 in 304ms :: {"connected":true,"session":false,"created…
+✅ Conversas carregadas em 306ms (100 itens)
+4:24:52 PM [express] GET /api/conversations 304 in 457ms :: {"conversations":[{"id":2695,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 284ms (100 itens)
+4:24:52 PM [express] GET /api/conversations 304 in 442ms :: {"conversations":[{"id":1904,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 214ms (100 itens)
+4:24:53 PM [express] GET /api/conversations 304 in 460ms :: {"conversations":[{"id":2614,"contactId"…
+4:24:54 PM [express] GET /api/zapi/status 200 in 445ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+4:24:54 PM [express] GET /api/zapi/status 200 in 154ms :: {"connected":true,"session":false,"created…
+✅ Conversas carregadas em 210ms (100 itens)
+4:24:54 PM [express] GET /api/conversations 304 in 366ms :: {"conversations":[{"id":2363,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 233ms (100 itens)
+4:24:55 PM [express] GET /api/conversations 304 in 385ms :: {"conversations":[{"id":2489,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 215ms (100 itens)
+4:24:55 PM [express] GET /api/conversations 304 in 376ms :: {"conversations":[{"id":2429,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 233ms (100 itens)
+4:24:56 PM [express] GET /api/conversations 304 in 384ms :: {"conversations":[{"id":2378,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 253ms (100 itens)
+4:24:57 PM [express] GET /api/conversations 304 in 405ms :: {"conversations":[{"id":2266,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 168ms (100 itens)
+4:24:57 PM [express] GET /api/conversations 304 in 321ms :: {"conversations":[{"id":1377,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 230ms (100 itens)
+4:24:58 PM [express] GET /api/conversations 304 in 389ms :: {"conversations":[{"id":2146,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 159ms (100 itens)
+4:24:59 PM [express] GET /api/conversations 304 in 316ms :: {"conversations":[{"id":1854,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 167ms (100 itens)
+4:24:59 PM [express] GET /api/conversations 304 in 321ms :: {"conversations":[{"id":1894,"contactId"…
+4:25:00 PM [express] GET /api/zapi/status 200 in 400ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 179ms (100 itens)
+4:25:00 PM [express] GET /api/conversations 304 in 334ms :: {"conversations":[{"id":1812,"contactId"…
+4:25:06 PM [express] GET /api/zapi/status 200 in 261ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 625ms (100 itens)
+4:25:11 PM [express] GET /api/conversations 304 in 897ms :: {"conversations":[{"id":2775,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 602ms (100 itens)
+4:25:13 PM [express] GET /api/conversations 304 in 998ms :: {"conversations":[{"id":2695,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 293ms (100 itens)
+4:25:13 PM [express] GET /api/conversations 304 in 454ms :: {"conversations":[{"id":1904,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 253ms (100 itens)
+4:25:14 PM [express] GET /api/conversations 304 in 420ms :: {"conversations":[{"id":2614,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 231ms (100 itens)
+4:25:15 PM [express] GET /api/conversations 304 in 413ms :: {"conversations":[{"id":2363,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 259ms (100 itens)
+4:25:16 PM [express] GET /api/conversations 304 in 419ms :: {"conversations":[{"id":2489,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 178ms (100 itens)
+4:25:16 PM [express] GET /api/conversations 304 in 356ms :: {"conversations":[{"id":2429,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 254ms (100 itens)
+4:25:17 PM [express] GET /api/conversations 304 in 453ms :: {"conversations":[{"id":2378,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 254ms (100 itens)
+4:25:18 PM [express] GET /api/conversations 304 in 418ms :: {"conversations":[{"id":2266,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 247ms (100 itens)
+4:25:19 PM [express] GET /api/conversations 304 in 411ms :: {"conversations":[{"id":1377,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 364ms (100 itens)
+4:25:20 PM [express] GET /api/conversations 304 in 559ms :: {"conversations":[{"id":2146,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 566ms (100 itens)
+4:25:21 PM [express] GET /api/conversations 304 in 749ms :: {"conversations":[{"id":1854,"contactId"…
+4:25:21 PM [express] GET /api/zapi/status 200 in 417ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 286ms (100 itens)
+4:25:21 PM [express] GET /api/conversations 304 in 440ms :: {"conversations":[{"id":1894,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 233ms (100 itens)
+4:25:22 PM [express] GET /api/conversations 304 in 396ms :: {"conversations":[{"id":1812,"contactId"…
+4:25:27 PM [express] GET /api/zapi/status 200 in 265ms :: {"connected":true,"session":false,"created…
+4:25:29 PM [express] GET /api/zapi/status 200 in 155ms :: {"connected":true,"session":false,"created…
+🔍 Verificando status de 2 canais ativos
+[SESSION-MONITOR] Status: connected=true, session=false
+[SESSION-MONITOR] ⚠️  WhatsApp desconectado - QR Code necessário
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+🔌 Cliente jdc1LaSH9Kv-fX_ZAAA5 desconectado: transport error {
+  reason: 'transport error',
+  transport: 'polling',
+  duration: '108s',
+  conversationId: undefined,
+  wasInRoom: false,
+  readyState: 'closed'
+}
+🔌 Conexão fechada para jdc1LaSH9Kv-fX_ZAAA5: { reason: 'transport error', transport: 'polling', connectionTime: 0 }
+❌ Transport error detectado para cliente jdc1LaSH9Kv-fX_ZAAA5: {
+  reason: 'transport error',
+  transport: 'polling',
+  connectionTime: 108
+}
+✅ Conversas carregadas em 512ms (100 itens)
+4:25:33 PM [express] GET /api/conversations 304 in 674ms :: {"conversations":[{"id":2775,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 302ms (100 itens)
+4:25:34 PM [express] GET /api/conversations 304 in 453ms :: {"conversations":[{"id":2695,"contactId"…
+🔌 Cliente conectado via Socket.IO: cvLPTAnfleQhxlDkAAA_ (polling)
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 275ms (100 itens)
+4:25:35 PM [express] GET /api/conversations 304 in 434ms :: {"conversations":[{"id":1904,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 257ms (100 itens)
+4:25:36 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+4:25:36 PM [express] GET /api/user 200 in 546ms :: {"id":25,"email":"ana.diretoria@eduzayn.com.br","…
+4:25:36 PM [express] GET /api/zapi/status 200 in 716ms :: {"connected":true,"session":false,"created…
+4:25:36 PM [express] GET /api/conversations 304 in 729ms :: {"conversations":[{"id":2614,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 256ms (100 itens)
+4:25:37 PM [express] GET /api/conversations 304 in 407ms :: {"conversations":[{"id":2363,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 497ms (100 itens)
+4:25:38 PM [express] GET /api/conversations 304 in 778ms :: {"conversations":[{"id":2489,"contactId"…
+4:25:38 PM [express] POST /api/auth/login 200 in 1225ms :: {"message":"Login realizado com sucesso",…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+🔌 Cliente ZG2dHKzES84InRCuAAA1 desconectado: transport error {
+  reason: 'transport error',
+  transport: 'polling',
+  duration: '136s',
+  conversationId: undefined,
+❌ Transport error detectado para cliente ZG2dHKzES84InRCuAAA1: {
+  wasInRoom: false,
+  reason: 'transport error',
+  transport: 'polling',
+  connectionTime: 136
+}
+  readyState: 'closed'
+}
+🔌 Conexão fechada para ZG2dHKzES84InRCuAAA1: { reason: 'transport error', transport: 'polling', connectionTime: 0 }
+✅ Conversas carregadas em 214ms (100 itens)
+4:25:39 PM [express] GET /api/conversations 304 in 368ms :: {"conversations":[{"id":2429,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 237ms (100 itens)
+4:25:40 PM [express] GET /api/conversations 304 in 461ms :: {"conversations":[{"id":2378,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 285ms (100 itens)
+🔌 Cliente conectado via Socket.IO: q0zNHYS6v96tpqq7AABB (polling)
+4:25:41 PM [express] GET /api/conversations 304 in 483ms :: {"conversations":[{"id":2266,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 223ms (100 itens)
+4:25:41 PM [express] GET /api/conversations 304 in 377ms :: {"conversations":[{"id":1377,"contactId"…
+4:25:41 PM [express] GET /api/zapi/status 304 in 153ms :: {"connected":true,"session":false,"created…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 327ms (100 itens)
+4:25:42 PM [express] GET /api/conversations 304 in 479ms :: {"conversations":[{"id":2146,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 206ms (100 itens)
+4:25:43 PM [express] GET /api/conversations 304 in 535ms :: {"conversations":[{"id":1854,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 220ms (100 itens)
+4:25:44 PM [express] GET /api/conversations 304 in 382ms :: {"conversations":[{"id":1894,"contactId"…
+🔍 STORAGE - Filtros recebidos: undefined Type: undefined
+✅ Conversas carregadas em 215ms (100 itens)
+4:25:44 PM [express] GET /api/conversations 304 in 368ms :: {"conversations":[{"id":1812,"contactId"…
+4:25:45 PM [express] GET /api/zapi/status 200 in 152ms :: {"connected":true,"session":false,"created…
+4:25:49 PM [express] GET /api/zapi/status 200 in 391ms :: {"connected":true,"session":false,"created…
+4:25:51 PM [express] GET /api/zapi/status 200 in 150ms :: {"connected":true,"session":false,"created…
+4:25:52 PM [express] GET /api/zapi/status 200 in 316ms :: {"connected":true,"session":false,"created…
+4:25:52 PM [express] GET /api/zapi/status 200 in 219ms :: {"connected":true,"session":false,"created…
+4:25:53 PM [express] GET /api/zapi/status 200 in 153ms :: {"connected":true,"session":false,"created…
+4:25:57 PM [express] GET /api/zapi/status 200 in 150ms :: {"connected":true,"session":false,"created…
+4:26:00 PM [express] GET /api/zapi/status 200 in 384ms :: {"connected":true,"session":false,"created…
+4:26:12 PM [express] GET /api/zapi/status 200 in 813ms :: {"connected":true,"session":false,"created…
+4:26:14 PM [express] GET /api/zapi/status 200 in 386ms :: {"connected":true,"session":false,"created…
+✅ Verificação de duplicatas concluída em 97ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 97ms
+✅ Verificação de duplicatas concluída em 392ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 393ms
+4:26:15 PM [express] POST /api/contacts/check-duplicates 200 in 1087ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 595ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 595ms
+4:26:15 PM [express] POST /api/contacts/check-duplicates 200 in 1539ms :: {"isDuplicate":true,"dupli…
+✅ Verificação de duplicatas concluída em 299ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 299ms
+4:26:16 PM [express] GET /api/zapi/status 200 in 1788ms :: {"connected":true,"session":false,"create…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1302ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1809ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 296ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 296ms
+✅ Verificação de duplicatas concluída em 296ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 296ms
+✅ Verificação de duplicatas concluída em 295ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 295ms
+✅ Verificação de duplicatas concluída em 706ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 706ms
+4:26:16 PM [express] GET /api/zapi/status 200 in 1504ms :: {"connected":true,"session":false,"create…
+✅ Verificação de duplicatas concluída em 303ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 303ms
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2118ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2113ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2151ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 201ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 201ms
+✅ Verificação de duplicatas concluída em 200ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 200ms
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2309ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2308ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 99ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2340ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 2304ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 99ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+✅ Verificação de duplicatas concluída em 99ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 99ms
+✅ Verificação de duplicatas concluída em 98ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 98ms
+✅ Verificação de duplicatas concluída em 101ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 101ms
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1791ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1794ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1796ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1841ms :: {"isDuplicate":false,"dupl…
+4:26:16 PM [express] POST /api/contacts/check-duplicates 200 in 1842ms :: {"isDuplicate":false,"dupl…
+4:26:25 PM [express] GET /api/zapi/status 200 in 507ms :: {"connected":true,"session":false,"created…
+4:26:27 PM [express] GET /api/zapi/status 200 in 149ms :: {"connected":true,"session":false,"created…
+4:26:27 PM [express] GET /api/zapi/status 200 in 461ms :: {"connected":true,"session":false,"created…
+4:26:29 PM [express] GET /api/zapi/status 200 in 152ms :: {"connected":true,"session":false,"created…
+🔍 Verificando status de 2 canais ativos
+[SESSION-MONITOR] Status: connected=true, session=false
+[SESSION-MONITOR] ⚠️  WhatsApp desconectado - QR Code necessário

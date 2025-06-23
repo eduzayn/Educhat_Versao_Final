@@ -107,10 +107,11 @@ export function useInfiniteConversations(
       return totalLoaded;
     },
     initialPageParam: 0,
-    staleTime: debouncedSearchTerm?.trim() ? 30000 : 2000, // Cache reduzido para melhor sincronização
+    staleTime: 120000, // 2 minutos - cache mais agressivo
+    gcTime: 300000, // 5 minutos - manter em cache mais tempo
     refetchInterval: false,
-    refetchOnWindowFocus: true, // Ativar refetch ao focar janela
-    refetchOnMount: true, // Sempre refetch ao montar
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Evitar refetch desnecessário
     ...queryOptions
   });
 }

@@ -15,18 +15,18 @@ export class ConversationListOperations extends BaseStorage {
    * - Busca otimizada de prévias
    */
   async getConversations(limit = 100, offset = 0, filters?: ConversationFilters): Promise<ConversationWithContact[]> {
-    console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
     
-    // Usar limite real solicitado - removendo limitação artificial para BI
-    const optimizedLimit = limit;
-    
-    // Cache apenas para requisições pequenas, não para BI
-    const cacheKey = `conversations_${optimizedLimit}_${offset}_${JSON.stringify(filters || {})}`;
-    const cached = limit < 1000 ? super.getFromCache(cacheKey) : null;
-    if (cached && limit < 1000) {
-      console.log(`✅ Conversas carregadas (cache) em ${Date.now() - startTime}ms (${cached.length} itens)`);
+    // Cache mais agressivo para reduzir requests excessivos
+    const cacheKey = `conversations_${limit}_${offset}_${JSON.stringify(filters || {})}`;
+    const cached = super.getFromCache(cacheKey);
+    if (cached) {
       return cached;
+    }
+    
+    // Reduzir logging verboso
+    if (Math.random() < 0.1) { // Log apenas 10% das requests
+      console.log(`🔍 STORAGE - Filtros:`, filters);
     }
 
     // Construir condições de filtro
@@ -162,7 +162,10 @@ export class ConversationListOperations extends BaseStorage {
     }
 
     const endTime = Date.now();
-    console.log(`✅ Conversas carregadas em ${endTime - startTime}ms (${conversationsData.length} itens)`);
+    // Reduzir logging verboso - apenas para requests lentas
+    if (endTime - startTime > 300) {
+      console.log(`⚠️ Conversas carregadas lentamente em ${endTime - startTime}ms (${conversationsData.length} itens)`);
+    }
 
     // Mapear dados das conversas com prévias otimizadas
     const result = conversationsData.map(conv => ({
@@ -220,10 +223,8 @@ export class ConversationListOperations extends BaseStorage {
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
 
-    // Cache resultado para requisições sem filtros
-    if (!filters || Object.keys(filters).length === 0) {
-      super.setCache(cacheKey, result);
-    }
+    // Cache mais agressivo - cache todas as requests por 30 segundos
+    super.setCache(cacheKey, result, 30000);
 
     return result;
   }

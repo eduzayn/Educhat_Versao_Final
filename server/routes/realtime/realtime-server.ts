@@ -34,14 +34,15 @@ export function createSocketServer(app: Express): SocketServer {
     // Configurações de estabilidade para WebSocket
     allowEIO3: false,
     connectTimeout: 30000,
-    // Headers específicos para WebSocket
+    // Rejeitar conexões polling em produção Replit
     allowRequest: (req, callback) => {
-      // Validar headers de WebSocket
-      const isWebSocket = req.headers.upgrade === 'websocket' || 
-                         req.headers.connection?.toLowerCase().includes('upgrade');
-      if (isReplit && !isWebSocket) {
-        return callback('WebSocket required in production', false);
+      const transport = req.url?.includes('transport=polling') ? 'polling' : 'websocket';
+      
+      if (isReplit && transport === 'polling') {
+        console.log('🚫 Rejeitando conexão polling em produção Replit');
+        return callback('Only WebSocket allowed in production', false);
       }
+      
       callback(null, true);
     }
   });
