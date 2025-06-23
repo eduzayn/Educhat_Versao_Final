@@ -1,0 +1,1250 @@
+Cloning from https://github.com/eduzayn/Educhat_Versao_Final
+==> Checking out commit 4c830edf56f3e15f4da9a931bfd2f8083c82bcdc in branch main
+==> Downloading cache...
+==> Transferred 253MB in 8s. Extraction took 5s.
+==> Using Node.js version 22.14.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Using Bun version 1.1.0 (default)
+==> Docs on specifying a Bun version: https://render.com/docs/bun-version
+==> Running build command 'npm install && npm run build'...
+up to date, audited 641 packages in 1s
+86 packages are looking for funding
+  run `npm fund` for details
+3 vulnerabilities (1 low, 2 moderate)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+vite v5.4.19 building for production...
+transforming...
+✓ 3718 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                     0.85 kB │ gzip:   0.45 kB
+../dist/public/assets/index-CFFAr1n6.css    106.26 kB │ gzip:  17.36 kB
+../dist/public/assets/index-CX4k4Bqk.js   2,032.45 kB │ gzip: 533.78 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 11.93s
+▲ [WARNING] Duplicate member "getConversation" in class body [duplicate-class-member]
+    server/storage/modules/conversationStorage.ts:203:8:
+      203 │   async getConversation(id: number): Promise<ConversationWithCont...
+          ╵         ~~~~~~~~~~~~~~~
+  The original member "getConversation" is here:
+    server/storage/modules/conversationStorage.ts:18:8:
+      18 │   async getConversation(id: number): Promise<any> {
+         ╵         ~~~~~~~~~~~~~~~
+▲ [WARNING] Duplicate member "updateMessageZApiStatus" in class body [duplicate-class-member]
+    server/storage/modules/messageStorage.ts:240:8:
+      240 │   async updateMessageZApiStatus(whatsappMessageId: string, status...
+          ╵         ~~~~~~~~~~~~~~~~~~~~~~~
+  The original member "updateMessageZApiStatus" is here:
+    server/storage/modules/messageStorage.ts:91:8:
+      91 │   async updateMessageZApiStatus(messageId: number, zapiData: {
+         ╵         ~~~~~~~~~~~~~~~~~~~~~~~
+2 warnings
+  dist/index.js  877.6kb
+⚡ Done in 189ms
+==> Uploading build...
+==> Uploaded in 12.5s. Compression took 4.7s
+==> Build successful 🎉
+==> Deploying...
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> cross-env NODE_ENV=production node dist/index.js
+The `fetchConnectionCache` option is deprecated (now always `true`)
+🌐 CORS configurado para: {
+  allowedOrigins: [
+    'https://educhat.com.br',
+    'https://www.educhat.com.br',
+    'https://educhat.galaxiasistemas.com.br',
+    'https://educhat-versao-final.onrender.com'
+  ],
+  env: 'production'
+}
+🔒 Configuração de autenticação otimizada: {
+  environment: 'production',
+  platform: 'render',
+  cookieSecure: true,
+  sameSite: 'lax',
+  trustProxy: true,
+  maxAgeDays: 7
+}
+✅ Sistema de webhooks consolidado registrado com sucesso
+🔧 Registrando rotas administrativas...
+Contact routes registered
+Channel routes registered
+Analytics routes registered
+✅ Chat interno integrado com sistema de equipes e usuários
+✅ Sistema de monitoramento de saúde ativado
+✅ Rotas de streaming de áudio registradas
+[SESSION-MONITOR] Monitor de sessão iniciado (intervalo: 60s)
+4:42:25 PM [express] 🚀 EduChat server running on port 10000 (production)
+✅ Configurações de produção ativas:
+   - Keep-alive timeout: 65000ms
+   - Headers timeout: 66000ms
+   - Request timeout: 15s
+🔍 Iniciando monitor de status dos canais
+🔍 Verificando status de 2 canais ativos
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://educhat.galaxiasistemas.com.br + 1 more domain
+==> 
+==> ///////////////////////////////////////////////////////////
+🔌 Cliente conectado via Socket.IO: aIh71j0nxicDhkicAAAF (polling)
+🔌 Cliente conectado via Socket.IO: qFzBj4ZcRFC6fJbfAAAG (polling)
+🔌 Cliente conectado via Socket.IO: EwUUJW9fw-iTf6UyAAAH (polling)
+✅ Verificação de duplicatas concluída em 501ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 502ms
+✅ Verificação de duplicatas concluída em 597ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 597ms
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+✅ Verificação de duplicatas concluída em 1205ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 1206ms
+✅ Verificação de duplicatas concluída em 1295ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 1295ms
+✅ Verificação de duplicatas concluída em 790ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 790ms
+✅ Verificação de duplicatas concluída em 997ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 1093ms
+✅ Verificação de duplicatas concluída em 1098ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 1098ms
+⏰ Reutilizando verificação de duplicatas em andamento para 558196733444
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 3998ms :: {"isDuplicate":false,"dupl…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4041ms :: {"isDuplicate":false,"dupl…
+✅ Check duplicates concluído em 1991ms
+❌ Erro na verificação de duplicatas (1991ms): NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em GET /null: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em GET /null: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+Erro ao deserializar usuário: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runNextTicks (node:internal/process/task_queues:69:3)
+    at listOnTimeout (node:internal/timers:555:9)
+    at process.processTimers (node:internal/timers:529:7) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13502:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at listOnTimeout (node:internal/timers:555:9)
+      at process.processTimers (node:internal/timers:529:7)
+      at async execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: AggregateError [ETIMEDOUT]: 
+        at internalConnectMultiple (node:net:1139:18)
+        at internalConnectMultiple (node:net:1215:5)
+        at Timeout.internalConnectMultipleTimeout (node:net:1739:5)
+        at listOnTimeout (node:internal/timers:596:11)
+        at process.processTimers (node:internal/timers:529:7) {
+      code: 'ETIMEDOUT',
+      [errors]: [Array]
+    }
+  }
+}
+❌ ERRO CAPTURADO 500 em POST /api/contacts/check-duplicates: {
+  message: 'Error connecting to database: fetch failed',
+  stack: 'NeonDbError: Error connecting to database: fetch failed\n' +
+    '    at execute (file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1549:24)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  timeout: false,
+  headers_sent: false
+}
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4201ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4201ms
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4202ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4202ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4203ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4203ms :: {"error":"Error connecting…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4288ms :: {"error":"Error connecting…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4493ms :: {"isDuplicate":false,"dupl…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4288ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4494ms :: {"isDuplicate":false,"dupl…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4498ms :: {"isDuplicate":false,"dupl…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4502ms :: {"isDuplicate":false,"dupl…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4503ms :: {"isDuplicate":false,"dupl…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 3303ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 194ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 194ms
+✅ Verificação de duplicatas concluída em 198ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 198ms
+✅ Verificação de duplicatas concluída em 197ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 197ms
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4506ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4506ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4607ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4607ms :: {"error":"Error connecting…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 200 in 4805ms :: {"isDuplicate":false,"dupl…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4606ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4606ms :: {"error":"Error connecting…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4491ms :: {"error":"Error connecting…
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4608ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4491ms
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4608ms
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4491ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4491ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4603ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4603ms :: {"error":"Error connecting…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4511ms
+4:42:36 PM [express] POST /api/contacts/check-duplicates 500 in 4511ms :: {"error":"Error connecting…
+✅ Verificação de duplicatas concluída em 211ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 211ms
+✅ Verificação de duplicatas concluída em 306ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 306ms
+🔌 Cliente conectado via Socket.IO: Hlyn_5sy49NRcaGnAAAM (polling)
+⏰ Reutilizando verificação de duplicatas em andamento para 553799476692
+✅ Verificação de duplicatas concluída em 1100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 1101ms
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4204ms
+4:42:37 PM [express] POST /api/contacts/check-duplicates 500 in 4204ms :: {"error":"Error connecting…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3301ms :: {"isDuplicate":false,"dupl…
+🚨 Server error 500: POST /api/contacts/check-duplicates 500 in 4396ms
+4:42:37 PM [express] POST /api/contacts/check-duplicates 500 in 4396ms :: {"error":"Error connecting…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3895ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3809ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3895ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 307ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 307ms
+✅ Verificação de duplicatas concluída em 309ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 309ms
+✅ Verificação de duplicatas concluída em 306ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 307ms
+✅ Verificação de duplicatas concluída em 306ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 306ms
+🔌 Cliente conectado via Socket.IO: amShGxpECHeDPj5OAAAO (polling)
+🔌 Cliente conectado via Socket.IO: sHPnfAJzmUvPvm_gAAAQ (polling)
+⏰ Reutilizando verificação de duplicatas em andamento para 556499766050
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4100ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 391ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 391ms
+✅ Verificação de duplicatas concluída em 398ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 398ms
+✅ Verificação de duplicatas concluída em 396ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 396ms
+✅ Verificação de duplicatas concluída em 393ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 394ms
+✅ Verificação de duplicatas concluída em 395ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 395ms
+✅ Verificação de duplicatas concluída em 309ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 309ms
+✅ Verificação de duplicatas concluída em 308ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 308ms
+✅ Verificação de duplicatas concluída em 995ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 995ms
+🔌 Cliente conectado via Socket.IO: bbXyIw2vtdRFcPjQAAAR (polling)
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4386ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4389ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4391ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4502ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4397ms :: {"isDuplicate":true,"dupli…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4505ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 293ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 293ms
+🔌 Cliente conectado via Socket.IO: HH4dZb2EeXpAVQFeAAAS (polling)
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 1811ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4395ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4313ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4486ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 2899ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4396ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4394ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3204ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 4398ms :: {"isDuplicate":false,"dupl…
+4:42:37 PM [express] POST /api/contacts/check-duplicates 200 in 3596ms :: {"isDuplicate":false,"dupl…
+🔌 Cliente conectado via Socket.IO: UU6L_NBPRSYBqmi5AAAT (polling)
+🔌 Cliente conectado via Socket.IO: JuLB-6OW6ed1EYvCAAAU (polling)
+🔌 Cliente conectado via Socket.IO: 6kLXw4CRC0N14jURAAAW (polling)
+🔌 Cliente conectado via Socket.IO: Dbeck00zdMy7nYjNAAAb (polling)
+🔌 Cliente conectado via Socket.IO: wQjmasgAfyD1ofX1AAAc (polling)
+🔌 Cliente conectado via Socket.IO: zxHxdZwbo21GnsBZAAAd (polling)
+🔌 Cliente conectado via Socket.IO: TqaSGV4LD9oPP4nNAAAe (polling)
+🔌 Cliente conectado via Socket.IO: gGmZzGIF2PLl6iGXAAAf (polling)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: TqaSGV4LD9oPP4nNAAAe → conversa 1007
+✅ Cliente TqaSGV4LD9oPP4nNAAAe ENTROU na conversa 1007 (1 clientes na sala)
+✅ Verificação de duplicatas concluída em 188ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 188ms
+✅ Verificação de duplicatas concluída em 206ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 206ms
+✅ Verificação de duplicatas concluída em 205ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 205ms
+✅ Verificação de duplicatas concluída em 202ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 203ms
+✅ Verificação de duplicatas concluída em 199ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 200ms
+✅ Verificação de duplicatas concluída em 198ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 198ms
+✅ Verificação de duplicatas concluída em 197ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 197ms
+✅ Verificação de duplicatas concluída em 198ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 199ms
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 670ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 108ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 108ms
+✅ Verificação de duplicatas concluída em 190ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 190ms
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 766ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 693ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 760ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 706ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 750ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 755ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 100ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 100ms
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: zxHxdZwbo21GnsBZAAAd → conversa 1084
+✅ Cliente zxHxdZwbo21GnsBZAAAd ENTROU na conversa 1084 (1 clientes na sala)
+✅ Verificação de duplicatas concluída em 96ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 96ms
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 850ms :: {"isDuplicate":false,"dupli…
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: wQjmasgAfyD1ofX1AAAc → conversa 2549
+✅ Cliente wQjmasgAfyD1ofX1AAAc ENTROU na conversa 2549 (1 clientes na sala)
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 799ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 595ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 691ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 97ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 98ms
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 402ms :: {"isDuplicate":false,"dupli…
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 352ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 55ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 56ms
+4:42:39 PM [express] POST /api/contacts/check-duplicates 200 in 445ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 204ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 204ms
+✅ Verificação de duplicatas concluída em 201ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 201ms
+✅ Verificação de duplicatas concluída em 201ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 201ms
+✅ Verificação de duplicatas concluída em 206ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 206ms
+✅ Verificação de duplicatas concluída em 200ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 200ms
+✅ Verificação de duplicatas concluída em 286ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 287ms
+✅ Verificação de duplicatas concluída em 98ms - 2 duplicatas encontradas
+✅ Check duplicates concluído em 98ms
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 506ms :: {"isDuplicate":false,"dupli…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 465ms :: {"isDuplicate":false,"dupli…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 486ms :: {"isDuplicate":false,"dupli…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 471ms :: {"isDuplicate":false,"dupli…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 538ms :: {"isDuplicate":false,"dupli…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 512ms :: {"isDuplicate":true,"duplic…
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 549ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 392ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 393ms
+✅ Verificação de duplicatas concluída em 301ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 301ms
+✅ Verificação de duplicatas concluída em 404ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 405ms
+4:42:42 PM [express] POST /api/contacts/check-duplicates 200 in 719ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 298ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 298ms
+✅ Verificação de duplicatas concluída em 393ms - 1 duplicatas encontradas
+✅ Check duplicates concluído em 393ms
+✅ Verificação de duplicatas concluída em 304ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 304ms
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 1111ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 504ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 504ms
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 1314ms :: {"isDuplicate":false,"dupl…
+✅ Verificação de duplicatas concluída em 595ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 595ms
+✅ Verificação de duplicatas concluída em 496ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 496ms
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 899ms :: {"isDuplicate":false,"dupli…
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 948ms :: {"isDuplicate":false,"dupli…
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 945ms :: {"isDuplicate":false,"dupli…
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 947ms :: {"isDuplicate":false,"dupli…
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 951ms :: {"isDuplicate":true,"duplic…
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 950ms :: {"isDuplicate":false,"dupli…
+✅ Verificação de duplicatas concluída em 53ms - Nenhuma duplicata encontrada
+✅ Check duplicates concluído em 53ms
+4:42:43 PM [express] POST /api/contacts/check-duplicates 200 in 209ms :: {"isDuplicate":false,"dupli…
+🔌 Cliente conectado via Socket.IO: KDC_6RfZdFH-0N1lAAAh (websocket)
+🔌 Cliente conectado via Socket.IO: P0SecuyP7vxKf-YjAAAj (websocket)
+🔌 Cliente conectado via Socket.IO: va-LULgUDQITO_6wAAAl (websocket)
+🔌 Cliente conectado via Socket.IO: vGXX3bg-yFqbwksHAAAn (websocket)
+🔌 Cliente conectado via Socket.IO: DrSdM6WbzKb-V6msAAAp (websocket)
+🔌 Cliente conectado via Socket.IO: HtqxTHV2C4oRWi6-AAAr (websocket)
+4:42:49 PM [express] GET /api/zapi/status 200 in 533ms :: {"connected":true,"session":false,"created…
+🔌 Cliente conectado via Socket.IO: XhZ04qzrUdfBX5TuAAAt (websocket)
+🔌 Cliente conectado via Socket.IO: yupNQiiFyxuYqQuBAAAv (websocket)
+🔌 Cliente conectado via Socket.IO: 4eZxVHZ5BuGmEZKpAAAx (websocket)
+4:42:51 PM [express] GET /api/zapi/status 200 in 217ms :: {"connected":true,"session":false,"created…
+🔌 Cliente conectado via Socket.IO: t5SwL6BHk7H06LhrAAAz (websocket)
+🔌 Cliente conectado via Socket.IO: zPypCornxkzaUel-AAA1 (websocket)
+🔌 Cliente conectado via Socket.IO: ld-iJ8QtSuK4ZqebAAA3 (websocket)
+4:42:53 PM [express] GET /api/zapi/status 200 in 159ms :: {"connected":true,"session":false,"created…
+4:42:54 PM [express] GET /api/zapi/status 200 in 163ms :: {"connected":true,"session":false,"created…
+🔌 Cliente conectado via Socket.IO: C_N9QPmpoVzCAGpZAAA5 (websocket)
+🔌 Cliente conectado via Socket.IO: SmSgCq049TstaEgeAAA7 (websocket)
+🔌 Cliente conectado via Socket.IO: s22-gY3E9cTL5XsSAAA9 (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: ZkOfqD_lLilp7cnyAAA_ (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: VFFwy4YHYXN0k0PrAABB (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: RW3evo9fKLAeciHjAABD (websocket)
+🔌 Cliente conectado via Socket.IO: ZIelIOU0byybiuCeAABF (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: zEiFpgkNYQWZiwMuAABH (websocket)
+4:43:00 PM [express] GET /api/zapi/status 200 in 409ms :: {"connected":true,"session":false,"created…
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: Xcnyd0aUw5RsAPW3AABJ (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: fRdsCEZkaMYG-WY-AABL (websocket)
+🔌 Cliente conectado via Socket.IO: oZa0ncj1GTBClXzDAABN (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: NPbFhUnhuMisyj8uAABP (websocket)
+4:43:03 PM [express] GET /api/zapi/status 200 in 168ms :: {"connected":true,"session":false,"created…
+🔌 Cliente conectado via Socket.IO: 5hFZHQ8nbyHtD2gwAABR (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: UzMSNDQUa39QbLcDAABT (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🔌 Cliente conectado via Socket.IO: 8L5ezITLqc3wb7DiAABV (websocket)
+🔌 Cliente conectado via Socket.IO: BrMkF1h_NzVTtlrEAABX (websocket)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)
+🏠 SOLICITAÇÃO JOIN_CONVERSATION: s22-gY3E9cTL5XsSAAA9 → conversa 2777
+🚪 Cliente s22-gY3E9cTL5XsSAAA9 saiu da conversa 2777
+✅ Cliente s22-gY3E9cTL5XsSAAA9 ENTROU na conversa 2777 (1 clientes na sala)

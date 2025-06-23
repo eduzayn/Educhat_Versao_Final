@@ -11,9 +11,11 @@ interface SocketServer extends Server {
 export function createSocketServer(app: Express): SocketServer {
   const httpServer = createServer(app) as SocketServer;
 
-  // Socket.IO server - PRODUÇÃO OTIMIZADA para Replit
+  // Socket.IO server - PRODUÇÃO OTIMIZADA para Replit e Render
   const isDevelopment = process.env.NODE_ENV === 'development';
   const isReplit = process.env.REPLIT_DEPLOYMENT_ID || process.env.REPL_ID;
+  const isRender = process.env.RENDER_SERVICE_ID;
+  const isProduction = !isDevelopment;
   
   io = new SocketIOServer(httpServer, {
     cors: {
@@ -23,7 +25,7 @@ export function createSocketServer(app: Express): SocketServer {
       allowedHeaders: ["Content-Type", "Connection", "Upgrade"]
     },
     // Forçar WebSocket em produção para evitar transport errors
-    transports: isReplit ? ['websocket'] : ['websocket', 'polling'],
+    transports: isProduction ? ['websocket'] : ['websocket', 'polling'],
     allowUpgrades: false, // Desabilitar upgrades para evitar instabilidades
     upgradeTimeout: 10000,
     pingTimeout: 60000,
@@ -34,12 +36,12 @@ export function createSocketServer(app: Express): SocketServer {
     // Configurações de estabilidade para WebSocket
     allowEIO3: false,
     connectTimeout: 30000,
-    // Rejeitar conexões polling em produção Replit
+    // Rejeitar conexões polling em produção
     allowRequest: (req, callback) => {
       const transport = req.url?.includes('transport=polling') ? 'polling' : 'websocket';
       
-      if (isReplit && transport === 'polling') {
-        console.log('🚫 Rejeitando conexão polling em produção Replit');
+      if (isProduction && transport === 'polling') {
+        console.log(`🚫 Rejeitando conexão polling em produção (${isRender ? 'Render' : 'Replit'})`);
         return callback('Only WebSocket allowed in production', false);
       }
       

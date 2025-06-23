@@ -128,33 +128,37 @@ export class ConversationListOperations extends BaseStorage {
       query = query.where(and(...whereConditions)) as any;
     }
 
-    const conversationsData = await query
-      .orderBy(desc(conversations.lastMessageAt))
-      .limit(optimizedLimit)
-      .offset(offset);
+    const conversationsData = await withRetry(() => 
+      query
+        .orderBy(desc(conversations.lastMessageAt))
+        .limit(optimizedLimit)
+        .offset(offset)
+    );
 
     // 🚀 BUSCA OTIMIZADA DE PRÉVIAS: Query rápida e específica
     const conversationIds = conversationsData.map(conv => conv.id);
     
-    const lastMessages = conversationIds.length > 0 ? await this.db
-      .select({
-        conversationId: messages.conversationId,
-        content: sql`CASE 
-          WHEN LENGTH(${messages.content}) > 100 
-          THEN SUBSTRING(${messages.content}, 1, 100) || '...'
-          ELSE ${messages.content}
-        END`.as('content'),
-        messageType: messages.messageType,
-        isFromContact: messages.isFromContact,
-        sentAt: messages.sentAt,
-        isInternalNote: messages.isInternalNote
-      })
-      .from(messages)
-      .where(and(
-        inArray(messages.conversationId, conversationIds),
-        eq(messages.isDeleted, false)
-      ))
-      .orderBy(desc(messages.sentAt), desc(messages.id)) : [];
+    const lastMessages = conversationIds.length > 0 ? await withRetry(() =>
+      this.db
+        .select({
+          conversationId: messages.conversationId,
+          content: sql`CASE 
+            WHEN LENGTH(${messages.content}) > 100 
+            THEN SUBSTRING(${messages.content}, 1, 100) || '...'
+            ELSE ${messages.content}
+          END`.as('content'),
+          messageType: messages.messageType,
+          isFromContact: messages.isFromContact,
+          sentAt: messages.sentAt,
+          isInternalNote: messages.isInternalNote
+        })
+        .from(messages)
+        .where(and(
+          inArray(messages.conversationId, conversationIds),
+          eq(messages.isDeleted, false)
+        ))
+        .orderBy(desc(messages.sentAt), desc(messages.id))
+    ) : [];
 
     // Agrupar apenas a última mensagem por conversa
     const messagesByConversation = new Map();
@@ -226,8 +230,9 @@ export class ConversationListOperations extends BaseStorage {
       _count: { messages: conv.unreadCount || 0 }
     })) as ConversationWithContact[];
 
-    // Cache mais agressivo - cache todas as requests por 30 segundos
-    super.setCache(cacheKey, result, 30000);
+    // Cache mais agressivo em produção para reduzir carga no banco
+    const cacheTime = process.env.NODE_ENV === 'production' ? 60000 : 30000; // 1min prod, 30s dev
+    super.setCache(cacheKey, result, cacheTime);
 
     return result;
   }
