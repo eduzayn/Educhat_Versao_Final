@@ -1442,7 +1442,6 @@ export function registerZApiRoutes(app: Express) {
                   action: dealCreated ? 'deal_created' : 'conversation_updated',
                   contactId: contact.id,
                   conversationId: conversation.id,
-                  macrosetor: detectedMacrosetor
                 });
                 console.log(`📢 Broadcast CRM enviado: ${dealCreated ? 'deal_created' : 'conversation_updated'}`);
               } catch (broadcastError) {
@@ -1875,7 +1874,6 @@ async function processManychatMessage(webhookData: any) {
         contactId: contact.id,
         channel: 'manychat',
         status: 'open',
-        macrosetor: 'comercial',
         assignmentMethod: 'automatic',
         lastMessageAt: new Date()
       });
@@ -1991,7 +1989,6 @@ async function processManychatSubscriberAdded(webhookData: any) {
         contactId: contact.id,
         channel: 'manychat',
         status: 'open',
-        macrosetor: 'comercial',
         assignmentMethod: 'automatic',
         lastMessageAt: new Date()
       });
