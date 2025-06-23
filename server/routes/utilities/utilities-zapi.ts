@@ -591,18 +591,37 @@ export function registerZApiRoutes(app: Express) {
     }
   });
 
-
-            content: '🎵 Áudio enviado',
-            isFromContact: false,
-            messageType: 'audio',
-            sentAt: new Date(),
-            isDeleted: false,
-            metadata: {
-              zaapId: parsedResponse.messageId || parsedResponse.id,
-              messageId: parsedResponse.messageId || parsedResponse.id,
-              phone: cleanPhone,
-              instanceId: instanceId,
-              audioSize: audioBase64.length,
+  // Endpoint para servir arquivos de áudio
+  app.get('/api/audio/:messageId', async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      
+      const { mediaFiles } = await import('@shared/schema');
+      const { db } = await import('../../db');
+      const { eq } = await import('drizzle-orm');
+      
+      const mediaFile = await db.select().from(mediaFiles).where(eq(mediaFiles.messageId, parseInt(messageId))).limit(1);
+      
+      if (!mediaFile || mediaFile.length === 0) {
+        return res.status(404).json({ error: 'Arquivo de áudio não encontrado' });
+      }
+      
+      const file = mediaFile[0];
+      const audioBuffer = Buffer.from(file.fileData, 'base64');
+      
+      res.set({
+        'Content-Type': file.mimeType || 'audio/webm',
+        'Content-Length': audioBuffer.length,
+        'Cache-Control': 'public, max-age=31536000'
+      });
+      
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error('Erro ao servir arquivo de áudio:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+}
               mimeType: audioFile.mimetype || 'audio/webm',
               duration: req.body.duration ? parseInt(req.body.duration) : undefined
             }
