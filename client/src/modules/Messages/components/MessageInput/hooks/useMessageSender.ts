@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useChatStore } from '@shared/lib/store/useChatStore';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@shared/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 
 interface UseMessageSenderProps {
   conversationId: number;
@@ -12,7 +11,6 @@ interface UseMessageSenderProps {
 export function useMessageSender({ conversationId, onSendMessage }: UseMessageSenderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const { activeConversation } = useChatStore();
   const queryClient = useQueryClient();
 
   const notifySuccess = (title: string, description: string) => {
@@ -114,16 +112,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         throw new Error(`Falha ao enviar mensagem: ${error.message}`);
       }
 
-      // Z-API em background apenas para mensagens não internas
-      if (!isInternalNote && activeConversation?.contact?.phone) {
-        apiRequest("POST", "/api/zapi/send-message", {
-          phone: activeConversation.contact.phone,
-          message: content.trim(),
-          conversationId: conversationId
-        }).catch(error => {
-          console.error('❌ Erro Z-API (mensagem já salva):', error);
-        });
-      }
+      // Z-API será processado pelo servidor automaticamente
 
       console.log('✅ Mensagem sincronizada via REST fallback');
       return true;
