@@ -18,16 +18,13 @@ export class ConversationListOperations extends BaseStorage {
     console.log(`🔍 STORAGE - Filtros recebidos:`, filters, `Type:`, typeof filters);
     const startTime = Date.now();
     
-    // Para relatórios BI com limite >= 5000, remover limitação artificial
-    let optimizedLimit = limit;
-    if (limit < 5000 && (!filters || Object.keys(filters).length === 0)) {
-      optimizedLimit = Math.min(limit, 75);
-    }
+    // Usar limite real solicitado - removendo limitação artificial para BI
+    const optimizedLimit = limit;
     
-    // Cache inteligente para requisições sem filtros (evita reprocessamento constante)
+    // Cache apenas para requisições pequenas, não para BI
     const cacheKey = `conversations_${optimizedLimit}_${offset}_${JSON.stringify(filters || {})}`;
-    const cached = super.getFromCache(cacheKey);
-    if (cached && (!filters || Object.keys(filters).length === 0)) {
+    const cached = limit < 1000 ? super.getFromCache(cacheKey) : null;
+    if (cached && limit < 1000) {
       console.log(`✅ Conversas carregadas (cache) em ${Date.now() - startTime}ms (${cached.length} itens)`);
       return cached;
     }
