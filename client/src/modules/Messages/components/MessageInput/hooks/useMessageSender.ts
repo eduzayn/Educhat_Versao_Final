@@ -159,6 +159,12 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
         isFromContact: false,
         isInternalNote,
       });
+      
+      // Verificar se response é válido antes de chamar .json()
+      if (!response || typeof response.json !== 'function') {
+        throw new Error('Resposta inválida do servidor');
+      }
+      
       const realMessage = await response.json();
 
       // Substituir mensagem otimística pela real
