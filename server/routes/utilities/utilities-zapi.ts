@@ -237,12 +237,14 @@ export function registerZApiRoutes(app: Express) {
 
         } catch (fetchError) {
           clearTimeout(timeoutId);
-          zapiLogger.logFetchError(fetchError, requestId);
+          zapiLogger.logError('FETCH_ERROR', fetchError, requestId);
           throw fetchError;
         }
 
       } catch (conversionError) {
+        // Se chegamos aqui é porque a conversão FFmpeg deu erro
         console.error('Erro na conversão FFmpeg:', conversionError);
+        zapiLogger.logError('CONVERSION_ERROR', conversionError, requestId);
         throw new Error(`Falha na conversão de áudio: ${conversionError.message}`);
       }
 
