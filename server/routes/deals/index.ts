@@ -36,7 +36,7 @@ export function registerDealsRoutes(app: Express) {
       const result = await storage.getDealsWithPagination({
         page: pageNum,
         limit: limitNum,
-        macrosetor: macrosetor as string,
+
         stage: stage as string,
         search: search as string
       });
@@ -111,7 +111,7 @@ export function registerDealsRoutes(app: Express) {
         assignedUserId: assignedUserId ? parseInt(assignedUserId) : req.user?.id,
         channel: channel || 'direct',
         source: source || 'manual',
-        macrosetor: macrosetor || 'geral',
+
         priority: priority || 'medium',
         tags: tags || [],
         createdBy: req.user?.id
