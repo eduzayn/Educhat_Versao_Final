@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import type { ConversationWithContact } from '@shared/schema';
 
 interface ConversationsResponse {
@@ -27,8 +28,19 @@ export function useInfiniteConversations(
 ) {
   const { searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, channelFilter, ...queryOptions } = options;
   
+  // Implementar debounce para searchTerm
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm || '');
+  
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm || '');
+    }, 300); // 300ms de debounce
+    
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+  
   return useInfiniteQuery<ConversationsResponse>({
-    queryKey: ['/api/conversations', { limit, searchTerm, periodFilter, teamFilter, statusFilter, agentFilter, channelFilter }],
+    queryKey: ['/api/conversations', { limit, searchTerm: debouncedSearchTerm, periodFilter, teamFilter, statusFilter, agentFilter, channelFilter }],
     queryFn: async ({ pageParam = 0 }: { pageParam: unknown }) => {
       const offset = typeof pageParam === 'number' ? pageParam : 0;
       const params = new URLSearchParams({
@@ -36,8 +48,8 @@ export function useInfiniteConversations(
         offset: offset.toString()
       });
       
-      if (searchTerm?.trim()) {
-        params.append('search', searchTerm.trim());
+      if (debouncedSearchTerm?.trim()) {
+        params.append('search', debouncedSearchTerm.trim());
       }
       
       if (periodFilter && periodFilter !== 'all') {
@@ -85,7 +97,7 @@ export function useInfiniteConversations(
     },
     getNextPageParam: (lastPage, allPages) => {
       // Para busca, desabilita paginação infinita (carrega tudo de uma vez)
-      if (searchTerm?.trim()) return undefined;
+      if (debouncedSearchTerm?.trim()) return undefined;
       
       // Se não há próxima página ou não carregou conversas suficientes, parar paginação
       if (!lastPage.hasNextPage || lastPage.conversations.length === 0) return undefined;
@@ -95,7 +107,7 @@ export function useInfiniteConversations(
       return totalLoaded;
     },
     initialPageParam: 0,
-    staleTime: searchTerm?.trim() ? 30000 : 2000, // Cache reduzido para melhor sincronização
+    staleTime: debouncedSearchTerm?.trim() ? 30000 : 2000, // Cache reduzido para melhor sincronização
     refetchInterval: false,
     refetchOnWindowFocus: true, // Ativar refetch ao focar janela
     refetchOnMount: true, // Sempre refetch ao montar
