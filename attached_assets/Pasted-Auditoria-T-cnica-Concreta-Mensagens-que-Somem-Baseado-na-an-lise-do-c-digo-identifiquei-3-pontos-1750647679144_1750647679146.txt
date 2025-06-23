@@ -1,0 +1,65 @@
+Auditoria Técnica Concreta: Mensagens que Somem
+Baseado na análise do código, identifiquei 3 pontos críticos onde as mensagens podem estar sendo removidas:
+
+1. Race Condition no useMessages.ts (PRINCIPAL SUSPEITO)
+Arquivo: client/src/shared/lib/hooks/useMessages.ts
+Linha 15-30: Sistema de mensagens otimistas
+
+// PRIMEIRO: Mensagem aparece imediatamente (bubble)
+const optimisticMessage = {
+  id: Date.now(), // ID temporário
+  ...message,
+  conversationId,
+  sentAt: new Date(),
+  // ...
+};
+// Atualização imediata da UI
+queryClient.setQueryData(['/api/conversations', conversationId, 'messages'], 
+  (old: Message[] | undefined) => {
+    const messages = old || [];
+    return [...messages, optimisticMessage as Message];
+  }
+);
+PROBLEMA: O sistema substitui a mensagem otimística pela real via onSuccess, mas se houver qualquer falha ou timing incorreto, a mensagem some.
+
+2. Broadcast com 0 Clientes Conectados
+Arquivo: server/routes/realtime/realtime-broadcast.ts
+Logs confirmam:
+
+📡 Enviando broadcast para conversa 2363: 0 clientes conectados
+⚠️ Nenhum cliente na sala conversation:2363 - broadcast pode não ter efeito
+PROBLEMA: Socket.IO não está entregando broadcasts porque não há clientes na sala específica. Mensagens chegam via webhook mas não são propagadas para o frontend.
+
+3. Lógica de Substituição no useSocketMessageListener.ts
+Arquivo: client/src/shared/lib/hooks/useSocketMessageListener.ts
+Linha 45-60: Sistema que substitui mensagens otimistas
+
+const handleBroadcastMessage = (data: SocketMessageData) => {
+  // Evitar processamento duplicado
+  const messageKey = `${data.message.id}_${data.conversationId}`;
+  if (processedMessages.current.has(messageKey)) {
+    return; // PODE ESTAR BLOQUEANDO MENSAGENS REAIS
+  }
+  processedMessages.current.add(messageKey);
+PROBLEMA: Cache de mensagens processadas pode estar rejeitando mensagens legítimas.
+
+4. Fallback com Dados Antigos
+Arquivo: client/src/shared/lib/hooks/useWebSocket.ts
+Linha 50-70: Atualização via broadcast
+
+O sistema tem um mecanismo de fallback que pode estar substituindo dados novos por antigos quando há falha no Socket.IO.
+
+Diagnóstico Preciso
+CAUSA RAIZ: Race condition entre:
+
+Mensagem otimística aparece instantaneamente
+Webhook processa mensagem no servidor
+Broadcast Socket.IO falha (0 clientes)
+Sistema de cache/polling substitui dados novos por antigos
+Mensagem desaparece do bubble
+EVIDÊNCIA CONCRETA:
+
+Logs mostram "0 clientes conectados" nas salas
+Sistema usa IDs temporários (Date.now()) que são substituídos
+Cache de mensagens processadas pode estar bloqueando atualizações
+A mensagem aparece temporariamente porque o sistema otimista funciona, mas desaparece quando o sistema tenta sincronizar com dados do servidor que não foram propagados corretamente via Socket.IO.
