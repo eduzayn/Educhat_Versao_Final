@@ -1,5 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "../../core/storage";
+import { db } from "../../core/db";
+import { rolePermissions, permissions } from "../../../shared/schema";
+import { eq, and } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -25,7 +28,25 @@ export class PermissionService {
   }): Promise<boolean> {
     try {
       const user = await storage.getSystemUser(userId);
-      return user?.role === 'admin' || user?.role === 'manager';
+      
+      // Verificar se é admin/administrador - acesso total
+      if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'Administrador') {
+        return true;
+      }
+      
+      // Para outros roles, verificar permissões específicas através do banco
+      if (user?.roleId) {
+        const result = await storage.db.query(`
+          SELECT COUNT(*) as count
+          FROM role_permissions rp
+          JOIN permissions p ON rp.permission_id = p.id
+          WHERE rp.role_id = $1 AND p.name = $2
+        `, [user.roleId, permissionName]);
+        
+        return result.rows[0]?.count > 0;
+      }
+      
+      return false;
     } catch (error) {
       console.error('Erro ao verificar permissão:', error);
       return false;
