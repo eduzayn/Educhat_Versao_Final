@@ -40,6 +40,11 @@ export function setupSession(app: Express) {
         sameSite: config.sameSite,
         domain: undefined,
         path: "/",
+        // CORREÇÃO: Para Replit, garantir compatibilidade com diferentes ambientes
+        ...(config.platform === 'replit' && {
+          secure: false, // Forçar inseguro para Replit
+          sameSite: 'lax' as const
+        })
       },
     }),
   );
