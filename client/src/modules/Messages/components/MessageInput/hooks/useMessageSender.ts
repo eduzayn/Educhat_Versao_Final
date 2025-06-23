@@ -220,7 +220,7 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
   const sendAudio = async (audioBlob: Blob, duration: number) => {
     try {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('audio', audioBlob, 'audio.ogg');
       formData.append('conversationId', conversationId.toString());
       formData.append('duration', duration.toString());
 

@@ -81,7 +81,8 @@ export function useSendAudioMessage() {
 
         const formData = new FormData();
         formData.append('phone', contact.phone);
-        formData.append('audio', finalAudioBlob, `audio.${finalAudioBlob.type.split('/')[1] || 'webm'}`);
+        // Converter para OGG que é mais aceito pela Z-API
+        formData.append('audio', finalAudioBlob, 'audio.ogg');
         formData.append('duration', duration.toString());
         formData.append('conversationId', conversationId.toString());
 

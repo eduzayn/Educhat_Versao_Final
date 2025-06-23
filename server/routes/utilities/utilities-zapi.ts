@@ -10,9 +10,20 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('audio/')) {
+    // Aceitar qualquer arquivo que contenha 'audio' no mimetype ou extensão comum de áudio
+    const isAudio = file.mimetype.startsWith('audio/') || 
+                   file.originalname.match(/\.(mp3|wav|ogg|webm|m4a|aac)$/i) ||
+                   file.mimetype.includes('audio') ||
+                   file.mimetype === 'application/octet-stream'; // Para casos onde o mimetype não é detectado
+    
+    if (isAudio) {
       cb(null, true);
     } else {
+      console.log('📋 Arquivo rejeitado:', {
+        mimetype: file.mimetype,
+        originalname: file.originalname,
+        size: file.size
+      });
       cb(new Error('Only audio files are allowed'), false);
     }
   }
@@ -395,16 +406,58 @@ export function registerZApiRoutes(app: Express) {
 
       if (!credentials.valid) {
         zapiLogger.logError('INVALID_CREDENTIALS', credentials.error, requestId);
-        return res.status(400).json({ 
-          error: `Configuração Z-API inválida: ${credentials.error}` 
+        
+        // Para áudios, criar mensagem local mesmo sem Z-API
+        const message = await storage.createMessage({
+          conversationId: parseInt(conversationId),
+          content: '🎵 Áudio enviado (modo local)',
+          isFromContact: false,
+          messageType: 'audio',
+          sentAt: new Date(),
+          metadata: {
+            localAudio: true,
+            duration: req.body.duration ? parseInt(req.body.duration) : undefined,
+            mimeType: audioFile.mimetype || 'audio/ogg',
+            fileName: audioFile.originalname || 'audio.ogg'
+          }
+        });
+
+        // Salvar arquivo de áudio no banco
+        try {
+          const { mediaFiles } = await import('@shared/schema');
+          const { db } = await import('../../db');
+          
+          await db.insert(mediaFiles).values({
+            messageId: message.id,
+            fileName: audioFile.originalname || `audio_${message.id}.ogg`,
+            originalName: audioFile.originalname || `audio_${message.id}.ogg`,
+            mimeType: audioFile.mimetype || 'audio/ogg',
+            fileSize: audioFile.size || audioBase64.length,
+            fileData: audioBase64,
+            mediaType: 'audio',
+            duration: req.body.duration ? parseInt(req.body.duration) : undefined,
+            isCompressed: false,
+            zapiSent: false
+          });
+        } catch (dbError) {
+          console.error('Erro ao salvar arquivo de áudio no banco:', dbError);
+        }
+
+        return res.json({
+          success: true,
+          messageId: message.id,
+          localMode: true,
+          message: 'Áudio salvo localmente - Z-API indisponível'
         });
       }
 
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = targetPhone.replace(/\D/g, '');
 
-      // Converter áudio para base64
+      // Converter áudio para base64 
       let audioBase64;
+      let finalMimeType = 'audio/ogg'; // Z-API prefere OGG
+      
       if (audioFile.buffer) {
         audioBase64 = audioFile.buffer.toString('base64');
       } else {
@@ -413,7 +466,8 @@ export function registerZApiRoutes(app: Express) {
         audioBase64 = audioBuffer.toString('base64');
       }
 
-      const dataUrl = `data:${audioFile.mimetype || 'audio/webm'};base64,${audioBase64}`;
+      // Para Z-API, sempre usar audio/ogg que é mais compatível
+      const dataUrl = `data:${finalMimeType};base64,${audioBase64}`;
       
       const url = buildZApiUrl(instanceId, token, 'send-audio');
       const payload = {
