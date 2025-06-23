@@ -588,6 +588,18 @@ export function registerZApiRoutes(app: Express) {
         requestId,
         duration: Date.now() - startTime
       });
+      } catch (conversionError) {
+        console.error('Erro na conversão FFmpeg:', conversionError);
+        throw new Error(`Falha na conversão de áudio: ${conversionError.message}`);
+      }
+
+    } catch (error) {
+      zapiLogger.logError('GENERAL_ERROR', error, requestId);
+      return res.status(500).json({
+        error: error.message,
+        requestId,
+        duration: Date.now() - startTime
+      });
     }
   });
 
@@ -619,82 +631,6 @@ export function registerZApiRoutes(app: Express) {
     } catch (error) {
       console.error('Erro ao servir arquivo de áudio:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-}
-              mimeType: audioFile.mimetype || 'audio/webm',
-              duration: req.body.duration ? parseInt(req.body.duration) : undefined
-            }
-          });
-
-          // Salvar arquivo de áudio no banco para streaming
-          const { mediaFiles } = await import('@shared/schema');
-          const { db } = await import('../../db');
-          
-          try {
-            await db.insert(mediaFiles).values({
-              messageId: message.id,
-              fileName: `audio_${message.id}.${audioFile.mimetype?.split('/')[1] || 'webm'}`,
-              originalName: audioFile.originalname || `audio_${message.id}.webm`,
-              mimeType: audioFile.mimetype || 'audio/webm',
-              fileSize: audioFile.size || audioBase64.length,
-              fileData: audioBase64,
-              mediaType: 'audio',
-              duration: req.body.duration ? parseInt(req.body.duration) : undefined,
-              isCompressed: false,
-              zapiSent: true,
-              zapiMessageId: parsedResponse.messageId || parsedResponse.id
-            });
-            
-            console.log(`💾 Arquivo de áudio salvo no banco para mensagem ${message.id}`);
-          } catch (dbError) {
-            console.error('Erro ao salvar arquivo de áudio no banco:', dbError);
-          }
-
-          zapiLogger.logDatabaseUpdate(message.id, true, undefined, requestId);
-
-          // Broadcast via WebSocket
-          try {
-            const { broadcast, broadcastToAll } = await import('../realtime');
-            broadcast(parseInt(conversationId), {
-              type: 'new_message',
-              conversationId: parseInt(conversationId),
-              message: message
-            });
-            broadcastToAll({
-              type: 'new_message',
-              conversationId: parseInt(conversationId),
-              message: message
-            });
-          } catch (wsError) {
-            console.error('Erro no WebSocket broadcast:', wsError);
-          }
-        }
-        
-        res.json(parsedResponse);
-        
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        
-        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          const timeoutError = new Error('Timeout: Envio de áudio cancelado após 15 segundos');
-          zapiLogger.logError('FETCH_TIMEOUT', timeoutError, requestId);
-          throw timeoutError;
-        }
-        
-        zapiLogger.logError('FETCH_ERROR', fetchError, requestId);
-        throw fetchError;
-      }
-      
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      zapiLogger.logError('SEND_AUDIO_ERROR', error, requestId!);
-      
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor',
-        requestId: requestId!,
-        duration
-      });
     }
   });
 }
