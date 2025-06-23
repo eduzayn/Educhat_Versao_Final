@@ -79,8 +79,8 @@ export function setupAuthRoutes(app: Express) {
     res.json(req.user);
   });
 
-  // Logout
-  app.post("/api/auth/logout", (req: Request, res: Response) => {
+  // Logout (both routes for compatibility)
+  const logoutHandler = (req: Request, res: Response) => {
     req.logout((err) => {
       if (err) {
         console.error("Erro ao fazer logout:", err);
@@ -97,7 +97,10 @@ export function setupAuthRoutes(app: Express) {
         res.json({ message: "Logout realizado com sucesso" });
       });
     });
-  });
+  };
+
+  app.post("/api/logout", logoutHandler);
+  app.post("/api/auth/logout", logoutHandler);
 
   // Verificar autenticação
   app.get("/api/auth/check", (req: Request, res: Response) => {

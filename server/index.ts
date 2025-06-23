@@ -167,6 +167,26 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Health check endpoint is handled in routes.ts
 
+// CRITICAL: Logout route must be registered before Vite middleware to prevent HTML response
+app.post("/api/logout", (req: Request, res: Response) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Erro ao fazer logout:", err);
+      return res.status(500).json({ message: "Erro ao fazer logout" });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Erro ao destruir sessão:", err);
+        return res.status(500).json({ message: "Erro ao destruir sessão" });
+      }
+
+      res.clearCookie("educhat-session");
+      res.json({ message: "Logout realizado com sucesso" });
+    });
+  });
+});
+
 // Servir arquivos estáticos de upload
 app.use('/uploads', express.static('uploads'));
 
