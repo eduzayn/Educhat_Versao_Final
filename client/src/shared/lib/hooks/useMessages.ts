@@ -172,15 +172,32 @@ export function useSendMessage() {
       return { previousMessages, optimisticMessage };
     },
     onSuccess: (newMessage, { conversationId }, context) => {
-      // PERFORMANCE CRÍTICA: Substituir mensagem temporária pela real SEM invalidar cache
+      // CORREÇÃO CRÍTICA: Substituir mensagem temporária pela real com proteção contra race condition
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: Message[] | undefined) => {
           if (!oldMessages) return [newMessage];
-          // Substituir mensagem temporária pela real mantendo ordem
-          return oldMessages.map(msg => 
-            msg.id === context?.optimisticMessage.id ? newMessage : msg
+          
+          // PROTEÇÃO: Se não existe context ou optimisticMessage, apenas adicionar nova mensagem
+          if (!context?.optimisticMessage) {
+            // Verificar se mensagem já existe para evitar duplicatas
+            const messageExists = oldMessages.some(msg => msg.id === newMessage.id);
+            return messageExists ? oldMessages : [...oldMessages, newMessage];
+          }
+          
+          // Substituir mensagem temporária pela real mantendo ordem e protegendo contra falha
+          const updatedMessages = oldMessages.map(msg => 
+            msg.id === context.optimisticMessage.id ? newMessage : msg
           );
+          
+          // FALLBACK: Se não encontrou mensagem otimística para substituir, adicionar ao final
+          const wasReplaced = updatedMessages.some(msg => msg.id === newMessage.id);
+          if (!wasReplaced) {
+            console.warn(`⚠️ Mensagem otimística ${context.optimisticMessage.id} não encontrada, adicionando mensagem real ${newMessage.id}`);
+            return [...oldMessages.filter(msg => msg.id !== context.optimisticMessage.id), newMessage];
+          }
+          
+          return updatedMessages;
         }
       );
       

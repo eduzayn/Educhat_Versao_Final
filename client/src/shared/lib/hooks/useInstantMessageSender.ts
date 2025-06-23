@@ -168,15 +168,31 @@ export function useInstantMessageSender() {
     },
 
     onSuccess: (realMessage, { conversationId }, context) => {
-      // Substituir mensagem otimística pela real sem invalidar cache
+      // CORREÇÃO CRÍTICA: Substituir mensagem otimística pela real com proteção contra race condition
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: Message[] | undefined) => {
           if (!oldMessages) return [realMessage];
           
-          return oldMessages.map(msg => 
-            msg.id === context?.optimisticMessage.id ? realMessage : msg
+          // PROTEÇÃO: Se não existe context ou optimisticMessage, apenas adicionar nova mensagem
+          if (!context?.optimisticMessage) {
+            const messageExists = oldMessages.some(msg => msg.id === realMessage.id);
+            return messageExists ? oldMessages : [...oldMessages, realMessage];
+          }
+          
+          // Substituir mensagem temporária pela real mantendo ordem
+          const updatedMessages = oldMessages.map(msg => 
+            msg.id === context.optimisticMessage.id ? realMessage : msg
           );
+          
+          // FALLBACK: Se não encontrou mensagem otimística para substituir, adicionar ao final
+          const wasReplaced = updatedMessages.some(msg => msg.id === realMessage.id);
+          if (!wasReplaced) {
+            console.warn(`⚠️ Mensagem otimística ${context.optimisticMessage.id} não encontrada, adicionando mensagem real ${realMessage.id}`);
+            return [...oldMessages.filter(msg => msg.id !== context.optimisticMessage.id), realMessage];
+          }
+          
+          return updatedMessages;
         }
       );
 
