@@ -1,6 +1,6 @@
 import { BaseStorage } from '../base/BaseStorage';
 import { messages, conversations, type Message, type InsertMessage } from '@shared/schema';
-import { eq, desc, asc, and, isNull } from 'drizzle-orm';
+import { eq, desc, asc, and, isNull, inArray } from 'drizzle-orm';
 
 /**
  * Message storage module - consolidated operations for messages and media handling
@@ -126,7 +126,23 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessagesByConversation(conversationId: number): Promise<Message[]> {
-    return this.basicOps.getMessagesByConversation(conversationId);
+    return this.db.select().from(messages)
+      .where(and(
+        eq(messages.conversationId, conversationId),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(asc(messages.sentAt));
+  }
+
+  async getMessagesByConversationIds(conversationIds: number[]): Promise<Message[]> {
+    if (conversationIds.length === 0) return [];
+    
+    return this.db.select().from(messages)
+      .where(and(
+        inArray(messages.conversationId, conversationIds),
+        eq(messages.isDeleted, false)
+      ))
+      .orderBy(asc(messages.sentAt));
   }
 
   async getUnreadMessages(conversationId: number): Promise<Message[]> {

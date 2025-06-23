@@ -8,57 +8,71 @@ export function registerProductivityRoutes(app: Express) {
   // Produtividade Individual - REST: GET /api/bi/productivity
   app.get('/api/bi/productivity', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { period = '30', userId } = req.query;
+      const { period = '30', userId, team, search } = req.query;
       const days = parseInt(period as string);
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar TODAS as conversas dos últimos 30 dias
-      const conversations = await storage.getConversations(20000, 0);
-      const allConversations = conversations.filter(c => 
+      // Buscar apenas conversas do período com limite otimizado
+      const conversations = await storage.getConversations(1000, 0);
+      const periodConversations = conversations.filter(c => 
         c.createdAt && new Date(c.createdAt) >= startDate
       );
-      const messages = await storage.getAllMessages();
-      const users = await storage.getAllUsers();
 
-      const periodConversations = allConversations;
-      const periodMessages = messages.filter(m => 
-        m.sentAt && new Date(m.sentAt) >= startDate && !m.isFromContact
-      );
+      // Buscar apenas mensagens do período (otimizado)
+      const allUsers = await storage.getAllUsers();
+      const userStats: BIUserStats[] = [];
 
-      // Dados por usuário
-      // Dados reais dos top performers dos últimos 7 dias baseados no banco
-      const topPerformers = [
-        { id: 55, name: "Daniela Tovar", conversations: 59, messages: 125, productivity: 95 },
-        { id: 35, name: "Monique", conversations: 59, messages: 89, productivity: 94 },
-        { id: 67, name: "Jade Analise certificação", conversations: 49, messages: 67, productivity: 87 },
-        { id: 29, name: "Elaine Cristina", conversations: 40, messages: 52, productivity: 82 },
-        { id: 33, name: "Tati Corsi", conversations: 40, messages: 48, productivity: 81 },
-        { id: 25, name: "Ana Lúcia", conversations: 39, messages: 45, productivity: 79 },
-        { id: 82, name: "Rian Moreira", conversations: 39, messages: 51, productivity: 78 },
-        { id: 84, name: "Érick Moreira", conversations: 39, messages: 43, productivity: 77 },
-        { id: 85, name: "Amanda Joice", conversations: 39, messages: 41, productivity: 76 },
-        { id: 64, name: "Kamille Documentação", conversations: 25, messages: 32, productivity: 65 }
-      ];
+      // Processar estatísticas por usuário de forma otimizada
+      for (const user of allUsers) {
+        if (search && !user.name?.toLowerCase().includes((search as string).toLowerCase())) {
+          continue;
+        }
 
-      const userStats: BIUserStats[] = topPerformers.map(user => ({
-        id: user.id,
-        name: user.name,
-        conversations: user.conversations,
-        messages: user.messages,
-        avgResponseTime: 2.5,
-        satisfaction: 4.2,
-        productivity: user.productivity
-      }));
+        const userConversations = periodConversations.filter(c => c.assignedUserId === user.id);
+        const conversationIds = userConversations.map(c => c.id);
+        
+        if (conversationIds.length === 0) continue;
+
+        // Buscar mensagens apenas para conversas do usuário no período
+        const userMessages = await storage.getMessagesByConversationIds(conversationIds);
+        const userOutgoingMessages = userMessages.filter(m => 
+          m.sentAt && 
+          new Date(m.sentAt) >= startDate && 
+          !m.isFromContact
+        );
+
+        if (userConversations.length === 0 && userOutgoingMessages.length === 0) continue;
+
+        // Calcular produtividade baseada em dados reais
+        const productivity = Math.min(100, Math.round(
+          (userConversations.length * 2) + (userOutgoingMessages.length * 0.5)
+        ));
+
+        userStats.push({
+          id: user.id,
+          name: user.name || 'Usuário sem nome',
+          conversations: userConversations.length,
+          messages: userOutgoingMessages.length,
+          avgResponseTime: 2.5, // Placeholder até implementar cálculo real
+          satisfaction: 4.2, // Placeholder até implementar cálculo real
+          productivity
+        });
+      }
+
+      // Filtrar por equipe se especificado
+      const filteredStats = team && team !== 'all' 
+        ? userStats.filter(u => u.team === team)
+        : userStats;
 
       // Se userId específico for solicitado
       if (userId) {
-        const specificUser = userStats.find(u => u.id === parseInt(userId as string));
+        const specificUser = filteredStats.find(u => u.id === parseInt(userId as string));
         if (specificUser) {
           // Dados detalhados do usuário específico
           const userConversations = periodConversations.filter(c => c.assignedUserId === parseInt(userId as string));
           
-          // Atividade diária
+          // Atividade diária baseada em dados reais
           const dailyActivity: BIDailyActivity[] = [];
           for (let i = days - 1; i >= 0; i--) {
             const date = new Date();
@@ -68,12 +82,24 @@ export function registerProductivityRoutes(app: Express) {
             
             const dayConversations = userConversations.filter(c => 
               c.createdAt && new Date(c.createdAt) >= dayStart && new Date(c.createdAt) <= dayEnd
-            ).length;
+            );
+
+            const dayConversationIds = dayConversations.map(c => c.id);
+            const dayMessages = dayConversationIds.length > 0 
+              ? await storage.getMessagesByConversationIds(dayConversationIds)
+              : [];
+            
+            const dayOutgoingMessages = dayMessages.filter(m => 
+              m.sentAt && 
+              new Date(m.sentAt) >= dayStart && 
+              new Date(m.sentAt) <= dayEnd && 
+              !m.isFromContact
+            );
             
             dailyActivity.push({
               date: dayStart.toISOString().split('T')[0],
-              conversations: dayConversations,
-              messages: Math.floor(Math.random() * 50) + 10 // Simulado
+              conversations: dayConversations.length,
+              messages: dayOutgoingMessages.length
             });
           }
 
@@ -93,7 +119,7 @@ export function registerProductivityRoutes(app: Express) {
         }
       } else {
         res.json({
-          users: userStats.sort((a, b) => b.productivity - a.productivity)
+          users: filteredStats.sort((a, b) => b.productivity - a.productivity)
         });
       }
     } catch (error) {
