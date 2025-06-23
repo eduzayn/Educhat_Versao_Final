@@ -425,6 +425,10 @@ export class CentralStorage {
     return this.message.getAllMessages();
   }
 
+  async getMessagesByConversationIds(conversationIds: number[]) {
+    return this.message.getMessagesByConversationIds(conversationIds);
+  }
+
   async getMessages(conversationId: number, limit?: number, offset?: number) {
     return this.message.getMessages(conversationId, limit, offset);
   }
