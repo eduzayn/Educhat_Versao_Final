@@ -15,7 +15,7 @@ export function registerProductivityRoutes(app: Express) {
 
       const conversations = await storage.getConversations(1000, 0);
       const messages = await storage.getAllMessages();
-      const users = await storage.getUsers();
+      const users = await storage.getAllUsers();
 
       // Filtrar por período
       const periodConversations = conversations.filter(c => 

@@ -15,7 +15,7 @@ export function registerTeamRoutes(app: Express) {
 
       const teams = await storage.getTeams();
       const conversations = await storage.getConversations(1000, 0);
-      const users = await storage.getUsers();
+      const users = await storage.getAllUsers();
 
       // Filtrar por período
       const periodConversations = conversations.filter(c => 
