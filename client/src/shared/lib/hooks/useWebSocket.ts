@@ -152,11 +152,11 @@ export function useWebSocket() {
       });
     });
 
-    // SOCKET-FIRST: Handler otimizado para mensagens em tempo real
+    // SOCKET-FIRST: Handler otimizado para mensagens em tempo real com fallback
     socketRef.current.on('broadcast_message', (data) => {
       // Handle new_message - Sistema socket-first como Chatwoot
       if (data.type === 'new_message' && data.message && data.conversationId) {
-        console.log(`📨 Nova mensagem via WebSocket (${data.source || 'unknown'}):`, data);
+        console.log(`📨 Nova mensagem via WebSocket (${data.fallbackBroadcast ? 'fallback' : 'direct'}):`, data);
         
         // CORREÇÃO: Sempre atualizar lista de conversas quando nova mensagem chegar
         queryClient.setQueryData(['/api/conversations'], (oldData: any) => {

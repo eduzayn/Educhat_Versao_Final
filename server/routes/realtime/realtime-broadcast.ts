@@ -21,24 +21,34 @@ export function broadcast(conversationId: number, data: any) {
     
     console.log(`📡 Enviando broadcast para conversa ${conversationId}: ${clientCount} clientes conectados`);
     
-    // Broadcast para sala específica
-    ioInstance.to(roomName).emit('broadcast_message', {
+    const broadcastData = {
       ...data,
       timestamp: new Date().toISOString(),
       roomClients: clientCount
-    });
+    };
+    
+    // CORREÇÃO: Sempre usar broadcast global como fallback para garantir entrega
+    if (clientCount > 0) {
+      // Preferir sala específica quando há clientes conectados
+      ioInstance.to(roomName).emit('broadcast_message', broadcastData);
+      console.log(`✅ Broadcast enviado para sala específica ${roomName} (${clientCount} clientes)`);
+    } else {
+      // FALLBACK: Broadcast global quando sala está vazia
+      ioInstance.emit('broadcast_message', {
+        ...broadcastData,
+        fallbackBroadcast: true,
+        originalRoom: roomName
+      });
+      console.log(`🔄 Fallback: Broadcast global enviado para conversa ${conversationId} (sala vazia)`);
+    }
     
     logger.socket('Broadcast enviado', {
       conversationId,
       type: data.type,
       room: roomName,
-      clientCount
+      clientCount,
+      method: clientCount > 0 ? 'room-specific' : 'global-fallback'
     });
-    
-    // Log detalhado para debug
-    if (clientCount === 0) {
-      console.warn(`⚠️ Nenhum cliente na sala ${roomName} - broadcast pode não ter efeito`);
-    }
     
   } catch (error) {
     logger.error('Erro ao fazer broadcast', error);
