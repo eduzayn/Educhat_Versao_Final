@@ -187,22 +187,7 @@ export class ContactDuplicateDetection extends BaseStorage {
         idCanal: contact.idCanal,
         conversationCount: 0, // Removido para evitar queries extras
         lastActivity: contact.createdAt // Usar createdAt como fallback otimizado
-            .limit(1);
-
-          duplicatesWithInfo.push({
-            contactId: contact.id,
-            name: contact.name,
-            phone: contact.phone,
-            canalOrigem: contact.canalOrigem,
-            nomeCanal: contact.nomeCanal,
-            idCanal: contact.idCanal,
-            conversationCount: countResult?.count || 0,
-            lastActivity: lastConversation?.lastMessageAt || contact.createdAt
-          });
-        }
-
-        duplicateGroups[phone] = duplicatesWithInfo;
-      }
+      });
     }
 
     return duplicateGroups;
