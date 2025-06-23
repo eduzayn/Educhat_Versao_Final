@@ -124,9 +124,8 @@ export function useSendMessage() {
       return savedMessage;
     },
     onMutate: async ({ conversationId, message }) => {
-      // BENCHMARK: Iniciar medição do tempo de renderização do bubble
-      performanceBenchmark.startTimer('enter-to-bubble-render');
-      console.log('🚀 Atualização otimística - mensagem aparece IMEDIATAMENTE');
+      // SISTEMA SIMPLIFICADO: Sem mensagens otimistas, apenas preparar para resposta real
+      console.log('📤 Enviando mensagem - aguardando confirmação do servidor');
       
       // Cancelar qualquer refetch em andamento para evitar conflitos
       await queryClient.cancelQueries({ 
@@ -136,76 +135,23 @@ export function useSendMessage() {
       // Snapshot do estado anterior para rollback se necessário
       const previousMessages = queryClient.getQueryData(['/api/conversations', conversationId, 'messages']);
 
-      // Criar mensagem temporária para exibição imediata
-      const optimisticMessage = {
-        id: Date.now(), // ID temporário único
-        ...message,
-        conversationId,
-        sentAt: new Date(),
-        isFromContact: false,
-        zapiMessageId: null,
-        readAt: null,
-        deliveredAt: null,
-        metadata: null,
-        isDeleted: false,
-        messageType: message.messageType || 'text'
-      };
-
-      // Atualização imediata da UI - mensagem aparece instantaneamente
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (old: Message[] | undefined) => {
-          const messages = old || [];
-          const updatedMessages = [...messages, optimisticMessage as Message];
-          console.log('✅ Mensagem adicionada ao bubble imediatamente:', optimisticMessage.id);
-          
-          // BENCHMARK: Finalizar medição - bubble renderizado
-          const bubbleRenderTime = performanceBenchmark.endTimer('enter-to-bubble-render');
-          if (bubbleRenderTime > 0) {
-            console.log(`🎯 PERFORMANCE: ENTER → Bubble em ${bubbleRenderTime.toFixed(1)}ms (Target Chatwoot: <50ms)`);
-          }
-          
-          return updatedMessages;
-        }
-      );
-
-      return { previousMessages, optimisticMessage };
+      return { previousMessages };
     },
     onSuccess: (newMessage, { conversationId }, context) => {
-      // CORREÇÃO CRÍTICA: Substituir mensagem temporária pela real com proteção contra race condition
+      // SISTEMA SIMPLIFICADO: Apenas adicionar a mensagem real quando confirmada pelo servidor
       queryClient.setQueryData(
         ['/api/conversations', conversationId, 'messages'],
         (oldMessages: Message[] | undefined) => {
           if (!oldMessages) return [newMessage];
           
-          // PROTEÇÃO: Se não existe context ou optimisticMessage, apenas adicionar nova mensagem
-          if (!context?.optimisticMessage) {
-            // Verificar se mensagem já existe para evitar duplicatas
-            const messageExists = oldMessages.some(msg => msg.id === newMessage.id);
-            return messageExists ? oldMessages : [...oldMessages, newMessage];
-          }
-          
-          // CORREÇÃO DEFINITIVA: Sistema robusto para evitar desaparecimento de mensagens
+          // Verificar se mensagem já existe para evitar duplicatas
           const messageExists = oldMessages.some(msg => msg.id === newMessage.id);
           if (messageExists) {
-            // Mensagem real já existe, remover apenas otimística
-            return oldMessages.filter(msg => msg.id !== context.optimisticMessage.id);
+            return oldMessages;
           }
           
-          // Encontrar e substituir mensagem otimística
-          const optimisticIndex = oldMessages.findIndex(msg => msg.id === context.optimisticMessage.id);
-          
-          if (optimisticIndex !== -1) {
-            // Substituição direta da mensagem otimística pela real
-            const updatedMessages = [...oldMessages];
-            updatedMessages[optimisticIndex] = newMessage;
-            console.log(`✅ Mensagem otimística ${context.optimisticMessage.id} substituída por real ${newMessage.id}`);
-            return updatedMessages;
-          } else {
-            // FALLBACK: Se não encontrou otimística, adicionar mensagem real ao final
-            console.warn(`⚠️ Mensagem otimística ${context.optimisticMessage.id} não encontrada, adicionando real ${newMessage.id}`);
-            return [...oldMessages, newMessage];
-          }
+          // Adicionar nova mensagem ao final
+          return [...oldMessages, newMessage];
         }
       );
       
@@ -232,13 +178,8 @@ export function useSendMessage() {
       console.log('✅ Mensagem sincronizada sem reload - performance Chatwoot level');
     },
     onError: (err, { conversationId }, context) => {
-      // Restaurar estado anterior em caso de erro
-      if (context?.previousMessages) {
-        queryClient.setQueryData(
-          ['/api/conversations', conversationId, 'messages'],
-          context.previousMessages
-        );
-      }
+      // Apenas mostrar erro, sem necessidade de restaurar estado (não há mensagem otimista)
+      console.error('❌ Erro ao enviar mensagem:', err.message);
     },
   });
 }

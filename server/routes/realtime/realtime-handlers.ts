@@ -104,17 +104,10 @@ export function setupSocketHandlers(io: SocketIOServer) {
     // SOCKET-FIRST: Handle envio de mensagens em tempo real OTIMIZADO
     socket.on('send_message', async (data) => {
       const startTime = performance.now();
-      const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false, optimisticId } = data;
+      const { conversationId, content, messageType = 'text', isFromContact = false, isInternalNote = false } = data;
       
       try {
-        console.log(`📡 [PROD-AUDIT] SOCKET: Processando mensagem ${optimisticId} para conversa ${conversationId}`);
-        
-        // MELHORIA 1: Resposta imediata ao cliente antes do DB
-        socket.emit('message_received', {
-          optimisticId,
-          status: 'processing',
-          timestamp: new Date().toISOString()
-        });
+        console.log(`📡 [PROD-AUDIT] SOCKET: Processando mensagem para conversa ${conversationId}`);
         
         // Salvar mensagem no banco com versão otimizada
         const newMessage = await storage.message.createMessageOptimized({
@@ -133,7 +126,6 @@ export function setupSocketHandlers(io: SocketIOServer) {
           type: 'new_message',
           message: newMessage,
           conversationId,
-          optimisticId,
           dbTime: dbTime.toFixed(1),
           source: 'socket',
           timestamp: new Date().toISOString()
@@ -153,10 +145,9 @@ export function setupSocketHandlers(io: SocketIOServer) {
           io.emit('broadcast_message', broadcastData);
         }
         
-        // MELHORIA 3: Confirmação imediata para o remetente com dados completos
+        // Confirmação para o remetente
         socket.emit('message_sent', {
           message: newMessage,
-          optimisticId,
           processTime: (performance.now() - startTime).toFixed(1),
           broadcastConfirmed: true,
           roomSize
@@ -177,7 +168,6 @@ export function setupSocketHandlers(io: SocketIOServer) {
         socket.emit('message_error', { 
           message: 'Erro ao enviar mensagem',
           error: error.message,
-          optimisticId,
           processTime: errorTime.toFixed(1),
           timestamp: new Date().toISOString()
         });

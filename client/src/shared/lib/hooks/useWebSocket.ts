@@ -108,20 +108,8 @@ export function useWebSocket() {
     socketRef.current.on('message_error', (data) => {
       console.error('❌ Erro no envio de mensagem via Socket.IO:', data);
       
-      // Marcar mensagem otimística como erro se existir
-      if (data.optimisticId) {
-        queryClient.setQueryData(
-          ['/api/conversations', activeConversation?.id, 'messages'],
-          (oldMessages: any[] | undefined) => {
-            if (!oldMessages) return [];
-            return oldMessages.map(msg => 
-              msg.id === data.optimisticId 
-                ? { ...msg, status: 'error', content: `❌ ${msg.content}` }
-                : msg
-            );
-          }
-        );
-      }
+      // Sistema simplificado - apenas logar erro
+      console.error('Erro no envio de mensagem:', data);
     });
 
     // All events are now handled via broadcast_message
@@ -233,18 +221,11 @@ export function useWebSocket() {
                   msg.id < 0 && msg.content === data.message.content
                 );
                 
-                if (optimisticIndex !== -1) {
-                  // Substituir mensagem otimista
-                  const updatedMessages = [...firstPage.messages];
-                  updatedMessages[optimisticIndex] = { ...data.message, status: 'delivered' };
+                // Adicionar nova mensagem se não existe
+                const exists = firstPage.messages.find((msg: any) => msg.id === data.message.id);
+                if (!exists) {
+                  const updatedMessages = [...firstPage.messages, { ...data.message, status: 'received' }];
                   updatedPages[0] = { ...firstPage, messages: updatedMessages };
-                } else {
-                  // Adicionar nova mensagem se não existe
-                  const exists = firstPage.messages.find((msg: any) => msg.id === data.message.id);
-                  if (!exists) {
-                    const updatedMessages = [...firstPage.messages, { ...data.message, status: 'received' }];
-                    updatedPages[0] = { ...firstPage, messages: updatedMessages };
-                  }
                 }
               }
               

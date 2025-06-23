@@ -61,32 +61,12 @@ export function useSocketMessageListener(conversationId: number | null) {
         (old: Message[] | undefined) => {
           const messages = old || [];
           
-          // Se existe optimisticId, substituir mensagem otimista
-          if (data.optimisticId) {
-            const updatedMessages = messages.map(msg => {
-              const optMsg = msg as any;
-              if (optMsg.optimisticId === data.optimisticId) {
-                console.log(`🔄 Substituindo mensagem otimista ${data.optimisticId} pela real ${data.message.id}`);
-                return data.message;
-              }
-              return msg;
-            });
-            
-            // Se não encontrou para substituir, adicionar nova
-            const hasOptimistic = messages.some(msg => (msg as any).optimisticId === data.optimisticId);
-            if (!hasOptimistic) {
-              updatedMessages.push(data.message);
-            }
-            
-            return updatedMessages;
-          } else {
-            // Verificar se mensagem já existe
-            const exists = messages.some(msg => msg.id === data.message.id);
-            if (!exists) {
-              return [...messages, data.message];
-            }
-            return messages;
+          // SISTEMA SIMPLIFICADO: Apenas verificar se mensagem já existe e adicionar se necessário
+          const exists = messages.some(msg => msg.id === data.message.id);
+          if (!exists) {
+            return [...messages, data.message];
           }
+          return messages;
         }
       );
 
@@ -112,36 +92,20 @@ export function useSocketMessageListener(conversationId: number | null) {
       );
     };
 
-    const handleMessageSent = (data: { message: Message; optimisticId: string; processTime: string }) => {
-      console.log(`✅ Confirmação de envio recebida: ${data.optimisticId} → ${data.message.id} (${data.processTime}ms)`);
+    const handleMessageSent = (data: { message: Message; processTime: string }) => {
+      console.log(`✅ Confirmação de envio recebida: ${data.message.id} (${data.processTime}ms)`);
       
-      // Mesmo tratamento que broadcast_message para substituição
+      // Mesmo tratamento que broadcast_message
       handleBroadcastMessage({
         type: 'new_message',
         message: data.message,
-        conversationId: data.message.conversationId,
-        optimisticId: data.optimisticId
+        conversationId: data.message.conversationId
       });
     };
 
-    const handleMessageError = (error: { optimisticId: string; message: string; processTime: string }) => {
-      console.error(`❌ Erro no envio da mensagem ${error.optimisticId}: ${error.message} (${error.processTime}ms)`);
-      
-      // Marcar mensagem otimista como erro
-      queryClient.setQueryData(
-        ['/api/conversations', conversationId, 'messages'],
-        (old: Message[] | undefined) => {
-          if (!old) return [];
-          
-          return old.map(msg => {
-            const optMsg = msg as any;
-            if (optMsg.optimisticId === error.optimisticId) {
-              return { ...msg, zapiStatus: 'ERROR', status: 'error' };
-            }
-            return msg;
-          });
-        }
-      );
+    const handleMessageError = (error: { message: string; processTime: string }) => {
+      console.error(`❌ Erro no envio da mensagem: ${error.message} (${error.processTime}ms)`);
+      // Sem ação necessária - não há mensagem otimista para marcar como erro
     };
 
     // Registrar listeners
