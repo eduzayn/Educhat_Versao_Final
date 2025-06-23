@@ -45,35 +45,43 @@ export function setupSocketHandlers(io: SocketIOServer) {
       console.error(`❌ Upgrade error para ${socket.id}:`, error.message);
     });
 
-    // Handle joining a conversation room
+    // Handle joining a conversation room - CORREÇÃO CRÍTICA
     socket.on('join_conversation', (data) => {
       const { conversationId } = data;
+      console.log(`🏠 SOLICITAÇÃO JOIN_CONVERSATION: ${socket.id} → conversa ${conversationId}`);
+      
       const clientData = clients.get(socket.id);
       if (clientData && conversationId) {
         // Sair de sala anterior se existir
         if (clientData.conversationId) {
-          socket.leave(`conversation:${clientData.conversationId}`);
-          console.log(`🚪 [PROD-AUDIT] Cliente ${socket.id} saiu da conversa ${clientData.conversationId}`);
+          const oldRoom = `conversation:${clientData.conversationId}`;
+          socket.leave(oldRoom);
+          console.log(`🚪 Cliente ${socket.id} saiu da conversa ${clientData.conversationId}`);
         }
         
         // Entrar na nova sala
+        const roomName = `conversation:${conversationId}`;
+        socket.join(roomName);
         clients.set(socket.id, { ...clientData, conversationId });
-        socket.join(`conversation:${conversationId}`);
         
-        const roomSize = socket.adapter?.rooms?.get(`conversation:${conversationId}`)?.size || 0;
-        console.log(`🏠 [PROD-AUDIT] JOIN_CONVERSATION: Cliente ${socket.id} entrou na conversa ${conversationId} (${roomSize} clientes na sala)`);
+        // Verificar se realmente entrou na sala
+        const isInRoom = socket.rooms.has(roomName);
+        const roomSize = socket.adapter?.rooms?.get(roomName)?.size || 0;
         
-        // Confirmar entrada na sala com dados completos
+        console.log(`✅ Cliente ${socket.id} ${isInRoom ? 'ENTROU' : 'FALHOU'} na conversa ${conversationId} (${roomSize} clientes na sala)`);
+        
+        // Confirmar entrada na sala
         socket.emit('joined_conversation', { 
           conversationId, 
-          success: true,
+          success: isInRoom,
           timestamp: new Date().toISOString(),
           roomSize,
-          socketId: socket.id
+          socketId: socket.id,
+          roomName
         });
         
       } else {
-        console.warn(`⚠️ [PROD-AUDIT] JOIN_CONVERSATION: Falha - clientData=${!!clientData}, conversationId=${conversationId}`);
+        console.warn(`⚠️ JOIN_CONVERSATION falhou - clientData=${!!clientData}, conversationId=${conversationId}`);
         socket.emit('joined_conversation', { 
           conversationId, 
           success: false, 

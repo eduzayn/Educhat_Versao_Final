@@ -93,10 +93,14 @@ export function useWebSocket() {
         reconnectTimeoutRef.current = null;
       }
       
+      // CORREÇÃO: Sempre tentar entrar em sala quando conectar
       if (activeConversation) {
-        socketRef.current?.emit('join_conversation', {
-          conversationId: activeConversation.id,
-        });
+        console.log(`🏠 Entrando automaticamente na conversa ${activeConversation.id} após conexão`);
+        setTimeout(() => {
+          socketRef.current?.emit('join_conversation', {
+            conversationId: activeConversation.id,
+          });
+        }, 100); // Small delay para garantir que conexão está estável
       }
     });
 
@@ -626,6 +630,16 @@ export function useWebSocket() {
       setConnectionStatus(false);
     });
   }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, queryClient]);
+
+  // CORREÇÃO: Garantir entrada na sala sempre que conversa mudar
+  useEffect(() => {
+    if (activeConversation && socketRef.current?.connected) {
+      console.log(`🏠 CORREÇÃO: Entrando na conversa ${activeConversation.id} via useEffect`);
+      socketRef.current.emit('join_conversation', {
+        conversationId: activeConversation.id
+      });
+    }
+  }, [activeConversation]);
 
   const isSocketReady = useCallback(() => {
     return socketRef.current && 
