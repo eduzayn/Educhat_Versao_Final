@@ -343,8 +343,8 @@ export function registerZApiRoutes(app: Express) {
     }
   });
 
-  // Send audio via Z-API - REST: POST /api/zapi/send-audio
-  app.post('/api/zapi/send-audio', upload.single('audio'), async (req, res) => {
+  // Send audio via Z-API - REST: POST /api/zapi/send-audio e POST /api/upload/audio (consolidado)
+  app.post(['/api/zapi/send-audio', '/api/upload/audio'], upload.single('audio'), async (req, res) => {
     const startTime = Date.now();
     let requestId: string;
     
@@ -352,14 +352,29 @@ export function registerZApiRoutes(app: Express) {
       const { phone, conversationId } = req.body;
       const audioFile = req.file;
       
-      if (!phone || !audioFile) {
+      if (!audioFile) {
         return res.status(400).json({ 
-          error: 'Phone e arquivo de áudio são obrigatórios' 
+          error: 'Arquivo de áudio é obrigatório' 
+        });
+      }
+
+      // Se não temos phone, buscar da conversa
+      let targetPhone = phone;
+      if (!targetPhone && conversationId) {
+        const conversation = await storage.getConversation(parseInt(conversationId));
+        if (conversation?.contact?.phone) {
+          targetPhone = conversation.contact.phone;
+        }
+      }
+      
+      if (!targetPhone) {
+        return res.status(400).json({ 
+          error: 'Telefone do destinatário não encontrado' 
         });
       }
 
       // Iniciar rastreamento
-      requestId = zapiLogger.logSendStart(phone, 'audio', undefined);
+      requestId = zapiLogger.logSendStart(targetPhone, 'audio', undefined);
 
       // Buscar credenciais do canal ativo
       const channel = await storage.channel.getActiveWhatsAppChannel();

@@ -93,7 +93,7 @@ export function useSendAudioMessage() {
           duration
         });
 
-        const response = await fetch('/api/zapi/send-audio', {
+        const response = await fetch('/api/upload/audio', {
           method: 'POST',
           body: formData,
           // Otimizações de timeout para envio rápido

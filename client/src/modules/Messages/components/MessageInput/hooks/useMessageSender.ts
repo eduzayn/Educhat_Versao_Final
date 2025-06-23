@@ -219,8 +219,17 @@ export function useMessageSender({ conversationId, onSendMessage }: UseMessageSe
 
   const sendAudio = async (audioBlob: Blob, duration: number) => {
     try {
+      // Buscar dados da conversa para obter o telefone
+      const conversationData = queryClient.getQueryData(['/api/conversations', conversationId]) as any;
+      const phone = conversationData?.contact?.phone;
+      
+      if (!phone) {
+        throw new Error('Telefone do contato não encontrado');
+      }
+
       const formData = new FormData();
       formData.append('audio', audioBlob, 'audio.webm');
+      formData.append('phone', phone);
       formData.append('conversationId', conversationId.toString());
       formData.append('duration', duration.toString());
 

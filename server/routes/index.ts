@@ -8,7 +8,7 @@ import { registerAdminRoutes } from "./admin/index";
 // Teams integration routes temporarily disabled for compilation
 import { registerMediaRoutes } from "./media/index";
 import { registerInboxRoutes } from "./inbox/index";
-import { registerMessageRoutes } from "./messages/index";
+// import { registerMessageRoutes } from "./messages/index"; // REMOVIDO - consolidado em audio-streaming
 import { registerContactRoutes } from "./contacts/index";
 import contactDuplicatesRouter from "./contacts/duplicates";
 import { registerUserRoutes } from "./users/index";
@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // registerTeamsIntegratedChatRoutes(app); // Temporarily disabled
   registerMediaRoutes(app);
   registerInboxRoutes(app);
-  registerMessageRoutes(app);
+  // registerMessageRoutes(app); // REMOVIDO - consolidado em audio-streaming
   registerContactRoutes(app);
   registerUserRoutes(app);
   registerChannelRoutes(app);
