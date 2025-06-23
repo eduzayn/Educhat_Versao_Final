@@ -60,6 +60,11 @@ export function isWhatsAppUrl(url: string): boolean {
  * Converte URL do WhatsApp para usar o proxy interno
  */
 export function getProxiedWhatsAppUrl(originalUrl: string): string {
+  // CORREÇÃO: Verificar se já é uma URL de proxy para evitar double-encoding
+  if (originalUrl.includes('/api/proxy/whatsapp-image')) {
+    return originalUrl;
+  }
+  
   if (!isWhatsAppUrl(originalUrl)) {
     return originalUrl;
   }

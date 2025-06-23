@@ -35,6 +35,14 @@ export function MediaViewer({ src, alt, className = '', fallbackText = 'Mídia n
       return;
     }
 
+    // CORREÇÃO: Verificar se já é uma URL de proxy para evitar double-encoding
+    if (src.includes('/api/proxy/whatsapp-image')) {
+      // Já é uma URL de proxy que falhou, mostrar fallback
+      setHasError(true);
+      setIsLoading(false);
+      return;
+    }
+
     // Tentar usar o proxy para URLs do WhatsApp
     if (src.includes('pps.whatsapp.net') || src.includes('mmg.whatsapp.net') || src.includes('media.whatsapp.net')) {
       console.log('🖼️ Erro 403 detectado, redirecionando para proxy:', src);

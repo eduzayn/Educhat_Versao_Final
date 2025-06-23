@@ -38,8 +38,23 @@ const AvatarImage = React.forwardRef<
     return `/api/proxy/whatsapp-image?url=${encodedUrl}`;
   };
 
-  // Determinar URL final
-  const finalSrc = src && isWhatsAppUrl(src) ? getProxiedUrl(src) : src;
+  // CORREÇÃO: Determinar URL final evitando double-encoding
+  const finalSrc = (() => {
+    if (!src) return src;
+    
+    // Se já é uma URL de proxy, usar diretamente
+    if (src.includes('/api/proxy/whatsapp-image')) {
+      return src;
+    }
+    
+    // Se é URL do WhatsApp, converter para proxy
+    if (isWhatsAppUrl(src)) {
+      return getProxiedUrl(src);
+    }
+    
+    // Outras URLs passam direto
+    return src;
+  })();
 
   return (
     <AvatarPrimitive.Image
