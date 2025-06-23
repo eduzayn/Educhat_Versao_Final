@@ -14,8 +14,8 @@ export function registerDashboardRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados diretamente do banco para BI
-      const { db } = await import('../../core/database');
+      // Buscar dados diretamente do banco para incluir todas as conversas
+      const { db } = await import('../../core/db');
       const conversationsData = await db
         .select({
           id: conversations.id,

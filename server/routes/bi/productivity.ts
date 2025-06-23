@@ -15,8 +15,8 @@ export function registerProductivityRoutes(app: Express) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Buscar dados diretamente do banco sem limitações
-      const { db } = await import('../../core/database');
+      // Buscar conversas diretamente do storage sem limitações de 75 itens
+      const { db } = await import('../../core/db');
       const allConversations = await db
         .select({
           id: conversations.id,

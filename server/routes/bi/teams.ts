@@ -16,7 +16,7 @@ export function registerTeamRoutes(app: Express) {
       startDate.setDate(startDate.getDate() - days);
 
       const teams = await storage.getTeams();
-      const { db } = await import('../../core/database');
+      const { db } = await import('../../core/db');
       const allConversations = await db
         .select({
           id: conversations.id,
