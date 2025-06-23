@@ -134,8 +134,20 @@ function Router() {
               />
             )}
           </Route> */}
-          <Route path="/admin" component={PermissionsPanel} />
-          <Route path="/admin/permissions" component={PermissionsPanel} />
+          <Route path="/admin">
+            {() => (
+              <ProtectedRoute
+                component={PermissionsPanel}
+              />
+            )}
+          </Route>
+          <Route path="/admin/permissions">
+            {() => (
+              <ProtectedRoute
+                component={PermissionsPanel}
+              />
+            )}
+          </Route>
           <Route path="/chat-interno" component={InternalChatPage} />
           <Route path="/internal-chat" component={InternalChatPage} />
           <Route path="/profile" component={ProfilePage} />

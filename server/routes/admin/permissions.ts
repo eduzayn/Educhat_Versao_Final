@@ -29,9 +29,28 @@ export class PermissionService {
     try {
       const user = await storage.getSystemUser(userId);
       
+      if (!user) {
+        console.log(`❌ Usuário ${userId} não encontrado para verificação de permissão: ${permissionName}`);
+        return false;
+      }
+
+      console.log(`🔍 Verificando permissão "${permissionName}" para usuário:`, {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        roleId: user.roleId
+      });
+      
       // Verificar se é admin/administrador - acesso total
-      if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'Administrador' || 
-          user?.email?.includes('admin@') || user?.username?.toLowerCase().includes('admin')) {
+      const isAdmin = user.role === 'admin' || 
+                     user.role === 'manager' || 
+                     user.role === 'Administrador' || 
+                     user.role === 'superadmin' ||
+                     user.email?.includes('admin@') || 
+                     user.username?.toLowerCase().includes('admin');
+
+      if (isAdmin) {
+        console.log(`✅ Usuário ${userId} tem permissão admin - acesso total concedido`);
         return true;
       }
       
@@ -44,9 +63,12 @@ export class PermissionService {
             .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
             .where(and(
               eq(rolePermissions.roleId, user.roleId),
-              eq(permissions.name, permissionName)
+              eq(permissions.name, permissionName),
+              eq(rolePermissions.isActive, true),
+              eq(permissions.isActive, true)
             ));
           
+          console.log(`🔍 Permissões específicas encontradas para role ${user.roleId}:`, result.length);
           return result.length > 0;
         } catch (error) {
           console.error('Erro ao verificar permissões específicas:', error);
@@ -54,6 +76,7 @@ export class PermissionService {
         }
       }
       
+      console.log(`❌ Usuário ${userId} não possui roleId válido`);
       return false;
     } catch (error) {
       console.error('Erro ao verificar permissão:', error);
