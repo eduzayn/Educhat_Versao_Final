@@ -45,12 +45,21 @@ export function MediaViewer({ src, alt, className = '', fallbackText = 'Mídia n
 
     // Tentar usar o proxy para URLs do WhatsApp
     if (src.includes('pps.whatsapp.net') || src.includes('mmg.whatsapp.net') || src.includes('media.whatsapp.net')) {
-      console.log('🖼️ Erro 403 detectado, redirecionando para proxy:', src);
-      
-      const proxyUrl = `/api/proxy/whatsapp-image?url=${encodeURIComponent(src)}`;
-      setImageSrc(proxyUrl);
-      setUseProxy(true);
-      setIsLoading(true);
+      try {
+        console.log('🖼️ Erro 403 detectado, redirecionando para proxy:', src);
+        
+        // Validar URL antes de encodar
+        new URL(src);
+        
+        const proxyUrl = `/api/proxy/whatsapp-image?url=${encodeURIComponent(src)}`;
+        setImageSrc(proxyUrl);
+        setUseProxy(true);
+        setIsLoading(true);
+      } catch (urlError) {
+        console.error('❌ URL inválida para proxy:', src, urlError);
+        setHasError(true);
+        setIsLoading(false);
+      }
     } else {
       setHasError(true);
       setIsLoading(false);

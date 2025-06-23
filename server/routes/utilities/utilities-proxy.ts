@@ -90,6 +90,14 @@ export function registerProxyRoutes(app: Express) {
       console.log('🔗 URL recebida:', url.substring(0, 50) + '...');
       console.log('🔗 URL decodificada:', decodedUrl.substring(0, 50) + '...');
 
+      // Validação básica da URL
+      try {
+        new URL(decodedUrl);
+      } catch (error) {
+        console.error('❌ URL inválida após decodificação:', error);
+        return res.status(400).json({ error: 'URL inválida' });
+      }
+
       // Verificar se é uma URL válida do WhatsApp
       if (!decodedUrl.includes('pps.whatsapp.net') && !decodedUrl.includes('mmg.whatsapp.net') && !decodedUrl.includes('media.whatsapp.net')) {
         return res.status(400).json({ error: 'URL não é do WhatsApp' });
@@ -225,7 +233,20 @@ export function registerProxyRoutes(app: Express) {
 
         } catch (error) {
           lastError = error as Error;
-          console.log(`❌ Estratégia ${strategy.name} falhou: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+          console.log(`❌ Estratégia ${strategy.name} falhou: ${errorMessage}`);
+          
+          // Se o erro for relacionado a URL parsing, parar as tentativas
+          if (errorMessage.includes('Failed to parse URL') || errorMessage.includes('Invalid URL')) {
+            console.error('❌ Erro crítico de URL parsing - parando tentativas');
+            markUrlAsExpired(decodedUrl);
+            const placeholderSvg = createExpiredPlaceholder();
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            return res.send(placeholderSvg);
+          }
+          
           continue;
         }
       }

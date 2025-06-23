@@ -27,11 +27,19 @@ export function getProxiedWhatsAppUrl(originalUrl: string): string {
     return originalUrl;
   }
   
-  // Encode a URL original para passar como query parameter
-  const encodedUrl = encodeURIComponent(originalUrl);
-  
-  // Retornar URL do proxy interno
-  return `/api/proxy/whatsapp-image?url=${encodedUrl}`;
+  try {
+    // Validar URL antes de processar
+    new URL(originalUrl);
+    
+    // Encode a URL original para passar como query parameter
+    const encodedUrl = encodeURIComponent(originalUrl);
+    
+    // Retornar URL do proxy interno
+    return `/api/proxy/whatsapp-image?url=${encodedUrl}`;
+  } catch (error) {
+    console.error('❌ URL inválida para proxy:', originalUrl, error);
+    return originalUrl; // Retornar URL original se inválida
+  }
 }
 
 /**
