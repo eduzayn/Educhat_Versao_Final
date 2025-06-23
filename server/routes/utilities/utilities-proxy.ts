@@ -85,13 +85,18 @@ export function registerProxyRoutes(app: Express) {
         return res.status(400).json({ error: 'URL é obrigatória' });
       }
 
+      // CORREÇÃO: Decodificar a URL recebida
+      const decodedUrl = decodeURIComponent(url);
+      console.log('🔗 URL recebida:', url.substring(0, 50) + '...');
+      console.log('🔗 URL decodificada:', decodedUrl.substring(0, 50) + '...');
+
       // Verificar se é uma URL válida do WhatsApp
-      if (!url.includes('pps.whatsapp.net') && !url.includes('mmg.whatsapp.net') && !url.includes('media.whatsapp.net')) {
+      if (!decodedUrl.includes('pps.whatsapp.net') && !decodedUrl.includes('mmg.whatsapp.net') && !decodedUrl.includes('media.whatsapp.net')) {
         return res.status(400).json({ error: 'URL não é do WhatsApp' });
       }
 
-      // Verificar cache de URLs expiradas primeiro
-      if (isUrlExpired(url)) {
+      // Verificar cache de URLs expiradas primeiro (usar URL decodificada)
+      if (isUrlExpired(decodedUrl)) {
         console.log('⚡ URL já conhecida como expirada - retornando placeholder imediatamente');
         const placeholderSvg = createExpiredPlaceholder();
         res.setHeader('Content-Type', 'image/svg+xml');
@@ -100,8 +105,8 @@ export function registerProxyRoutes(app: Express) {
         return res.send(placeholderSvg);
       }
 
-      // Verificar cache de imagens válidas
-      const cachedImage = getCachedImage(url);
+      // Verificar cache de imagens válidas (usar URL decodificada)
+      const cachedImage = getCachedImage(decodedUrl);
       if (cachedImage) {
         console.log('⚡ Imagem encontrada no cache - retornando imediatamente');
         res.setHeader('Content-Type', cachedImage.contentType);
@@ -111,7 +116,7 @@ export function registerProxyRoutes(app: Express) {
         return res.send(cachedImage.data);
       }
 
-      console.log('🖼️ Tentando carregar imagem WhatsApp:', url.substring(0, 100) + '...');
+      console.log('🖼️ Tentando carregar imagem WhatsApp:', decodedUrl.substring(0, 100) + '...');
 
       // Estratégias de requisição com diferentes User-Agents e headers
       const strategies = [
@@ -168,7 +173,7 @@ export function registerProxyRoutes(app: Express) {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), strategy.timeout);
 
-          const response = await fetch(url, {
+          const response = await fetch(decodedUrl, {
             method: 'GET',
             headers: strategy.headers as any,
             signal: controller.signal,
@@ -196,7 +201,7 @@ export function registerProxyRoutes(app: Express) {
             const buffer = Buffer.from(arrayBuffer);
             
             // Cache da imagem válida
-            cacheValidImage(url, buffer, contentType);
+            cacheValidImage(decodedUrl, buffer, contentType);
             
             return res.send(buffer);
           }
@@ -205,7 +210,7 @@ export function registerProxyRoutes(app: Express) {
           if (response.status === 404 || response.status === 403 || response.status === 410) {
             console.log(`⚠️ URL WhatsApp expirada (${response.status}) com ${strategy.name} - parando tentativas`);
             // Marcar URL como expirada e parar tentativas imediatamente
-            markUrlAsExpired(url);
+            markUrlAsExpired(decodedUrl);
             
             // Retornar placeholder imediatamente sem tentar outras estratégias
             const placeholderSvg = createExpiredPlaceholder();
@@ -229,7 +234,7 @@ export function registerProxyRoutes(app: Express) {
       console.log('⚠️ Todas as tentativas falharam - URL WhatsApp expirada, retornando placeholder');
       
       // Garantir que a URL seja marcada como expirada
-      markUrlAsExpired(url);
+      markUrlAsExpired(decodedUrl);
       
       const placeholderSvg = createExpiredPlaceholder();
       
