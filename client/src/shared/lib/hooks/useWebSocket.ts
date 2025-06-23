@@ -182,27 +182,14 @@ export function useWebSocket() {
             (oldMessages: any[] | undefined) => {
               if (!oldMessages) return [data.message];
               
-              // CORREÇÃO: Verificar duplicatas por ID real primeiro
+              // SISTEMA SIMPLIFICADO: Verificar duplicatas e adicionar se necessário
               const exists = oldMessages.find(msg => msg.id === data.message.id);
               if (exists) {
                 console.log('⏩ WebSocket: Mensagem já existe, ignorando duplicata:', data.message.id);
                 return oldMessages;
               }
               
-              // Verificar se é atualização de mensagem otimista
-              const optimisticIndex = oldMessages.findIndex(msg => 
-                msg.id < 0 && msg.content === data.message.content && 
-                Math.abs(new Date(msg.sentAt).getTime() - new Date(data.message.sentAt).getTime()) < 5000
-              );
-              
-              if (optimisticIndex !== -1) {
-                // Substituir mensagem otimista pela real
-                const updatedMessages = [...oldMessages];
-                updatedMessages[optimisticIndex] = { ...data.message, status: 'delivered' };
-                console.log('✅ SOCKET-FIRST: Mensagem otimista substituída pela real:', data.message.id);
-                return updatedMessages;
-              }
-              
+              // Nova mensagem via WebSocket
               return [...oldMessages, { ...data.message, status: 'received' }];
             }
           );
@@ -217,10 +204,6 @@ export function useWebSocket() {
               const updatedPages = [...oldData.pages];
               if (updatedPages[0]) {
                 const firstPage = updatedPages[0];
-                const optimisticIndex = firstPage.messages.findIndex((msg: any) => 
-                  msg.id < 0 && msg.content === data.message.content
-                );
-                
                 // Adicionar nova mensagem se não existe
                 const exists = firstPage.messages.find((msg: any) => msg.id === data.message.id);
                 if (!exists) {
