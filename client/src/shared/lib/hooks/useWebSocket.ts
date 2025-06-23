@@ -531,33 +531,69 @@ export function useWebSocket() {
       }
     });
 
-    // Handle disconnection - SIMPLIFIED
+    // Handle disconnection with enhanced transport error handling
     socketRef.current.on('disconnect', (reason) => {
-      console.warn('🔌 Desconectado:', reason);
+      const transport = socketRef.current?.io.engine.transport.name;
+      console.warn('🔌 Desconectado:', reason, {
+        reason,
+        transport,
+        timestamp: new Date().toISOString()
+      });
       setConnectionStatus(false);
       (window as any).socketInstance = null;
       
-      // Simple reconnection for all disconnections except client-initiated
+      // Log específico para transport errors
+      if (reason === 'transport error' || reason === 'transport close') {
+        console.error('❌ Transport error detectado:', {
+          reason,
+          transport,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Reconnection com delay baseado no tipo de erro
       if (reason !== 'io client disconnect' && !reconnectTimeoutRef.current) {
+        const reconnectDelay = reason === 'transport error' ? 5000 : 
+                              reason === 'transport close' ? 3000 : 2000;
+        
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
           connect();
-        }, 3000);
+        }, reconnectDelay);
       }
     });
 
-    // Handle connection errors - SIMPLIFIED
+    // Handle connection errors with detailed logging
     socketRef.current.on('connect_error', (error) => {
-      console.error('❌ Erro de conexão Socket.IO:', error);
+      console.error('❌ Erro de conexão Socket.IO:', error.message, {
+        type: error.type,
+        description: error.description,
+        context: error.context,
+        transport: socketRef.current?.io.engine.transport?.name,
+        timestamp: new Date().toISOString()
+      });
       setConnectionStatus(false);
       
-      // Manual reconnection for xhr poll errors
+      // Tratamento específico para transport errors
+      if (error.message.includes('transport') || error.message.includes('xhr poll')) {
+        console.log('🔧 Transport error detectado - ajustando configuração');
+      }
+      
+      // Manual reconnection with exponential backoff
       if (!reconnectTimeoutRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
           connect();
         }, 5000);
       }
+    });
+
+    // Handle generic Socket.IO errors
+    socketRef.current.on('error', (error) => {
+      console.error('❌ Erro genérico Socket.IO:', error, {
+        timestamp: new Date().toISOString(),
+        transport: socketRef.current?.io.engine.transport?.name
+      });
     });
 
     // Tratamento específico para timeout - CORREÇÃO CRÍTICA

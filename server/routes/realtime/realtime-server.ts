@@ -23,7 +23,7 @@ export function createSocketServer(app: Express): SocketServer {
       allowedHeaders: ["Content-Type"]
     },
     // Configuração otimizada para reduzir transport errors
-    transports: ['websocket', 'polling'],
+    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket'],
     allowUpgrades: true, // Permitir upgrade para melhor performance
     upgradeTimeout: 30000,
     pingTimeout: 60000,
@@ -33,9 +33,7 @@ export function createSocketServer(app: Express): SocketServer {
     cookie: false,
     // Configurações de estabilidade
     allowEIO3: true,
-    connectTimeout: 45000,
-    // Configurações para robustez em redes instáveis
-    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket']
+    connectTimeout: 45000
   });
 
   httpServer.io = io;
