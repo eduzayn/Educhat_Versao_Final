@@ -85,17 +85,29 @@ export function registerProxyRoutes(app: Express) {
         return res.status(400).json({ error: 'URL é obrigatória' });
       }
 
-      // CORREÇÃO: Decodificar a URL recebida
-      const decodedUrl = decodeURIComponent(url);
+      // CORREÇÃO: Decodificar a URL com tratamento robusto
+      let decodedUrl: string;
+      try {
+        decodedUrl = decodeURIComponent(url);
+      } catch (error) {
+        console.error('❌ Erro ao decodificar URL:', error);
+        return res.status(400).json({ error: 'URL malformada' });
+      }
+
       console.log('🔗 URL recebida:', url.substring(0, 50) + '...');
       console.log('🔗 URL decodificada:', decodedUrl.substring(0, 50) + '...');
 
-      // Validação básica da URL
+      // Validação básica da URL com tratamento robusto
       try {
         new URL(decodedUrl);
       } catch (error) {
         console.error('❌ URL inválida após decodificação:', error);
-        return res.status(400).json({ error: 'URL inválida' });
+        // Retornar placeholder em vez de erro para manter UX
+        const placeholderSvg = createExpiredPlaceholder();
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(placeholderSvg);
       }
 
       // Verificar se é uma URL válida do WhatsApp

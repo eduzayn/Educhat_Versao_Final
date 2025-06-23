@@ -100,8 +100,14 @@ class WebCaptureService {
       // Extrair palavras-chave simples (palavras mais frequentes)
       const keywords = this.extractKeywords(content);
       
-      // Obter domínio
-      const domain = new URL(url).hostname;
+      // Obter domínio com tratamento de erro
+      let domain: string;
+      try {
+        domain = new URL(url).hostname;
+      } catch (error) {
+        console.warn('Erro ao extrair domínio da URL:', url, error);
+        domain = 'unknown';
+      }
       
       // Contar palavras
       const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
