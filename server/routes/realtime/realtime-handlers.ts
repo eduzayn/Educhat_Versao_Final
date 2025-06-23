@@ -44,6 +44,23 @@ export function setupSocketHandlers(io: SocketIOServer) {
     socket.conn.on('upgradeError', (error) => {
       console.error(`❌ Upgrade error para ${socket.id}:`, error.message);
     });
+    
+    // Tratar erros de transporte
+    socket.conn.on('error', (error) => {
+      console.error(`❌ Transport error para cliente ${socket.id}:`, {
+        reason: error.message || 'transport error',
+        transport: socket.conn.transport.name,
+        readyState: socket.conn.readyState
+      });
+    });
+    
+    // Tratar fechamento de conexão
+    socket.conn.on('close', (reason) => {
+      console.log(`🔌 Conexão fechada para ${socket.id}:`, {
+        reason,
+        transport: socket.conn.transport.name
+      });
+    });
 
     // Handle joining a conversation room - CORREÇÃO CRÍTICA
     socket.on('join_conversation', (data) => {
@@ -195,10 +212,21 @@ export function setupSocketHandlers(io: SocketIOServer) {
       
       console.log(`🔌 Cliente ${socket.id} desconectado: ${reason}`, {
         reason,
+        transport: socket.conn.transport.name,
         duration: `${Math.round(connectionDuration / 1000)}s`,
         conversationId: clientData?.conversationId,
-        wasInRoom: !!clientData?.conversationId
+        wasInRoom: !!clientData?.conversationId,
+        readyState: socket.conn.readyState
       });
+      
+      // Log específico para transport errors
+      if (reason === 'transport error' || reason === 'transport close') {
+        console.error(`❌ Transport error detectado para cliente ${socket.id}:`, {
+          reason,
+          transport: socket.conn.transport.name,
+          connectionTime: Math.round(connectionDuration / 1000)
+        });
+      }
       
       clients.delete(socket.id);
     });

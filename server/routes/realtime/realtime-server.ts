@@ -22,17 +22,20 @@ export function createSocketServer(app: Express): SocketServer {
       credentials: false,
       allowedHeaders: ["Content-Type"]
     },
-    // SOLUÇÃO xhr poll error: WebSocket apenas em produção Replit
-    transports: isReplit ? ['websocket'] : ['polling', 'websocket'],
-    allowUpgrades: false, // Evitar upgrade que causa xhr poll error
+    // Configuração otimizada para reduzir transport errors
+    transports: ['websocket', 'polling'],
+    allowUpgrades: true, // Permitir upgrade para melhor performance
     upgradeTimeout: 30000,
     pingTimeout: 60000,
     pingInterval: 25000,
     maxHttpBufferSize: 1e6,
     serveClient: false,
     cookie: false,
-    // Configurações específicas para polling no Replit
-    allowEIO3: true
+    // Configurações de estabilidade
+    allowEIO3: true,
+    connectTimeout: 45000,
+    // Configurações para robustez em redes instáveis
+    transports: isReplit ? ['websocket', 'polling'] : ['polling', 'websocket']
   });
 
   httpServer.io = io;
