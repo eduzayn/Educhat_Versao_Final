@@ -4,9 +4,30 @@ import { storage } from "../../storage";
 
 const router = Router();
 
-// Sistema de debounce para evitar múltiplas chamadas simultâneas
+// Cache de resultados com TTL
+const resultCache = new Map<string, { result: any; timestamp: number; ttl: number }>();
 const pendingRequests = new Map<string, Promise<any>>();
-const DEBOUNCE_TIME = 500; // 500ms para agrupar requisições idênticas
+const requestCounts = new Map<string, number>();
+
+const CACHE_TTL = 30000; // 30 segundos de cache
+const DEBOUNCE_TIME = 200; // Reduzido para 200ms
+const MAX_REQUESTS_PER_MINUTE = 10; // Limite por telefone
+const CLEANUP_INTERVAL = 60000; // Limpeza a cada minuto
+
+// Limpeza periódica do cache e contadores
+setInterval(() => {
+  const now = Date.now();
+  
+  // Limpar cache expirado
+  for (const [key, cached] of resultCache.entries()) {
+    if (now - cached.timestamp > cached.ttl) {
+      resultCache.delete(key);
+    }
+  }
+  
+  // Resetar contadores de requisições
+  requestCounts.clear();
+}, CLEANUP_INTERVAL);
 
 // Schema para validação
 const checkDuplicatesSchema = z.object({
@@ -17,7 +38,7 @@ const checkDuplicatesSchema = z.object({
 /**
  * POST /api/contacts/check-duplicates
  * Verifica se um número de telefone já existe em outros canais
- * OTIMIZADO: Timeout robusto e tratamento de erro para evitar 502
+ * OTIMIZADO: Cache inteligente, throttling e debounce para performance
  */
 router.post("/check-duplicates", async (req, res) => {
   const startTime = Date.now();
@@ -35,68 +56,111 @@ router.post("/check-duplicates", async (req, res) => {
       });
     }
     
-    // Chave única para debounce baseada nos parâmetros
-    const requestKey = `${phone}_${excludeContactId || 'none'}`;
+    // Normalizar telefone para cache (remover caracteres especiais)
+    const normalizedPhone = phone.replace(/\D/g, '');
+    const requestKey = `${normalizedPhone}_${excludeContactId || 'none'}`;
     
-    // Verificar se já existe uma requisição pendente para os mesmos parâmetros
-    if (pendingRequests.has(requestKey)) {
-      console.log(`⏰ Reutilizando verificação de duplicatas em andamento para ${phone}`);
-      const result = await pendingRequests.get(requestKey);
-      return res.json(result);
+    // Throttling: Verificar limite de requisições por telefone
+    const phoneKey = normalizedPhone;
+    const currentCount = requestCounts.get(phoneKey) || 0;
+    
+    if (currentCount >= MAX_REQUESTS_PER_MINUTE) {
+      return res.json({
+        isDuplicate: false,
+        duplicates: [],
+        totalDuplicates: 0,
+        channels: [],
+        throttled: true,
+        message: "Muitas verificações para este número. Tente novamente em alguns segundos."
+      });
     }
     
-    // Timeout de segurança para evitar 502 Bad Gateway
+    requestCounts.set(phoneKey, currentCount + 1);
+    
+    // Verificar cache primeiro
+    const cached = resultCache.get(requestKey);
+    if (cached && Date.now() - cached.timestamp < cached.ttl) {
+      const duration = Date.now() - startTime;
+      console.log(`⚡ Cache hit para duplicatas em ${duration}ms`);
+      return res.json({ ...cached.result, cached: true });
+    }
+    
+    // Verificar se já existe uma requisição pendente
+    if (pendingRequests.has(requestKey)) {
+      const result = await pendingRequests.get(requestKey);
+      return res.json({ ...result, deduped: true });
+    }
+    
+    // Timeout mais agressivo para melhor UX
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error('Timeout na verificação de duplicatas'));
-      }, 6000); // Reduzido para 6 segundos máximo
+      }, 3000); // Reduzido para 3 segundos
     });
     
-    // Usar módulo direto para evitar overhead do wrapper
-    const { ContactDuplicateDetection } = await import('../../storage/modules/contactDuplicateDetection');
-    const { db } = await import('../../db');
-    const duplicateDetector = new ContactDuplicateDetection(db);
-    
-    // Criar e armazenar a promise da verificação
-    const verificationPromise = Promise.race([
-      duplicateDetector.checkPhoneDuplicates(phone, excludeContactId),
-      timeoutPromise
-    ]).finally(() => {
-      // Remover da lista de pendentes após conclusão
-      setTimeout(() => {
-        pendingRequests.delete(requestKey);
-      }, DEBOUNCE_TIME);
-    });
+    // Executar verificação com cache
+    const verificationPromise = (async () => {
+      try {
+        const { ContactDuplicateDetection } = await import('../../storage/modules/contactDuplicateDetection');
+        const { db } = await import('../../db');
+        const duplicateDetector = new ContactDuplicateDetection(db);
+        
+        const result = await Promise.race([
+          duplicateDetector.checkPhoneDuplicates(phone, excludeContactId),
+          timeoutPromise
+        ]);
+        
+        // Armazenar no cache com TTL dinâmico
+        const cacheTtl = result.isDuplicate ? CACHE_TTL * 2 : CACHE_TTL; // Cache duplicatas por mais tempo
+        resultCache.set(requestKey, {
+          result,
+          timestamp: Date.now(),
+          ttl: cacheTtl
+        });
+        
+        return result;
+      } finally {
+        // Limpar requisição pendente com delay mínimo
+        setTimeout(() => {
+          pendingRequests.delete(requestKey);
+        }, DEBOUNCE_TIME);
+      }
+    })();
     
     pendingRequests.set(requestKey, verificationPromise);
     
-    // Executar verificação
     const result = await verificationPromise;
-    
     const duration = Date.now() - startTime;
-    console.log(`✅ Check duplicates concluído em ${duration}ms`);
     
-    // Headers para evitar cache em caso de erro
+    // Log otimizado - apenas para requests lentos
+    if (duration > 500) {
+      console.log(`✅ Check duplicates concluído em ${duration}ms`);
+    }
+    
+    // Headers otimizados para cache do navegador
     res.set({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+      'Cache-Control': 'private, max-age=30',
+      'ETag': `"${requestKey}-${Date.now()}"`,
+      'Last-Modified': new Date().toUTCString()
     });
     
     res.json(result);
     
   } catch (error: any) {
     const duration = Date.now() - startTime;
-    console.error(`❌ Erro ao verificar duplicatas (${duration}ms):`, error);
     
-    // Retornar resposta de fallback em caso de erro para evitar 502
+    // Log apenas erros críticos
+    if (error.message !== 'Timeout na verificação de duplicatas') {
+      console.error(`❌ Erro ao verificar duplicatas (${duration}ms):`, error);
+    }
+    
     if (!res.headersSent) {
       res.status(200).json({ 
         isDuplicate: false,
         duplicates: [],
         totalDuplicates: 0,
         channels: [],
-        error: "Verificação temporariamente indisponível",
+        error: error.message.includes('Timeout') ? 'Verificação em andamento' : 'Verificação temporariamente indisponível',
         fallback: true
       });
     }

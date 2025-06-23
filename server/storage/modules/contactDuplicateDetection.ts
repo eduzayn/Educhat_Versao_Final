@@ -68,8 +68,8 @@ export class ContactDuplicateDetection extends BaseStorage {
         );
       }
 
-      // Query otimizada com JOIN para buscar dados em uma única consulta
-      const foundContactsWithStats = await this.db
+      // Query simplificada sem JOIN para máxima performance
+      const foundContacts = await this.db
         .select({
           id: contacts.id,
           name: contacts.name,
@@ -78,29 +78,20 @@ export class ContactDuplicateDetection extends BaseStorage {
           nomeCanal: contacts.nomeCanal,
           idCanal: contacts.idCanal,
           createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt,
-          conversationCount: sql<number>`COALESCE(COUNT(${conversations.id}), 0)`,
-          lastActivity: sql<Date>`COALESCE(MAX(${conversations.lastMessageAt}), ${contacts.createdAt})`
+          updatedAt: contacts.updatedAt
         })
         .from(contacts)
-        .leftJoin(conversations, eq(conversations.contactId, contacts.id))
         .where(whereClause)
-        .groupBy(
-          contacts.id, 
-          contacts.name, 
-          contacts.phone, 
-          contacts.canalOrigem, 
-          contacts.nomeCanal, 
-          contacts.idCanal, 
-          contacts.createdAt, 
-          contacts.updatedAt
-        )
-        .limit(50); // Limitar para evitar sobrecarga
+        .limit(20) // Reduzido limite para melhor performance
+        .orderBy(contacts.createdAt); // Ordem consistente
 
       const duration = Date.now() - startTime;
 
-      if (foundContactsWithStats.length === 0) {
-        console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - Nenhuma duplicata encontrada`);
+      if (foundContacts.length === 0) {
+        // Log apenas se duração for alta
+        if (duration > 100) {
+          console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - Nenhuma duplicata encontrada`);
+        }
         return {
           isDuplicate: false,
           duplicates: [],
@@ -109,11 +100,11 @@ export class ContactDuplicateDetection extends BaseStorage {
         };
       }
 
-      // Processar informações otimizadas
+      // Processar dados sem consultas adicionais
       const duplicatesWithInfo: DuplicateContactInfo[] = [];
       const channels: Set<string> = new Set();
 
-      for (const contact of foundContactsWithStats) {
+      for (const contact of foundContacts) {
         duplicatesWithInfo.push({
           contactId: contact.id,
           name: contact.name,
@@ -121,20 +112,19 @@ export class ContactDuplicateDetection extends BaseStorage {
           canalOrigem: contact.canalOrigem,
           nomeCanal: contact.nomeCanal,
           idCanal: contact.idCanal,
-          conversationCount: contact.conversationCount || 0,
-          lastActivity: contact.lastActivity || contact.createdAt
+          conversationCount: 0, // Removido para evitar query adicional
+          lastActivity: contact.createdAt // Usar createdAt como fallback
         });
 
-        // Coletar canais únicos
-        if (contact.canalOrigem) {
-          channels.add(contact.canalOrigem);
-        }
-        if (contact.nomeCanal) {
-          channels.add(contact.nomeCanal);
-        }
+        // Coletar canais únicos de forma otimizada
+        if (contact.canalOrigem) channels.add(contact.canalOrigem);
+        if (contact.nomeCanal) channels.add(contact.nomeCanal);
       }
 
-      console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - ${duplicatesWithInfo.length} duplicatas encontradas`);
+      // Log apenas para operações lentas
+      if (duration > 100) {
+        console.log(`✅ Verificação de duplicatas concluída em ${duration}ms - ${duplicatesWithInfo.length} duplicatas encontradas`);
+      }
 
       return {
         isDuplicate: true,
@@ -158,11 +148,11 @@ export class ContactDuplicateDetection extends BaseStorage {
   }
 
   /**
-   * Buscar todos os contatos duplicados no sistema
+   * Buscar todos os contatos duplicados no sistema - OTIMIZADO
    */
   async findAllDuplicateContacts(): Promise<{[phone: string]: DuplicateContactInfo[]}> {
-    // Buscar todos os contatos com números de telefone válidos
-    const contactsWithPhones = await this.db
+    // Query única otimizada para buscar apenas contatos duplicados
+    const contactsWithDuplicates = await this.db
       .select({
         id: contacts.id,
         name: contacts.name,
@@ -170,44 +160,33 @@ export class ContactDuplicateDetection extends BaseStorage {
         canalOrigem: contacts.canalOrigem,
         nomeCanal: contacts.nomeCanal,
         idCanal: contacts.idCanal,
-        createdAt: contacts.createdAt
+        createdAt: contacts.createdAt,
+        phoneCount: sql<number>`COUNT(*) OVER (PARTITION BY ${contacts.phone})`
       })
       .from(contacts)
-      .where(sql`${contacts.phone} IS NOT NULL AND ${contacts.phone} != ''`);
+      .where(sql`${contacts.phone} IS NOT NULL AND ${contacts.phone} != '' AND LENGTH(${contacts.phone}) > 5`)
+      .orderBy(contacts.phone, contacts.createdAt);
 
-    // Agrupar por número de telefone normalizado
-    const phoneGroups: {[phone: string]: typeof contactsWithPhones} = {};
-
-    for (const contact of contactsWithPhones) {
-      if (!contact.phone) continue;
-      
-      const normalizedPhone = this.normalizePhone(contact.phone);
-      if (!phoneGroups[normalizedPhone]) {
-        phoneGroups[normalizedPhone] = [];
-      }
-      phoneGroups[normalizedPhone].push(contact);
-    }
-
-    // Filtrar apenas grupos com duplicados
+    // Filtrar apenas contatos com duplicatas e agrupar
     const duplicateGroups: {[phone: string]: DuplicateContactInfo[]} = {};
 
-    for (const [phone, contactGroup] of Object.entries(phoneGroups)) {
-      if (contactGroup.length > 1) {
-        const duplicatesWithInfo: DuplicateContactInfo[] = [];
+    for (const contact of contactsWithDuplicates) {
+      if (contact.phoneCount <= 1) continue; // Pular contatos únicos
+      
+      const phone = contact.phone!;
+      if (!duplicateGroups[phone]) {
+        duplicateGroups[phone] = [];
+      }
 
-        for (const contact of contactGroup) {
-          // Contar conversas
-          const [countResult] = await this.db
-            .select({ count: sql<number>`count(*)` })
-            .from(conversations)
-            .where(eq(conversations.contactId, contact.id));
-
-          // Buscar última atividade
-          const [lastConversation] = await this.db
-            .select({ lastMessageAt: conversations.lastMessageAt })
-            .from(conversations)
-            .where(eq(conversations.contactId, contact.id))
-            .orderBy(sql`${conversations.lastMessageAt} DESC`)
+      duplicateGroups[phone].push({
+        contactId: contact.id,
+        name: contact.name,
+        phone: contact.phone,
+        canalOrigem: contact.canalOrigem,
+        nomeCanal: contact.nomeCanal,
+        idCanal: contact.idCanal,
+        conversationCount: 0, // Removido para evitar queries extras
+        lastActivity: contact.createdAt // Usar createdAt como fallback otimizado
             .limit(1);
 
           duplicatesWithInfo.push({
