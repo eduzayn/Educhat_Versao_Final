@@ -51,10 +51,13 @@ export function ContactsPage() {
   const { status: zapiStatus, isConfigured } = useZApiStore();
   
   // Buscar canais disponíveis
-  const { data: channels = [] } = useQuery({
+  const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
     queryKey: ['/api/channels'],
     queryFn: () => apiRequest('GET', '/api/channels')
   });
+
+  // Garantir que channels é sempre um array
+  const safeChannels = Array.isArray(channels) ? channels : [];
   useGlobalZApiMonitor();
   
   // Verificar se WhatsApp está disponível para sincronização
@@ -416,7 +419,7 @@ export function ContactsPage() {
                 Novo Contato
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold">Novo Contato</DialogTitle>
                 {isWhatsAppAvailable && (
@@ -551,8 +554,8 @@ export function ContactsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Nenhum canal</SelectItem>
-                      {channels
-                        .filter((channel: any) => channel.type === 'whatsapp')
+                      {safeChannels
+                        .filter((channel: any) => channel?.type === 'whatsapp')
                         .map((channel: any) => (
                           <SelectItem key={channel.id} value={channel.id.toString()}>
                             {channel.name || `Canal ${channel.instanceId}`}
