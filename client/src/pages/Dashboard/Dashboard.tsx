@@ -24,7 +24,8 @@ import {
   Mail,
   MessageCircle,
   UserCheck,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Shield
 } from 'lucide-react';
 // Logo removido durante limpeza - usando texto simples
 import { useLocation } from 'wouter';

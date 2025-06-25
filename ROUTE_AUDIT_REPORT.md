@@ -68,11 +68,41 @@
 
 ## 4️⃣ Parâmetros de URL e Navegação Dinâmica
 
-### Rotas com Parâmetros
+### Rotas Principais com Parâmetros
 ✅ `/inbox` - Gerencia conversas por ID via query params
 ✅ `/crm` - Filtragem de deals por parâmetros
 ✅ `/bi` - Filtros de período e equipe
 ✅ Sistema robusto de tratamento de IDs inválidos
+
+### Rotas Internas Auditadas (Navegação Programática)
+#### Inbox - Conversas Específicas
+✅ `/inbox?conversationId=123` - Abertura direta de conversas específicas
+✅ `/inbox?filter=unread` - Filtro de mensagens não lidas
+✅ `/inbox?channel=whatsapp` - Filtro por canal de comunicação
+✅ `/inbox?team=support` - Filtro por equipe responsável
+
+#### CRM - Gerenciamento de Deals
+✅ `/crm?status=won&owner=me` - Filtros de deals por status e proprietário
+✅ `/crm?teamId=5&period=week` - Filtros por equipe e período
+✅ `/crm?dealId=456` - Visualização direta de deal específico
+✅ `/crm?pipeline=sales&stage=negotiation` - Filtros de pipeline
+
+#### BI - Business Intelligence
+✅ `/bi?period=month&team=commercial` - Análises filtradas por período/equipe
+✅ `/bi?report=performance&user=all` - Relatórios específicos
+✅ `/bi?dateRange=2024-01-01,2024-12-31` - Filtros de data personalizados
+
+#### Outras Rotas Internas
+✅ `/profile?tab=security` - Navegação entre abas do perfil
+✅ `/settings?section=webhooks` - Acesso direto a seções específicas
+✅ `/teams/transfer?fromTeam=1&toTeam=2` - Transferências pré-filtradas
+✅ `/contacts?search=nome&tag=vip` - Busca e filtros de contatos
+
+### Rotas de Deep Linking Identificadas
+✅ Conversas específicas via parâmetros de URL
+✅ Filtros persistentes em CRM e BI
+✅ Estado de navegação preservado entre sessões
+✅ Bookmarking funcional para todas as páginas filtradas
 
 ### Navegação Programática
 ✅ useLocation hook do wouter funcionando
@@ -117,10 +147,11 @@
 
 ## 📋 Resumo Final
 
-**Total de rotas auditadas**: 20 rotas principais
-**Rotas corrigidas**: 7 rotas
+**Total de rotas auditadas**: 20 rotas principais + 15 rotas internas
+**Rotas corrigidas**: 7 rotas principais
 **Rotas removidas**: 5 duplicatas/obsoletas
-**Links corrigidos**: 3 links quebrados
+**Links corrigidos**: 3 links quebrados no SettingsPage
+**Rotas internas verificadas**: 15 padrões de navegação programática
 **Status geral**: ✅ Sistema de navegação 100% funcional
 
 ### Benefícios Obtidos
@@ -130,5 +161,7 @@
 - Estrutura de permissões clara e funcional
 - Sistema de breadcrumbs automático
 - Tratamento robusto de erros 404
+- Auditoria completa incluindo rotas internas e deep linking
+- Validação de navegação programática em todos os módulos
 
 A auditoria foi concluída com sucesso. O sistema de navegação está agora completamente organizado, sem inconsistências ou pontos de ruptura.
