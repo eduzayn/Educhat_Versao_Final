@@ -28,14 +28,17 @@ export function BIDashboard() {
   const [macrosetor, setMacrosetor] = useState('all');
   const [channel, setChannel] = useState('all');
 
-  // Buscar dados reais do sistema
+  // Buscar dados reais do sistema com atualização em tempo real
   const { data: kpiData, isLoading: kpiLoading } = useQuery({
     queryKey: ['/api/bi/kpis', { period, macrosetor, channel }],
     queryFn: async () => {
       const response = await fetch(`/api/bi/kpis?period=${period}&macrosetor=${macrosetor}&channel=${channel}`);
       if (!response.ok) throw new Error('Erro ao carregar KPIs');
       return response.json();
-    }
+    },
+    staleTime: 30000, // Cache por 30 segundos
+    refetchInterval: 60000, // Atualizar a cada minuto como backup
+    refetchOnWindowFocus: false // WebSocket cuida das atualizações
   });
 
   const { data: channelsData, isLoading: channelsLoading } = useQuery({
@@ -44,7 +47,10 @@ export function BIDashboard() {
       const response = await fetch(`/api/bi/channels?period=${period}`);
       if (!response.ok) throw new Error('Erro ao carregar dados dos canais');
       return response.json();
-    }
+    },
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false
   });
 
   const { data: macrosetorData, isLoading: macrosetorLoading } = useQuery({
@@ -53,7 +59,10 @@ export function BIDashboard() {
       const response = await fetch(`/api/bi/macrosetores?period=${period}`);
       if (!response.ok) throw new Error('Erro ao carregar dados dos macrosetores');
       return response.json();
-    }
+    },
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false
   });
 
   if (kpiLoading || channelsLoading || macrosetorLoading) {

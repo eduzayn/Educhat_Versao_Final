@@ -33,24 +33,30 @@ export function SalesDashboard() {
   const [showTeamsDialog, setShowTeamsDialog] = useState(false);
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
 
-  // Buscar dados do dashboard
+  // Buscar dados do dashboard com atualização em tempo real
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['/api/sales/dashboard', { period, channel, salesperson }],
     queryFn: async () => {
       const response = await fetch(`/api/sales/dashboard?period=${period}&channel=${channel}&salesperson=${salesperson}`);
       if (!response.ok) throw new Error('Erro ao carregar dashboard');
       return response.json();
-    }
+    },
+    staleTime: 30000, // Cache por 30 segundos
+    refetchInterval: 60000, // Atualizar a cada minuto como backup
+    refetchOnWindowFocus: false // WebSocket cuida das atualizações
   });
 
-  // Buscar dados dos gráficos
+  // Buscar dados dos gráficos com atualização em tempo real
   const { data: chartsData, isLoading: chartsLoading } = useQuery({
     queryKey: ['/api/sales/charts', { period }],
     queryFn: async () => {
       const response = await fetch(`/api/sales/charts?period=${period}`);
       if (!response.ok) throw new Error('Erro ao carregar gráficos');
       return response.json();
-    }
+    },
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false
   });
 
   // Buscar vendedores para filtros

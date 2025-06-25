@@ -96,8 +96,36 @@ export function useWebSocket() {
           };
         });
         
-        // Invalidação para sincronização em background
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+        // Atualizar lista de conversas para reordenação e preview da mensagem
+        queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData;
+          
+          const updatedPages = oldData.pages.map((page: any[]) => 
+            page.map((conv: any) => {
+              if (conv.id === data.conversationId) {
+                return {
+                  ...conv,
+                  lastMessage: data.message.content,
+                  lastMessageAt: data.message.sentAt,
+                  unreadCount: data.message.isFromContact ? (conv.unreadCount || 0) + 1 : conv.unreadCount,
+                  messages: [data.message, ...(conv.messages || [])]
+                };
+              }
+              return conv;
+            })
+          );
+          
+          // Reordenar primeira página por lastMessageAt
+          if (updatedPages[0]) {
+            updatedPages[0] = updatedPages[0].sort((a: any, b: any) => 
+              new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime()
+            );
+          }
+          
+          return { ...oldData, pages: updatedPages };
+        });
+        
+        // Invalidar contadores de não lidas para atualização
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
         
         return;
@@ -146,8 +174,10 @@ export function useWebSocket() {
               macrosetor: data.macrosetor
             });
             
-            // Invalidar queries do CRM para forçar recarregamento
+            // Atualizar dados do CRM em tempo real
             queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/sales/dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/sales/charts'] });
             queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
           }
           break;
@@ -182,6 +212,23 @@ export function useWebSocket() {
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}`] 
             });
+          }
+          break;
+        case 'bi_update':
+          if (data.action) {
+            console.log('📊 Atualização BI:', {
+              action: data.action,
+              type: data.type,
+              data: data.data
+            });
+            
+            // Invalidar todas as queries do BI para atualização em tempo real
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/kpis'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/channels'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/macrosetores'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/productivity'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/bi/teams'] });
           }
           break;
         default:
