@@ -1,12 +1,12 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Switch } from "@/shared/ui/switch";
+import { Label } from "@/shared/ui/label";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Badge } from "@/shared/ui/badge";
+import { Separator } from "@/shared/ui/separator";
+// import { useToast } from "@/shared/lib/hooks/useToast";
 import { Bell, Volume2, Clock, RotateCcw, MessageSquare, UserPlus, AtSign, ArrowRightLeft, Headphones, Image, Video, FileText } from "lucide-react";
 import { 
   useNotificationPreferences, 
@@ -124,7 +124,7 @@ const getIconForSetting = (key: string) => {
 };
 
 export function NotificationPreferences() {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { data: preferences, isLoading } = useNotificationPreferences();
   const toggleSetting = useToggleNotificationSetting();
   const updatePreferences = useUpdateNotificationPreferences();
