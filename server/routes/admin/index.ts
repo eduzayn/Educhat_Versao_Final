@@ -332,7 +332,7 @@ export function registerAdminRoutes(app: Express) {
           teamId, 
           dataKey, 
           channels, 
-          macrosetores, 
+          teamTypes, 
           status 
         } = req.body;
 

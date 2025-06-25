@@ -381,7 +381,7 @@ export function registerDealsRoutes(app: Express) {
       }
       
       if (macrosetor && typeof macrosetor === 'string') {
-        filters.macrosetor = macrosetor;
+        filters.teamType = teamType;
       }
       
       const stats = await storage.getDealStatistics(filters);
