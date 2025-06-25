@@ -8,9 +8,10 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  */
 export class ConversationStorage extends BaseStorage {
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Consulta principal otimizada - buscar conversas com contatos
-    const conversationsWithContacts = await this.db
+    // Query otimizada com LEFT JOIN para buscar última mensagem em uma única consulta
+    const query = this.db
       .select({
+        // Conversation fields
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
@@ -18,7 +19,6 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -49,49 +49,55 @@ export class ConversationStorage extends BaseStorage {
           tags: contacts.tags,
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
-        }
-      })
-      .from(conversations)
-      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
-      .limit(limit)
-      .offset(offset);
-
-    // Buscar últimas mensagens individualmente para evitar problemas
-    const result = [];
-    for (const conv of conversationsWithContacts) {
-      // Buscar última mensagem
-      const [lastMessage] = await this.db
-        .select({
+        },
+        
+        // Last message fields
+        lastMessage: {
           id: messages.id,
           content: messages.content,
           sentAt: messages.sentAt,
           isFromContact: messages.isFromContact,
           messageType: messages.messageType,
           metadata: messages.metadata
-        })
-        .from(messages)
-        .where(and(
-          eq(messages.conversationId, conv.id),
-          eq(messages.isDeleted, false)
-        ))
-        .orderBy(desc(messages.sentAt))
-        .limit(1);
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(
+        messages,
+        and(
+          eq(messages.conversationId, conversations.id),
+          eq(messages.isDeleted, false),
+          eq(messages.id, 
+            sql`(
+              SELECT m.id 
+              FROM messages m 
+              WHERE m.conversation_id = ${conversations.id} 
+                AND m.is_deleted = false 
+              ORDER BY m.sent_at DESC 
+              LIMIT 1
+            )`
+          )
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
+      .limit(limit)
+      .offset(offset);
 
-      result.push({
-        ...conv,
-        contact: {
-          ...conv.contact,
-          tags: [],
-          deals: []
-        },
-        channelInfo: undefined,
-        messages: lastMessage ? [lastMessage] : [],
-        _count: { messages: conv.unreadCount || 0 }
-      } as ConversationWithContact);
-    }
+    const results = await query;
 
-    return result;
+    // Processar resultados para o formato esperado
+    return results.map(row => ({
+      ...row,
+      contact: {
+        ...row.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: row.lastMessage?.id ? [row.lastMessage] : [],
+      _count: { messages: row.unreadCount || 0 }
+    } as ConversationWithContact));
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {

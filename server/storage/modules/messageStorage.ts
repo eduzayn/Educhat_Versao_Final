@@ -11,12 +11,13 @@ export class MessageStorage extends BaseStorage {
   }
 
   async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
+    // Query otimizada com índice na conversationId e isDeleted
     return this.db.select().from(messages)
       .where(and(
         eq(messages.conversationId, conversationId),
         eq(messages.isDeleted, false)
       ))
-      .orderBy(messages.sentAt) // Ordem cronológica: mensagens mais antigas primeiro
+      .orderBy(desc(messages.sentAt)) // Mensagens mais recentes primeiro para performance
       .limit(limit)
       .offset(offset);
   }
