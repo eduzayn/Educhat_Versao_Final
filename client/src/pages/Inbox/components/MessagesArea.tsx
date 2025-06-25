@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Loader2 } from 'lucide-react';
-import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
+import { useEffect, useRef, useState } from "react";
+import { MessageSquare, Loader2 } from "lucide-react";
+import { MessageBubble } from "@/modules/Messages/components/MessageBubble";
 
 interface MessagesAreaProps {
   messages: any[];
   isLoadingMessages: boolean;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
-  fetchNextPage?: () => void;
+  fetchNextPage?: () => Promise<any>;
   activeConversation: any;
-  getChannelInfo: (channel: string) => { icon: string; color: string; label: string };
+  getChannelInfo: (channel: string) => {
+    icon: string;
+    color: string;
+    label: string;
+  };
 }
 
 export function MessagesArea({
@@ -19,162 +23,150 @@ export function MessagesArea({
   isFetchingNextPage,
   fetchNextPage,
   activeConversation,
-  getChannelInfo
+  getChannelInfo,
 }: MessagesAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
   const prevMessageCount = useRef<number>(0);
-  const [isNearTop, setIsNearTop] = useState(false);
   const loadingRef = useRef<boolean>(false);
+  const [isNearTop, setIsNearTop] = useState(false);
 
-  // Função para rolar para o final
+  // Rola automaticamente para o fim da conversa
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  // Rolar para o final quando a conversa mudar
+  // Ao mudar de conversa
   useEffect(() => {
     if (activeConversation?.id !== prevConversationId.current) {
       prevConversationId.current = activeConversation?.id;
       prevMessageCount.current = messages.length;
-      
-      // Aguardar renderização e rolar para o final
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
+      setTimeout(scrollToBottom, 100);
     }
-  }, [activeConversation?.id, messages.length]);
+  }, [activeConversation?.id]);
 
-  // Detectar scroll próximo ao topo para carregar mais mensagens (scroll infinito invertido)
+  // Carregar mensagens antigas ao rolar para o topo
   const handleScroll = () => {
     if (!containerRef.current || !fetchNextPage || loadingRef.current) return;
-    
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const nearTop = scrollTop < 50; // 50px do topo para trigger mais sensível
-    
+    const { scrollTop } = containerRef.current;
+
+    const nearTop = scrollTop < 50;
     setIsNearTop(nearTop);
-    
-    // Carregar mais mensagens quando próximo ao topo E há mais páginas
+
     if (nearTop && hasNextPage && !isFetchingNextPage) {
       loadingRef.current = true;
+
       const previousScrollHeight = containerRef.current.scrollHeight;
       const previousScrollTop = containerRef.current.scrollTop;
-      
-      fetchNextPage().then(() => {
-        // Preservar posição do scroll após carregar mensagens antigas no topo
+
+      fetchNextPage().finally(() => {
         setTimeout(() => {
           if (containerRef.current) {
             const newScrollHeight = containerRef.current.scrollHeight;
-            const heightDifference = newScrollHeight - previousScrollHeight;
-            // Ajustar scroll para manter posição visual estável
-            containerRef.current.scrollTop = previousScrollTop + heightDifference;
+            containerRef.current.scrollTop =
+              previousScrollTop + (newScrollHeight - previousScrollHeight);
           }
           loadingRef.current = false;
-        }, 100); // Timeout maior para garantir renderização
-      }).catch(() => {
-        loadingRef.current = false;
+        }, 100);
       });
     }
   };
 
-  // Rolar para o final quando novas mensagens chegarem (apenas se não estiver carregando histórico)
+  // Rolar ao final quando novas mensagens forem adicionadas
   useEffect(() => {
-    if (messages.length > prevMessageCount.current && messages.length > 0 && !loadingRef.current) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 50);
+    const isNewMessage = messages.length > prevMessageCount.current;
+    if (isNewMessage && !loadingRef.current) {
+      setTimeout(scrollToBottom, 50);
     }
     prevMessageCount.current = messages.length;
   }, [messages.length]);
 
-  // Rolar para o final no carregamento inicial
+  // Scroll inicial ao carregar mensagens
   useEffect(() => {
-    if (messages.length > 0 && !isLoadingMessages) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 200);
+    if (!isLoadingMessages && messages.length > 0) {
+      setTimeout(scrollToBottom, 200);
     }
-  }, [messages.length > 0, isLoadingMessages]);
+  }, [isLoadingMessages]);
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="flex-1 overflow-y-auto p-4 space-y-4"
       onScroll={handleScroll}
     >
-      {(messages || []).length === 0 && !isLoadingMessages ? (
-        <div className="flex items-center justify-center h-full text-gray-500">
-          <div className="text-center">
+      {messages.length === 0 && !isLoadingMessages ? (
+        <div className="flex items-center justify-center h-full text-gray-500 text-center">
+          <div>
             <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
             <p>Nenhuma mensagem ainda</p>
-            <p className="text-sm">Envie uma mensagem para começar a conversa</p>
+            <p className="text-sm">
+              Envie uma mensagem para começar a conversa
+            </p>
           </div>
         </div>
       ) : (
         <>
-          {/* Indicador de carregamento no topo */}
           {isFetchingNextPage && (
-            <div className="flex justify-center py-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Carregando mensagens anteriores...
-              </div>
-            </div>
-          )}
-          
-          {/* Indicador de fim do histórico */}
-          {!hasNextPage && messages.length > 15 && (
-            <div className="flex justify-center py-4">
-              <div className="text-xs text-gray-400">
-                Início da conversa
-              </div>
+            <div className="flex justify-center py-4 text-sm text-gray-500 gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Carregando mensagens anteriores...
             </div>
           )}
 
-          {/* Loading inicial */}
+          {!hasNextPage && messages.length > 15 && (
+            <div className="flex justify-center py-4 text-xs text-gray-400">
+              Início da conversa
+            </div>
+          )}
+
           {isLoadingMessages && (
             <div className="p-6 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2" />
               <p className="text-sm">Carregando mensagens...</p>
             </div>
           )}
-          
-          {/* Lista de mensagens em ordem cronológica (mais antigas no topo, mais recentes embaixo) */}
-          {Array.isArray(messages) && messages
-            .sort((a, b) => new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime())
+
+          {messages
+            .sort(
+              (a, b) =>
+                new Date(a.sentAt || 0).getTime() -
+                new Date(b.sentAt || 0).getTime(),
+            )
             .map((message) => (
-            <MessageBubble 
-              key={message.id} 
-              message={message} 
-              contact={activeConversation?.contact}
-              channelIcon={getChannelInfo(activeConversation?.channel || '').icon}
-              channelColor={getChannelInfo(activeConversation?.channel || '').color}
-              conversationId={activeConversation?.id || 0}
-              onReply={(message) => {
-                // Extrair messageId dos metadados da mensagem
-                const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
-                let messageId = null;
-                
-                if ("messageId" in metadata && metadata.messageId) {
-                  messageId = metadata.messageId;
-                } else if ("zaapId" in metadata && metadata.zaapId) {
-                  messageId = metadata.zaapId;
-                } else if ("id" in metadata && metadata.id) {
-                  messageId = metadata.id;
+              <MessageBubble
+                key={message.id}
+                message={message}
+                contact={activeConversation?.contact}
+                channelIcon={
+                  getChannelInfo(activeConversation?.channel || "").icon
                 }
-                
-                // Enviar evento para InputArea via custom event
-                window.dispatchEvent(new CustomEvent('replyToMessage', {
-                  detail: { messageId, content: message.content }
-                }));
-              }}
-            />
-          ))}
-          
-          {/* Elemento invisível para scroll automático */}
+                channelColor={
+                  getChannelInfo(activeConversation?.channel || "").color
+                }
+                conversationId={activeConversation?.id || 0}
+                onReply={(message) => {
+                  const metadata =
+                    typeof message.metadata === "object"
+                      ? message.metadata
+                      : {};
+                  const messageId =
+                    metadata?.messageId ||
+                    metadata?.zaapId ||
+                    metadata?.id ||
+                    null;
+
+                  window.dispatchEvent(
+                    new CustomEvent("replyToMessage", {
+                      detail: { messageId, content: message.content },
+                    }),
+                  );
+                }}
+              />
+            ))}
+
           <div ref={messagesEndRef} />
         </>
       )}

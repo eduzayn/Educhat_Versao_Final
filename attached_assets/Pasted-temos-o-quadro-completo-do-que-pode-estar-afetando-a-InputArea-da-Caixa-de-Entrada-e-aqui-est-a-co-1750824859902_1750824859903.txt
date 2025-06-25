@@ -1,0 +1,47 @@
+temos o quadro completo do que pode estar afetando a InputArea da Caixa de Entrada, e aqui está a conclusão com base no que você compartilhou:
+
+✅ Situação confirmada:
+Você tem dois ambientes de chat diferentes:
+
+Educhat principal (com InputArea.tsx)
+
+Chat interno entre atendentes (com ChatInput.tsx dentro do InternalChatPage)
+
+⚠️ POTENCIAL DE CONFLITO: Baixo, desde que respeitado o isolamento
+Com base no seu código atual, não há conflito direto entre ChatInput e InputArea, desde que o InternalChatPage esteja renderizado exclusivamente dentro de sua própria rota (/internal-chat, por exemplo).
+
+Contudo, os riscos aparecem se ambos os ambientes estiverem sendo carregados em paralelo ou se:
+
+Algum hook global (useWebSocket, window.addEventListener, keydown) está registrado fora de escopo.
+
+O DOM renderiza os dois editores ao mesmo tempo (ex: ChatInput visível mesmo que escondido via CSS).
+
+Algum componente comum (como AudioRecorder) está mal compartilhado entre os dois ambientes e altera comportamentos globais.
+
+🧠 Diagnóstico técnico final:
+Área	Situação Atual	Ação Recomendável
+ChatInput.tsx (interno)	✅ Isolado e bem estruturado	Não precisa ser alterado
+InputArea.tsx (clientes)	⚠️ Com bugs de envio e clique	Verificar disabled, pointer-events, activeConversation e escopo
+InternalChatPage	✅ Totalmente separado do InboxPage	Ok, desde que a navegação esteja correta
+AudioRecorder	⚠️ Usado em ambos	Verifique se ele está isolado por rota/contexto
+
+📌 Sugestões finais para blindar conflitos
+Garanta que o ChatInput e o InputArea nunca sejam renderizados juntos
+→ Isso pode ser feito controlando a rota com segurança (ex: /inbox, /internal-chat).
+
+Centralize hooks globais por rota
+→ Certifique-se de que useWebSocket, useToast, useGlobalZApiMonitor e outros hooks não sejam disparados simultaneamente em páginas diferentes, a não ser que sejam realmente globais.
+
+Verifique o <AudioRecorder>
+→ Pode haver conflitos se o componente for montado duas vezes (um na InputArea e outro no ChatInput) com o mesmo ID de áudio, gravação simultânea, etc.
+
+✅ Resumo das suas ações prioritárias agora
+ Testar se o botão da InputArea ainda está com pointer-events: none
+
+ Confirmar via console se o handleSendMessage() está sendo executado e se activeConversation está definido
+
+ Garantir que a rota /inbox não está carregando nada do InternalChat
+
+ Garantir que o ChatInput.tsx não está carregado por engano em outro contexto
+
+ Validar que AudioRecorder não está duplicado

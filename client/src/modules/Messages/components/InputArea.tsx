@@ -24,6 +24,17 @@ interface InputAreaProps {
 }
 
 export function InputArea({ activeConversation }: InputAreaProps) {
+  // Validação crítica no início
+  if (!activeConversation) {
+    console.log('⚠️ InputArea renderizada sem activeConversation');
+    return (
+      <div className="border-t bg-white p-4">
+        <div className="text-center text-gray-500">
+          Selecione uma conversa para enviar mensagens
+        </div>
+      </div>
+    );
+  }
   const [message, setMessage] = useState("");
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -72,11 +83,19 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   }, []);
 
   const handleSendMessage = () => {
-    if (!message.trim() || !activeConversation?.id) return;
+    if (!message.trim() || !activeConversation?.id) {
+      console.log('❌ Envio bloqueado:', { 
+        hasMessage: !!message.trim(), 
+        hasConversation: !!activeConversation?.id,
+        activeConversation: activeConversation 
+      });
+      return;
+    }
 
     console.log('🚀 Enviando mensagem:', { 
       content: message.trim(), 
-      conversationId: activeConversation.id 
+      conversationId: activeConversation.id,
+      contact: activeConversation.contact
     });
 
     sendMessageMutation.mutate({
@@ -87,7 +106,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         direction: 'outbound',
         sentAt: new Date().toISOString(),
         isInternalNote: false,
-        isFromContact: false, // Campo obrigatório que estava faltando
+        isFromContact: false,
         replyToMessageId: replyingTo?.messageId || null,
       },
       contact: activeConversation.contact,
@@ -100,6 +119,10 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      console.log('⌨️ Enter pressionado:', { 
+        hasMessage: !!message.trim(),
+        hasConversation: !!activeConversation?.id 
+      });
       handleSendMessage();
     }
   };
@@ -399,10 +422,18 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
           {/* Botão de enviar - estilo WhatsApp */}
           <Button
-            onClick={handleSendMessage}
-            disabled={!message.trim() || sendMessageMutation.isPending}
+            onClick={() => {
+              console.log('🖱️ Clique no botão enviar:', { 
+                hasMessage: !!message.trim(),
+                hasConversation: !!activeConversation?.id,
+                isPending: sendMessageMutation.isPending
+              });
+              handleSendMessage();
+            }}
+            disabled={!message.trim() || sendMessageMutation.isPending || !activeConversation?.id}
             size="sm"
-            className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ pointerEvents: 'auto' }}
           >
             <Send className="w-4 h-4" />
           </Button>
@@ -428,9 +459,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           </div>
         )}
 
-        {/* Componente AudioRecorder que estava faltando */}
+        {/* Componente AudioRecorder isolado para InputArea */}
         {isRecording && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-[9999]">
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-[9999]" id="inbox-audio-recorder">
             <AudioRecorder 
               onSendAudio={handleSendAudio}
               isRecording={isRecording}
