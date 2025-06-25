@@ -77,10 +77,29 @@ export function ConversationAssignmentDropdown({
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro na atribuição de equipe:', error);
+      
+      // Extrair mensagem específica da API
+      const errorMessage = error?.response?.data?.message || 'Não foi possível atribuir à equipe';
+      const errorDetails = error?.response?.data?.details;
+      const statusCode = error?.response?.status;
+
+      // Mensagens personalizadas baseadas no status HTTP
+      let userFriendlyMessage = errorMessage;
+      if (statusCode === 404) {
+        userFriendlyMessage = 'Conversa não encontrada';
+      } else if (statusCode === 400 && errorMessage.includes('não encontrada')) {
+        userFriendlyMessage = 'Equipe não encontrada ou foi removida';
+      } else if (statusCode === 400 && errorMessage.includes('inativa')) {
+        userFriendlyMessage = 'Equipe está desativada';
+      } else if (statusCode === 500) {
+        userFriendlyMessage = 'Erro interno do servidor - tente novamente';
+      }
+
       toast({
-        title: "Erro",
-        description: "Não foi possível atribuir à equipe",
+        title: "❌ Erro na Atribuição",
+        description: errorDetails ? `${userFriendlyMessage}: ${errorDetails}` : userFriendlyMessage,
         variant: "destructive"
       });
     }
@@ -116,10 +135,31 @@ export function ConversationAssignmentDropdown({
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro na atribuição de usuário:', error);
+      
+      // Extrair mensagem específica da API
+      const errorMessage = error?.response?.data?.message || 'Não foi possível atribuir ao usuário';
+      const errorDetails = error?.response?.data?.details;
+      const statusCode = error?.response?.status;
+
+      // Mensagens personalizadas baseadas no status HTTP
+      let userFriendlyMessage = errorMessage;
+      if (statusCode === 404) {
+        userFriendlyMessage = 'Conversa não encontrada';
+      } else if (statusCode === 400 && errorMessage.includes('não encontrado')) {
+        userFriendlyMessage = 'Usuário não encontrado ou foi removido';
+      } else if (statusCode === 400 && errorMessage.includes('inativo')) {
+        userFriendlyMessage = 'Usuário está desativado';
+      } else if (statusCode === 400 && errorMessage.includes('não pertence')) {
+        userFriendlyMessage = 'Usuário não faz parte da equipe selecionada';
+      } else if (statusCode === 500) {
+        userFriendlyMessage = 'Erro interno do servidor - tente novamente';
+      }
+
       toast({
-        title: "Erro",
-        description: "Não foi possível atribuir ao usuário",
+        title: "❌ Erro na Atribuição",
+        description: errorDetails ? `${userFriendlyMessage}: ${errorDetails}` : userFriendlyMessage,
         variant: "destructive"
       });
     }

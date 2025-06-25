@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:05): FEEDBACK DE ERRO MELHORADO PARA ATRIBUIÇÕES IMPLEMENTADO
+  - Backend: Validações específicas para equipes e usuários inexistentes/inativos
+  - Frontend: Captura de erros detalhados da API com mensagens amigáveis
+  - apiRequest atualizado para preservar detalhes de erro da resposta HTTP
+  - Mensagens específicas: "Equipe não encontrada", "Usuário inativo", "Não pertence à equipe"
+  - Logs detalhados no console para debug técnico
+  - Toast notifications com título e descrição informativos
 - June 25, 2025 (15:55): MIGRAÇÃO COMPLETA PARA REACT QUERY COMO FONTE ÚNICA
   - Removida dependência do Zustand para dados de conversa no ConversationAssignmentDropdown
   - Implementado optimistic update direto no cache React Query via setQueryData

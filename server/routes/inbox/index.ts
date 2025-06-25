@@ -76,12 +76,116 @@ export function registerInboxRoutes(app: Express) {
   app.patch('/api/conversations/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Validar ID da conversa
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ 
+          message: 'ID da conversa inválido',
+          details: 'O ID deve ser um número positivo válido'
+        });
+      }
+
+      // Verificar se a conversa existe
+      const existingConversation = await storage.getConversation(id);
+      if (!existingConversation) {
+        return res.status(404).json({ 
+          message: 'Conversa não encontrada',
+          details: `Nenhuma conversa encontrada com o ID ${id}`
+        });
+      }
+
       const validatedData = insertConversationSchema.partial().parse(req.body);
+      
+      // Validações específicas para atribuição de equipe
+      if (validatedData.assignedTeamId !== undefined) {
+        if (validatedData.assignedTeamId !== null) {
+          const team = await storage.getTeam(validatedData.assignedTeamId);
+          if (!team) {
+            return res.status(400).json({ 
+              message: 'Equipe não encontrada',
+              details: `A equipe com ID ${validatedData.assignedTeamId} não existe ou foi removida`
+            });
+          }
+          
+          if (!team.isActive) {
+            return res.status(400).json({ 
+              message: 'Equipe inativa',
+              details: `A equipe "${team.name}" está desativada e não pode receber novas atribuições`
+            });
+          }
+        }
+      }
+
+      // Validações específicas para atribuição de usuário
+      if (validatedData.assignedUserId !== undefined) {
+        if (validatedData.assignedUserId !== null) {
+          const user = await storage.getSystemUser(validatedData.assignedUserId);
+          if (!user) {
+            return res.status(400).json({ 
+              message: 'Usuário não encontrado',
+              details: `O usuário com ID ${validatedData.assignedUserId} não existe ou foi removido`
+            });
+          }
+          
+          if (!user.isActive) {
+            return res.status(400).json({ 
+              message: 'Usuário inativo',
+              details: `O usuário "${user.displayName}" está desativado e não pode receber novas atribuições`
+            });
+          }
+
+          // Verificar se o usuário pertence à equipe (se equipe especificada)
+          if (validatedData.assignedTeamId) {
+            const userTeams = await storage.getUserTeams(validatedData.assignedUserId);
+            const belongsToTeam = userTeams.some(team => team.id === validatedData.assignedTeamId);
+            
+            if (!belongsToTeam) {
+              const teamName = await storage.getTeam(validatedData.assignedTeamId);
+              return res.status(400).json({ 
+                message: 'Usuário não pertence à equipe',
+                details: `O usuário "${user.displayName}" não faz parte da equipe "${teamName?.name || 'selecionada'}"`
+              });
+            }
+          }
+        }
+      }
+
       const conversation = await storage.updateConversation(id, validatedData);
+      
+      // Log detalhado da atribuição para auditoria
+      console.log(`✅ Conversa ${id} atualizada:`, {
+        assignedTeamId: validatedData.assignedTeamId,
+        assignedUserId: validatedData.assignedUserId,
+        method: validatedData.method || 'manual',
+        timestamp: new Date().toISOString()
+      });
+
       res.json(conversation);
     } catch (error) {
-      console.error('Error updating conversation:', error);
-      res.status(400).json({ message: 'Failed to update conversation' });
+      console.error('Erro ao atualizar conversa:', error);
+      
+      // Tratamento específico de erros de validação Zod
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: 'Dados inválidos fornecidos',
+          details: 'Os dados enviados não estão no formato correto. Verifique os campos e tente novamente.',
+          validation_errors: error.errors
+        });
+      }
+
+      // Erro genérico do banco de dados
+      if (error.message?.includes('database') || error.code) {
+        return res.status(500).json({ 
+          message: 'Erro interno do servidor',
+          details: 'Falha na operação do banco de dados. Tente novamente em alguns momentos.'
+        });
+      }
+
+      // Erro genérico
+      res.status(500).json({ 
+        message: 'Erro interno do servidor',
+        details: 'Ocorreu um erro inesperado. Entre em contato com o suporte se o problema persistir.'
+      });
     }
   });
 
