@@ -526,6 +526,61 @@ export function ContactsPage() {
                     className="resize-none"
                   />
                 </div>
+
+                {/* Separador para seção de mensagem ativa */}
+                <div className="md:col-span-2">
+                  <hr className="border-gray-200 my-4" />
+                  <div className="flex items-center gap-2 mb-4">
+                    <Send className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">Enviar Mensagem Ativa</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Configure um canal e mensagem para enviar automaticamente após criar o contato.
+                  </p>
+                </div>
+
+                {/* Seleção do Canal WhatsApp */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Canal WhatsApp</label>
+                  <Select 
+                    value={createForm.selectedChannelId} 
+                    onValueChange={(value) => setCreateForm({ ...createForm, selectedChannelId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um canal (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum canal</SelectItem>
+                      {channels
+                        .filter((channel: any) => channel.type === 'whatsapp')
+                        .map((channel: any) => (
+                          <SelectItem key={channel.id} value={channel.id.toString()}>
+                            {channel.name || `Canal ${channel.instanceId}`}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Campo de Mensagem Ativa */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Mensagem Ativa
+                    {createForm.selectedChannelId && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  <Textarea
+                    value={createForm.activeMessage}
+                    onChange={(e) => setCreateForm({ ...createForm, activeMessage: e.target.value })}
+                    placeholder="Digite a mensagem que será enviada automaticamente após criar o contato..."
+                    rows={4}
+                    disabled={!createForm.selectedChannelId}
+                  />
+                  {createForm.selectedChannelId && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Esta mensagem será enviada via WhatsApp e criará uma nova conversa automaticamente.
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Buttons */}
