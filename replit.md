@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (03:05): REFATORAÇÃO ESTRUTURAL DO SISTEMA DE MENSAGENS IMPLEMENTADA
+  - Eliminado Zustand store como fonte de mensagens (mantido apenas para estado básico)
+  - TanStack Query estabelecido como fonte única de verdade para mensagens
+  - WebSocket atualiza apenas React Query cache para renderização imediata
+  - Removidos conflitos entre múltiplos sistemas de estado (Zustand vs Query vs WebSocket)
+  - Sistema simplificado: Envio → Banco → React Query → Interface (linear e confiável)
+  - Mensagens enviadas aparecem instantaneamente sem dependência de broadcast
 - June 25, 2025 (02:50): SCROLL INFINITO INVERTIDO IMPLEMENTADO NAS MENSAGENS
   - Hook useMessages convertido para useInfiniteQuery com carregamento inicial de 15 mensagens
   - Carregamento progressivo de 10 mensagens por vez ao rolar para cima

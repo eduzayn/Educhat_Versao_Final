@@ -9,7 +9,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage } = useChatStore();
+  const { setConnectionStatus, setTypingIndicator, activeConversation } = useChatStore();
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -67,24 +67,37 @@ export function useWebSocket() {
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
         
-        // Adicionar mensagem ao store local imediatamente
-        addMessage(data.conversationId, data.message);
-        updateConversationLastMessage(data.conversationId, data.message);
-        
-        // Atualizar cache do React Query imediatamente
+        // FONTE ÚNICA: Atualizar apenas React Query cache para renderização imediata
         queryClient.setQueryData([`/api/conversations/${data.conversationId}/messages`], (oldData: any) => {
-          if (!oldData) return [data.message];
-          // Verificar se a mensagem já existe para evitar duplicatas
-          const messageExists = oldData.some((msg: any) => msg.id === data.message.id);
-          if (messageExists) return oldData;
-          return [...oldData, data.message];
+          if (!oldData || !oldData.pages) {
+            // Se não há dados, criar estrutura de páginas
+            return {
+              pages: [[data.message]],
+              pageParams: [0]
+            };
+          }
+          
+          // Verificar se a mensagem já existe em qualquer página
+          const messageExists = oldData.pages.some((page: any[]) => 
+            page.some((msg: any) => msg.id === data.message.id)
+          );
+          
+          if (messageExists) {
+            return oldData;
+          }
+          
+          // Adicionar à primeira página (mais recente)
+          const updatedPages = [...oldData.pages];
+          updatedPages[0] = [...(updatedPages[0] || []), data.message];
+          
+          return {
+            ...oldData,
+            pages: updatedPages
+          };
         });
         
-        // Invalidação em background para sincronização
+        // Invalidação para sincronização em background
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
-        });
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
         
         return;
@@ -191,7 +204,7 @@ export function useWebSocket() {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
     });
-  }, [setConnectionStatus, addMessage, setTypingIndicator, activeConversation, updateConversationLastMessage, queryClient]);
+  }, [setConnectionStatus, setTypingIndicator, activeConversation, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.connected) {

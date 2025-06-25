@@ -98,10 +98,10 @@ export function InboxPage() {
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages?.flat() || [];
   
-  // Hook do store de chat - deve vir antes de usar activeConversation
-  const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+  // Hook do store de chat - apenas para estado básico
+  const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
   
-  // Hook de mensagens com verificação de segurança
+  // Hook de mensagens - FONTE ÚNICA DE VERDADE
   const messagesQuery = useMessages(activeConversation?.id, 15);
   const { 
     data: messagesData, 
@@ -115,33 +115,17 @@ export function InboxPage() {
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
-    // Marcar como lida tanto no store local quanto na API
-    markConversationAsRead(conversation.id);
+    // Marcar como lida apenas na API - store não gerencia mais estado de mensagens
     markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
-  // Flatten das páginas de mensagens com verificação de segurança
-  const apiMessages = Array.isArray(messagesData?.pages) ? messagesData.pages.flat() : [];
-  
-  // Combinar mensagens do store e da API para garantir renderização imediata
-  const storeMessagesForConversation = activeConversation?.id && storeMessages ? (storeMessages[activeConversation.id] || []) : [];
-  
-  // Merge inteligente: usar store para mensagens recentes, API para histórico
-  const allMessages = [...apiMessages];
-  if (Array.isArray(storeMessagesForConversation)) {
-    storeMessagesForConversation.forEach(storeMsg => {
-      const exists = allMessages.some(apiMsg => apiMsg.id === storeMsg.id);
-      if (!exists) {
-        allMessages.push(storeMsg);
-      }
-    });
-  }
-  
-  // Ordenar por data de envio para exibição cronológica com verificação de segurança
-  const messages = Array.isArray(allMessages) ? allMessages.sort((a, b) => 
-    new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
-  ) : [];
+  // FONTE ÚNICA: Apenas React Query - sem merge com store
+  const messages = Array.isArray(messagesData?.pages) 
+    ? messagesData.pages.flat().sort((a, b) => 
+        new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
+      )
+    : [];
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);

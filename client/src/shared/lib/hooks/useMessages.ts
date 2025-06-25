@@ -82,20 +82,41 @@ export function useSendMessage() {
       return savedMessage;
     },
     onSuccess: (data, { conversationId }) => {
-      // Forçar refetch imediato para garantir que a mensagem apareça
+      // ATUALIZAÇÃO IMEDIATA: Inserir mensagem no cache para renderização instantânea
       queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
-        if (!oldData) return [data];
-        // Verificar se a mensagem já existe para evitar duplicatas
-        const messageExists = oldData.some((msg: any) => msg.id === data.id);
-        if (messageExists) return oldData;
-        return [...oldData, data];
+        if (!oldData || !oldData.pages) {
+          // Se não há dados, criar estrutura de páginas
+          return {
+            pages: [[data]],
+            pageParams: [0]
+          };
+        }
+        
+        // Verificar se a mensagem já existe em qualquer página
+        const messageExists = oldData.pages.some((page: any[]) => 
+          page.some((msg: any) => msg.id === data.id)
+        );
+        
+        if (messageExists) {
+          return oldData;
+        }
+        
+        // Adicionar à primeira página (mais recente) - ordenação cronológica
+        const updatedPages = [...oldData.pages];
+        updatedPages[0] = [...(updatedPages[0] || []), data].sort((a, b) => 
+          new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
+        );
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        };
       });
       
-      // Invalidar cache específico das mensagens dessa conversa
+      // Invalidar cache em background para sincronização
       queryClient.invalidateQueries({ 
         queryKey: [`/api/conversations/${conversationId}/messages`] 
       });
-      // Invalidar cache da lista de conversas
       queryClient.invalidateQueries({ 
         queryKey: ['/api/conversations'] 
       });
