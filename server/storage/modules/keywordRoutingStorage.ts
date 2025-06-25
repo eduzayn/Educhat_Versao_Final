@@ -1,6 +1,6 @@
 import { eq, and, desc, ne } from "drizzle-orm";
-import { db } from "../../db.js";
-import { keywordRouting } from "../../../shared/schema";
+import { db } from "../../core/db.js";
+import { keywordRouting } from "../../../shared/schema.js";
 import type { KeywordRouting, InsertKeywordRouting } from "../../../shared/schema";
 import { BaseStorage } from "../base/BaseStorage";
 

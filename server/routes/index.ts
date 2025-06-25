@@ -54,6 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
   registerMacrosetorRoutes(app, {} as any);
+  
+  // Registrar rotas de keyword routing
+  app.use('/api/keyword-routing', (await import('./keywordRouting/index.js')).default);
 
   // Configurar Socket.IO e retornar servidor
   const httpServer = registerRealtimeConfig(app);
