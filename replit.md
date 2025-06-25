@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (07:22): CORREÇÃO DE EXIBIÇÃO DE NOMES DOS MEMBROS DA EQUIPE
+  - Corrigido acesso aos dados dos membros da equipe no modal de gerenciamento
+  - Ajustada estrutura para acessar member.user.username/displayName em vez de member.username
+  - Adicionado fallback "Nome não disponível" para casos sem dados
+  - Incluída exibição do papel (role) do membro na equipe
+  - Interface agora mostra corretamente os nomes dos usuários no modal
 - June 25, 2025 (06:56): REMOÇÃO COMPLETA DA PALAVRA "MACROSETOR" DO CÓDIGO
   - Substituída palavra "macrosetor" por "categoria" em todo o código
   - Atualizados schemas, tipos e funções para usar nomenclatura "category"

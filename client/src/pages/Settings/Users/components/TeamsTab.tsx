@@ -652,23 +652,26 @@ export const TeamsTab = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {teamMembers.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                {teamMembers.map((member, index) => (
+                  <div key={member.user?.id || index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-primary">
-                          {member.displayName?.[0]?.toUpperCase() || member.username?.[0]?.toUpperCase() || '?'}
+                          {member.user?.displayName?.[0]?.toUpperCase() || member.user?.username?.[0]?.toUpperCase() || '?'}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium">{member.displayName || member.username}</p>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                        <p className="font-medium">{member.user?.displayName || member.user?.username || 'Nome não disponível'}</p>
+                        <p className="text-sm text-muted-foreground">{member.user?.email || 'Email não disponível'}</p>
+                        {member.role && (
+                          <p className="text-xs text-blue-600 font-medium">{member.role}</p>
+                        )}
                       </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleRemoveMember(member.id)}
+                      onClick={() => handleRemoveMember(member.user?.id)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4 mr-1" />
@@ -684,7 +687,6 @@ export const TeamsTab = () => {
             <Button 
               variant="outline" 
               onClick={() => {
-                setSelectedTeam(null);
                 setShowAddMemberDialog(true);
                 setShowMembersDialog(false);
               }}
