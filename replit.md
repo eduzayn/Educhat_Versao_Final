@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:30): EDIÇÃO INLINE DE CONTATOS E NEGÓCIOS IMPLEMENTADA
+  - Criados componentes InlineEditField e InlineDealEdit para edição rápida no painel direito
+  - Área de Formação e Área de Interesse agora editáveis inline com botão de lápis
+  - Negócios editáveis via modal completo acessado pelo ícone de edição no card
+  - Campos salvos imediatamente com validação e feedback visual
+  - Experiência otimizada para atendentes atualizarem dados sem sair da conversa
+  - Mantida compatibilidade com páginas de edição completa existentes
 - June 25, 2025 (05:23): ENDPOINT DE ENVIO DE ARQUIVO IMPLEMENTADO COMPLETAMENTE
   - Criado endpoint /api/zapi/send-file baseado na documentação oficial da Z-API
   - Configurado multer para arquivos (50MB máximo, tipos: PDF, DOC, DOCX, XLS, XLSX, TXT, CSV)

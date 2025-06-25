@@ -26,6 +26,8 @@ import {
   Edit,
   Briefcase
 } from 'lucide-react';
+import { InlineEditField } from './InlineEditField';
+import { InlineDealEdit } from './InlineDealEdit';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllMacrosetores, getStagesForMacrosetor, getMacrosetorInfo } from '@/lib/crmFunnels';
@@ -182,18 +184,7 @@ export function ContactSidebar({
     }
   });
 
-  // Mutation para atualizar deal
-  const updateDealMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest('PUT', `/api/deals/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      setEditingDeal(null);
-    },
-    onError: (error: any) => {
-      console.error('Erro ao atualizar negócio:', error);
-    }
-  });
+
 
   const handleCreateDeal = () => {
     if (!dealFormData.name.trim()) return;
@@ -213,19 +204,7 @@ export function ContactSidebar({
     createDealMutation.mutate(data);
   };
 
-  const handleUpdateDeal = (deal: any, updates: any) => {
-    const data: any = {};
-    
-    if (updates.value !== undefined) {
-      data.value = Math.round(parseFloat(updates.value) * 100);
-    }
-    
-    if (updates.stage !== undefined) {
-      data.stage = updates.stage;
-    }
 
-    updateDealMutation.mutate({ id: deal.id, data });
-  };
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
@@ -298,10 +277,14 @@ export function ContactSidebar({
 
         {/* 🎓 Área de Formação */}
         <div className="space-y-3">
-          <h4 className="font-medium text-sm text-gray-900 flex items-center">
-            <GraduationCap className="w-4 h-4 mr-2" />
-            Área de Formação
-          </h4>
+          <InlineEditField
+            label="Área de Formação"
+            value={activeConversation.contact.educationalBackground || ''}
+            contactId={activeConversation.contact.id}
+            field="educationalBackground"
+            type="text"
+            placeholder="Ex: Administração, Engenharia, etc."
+          />
           
           {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
             (() => {
@@ -314,7 +297,7 @@ export function ContactSidebar({
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2 flex items-center">
                       <BookOpen className="w-3 h-3 mr-1" />
-                      Cursos Concluídos
+                      Cursos Concluídos (Detectados)
                     </h5>
                     <div className="space-y-1">
                       {formationTags.map((tag: string, index: number) => (
@@ -327,29 +310,21 @@ export function ContactSidebar({
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                  <p className="text-xs text-gray-500">
-                    Nenhuma formação identificada
-                  </p>
-                </div>
-              );
+              ) : null;
             })()
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">
-                Nenhuma formação identificada
-              </p>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* 🎯 Área de Interesse */}
         <div className="space-y-3">
-          <h4 className="font-medium text-sm text-gray-900 flex items-center">
-            <Target className="w-4 h-4 mr-2" />
-            Área de Interesse
-          </h4>
+          <InlineEditField
+            label="Área de Interesse"
+            value={activeConversation.contact.educationalInterest || ''}
+            contactId={activeConversation.contact.id}
+            field="educationalInterest"
+            type="text"
+            placeholder="Ex: MBA, Pós-graduação em Marketing, etc."
+          />
           
           {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
             (() => {
@@ -362,7 +337,7 @@ export function ContactSidebar({
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <h5 className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2 flex items-center">
                       <Target className="w-3 h-3 mr-1" />
-                      Cursos de Interesse
+                      Cursos de Interesse (Detectados)
                     </h5>
                     <div className="space-y-1">
                       {interestTags.map((tag: string, index: number) => (
@@ -375,21 +350,9 @@ export function ContactSidebar({
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                  <p className="text-xs text-gray-500">
-                    Nenhum interesse identificado
-                  </p>
-                </div>
-              );
+              ) : null;
             })()
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">
-                Nenhum interesse identificado
-              </p>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* 💼 Negócios */}
@@ -406,7 +369,6 @@ export function ContactSidebar({
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    setEditingDeal(null);
                     setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
                   }}
                 >
