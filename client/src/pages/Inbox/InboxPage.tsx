@@ -589,9 +589,7 @@ export function InboxPage() {
             />
 
             {/* Área de Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
-              <InputArea />
-            </div>
+            <InputArea activeConversation={activeConversation} />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">

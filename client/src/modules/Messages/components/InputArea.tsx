@@ -233,7 +233,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
             {/* Menu de anexos modernizado */}
             {isAttachmentOpen && (
-              <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-50 min-w-[160px]">
+              <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-[9999] min-w-[160px]">
                 <div className="flex flex-col gap-2">
                   <Button
                     variant="ghost"
@@ -284,17 +284,23 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Digite sua mensagem..."
-              className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 p-2 pr-16"
+              className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-2 pr-16"
               rows={1}
+              autoFocus={false}
             />
             
             {/* Botões dentro do textarea */}
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-auto">
               {/* Botão de emoji */}
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsEmojiOpen(!isEmojiOpen)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsEmojiOpen(!isEmojiOpen);
+                }}
                 className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
               >
                 <Smile className="w-4 h-4" />
@@ -302,11 +308,24 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
               {/* Gravador de áudio */}
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
-                onMouseDown={() => setIsRecording(true)}
-                onMouseUp={() => setIsRecording(false)}
-                onMouseLeave={() => setIsRecording(false)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsRecording(true);
+                }}
+                onMouseUp={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsRecording(false);
+                }}
+                onMouseLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsRecording(false);
+                }}
                 className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
                 title="Manter pressionado para gravar áudio"
               >
@@ -363,7 +382,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
           {/* Botão de enviar - estilo WhatsApp */}
           <Button
-            onClick={handleSendMessage}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSendMessage();
+            }}
             disabled={!message.trim() || sendMessageMutation.isPending}
             size="sm"
             className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -374,7 +398,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
         {/* Menu de emoji */}
         {isEmojiOpen && (
-          <div className="absolute bottom-full right-0 mb-2 z-50 bg-white border rounded-xl shadow-xl p-4 max-w-xs">
+          <div className="absolute bottom-full right-0 mb-2 z-[9999] bg-white border rounded-xl shadow-xl p-4 max-w-xs">
             <div className="grid grid-cols-8 gap-2">
               {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '👍', '👎', '❤️', '🔥', '⭐', '✅', '❌', '🎉', '💯'].map(emoji => (
                 <button
