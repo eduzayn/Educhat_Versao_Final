@@ -23,7 +23,8 @@ import {
   Facebook,
   Mail,
   MessageCircle,
-  UserCheck
+  UserCheck,
+  ArrowRightLeft
 } from 'lucide-react';
 // Logo removido durante limpeza - usando texto simples
 import { useLocation } from 'wouter';
@@ -103,6 +104,22 @@ export function Dashboard() {
       icon: BarChart3,
       description: 'Analytics e métricas',
       route: '/reports'
+    },
+    {
+      id: 'teams',
+      label: 'Equipes',
+      icon: Users,
+      description: 'Gerencie equipes e usuários do sistema',
+      route: '/teams',
+      managerOrAdminOnly: true
+    },
+    {
+      id: 'team-transfer',
+      label: 'Transferir Conversas',
+      icon: ArrowRightLeft,
+      description: 'Transfira conversas entre equipes usando drag-and-drop',
+      route: '/teams/transfer',
+      managerOrAdminOnly: true
     },
     {
       id: 'settings',
@@ -247,6 +264,14 @@ export function Dashboard() {
                   >
                     <Zap className="w-6 h-6" />
                     <span>Integrações</span>
+                  </Button>
+                  <Button 
+                    onClick={() => setLocation('/teams/transfer')}
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center space-y-2 border-educhat-primary text-educhat-primary hover:bg-educhat-purple-50"
+                  >
+                    <ArrowRightLeft className="w-6 h-6" />
+                    <span>Transferir Conversas</span>
                   </Button>
 
                 </div>
