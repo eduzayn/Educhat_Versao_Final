@@ -67,7 +67,16 @@ export function useSendMessage() {
 
       return savedMessage;
     },
-    onSuccess: (_, { conversationId }) => {
+    onSuccess: (data, { conversationId }) => {
+      // Forçar refetch imediato para garantir que a mensagem apareça
+      queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
+        if (!oldData) return [data];
+        // Verificar se a mensagem já existe para evitar duplicatas
+        const messageExists = oldData.some((msg: any) => msg.id === data.id);
+        if (messageExists) return oldData;
+        return [...oldData, data];
+      });
+      
       // Invalidar cache específico das mensagens dessa conversa
       queryClient.invalidateQueries({ 
         queryKey: [`/api/conversations/${conversationId}/messages`] 

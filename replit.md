@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:48): PROBLEMA DE RENDERIZAÇÃO DE MENSAGENS ENVIADAS CORRIGIDO
+  - Corrigido sistema de cache do React Query para atualização imediata
+  - Implementado merge inteligente entre store local e API para renderização instantânea
+  - WebSocket agora atualiza cache imediatamente evitando atraso na interface
+  - Mensagens enviadas via Z-API aparecem instantaneamente na interface
+  - Sistema de broadcast otimizado para melhor reatividade
 - June 25, 2025 (02:26): SCROLL INFINITO IMPLEMENTADO NA LISTA DE CONVERSAS
   - Alterado useConversations para useInfiniteQuery do TanStack Query
   - Carregamento inicial de 20 conversas, mais 20 por vez ao fazer scroll

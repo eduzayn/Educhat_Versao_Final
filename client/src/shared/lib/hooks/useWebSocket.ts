@@ -68,33 +68,26 @@ export function useWebSocket() {
       // Handle new_message within broadcast_message
       if (data.type === 'new_message' && data.message && data.conversationId) {
         console.log('📨 Nova mensagem via broadcast:', data);
+        
+        // Adicionar mensagem ao store local imediatamente
         addMessage(data.conversationId, data.message);
         updateConversationLastMessage(data.conversationId, data.message);
         
-        // Invalidação imediata para atualização em tempo real
+        // Atualizar cache do React Query imediatamente
+        queryClient.setQueryData([`/api/conversations/${data.conversationId}/messages`], (oldData: any) => {
+          if (!oldData) return [data.message];
+          // Verificar se a mensagem já existe para evitar duplicatas
+          const messageExists = oldData.some((msg: any) => msg.id === data.message.id);
+          if (messageExists) return oldData;
+          return [...oldData, data.message];
+        });
+        
+        // Invalidação em background para sincronização
         queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
         queryClient.invalidateQueries({ 
           queryKey: [`/api/conversations/${data.conversationId}/messages`] 
         });
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-        
-        // Force refetch prioritário
-        Promise.all([
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations'], 
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: [`/api/conversations/${data.conversationId}/messages`],
-            type: 'active'
-          }),
-          queryClient.refetchQueries({ 
-            queryKey: ['/api/conversations/unread-count'],
-            type: 'active'
-          })
-        ]).catch(error => {
-          console.error('❌ Erro ao atualizar cache após nova mensagem:', error);
-        });
         
         return;
       }
