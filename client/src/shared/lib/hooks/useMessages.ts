@@ -73,8 +73,9 @@ export function useSendMessage() {
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
       const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
 
-      // SEGUNDO: SEMPRE tentar envio Z-API se tiver telefone válido
+      // SEGUNDO: SEMPRE tentar envio Z-API se não for nota interna
       const phoneNumber = contact?.phone;
+      const shouldAttemptZapi = phoneNumber && phoneNumber.trim() && !message.isInternalNote;
       
       console.log('🔍 VERIFICAÇÃO COMPLETA DE ENVIO:', {
         hasContact: !!contact,
@@ -82,15 +83,18 @@ export function useSendMessage() {
         phone: phoneNumber,
         conversationId: conversationId,
         messageType: message.messageType,
+        isInternalNote: message.isInternalNote,
+        shouldAttemptZapi,
         content: message.content.substring(0, 30)
       });
 
-      if (phoneNumber && phoneNumber.trim()) {
+      if (shouldAttemptZapi) {
         try {
           console.log('📤 INICIANDO ENVIO Z-API:', {
             phone: phoneNumber,
             content: message.content.substring(0, 50),
-            conversationId: conversationId
+            conversationId: conversationId,
+            endpoint: '/api/zapi/send-message'
           });
           
           const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
@@ -100,25 +104,32 @@ export function useSendMessage() {
           });
           
           console.log('✅ SUCESSO Z-API:', {
-            messageId: zapiResponse.messageId || zapiResponse.id,
-            phone: phoneNumber
+            messageId: zapiResponse?.messageId || zapiResponse?.id,
+            phone: phoneNumber,
+            response: zapiResponse
           });
           
         } catch (error) {
           console.error('❌ FALHA CRÍTICA Z-API:', {
             phone: phoneNumber,
-            error: error instanceof Error ? error.message : error,
-            content: message.content.substring(0, 50)
+            error: error instanceof Error ? error.message : String(error),
+            content: message.content.substring(0, 50),
+            stack: error instanceof Error ? error.stack : undefined
           });
           
           // Propagar erro para exibir toast
-          throw new Error(`Falha no envio via WhatsApp: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          throw new Error(`Falha no envio via WhatsApp para ${phoneNumber}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       } else {
-        console.warn('⚠️ ENVIO APENAS LOCAL: Telefone inválido ou não disponível', { 
+        const reason = !phoneNumber ? 'telefone não disponível' : 
+                      !phoneNumber.trim() ? 'telefone vazio' : 
+                      message.isInternalNote ? 'é nota interna' : 'motivo desconhecido';
+        
+        console.warn('⚠️ ENVIO APENAS LOCAL:', { 
           conversationId, 
           contactId: contact?.id,
-          providedPhone: phoneNumber
+          providedPhone: phoneNumber,
+          reason
         });
       }
 
