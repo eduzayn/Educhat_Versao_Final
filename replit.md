@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (04:44): ERRO CRÍTICO DO ÁUDIO CORRIGIDO NO MESSAGESAREA
+  - Corrigido erro "Cannot read properties of undefined (reading 'id')" em MessagesArea.tsx
+  - Adicionado filtro de segurança para mensagens sem ID antes do .map()
+  - Implementado ErrorBoundary para capturar e tratar erros React graciosamente
+  - Corrigida API de áudio para retornar todos os campos obrigatórios da mensagem
+  - Sistema de áudio agora funciona sem quebrar a interface
 - June 25, 2025 (04:42): AUDITORIA COMPLETA DE ROTAS E NAVEGAÇÃO FINALIZADA
   - Mapeadas e auditadas 55 rotas totais: 20 frontend + 15 internas + 20 APIs
   - Removidas 5 rotas duplicadas/obsoletas (integrations, chat interno, admin, detection)

@@ -55,6 +55,7 @@ import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
 import { MessagesArea } from './components/MessagesArea';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 export function InboxPage() {
   const [activeTab, setActiveTab] = useState('inbox');

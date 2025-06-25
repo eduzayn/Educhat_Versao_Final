@@ -129,7 +129,8 @@ export function MessagesArea({
             </div>
           )}
 
-          {messages
+          {(messages ?? [])
+            .filter(message => message?.id) // Filtrar mensagens sem ID
             .sort(
               (a, b) =>
                 new Date(a.sentAt || 0).getTime() -
