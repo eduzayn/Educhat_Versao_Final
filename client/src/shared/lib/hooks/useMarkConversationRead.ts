@@ -18,10 +18,12 @@ export function useMarkConversationRead() {
         return oldData;
       });
       
-      // Invalidar apenas contador de não lidas sem forçar refetch das conversas
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/conversations/unread-count'],
-        refetchType: 'none' // Apenas marca como stale, não força refetch
+      // Atualizar contador de não lidas diretamente sem invalidar
+      queryClient.setQueryData(['/api/conversations/unread-count'], (oldData: any) => {
+        if (oldData && oldData.count > 0) {
+          return { ...oldData, count: oldData.count - 1 };
+        }
+        return oldData;
       });
     },
   });

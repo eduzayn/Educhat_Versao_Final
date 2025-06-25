@@ -7,8 +7,9 @@ interface UnreadCountResponse {
 export function useUnreadCount() {
   return useQuery<UnreadCountResponse>({
     queryKey: ['/api/conversations/unread-count'],
-    refetchInterval: 3000, // Atualizar a cada 3 segundos
-    staleTime: 1000, // Considerar dados obsoletos após 1 segundo
-    gcTime: 5000, // Manter cache por 5 segundos
+    refetchInterval: false, // WebSocket atualiza automaticamente
+    staleTime: 60000, // Cache válido por 1 minuto
+    gcTime: 300000, // Manter cache por 5 minutos
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
   });
 }

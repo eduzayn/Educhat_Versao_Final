@@ -5,6 +5,7 @@ import type { Message, InsertMessage } from '@shared/schema';
 export function useMessages(conversationId: number | null, initialLimit = 15) {
   return useInfiniteQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
+    initialPageParam: undefined, // Parâmetro obrigatório para TanStack Query v5
     queryFn: async ({ pageParam }) => {
       // Primeira página: carregar as mais recentes (limit=15, order=desc)
       // Páginas seguintes: carregar mais antigas usando before=id (limit=10)

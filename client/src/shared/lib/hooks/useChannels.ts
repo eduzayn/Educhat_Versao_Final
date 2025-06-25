@@ -22,7 +22,10 @@ export interface Channel {
 export function useChannels() {
   return useQuery<Channel[]>({
     queryKey: ['/api/channels'],
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 300000, // Cache válido por 5 minutos
+    gcTime: 600000, // Manter cache por 10 minutos
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    refetchInterval: false, // WebSocket atualiza quando necessário
   });
 }
 

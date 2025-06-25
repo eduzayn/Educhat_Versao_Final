@@ -74,7 +74,10 @@ export function InboxPage() {
       const response = await fetch('/api/teams');
       if (!response.ok) throw new Error('Erro ao carregar equipes');
       return response.json();
-    }
+    },
+    staleTime: 300000, // Cache válido por 5 minutos
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    refetchInterval: false, // WebSocket atualiza quando necessário
   });
   
   // Integração com Z-API para comunicação em tempo real
