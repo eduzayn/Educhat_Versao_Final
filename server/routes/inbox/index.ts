@@ -340,6 +340,50 @@ export function registerInboxRoutes(app: Express) {
     }
   });
 
+  // Mark conversation as unread
+  app.post('/api/conversations/:id/mark-unread', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Validação básica do ID
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ 
+          message: 'ID da conversa inválido',
+          details: 'O ID deve ser um número positivo válido'
+        });
+      }
+
+      // Verificar se a conversa existe
+      const conversation = await storage.getConversation(id);
+      if (!conversation) {
+        return res.status(404).json({ 
+          message: 'Conversa não encontrada',
+          details: `Nenhuma conversa encontrada com o ID ${id}`
+        });
+      }
+
+      // Marcar como não lida definindo unreadCount como 1
+      await storage.updateConversation(id, { unreadCount: 1 });
+      
+      // Broadcast para notificar mudança de status de leitura
+      try {
+        const { broadcast } = await import('../realtime');
+        broadcast(id, {
+          type: 'unread_update',
+          conversationId: id,
+          unreadCount: 1
+        });
+      } catch (broadcastError) {
+        console.warn('Erro no broadcast de conversa não lida:', broadcastError);
+      }
+      
+      res.json({ message: 'Conversa marcada como não lida' });
+    } catch (error) {
+      console.error('Erro ao marcar conversa como não lida:', error);
+      res.status(500).json({ message: 'Falha ao marcar conversa como não lida' });
+    }
+  });
+
   // Recalculate unread counts
   app.post('/api/conversations/recalculate-unread', async (req, res) => {
     try {
