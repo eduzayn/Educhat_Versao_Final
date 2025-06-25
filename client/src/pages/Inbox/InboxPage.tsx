@@ -171,10 +171,35 @@ export function InboxPage() {
   } = messagesQuery;
   const markAsReadMutation = useMarkConversationRead();
 
+  // Estado para controlar quais conversas já foram marcadas como lidas nesta sessão
+  const [markedAsReadIds, setMarkedAsReadIds] = useState<Set<number>>(new Set());
+
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
-    // Marcar como lida apenas na API - React Query é fonte única
-    markAsReadMutation.mutate(conversation.id);
+    
+    // CONTROLE ANTI-429: Marcar como lida APENAS se necessário
+    const needsMarkAsRead = 
+      conversation.unreadCount > 0 || // Tem mensagens não lidas
+      !conversation.isRead || // Não está marcada como lida
+      !markedAsReadIds.has(conversation.id); // Não foi marcada nesta sessão
+    
+    if (needsMarkAsRead) {
+      // Adicionar ao set de IDs já processados ANTES da requisição
+      setMarkedAsReadIds(prev => new Set([...prev, conversation.id]));
+      
+      // Fazer a requisição apenas uma vez
+      markAsReadMutation.mutate(conversation.id, {
+        onError: () => {
+          // Se falhar, remover do set para permitir nova tentativa
+          setMarkedAsReadIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(conversation.id);
+            return newSet;
+          });
+        }
+      });
+    }
+    
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
