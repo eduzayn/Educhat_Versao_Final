@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (04:30): LIMPEZA ESTRUTURADA DO REPOSITÓRIO EXECUTADA COM SUCESSO
+  - Removidos 64 arquivos obsoletos: documentação antiga, backups, scripts descontinuados
+  - Eliminados 18 arquivos .txt temporários da pasta attached_assets
+  - Removidas pastas de cache e arquivos temporários (.log, .tmp, .bak)
+  - Corrigido erro "Cannot read properties of undefined" no MessagesArea
+  - Sistema completamente funcional após limpeza - nenhum impacto negativo identificado
+  - Repositório organizado e pronto para futuras manutenções
 - June 25, 2025 (04:21): SISTEMA DE GRAVAÇÃO DE ÁUDIO COMPLETAMENTE CORRIGIDO
   - Corrigido erro do schema Zod para campo sentAt (string → Date com transform)
   - Removida sobreposição de textareas na InputArea (import desnecessária removida)
