@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Textarea } from '@/shared/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { SafeAvatar } from '@/components/SafeAvatar';
 import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -213,12 +213,13 @@ export function ContactSidebar({
       <div className="space-y-6">
         {/* 👤 Informações do Contato */}
         <div className="text-center">
-          <Avatar className="w-16 h-16 mx-auto mb-3">
-            <AvatarImage src={activeConversation.contact?.profileImageUrl || ''} />
-            <AvatarFallback className="text-lg font-semibold">
-              {activeConversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
-            </AvatarFallback>
-          </Avatar>
+          <SafeAvatar
+            src={activeConversation.contact?.profileImageUrl}
+            alt={activeConversation.contact?.name || 'Contato'}
+            fallbackText={activeConversation.contact?.name || 'C'}
+            className="w-16 h-16 mx-auto mb-3"
+            fallbackClassName="text-lg font-semibold bg-blue-500"
+          />
           
           <InlineContactNameEdit
             contactId={activeConversation.contact?.id}
@@ -506,11 +507,13 @@ export function ContactSidebar({
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <h5 className="font-medium text-sm mb-2">Contato</h5>
                     <div className="flex items-center space-x-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-sm">
-                          {activeConversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
-                        </AvatarFallback>
-                      </Avatar>
+                      <SafeAvatar
+                        src={activeConversation.contact?.profileImageUrl}
+                        alt={activeConversation.contact?.name || 'Contato'}
+                        fallbackText={activeConversation.contact?.name || 'C'}
+                        className="w-8 h-8"
+                        fallbackClassName="text-sm bg-gray-500"
+                      />
                       <div>
                         <p className="font-medium text-sm">{activeConversation.contact?.name || 'Contato'}</p>
                         <p className="text-xs text-gray-500">{activeConversation.contact?.phone || ''}</p>

@@ -927,18 +927,19 @@ export function ContactsPage() {
                       </div>
                       
                       <div className="col-span-3 flex items-center space-x-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={contact.profileImageUrl || ''} alt={contact.name} />
-                          <AvatarFallback className={`text-white text-xs ${
+                        <SafeAvatar
+                          src={contact.profileImageUrl}
+                          alt={contact.name}
+                          fallbackText={contact.name}
+                          className="w-8 h-8"
+                          fallbackClassName={`text-white text-xs ${
                             contact.phone?.includes('whatsapp') || contact.phone?.startsWith('55') 
                               ? 'bg-green-500' 
                               : contact.name.startsWith('M') 
                                 ? 'bg-purple-500' 
                                 : 'bg-blue-500'
-                          }`}>
-                            {contact.name.substring(0, 1).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                          }`}
+                        />
                         <div>
                           <div className="font-medium text-educhat-dark">{contact.name}</div>
                         </div>

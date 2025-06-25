@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { SafeAvatar } from '@/components/SafeAvatar';
 import { Search, Filter, X } from 'lucide-react';
 import { STATUS_CONFIG, type ConversationStatus } from '@/types/chat';
 import type { ConversationWithContact } from '@shared/schema';
@@ -172,15 +172,13 @@ export function ConversationList({
                 <div className="flex items-start gap-3">
                   {/* Avatar do contato */}
                   <div className="relative flex-shrink-0">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage 
-                        src={conversation.contact?.profileImageUrl || ''} 
-                        alt={conversation.contact?.name || 'Contato'} 
-                      />
-                      <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">
-                        {conversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <SafeAvatar
+                      src={conversation.contact?.profileImageUrl}
+                      alt={conversation.contact?.name || 'Contato'}
+                      fallbackText={conversation.contact?.name || 'C'}
+                      className="w-12 h-12"
+                      fallbackClassName="bg-gray-100 text-gray-700"
+                    />
                     
                     {/* Indicador de canal */}
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-gray-200 text-xs">

@@ -39,12 +39,13 @@ export function ViewContactDialog({
         <div className="space-y-6">
           {/* Avatar e informações principais */}
           <div className="flex items-center space-x-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={contact.profileImageUrl || ''} />
-              <AvatarFallback className="bg-educhat-primary text-white text-2xl">
-                {contact.name?.charAt(0)?.toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
+            <SafeAvatar
+              src={contact.profileImageUrl}
+              alt={contact.name || 'Contato'}
+              fallbackText={contact.name || '?'}
+              className="w-20 h-20"
+              fallbackClassName="bg-educhat-primary text-white text-2xl"
+            />
             <div className="flex-1">
               <h3 className="text-2xl font-bold text-gray-900">{contact.name}</h3>
               <div className="flex items-center gap-2 mt-2">
