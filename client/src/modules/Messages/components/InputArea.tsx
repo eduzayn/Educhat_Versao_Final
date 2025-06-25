@@ -26,7 +26,7 @@ interface InputAreaProps {
 export function InputArea({ activeConversation }: InputAreaProps) {
   // Validação crítica no início
   if (!activeConversation) {
-    console.log('⚠️ InputArea renderizada sem activeConversation');
+
     return (
       <div className="border-t bg-white p-4">
         <div className="text-center text-gray-500">
@@ -369,7 +369,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  console.log('🎤 Clique no microfone:', { isRecording });
+
                   setIsRecording(!isRecording);
                 }}
                 className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"

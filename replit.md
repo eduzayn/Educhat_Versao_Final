@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:14): LIMPEZA TÉCNICA ESTRUTURADA EXECUTADA COM SUCESSO
+  - Removidos arquivos obsoletos: InlineDealEdit.tsx, courseUtils.ts, macrosetorUtils.ts
+  - Eliminados console.logs de debug desnecessários em 5+ componentes
+  - Corrigidas referências quebradas após remoção de utilitários obsoletos
+  - Criado courseUtils simplificado em server/lib/ para manter APIs funcionais
+  - Removido script restore-internal-chat.sh e arquivos de utilidades antigas
+  - Padronizados imports e estrutura de componentes
+  - Sistema totalmente funcional após limpeza técnica
 - June 25, 2025 (06:09): EDIÇÃO INLINE DE NOME DO CONTATO E NEGÓCIOS IMPLEMENTADA
   - Criado componente InlineContactNameEdit para edição do nome com hover e ícone de lápis
   - Desenvolvido componente QuickDealEdit com modal flutuante para edição de negócios
