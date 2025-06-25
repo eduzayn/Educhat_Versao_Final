@@ -90,7 +90,7 @@ export function ConversationAssignmentDropdown({
       console.error('Erro na atribuição de equipe:', error);
       
       // Extrair mensagem específica da API
-      const errorMessage = error?.response?.data?.message || 'Não foi possível atribuir à equipe';
+      const errorMessage = error?.response?.data?.message || error?.message || 'Não foi possível atribuir à equipe';
       const errorDetails = error?.response?.data?.details;
       const statusCode = error?.response?.status;
 
@@ -104,6 +104,10 @@ export function ConversationAssignmentDropdown({
         userFriendlyMessage = 'Equipe está desativada';
       } else if (statusCode === 500) {
         userFriendlyMessage = 'Erro interno do servidor - tente novamente';
+      } else if (statusCode === 502) {
+        userFriendlyMessage = 'Erro de comunicação com servidor - verifique sua conexão e tente novamente';
+      } else if (error?.message?.includes('502')) {
+        userFriendlyMessage = 'Erro temporário do servidor - tente novamente em alguns instantes';
       }
 
       toast({
@@ -157,7 +161,7 @@ export function ConversationAssignmentDropdown({
       console.error('Erro na atribuição de usuário:', error);
       
       // Extrair mensagem específica da API
-      const errorMessage = error?.response?.data?.message || 'Não foi possível atribuir ao usuário';
+      const errorMessage = error?.response?.data?.message || error?.message || 'Não foi possível atribuir ao usuário';
       const errorDetails = error?.response?.data?.details;
       const statusCode = error?.response?.status;
 
@@ -173,6 +177,10 @@ export function ConversationAssignmentDropdown({
         userFriendlyMessage = 'Usuário não faz parte da equipe selecionada';
       } else if (statusCode === 500) {
         userFriendlyMessage = 'Erro interno do servidor - tente novamente';
+      } else if (statusCode === 502) {
+        userFriendlyMessage = 'Erro de comunicação com servidor - verifique sua conexão e tente novamente';
+      } else if (error?.message?.includes('502')) {
+        userFriendlyMessage = 'Erro temporário do servidor - tente novamente em alguns instantes';
       }
 
       toast({

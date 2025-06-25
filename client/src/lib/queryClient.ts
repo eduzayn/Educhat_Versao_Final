@@ -10,6 +10,14 @@ async function throwIfResNotOk(res: Response) {
       errorDetails = { message: res.statusText };
     }
 
+    // Log detalhado para debug
+    console.error(`❌ API Error ${res.status}:`, {
+      url: res.url,
+      status: res.status,
+      statusText: res.statusText,
+      errorDetails
+    });
+
     // Criar erro com informações detalhadas para mutations
     const error = new Error(`${res.status}: ${errorDetails.message || res.statusText}`);
     (error as any).response = {

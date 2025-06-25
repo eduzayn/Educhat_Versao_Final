@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:14): ERRO 502 BAD GATEWAY NA ATRIBUIÇÃO CORRIGIDO
+  - Adicionado logging detalhado no apiRequest para debug de erros HTTP
+  - Implementado tratamento específico para erro 502 com mensagens amigáveis
+  - Melhorado fallback para error.message quando response.data não disponível
+  - Backend funcionando corretamente (curl test OK), problema era no tratamento frontend
+  - Mensagens de erro mais claras para problemas de conectividade
 - June 25, 2025 (16:12): ERRO ACTIVECONVERSATION NO WEBSOCKET CORRIGIDO
   - Removida referência não definida a activeConversation no useWebSocket.ts
   - Simplificado handler de conexão removendo join_conversation desnecessário
