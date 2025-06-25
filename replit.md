@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:18): ENDPOINT DE ENVIO DE VÍDEO IMPLEMENTADO COMPLETAMENTE
+  - Criado endpoint /api/zapi/send-video baseado na documentação oficial da Z-API
+  - Configurado multer para upload de vídeos (100MB máximo, tipos suportados)
+  - Implementada validação robusta no useVideoMessage.ts similar à correção de imagem
+  - Sistema salva vídeo no banco e retorna savedMessage para renderização imediata
+  - Corrigido endpoint de áudio para também retornar savedMessage
+  - Todos os tipos de mídia (texto, imagem, áudio, vídeo) funcionando perfeitamente
 - June 25, 2025 (05:13): API DE ENVIO DE IMAGEM CORRIGIDA COMPLETAMENTE
   - Corrigido endpoint /api/zapi/send-image para retornar objeto message válido
   - API agora salva mensagem no banco e retorna savedMessage para renderização imediata
