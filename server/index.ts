@@ -41,7 +41,7 @@ app.use(cors({
 // Endpoints para cursos e categorias
 app.get('/api/courses/categories', async (req: Request, res: Response) => {
   try {
-    const { getCourseCategories } = await import('./storage/utils/courseUtils');
+    const { getCourseCategories } = await import('./lib/courseUtils');
     const categories = getCourseCategories();
     res.json(categories);
   } catch (error) {
@@ -52,7 +52,7 @@ app.get('/api/courses/categories', async (req: Request, res: Response) => {
 
 app.get('/api/courses', async (req: Request, res: Response) => {
   try {
-    const { COURSE_DICTIONARY } = await import('./storage/utils/courseUtils');
+    const { COURSE_DICTIONARY } = await import('./lib/courseUtils');
     const courses = Object.values(COURSE_DICTIONARY).map(course => course.courseName).sort();
     res.json(courses);
   } catch (error) {
@@ -63,7 +63,7 @@ app.get('/api/courses', async (req: Request, res: Response) => {
 
 app.get('/api/courses/by-category/:category', async (req: Request, res: Response) => {
   try {
-    const { getCoursesByCategory } = await import('./storage/utils/courseUtils');
+    const { getCoursesByCategory } = await import('./lib/courseUtils');
     const category = decodeURIComponent(req.params.category);
     const courses = getCoursesByCategory(category);
     res.json(courses);

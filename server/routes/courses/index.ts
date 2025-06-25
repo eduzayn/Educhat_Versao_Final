@@ -1,5 +1,5 @@
 import { Express, Request, Response } from 'express';
-import { getCourseCategories, getCoursesByCategory, getAllCoursesGrouped } from '../../storage/utils/courseUtils';
+import { getCourseCategories, getCoursesByCategory } from '../../lib/courseUtils';
 
 export function registerCourseRoutes(app: Express) {
   // Obter todas as categorias de cursos

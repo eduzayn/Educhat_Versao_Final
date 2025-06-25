@@ -26,7 +26,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { InlineEditField } from './InlineEditField';
-import { InlineDealEdit } from './InlineDealEdit';
+
 import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
