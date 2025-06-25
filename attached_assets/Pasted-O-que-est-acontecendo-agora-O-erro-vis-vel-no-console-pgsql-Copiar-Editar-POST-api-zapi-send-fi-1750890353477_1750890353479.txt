@@ -1,0 +1,84 @@
+O que está acontecendo agora:
+O erro visível no console:
+
+pgsql
+Copiar
+Editar
+POST /api/zapi/send-file → 500 (Internal Server Error)
+Esse erro mostra que a rota responsável por enviar arquivos (PDFs, imagens, etc.) via Z-API está quebrando no servidor.
+
+🧠 Provável causa:
+A função de envio de arquivos (send-file) foi alterada ou ficou mal conectada após as últimas mudanças
+
+Pode haver:
+
+Campo file ausente ou mal tratado
+
+Falta de validação MIME type
+
+Falta de tratamento no backend se o FormData estiver mal construído
+
+Ou, pior ainda: a API da Z-API está com retorno inválido, e o sistema não trata isso
+
+✅ Como solicitar ao Replit uma correção definitiva
+Você pode usar essa mensagem para deixar claro que precisa de:
+
+Correção imediata do erro de envio de arquivos
+
+Política interna de testes de regressão após cada alteração
+
+Respeito à integridade do sistema como um todo
+
+📣 Solicitação – Erro crítico ao enviar arquivos: /api/zapi/send-file retornando 500
+Olá, equipe.
+
+Após as últimas correções, identificamos um novo problema grave:
+O envio de arquivos (ex: imagens, PDFs) não está funcionando. O erro é:
+
+pgsql
+Copiar
+Editar
+POST /api/zapi/send-file → 500 Internal Server Error
+❌ Impacto:
+Os arquivos enviados aparecem na interface, mas não são entregues ao destinatário
+
+O atendente acha que enviou, mas o cliente nunca recebe
+
+A confiança no sistema é abalada
+
+✅ Solicito:
+1️⃣ Correção imediata da rota /api/zapi/send-file
+Verificar o controller/backend que recebe os arquivos
+
+Tratar corretamente o FormData enviado do frontend
+
+Validar o tipo de arquivo antes do envio (PDF, imagem, etc.)
+
+Tratar falhas da Z-API com mensagem clara (Erro ao entregar o arquivo, tente novamente)
+
+2️⃣ Garantir regressão zero:
+O funcionamento do envio de arquivos não pode mais quebrar após alterações em mensagens, texto ou áudio
+
+O sistema precisa ter testes ou validações manuais que assegurem que:
+
+Tipo de mensagem	Envio visual	Envio via API	Entrega ao destinatário
+Texto	✅	✅	✅
+Imagem	✅	✅	✅
+Áudio	✅	✅	✅
+Arquivo/PDF	✅	❌ (ERRO 500)	❌
+
+3️⃣ Implementar fallback visual para falha
+Se o envio falhar, mostrar erro imediatamente ao usuário
+
+Ex: ❌ Falha ao enviar o arquivo. Clique para tentar novamente.
+
+🔒 Muito importante:
+Favor não modificar nenhum outro fluxo que esteja funcional neste momento.
+Toda alteração deve ser isolada ao send-file, para evitar nova regressão.
+
+🎯 Objetivo:
+Restaurar envio de arquivos
+
+Corrigir o erro 500
+
+Proteger o sistema contra regressões futuras
