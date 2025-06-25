@@ -264,6 +264,9 @@ export default function TeamTransferPage() {
     }
   });
 
+  // Limitar cada coluna a 6 cards visíveis inicialmente
+  const CARDS_PER_COLUMN = 6;
+
   // Filtrar conversas por termo de busca e equipe selecionada
   const filteredConversations = conversations.filter((conv: ConversationItem) => {
     const matchesSearch = (conv.contactName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
