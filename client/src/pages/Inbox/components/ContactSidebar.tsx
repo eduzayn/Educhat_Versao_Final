@@ -29,7 +29,7 @@ import { InlineEditField } from './InlineEditField';
 
 import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/lib/crmFunnels';
 
@@ -94,6 +94,58 @@ export function ContactSidebar({
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [showDealDialog, setShowDealDialog] = useState(false);
+
+  // Buscar canais para determinar canal de origem
+  const { data: channels = [] } = useQuery({
+    queryKey: ['/api/channels'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Função para determinar o canal de origem (aproveitando lógica existente)
+  const getOriginChannelName = (conversation: any) => {
+    // PRIORIDADE 1: Busca por channelId específico (canal real de origem)
+    if (conversation.channelId) {
+      const channel = channels.find((c: any) => c.id === conversation.channelId);
+      if (channel) {
+        return channel.type === 'whatsapp' 
+          ? channel.name 
+          : `${channel.type.charAt(0).toUpperCase() + channel.type.slice(1)} - ${channel.name}`;
+      }
+    }
+    
+    // PRIORIDADE 2: Fallback para conversas sem channelId específico
+    const channelType = conversation.channel || 'unknown';
+    if (channelType === 'whatsapp') {
+      const whatsappChannels = channels.filter((c: any) => c.type === 'whatsapp' && c.isActive);
+      if (whatsappChannels.length > 1) {
+        const phoneNumber = conversation.contact?.phone || '';
+        
+        // Tenta identificar canal baseado em padrões configuráveis
+        for (const channel of whatsappChannels) {
+          const config = channel.configuration as any;
+          if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
+            return channel.name;
+          }
+        }
+        
+        // Fallback: usa primeiro canal ativo disponível
+        return whatsappChannels[0]?.name || 'WhatsApp';
+      }
+      return whatsappChannels[0]?.name || 'WhatsApp';
+    }
+    
+    // Mapeamento de tipos de canal conhecidos
+    const channelTypeNames: Record<string, string> = {
+      'whatsapp': 'WhatsApp',
+      'telegram': 'Telegram',
+      'sms': 'SMS',
+      'email': 'Email',
+      'facebook': 'Facebook',
+      'instagram': 'Instagram'
+    };
+    
+    return channelTypeNames[channelType] || 'Canal Desconhecido';
+  };
 
   const [dealFormData, setDealFormData] = useState({
     name: '',
@@ -266,6 +318,13 @@ export function ContactSidebar({
             <Calendar className="w-4 h-4 text-gray-400" />
             <span className="text-gray-700">
               Criado em {new Date(activeConversation.contact?.createdAt || Date.now()).toLocaleDateString('pt-BR')}
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-3 text-sm">
+            <MessageSquare className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-700">
+              Canal de Origem: {getOriginChannelName(activeConversation)}
             </span>
           </div>
         </div>
