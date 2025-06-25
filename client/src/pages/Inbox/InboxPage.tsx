@@ -84,13 +84,19 @@ export function InboxPage() {
   useWebSocket();
   
   const { 
-    data: conversations, 
+    data: conversationsData, 
     isLoading, 
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
     refetch 
-  } = useConversations(50, { 
+  } = useConversations(20, { 
     refetchInterval: 5000, // Polling a cada 5 segundos como backup do WebSocket
     staleTime: 30000 // Cache por 30 segundos para melhor performance
-  }); // Carregar apenas 50 conversas iniciais para carregamento rápido
+  }); // Carregar 20 conversas iniciais, mais 20 por vez
+  
+  // Flatten das páginas de conversas
+  const conversations = conversationsData?.pages.flat() || [];
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -487,8 +493,19 @@ export function InboxPage() {
           channels={channels}
         />
 
-        {/* Lista de Conversas */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Lista de Conversas com Scroll Infinito */}
+        <div 
+          className="flex-1 overflow-y-auto"
+          onScroll={(e) => {
+            const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+            // Carregar mais quando estiver próximo ao final (100px antes do fim)
+            if (scrollHeight - scrollTop <= clientHeight + 100) {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }
+          }}
+        >
           {filteredConversations.map((conversation, index) => (
             <ConversationItem
               key={`conversation-${conversation.id}-${index}`}
@@ -502,6 +519,21 @@ export function InboxPage() {
             />
           ))}
           
+          {/* Loading para mais conversas */}
+          {isFetchingNextPage && (
+            <div className="p-4 text-center text-gray-500">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto mb-2"></div>
+              <p className="text-xs">Carregando mais conversas...</p>
+            </div>
+          )}
+          
+          {/* Indicador de fim */}
+          {!hasNextPage && conversations.length > 0 && (
+            <div className="p-4 text-center text-gray-400">
+              <p className="text-xs">Todas as conversas foram carregadas</p>
+            </div>
+          )}
+          
           {filteredConversations.length === 0 && !isLoading && (
             <div className="p-6 text-center text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
@@ -513,7 +545,7 @@ export function InboxPage() {
           {isLoading && (
             <div className="p-6 text-center text-gray-500">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
-              <p className="text-sm">Carregando contatos...</p>
+              <p className="text-sm">Carregando conversas...</p>
             </div>
           )}
         </div>

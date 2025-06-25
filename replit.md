@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:26): SCROLL INFINITO IMPLEMENTADO NA LISTA DE CONVERSAS
+  - Alterado useConversations para useInfiniteQuery do TanStack Query
+  - Carregamento inicial de 20 conversas, mais 20 por vez ao fazer scroll
+  - Implementado detector de scroll para carregar automaticamente próximas páginas
+  - Indicadores visuais de carregamento e fim da lista
+  - Performance otimizada com cache de 30 segundos entre requisições
 - June 25, 2025 (02:19): ORDEM DAS MENSAGENS CORRIGIDA NA INTERFACE DE CONVERSA
   - Corrigida ordenação SQL de desc(sentAt) para sentAt (ordem crescente)
   - Mensagens agora aparecem do mais antigo (topo) para mais recente (embaixo)
