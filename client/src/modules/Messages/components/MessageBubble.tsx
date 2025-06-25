@@ -574,16 +574,19 @@ export function MessageBubble({
       );
     }
 
-    // Para outros tipos de mídia, usar LazyMediaContent
-    if (message.messageType && ['image', 'video', 'document'].includes(message.messageType as string)) {
+    // Para imagens e vídeos, usar LazyMediaContent com sistema de placeholder
+    if (message.messageType && ['image', 'video'].includes(message.messageType as string)) {
       return (
         <LazyMediaContent
-          messageId={message.id}
-          messageType={message.messageType as "audio" | "video" | "image" | "document"}
-          conversationId={conversationId}
-          isFromContact={isFromContact}
+          message={message}
+          className="max-w-md"
         />
       );
+    }
+
+    // Para documentos, manter renderização específica
+    if (message.messageType === 'document') {
+      return <DocumentMessage message={message} isFromContact={isFromContact} />;
     }
 
     // Mensagem de texto padrão - com fallback melhorado para Z-API

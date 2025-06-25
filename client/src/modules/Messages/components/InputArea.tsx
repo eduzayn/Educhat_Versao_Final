@@ -3,6 +3,7 @@ import { Send, Paperclip, Smile, Mic, MicOff, X, Image as ImageIcon, Video, File
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AudioRecorder } from "./AudioRecorder";
 import { ImageUpload } from "./ImageUpload";
+import { VideoUpload } from "./VideoUpload";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { Badge } from "@/shared/ui/badge";
@@ -95,7 +96,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         content: message.trim(),
         messageType: 'text',
         direction: 'outbound',
-        sentAt: new Date().toISOString(),
+        sentAt: new Date(),
         isInternalNote: false,
         isFromContact: false,
         replyToMessageId: replyingTo?.messageId || null,
@@ -200,8 +201,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           direction: 'internal',
           isInternalNote: true,
           isFromContact: false, // Campo obrigatório
-          authorId: user?.id,
-          authorName: user?.displayName || user?.username || 'Atendente',
+          authorId: (user as any)?.id,
+          authorName: (user as any)?.displayName || (user as any)?.username || 'Atendente',
           sentAt: new Date().toISOString()
         })
       });
@@ -340,60 +341,32 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-1">
         <div className="flex items-center gap-1">
           
-          {/* Botão de anexo - estilo WhatsApp */}
-          <div className="relative">
+          {/* Componentes de upload com renderização imediata */}
+          <div className="flex items-center gap-1">
+            {/* ImageUpload com placeholder instantâneo */}
+            <ImageUpload 
+              conversationId={activeConversation.id}
+              contactPhone={activeConversation.contact.phone}
+              disabled={false}
+            />
+            
+            {/* VideoUpload com placeholder instantâneo */}
+            <VideoUpload 
+              conversationId={activeConversation.id}
+              contactPhone={activeConversation.contact.phone}
+              disabled={false}
+            />
+
+            {/* Botão de documento (sem placeholder) */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsAttachmentOpen(!isAttachmentOpen)}
-              className="attachment-button h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              onClick={() => handleFileUpload('document')}
+              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              title="Enviar documento"
             >
-              <Paperclip className="w-5 h-5" />
+              <FileText className="w-4 h-4" />
             </Button>
-
-            {/* Menu de anexos modernizado */}
-            {isAttachmentOpen && (
-              <div className="attachment-menu absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-[9999] min-w-[160px]">
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      handleFileUpload('image');
-                      setIsAttachmentOpen(false);
-                    }}
-                    className="justify-start h-9 hover:bg-blue-50 text-gray-700"
-                  >
-                    <ImageIcon className="w-4 h-4 mr-3 text-blue-500" />
-                    Imagem
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      handleFileUpload('video');
-                      setIsAttachmentOpen(false);
-                    }}
-                    className="justify-start h-9 hover:bg-red-50 text-gray-700"
-                  >
-                    <Video className="w-4 h-4 mr-3 text-red-500" />
-                    Vídeo
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      handleFileUpload('document');
-                      setIsAttachmentOpen(false);
-                    }}
-                    className="justify-start h-9 hover:bg-gray-50 text-gray-700"
-                  >
-                    <FileText className="w-4 h-4 mr-3 text-gray-500" />
-                    Documento
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Campo de texto principal */}
