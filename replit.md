@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (19:18): SISTEMA DE RENDERIZAÇÃO IMEDIATA PARA IMAGENS/VÍDEOS IMPLEMENTADO COMPLETAMENTE
+  - Criado sistema completo de placeholder que renderiza mídias instantaneamente durante upload
+  - MediaPlaceholder.tsx: componente unificado com estados de loading, sucesso e erro
+  - useImageMessage.ts e useVideoMessage.ts: hooks com placeholder automático e otimização TypeScript
+  - LazyMediaContent.tsx: detecta mensagens em upload e renderiza placeholders apropriados
+  - MessageBubble.tsx: integrado com LazyMediaContent para renderização imediata de imagens/vídeos
+  - VideoUpload.tsx: componente dedicado com preview e caption, similar ao ImageUpload existente
+  - InputArea.tsx: integração direta dos componentes de upload com sistema de placeholder
+  - Sistema elimina atraso >1 minuto: mídias aparecem instantaneamente com feedback visual adequado
+  - Mantida funcionalidade completa de texto, áudio e WebSocket sem alterações
 - June 25, 2025 (18:55): SISTEMA DE LOGGING ELEGANTE PARA ÁUDIO IMPLEMENTADO COMPLETAMENTE
   - Criado audioLogger.ts centralizado com logs controlados por ambiente (desenvolvimento vs produção)
   - Substituídos todos os console.log do AudioRecorder pelo sistema de logging padronizado

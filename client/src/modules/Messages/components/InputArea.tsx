@@ -95,11 +95,10 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       message: {
         content: message.trim(),
         messageType: 'text',
-        direction: 'outbound',
         sentAt: new Date(),
         isInternalNote: false,
         isFromContact: false,
-        replyToMessageId: replyingTo?.messageId || null,
+        referenceMessageId: replyingTo?.messageId || null,
       },
       contact: activeConversation.contact,
     });
