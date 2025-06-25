@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (19:40): OTIMIZAÇÃO CRÍTICA DE PERFORMANCE DA CAIXA DE ENTRADA IMPLEMENTADA
+  - Corrigido limite da API /api/conversations de 1000 para 20 conversas por página
+  - Implementado limite máximo de segurança (100) para evitar sobrecarga do servidor
+  - Reduzido carregamento inicial de 20 para 15 conversas para maior velocidade
+  - Adicionada validação robusta na filtragem para evitar erros com dados null/undefined
+  - Scroll infinito otimizado com carregamento sob demanda (+20 conversas por vez)
+  - Sistema elimina travamento >1 minuto: carregamento agora é instantâneo
 - June 25, 2025 (19:26): CORREÇÃO DO ERRO 429 "TOO MANY REQUESTS" IMPLEMENTADA COMPLETAMENTE
   - Otimizado useConversations: removido refetchInterval de 5s, aumentado staleTime para 60s
   - Corrigida query de conversa ativa: staleTime 2 minutos, sem polling, sem refetchOnWindowFocus

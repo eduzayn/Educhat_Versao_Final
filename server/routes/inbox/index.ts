@@ -8,10 +8,14 @@ export function registerInboxRoutes(app: Express) {
   app.get('/api/conversations', async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 1000; // Aumentado para carregar mais conversas
+      const limit = parseInt(req.query.limit as string) || 20; // Limite padrão reduzido para 20
       const offset = (page - 1) * limit;
       
-      const conversations = await storage.getConversations(limit, offset);
+      // Validar limite máximo para evitar sobrecarga
+      const maxLimit = 100;
+      const safeLimit = Math.min(limit, maxLimit);
+      
+      const conversations = await storage.getConversations(safeLimit, offset);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);

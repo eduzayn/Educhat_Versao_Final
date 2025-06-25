@@ -91,11 +91,11 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(20, { 
+  } = useConversations(15, { 
     refetchInterval: false, // WebSocket cuida das atualizações - sem polling
     staleTime: 60000, // Cache por 1 minuto para reduzir requisições
     refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
-  }); // Carregar 20 conversas iniciais, mais 20 por vez
+  }); // Carregar apenas 15 conversas iniciais para carregamento mais rápido
   
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(page => page || []) : [];
@@ -273,24 +273,27 @@ export function InboxPage() {
 
   // Filtrar conversas baseado na aba ativa e filtros
   const filteredConversations = (conversations || []).filter(conversation => {
+    // Validação básica de segurança
+    if (!conversation || !conversation.contact) return false;
+    
     // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
     if (activeTab === 'inbox') {
       // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
       const activeStatuses = ['open', 'pending', 'unread'];
-      if (!activeStatuses.includes(conversation.status)) return false;
+      if (!conversation.status || !activeStatuses.includes(conversation.status)) return false;
     }
     if (activeTab === 'resolved') {
       // Mostrar apenas conversas resolvidas/fechadas
       const resolvedStatuses = ['resolved', 'closed'];
-      if (!resolvedStatuses.includes(conversation.status)) return false;
+      if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
     }
     
     // Filtro por busca - pesquisar em nome, telefone e email do contato
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const nameMatch = conversation.contact.name?.toLowerCase().includes(searchLower) || false;
-      const phoneMatch = conversation.contact.phone?.includes(searchTerm) || false; // Números não precisam lowercase
-      const emailMatch = conversation.contact.email?.toLowerCase()?.includes(searchLower) || false;
+      const nameMatch = conversation.contact?.name?.toLowerCase()?.includes(searchLower) || false;
+      const phoneMatch = conversation.contact?.phone?.includes(searchTerm) || false; // Números não precisam lowercase
+      const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower) || false;
       
       if (!nameMatch && !phoneMatch && !emailMatch) {
         return false;
