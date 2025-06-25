@@ -37,16 +37,34 @@ export function registerInboxRoutes(app: Express) {
   app.get('/api/conversations/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Validação básica do ID
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ 
+          message: 'ID da conversa inválido',
+          details: 'O ID deve ser um número positivo válido',
+          conversationId: req.params.id
+        });
+      }
+      
       const conversation = await storage.getConversation(id);
       
       if (!conversation) {
-        return res.status(404).json({ message: 'Conversation not found' });
+        return res.status(404).json({ 
+          message: 'Conversa não encontrada',
+          details: `Nenhuma conversa encontrada com o ID ${id}`,
+          conversationId: id
+        });
       }
       
       res.json(conversation);
     } catch (error) {
-      console.error('Error fetching conversation:', error);
-      res.status(500).json({ message: 'Failed to fetch conversation' });
+      console.error(`Erro crítico ao buscar conversa ${req.params.id}:`, error);
+      res.status(500).json({ 
+        message: 'Erro interno do servidor',
+        details: 'Falha ao carregar dados da conversa. Tente novamente em alguns segundos.',
+        conversationId: req.params.id
+      });
     }
   });
 

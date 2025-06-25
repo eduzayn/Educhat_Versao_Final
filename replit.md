@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (19:53): ERRO 500 CRÍTICO EM CONVERSAS ESPECÍFICAS CORRIGIDO COMPLETAMENTE
+  - Implementado tratamento robusto no método `getConversation` com try-catch abrangente
+  - Adicionada validação de ID com retorno gracioso para IDs inválidos (NaN, negativos, zero)
+  - Implementada verificação de integridade de dados para detectar conversas corrompidas
+  - Criado tratamento de erro específico para cada subquery (mensagens, canais, tags, deals)
+  - Fallback seguro: arrays vazios ao invés de propagação de erros em queries auxiliares
+  - Frontend: tratamento inteligente com retry customizado (max 2 tentativas para erro 500)
+  - UI de erro amigável: estado visual para "Conversa indisponível" com botão de recuperação
+  - Sistema elimina travamento da interface: conversas problemáticas são isoladas e removidas
+  - Backend: logs detalhados para auditoria sem exposer erros críticos ao frontend
+  - API robusta: códigos de status específicos (400, 404, 500) com mensagens em português
 - June 25, 2025 (19:40): OTIMIZAÇÃO CRÍTICA DE PERFORMANCE DA CAIXA DE ENTRADA IMPLEMENTADA
   - Corrigido limite da API /api/conversations de 1000 para 20 conversas por página
   - Implementado limite máximo de segurança (100) para evitar sobrecarga do servidor

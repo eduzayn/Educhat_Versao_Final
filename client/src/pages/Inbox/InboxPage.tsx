@@ -104,19 +104,53 @@ export function InboxPage() {
   const [activeConversation, setActiveConversation] = useState<any>(null);
   
   // Query para dados atualizados da conversa ativa - FONTE ÚNICA DE VERDADE
-  const { data: activeConversationData } = useQuery({
+  const { data: activeConversationData, error: conversationError, isError: isConversationError } = useQuery({
     queryKey: ['/api/conversations', activeConversation?.id],
     queryFn: async ({ queryKey }) => {
       const conversationId = queryKey[1];
       if (!conversationId) return null;
+      
       const response = await fetch(`/api/conversations/${conversationId}`);
-      if (!response.ok) throw new Error('Erro ao carregar conversa');
+      
+      if (!response.ok) {
+        // Tratamento específico para diferentes tipos de erro
+        if (response.status === 404) {
+          console.warn(`Conversa ${conversationId} não encontrada - removendo da seleção`);
+          return null;
+        }
+        if (response.status === 400) {
+          console.error(`ID de conversa inválido: ${conversationId}`);
+          return null;
+        }
+        // Para erros 500, tentar fallback
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(`Erro ${response.status}: ${errorData.message || 'Falha ao carregar conversa'}`);
+      }
+      
       return response.json();
     },
     enabled: !!activeConversation?.id,
     staleTime: 120000, // Cache por 2 minutos - WebSocket atualiza quando necessário
     refetchInterval: false, // Sem polling - WebSocket cuida das atualizações
-    refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    retry: (failureCount, error: any) => {
+      // Não tentar novamente para erros 404 ou 400
+      if (error?.message?.includes('404') || error?.message?.includes('400')) {
+        return false;
+      }
+      // Máximo 2 tentativas para erros 500
+      return failureCount < 2;
+    },
+    onError: (error: any) => {
+      console.error('Erro ao carregar conversa ativa:', error);
+      toast({
+        title: "Conversa indisponível",
+        description: "Esta conversa não pôde ser carregada. Selecione outra conversa.",
+        variant: "destructive"
+      });
+      // Limpar seleção de conversa problemática
+      setActiveConversation(null);
+    }
   });
   
   // Usar dados atualizados da query ou fallback para dados locais
@@ -592,28 +626,71 @@ export function InboxPage() {
       <div className={`flex-1 flex flex-col ${showMobileChat ? 'mobile-full-width' : 'mobile-hide'} md:flex`}>
         {activeConversation ? (
           <>
-            {/* Header da Conversa */}
-            <ChatHeader
-              activeConversation={currentActiveConversation}
-              showMobileChat={showMobileChat}
-              onMobileBackClick={() => setShowMobileChat(false)}
-              onStatusChange={handleStatusChange}
-              getChannelInfo={getChannelInfo}
-            />
+            {/* Estado de erro para conversa indisponível */}
+            {isConversationError ? (
+              <div className="flex-1 flex items-center justify-center bg-gray-50">
+                <div className="text-center p-6 max-w-md">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Conversa indisponível
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Esta conversa não pôde ser carregada. Pode estar corrompida ou ter sido removida.
+                  </p>
+                  <button
+                    onClick={() => setActiveConversation(null)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Selecionar outra conversa
+                  </button>
+                </div>
+              </div>
+            ) : !currentActiveConversation ? (
+              <div className="flex-1 flex items-center justify-center bg-gray-50">
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Carregando conversa...
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Aguarde enquanto carregamos os dados da conversa.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Header da Conversa */}
+                <ChatHeader
+                  activeConversation={currentActiveConversation}
+                  showMobileChat={showMobileChat}
+                  onMobileBackClick={() => setShowMobileChat(false)}
+                  onStatusChange={handleStatusChange}
+                  getChannelInfo={getChannelInfo}
+                />
 
-            {/* Mensagens */}
-            <MessagesArea
-              messages={Array.isArray(messages) ? messages : []}
-              isLoadingMessages={isLoadingMessages}
-              hasNextPage={messagesHasNextPage}
-              isFetchingNextPage={messagesIsFetchingNextPage}
-              fetchNextPage={messagesFetchNextPage}
-              activeConversation={currentActiveConversation}
-              getChannelInfo={getChannelInfo}
-            />
+                {/* Mensagens */}
+                <MessagesArea
+                  messages={Array.isArray(messages) ? messages : []}
+                  isLoadingMessages={isLoadingMessages}
+                  hasNextPage={messagesHasNextPage}
+                  isFetchingNextPage={messagesIsFetchingNextPage}
+                  fetchNextPage={messagesFetchNextPage}
+                  activeConversation={currentActiveConversation}
+                  getChannelInfo={getChannelInfo}
+                />
 
-            {/* Área de Input */}
-            <InputArea activeConversation={currentActiveConversation} />
+                {/* Área de Input */}
+                <InputArea activeConversation={currentActiveConversation} />
+              </>
+            )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
