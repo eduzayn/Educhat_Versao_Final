@@ -72,8 +72,13 @@ export function QuickReplyAutocomplete({
   if (isLoading) {
     return (
       <div 
-        className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[300px]"
-        style={{ top: position.top, left: position.left }}
+        className="fixed bg-white border border-gray-200 rounded-lg shadow-xl p-3 min-w-[300px]"
+        style={{ 
+          top: position.top, 
+          left: position.left,
+          zIndex: 99999,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+        }}
       >
         <div className="text-sm text-gray-500">Buscando respostas rápidas...</div>
       </div>
@@ -83,11 +88,16 @@ export function QuickReplyAutocomplete({
   if (!quickReplies.length) {
     return (
       <div 
-        className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[300px]"
-        style={{ top: position.top, left: position.left }}
+        className="fixed bg-white border border-gray-200 rounded-lg shadow-xl p-3 min-w-[300px]"
+        style={{ 
+          top: position.top, 
+          left: position.left,
+          zIndex: 99999,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+        }}
       >
         <div className="text-sm text-gray-500">
-          Nenhuma resposta rápida encontrada para "{searchTerm}"
+          {searchTerm ? `Nenhuma resposta encontrada para "${searchTerm}"` : 'Nenhuma resposta rápida disponível'}
         </div>
       </div>
     );
@@ -103,8 +113,13 @@ export function QuickReplyAutocomplete({
 
   return (
     <div 
-      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[300px] overflow-y-auto min-w-[350px]"
-      style={{ top: position.top, left: position.left }}
+      className="fixed bg-white border border-gray-200 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[350px]"
+      style={{ 
+        top: position.top, 
+        left: position.left,
+        zIndex: 99999,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+      }}
       ref={listRef}
     >
       <div className="p-2 border-b bg-gray-50 text-xs text-gray-600">

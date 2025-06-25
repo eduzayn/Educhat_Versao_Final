@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (17:54): ATALHO DE RESPOSTAS RÁPIDAS (/*) IMPLEMENTADO COMPLETAMENTE E FUNCIONANDO
+  - Criado hook useQuickReplies com busca dinâmica e cache otimizado
+  - Desenvolvido componente QuickReplyAutocomplete com navegação por teclado (↑↓ Enter Esc)
+  - Implementada detecção automática do padrão /* no InputArea.tsx
+  - Corrigido posicionamento fixed com z-index 99999 para garantir visibilidade
+  - Sistema funcional: digite /modelo ou /ana para filtrar, use setas para navegar
+  - Integração perfeita com API existente (99 respostas rápidas carregadas)
+  - Inserção automática do conteúdo selecionado no campo de mensagem
 - June 25, 2025 (17:41): LIMPEZA SEGURA DE CÓDIGO OBSOLETO E AUDITORIA TÉCNICA COMPLETA EXECUTADA
   - Removidos logs de debug desnecessários em 6+ hooks e componentes críticos
   - Eliminados imports não utilizados (useChatStore) em processo de remoção

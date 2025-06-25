@@ -136,8 +136,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       if (textareaRef.current) {
         const rect = textareaRef.current.getBoundingClientRect();
         const position = {
-          top: rect.top - 300, // Acima do textarea
-          left: rect.left
+          top: rect.top - 320, // Bem acima do textarea
+          left: rect.left + 20 // Ligeiro offset para a direita
         };
         setQuickReplyPosition(position);
       }
