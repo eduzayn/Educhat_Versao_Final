@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:56): ERRO DE UPDATEDEALMUTATION CORRIGIDO
+  - Identificado erro "updateDealMutation is not defined" no ContactSidebar.tsx
+  - Adicionada mutation updateDealMutation para atualizar deals via PATCH /api/deals/:id
+  - Implementada função handleUpdateDeal para gerenciar atualizações de negócios
+  - Sistema de edição de deals funcionando sem erros
 - June 25, 2025 (05:54): ERRO CRÍTICO DO SELECTITEM CORRIGIDO COMPLETAMENTE
   - Identificado e corrigido erro "SelectItem must have a value prop that is not an empty string"
   - Alterados 5 arquivos: ContactsPage.tsx, ContactDialog.tsx, InlineEditField.tsx, ContactSidebar.tsx

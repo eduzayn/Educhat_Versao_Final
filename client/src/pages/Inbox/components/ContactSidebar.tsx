@@ -184,6 +184,21 @@ export function ContactSidebar({
     }
   });
 
+  // Mutation para atualizar deal
+  const updateDealMutation = useMutation({
+    mutationFn: ({ dealId, updates }: { dealId: number; updates: any }) => 
+      apiRequest('PATCH', `/api/deals/${dealId}`, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${activeConversation.contact.id}/deals`] });
+      setEditingDeal(null);
+      setEditingDealData({});
+    },
+    onError: (error: any) => {
+      console.error('Erro ao atualizar negócio:', error);
+    }
+  });
+
 
 
   const handleCreateDeal = () => {
@@ -202,6 +217,10 @@ export function ContactSidebar({
     };
 
     createDealMutation.mutate(data);
+  };
+
+  const handleUpdateDeal = (deal: any, updates: any) => {
+    updateDealMutation.mutate({ dealId: deal.id, updates });
   };
 
 
