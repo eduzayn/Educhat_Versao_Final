@@ -64,6 +64,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
 
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   const isCreating = createContact.isPending;
+  const hasValidChannel = form.selectedChannelId && form.selectedChannelId !== 'none';
 
   const resetForm = () => {
     setForm({
@@ -117,7 +118,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
     }
 
     // Validação para mensagem ativa
-    const hasValidChannel = form.selectedChannelId && form.selectedChannelId !== 'none';
     
     if (hasValidChannel && !form.activeMessage.trim()) {
       toast({
@@ -148,7 +148,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
-      if (form.selectedChannelId && form.activeMessage.trim() && form.phone) {
+      if (hasValidChannel && form.activeMessage.trim() && form.phone) {
         try {
           // Enviar mensagem via Z-API
           const messageResponse = await apiRequest('POST', '/api/zapi/send-message', {
@@ -380,16 +380,16 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               Mensagem Ativa
-              {form.selectedChannelId && <span className="text-red-500 ml-1">*</span>}
+              {hasValidChannel && <span className="text-red-500 ml-1">*</span>}
             </label>
             <Textarea
               value={form.activeMessage}
               onChange={(e) => setForm({ ...form, activeMessage: e.target.value })}
               placeholder="Digite a mensagem que será enviada automaticamente após criar o contato..."
               rows={4}
-              disabled={!form.selectedChannelId}
+              disabled={!hasValidChannel}
             />
-            {form.selectedChannelId && (
+            {hasValidChannel && (
               <p className="text-xs text-gray-500 mt-1">
                 Esta mensagem será enviada via WhatsApp e criará uma nova conversa automaticamente.
               </p>

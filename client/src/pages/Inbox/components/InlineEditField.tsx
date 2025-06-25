@@ -82,7 +82,7 @@ export function InlineEditField({
                 <SelectValue placeholder={placeholder || `Selecione ${label.toLowerCase()}`} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum identificado</SelectItem>
+                <SelectItem value="none">Nenhum identificado</SelectItem>
                 {options.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
