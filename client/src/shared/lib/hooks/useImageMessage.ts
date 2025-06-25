@@ -57,6 +57,12 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
       return data.message;
     },
     onSuccess: (newMessage) => {
+      // Validação crítica para evitar erros
+      if (!newMessage || !newMessage.id || !newMessage.conversationId) {
+        console.warn('⚠️ Mensagem inválida recebida:', newMessage);
+        return;
+      }
+
       // RENDERIZAÇÃO IMEDIATA: Atualizar cache React Query
       queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
         if (!oldData || !oldData.pages) {
@@ -66,10 +72,11 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
           };
         }
         
-        // Verificar se a mensagem já existe em qualquer página
-        const messageExists = oldData.pages.some((page: any[]) => 
-          page.some((msg: any) => msg.id === newMessage.id)
-        );
+        // Verificar se a mensagem já existe em qualquer página com validação segura
+        const messageExists = oldData.pages.some((page: any[]) => {
+          if (!Array.isArray(page)) return false;
+          return page.some((msg: any) => msg && msg.id && msg.id === newMessage.id);
+        });
         
         if (messageExists) {
           return oldData;
@@ -77,9 +84,12 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         
         // Adicionar à primeira página (mais recente) - ordenação cronológica
         const updatedPages = [...oldData.pages];
-        updatedPages[0] = [...(updatedPages[0] || []), newMessage].sort((a, b) => 
-          new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
-        );
+        const firstPage = Array.isArray(updatedPages[0]) ? updatedPages[0] : [];
+        updatedPages[0] = [...firstPage, newMessage].sort((a, b) => {
+          const timeA = a && a.sentAt ? new Date(a.sentAt).getTime() : 0;
+          const timeB = b && b.sentAt ? new Date(b.sentAt).getTime() : 0;
+          return timeA - timeB;
+        });
         
         return {
           ...oldData,

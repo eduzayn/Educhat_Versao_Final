@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:10): ERRO CRÍTICO DE ENVIO DE IMAGEM CORRIGIDO
+  - Corrigido erro "Cannot read properties of undefined (reading 'id')" em useImageMessage.ts
+  - Adicionadas validações robustas antes de acessar propriedades da mensagem
+  - Implementada verificação segura para newMessage.id e newMessage.conversationId
+  - Adicionada proteção para arrays e objetos undefined no cache React Query
+  - Sistema de envio de imagem funcionando sem quebras na interface
 - June 25, 2025 (05:04): QUANTIDADE DE EMOJIS EXPANDIDA DRASTICAMENTE
   - Expandida lista de emojis de 16 para mais de 1000 emojis em todos os componentes
   - InputArea.tsx: array de emojis expandido com categorias completas
