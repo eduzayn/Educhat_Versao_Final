@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (07:29): CORREÇÃO DE KEYS DUPLICADAS NO TEAMSTAB
+  - Corrigido erro "Encountered two children with the same key" no TeamsTab
+  - Implementadas keys únicas com prefixos: team-{id}, user-{id}, member-{id}
+  - Garantido fallback seguro para índices quando IDs não disponíveis
+  - Interface agora renderiza sem warnings React de keys duplicadas
 - June 25, 2025 (07:24): CORREÇÃO DE ERRO ALLMACROSETOR NO QUICKDEALEDIT
   - Corrigido erro "allMacrosetores is not defined" no componente QuickDealEdit
   - Substituída referência por allCategories do sistema de categorias de equipes

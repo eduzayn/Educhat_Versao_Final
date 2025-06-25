@@ -330,7 +330,7 @@ export const TeamsTab = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {teams.map(team => (
-            <Card key={team.id} className="hover:shadow-md transition-shadow">
+            <Card key={`team-${team.id}`} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -515,7 +515,7 @@ export const TeamsTab = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {systemUsers.map((user: any) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
+                    <SelectItem key={`add-user-${user.id}`} value={user.id.toString()}>
                       {user.displayName} ({user.email})
                     </SelectItem>
                   ))}
@@ -653,7 +653,7 @@ export const TeamsTab = () => {
             ) : (
               <div className="space-y-2">
                 {teamMembers.map((member, index) => (
-                  <div key={member.user?.id || index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={member.user?.id ? `member-${member.user.id}` : `member-index-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-primary">
