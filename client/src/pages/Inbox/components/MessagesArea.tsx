@@ -76,6 +76,22 @@ export function MessagesArea({
     }
   }, [activeConversation?.id]);
 
+  // Auto-marcar como lida quando conversa com mensagens não lidas é aberta
+  useEffect(() => {
+    if (
+      activeConversation?.id && 
+      activeConversation.unreadCount > 0 && 
+      !activeConversation.markedUnreadManually
+    ) {
+      // Aguarda um momento para garantir que a conversa foi carregada
+      const timer = setTimeout(() => {
+        markAsReadMutation.mutate(activeConversation.id);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeConversation?.id, activeConversation?.unreadCount, activeConversation?.markedUnreadManually, markAsReadMutation]);
+
   // Carregar mensagens antigas ao rolar para o topo
   const handleScroll = () => {
     if (!containerRef.current || !fetchNextPage || loadingRef.current) return;
