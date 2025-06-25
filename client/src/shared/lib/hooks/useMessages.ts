@@ -70,13 +70,12 @@ export function useSendMessage() {
       if (message.isInternalNote) {
         console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
         const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-        return response.json();
+        return response;
       }
 
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
       console.log('💾 Salvando mensagem no banco local primeiro');
-      const localResponse = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-      const savedMessage = await localResponse.json();
+      const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
 
       // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
       console.log('🔍 VERIFICANDO ENVIO Z-API:', {

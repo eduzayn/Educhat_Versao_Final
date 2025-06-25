@@ -1,0 +1,73 @@
+ Situação crítica identificada:
+A mensagem de texto aparece normalmente no Message Bubble (interface)
+
+É salva no banco com sucesso
+
+A mutation sendMessageMutation.mutate é chamada
+
+Mas o destinatário não recebe a mensagem via Z-API
+
+Nenhum erro da Z-API aparece no console (nem sucesso, nem falha)
+
+🧠 Diagnóstico provável:
+A função que envia para a Z-API (sendToZApi, sendMessageToZApi, ou similar) não está conectada corretamente à mutation atual
+
+Ou ela está sendo chamada, mas não faz o fetch corretamente
+
+Ou a Z-API está retornando um erro silencioso (não tratado), e o código não exibe isso no console
+
+✅ Mensagem para enviar ao Replit:
+📣 Solicitação – Mensagem enviada não chega ao WhatsApp via Z-API
+Olá, equipe!
+
+Estamos com um problema crítico: as mensagens de texto aparecem normalmente na interface (Message Bubble) e são salvas no banco, mas não estão sendo entregues ao destinatário via Z-API.
+
+🔍 Comportamento confirmado:
+Logs mostram:
+
+Enviando mensagem: {...}
+
+Chamando sendMessageMutation.mutate()
+
+Salvando mensagem no banco local
+
+✅ A mensagem aparece na UI e no histórico da conversa
+
+❌ O WhatsApp (via Z-API) não recebe a mensagem
+
+❌ Nenhum erro ou status da Z-API aparece no console
+
+✅ Solicito:
+Revisar a função responsável por enviar mensagens para a Z-API
+
+Está realmente sendo chamada dentro do useSendMessage.ts?
+
+Está fazendo fetch para o endpoint correto da Z-API?
+
+Adicionar logging explícito com retorno da Z-API, como:
+
+ts
+Copiar
+Editar
+try {
+  const response = await fetch(ZAPI_URL, { ... });
+  const result = await response.json();
+  console.log("✅ Z-API respondeu:", result);
+} catch (err) {
+  console.error("❌ Erro ao enviar via Z-API:", err);
+}
+Garantir que:
+
+O número do destinatário está no formato correto (phone)
+
+A API key/token da Z-API está válida
+
+A mensagem enviada está com type: 'text' e content correto
+
+🎯 Resultado esperado:
+Toda mensagem salva e exibida na UI deve ser enviada com sucesso via Z-API
+
+Em caso de erro (como 401, 403, 500), deve aparecer no console
+
+Se a Z-API estiver offline ou indisponível, o sistema deve exibir um alerta
+
