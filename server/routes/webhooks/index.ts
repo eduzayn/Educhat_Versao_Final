@@ -1300,13 +1300,6 @@ export function registerZApiRoutes(app: Express) {
           });
           
           console.log(`🔄 Broadcast IMEDIATO enviado para conversa ${conversation.id}`);
-            message: tempMessage
-          });
-
-          broadcastToAll({
-            type: 'new_message',
-            conversationId: conversation.id,
-            message: tempMessage
         } catch (broadcastError) {
           console.error('❌ Erro no broadcast imediato:', broadcastError);
         }

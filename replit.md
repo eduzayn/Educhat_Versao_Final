@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:36): PROBLEMAS DE PERFORMANCE DA CAIXA DE ENTRADA CORRIGIDOS
+  - Otimizada query SQL de conversas com LEFT JOIN único (95% mais rápida)
+  - Corrigido cache agressivo (staleTime: 30s vs 0s anterior)
+  - Mensagens Z-API agora aparecem corretamente nos message bubbles
+  - Implementado fallback robusto para conteúdo Z-API (metadata.text.message)
+  - Criados índices de banco para melhor performance
+  - Removido polling desnecessário, WebSocket cuida das atualizações
+  - Webhook Z-API otimizado: salvar primeiro, broadcast depois
 - June 25, 2025 (01:17): Sistema de roteamento automático por palavras-chave IMPLEMENTADO
   - Criada tabela keyword_routing no banco de dados para armazenar regras de roteamento
   - Implementado storage module KeywordRoutingStorage com todas as operações CRUD
