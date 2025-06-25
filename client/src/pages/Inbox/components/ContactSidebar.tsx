@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { InlineEditField } from './InlineEditField';
 import { InlineDealEdit } from './InlineDealEdit';
+import { InlineContactNameEdit } from './InlineContactNameEdit';
+import { QuickDealEdit } from './QuickDealEdit';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllMacrosetores, getStagesForMacrosetor, getMacrosetorInfo } from '@/lib/crmFunnels';
@@ -247,9 +249,11 @@ export function ContactSidebar({
             </AvatarFallback>
           </Avatar>
           
-          <h3 className="font-semibold text-lg text-gray-900 mb-1">
-            {activeConversation.contact?.name || 'Contato'}
-          </h3>
+          <InlineContactNameEdit
+            contactId={activeConversation.contact?.id}
+            currentName={activeConversation.contact?.name || 'Contato'}
+            className="mb-1"
+          />
           
           <div className="flex items-center justify-center space-x-2">
             <Badge 
