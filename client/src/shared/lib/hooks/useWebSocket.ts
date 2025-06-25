@@ -54,8 +54,6 @@ export function useWebSocket() {
       }
     });
 
-    // All events are now handled via broadcast_message
-
     // Handle typing indicators
     socketRef.current.on('typing', (data) => {
       if (data.conversationId !== undefined && data.isTyping !== undefined) {

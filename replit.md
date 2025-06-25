@@ -96,6 +96,10 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:49): LIMPEZA DE CÓDIGO OBSOLETO APÓS CORREÇÕES
+  - Removidos arquivos de documentação obsoletos (INBOX_AUDIT_REPORT.md, PERFORMANCE_FIXES.md)
+  - Limpo código WebSocket removendo comentários incorretos
+  - Sistema otimizado mantendo apenas código funcional necessário
 - June 25, 2025 (02:48): PROBLEMA DE RENDERIZAÇÃO DE MENSAGENS ENVIADAS CORRIGIDO
   - Corrigido sistema de cache do React Query para atualização imediata
   - Implementado merge inteligente entre store local e API para renderização instantânea
