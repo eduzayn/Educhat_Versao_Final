@@ -35,6 +35,7 @@ import { useSendMessage } from "@/shared/lib/hooks/useMessages";
 import { useAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
 import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
 import { useFileMessage } from "@/shared/lib/hooks/useFileMessage";
+import { useVideoMessage } from "@/shared/lib/hooks/useVideoMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
@@ -501,79 +502,7 @@ export function InputArea() {
     },
   });
 
-  // Mutation para enviar documento
-  const sendDocumentMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      console.log("📄 Iniciando envio de documento:", {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        phone: activeConversation.contact.phone,
-        conversationId: activeConversation.id,
-      });
-
-      const formData = new FormData();
-      formData.append("phone", activeConversation.contact.phone);
-      formData.append("conversationId", activeConversation.id.toString());
-      formData.append("document", file);
-
-      try {
-        const response = await fetch("/api/zapi/send-document", {
-          method: "POST",
-          body: formData,
-        });
-
-        console.log("📥 Resposta do servidor:", {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-        });
-
-        const responseData = await response.json();
-        console.log("📊 Dados da resposta:", responseData);
-
-        if (!response.ok) {
-          console.error("❌ Erro na resposta:", responseData);
-          throw new Error(responseData.error || "Erro ao enviar documento");
-        }
-
-        return responseData;
-      } catch (error) {
-        console.error("💥 Erro no processo de envio:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Documento enviado",
-        description: "Seu documento foi enviado com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-        // Força um refetch imediato
-        queryClient.refetchQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar documento:", error);
-      toast({
-        title: "Erro ao enviar documento",
-        description: "Não foi possível enviar o documento. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Documentos agora usam o hook padronizado useFileMessage (já declarado acima)
 
   // Mutation para enviar link
   const sendLinkMutation = useMutation({
@@ -633,11 +562,11 @@ export function InputArea() {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         if (type === "image") {
-          sendImageMutation.mutate(file);
+          sendImageMutation.mutate({ file });
         } else if (type === "video") {
-          sendVideoMutation.mutate(file);
+          sendVideoMutation.mutate({ file });
         } else if (type === "document") {
-          sendDocumentMutation.mutate(file);
+          sendFileMutation.mutate({ file });
         }
       }
     };
@@ -665,21 +594,12 @@ export function InputArea() {
 
     try {
       await sendAudioMutation.mutateAsync({
-        conversationId: activeConversation.id,
         audioBlob,
         duration,
-        contact: activeConversation.contact,
-      });
-      toast({
-        title: "Áudio enviado",
-        description: "Sua mensagem de áudio foi enviada com sucesso.",
       });
     } catch (error) {
-      toast({
-        title: "Erro ao enviar áudio",
-        description: "Falha ao enviar mensagem de áudio. Tente novamente.",
-        variant: "destructive",
-      });
+      // Erro já tratado no hook useAudioMessage
+      console.error("Erro ao enviar áudio:", error);
     }
   };
 
@@ -782,10 +702,10 @@ export function InputArea() {
               {/* Botão para Documento */}
               <Button
                 onClick={() => handleFileSelect("document")}
-                disabled={sendDocumentMutation.isPending}
+                disabled={sendFileMutation.isPending}
                 className="h-20 flex-col bg-green-500 hover:bg-green-600 text-white"
               >
-                {sendDocumentMutation.isPending ? (
+                {sendFileMutation.isPending ? (
                   <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 ) : (
                   <>

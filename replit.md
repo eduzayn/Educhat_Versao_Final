@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (03:17): RENDERIZAÇÃO IMEDIATA PADRONIZADA PARA TODOS OS TIPOS DE MENSAGENS
+  - Criados hooks unificados useImageMessage, useAudioMessage, useFileMessage, useVideoMessage
+  - Todos seguem padrão React Query com onSuccess atualizando cache imediatamente
+  - Componentes ImageUpload, AudioRecorder, InputArea atualizados para usar hooks padronizados
+  - Eliminadas mutations antigas que usavam invalidateQueries sem renderização imediata
+  - Sistema garantido: qualquer tipo de mensagem (texto, áudio, imagem, vídeo, arquivo) aparece instantaneamente
 - June 25, 2025 (03:05): REFATORAÇÃO ESTRUTURAL DO SISTEMA DE MENSAGENS IMPLEMENTADA
   - Eliminado Zustand store como fonte de mensagens (mantido apenas para estado básico)
   - TanStack Query estabelecido como fonte única de verdade para mensagens
