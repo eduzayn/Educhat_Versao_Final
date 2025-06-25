@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2 } from "lucide-react";
+import { Play, Pause, Download } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { formatAudioTime } from "@/shared/lib/utils/formatters";
 
 interface AudioMessageProps {
   audioUrl: string | null;
@@ -132,11 +131,7 @@ export function AudioMessage({
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
   return (
-    <div
-      className={`flex items-center gap-3 p-3 rounded-lg max-w-sm ${
-        isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"
-      }`}
-    >
+    <div className="bg-blue-100 text-blue-800 rounded-xl p-3 w-full max-w-xs md:max-w-sm flex items-center gap-4 shadow-sm">
       {fetchedAudioUrl && (
         <audio
           ref={audioRef}
@@ -149,58 +144,69 @@ export function AudioMessage({
       )}
 
       <Button
-        variant="ghost"
-        size="sm"
+        size="icon"
         onClick={handlePlayPause}
         disabled={isLoading}
-        className={`w-8 h-8 p-0 rounded-full ${
-          isFromContact
-            ? "hover:bg-gray-200 text-gray-700"
-            : "hover:bg-blue-500 text-white"
-        }`}
+        className="h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-0 flex-shrink-0 transition-colors"
       >
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
         ) : isPlaying ? (
-          <Pause className="w-4 h-4" />
+          <Pause className="w-5 h-5" />
         ) : (
-          <Play className="w-4 h-4" />
+          <Play className="w-5 h-5" />
         )}
       </Button>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Volume2 className="w-3 h-3 opacity-70" />
-          <span className="text-xs opacity-70">
-            {isLoading
-              ? "Carregando..."
-              : error
-                ? error
-                : "Áudio"}
+        <p className="text-sm font-medium text-blue-800 mb-1">
+          {isLoading
+            ? "Carregando..."
+            : error
+              ? error
+              : "Áudio"}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-blue-600">
+            {formatAudioTime(audioDuration)}
           </span>
-        </div>
-
-        <div className="relative">
-          <div
-            className={`w-full h-1 rounded-full ${
-              isFromContact ? "bg-gray-300" : "bg-blue-400"
-            }`}
-          >
-            <div
-              className={`h-full rounded-full transition-all duration-100 ${
-                isFromContact ? "bg-gray-600" : "bg-white"
-              }`}
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end text-xs opacity-70 mt-1">
-          <span>{formatAudioTime(audioDuration)}</span>
+          {fetchedAudioUrl && progressPercentage > 0 && (
+            <div className="flex-1 bg-blue-200 rounded-full h-1">
+              <div 
+                className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
+      
+      {fetchedAudioUrl && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-200 flex-shrink-0"
+          onClick={() => {
+            const link = document.createElement('a');
+            link.href = fetchedAudioUrl;
+            link.download = `audio-${Date.now()}.mp3`;
+            link.click();
+          }}
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
+}
+
+// Função helper para formatar tempo de áudio
+function formatAudioTime(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return "0:00";
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 // Exportar também como AudioMessageSimple para compatibilidade
