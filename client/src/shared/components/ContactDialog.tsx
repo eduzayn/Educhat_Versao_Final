@@ -285,25 +285,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
             />
           </div>
 
-          {/* Tipo de contato */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Tipo de contato</label>
-            <Select 
-              value={form.contactType} 
-              onValueChange={(value) => setForm({ ...form, contactType: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Lead">Lead</SelectItem>
-                <SelectItem value="Cliente">Cliente</SelectItem>
-                <SelectItem value="Parceiro">Parceiro</SelectItem>
-                <SelectItem value="Fornecedor">Fornecedor</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Responsável */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
@@ -311,16 +292,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
               value={form.owner}
               onChange={(e) => setForm({ ...form, owner: e.target.value })}
               placeholder="Nome do responsável"
-            />
-          </div>
-
-          {/* Endereço */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Endereço</label>
-            <Input
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="Endereço completo"
             />
           </div>
 

@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:34): CAMPOS REMOVIDOS DO MODAL DE CRIAÇÃO DE CONTATO
+  - Removidos campos "Empresa", "Tipo de Contato" e "Endereço" do modal de criação
+  - Modal mais compacto e focado em informações essenciais
+  - Mantidos apenas: Nome, Email, Telefone, Proprietário, Tags e Notas
+  - Ajuste aplicado em ContactsPage.tsx e ContactDialog.tsx
+  - Interface mais limpa ganhando espaço significativo no modal
 - June 25, 2025 (05:30): EDIÇÃO INLINE DE CONTATOS E NEGÓCIOS IMPLEMENTADA
   - Criados componentes InlineEditField e InlineDealEdit para edição rápida no painel direito
   - Área de Formação e Área de Interesse agora editáveis inline com botão de lápis

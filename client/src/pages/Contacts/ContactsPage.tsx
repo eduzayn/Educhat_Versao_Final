@@ -31,9 +31,6 @@ export function ContactsPage() {
     name: '', 
     email: '', 
     phone: '', 
-    company: '', 
-    address: '', 
-    contactType: 'Lead', 
     owner: '', 
     notes: '' 
   });
@@ -282,9 +279,6 @@ export function ContactsPage() {
         name: '', 
         email: '', 
         phone: '', 
-        company: '', 
-        address: '', 
-        contactType: 'Lead', 
         owner: '', 
         notes: '' 
       });
@@ -408,41 +402,7 @@ export function ContactsPage() {
                   />
                 </div>
 
-                {/* Empresa */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Empresa</label>
-                  <Input
-                    value={createForm.company}
-                    onChange={(e) => setCreateForm({ ...createForm, company: e.target.value })}
-                    placeholder="Nome da empresa"
-                  />
-                </div>
 
-                {/* Tipo de contato */}
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Tipo de contato</label>
-                  <Select value={createForm.contactType} onValueChange={(value) => setCreateForm({ ...createForm, contactType: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Lead">Lead</SelectItem>
-                      <SelectItem value="Cliente">Cliente</SelectItem>
-                      <SelectItem value="Parceiro">Parceiro</SelectItem>
-                      <SelectItem value="Fornecedor">Fornecedor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Endereço */}
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Endereço</label>
-                  <Input
-                    value={createForm.address}
-                    onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })}
-                    placeholder="Rua, número, complemento"
-                  />
-                </div>
 
                 {/* Proprietário */}
                 <div className="md:col-span-2">
@@ -517,9 +477,6 @@ export function ContactsPage() {
                       name: '', 
                       email: '', 
                       phone: '', 
-                      company: '', 
-                      address: '', 
-                      contactType: 'Lead', 
                       owner: '', 
                       notes: '' 
                     });
