@@ -96,10 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:10): ERRO DE CACHE REACT QUERY CORRIGIDO COMPLETAMENTE
+  - Corrigido erro "oldData.map is not a function" no ConversationAssignmentDropdown
+  - Adicionada validação Array.isArray() antes de executar map() no cache
+  - Implementada atualização dupla: lista de conversas + conversa específica
+  - apiRequest corrigido para retornar JSON e preservar detalhes de erro HTTP
+  - Sistema de atribuição funcionando sem quebras de cache
 - June 25, 2025 (16:05): FEEDBACK DE ERRO MELHORADO PARA ATRIBUIÇÕES IMPLEMENTADO
   - Backend: Validações específicas para equipes e usuários inexistentes/inativos
   - Frontend: Captura de erros detalhados da API com mensagens amigáveis
-  - apiRequest atualizado para preservar detalhes de erro da resposta HTTP
   - Mensagens específicas: "Equipe não encontrada", "Usuário inativo", "Não pertence à equipe"
   - Logs detalhados no console para debug técnico
   - Toast notifications com título e descrição informativos

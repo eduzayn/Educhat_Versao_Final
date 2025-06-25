@@ -65,12 +65,21 @@ export function ConversationAssignmentDropdown({
       
       // Atualizar o cache do React Query diretamente com otimistic update
       queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-        if (!oldData) return oldData;
+        if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.map((conv: any) => 
           conv.id === conversationId 
             ? { ...conv, assignedTeamId: teamId === 'none' ? null : parseInt(teamId) }
             : conv
         );
+      });
+
+      // Atualizar cache da conversa específica se existir
+      queryClient.setQueryData([`/api/conversations/${conversationId}`], (oldData: any) => {
+        if (!oldData || typeof oldData !== 'object') return oldData;
+        return {
+          ...oldData,
+          assignedTeamId: teamId === 'none' ? null : parseInt(teamId)
+        };
       });
       
       // Invalidar queries para refetch com dados atualizados do servidor
@@ -123,12 +132,21 @@ export function ConversationAssignmentDropdown({
       
       // Atualizar o cache do React Query diretamente com otimistic update
       queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-        if (!oldData) return oldData;
+        if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.map((conv: any) => 
           conv.id === conversationId 
             ? { ...conv, assignedUserId: userId === 'none' ? null : parseInt(userId) }
             : conv
         );
+      });
+
+      // Atualizar cache da conversa específica se existir
+      queryClient.setQueryData([`/api/conversations/${conversationId}`], (oldData: any) => {
+        if (!oldData || typeof oldData !== 'object') return oldData;
+        return {
+          ...oldData,
+          assignedUserId: userId === 'none' ? null : parseInt(userId)
+        };
       });
       
       // Invalidar queries para refetch com dados atualizados do servidor
