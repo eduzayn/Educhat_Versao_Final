@@ -18,14 +18,10 @@ export interface WebSocketMessage {
   status?: ConversationStatus;
 }
 
-export interface ChatState {
-  conversations: ConversationWithContact[];
-  activeConversation: ConversationWithContact | null;
-  messages: Record<number, Message[]>;
-  typingIndicators: Record<number, TypingIndicator>;
-  isConnected: boolean;
-  selectedContactId: number | null;
-}
+// ChatState removido - estado agora gerenciado separadamente:
+// - activeConversation: useChatStore (Zustand)
+// - messages: useMessages (TanStack Query)
+// - conversations: useConversations (TanStack Query)
 
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 
