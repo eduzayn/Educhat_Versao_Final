@@ -100,7 +100,7 @@ export function TeamTransferCard({ conversation, provided, snapshot }: TeamTrans
 
         {/* Última mensagem */}
         <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-          {conversation.lastMessage}
+          {conversation.lastMessage || 'Sem mensagem'}
         </p>
 
         {/* Footer com status e info */}

@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:52): ERRO REACT NO SISTEMA DRAG-AND-DROP CORRIGIDO
+  - Corrigido erro "Objects are not valid as a React child" no sistema de transferências
+  - Adicionada validação de tipo para lastMessage (pode ser string ou objeto Z-API)
+  - Implementado fallback seguro para renderização de mensagens
+  - Sistema drag-and-drop funcionando sem erros de React
 - June 25, 2025 (01:51): PROBLEMA DE RENDERIZAÇÃO EXCESSIVA DE CURSOS CORRIGIDO
   - Removidos console.log desnecessários em ContactSidebar.tsx
   - Otimizada renderização de listas de cursos e categorias
