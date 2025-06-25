@@ -672,7 +672,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==================== MACROSETOR DETECTION ====================
-  detectMacrosetor(content: string, channel?: string): string | null {
+  detectTeam(content: string, channel?: string): string | null {
     // Implementação direta da detecção de macrosetor
     if (!content || content.trim().length < 3) {
       return 'geral';

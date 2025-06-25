@@ -145,10 +145,10 @@ export function DealsModule() {
   
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
-  // Get current macrosetor configuration
+  // Get current team category configuration
   const currentTeamCategory = teamCategories[selectedTeamType as keyof typeof teamCategories];
   
-  // Reset page when macrosetor changes
+  // Reset page when team type changes
   useEffect(() => {
     setPage(1);
   }, [selectedTeamType]);
@@ -320,7 +320,7 @@ export function DealsModule() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Select value={selectedMacrosetor} onValueChange={setSelectedMacrosetor}>
+            <Select value={selectedTeamType} onValueChange={setSelectedTeamType}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Selecione o funil" />
               </SelectTrigger>
@@ -440,9 +440,9 @@ export function DealsModule() {
                   <div className="text-sm text-muted-foreground">
                     O negócio será criado no estágio: {
                       selectedStageForNewDeal 
-                        ? currentMacrosetor.stages.find(s => s.id === selectedStageForNewDeal)?.name
-                        : currentMacrosetor.stages[0].name
-                    } ({currentMacrosetor.name})
+                        ? currentTeamCategory.stages.find(s => s.id === selectedStageForNewDeal)?.name
+                        : currentTeamCategory.stages[0].name
+                    } ({currentTeamCategory.name})
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -465,7 +465,7 @@ export function DealsModule() {
           <DragDropContext onDragEnd={handleDragEnd} enableDefaultSensors={false}>
             <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
-                {currentMacrosetor.stages.map((stage: any) => {
+                {currentTeamCategory.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
                     <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
@@ -580,7 +580,7 @@ export function DealsModule() {
                   </div>
                   <div>
                     <Badge variant="secondary" className="text-xs">
-                      {currentMacrosetor.stages.find((s: any) => s.id === deal.stage)?.name}
+                      {currentTeamCategory.stages.find((s: any) => s.id === deal.stage)?.name}
                     </Badge>
                   </div>
                   <div>
