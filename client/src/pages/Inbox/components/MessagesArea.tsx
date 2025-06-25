@@ -32,6 +32,32 @@ export function MessagesArea({
   const loadingRef = useRef<boolean>(false);
   const [isNearTop, setIsNearTop] = useState(false);
 
+  // Função para remover mensagens duplicadas e garantir keys únicas
+  const deduplicateMessages = (messages: any[]) => {
+    const seenIds = new Set<string>();
+    const uniqueMessages: any[] = [];
+    
+    messages.forEach((message, index) => {
+      if (!message?.id) {
+        // Se não tem ID, gerar um temporário baseado no conteúdo e posição
+        console.warn('Mensagem sem ID detectada:', message);
+        return;
+      }
+      
+      const messageKey = `${message.id}-${message.sentAt || ''}`;
+      
+      if (seenIds.has(messageKey)) {
+        console.warn(`Mensagem duplicada detectada: ID ${message.id}, sentAt: ${message.sentAt}`);
+        return;
+      }
+      
+      seenIds.add(messageKey);
+      uniqueMessages.push(message);
+    });
+    
+    return uniqueMessages;
+  };
+
   // Rola automaticamente para o fim da conversa
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -129,16 +155,15 @@ export function MessagesArea({
             </div>
           )}
 
-          {(messages ?? [])
-            .filter(message => message?.id) // Filtrar mensagens sem ID
+          {deduplicateMessages(messages ?? [])
             .sort(
               (a, b) =>
                 new Date(a.sentAt || 0).getTime() -
                 new Date(b.sentAt || 0).getTime(),
             )
-            .map((message) => (
+            .map((message, index) => (
               <MessageBubble
-                key={message.id}
+                key={`msg-${message.id}-${message.sentAt || ''}-${index}`}
                 message={message}
                 contact={activeConversation?.contact}
                 channelIcon={

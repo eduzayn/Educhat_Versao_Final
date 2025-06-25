@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (21:09): ERRO CRÍTICO DE KEYS DUPLICADAS EM MENSAGENS CORRIGIDO COMPLETAMENTE
+  - Implementada função deduplicateMessages() para eliminar mensagens com IDs duplicados
+  - Keys únicas aplicadas: `msg-${message.id}-${message.sentAt}-${index}` para garantir unicidade
+  - Sistema detecta e registra mensagens duplicadas via console.warn para auditoria
+  - Filtro robusto: apenas mensagens com ID válido são renderizadas
+  - Eliminado error React: "Encountered two children with the same key"
+  - Renderização estável: sem duplicação ou desaparecimento de mensagens
+  - Scroll infinito otimizado: compatível com virtual scroll e carregamento dinâmico
 - June 25, 2025 (21:03): ERRO 429 "TOO MANY REQUESTS" ELIMINADO COMPLETAMENTE COM SISTEMA ABRANGENTE DE RATE LIMITING
   - Criado middleware rateLimiter.ts com controles específicos por endpoint e usuário
   - Rate limiting aplicado: conversas (30 req/min), mensagens (20 req/30s), geral (100 req/min)
