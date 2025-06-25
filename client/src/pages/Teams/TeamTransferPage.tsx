@@ -450,27 +450,9 @@ export default function TeamTransferPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="grid gap-3">
               {transferHistory.slice(0, 10).map((transfer: TransferHistory) => (
-                <div key={transfer.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium">{transfer.contactName}</span>
-                      <span className="text-muted-foreground">foi transferida de</span>
-                      <Badge variant="outline">{transfer.fromTeamName}</Badge>
-                      <ArrowRight className="h-3 w-3" />
-                      <Badge variant="outline">{transfer.toTeamName}</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Por {transfer.transferredBy} • {new Date(transfer.transferredAt).toLocaleString('pt-BR')}
-                    </div>
-                    {transfer.reason && (
-                      <div className="text-xs italic text-muted-foreground">
-                        "{transfer.reason}"
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <TransferHistoryCard key={transfer.id} transfer={transfer} />
               ))}
             </div>
           </CardContent>

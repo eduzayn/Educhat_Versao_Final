@@ -192,4 +192,79 @@ export class TeamStorage extends BaseStorage {
       teamId
     };
   }
+
+  /**
+   * Get team by macrosetor/teamType
+   */
+  async getTeamByMacrosetor(teamType: string): Promise<Team | undefined> {
+    const [team] = await this.db.select().from(teams).where(eq(teams.teamType, teamType));
+    return team;
+  }
+
+  /**
+   * Transfer conversation between teams and log the transfer
+   */
+  async transferConversationBetweenTeams(
+    conversationId: number, 
+    fromTeamId: number | null, 
+    toTeamId: number, 
+    reason?: string,
+    transferredBy?: string
+  ): Promise<void> {
+    // Update conversation team assignment
+    await this.db
+      .update(conversations)
+      .set({ 
+        assignedTeamId: toTeamId,
+        updatedAt: new Date() 
+      })
+      .where(eq(conversations.id, conversationId));
+
+    // Log the transfer
+    await this.db.insert(teamTransferHistory).values({
+      conversationId,
+      fromTeamId,
+      toTeamId,
+      reason,
+      transferredBy
+    });
+  }
+
+  /**
+   * Get transfer history with team and contact details
+   */
+  async getTransferHistory(limit: number = 50): Promise<any[]> {
+    const history = await this.db
+      .select({
+        id: teamTransferHistory.id,
+        conversationId: teamTransferHistory.conversationId,
+        fromTeamId: teamTransferHistory.fromTeamId,
+        toTeamId: teamTransferHistory.toTeamId,
+        reason: teamTransferHistory.reason,
+        transferredBy: teamTransferHistory.transferredBy,
+        transferredAt: teamTransferHistory.transferredAt,
+        fromTeamName: teams.name,
+        contactName: contacts.name,
+      })
+      .from(teamTransferHistory)
+      .leftJoin(teams, eq(teamTransferHistory.fromTeamId, teams.id))
+      .leftJoin(conversations, eq(teamTransferHistory.conversationId, conversations.id))
+      .leftJoin(contacts, eq(conversations.contactId, contacts.id))
+      .orderBy(desc(teamTransferHistory.transferredAt))
+      .limit(limit);
+
+    // Get "to team" names in a separate query since we can't join the same table twice easily
+    const enrichedHistory = await Promise.all(
+      history.map(async (item) => {
+        const toTeam = await this.getTeam(item.toTeamId);
+        return {
+          ...item,
+          toTeamName: toTeam?.name || 'Equipe removida',
+          fromTeamName: item.fromTeamName || 'Não atribuída'
+        };
+      })
+    );
+
+    return enrichedHistory;
+  }
 }

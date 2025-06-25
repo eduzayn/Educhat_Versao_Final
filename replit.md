@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (00:58): Sistema de transferências de equipes IMPLEMENTADO
+  - Criada página TeamTransferPage com interface drag-and-drop moderna usando @hello-pangea/dnd
+  - Implementada tabela team_transfer_history para rastrear histórico de transferências
+  - Adicionadas rotas API /api/teams/transfer-conversation e /api/teams/transfer-history
+  - Criados componentes TeamTransferCard, TransferHistoryCard e TeamColumn para UI organizada
+  - Sistema permite arrastar conversas entre equipes com confirmação e motivo obrigatório
+  - Histórico completo de transferências com detalhes de quem transferiu e quando
+  - Interface responsiva com filtros por busca e equipe
+  - Integração com sistema de permissões e broadcast em tempo real
 - June 25, 2025 (00:29): Erro crítico do webhook Z-API COMPLETAMENTE RESOLVIDO
   - Removidas TODAS as referências obsoletas à coluna "macrosetor" em múltiplos arquivos
   - Corrigida query SQL crítica em `teamStorage.ts` que causava erro 42703
