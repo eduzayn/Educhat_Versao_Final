@@ -430,6 +430,20 @@ export class DatabaseStorage implements IStorage {
     return this.team.getTeamStatistics(teamId);
   }
 
+  async transferConversationBetweenTeams(
+    conversationId: number, 
+    fromTeamId: number | null, 
+    toTeamId: number, 
+    reason?: string,
+    transferredBy?: string
+  ) {
+    return this.team.transferConversationBetweenTeams(conversationId, fromTeamId, toTeamId, reason, transferredBy);
+  }
+
+  async getTransferHistory(limit?: number) {
+    return this.team.getTransferHistory(limit);
+  }
+
   // ==================== PERMISSIONS (padrão TRUE, customizar depois) ==========
   async canUserRespondToOthersConversations() {
     return true;

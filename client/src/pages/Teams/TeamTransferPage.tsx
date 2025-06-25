@@ -313,11 +313,42 @@ export default function TeamTransferPage() {
                         index={index}
                       >
                         {(provided, snapshot) => (
-                          <TeamTransferCard
-                            conversation={conversation}
-                            provided={provided}
-                            snapshot={snapshot}
-                          />
+                          <Card
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`p-3 cursor-grab hover:shadow-md transition-shadow ${
+                              snapshot.isDragging ? 'shadow-lg rotate-2 bg-blue-50' : ''
+                            }`}
+                          >
+                            <div className="space-y-2">
+                              <div className="flex items-start justify-between">
+                                <h4 className="font-medium text-sm truncate">{conversation.contactName}</h4>
+                                {conversation.unreadCount > 0 && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    {conversation.unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {conversation.lastMessage}
+                              </p>
+                              <div className="flex items-center justify-between text-xs">
+                                <Badge className={`${getStatusColor(conversation.status)} text-xs`}>
+                                  {conversation.status}
+                                </Badge>
+                                <span className="text-muted-foreground">
+                                  {new Date(conversation.lastMessageAt).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                              {conversation.assignedUserName && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <User className="h-3 w-3" />
+                                  {conversation.assignedUserName}
+                                </div>
+                              )}
+                            </div>
+                          </Card>
                         )}
                       </Draggable>
                     ))}
@@ -469,7 +500,31 @@ export default function TeamTransferPage() {
           <CardContent>
             <div className="grid gap-3">
               {transferHistory.slice(0, 10).map((transfer: TransferHistory) => (
-                <HistoryCard key={transfer.id} transfer={transfer} />
+                <Card key={transfer.id} className="mb-3">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">
+                          {transfer.contactName}
+                        </h4>
+                        <div className="flex items-center text-sm text-gray-600 mt-1">
+                          <span>{transfer.fromTeamName}</span>
+                          <ArrowRight className="w-4 h-4 mx-2" />
+                          <span>{transfer.toTeamName}</span>
+                        </div>
+                        {transfer.reason && (
+                          <p className="text-sm text-gray-500 mt-1 italic">
+                            "{transfer.reason}"
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right text-xs text-gray-400">
+                        <div>{transfer.transferredBy}</div>
+                        <div>{new Date(transfer.transferredAt).toLocaleDateString('pt-BR')}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </CardContent>
