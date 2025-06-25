@@ -1,11 +1,12 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { insertConversationSchema, insertContactNoteSchema } from "@shared/schema";
+import { conversationsRateLimit, messagesRateLimit } from "../../middleware/rateLimiter";
 
 export function registerInboxRoutes(app: Express) {
   
   // Conversations endpoints
-  app.get('/api/conversations', async (req, res) => {
+  app.get('/api/conversations', conversationsRateLimit, async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20; // Limite padrão reduzido para 20
@@ -34,7 +35,7 @@ export function registerInboxRoutes(app: Express) {
     }
   });
 
-  app.get('/api/conversations/:id', async (req, res) => {
+  app.get('/api/conversations/:id', conversationsRateLimit, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       

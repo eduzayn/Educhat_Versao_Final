@@ -2,11 +2,12 @@ import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { insertMessageSchema } from "@shared/schema";
 import type { AuthenticatedRequest } from "../admin/permissions";
+import { messagesRateLimit } from "../../middleware/rateLimiter";
 
 export function registerMessageRoutes(app: Express) {
   
   // Messages endpoints - Suporte a scroll infinito invertido
-  app.get('/api/conversations/:id/messages', async (req, res) => {
+  app.get('/api/conversations/:id/messages', messagesRateLimit, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
