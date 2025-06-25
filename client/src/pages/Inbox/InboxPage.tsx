@@ -96,7 +96,7 @@ export function InboxPage() {
   }); // Carregar 20 conversas iniciais, mais 20 por vez
   
   // Flatten das páginas de conversas com verificação de segurança
-  const conversations = conversationsData?.pages ? conversationsData.pages.flat() : [];
+  const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(page => page || []) : [];
   
   // Hook do store de chat - apenas para estado básico
   const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
@@ -122,7 +122,7 @@ export function InboxPage() {
   
   // FONTE ÚNICA: Apenas React Query - sem merge com store
   const messages = Array.isArray(messagesData?.pages) 
-    ? messagesData.pages.flat().sort((a, b) => 
+    ? messagesData.pages.flatMap(page => page || []).sort((a, b) => 
         new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
       )
     : [];
