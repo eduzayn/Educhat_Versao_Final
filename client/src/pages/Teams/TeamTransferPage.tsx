@@ -116,7 +116,7 @@ export default function TeamTransferPage() {
     queryKey: ['/api/conversations'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/conversations');
+        const response = await fetch('/api/conversations?limit=50');
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data.map((conv: any) => ({
@@ -465,18 +465,22 @@ export default function TeamTransferPage() {
                           }`}
                         >
                           <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-sm truncate flex-1">
-                              {conversation.contactName}
-                            </h4>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">
+                                {conversation.contactName}
+                              </h4>
+                              {conversation.contactPhone && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {conversation.contactPhone}
+                                </p>
+                              )}
+                            </div>
                             {conversation.unreadCount > 0 && (
                               <Badge variant="destructive" className="text-xs">
                                 {conversation.unreadCount}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                            {conversation.lastMessage || 'Sem mensagem'}
-                          </p>
                           <div className="flex items-center justify-between text-xs">
                             <Badge variant="outline" className={getStatusColor(conversation.status)}>
                               {conversation.status}
@@ -534,18 +538,22 @@ export default function TeamTransferPage() {
                             }`}
                           >
                             <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-sm truncate flex-1">
-                                {conversation.contactName}
-                              </h4>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm truncate">
+                                  {conversation.contactName}
+                                </h4>
+                                {conversation.contactPhone && (
+                                  <p className="text-xs text-gray-500 truncate">
+                                    {conversation.contactPhone}
+                                  </p>
+                                )}
+                              </div>
                               {conversation.unreadCount > 0 && (
                                 <Badge variant="destructive" className="text-xs">
                                   {conversation.unreadCount}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                              {conversation.lastMessage || 'Sem mensagem'}
-                            </p>
                             <div className="flex items-center justify-between text-xs">
                               <Badge variant="outline" className={getStatusColor(conversation.status)}>
                                 {conversation.status}

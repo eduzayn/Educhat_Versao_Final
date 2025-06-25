@@ -75,7 +75,7 @@ export function TeamTransferCard({ conversation, provided, snapshot }: TeamTrans
       }`}
     >
       <div className="space-y-2">
-        {/* Header com nome e badges */}
+        {/* Header simplificado com nome e badges */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Avatar className="h-6 w-6">
@@ -83,9 +83,16 @@ export function TeamTransferCard({ conversation, provided, snapshot }: TeamTrans
                 {conversation.contactName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <h4 className="font-medium text-sm truncate flex-1">
-              {conversation.contactName}
-            </h4>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm truncate">
+                {conversation.contactName}
+              </h4>
+              {conversation.contactPhone && (
+                <p className="text-xs text-muted-foreground truncate">
+                  {conversation.contactPhone}
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-1">
@@ -98,12 +105,7 @@ export function TeamTransferCard({ conversation, provided, snapshot }: TeamTrans
           </div>
         </div>
 
-        {/* Última mensagem */}
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-          {conversation.lastMessage || 'Sem mensagem'}
-        </p>
-
-        {/* Footer com status e info */}
+        {/* Footer compacto */}
         <div className="flex items-center justify-between">
           <Badge className={`${getStatusColor(conversation.status)} text-xs px-2 py-0.5`}>
             {conversation.status === 'open' ? 'Aberta' : 
@@ -116,48 +118,6 @@ export function TeamTransferCard({ conversation, provided, snapshot }: TeamTrans
             {formatTime(conversation.lastMessageAt)}
           </div>
         </div>
-
-        {/* Usuário atribuído */}
-        {conversation.assignedUserName && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-            <User className="h-3 w-3" />
-            <span className="truncate">{conversation.assignedUserName}</span>
-          </div>
-        )}
-
-        {/* Contatos rápidos */}
-        {(conversation.contactPhone || conversation.contactEmail) && (
-          <div className="flex items-center gap-2 pt-1">
-            {conversation.contactPhone && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(`tel:${conversation.contactPhone}`, '_blank');
-                }}
-              >
-                <Phone className="h-3 w-3 mr-1" />
-                Ligar
-              </Button>
-            )}
-            {conversation.contactEmail && (
-              <Button
-                variant="ghost"
-                size="sm" 
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(`mailto:${conversation.contactEmail}`, '_blank');
-                }}
-              >
-                <Mail className="h-3 w-3 mr-1" />
-                Email
-              </Button>
-            )}
-          </div>
-        )}
       </div>
     </Card>
   );

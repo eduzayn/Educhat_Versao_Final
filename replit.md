@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:59): OTIMIZAÇÃO DE PERFORMANCE DA PÁGINA DE TRANSFERÊNCIAS IMPLEMENTADA
+  - Limitado carregamento para apenas últimas 50 conversas (era ilimitado)
+  - Simplificados cards de transferência: removidas mensagens, mantidos nome e telefone
+  - Interface mais limpa e carregamento muito mais rápido
+  - Funcionalidade de busca mantida para localizar conversas específicas
 - June 25, 2025 (01:54): ERRO REACT NO SISTEMA DRAG-AND-DROP CORRIGIDO DEFINITIVAMENTE
   - Identificado problema na API: campo lastMessage retornava objeto Message ao invés de string
   - Corrigido conversationStorage.ts para extrair content do objeto Message
