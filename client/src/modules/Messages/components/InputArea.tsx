@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Smile, Mic, MicOff, X, Image as ImageIcon, Video, FileText, Link as LinkIcon, ArrowUp } from "lucide-react";
+import { Send, Paperclip, Smile, Mic, MicOff, X, Image as ImageIcon, Video, FileText, StickyNote, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-// import { EmojiPicker } from "@/shared/ui/emoji-picker"; // Comentado temporariamente
 import { AudioRecorder } from "./AudioRecorder";
 import { ImageUpload } from "./ImageUpload";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { Badge } from "@/shared/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { useSendMessage } from "@/shared/lib/hooks/useMessages";
 import { useAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
 import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
@@ -15,6 +15,7 @@ import { useVideoMessage } from "@/shared/lib/hooks/useVideoMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { QuickReply } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -28,9 +29,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string } | null>(null);
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [noteContent, setNoteContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Hooks padronizados para diferentes tipos de mídia
   const sendImageMutation = useImageMessage({ 
@@ -91,6 +95,53 @@ export function InputArea({ activeConversation }: InputAreaProps) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  // Função para enviar nota interna
+  const handleSendInternalNote = async () => {
+    if (!noteContent.trim() || !activeConversation?.id) return;
+
+    try {
+      const response = await fetch(`/api/conversations/${activeConversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: noteContent.trim(),
+          messageType: 'text',
+          direction: 'internal',
+          isInternalNote: true,
+          authorId: user?.id,
+          authorName: user?.displayName || user?.username || 'Atendente'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar nota interna');
+      }
+
+      // Atualizar cache React Query imediatamente
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/conversations/${activeConversation.id}/messages`] 
+      });
+
+      toast({
+        title: "Nota interna adicionada",
+        description: "A nota foi salva com sucesso."
+      });
+
+      setNoteContent("");
+      setShowNoteDialog(false);
+
+    } catch (error) {
+      console.error('Erro ao adicionar nota interna:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a nota. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -165,114 +216,181 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         </div>
       )}
 
-      <div className="flex items-end gap-2">
-        {/* Botão de anexo */}
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsAttachmentOpen(!isAttachmentOpen)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Paperclip className="w-5 h-5" />
-          </Button>
+      {/* Layout WhatsApp-like com componentes dentro do textarea */}
+      <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-1">
+        <div className="flex items-center gap-1">
+          
+          {/* Botão de anexo - estilo WhatsApp */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAttachmentOpen(!isAttachmentOpen)}
+              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+            >
+              <Paperclip className="w-5 h-5 rotate-45" />
+            </Button>
 
-          {/* Menu de anexos */}
-          {isAttachmentOpen && (
-            <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-lg shadow-lg p-2 z-50">
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileUpload('image')}
-                  className="justify-start"
-                >
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  Imagem
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileUpload('video')}
-                  className="justify-start"
-                >
-                  <Video className="w-4 h-4 mr-2" />
-                  Vídeo
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileUpload('document')}
-                  className="justify-start"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Documento
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Campo de texto */}
-        <div className="flex-1 relative">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Digite sua mensagem..."
-            className="min-h-[44px] max-h-32 resize-none pr-10"
-            rows={1}
-          />
-        </div>
-
-        {/* Botão de emoji */}
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsEmojiOpen(!isEmojiOpen)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Smile className="w-5 h-5" />
-          </Button>
-
-          {isEmojiOpen && (
-            <div className="absolute bottom-full right-0 mb-2 z-50 bg-white border rounded-lg shadow-lg p-4">
-              <div className="grid grid-cols-8 gap-2">
-                {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '👍', '👎', '❤️', '🔥', '⭐', '✅', '❌', '🎉', '💯'].map(emoji => (
-                  <button
-                    key={emoji}
+            {/* Menu de anexos modernizado */}
+            {isAttachmentOpen && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-50 min-w-[160px]">
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
-                      handleEmojiSelect(emoji);
-                      setIsEmojiOpen(false);
+                      handleFileUpload('image');
+                      setIsAttachmentOpen(false);
                     }}
-                    className="p-2 hover:bg-gray-100 rounded text-lg"
+                    className="justify-start h-9 hover:bg-blue-50 text-gray-700"
                   >
-                    {emoji}
-                  </button>
-                ))}
+                    <ImageIcon className="w-4 h-4 mr-3 text-blue-500" />
+                    Imagem
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleFileUpload('video');
+                      setIsAttachmentOpen(false);
+                    }}
+                    className="justify-start h-9 hover:bg-red-50 text-gray-700"
+                  >
+                    <Video className="w-4 h-4 mr-3 text-red-500" />
+                    Vídeo
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleFileUpload('document');
+                      setIsAttachmentOpen(false);
+                    }}
+                    className="justify-start h-9 hover:bg-gray-50 text-gray-700"
+                  >
+                    <FileText className="w-4 h-4 mr-3 text-gray-500" />
+                    Documento
+                  </Button>
+                </div>
               </div>
+            )}
+          </div>
+
+          {/* Campo de texto principal */}
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Digite sua mensagem..."
+              className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 p-2 pr-16"
+              rows={1}
+            />
+            
+            {/* Botões dentro do textarea */}
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+              {/* Botão de emoji */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEmojiOpen(!isEmojiOpen)}
+                className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              >
+                <Smile className="w-4 h-4" />
+              </Button>
+
+              {/* Gravador de áudio */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onMouseDown={() => setIsRecording(true)}
+                onMouseUp={() => setIsRecording(false)}
+                onMouseLeave={() => setIsRecording(false)}
+                className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                title="Manter pressionado para gravar áudio"
+              >
+                <Mic className={`w-4 h-4 ${isRecording ? 'text-red-500' : ''}`} />
+              </Button>
             </div>
-          )}
+          </div>
+
+          {/* Botão de nota interna - visível para atendentes */}
+          <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-full"
+                title="Adicionar nota interna"
+              >
+                <StickyNote className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Adicionar Nota Interna</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Digite sua nota interna..."
+                  className="min-h-[100px]"
+                  autoFocus
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowNoteDialog(false);
+                      setNoteContent('');
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleSendInternalNote}
+                    disabled={!noteContent.trim()}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    Salvar Nota
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Botão de enviar - estilo WhatsApp */}
+          <Button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || sendMessageMutation.isPending}
+            size="sm"
+            className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
 
-        {/* Gravador de áudio */}
-        <AudioRecorder
-          onSendAudio={handleSendAudio}
-          isRecording={isRecording}
-          setIsRecording={setIsRecording}
-        />
-
-        {/* Botão de enviar */}
-        <Button
-          onClick={handleSendMessage}
-          disabled={!message.trim() || sendMessageMutation.isPending}
-          size="sm"
-          className="bg-purple-600 hover:bg-purple-700 text-white"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
+        {/* Menu de emoji */}
+        {isEmojiOpen && (
+          <div className="absolute bottom-full right-0 mb-2 z-50 bg-white border rounded-xl shadow-xl p-4 max-w-xs">
+            <div className="grid grid-cols-8 gap-2">
+              {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '👍', '👎', '❤️', '🔥', '⭐', '✅', '❌', '🎉', '💯'].map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    handleEmojiSelect(emoji);
+                    setIsEmojiOpen(false);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg text-lg transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
