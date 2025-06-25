@@ -406,8 +406,10 @@ export class DatabaseStorage implements IStorage {
     return this.team.deleteTeam(id);
   }
 
-  async getTeamByMacrosetor(macrosetor: string) {
-    return this.team.getTeamByMacrosetor(macrosetor);
+  async getTeamByMacrosetor(category: string) {
+    // Função temporária para compatibilidade - buscar equipe por categoria
+    const teams = await this.team.getTeams();
+    return teams.find(team => team.macrosetor === category || team.name.toLowerCase().includes(category.toLowerCase()));
   }
 
   async getAvailableUserFromTeam(teamId: number) {

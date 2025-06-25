@@ -18,6 +18,7 @@ import { useToast } from "@/shared/lib/hooks/use-toast";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { QuickReply } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { QuickReplyAutocomplete } from "@/components/QuickReplyAutocomplete";
 
 interface InputAreaProps {
   activeConversation: any;
@@ -42,6 +43,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string } | null>(null);
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [noteContent, setNoteContent] = useState("");
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [quickReplySearchTerm, setQuickReplySearchTerm] = useState("");
+  const [quickReplyPosition, setQuickReplyPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -104,10 +108,79 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Se autocomplete está aberto, deixar o componente QuickReplyAutocomplete gerenciar
+    if (showQuickReplies) {
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Detectar atalho de respostas rápidas
+  const handleMessageChange = (value: string) => {
+    setMessage(value);
+    
+    // Detectar padrão /* para respostas rápidas
+    const cursorPosition = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = value.substring(0, cursorPosition);
+    const quickReplyMatch = textBeforeCursor.match(/\/(\w*)$/);
+    
+    if (quickReplyMatch) {
+      const searchTerm = quickReplyMatch[1];
+      setQuickReplySearchTerm(searchTerm);
+      
+      // Calcular posição do autocomplete
+      if (textareaRef.current) {
+        const rect = textareaRef.current.getBoundingClientRect();
+        setQuickReplyPosition({
+          top: rect.top - 10, // Acima do textarea
+          left: rect.left
+        });
+      }
+      
+      setShowQuickReplies(true);
+    } else {
+      setShowQuickReplies(false);
+      setQuickReplySearchTerm("");
+    }
+  };
+
+  // Selecionar resposta rápida
+  const handleQuickReplySelect = (quickReply: QuickReply) => {
+    if (!textareaRef.current) return;
+    
+    const cursorPosition = textareaRef.current.selectionStart || 0;
+    const textBeforeCursor = message.substring(0, cursorPosition);
+    const textAfterCursor = message.substring(cursorPosition);
+    
+    // Remover o padrão /termo e inserir o conteúdo da resposta rápida
+    const quickReplyMatch = textBeforeCursor.match(/\/(\w*)$/);
+    if (quickReplyMatch) {
+      const newTextBefore = textBeforeCursor.replace(/\/(\w*)$/, quickReply.content || '');
+      const newMessage = newTextBefore + textAfterCursor;
+      setMessage(newMessage);
+      
+      // Focar e posicionar cursor após o conteúdo inserido
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const newCursorPosition = newTextBefore.length;
+          textareaRef.current.focus();
+          textareaRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+      }, 0);
+    }
+    
+    setShowQuickReplies(false);
+    setQuickReplySearchTerm("");
+  };
+
+  // Fechar autocomplete
+  const handleCloseQuickReplies = () => {
+    setShowQuickReplies(false);
+    setQuickReplySearchTerm("");
   };
 
   // Função para enviar nota interna
@@ -327,9 +400,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
             <Textarea
               ref={textareaRef}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => handleMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Digite sua mensagem..."
+              placeholder="Digite sua mensagem... (/* para respostas rápidas)"
               className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-2 pr-16"
               rows={1}
               id="inbox-message-input"
@@ -470,6 +543,16 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               className="bg-white border rounded-lg shadow-lg p-4"
             />
           </div>
+        )}
+
+        {/* Autocomplete de Respostas Rápidas */}
+        {showQuickReplies && (
+          <QuickReplyAutocomplete
+            searchTerm={quickReplySearchTerm}
+            onSelect={handleQuickReplySelect}
+            onClose={handleCloseQuickReplies}
+            position={quickReplyPosition}
+          />
         )}
       </div>
     </div>
