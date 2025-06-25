@@ -13,6 +13,7 @@ export function useConversations(initialLimit = 20, options = {}) {
       }
       return response.json();
     },
+    initialPageParam: 1, // Parâmetro obrigatório para TanStack Query v5
     getNextPageParam: (lastPage, allPages) => {
       // Se a última página retornou menos que o limite, não há mais páginas
       const pageLimit = allPages.length === 1 ? initialLimit : 20;
@@ -31,6 +32,10 @@ export function useConversation(id: number | null) {
   return useQuery<ConversationWithContact>({
     queryKey: ['/api/conversations', id],
     enabled: !!id,
+    staleTime: 120000, // Cache por 2 minutos
+    refetchInterval: false, // Sem polling - WebSocket atualiza
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    gcTime: 300000, // Manter cache por 5 minutos
   });
 }
 

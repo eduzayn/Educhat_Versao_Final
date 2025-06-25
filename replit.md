@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (19:26): CORREÇÃO DO ERRO 429 "TOO MANY REQUESTS" IMPLEMENTADA COMPLETAMENTE
+  - Otimizado useConversations: removido refetchInterval de 5s, aumentado staleTime para 60s
+  - Corrigida query de conversa ativa: staleTime 2 minutos, sem polling, sem refetchOnWindowFocus
+  - Otimizado useConversation global: cache 2 minutos, sem requisições desnecessárias
+  - Melhorado useMarkConversationRead: setQueryData direto ao invés de invalidateQueries
+  - Adicionado initialPageParam obrigatório para TanStack Query v5
+  - Sistema agora usa WebSocket para atualizações em tempo real, eliminando polling excessivo
+  - Erro 429 resolvido: requisições reduzidas drasticamente mantendo funcionalidade completa
 - June 25, 2025 (19:18): SISTEMA DE RENDERIZAÇÃO IMEDIATA PARA IMAGENS/VÍDEOS IMPLEMENTADO COMPLETAMENTE
   - Criado sistema completo de placeholder que renderiza mídias instantaneamente durante upload
   - MediaPlaceholder.tsx: componente unificado com estados de loading, sucesso e erro

@@ -9,9 +9,20 @@ export function useMarkConversationRead() {
       const response = await apiRequest('PATCH', `/api/conversations/${conversationId}/read`);
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate conversations cache to refresh unread counts
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    onSuccess: (_, conversationId) => {
+      // Atualizar cache específico ao invés de invalidar tudo
+      queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
+        if (oldData) {
+          return { ...oldData, isRead: true, unreadCount: 0 };
+        }
+        return oldData;
+      });
+      
+      // Invalidar apenas contador de não lidas sem forçar refetch das conversas
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations/unread-count'],
+        refetchType: 'none' // Apenas marca como stale, não força refetch
+      });
     },
   });
 }

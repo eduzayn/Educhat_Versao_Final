@@ -92,8 +92,9 @@ export function InboxPage() {
     isFetchingNextPage,
     refetch 
   } = useConversations(20, { 
-    refetchInterval: 5000, // Polling a cada 5 segundos como backup do WebSocket
-    staleTime: 30000 // Cache por 30 segundos para melhor performance
+    refetchInterval: false, // WebSocket cuida das atualizações - sem polling
+    staleTime: 60000, // Cache por 1 minuto para reduzir requisições
+    refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
   }); // Carregar 20 conversas iniciais, mais 20 por vez
   
   // Flatten das páginas de conversas com verificação de segurança
@@ -113,8 +114,9 @@ export function InboxPage() {
       return response.json();
     },
     enabled: !!activeConversation?.id,
-    staleTime: 0, // Sempre buscar dados frescos para atribuições
-    refetchInterval: 5000 // Backup para mudanças externas
+    staleTime: 120000, // Cache por 2 minutos - WebSocket atualiza quando necessário
+    refetchInterval: false, // Sem polling - WebSocket cuida das atualizações
+    refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
   });
   
   // Usar dados atualizados da query ou fallback para dados locais
