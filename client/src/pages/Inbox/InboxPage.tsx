@@ -95,8 +95,8 @@ export function InboxPage() {
     staleTime: 30000 // Cache por 30 segundos para melhor performance
   }); // Carregar 20 conversas iniciais, mais 20 por vez
   
-  // Flatten das páginas de conversas
-  const conversations = conversationsData?.pages.flat() || [];
+  // Flatten das páginas de conversas com verificação de segurança
+  const conversations = conversationsData?.pages?.flat() || [];
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 

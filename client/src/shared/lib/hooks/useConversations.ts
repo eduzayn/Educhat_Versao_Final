@@ -1,16 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
-export function useConversations(limit = 1000, options = {}) {
-  return useQuery<ConversationWithContact[]>({
-    queryKey: ['/api/conversations', { limit }],
-    queryFn: async () => {
-      const response = await fetch(`/api/conversations?limit=${limit}&offset=0`);
+export function useConversations(initialLimit = 20, options = {}) {
+  return useInfiniteQuery<ConversationWithContact[]>({
+    queryKey: ['/api/conversations'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const limit = pageParam === 1 ? initialLimit : 20; // Primeira página: inicial, demais: 20
+      const response = await fetch(`/api/conversations?page=${pageParam}&limit=${limit}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
       }
       return response.json();
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // Se a última página retornou menos que o limite, não há mais páginas
+      const pageLimit = allPages.length === 1 ? initialLimit : 20;
+      if (lastPage.length < pageLimit) return undefined;
+      return allPages.length + 1;
     },
     staleTime: 30000, // Cache válido por 30 segundos para reduzir requisições
     gcTime: 300000, // Cache mantido por 5 minutos
