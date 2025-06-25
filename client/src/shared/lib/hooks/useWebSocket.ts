@@ -49,18 +49,13 @@ export function useWebSocket() {
       console.log('🔌 Socket.IO conectado');
       setConnectionStatus(true);
       
-      if (activeConversation) {
-        socketRef.current?.emit('join_conversation', {
-          conversationId: activeConversation.id,
-        });
-      }
+      // Removido: join_conversation não é mais necessário após refatoração do Zustand
     });
 
     // Handle typing indicators
     socketRef.current.on('typing', (data) => {
-      if (data.conversationId !== undefined && data.isTyping !== undefined) {
-        setTypingIndicator(data.conversationId, data.isTyping);
-      }
+      // Removido: indicadores de digitação agora são gerenciados localmente
+      console.log('⌨️ Indicador de digitação recebido:', data);
     });
 
     // Handle broadcast messages for other events

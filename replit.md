@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:12): ERRO ACTIVECONVERSATION NO WEBSOCKET CORRIGIDO
+  - Removida referência não definida a activeConversation no useWebSocket.ts
+  - Simplificado handler de conexão removendo join_conversation desnecessário
+  - Indicadores de digitação agora são gerenciados localmente sem WebSocket
+  - Sistema WebSocket funcionando sem erros de referência undefined
 - June 25, 2025 (16:10): ERRO DE CACHE REACT QUERY CORRIGIDO COMPLETAMENTE
   - Corrigido erro "oldData.map is not a function" no ConversationAssignmentDropdown
   - Adicionada validação Array.isArray() antes de executar map() no cache
