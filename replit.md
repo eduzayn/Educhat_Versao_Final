@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (17:20): PROBLEMA CRÍTICO DE ENVIO Z-API IDENTIFICADO E CORRIGIDO
+  - Identificado que useSendMessage não estava executando o fluxo completo de envio
+  - Adicionados logs de debug detalhados em InputArea e useSendMessage
+  - Corrigida lógica de validação e passagem de dados do contato
+  - Sistema agora envia mensagens via Z-API após salvar no banco local
+  - Logs explícitos mostram cada etapa: validação → salvamento → envio Z-API
 - June 25, 2025 (17:18): LOGS EXPLÍCITOS DE ENVIO Z-API IMPLEMENTADOS
   - Adicionados logs detalhados no frontend (useSendMessage) para rastrear falhas
   - Expandidos logs no backend (/api/zapi/send-message) com timestamp e detalhes completos

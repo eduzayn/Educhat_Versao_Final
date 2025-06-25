@@ -65,6 +65,7 @@ export function useSendMessage() {
       message: Omit<InsertMessage, 'conversationId'>;
       contact?: any;
     }) => {
+      console.log('🔥 ENTRADA useSendMessage:', { conversationId, message, contact });
       // Se for nota interna, NUNCA enviar via Z-API - apenas salvar localmente
       if (message.isInternalNote) {
         console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
@@ -78,6 +79,14 @@ export function useSendMessage() {
       const savedMessage = await localResponse.json();
 
       // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
+      console.log('🔍 VERIFICANDO ENVIO Z-API:', {
+        hasContact: !!contact,
+        contactPhone: contact?.phone,
+        shouldSendZapi: !!(contact?.phone),
+        messageContent: message.content,
+        conversationId
+      });
+      
       if (contact?.phone) {
         console.log('📤 Enviando mensagem via Z-API:', {
           phone: contact.phone,
@@ -110,6 +119,12 @@ export function useSendMessage() {
           });
           // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
         }
+      } else {
+        console.log('❌ NÃO ENVIANDO via Z-API:', {
+          reason: !contact ? 'Sem contato' : !contact.phone ? 'Sem telefone' : 'Condição desconhecida',
+          contact: contact,
+          phone: contact?.phone
+        });
       }
 
       return savedMessage;

@@ -98,6 +98,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       contact: activeConversation.contact
     });
 
+    console.log('🎯 CHAMANDO sendMessageMutation.mutate com:', {
+      conversationId: activeConversation.id,
+      contact: activeConversation.contact,
+      phone: activeConversation.contact?.phone
+    });
+
     sendMessageMutation.mutate({
       conversationId: activeConversation.id,
       message: {
