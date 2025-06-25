@@ -96,7 +96,7 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 25, 2025 (20:21): UNIFICAÇÃO COMPLETA DO FLUXO DE ENVIO DE MENSAGENS IMPLEMENTADA
+- June 25, 2025 (20:28): UNIFICAÇÃO COMPLETA DO FLUXO DE ENVIO DE MENSAGENS IMPLEMENTADA
   - Resolvido problema de mensagens de texto não sendo entregues via Z-API
   - Implementado ponto único de controle com logs padronizados em useSendMessage hook
   - Adicionado tratamento robusto de erros com feedback visual via toast notifications

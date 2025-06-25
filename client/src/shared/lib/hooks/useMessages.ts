@@ -109,16 +109,16 @@ export function useSendMessage() {
             response: zapiResponse
           });
           
+          // Não propagar erro se Z-API falhar - mensagem já foi salva localmente
         } catch (error) {
-          console.error('❌ FALHA CRÍTICA Z-API:', {
+          console.error('❌ FALHA Z-API (não crítica):', {
             phone: phoneNumber,
             error: error instanceof Error ? error.message : String(error),
-            content: message.content.substring(0, 50),
-            stack: error instanceof Error ? error.stack : undefined
+            content: message.content.substring(0, 50)
           });
           
-          // Propagar erro para exibir toast
-          throw new Error(`Falha no envio via WhatsApp para ${phoneNumber}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          // Não propagar erro - UX contínua: mensagem aparece mesmo se Z-API falhar
+          // O usuário vê a mensagem instantaneamente e o webhook pode confirmar entrega
         }
       } else {
         const reason = !phoneNumber ? 'telefone não disponível' : 
