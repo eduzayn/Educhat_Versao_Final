@@ -122,14 +122,15 @@ export function Dashboard() {
       route: '/teams/transfer',
       managerOrAdminOnly: true
     },
-    {
-      id: 'admin',
-      label: 'Admin & Permissões',
-      icon: Shield,
-      description: 'Gerenciar permissões do sistema',
-      route: '/admin/permissions',
-      adminOnly: true
-    },
+    // ETAPA 2: Temporariamente oculto - será removido na Etapa 3
+    // {
+    //   id: 'admin',
+    //   label: 'Admin & Permissões',
+    //   icon: Shield,
+    //   description: 'Gerenciar permissões do sistema',
+    //   route: '/admin/permissions',
+    //   adminOnly: true
+    // },
     {
       id: 'settings',
       label: 'Configurações',

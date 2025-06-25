@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:50): ETAPA 2 - PAINEL /ADMIN/PERMISSIONS OCULTADO DOS MENUS
+  - Removido link "Admin & Permissões" do Dashboard (comentado para Etapa 3)
+  - Removido link da página de Configurações (comentado para Etapa 3)  
+  - Retirado /admin/permissions do sistema de permissões baseado em funções
+  - Backend e rota mantidos funcionais para debug se necessário
+  - Administração agora concentrada em /settings/users
 - June 25, 2025 (06:47): ETAPA 1 - SISTEMA DE PERMISSÕES SIMPLIFICADO IMPLEMENTADO (PARALELO)
   - Criado sistema baseado em funções: Administrador, Gerente, Atendente
   - Implementado arquivo roleBasedPermissions.ts com mapeamento de páginas por função
