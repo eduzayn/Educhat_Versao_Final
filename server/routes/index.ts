@@ -23,6 +23,7 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
+import notificationPreferencesRoutes from "./notification-preferences/index";
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -53,6 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
+  
+  // Registrar rotas de preferências de notificação
+  app.use('/api/notification-preferences', notificationPreferencesRoutes);
 
   
   // Registrar rotas de keyword routing
