@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:28): PERFORMANCE DA PÁGINA DE CONTATOS OTIMIZADA
+  - Reduzida quantidade padrão de contatos por página de 50 para 20
+  - Adicionado seletor de quantidade por página (10, 20, 50, 100) no canto inferior direito
+  - Melhorada experiência de carregamento para sistemas com mais de 8.500 contatos
+  - Mantida funcionalidade completa de paginação e busca
 - June 25, 2025 (06:17): AUDITORIA COMPLETA DE ROTAS E PERMISSÕES FINALIZADA
   - Auditadas 55 rotas totais: 20 frontend + 35 APIs backend
   - Corrigida proteção da rota /teams/transfer com ProtectedRoute (admin/gerente)

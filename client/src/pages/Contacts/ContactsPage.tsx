@@ -28,7 +28,7 @@ export function ContactsPage() {
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const contactsPerPage = 50;
+  const [contactsPerPage, setContactsPerPage] = useState(20);
   const [createForm, setCreateForm] = useState({ 
     name: '', 
     email: '', 
@@ -112,6 +112,11 @@ export function ContactsPage() {
 
   const handlePageClick = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleContactsPerPageChange = (value: string) => {
+    setContactsPerPage(parseInt(value));
+    setCurrentPage(1); // Reset para primeira página
   };
 
   const handleViewContact = (contact: Contact) => {
