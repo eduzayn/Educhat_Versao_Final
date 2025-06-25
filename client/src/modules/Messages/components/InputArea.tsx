@@ -32,7 +32,9 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
 import { useSendMessage } from "@/shared/lib/hooks/useMessages";
-import { useSendAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
+import { useAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
+import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
+import { useFileMessage } from "@/shared/lib/hooks/useFileMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
 import { useChatStore } from "@/shared/store/chatStore";
 import { useToast } from "@/shared/lib/hooks/use-toast";
@@ -80,7 +82,10 @@ export function InputArea() {
   const { activeConversation } = useChatStore();
   const { sendTypingIndicator } = useWebSocket();
   const sendMessageMutation = useSendMessage();
-  const sendAudioMutation = useSendAudioMessage();
+  const sendAudioMutation = useAudioMessage({ 
+    conversationId: activeConversation?.id || 0, 
+    contactPhone: activeConversation?.contact?.phone || '' 
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -399,51 +404,10 @@ export function InputArea() {
     textareaRef.current?.focus();
   };
 
-  // Mutation para enviar imagem
-  const sendImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!activeConversation?.contact.phone || !activeConversation?.id) {
-        throw new Error("Dados da conversa não disponíveis");
-      }
-
-      const formData = new FormData();
-      formData.append("phone", activeConversation.contact.phone);
-      formData.append("conversationId", activeConversation.id.toString());
-      formData.append("image", file);
-
-      const response = await fetch("/api/zapi/send-image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao enviar imagem");
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Imagem enviada",
-        description: "Sua imagem foi enviada com sucesso!",
-      });
-      setIsAttachmentOpen(false);
-
-      // Invalidar cache para atualizar mensagens
-      if (activeConversation?.id) {
-        queryClient.invalidateQueries({
-          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao enviar imagem:", error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Não foi possível enviar a imagem. Tente novamente.",
-        variant: "destructive",
-      });
-    },
+  // Hook padronizado para envio de imagem
+  const sendImageMutation = useImageMessage({ 
+    conversationId: activeConversation?.id || 0, 
+    contactPhone: activeConversation?.contact?.phone || '' 
   });
 
   // Mutation para enviar vídeo

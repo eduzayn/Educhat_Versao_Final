@@ -1,0 +1,59 @@
+✅ ORIENTAÇÃO OFICIAL – RENDERIZAÇÃO IMEDIATA PARA TODOS OS TIPOS DE MENSAGENS
+🔧 Arquitetura: React Query como fonte única de verdade (Zustand removido)
+Agora que o EduChat utiliza exclusivamente o React Query (TanStack Query) como responsável pelo estado das mensagens, o envio e a renderização imediata devem seguir uma lógica padronizada para todos os tipos de mensagens.
+
+✅ O QUE DEVE SER FEITO
+1️⃣ Ao enviar qualquer mensagem (texto, áudio, mídia, documento, etc.):
+A mutação do React Query (useMutation) deve ser utilizada para enviar os dados via Z-API.
+
+No onSuccess, o resultado da API (mensagem recém-criada) deve ser adicionado diretamente ao cache do React Query, via queryClient.setQueryData(...).
+
+A interface deve reagir automaticamente e renderizar essa nova mensagem.
+
+2️⃣ O WebSocket tem função secundária:
+Deve apenas atualizar o cache do React Query para mensagens recebidas de outros usuários ou dispositivos.
+
+Jamais depender do WebSocket para mostrar a mensagem que o próprio usuário acabou de enviar.
+
+Também deve evitar atualizar redundâncias que já foram tratadas localmente.
+
+3️⃣ O componente de interface (MessageBubble ou equivalente):
+Deve ser capaz de renderizar corretamente todos os tipos de mensagens, com base em uma propriedade type, como:
+
+text
+
+audio
+
+image
+
+file
+
+video
+
+Cada tipo deve ter sua apresentação visual bem definida e padronizada.
+
+🧠 EXEMPLO DO FLUXO PADRÃO NO useSendMessage.ts
+ts
+Copiar
+Editar
+mutationFn: async (payload) => {
+  const response = await api.sendMessage(payload); // Funciona para texto, mídia, etc.
+  return response.data; // Mensagem completa retornada pela API
+},
+onSuccess: (newMessage) => {
+  queryClient.setQueryData(
+    [`/api/conversations/${newMessage.conversationId}/messages`],
+    (old: Message[] = []) => [...old, newMessage]
+  );
+}
+🟥 O QUE DEVE SER EVITADO
+❌ Não esperar o WebSocket ou qualquer evento externo para mostrar uma mensagem que acabou de ser enviada.
+
+❌ Não usar polling ou refetch após o envio como garantia — se o cache estiver correto, a UI atualizará naturalmente.
+
+❌ Não duplicar lógica entre hooks como useMessages, useWebSocket, ou reprocessar mensagens que já estão no cache.
+
+🎯 META DO TIME
+A sensação de instantaneidade no envio de qualquer tipo de mensagem é essencial para uma boa experiência de usuário.
+Independentemente do tipo de mensagem enviada, ela deve aparecer imediatamente na conversa, sem atrasos ou necessidade de sincronizações extras.
+

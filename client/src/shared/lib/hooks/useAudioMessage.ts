@@ -1,81 +1,109 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/shared/lib/hooks/use-toast';
+import type { Message } from '@shared/schema';
 
-export function useSendAudioMessage() {
+interface UseAudioMessageProps {
+  conversationId: number;
+  contactPhone: string;
+}
+
+interface SendAudioResponse {
+  message: Message;
+  zaapId: string;
+  messageId: string;
+}
+
+export function useAudioMessage({ conversationId, contactPhone }: UseAudioMessageProps) {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      conversationId, 
-      audioBlob, 
-      duration, 
-      contact 
-    }: { 
-      conversationId: number; 
-      audioBlob: Blob;
-      duration: number;
-      contact?: any;
-    }) => {
-      console.log('🎵 Iniciando envio de áudio:', {
+    mutationFn: async ({ audioBlob, duration }: { audioBlob: Blob; duration: number }): Promise<Message> => {
+      if (!audioBlob || !contactPhone) {
+        throw new Error('Arquivo de áudio e telefone do contato são obrigatórios');
+      }
+
+      console.log('🎤 Iniciando envio de áudio:', {
         conversationId,
         audioSize: audioBlob.size,
         audioType: audioBlob.type,
         duration,
-        contactPhone: contact?.phone
+        contactPhone
       });
 
-      // Se tiver telefone, enviar via Z-API
-      if (contact?.phone) {
-        const formData = new FormData();
-        formData.append('phone', contact.phone);
-        formData.append('audio', audioBlob, `audio.${audioBlob.type.split('/')[1] || 'webm'}`);
-        formData.append('duration', duration.toString());
-        formData.append('conversationId', conversationId.toString());
+      // Criar FormData para envio
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'audio.mp4');
+      formData.append('phone', contactPhone);
+      formData.append('conversationId', conversationId.toString());
+      formData.append('duration', duration.toString());
 
-        console.log('📤 Enviando FormData para Z-API:', {
-          phone: contact.phone,
-          audioType: audioBlob.type,
-          audioSize: audioBlob.size,
-          conversationId,
-          duration
-        });
+      const response = await fetch('/api/zapi/send-audio', {
+        method: 'POST',
+        body: formData
+      });
 
-        const response = await fetch('/api/zapi/send-audio', {
-          method: 'POST',
-          body: formData
-        });
-
-        const responseText = await response.text();
-        console.log('📥 Resposta do servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText
-        });
-
-        if (!response.ok) {
-          console.error('❌ Erro ao enviar áudio via Z-API:', responseText);
-          throw new Error(`Erro na API Z-API: ${response.status} - ${responseText}`);
-        }
-
-        try {
-          return JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('❌ Erro ao parsear resposta:', parseError);
-          throw new Error(`Resposta inválida do servidor: ${responseText}`);
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
       }
 
-      // Sistema só funciona com WhatsApp, não há outros canais
-      throw new Error('Contato deve ter um número de telefone para envio de áudio');
-    },
-    onSuccess: (data, { conversationId }) => {
+      const data: SendAudioResponse = await response.json();
       console.log('✅ Áudio enviado com sucesso:', data);
-      // Invalidar com a chave correta para atualizar mensagens imediatamente
-      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+
+      return data.message;
+    },
+    onSuccess: (newMessage) => {
+      // RENDERIZAÇÃO IMEDIATA: Atualizar cache React Query
+      queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
+        if (!oldData || !oldData.pages) {
+          return {
+            pages: [[newMessage]],
+            pageParams: [0]
+          };
+        }
+        
+        // Verificar se a mensagem já existe em qualquer página
+        const messageExists = oldData.pages.some((page: any[]) => 
+          page.some((msg: any) => msg.id === newMessage.id)
+        );
+        
+        if (messageExists) {
+          return oldData;
+        }
+        
+        // Adicionar à primeira página (mais recente) - ordenação cronológica
+        const updatedPages = [...oldData.pages];
+        updatedPages[0] = [...(updatedPages[0] || []), newMessage].sort((a, b) => 
+          new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
+        );
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        };
+      });
+      
+      // Invalidar cache em background para sincronização
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/conversations/${conversationId}/messages`] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'] 
+      });
+      
+      toast({
+        title: 'Áudio enviado',
+        description: 'O áudio foi enviado com sucesso',
+      });
     },
     onError: (error) => {
-      console.error('💥 Erro ao enviar áudio:', error);
-    },
+      console.error('❌ Erro ao enviar áudio:', error);
+      toast({
+        title: 'Erro ao enviar áudio',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    }
   });
 }

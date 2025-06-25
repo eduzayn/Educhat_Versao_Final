@@ -1,20 +1,21 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { ImageIcon, X, Send } from 'lucide-react';
-import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useImageMessage } from '@/shared/lib/hooks/useImageMessage';
 
 interface ImageUploadProps {
-  onSendImage: (file: File, caption?: string) => Promise<void>;
+  conversationId: number;
+  contactPhone: string;
   disabled?: boolean;
 }
 
-export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
+export function ImageUpload({ conversationId, contactPhone, disabled }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
+  
+  const sendImageMutation = useImageMessage({ conversationId, contactPhone });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,22 +24,12 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
     // Validar tipo de arquivo
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
     if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: 'Tipo de arquivo não suportado',
-        description: 'Por favor, selecione uma imagem (JPEG, PNG, GIF, WebP ou BMP)',
-        variant: 'destructive',
-      });
       return;
     }
 
     // Validar tamanho (50MB máximo)
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({
-        title: 'Arquivo muito grande',
-        description: 'O arquivo deve ter no máximo 50MB',
-        variant: 'destructive',
-      });
       return;
     }
 
@@ -55,23 +46,15 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
   const handleSendImage = async () => {
     if (!selectedImage) return;
 
-    setIsUploading(true);
     try {
-      await onSendImage(selectedImage, caption);
+      await sendImageMutation.mutateAsync({ 
+        file: selectedImage, 
+        caption: caption || undefined 
+      });
       clearSelection();
-      toast({
-        title: 'Imagem enviada',
-        description: 'A imagem foi enviada com sucesso',
-      });
     } catch (error) {
+      // Erro já tratado no hook useImageMessage
       console.error('Erro ao enviar imagem:', error);
-      toast({
-        title: 'Erro ao enviar imagem',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -139,11 +122,11 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
                 <Button
                   size="sm"
                   onClick={handleSendImage}
-                  disabled={isUploading || disabled}
+                  disabled={sendImageMutation.isPending || disabled}
                   className="flex items-center gap-1"
                 >
                   <Send className="h-3 w-3" />
-                  {isUploading ? 'Enviando...' : 'Enviar'}
+                  {sendImageMutation.isPending ? 'Enviando...' : 'Enviar'}
                 </Button>
               </div>
             </div>
@@ -157,7 +140,7 @@ export function ImageUpload({ onSendImage, disabled }: ImageUploadProps) {
         size="sm"
         variant="ghost"
         onClick={openFileDialog}
-        disabled={disabled || isUploading}
+        disabled={disabled || sendImageMutation.isPending}
         className="h-8 w-8 p-0"
         title="Enviar imagem"
       >

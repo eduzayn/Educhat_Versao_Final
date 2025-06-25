@@ -2,38 +2,39 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Message } from '@shared/schema';
 
-interface UseImageMessageProps {
+interface UseFileMessageProps {
   conversationId: number;
   contactPhone: string;
 }
 
-interface SendImageResponse {
+interface SendFileResponse {
   message: Message;
   zaapId: string;
   messageId: string;
 }
 
-export function useImageMessage({ conversationId, contactPhone }: UseImageMessageProps) {
+export function useFileMessage({ conversationId, contactPhone }: UseFileMessageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ file, caption }: { file: File; caption?: string }): Promise<Message> => {
       if (!file || !contactPhone) {
-        throw new Error('Arquivo de imagem e telefone do contato são obrigatórios');
+        throw new Error('Arquivo e telefone do contato são obrigatórios');
       }
 
-      console.log('🖼️ Iniciando envio de imagem:', {
+      console.log('📄 Iniciando envio de arquivo:', {
         conversationId,
-        imageSize: file.size,
-        imageType: file.type,
+        fileSize: file.size,
+        fileType: file.type,
+        fileName: file.name,
         hasCaption: !!caption,
         contactPhone
       });
 
       // Criar FormData para envio
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('file', file);
       formData.append('phone', contactPhone);
       formData.append('conversationId', conversationId.toString());
       
@@ -41,7 +42,7 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         formData.append('caption', caption);
       }
 
-      const response = await fetch('/api/zapi/send-image', {
+      const response = await fetch('/api/zapi/send-file', {
         method: 'POST',
         body: formData
       });
@@ -51,8 +52,8 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
       }
 
-      const data: SendImageResponse = await response.json();
-      console.log('✅ Imagem enviada com sucesso:', data);
+      const data: SendFileResponse = await response.json();
+      console.log('✅ Arquivo enviado com sucesso:', data);
 
       return data.message;
     },
@@ -96,14 +97,14 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
       });
       
       toast({
-        title: 'Imagem enviada',
-        description: 'A imagem foi enviada com sucesso',
+        title: 'Arquivo enviado',
+        description: 'O arquivo foi enviado com sucesso',
       });
     },
     onError: (error) => {
-      console.error('❌ Erro ao enviar imagem:', error);
+      console.error('❌ Erro ao enviar arquivo:', error);
       toast({
-        title: 'Erro ao enviar imagem',
+        title: 'Erro ao enviar arquivo',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
         variant: 'destructive',
       });
