@@ -101,7 +101,7 @@ export function InboxPage() {
   // Hook do store de chat - apenas para estado básico
   const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
   
-  // Hook de mensagens - FONTE ÚNICA DE VERDADE
+  // Hook de mensagens com scroll infinito invertido - FONTE ÚNICA DE VERDADE
   const messagesQuery = useMessages(activeConversation?.id, 15);
   const { 
     data: messagesData, 

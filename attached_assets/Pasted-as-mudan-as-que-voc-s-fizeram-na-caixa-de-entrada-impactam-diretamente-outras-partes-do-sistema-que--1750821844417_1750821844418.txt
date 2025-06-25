@@ -1,0 +1,44 @@
+as mudanças que vocês fizeram na caixa de entrada impactam diretamente outras partes do sistema que também dependem de atualização em tempo real, especialmente se esses pontos compartilhavam a mesma lógica anterior (com Zustand, múltiplas fontes de dados, etc).
+
+Aqui está um mapeamento técnico de onde pode haver impacto direto e o que precisa ser ajustado:
+
+🧭 ÁREAS POTENCIALMENTE IMPACTADAS
+1️⃣ Lista de conversas (caixa de entrada lateral)
+Se essa lista atualizava via useChatStore, agora ela precisa ouvir o WebSocket e atualizar via React Query também.
+
+Exemplo: se uma nova mensagem chegar de outro usuário, a conversa correspondente precisa subir na lista, exibir o preview e marcar como "não lida".
+
+🔧 O que revisar:
+
+Atualização do item na lista ao receber nova mensagem
+
+Ordenação da lista (última mensagem deve subir)
+
+Indicação visual de mensagem nova
+
+2️⃣ Notificações em tempo real (badges, toasts, sons etc.)
+Qualquer lógica que dependia do Zustand ou escutava eventos duplicados pode estar agora sem receber eventos ou recebendo duplicado.
+
+🔧 O que revisar:
+
+As notificações (sons, popups, ícones) estão vindo apenas do WebSocket, e apenas quando é o outro usuário enviando
+
+Nenhum evento de nova mensagem própria deve disparar alerta (isso já está na tela)
+
+3️⃣ Painéis de supervisão / BI / dashboards
+Se houver relatórios que mostram, por exemplo, a quantidade de mensagens recebidas em tempo real, atendentes ativos ou tempo de resposta, e esses dados vinham do Zustand ou polling — eles agora precisam se conectar ao cache correto do React Query, ou a eventos do WebSocket centralizado.
+
+🔧 O que revisar:
+
+As queries que abastecem os painéis precisam refletir corretamente o novo estado das conversas
+
+Dados em tempo real devem escutar somente o WebSocket e reagir com setQueryData ou invalidateQueries
+
+4️⃣ Componente de conversa aberta em múltiplas abas ou dispositivos
+Se o mesmo usuário estiver em mais de uma aba (ou em mais de um aparelho), as mensagens enviadas de um local devem aparecer no outro sem atraso nem duplicação.
+
+🔧 O que revisar:
+
+Garantir que o WebSocket funcione para múltiplos listeners do mesmo usuário
+
+Evitar inserção duplicada de mensagem no React Query
