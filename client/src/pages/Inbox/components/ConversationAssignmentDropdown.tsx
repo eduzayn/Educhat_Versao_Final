@@ -57,13 +57,18 @@ export function ConversationAssignmentDropdown({
         assignedTeamId: teamId === 'none' ? null : parseInt(teamId),
         method: 'manual'
       }),
-    onSuccess: (_, teamId) => {
+    onSuccess: (updatedConversation, teamId) => {
       toast({
         title: "Sucesso",
         description: teamId === 'none' ? "Conversa movida para fila neutra" : "Conversa atribuída à equipe com sucesso"
       });
-      // Invalidar e recarregar cache das conversas
+      // Invalidar queries específicas para atualização imediata
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+      // Forçar atualização da conversa específica se a resposta incluir dados atualizados
+      if (updatedConversation) {
+        queryClient.setQueryData(['/api/conversations', conversationId], updatedConversation);
+      }
     },
     onError: () => {
       toast({
@@ -84,13 +89,18 @@ export function ConversationAssignmentDropdown({
         assignedUserId: userId === 'none' ? null : parseInt(userId),
         method: 'manual'
       }),
-    onSuccess: (_, userId) => {
+    onSuccess: (updatedConversation, userId) => {
       toast({
         title: "Sucesso",
         description: userId === 'none' ? "Conversa não atribuída a usuário específico" : "Conversa atribuída ao usuário com sucesso"
       });
-      // Invalidar e recarregar cache das conversas
+      // Invalidar queries específicas para atualização imediata
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+      // Forçar atualização da conversa específica se a resposta incluir dados atualizados
+      if (updatedConversation) {
+        queryClient.setQueryData(['/api/conversations', conversationId], updatedConversation);
+      }
     },
     onError: () => {
       toast({
