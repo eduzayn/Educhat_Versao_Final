@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:54): ERRO CRÍTICO DO SELECTITEM CORRIGIDO COMPLETAMENTE
+  - Identificado e corrigido erro "SelectItem must have a value prop that is not an empty string"
+  - Alterados 5 arquivos: ContactsPage.tsx, ContactDialog.tsx, InlineEditField.tsx, ContactSidebar.tsx
+  - Substituído todas as ocorrências de value="" por valores válidos (none, all)
+  - Implementada validação robusta para canais WhatsApp com hasValidChannel
+  - Corrigido cache infinito do React Query que impedia recarregamento de canais
+  - Sistema SelectItem 100% funcional sem erros React no console
 - June 25, 2025 (05:36): FUNCIONALIDADE DE MENSAGEM ATIVA IMPLEMENTADA NO MODAL DE CONTATO
   - Adicionados campos de seleção de canal WhatsApp e mensagem ativa no modal de criação
   - Validação automática: canal obrigatório se mensagem preenchida e vice-versa

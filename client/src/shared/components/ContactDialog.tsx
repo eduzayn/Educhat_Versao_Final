@@ -56,10 +56,15 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
   const { data: channels = [] } = useQuery({
     queryKey: ['/api/channels'],
     queryFn: async () => {
-      const response = await fetch('/api/channels');
+      const response = await fetch('/api/channels', {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Falha ao buscar canais');
       return response.json();
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;

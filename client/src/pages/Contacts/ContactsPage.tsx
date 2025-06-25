@@ -53,7 +53,10 @@ export function ContactsPage() {
   // Buscar canais disponíveis
   const { data: channels = [], isLoading: isLoadingChannels } = useQuery({
     queryKey: ['/api/channels'],
-    queryFn: () => apiRequest('GET', '/api/channels')
+    queryFn: () => apiRequest('GET', '/api/channels'),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   // Garantir que channels é sempre um array
