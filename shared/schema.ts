@@ -65,6 +65,7 @@ export const conversations = pgTable("conversations", {
   assignedAt: timestamp("assigned_at"),
   // Campos adicionais para compatibilidade
   isRead: boolean("is_read").default(false),
+  markedUnreadManually: boolean("marked_unread_manually").default(false), // true se marcada manualmente como não lida
   priority: varchar("priority", { length: 20 }).default("normal"), // low, normal, high, urgent
   tags: text("tags").array(),
   metadata: jsonb("metadata"),
