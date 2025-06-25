@@ -23,13 +23,7 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         throw new Error('Arquivo de imagem e telefone do contato são obrigatórios');
       }
 
-      console.log('🖼️ Iniciando envio de imagem:', {
-        conversationId,
-        imageSize: file.size,
-        imageType: file.type,
-        hasCaption: !!caption,
-        contactPhone
-      });
+
 
       // Criar FormData para envio
       const formData = new FormData();
@@ -57,9 +51,7 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
       return data.message;
     },
     onSuccess: (newMessage) => {
-      // Validação crítica para evitar erros
       if (!newMessage || !newMessage.id || !newMessage.conversationId) {
-        console.warn('⚠️ Mensagem inválida recebida:', newMessage);
         return;
       }
 

@@ -23,14 +23,7 @@ export function useFileMessage({ conversationId, contactPhone }: UseFileMessageP
         throw new Error('Arquivo e telefone do contato são obrigatórios');
       }
 
-      console.log('📄 Iniciando envio de arquivo:', {
-        conversationId,
-        fileSize: file.size,
-        fileType: file.type,
-        fileName: file.name,
-        hasCaption: !!caption,
-        contactPhone
-      });
+
 
       // Criar FormData para envio
       const formData = new FormData();

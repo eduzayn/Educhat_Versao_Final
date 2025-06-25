@@ -23,13 +23,7 @@ export function useAudioMessage({ conversationId, contactPhone }: UseAudioMessag
         throw new Error('Arquivo de áudio e telefone do contato são obrigatórios');
       }
 
-      console.log('🎤 Iniciando envio de áudio:', {
-        conversationId,
-        audioSize: file.size,
-        audioType: file.type,
-        duration,
-        contactPhone
-      });
+
 
       // Criar FormData para envio
       const formData = new FormData();

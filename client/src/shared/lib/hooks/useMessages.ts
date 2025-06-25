@@ -65,65 +65,26 @@ export function useSendMessage() {
       message: Omit<InsertMessage, 'conversationId'>;
       contact?: any;
     }) => {
-      console.log('🔥 ENTRADA useSendMessage:', { conversationId, message, contact });
       // Se for nota interna, NUNCA enviar via Z-API - apenas salvar localmente
       if (message.isInternalNote) {
-        console.log('📝 Nota interna - salvando apenas localmente, NÃO enviando via Z-API');
-        const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-        return response;
+        return await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
       }
 
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
-      console.log('💾 Salvando mensagem no banco local primeiro');
       const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
 
       // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
-      console.log('🔍 VERIFICANDO ENVIO Z-API:', {
-        hasContact: !!contact,
-        contactPhone: contact?.phone,
-        shouldSendZapi: !!(contact?.phone),
-        messageContent: message.content,
-        conversationId
-      });
-      
       if (contact?.phone) {
-        console.log('📤 Enviando mensagem via Z-API:', {
-          phone: contact.phone,
-          message: message.content,
-          conversationId
-        });
-        
         try {
-          console.log('📤 Iniciando envio via Z-API:', {
-            endpoint: '/api/zapi/send-message',
+          await apiRequest("POST", "/api/zapi/send-message", {
             phone: contact.phone,
             message: message.content,
             conversationId: conversationId
           });
-          
-          const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
-            phone: contact.phone,
-            message: message.content,
-            conversationId: conversationId
-          });
-          
-          console.log('✅ Mensagem enviada via Z-API com sucesso:', zapiResponse);
         } catch (error) {
-          console.error('❌ FALHA CRÍTICA ao enviar via Z-API:', {
-            error: error,
-            message: error instanceof Error ? error.message : 'Erro desconhecido',
-            stack: error instanceof Error ? error.stack : undefined,
-            phone: contact.phone,
-            messageContent: message.content
-          });
+          console.error('Erro ao enviar via Z-API:', error);
           // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
         }
-      } else {
-        console.log('❌ NÃO ENVIANDO via Z-API:', {
-          reason: !contact ? 'Sem contato' : !contact.phone ? 'Sem telefone' : 'Condição desconhecida',
-          contact: contact,
-          phone: contact?.phone
-        });
       }
 
       return savedMessage;

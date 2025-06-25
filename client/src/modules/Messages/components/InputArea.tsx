@@ -83,26 +83,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   }, []);
 
   const handleSendMessage = () => {
-    if (!message.trim() || !activeConversation?.id) {
-      console.log('❌ Envio bloqueado:', { 
-        hasMessage: !!message.trim(), 
-        hasConversation: !!activeConversation?.id,
-        activeConversation: activeConversation 
-      });
-      return;
-    }
-
-    console.log('🚀 Enviando mensagem:', { 
-      content: message.trim(), 
-      conversationId: activeConversation.id,
-      contact: activeConversation.contact
-    });
-
-    console.log('🎯 CHAMANDO sendMessageMutation.mutate com:', {
-      conversationId: activeConversation.id,
-      contact: activeConversation.contact,
-      phone: activeConversation.contact?.phone
-    });
+    if (!message.trim() || !activeConversation?.id) return;
 
     sendMessageMutation.mutate({
       conversationId: activeConversation.id,
@@ -125,10 +106,6 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      console.log('⌨️ Enter pressionado:', { 
-        hasMessage: !!message.trim(),
-        hasConversation: !!activeConversation?.id 
-      });
       handleSendMessage();
     }
   };
