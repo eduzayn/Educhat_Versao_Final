@@ -28,7 +28,12 @@ const settingsCards = [
     href: "/settings/webhooks",
     icon: "🔗"
   },
-
+  {
+    title: "Preferências de Notificação",
+    description: "Configure como e quando receber notificações do sistema",
+    href: "/notifications",
+    icon: "🔔"
+  },
   {
     title: "Integrações",
     description: "APIs externas, CRM, automações",
