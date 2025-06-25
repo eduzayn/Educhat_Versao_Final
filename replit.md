@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:19): ORDEM DAS MENSAGENS CORRIGIDA NA INTERFACE DE CONVERSA
+  - Corrigida ordenação SQL de desc(sentAt) para sentAt (ordem crescente)
+  - Mensagens agora aparecem do mais antigo (topo) para mais recente (embaixo)
+  - Scroll automático mantido para sempre focar na mensagem mais recente
+  - Comportamento padrão de chat implementado corretamente
 - June 25, 2025 (02:03): SCROLL INFINITO POR COLUNA IMPLEMENTADO NA PÁGINA DE TRANSFERÊNCIAS
   - Limitado exibição inicial a 6 cards por coluna com scroll vertical
   - Implementado scroll infinito para visualizar todas as 50 conversas carregadas
