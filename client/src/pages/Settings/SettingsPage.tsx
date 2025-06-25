@@ -37,7 +37,7 @@ const settingsCards = [
   },
   {
     title: "Sistema de Detecção",
-    description: "Configure expressões e macrosetores para classificação automática",
+    description: "Configure expressões e categorias para classificação automática",
     href: "/settings/ai-detection",
     icon: "🧠"
   },

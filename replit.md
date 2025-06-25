@@ -30,7 +30,7 @@ The system follows a modular full-stack architecture:
 
 ### 3. Intelligent Lead Management
 - **Educational Course Detection**: AI-powered course interest detection using Anthropic API
-- **Macrosetor Classification**: Automatic routing based on message content (sales, support, billing, tutoring, etc.)
+- **Category Classification**: Automatic routing based on message content (sales, support, billing, tutoring, etc.)
 - **Team Assignment**: Smart assignment of conversations to appropriate teams
 - **Deal Pipeline**: CRM functionality with deal tracking and conversion metrics
 
@@ -42,7 +42,7 @@ The system follows a modular full-stack architecture:
 ## Data Flow
 
 1. **Message Reception**: Webhooks receive messages from various channels (WhatsApp, Facebook, etc.)
-2. **Content Analysis**: Messages are analyzed for educational interests and macrosetor classification
+2. **Content Analysis**: Messages are analyzed for educational interests and category classification
 3. **Smart Routing**: Conversations are automatically assigned to appropriate teams based on content
 4. **User Assignment**: Available team members receive conversation assignments
 5. **Response Handling**: Team members respond through the unified interface

@@ -865,7 +865,7 @@ export const facebookWebhookLogsRelations = relations(facebookWebhookLogs, ({ on
 }));
 
 // Sistema de Detecção de Macrosetores
-export const macrosetorDetection = pgTable("macrosetor_detection", {
+export const categoryDetection = pgTable("category_detection", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: text("name").notNull(),
   description: text("description"),
@@ -875,7 +875,7 @@ export const macrosetorDetection = pgTable("macrosetor_detection", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const macrosetorKeywords = pgTable("macrosetor_keywords", {
+export const categoryKeywords = pgTable("category_keywords", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   macrosetorId: integer("macrosetor_id").notNull().references(() => macrosetorDetection.id, { onDelete: "cascade" }),
   keyword: text("keyword").notNull(),
@@ -895,37 +895,37 @@ export const detectionLogs = pgTable("detection_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertMacrosetorDetectionSchema = createInsertSchema(macrosetorDetection).omit({
+export const insertCategoryDetectionSchema = createInsertSchema(categoryDetection).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertMacrosetorKeywordSchema = createInsertSchema(macrosetorKeywords).omit({
+export const insertCategoryKeywordSchema = createInsertSchema(categoryKeywords).omit({
   id: true,
   createdAt: true,
 });
 
 export const insertDetectionLogSchema = createInsertSchema(detectionLogs);
 
-export type MacrosetorDetection = typeof macrosetorDetection.$inferSelect;
-export type InsertMacrosetorDetection = z.infer<typeof insertMacrosetorDetectionSchema>;
-export type MacrosetorKeyword = typeof macrosetorKeywords.$inferSelect;
-export type InsertMacrosetorKeyword = z.infer<typeof insertMacrosetorKeywordSchema>;
+export type CategoryDetection = typeof categoryDetection.$inferSelect;
+export type InsertCategoryDetection = z.infer<typeof insertCategoryDetectionSchema>;
+export type CategoryKeyword = typeof categoryKeywords.$inferSelect;
+export type InsertCategoryKeyword = z.infer<typeof insertCategoryKeywordSchema>;
 export type DetectionLog = typeof detectionLogs.$inferSelect;
 export type InsertDetectionLog = z.infer<typeof insertDetectionLogSchema>;
 
-export const macrosetorDetectionRelations = relations(macrosetorDetection, ({ many }) => ({
+export const categoryDetectionRelations = relations(categoryDetection, ({ many }) => ({
   keywords: many(macrosetorKeywords),
 }));
 
-export const macrosetorKeywordsRelations = relations(macrosetorKeywords, ({ one }) => ({
+export const categoryKeywordsRelations = relations(categoryKeywords, ({ one }) => ({
   macrosetor: one(macrosetorDetection, {
     fields: [macrosetorKeywords.macrosetorId],
     references: [macrosetorDetection.id],
   }),
 }));
 
-export type MacrosetorWithKeywords = MacrosetorDetection & {
-  keywords: MacrosetorKeyword[];
+export type CategoryWithKeywords = CategoryDetection & {
+  keywords: CategoryKeyword[];
 };
