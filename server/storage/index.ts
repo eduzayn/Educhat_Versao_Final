@@ -15,6 +15,7 @@ export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
 export { MacrosetorStorage } from './modules/macrosetorStorage';
+export { KeywordRoutingStorage } from './modules/keywordRoutingStorage';
 
 // Utilitários
 export * from './utils/macrosetorUtils';
@@ -36,6 +37,7 @@ import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
 import { MacrosetorStorage } from './modules/macrosetorStorage';
+import { KeywordRoutingStorage } from './modules/keywordRoutingStorage';
 import { SystemStorage } from './modules/systemStorage';
 
 export class DatabaseStorage implements IStorage {
@@ -442,6 +444,43 @@ export class DatabaseStorage implements IStorage {
 
   async getTransferHistory(limit?: number) {
     return this.team.getTransferHistory(limit);
+  }
+
+  // ==================== KEYWORD ROUTING OPERATIONS ====================
+  async getKeywordRoutings() {
+    return this.keywordRouting.getKeywordRoutings();
+  }
+
+  async getKeywordRouting(id: number) {
+    return this.keywordRouting.getKeywordRouting(id);
+  }
+
+  async createKeywordRouting(data: any) {
+    return this.keywordRouting.createKeywordRouting(data);
+  }
+
+  async updateKeywordRouting(id: number, data: any) {
+    return this.keywordRouting.updateKeywordRouting(id, data);
+  }
+
+  async deleteKeywordRouting(id: number) {
+    return this.keywordRouting.deleteKeywordRouting(id);
+  }
+
+  async findTeamByMessage(message: string) {
+    return this.keywordRouting.findTeamByMessage(message);
+  }
+
+  async getKeywordRoutingsByTeam(teamId: number) {
+    return this.keywordRouting.getKeywordRoutingsByTeam(teamId);
+  }
+
+  async keywordExists(keyword: string, excludeId?: number) {
+    return this.keywordRouting.keywordExists(keyword, excludeId);
+  }
+
+  async toggleKeywordRoutingStatus(id: number) {
+    return this.keywordRouting.toggleKeywordRoutingStatus(id);
   }
 
   // ==================== PERMISSIONS (padrão TRUE, customizar depois) ==========
