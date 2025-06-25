@@ -57,6 +57,16 @@ const settingsCards = [
 ];
 
 function SettingsPage() {
+  const { user } = useAuth();
+  
+  // Filtrar cards baseado nas permissões do usuário
+  const filteredCards = settingsCards.filter(card => {
+    if (card.adminOnly) {
+      return user?.role === 'admin' || user?.role === 'superadmin';
+    }
+    return true;
+  });
+
   return (
     <SettingsModule>
       <div className="space-y-6">
