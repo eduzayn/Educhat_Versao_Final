@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:04): QUANTIDADE DE EMOJIS EXPANDIDA DRASTICAMENTE
+  - Expandida lista de emojis de 16 para mais de 1000 emojis em todos os componentes
+  - InputArea.tsx: array de emojis expandido com categorias completas
+  - ChatInput.tsx: FREQUENT_EMOJIS expandido para coleção abrangente
+  - PrivateMessageModal.tsx: lista de emojis ampliada para melhor experiência
+  - Incluídas todas as categorias: rostos, gestos, corações, animais, comida, objetos, símbolos, etc.
+  - Interface de emoji picker muito mais rica e diversificada
 - June 25, 2025 (05:01): GRAVADOR E PREVIEW DE ÁUDIO MODERNIZADOS (IMPLEMENTAÇÃO CORRIGIDA)
   - Corrigido componente AudioRecorder.tsx aplicando melhorias visuais corretas
   - Gravação: bg-red-50 com microfone em círculo vermelho pulsante 
