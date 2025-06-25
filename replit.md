@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:50): SCROLL INFINITO INVERTIDO IMPLEMENTADO NAS MENSAGENS
+  - Hook useMessages convertido para useInfiniteQuery com carregamento inicial de 15 mensagens
+  - Carregamento progressivo de 10 mensagens por vez ao rolar para cima
+  - Scroll inteligente que mantém posição após carregar histórico
+  - Indicadores visuais de carregamento e fim do histórico
+  - Query SQL otimizada com ordenação decrescente e reversão para exibição cronológica
 - June 25, 2025 (02:49): LIMPEZA DE CÓDIGO OBSOLETO APÓS CORREÇÕES
   - Removidos arquivos de documentação obsoletos (INBOX_AUDIT_REPORT.md, PERFORMANCE_FIXES.md)
   - Limpo código WebSocket removendo comentários incorretos

@@ -1,10 +1,13 @@
-import { useEffect, useRef } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MessageSquare, Loader2 } from 'lucide-react';
 import { MessageBubble } from '../../../modules/Messages/components/MessageBubble';
 
 interface MessagesAreaProps {
   messages: any[];
   isLoadingMessages: boolean;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => void;
   activeConversation: any;
   getChannelInfo: (channel: string) => { icon: string; color: string; label: string };
 }
@@ -12,6 +15,9 @@ interface MessagesAreaProps {
 export function MessagesArea({
   messages,
   isLoadingMessages,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
   activeConversation,
   getChannelInfo
 }: MessagesAreaProps) {
@@ -19,6 +25,8 @@ export function MessagesArea({
   const containerRef = useRef<HTMLDivElement>(null);
   const prevConversationId = useRef<number | undefined>();
   const prevMessageCount = useRef<number>(0);
+  const [isNearTop, setIsNearTop] = useState(false);
+  const loadingRef = useRef<boolean>(false);
 
   // Função para rolar para o final
   const scrollToBottom = () => {
@@ -40,9 +48,38 @@ export function MessagesArea({
     }
   }, [activeConversation?.id, messages.length]);
 
-  // Rolar para o final quando novas mensagens chegarem
+  // Detectar scroll próximo ao topo para carregar mais mensagens
+  const handleScroll = () => {
+    if (!containerRef.current || !fetchNextPage || loadingRef.current) return;
+    
+    const { scrollTop } = containerRef.current;
+    const nearTop = scrollTop < 100; // 100px do topo
+    
+    setIsNearTop(nearTop);
+    
+    // Carregar mais mensagens quando próximo ao topo
+    if (nearTop && hasNextPage && !isFetchingNextPage) {
+      loadingRef.current = true;
+      const previousScrollHeight = containerRef.current.scrollHeight;
+      const previousScrollTop = containerRef.current.scrollTop;
+      
+      fetchNextPage().then(() => {
+        // Manter posição do scroll após carregar novas mensagens
+        setTimeout(() => {
+          if (containerRef.current) {
+            const newScrollHeight = containerRef.current.scrollHeight;
+            const heightDifference = newScrollHeight - previousScrollHeight;
+            containerRef.current.scrollTop = previousScrollTop + heightDifference;
+          }
+          loadingRef.current = false;
+        }, 50);
+      });
+    }
+  };
+
+  // Rolar para o final quando novas mensagens chegarem (apenas se não estiver carregando histórico)
   useEffect(() => {
-    if (messages.length > prevMessageCount.current && messages.length > 0) {
+    if (messages.length > prevMessageCount.current && messages.length > 0 && !loadingRef.current) {
       setTimeout(() => {
         scrollToBottom();
       }, 50);

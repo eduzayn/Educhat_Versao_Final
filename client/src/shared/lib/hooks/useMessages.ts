@@ -1,24 +1,31 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message, InsertMessage } from '@shared/schema';
 
-export function useMessages(conversationId: number | null, limit = 50) {
-  return useQuery<Message[]>({
-    queryKey: [`/api/conversations/${conversationId}/messages`, { limit }],
-    queryFn: async () => {
-      const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=0`);
+export function useMessages(conversationId: number | null, initialLimit = 15) {
+  return useInfiniteQuery<Message[]>({
+    queryKey: [`/api/conversations/${conversationId}/messages`],
+    queryFn: async ({ pageParam = 0 }) => {
+      const limit = pageParam === 0 ? initialLimit : 10; // Primeira página: 15, demais: 10
+      const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=${pageParam}`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
       const messages = await response.json();
-      // Retornar em ordem cronológica (mais antigas primeiro para compatibilidade com scroll)
       return messages;
     },
+    getNextPageParam: (lastPage, allPages) => {
+      // Se a última página retornou menos que o limite, não há mais páginas
+      const pageLimit = allPages.length === 1 ? initialLimit : 10;
+      if (lastPage.length < pageLimit) return undefined;
+      
+      // Calcular offset para próxima página
+      const totalMessages = allPages.reduce((acc, page) => acc + page.length, 0);
+      return totalMessages;
+    },
     enabled: !!conversationId,
-    // Remover polling automático - usar apenas WebSocket para tempo real
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    // Manter dados em cache por mais tempo para melhor performance
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
