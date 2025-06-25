@@ -408,11 +408,11 @@ export function ContactSidebar({
                   <div>
                     <Label htmlFor="deal-category">Funil de vendas *</Label>
                     <Select 
-                      value={dealFormData.macrosetor} 
+                      value={dealFormData.category} 
                       onValueChange={(value) => {
                         setDealFormData(prev => ({ 
                           ...prev, 
-                          macrosetor: value,
+                          category: value,
                           stage: '' // Reset stage when funnel changes
                         }));
                       }}
@@ -570,8 +570,8 @@ export function ContactSidebar({
                   Outras Classificações
                 </h4>
                 <div className="flex flex-wrap gap-1">
-                  {otherTags.map((tag: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+                  {otherTags.map((tag: string) => (
+                    <Badge key={tag} variant="outline" className="text-xs">
                       {tag}
                     </Badge>
                   ))}
@@ -645,8 +645,8 @@ export function ContactSidebar({
 
           {contactNotes.length > 0 ? (
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {contactNotes.map((note, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded-lg">
+              {contactNotes.map((note) => (
+                <div key={note.id || note.createdAt} className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-700 mb-2">{note.content}</p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{note.author || 'Sistema'}</span>
