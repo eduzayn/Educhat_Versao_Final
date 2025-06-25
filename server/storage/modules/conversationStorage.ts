@@ -95,6 +95,8 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
+      // Converter lastMessage de objeto para string para compatibilidade com frontend
+      lastMessage: row.lastMessage?.content || '',
       messages: row.lastMessage?.id ? [row.lastMessage] : [],
       _count: { messages: row.unreadCount || 0 }
     } as ConversationWithContact));

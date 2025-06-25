@@ -119,38 +119,20 @@ export default function TeamTransferPage() {
         const response = await fetch('/api/conversations');
         if (!response.ok) return [];
         const data = await response.json();
-        return Array.isArray(data) ? data.map((conv: any) => {
-          // Garantir que lastMessage seja sempre uma string
-          let lastMessageText = '';
-          if (conv.lastMessage) {
-            if (typeof conv.lastMessage === 'string') {
-              lastMessageText = conv.lastMessage;
-            } else if (conv.lastMessage.text) {
-              lastMessageText = conv.lastMessage.text;
-            } else if (conv.lastMessage.message) {
-              lastMessageText = conv.lastMessage.message;
-            } else if (conv.lastMessage.content) {
-              lastMessageText = conv.lastMessage.content;
-            }
-          } else if (conv.messages?.[0]?.content) {
-            lastMessageText = conv.messages[0].content;
-          }
-          
-          return {
-            id: conv.id,
-            contactName: conv.contact?.name || conv.contactName || 'Contato',
-            lastMessage: lastMessageText || 'Sem mensagem',
-            unreadCount: conv.unreadCount || 0,
-            status: conv.status || 'open',
-            channel: conv.channel || 'whatsapp',
-            assignedTeamId: conv.assignedTeamId || null,
-            assignedUserId: conv.assignedUserId || null,
-            assignedUserName: conv.assignedUserName || null,
-            lastMessageAt: conv.lastMessageAt || conv.updatedAt || new Date().toISOString(),
-            contactPhone: conv.contact?.phone || conv.contactPhone,
-            contactEmail: conv.contact?.email || conv.contactEmail
-          };
-        }) : [];
+        return Array.isArray(data) ? data.map((conv: any) => ({
+          id: conv.id,
+          contactName: conv.contact?.name || conv.contactName || 'Contato',
+          lastMessage: conv.lastMessage || 'Sem mensagem',
+          unreadCount: conv.unreadCount || 0,
+          status: conv.status || 'open',
+          channel: conv.channel || 'whatsapp',
+          assignedTeamId: conv.assignedTeamId || null,
+          assignedUserId: conv.assignedUserId || null,
+          assignedUserName: conv.assignedUserName || null,
+          lastMessageAt: conv.lastMessageAt || conv.updatedAt || new Date().toISOString(),
+          contactPhone: conv.contact?.phone || conv.contactPhone,
+          contactEmail: conv.contact?.email || conv.contactEmail
+        })) : [];
       } catch (error) {
         console.error('Erro ao carregar conversas:', error);
         return [];

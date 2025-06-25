@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:54): ERRO REACT NO SISTEMA DRAG-AND-DROP CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema na API: campo lastMessage retornava objeto Message ao invés de string
+  - Corrigido conversationStorage.ts para extrair content do objeto Message
+  - Simplificado processamento no frontend após correção do servidor
+  - Sistema drag-and-drop funcionando sem erros React
 - June 25, 2025 (01:52): ERRO REACT NO SISTEMA DRAG-AND-DROP CORRIGIDO
   - Corrigido erro "Objects are not valid as a React child" no sistema de transferências
   - Adicionada validação de tipo para lastMessage (pode ser string ou objeto Z-API)
