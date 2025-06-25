@@ -102,8 +102,26 @@ export function InboxPage() {
   // Estado local para conversa ativa (substituindo Zustand)
   const [activeConversation, setActiveConversation] = useState<any>(null);
   
+  // Query para dados atualizados da conversa ativa - FONTE ÚNICA DE VERDADE
+  const { data: activeConversationData } = useQuery({
+    queryKey: ['/api/conversations', activeConversation?.id],
+    queryFn: async ({ queryKey }) => {
+      const conversationId = queryKey[1];
+      if (!conversationId) return null;
+      const response = await fetch(`/api/conversations/${conversationId}`);
+      if (!response.ok) throw new Error('Erro ao carregar conversa');
+      return response.json();
+    },
+    enabled: !!activeConversation?.id,
+    staleTime: 0, // Sempre buscar dados frescos para atribuições
+    refetchInterval: 5000 // Backup para mudanças externas
+  });
+  
+  // Usar dados atualizados da query ou fallback para dados locais
+  const currentActiveConversation = activeConversationData || activeConversation;
+  
   // Hook de mensagens com scroll infinito invertido - FONTE ÚNICA DE VERDADE
-  const messagesQuery = useMessages(activeConversation?.id, 15);
+  const messagesQuery = useMessages(currentActiveConversation?.id, 15);
   const { 
     data: messagesData, 
     isLoading: isLoadingMessages,
