@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:59): ERRO DE CONTACTSIDEBAR LINHA 84 CORRIGIDO COMPLETAMENTE
+  - Identificado erro de acesso a propriedades undefined no ContactSidebar.tsx
+  - Adicionada validação robusta: if (!activeConversation || !activeConversation.contact) return null
+  - Implementado optional chaining (?) em todas as referências a activeConversation.contact
+  - Corrigidas 15+ ocorrências de acesso inseguro a propriedades do contato
+  - Sistema ContactSidebar funcionando sem erros React
 - June 25, 2025 (05:56): ERRO DE UPDATEDEALMUTATION CORRIGIDO
   - Identificado erro "updateDealMutation is not defined" no ContactSidebar.tsx
   - Adicionada mutation updateDealMutation para atualizar deals via PATCH /api/deals/:id
