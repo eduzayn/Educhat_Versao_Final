@@ -168,74 +168,78 @@ export class ConversationStorage extends BaseStorage {
         return undefined;
       }
 
-      // Buscar mensagens da conversa com tratamento de erro
-      let conversationMessages = [];
-      try {
-        conversationMessages = await this.db
+      // Executar todas as queries secundárias em paralelo para otimizar performance
+      const [
+        conversationMessages,
+        channelInfo,
+        contactTagsResult,
+        contactDeals
+      ] = await Promise.allSettled([
+        // Buscar apenas as 50 mensagens mais recentes para evitar sobrecarga
+        this.db
           .select()
           .from(messages)
           .where(and(
             eq(messages.conversationId, id),
             eq(messages.isDeleted, false)
           ))
-          .orderBy(desc(messages.sentAt));
-      } catch (messagesError) {
-        console.warn(`getConversation: Erro ao buscar mensagens da conversa ${id}:`, messagesError);
-        conversationMessages = []; // Fallback para array vazio
-      }
-
-      // Buscar canal se disponível com tratamento de erro
-      let channelInfo = null;
-      if (result.channelId) {
-        try {
-          [channelInfo] = await this.db
-            .select()
-            .from(channels)
-            .where(eq(channels.id, result.channelId));
-        } catch (channelError) {
-          console.warn(`getConversation: Erro ao buscar canal ${result.channelId}:`, channelError);
-          channelInfo = null; // Fallback seguro
-        }
-      }
-
-      // Buscar tags do contato com tratamento de erro
-      let tagsArray = [];
-      try {
-        const contactTagsResult = await this.db
+          .orderBy(desc(messages.sentAt))
+          .limit(50),
+        
+        // Buscar canal se disponível
+        result.channelId ? this.db
+          .select()
+          .from(channels)
+          .where(eq(channels.id, result.channelId))
+          .limit(1) : Promise.resolve([]),
+        
+        // Buscar tags do contato
+        this.db
           .select({ tag: contactTags.tag })
           .from(contactTags)
-          .where(eq(contactTags.contactId, result.contact.id));
-        tagsArray = contactTagsResult.map(t => t.tag);
-      } catch (tagsError) {
-        console.warn(`getConversation: Erro ao buscar tags do contato ${result.contact.id}:`, tagsError);
-        tagsArray = []; // Fallback para array vazio
-      }
-
-      // Buscar deals do contato com tratamento de erro
-      let contactDeals = [];
-      try {
-        contactDeals = await this.db
+          .where(eq(contactTags.contactId, result.contact.id)),
+        
+        // Buscar deals ativos do contato
+        this.db
           .select()
           .from(deals)
           .where(and(
             eq(deals.contactId, result.contact.id),
             eq(deals.isActive, true)
           ))
-          .orderBy(desc(deals.createdAt));
-      } catch (dealsError) {
-        console.warn(`getConversation: Erro ao buscar deals do contato ${result.contact.id}:`, dealsError);
-        contactDeals = []; // Fallback para array vazio
+          .orderBy(desc(deals.createdAt))
+          .limit(20) // Limitar a 20 deals para performance
+      ]);
+
+      // Processar resultados com fallbacks seguros
+      const finalMessages = conversationMessages.status === 'fulfilled' ? conversationMessages.value : [];
+      const finalChannelInfo = channelInfo.status === 'fulfilled' && channelInfo.value.length > 0 ? channelInfo.value[0] : null;
+      const finalTags = contactTagsResult.status === 'fulfilled' ? contactTagsResult.value.map(t => t.tag) : [];
+      const finalDeals = contactDeals.status === 'fulfilled' ? contactDeals.value : [];
+
+      // Log apenas erros que não sejam de performance
+      if (conversationMessages.status === 'rejected') {
+        console.warn(`getConversation: Erro ao buscar mensagens da conversa ${id}:`, conversationMessages.reason);
+      }
+      if (channelInfo.status === 'rejected') {
+        console.warn(`getConversation: Erro ao buscar canal ${result.channelId}:`, channelInfo.reason);
+      }
+      if (contactTagsResult.status === 'rejected') {
+        console.warn(`getConversation: Erro ao buscar tags do contato ${result.contact.id}:`, contactTagsResult.reason);
+      }
+      if (contactDeals.status === 'rejected') {
+        console.warn(`getConversation: Erro ao buscar deals do contato ${result.contact.id}:`, contactDeals.reason);
       }
 
       return {
         ...result,
         contact: {
           ...result.contact,
-          tags: tagsArray,
-          deals: contactDeals
+          tags: finalTags,
+          deals: finalDeals
         },
-        channelInfo: channelInfo || undefined,
-        messages: conversationMessages || [],
+        channelInfo: finalChannelInfo || undefined,
+        messages: finalMessages,
         _count: { messages: result.unreadCount || 0 }
       } as ConversationWithContact;
 
