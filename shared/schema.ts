@@ -372,6 +372,8 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   deliveredAt: true,
   readAt: true,
+}).extend({
+  sentAt: z.string().transform((val) => new Date(val)).or(z.date()),
 });
 
 export const insertContactTagSchema = createInsertSchema(contactTags).omit({

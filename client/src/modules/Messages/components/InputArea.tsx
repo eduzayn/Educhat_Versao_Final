@@ -345,6 +345,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               placeholder="Digite sua mensagem..."
               className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-2 pr-16"
               rows={1}
+              id="inbox-message-input"
             />
             
             {/* Botões dentro do textarea */}

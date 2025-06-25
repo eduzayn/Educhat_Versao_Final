@@ -41,7 +41,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
-import { Textarea } from '@/shared/ui/textarea';
+
 import { STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
