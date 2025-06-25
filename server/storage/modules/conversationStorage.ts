@@ -421,6 +421,7 @@ export class ConversationStorage extends BaseStorage {
       .set({
         unreadCount: 0,
         isRead: true,
+        markedUnreadManually: false,
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));

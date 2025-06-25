@@ -362,8 +362,11 @@ export function registerInboxRoutes(app: Express) {
         });
       }
 
-      // Marcar como não lida definindo unreadCount como 1
-      await storage.updateConversation(id, { unreadCount: 1 });
+      // Marcar como não lida definindo unreadCount como 1 e marcando como manual
+      await storage.updateConversation(id, { 
+        unreadCount: 1,
+        markedUnreadManually: true 
+      });
       
       // Broadcast para notificar mudança de status de leitura
       try {

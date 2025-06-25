@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { MessageBubble } from "@/modules/Messages/components/MessageBubble";
+import { useMarkConversationRead } from "@/shared/lib/hooks/useMarkConversationRead";
 
 interface MessagesAreaProps {
   messages: any[];
@@ -31,6 +32,7 @@ export function MessagesArea({
   const prevMessageCount = useRef<number>(0);
   const loadingRef = useRef<boolean>(false);
   const [isNearTop, setIsNearTop] = useState(false);
+  const markAsReadMutation = useMarkConversationRead();
 
   // Função para remover mensagens duplicadas e garantir keys únicas
   const deduplicateMessages = (messages: any[]) => {
