@@ -1272,32 +1272,34 @@ export function registerZApiRoutes(app: Express) {
           enhancedMetadata.fileName = fileName;
         }
 
-        // PRIORIDADE 1: Broadcast IMEDIATO (antes mesmo de salvar no banco)
-        const tempMessage = {
-          id: Date.now(), // ID temporário
+        // Salvar mensagem no banco PRIMEIRO
+        const message = await storage.createMessage({
           conversationId: conversation.id,
           content: mediaUrl || messageContent,
           isFromContact: true,
-          messageType,
+          messageType: messageType as any,
           sentAt: new Date(),
           metadata: enhancedMetadata,
-          isDeleted: false,
-          deliveredAt: null,
-          readAt: null,
-          whatsappMessageId: null,
-          zapiStatus: null,
-          isGroup: false,
-          referenceMessageId: null,
-          isInternalNote: false,
-          attachmentUrl: null
-        };
+          whatsappMessageId: webhookData.messageId || null
+        });
 
+        // PRIORIDADE 2: Broadcast IMEDIATO após salvar
         try {
           const { broadcast, broadcastToAll } = await import('../realtime');
           
           broadcast(conversation.id, {
             type: 'new_message',
             conversationId: conversation.id,
+            message: message
+          });
+          
+          broadcastToAll({
+            type: 'new_message',
+            conversationId: conversation.id,
+            message: message
+          });
+          
+          console.log(`🔄 Broadcast IMEDIATO enviado para conversa ${conversation.id}`);
             message: tempMessage
           });
 
@@ -1305,32 +1307,13 @@ export function registerZApiRoutes(app: Express) {
             type: 'new_message',
             conversationId: conversation.id,
             message: tempMessage
-          });
-          
-          console.log(`🔄 Broadcast IMEDIATO enviado para conversa ${conversation.id}`);
         } catch (broadcastError) {
           console.error('❌ Erro no broadcast imediato:', broadcastError);
         }
 
-        // PRIORIDADE 2: Salvar mensagem no banco de dados
-        setImmediate(async () => {
-          try {
-            const message = await storage.createMessage({
-              conversationId: conversation.id,
-              content: mediaUrl || messageContent,
-              isFromContact: true,
-              messageType,
-              sentAt: new Date(),
-              metadata: enhancedMetadata
-            });
+        console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
 
-            console.log(`✅ Mensagem salva: ID ${message.id} na conversa ${conversation.id}`);
-          } catch (saveError) {
-            console.error('❌ Erro ao salvar mensagem:', saveError);
-          }
-        });
-
-        // PRIORIDADE 2: Processar operações secundárias em background (não bloqueiam resposta do webhook)
+        // PRIORIDADE 3: Processar operações secundárias em background (não bloqueiam resposta do webhook)
         setImmediate(async () => {
           try {
             // Detectar macrosetor uma vez

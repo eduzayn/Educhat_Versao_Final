@@ -12,10 +12,10 @@ export function useConversations(limit = 1000, options = {}) {
       }
       return response.json();
     },
-    staleTime: 0, // Dados sempre considerados obsoletos para permitir atualizações
-    gcTime: 60000, // Cache reduzido para 1 minuto
-    refetchOnWindowFocus: true, // Recarregar ao focar na janela
-    refetchInterval: 10000, // Atualizar a cada 10 segundos
+    staleTime: 30000, // Cache válido por 30 segundos para reduzir requisições
+    gcTime: 300000, // Cache mantido por 5 minutos
+    refetchOnWindowFocus: false, // Evitar recarregamentos desnecessários
+    refetchInterval: false, // WebSocket cuida das atualizações em tempo real
     ...options, // Permitir sobrescrever opções
   });
 }

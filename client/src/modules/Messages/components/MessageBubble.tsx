@@ -586,7 +586,21 @@ export function MessageBubble({
       );
     }
 
-    // Mensagem de texto padrão
+    // Mensagem de texto padrão - com fallback melhorado para Z-API
+    let displayContent = message.content;
+    
+    // Se não há content, verificar nos metadados (mensagens Z-API)
+    if (!displayContent && message.metadata && typeof message.metadata === 'object') {
+      const metadata = message.metadata as any;
+      if (metadata.text?.message) {
+        displayContent = metadata.text.message;
+      } else if (metadata.message) {
+        displayContent = metadata.message;
+      } else if (metadata.caption) {
+        displayContent = metadata.caption;
+      }
+    }
+    
     return (
       <div className={`px-4 py-2 rounded-lg ${bubbleClasses}`}>
         {message.isInternalNote && (
@@ -595,8 +609,8 @@ export function MessageBubble({
             <span className="font-medium">Nota Interna • Visível apenas para a equipe</span>
           </div>
         )}
-        {message.content ? (
-          <p className="text-sm">{message.content}</p>
+        {displayContent ? (
+          <p className="text-sm">{displayContent}</p>
         ) : (
           <div className="text-sm text-gray-500 italic">
             <p>Mensagem sem conteúdo de texto</p>

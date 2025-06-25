@@ -17,7 +17,9 @@ export function MessagesList({ conversationId, contact }: MessagesListProps) {
   
   const { data: messages = [], isLoading, error } = useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
-    enabled: !!conversationId
+    enabled: !!conversationId,
+    staleTime: 10000, // Cache válido por 10 segundos para melhor performance
+    gcTime: 60000, // Manter cache por 1 minuto
   });
 
   // Marcar conversa como lida automaticamente quando abrir
