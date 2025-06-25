@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
@@ -276,12 +276,12 @@ export function DealsModule() {
       return;
     }
 
-    const deal = deals.find(d => d.id === draggableId);
+    const deal = deals.find(d => String(d.id) === draggableId);
     if (!deal) return;
 
     // Update deal stage in database
     updateDealMutation.mutate({
-      dealId: parseInt(draggableId),
+      dealId: deal.id,
       stage: destination.droppableId
     });
   };
@@ -462,7 +462,7 @@ export function DealsModule() {
 
       <div className="overflow-hidden">
         {viewMode === 'kanban' ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext onDragEnd={handleDragEnd} enableDefaultSensors={false}>
             <div className="h-full">
               <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
                 {currentMacrosetor.stages.map((stage: any) => {
@@ -479,7 +479,7 @@ export function DealsModule() {
                           R$ {calculateStageValue(stageDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </div>
                       </div>
-                      <Droppable droppableId={stage.id}>
+                      <Droppable droppableId={stage.id} type="DEAL">
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
@@ -489,7 +489,7 @@ export function DealsModule() {
                             }`}
                           >
                             {stageDeals.map((deal, index) => (
-                              <Draggable key={deal.id} draggableId={deal.id} index={index}>
+                              <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
                                 {(provided, snapshot) => (
                                   <Card
                                     ref={provided.innerRef}
