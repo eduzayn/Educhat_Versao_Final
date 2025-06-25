@@ -31,7 +31,7 @@ import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { getAllMacrosetores, getStagesForMacrosetor, getMacrosetorInfo } from '@/lib/crmFunnels';
+import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/lib/crmFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {
@@ -98,7 +98,7 @@ export function ContactSidebar({
   const [dealFormData, setDealFormData] = useState({
     name: '',
     value: '',
-    macrosetor: '',
+    category: '',
     stage: '',
     category: '',
     course: ''
@@ -365,7 +365,7 @@ export function ContactSidebar({
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
+                    setDealFormData({ name: '', value: '', category: '', stage: '', course: '' });
                   }}
                 >
                   <Plus className="w-4 h-4" />
@@ -408,7 +408,7 @@ export function ContactSidebar({
                   </div>
 
                   <div>
-                    <Label htmlFor="deal-macrosetor">Funil de vendas *</Label>
+                    <Label htmlFor="deal-category">Funil de vendas *</Label>
                     <Select 
                       value={dealFormData.macrosetor} 
                       onValueChange={(value) => {
@@ -430,7 +430,7 @@ export function ContactSidebar({
                         ))}
                       </SelectContent>
                     </Select>
-                    {dealFormData.macrosetor && (
+                    {dealFormData.category && (
                       <div className="mt-2 text-sm text-gray-600">
                         {getCategoryInfo(dealFormData.category)?.description}
                       </div>

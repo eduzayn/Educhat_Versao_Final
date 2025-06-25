@@ -200,7 +200,7 @@ export function ConversationAssignmentDropdown({
         </Select>
       </div>
 
-      {/* Indicador de macrosetor detectado automaticamente */}
+      {/* Indicador de categoria detectada automaticamente */}
       {currentMacrosetor && (
         <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
           {currentMacrosetor}
