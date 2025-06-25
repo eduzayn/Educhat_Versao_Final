@@ -59,7 +59,6 @@ export const conversations = pgTable("conversations", {
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   unreadCount: integer("unread_count").default(0),
   // Campos para sistema de equipes e atribuição
-  macrosetor: varchar("macrosetor", { length: 20 }), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   assignedTeamId: integer("assigned_team_id").references(() => teams.id), // equipe atribuída
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
   assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
