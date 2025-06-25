@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:13): API DE ENVIO DE IMAGEM CORRIGIDA COMPLETAMENTE
+  - Corrigido endpoint /api/zapi/send-image para retornar objeto message válido
+  - API agora salva mensagem no banco e retorna savedMessage para renderização imediata
+  - Eliminado warning "Mensagem inválida recebida: null" no frontend
+  - Sistema de envio de imagem funcionando com renderização instantânea
+  - Mantida compatibilidade com todos os outros tipos de mensagem
 - June 25, 2025 (05:10): ERRO CRÍTICO DE ENVIO DE IMAGEM CORRIGIDO
   - Corrigido erro "Cannot read properties of undefined (reading 'id')" em useImageMessage.ts
   - Adicionadas validações robustas antes de acessar propriedades da mensagem

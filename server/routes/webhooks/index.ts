@@ -156,11 +156,12 @@ export function registerWebhookRoutes(app: Express) {
       console.log('✅ Imagem enviada com sucesso via Z-API:', data);
       
       // Salvar mensagem no banco de dados se conversationId foi fornecido
+      let savedMessage = null;
       if (conversationId) {
         try {
           const messageContent = caption ? `📷 ${caption}` : '📷 Imagem';
           
-          await storage.createMessage({
+          savedMessage = await storage.createMessage({
             conversationId: parseInt(conversationId),
             content: dataUrl, // Salvar a imagem em base64 para exibição
             isFromContact: false,
@@ -187,7 +188,11 @@ export function registerWebhookRoutes(app: Express) {
         }
       }
 
-      res.json(data);
+      // Retornar resposta com mensagem salva no banco para renderização imediata
+      res.json({
+        ...data,
+        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+      });
     } catch (error) {
       console.error('❌ Erro ao enviar imagem via Z-API:', error);
       res.status(500).json({ 
