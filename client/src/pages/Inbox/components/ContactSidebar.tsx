@@ -41,9 +41,9 @@ const formatCurrency = (value: number) => {
   }).format(value / 100);
 };
 
-const getStageColor = (stage: string, macrosetor?: string) => {
-  if (macrosetor) {
-    const stages = getStagesForMacrosetor(macrosetor);
+const getStageColor = (stage: string, category?: string) => {
+  if (category) {
+    const stages = getStagesForCategory(category);
     const stageInfo = stages.find(s => s.id === stage);
     if (stageInfo) {
       // Convert bg-color to badge color
@@ -65,9 +65,9 @@ const getStageColor = (stage: string, macrosetor?: string) => {
   return 'bg-gray-100 text-gray-800';
 };
 
-const getStageLabel = (stage: string, macrosetor?: string) => {
-  if (macrosetor) {
-    const stages = getStagesForMacrosetor(macrosetor);
+const getStageLabel = (stage: string, category?: string) => {
+  if (category) {
+    const stages = getStagesForCategory(category);
     const stageInfo = stages.find(s => s.id === stage);
     if (stageInfo) {
       return stageInfo.name.toUpperCase();

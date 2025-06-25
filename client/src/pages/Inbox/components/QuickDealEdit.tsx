@@ -7,7 +7,7 @@ import { Edit2, DollarSign } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { getAllMacrosetores, getStagesForMacrosetor } from '@/lib/crmFunnels';
+import { getAllCategories, getStagesForCategory } from '@/lib/crmFunnels';
 
 interface QuickDealEditProps {
   deal: any;
@@ -19,22 +19,22 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
   const [formData, setFormData] = useState({
     name: deal?.name || '',
     value: deal?.value ? (deal.value / 100).toString() : '0',
-    macrosetor: deal?.macrosetor || '',
+    category: deal?.category || '',
     stage: deal?.stage || ''
   });
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const allMacrosetores = getAllMacrosetores();
-  const availableStages = formData.macrosetor ? getStagesForMacrosetor(formData.macrosetor) : [];
+  const allCategories = getAllCategories();
+  const availableStages = formData.category ? getStagesForCategory(formData.category) : [];
 
   useEffect(() => {
     if (deal) {
       setFormData({
         name: deal.name || '',
         value: deal.value ? (deal.value / 100).toString() : '0',
-        macrosetor: deal.macrosetor || '',
+        category: deal.category || '',
         stage: deal.stage || ''
       });
     }
@@ -74,18 +74,18 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
     const updates = {
       name: formData.name.trim(),
       value: Math.round(parseFloat(formData.value || '0') * 100),
-      macrosetor: formData.macrosetor,
+      category: formData.category,
       stage: formData.stage
     };
 
     updateDealMutation.mutate(updates);
   };
 
-  const handleMacrosetorChange = (newMacrosetor: string) => {
+  const handleCategoryChange = (newCategory: string) => {
     setFormData(prev => ({
       ...prev,
-      macrosetor: newMacrosetor,
-      stage: '' // Reset stage quando mudar macrosetor
+      category: newCategory,
+      stage: '' // Reset stage quando mudar categoria
     }));
   };
 
@@ -96,9 +96,9 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
     }).format(value / 100);
   };
 
-  const getStageColor = (stage: string, macrosetor?: string) => {
-    if (macrosetor) {
-      const stages = getStagesForMacrosetor(macrosetor);
+  const getStageColor = (stage: string, category?: string) => {
+    if (category) {
+      const stages = getStagesForCategory(category);
       const stageInfo = stages.find(s => s.id === stage);
       if (stageInfo) {
         const colorMap: Record<string, string> = {
@@ -137,7 +137,7 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
             
             {deal.stage && (
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStageColor(deal.stage, deal.macrosetor)}`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStageColor(deal.stage, deal.category)}`}>
                   {deal.stage.toUpperCase()}
                 </span>
               </div>
@@ -192,8 +192,8 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
               Funil de Vendas
             </label>
             <Select
-              value={formData.macrosetor}
-              onValueChange={handleMacrosetorChange}
+              value={formData.category}
+              onValueChange={handleCategoryChange}
               disabled={updateDealMutation.isPending}
             >
               <SelectTrigger>
@@ -209,7 +209,7 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
             </Select>
           </div>
 
-          {formData.macrosetor && (
+          {formData.category && (
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 Etapa do Negócio
