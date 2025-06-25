@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (17:18): LOGS EXPLÍCITOS DE ENVIO Z-API IMPLEMENTADOS
+  - Adicionados logs detalhados no frontend (useSendMessage) para rastrear falhas
+  - Expandidos logs no backend (/api/zapi/send-message) com timestamp e detalhes completos
+  - Sistema agora exibe explicitamente se mensagem foi enviada ou falhou via Z-API
+  - Logs incluem: payload, headers, response status, credenciais (mascaradas)
 - June 25, 2025 (17:09): BUSCA POR TELEFONE NA INBOX CORRIGIDA
   - Corrigido filtro de busca para números de telefone (removido toLowerCase desnecessário)
   - Busca agora funciona corretamente para nome, telefone e email

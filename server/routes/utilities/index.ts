@@ -63,11 +63,16 @@ export function registerUtilitiesRoutes(app: Express) {
   // Send message via Z-API - REST: POST /api/zapi/send-message
   app.post('/api/zapi/send-message', async (req, res) => {
     try {
-      console.log('📤 Enviando mensagem via Z-API:', req.body);
+      console.log('📤 ENDPOINT /api/zapi/send-message CHAMADO:', {
+        body: req.body,
+        timestamp: new Date().toISOString(),
+        ip: req.ip || 'unknown'
+      });
       
       const { phone, message, conversationId, channelId } = req.body;
       
       if (!phone || !message) {
+        console.error('❌ Parâmetros obrigatórios ausentes:', { phone: !!phone, message: !!message });
         return res.status(400).json({ 
           error: 'Phone e message são obrigatórios' 
         });
@@ -75,6 +80,7 @@ export function registerUtilitiesRoutes(app: Express) {
 
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
+        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
         return res.status(400).json({ error: credentials.error });
       }
 
@@ -87,7 +93,12 @@ export function registerUtilitiesRoutes(app: Express) {
       };
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-      console.log('📤 Enviando para Z-API:', { url: url.replace(token!, '****'), payload });
+      console.log('📤 Enviando para Z-API:', { 
+        url: url.replace(token!, '****'), 
+        payload,
+        instanceId,
+        hasClientToken: !!clientToken
+      });
 
       const response = await fetch(url, {
         method: 'POST',
@@ -99,15 +110,21 @@ export function registerUtilitiesRoutes(app: Express) {
       });
 
       const responseText = await response.text();
-      console.log('📥 Resposta Z-API:', {
+      console.log('📥 Resposta Z-API COMPLETA:', {
         status: response.status,
         statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
         body: responseText
       });
 
       if (!response.ok) {
-        console.error('❌ Erro na Z-API:', responseText);
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+        console.error('❌ FALHA na Z-API:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText,
+          payload: payload
+        });
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}: ${responseText}`);
       }
 
       let data;
@@ -118,10 +135,20 @@ export function registerUtilitiesRoutes(app: Express) {
         throw new Error(`Resposta inválida da Z-API: ${responseText}`);
       }
 
-      console.log('✅ Mensagem enviada com sucesso via Z-API:', data);
+      console.log('✅ SUCESSO TOTAL - Mensagem enviada via Z-API:', {
+        data,
+        phone: cleanPhone,
+        message: message.toString(),
+        conversationId
+      });
+      
       res.json(data);
     } catch (error) {
-      console.error('❌ Erro ao enviar mensagem via Z-API:', error);
+      console.error('❌ ERRO CRÍTICO no endpoint send-message:', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        request: req.body
+      });
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });
