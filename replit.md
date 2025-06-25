@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:54): SIMPLIFICAÇÃO DE PERMISSÕES CONCLUÍDA COM SUCESSO
+  - Sistema baseado em funções totalmente implementado e funcional
+  - Modelo de 3 perfis: Administrador (acesso total), Gerente (operacional + relatórios), Atendente (apenas operacional)
+  - Páginas operacionais definidas: Dashboard, Inbox, Contatos, CRM, Chat Interno, Profile, Quick Replies
+  - Removidas todas as referências ao sistema granular de 121 permissões
+  - Sistema em produção funcionando sem impactos negativos
 - June 25, 2025 (06:51): ETAPA 3 - SISTEMA GRANULAR DE PERMISSÕES REMOVIDO COMPLETAMENTE
   - Removido PermissionsPanel.tsx e componentes relacionados 
   - Comentada rota /admin/permissions no App.tsx
