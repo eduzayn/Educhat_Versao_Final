@@ -120,6 +120,7 @@ function Router() {
             )}
           </Route>
 
+          {/* ETAPA 3: Rota removida - gerenciamento via /settings/users
           <Route path="/admin/permissions">
             {() => (
               <ProtectedRoute
@@ -128,6 +129,7 @@ function Router() {
               />
             )}
           </Route>
+          */}
           <Route path="/chat-interno" component={InternalChatPage} />
           <Route path="/profile" component={ProfilePage} />
           <Route path="/teams">
