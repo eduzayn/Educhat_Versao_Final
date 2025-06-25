@@ -7,7 +7,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+
 import { 
   Phone, 
   Mail, 
@@ -23,7 +23,6 @@ import {
   Users,
   DollarSign,
   TrendingUp,
-  Edit,
   Briefcase
 } from 'lucide-react';
 import { InlineEditField } from './InlineEditField';
@@ -95,8 +94,7 @@ export function ContactSidebar({
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [showDealDialog, setShowDealDialog] = useState(false);
-  const [editingDeal, setEditingDeal] = useState<any>(null);
-  const [editingDealData, setEditingDealData] = useState<any>({});
+
   const [dealFormData, setDealFormData] = useState({
     name: '',
     value: '',
@@ -186,20 +184,7 @@ export function ContactSidebar({
     }
   });
 
-  // Mutation para atualizar deal
-  const updateDealMutation = useMutation({
-    mutationFn: ({ dealId, updates }: { dealId: number; updates: any }) => 
-      apiRequest('PATCH', `/api/deals/${dealId}`, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${activeConversation.contact?.id}/deals`] });
-      setEditingDeal(null);
-      setEditingDealData({});
-    },
-    onError: (error: any) => {
-      console.error('Erro ao atualizar negócio:', error);
-    }
-  });
+
 
 
 
@@ -221,9 +206,7 @@ export function ContactSidebar({
     createDealMutation.mutate(data);
   };
 
-  const handleUpdateDeal = (deal: any, updates: any) => {
-    updateDealMutation.mutate({ dealId: deal.id, updates });
-  };
+
 
 
 
@@ -566,146 +549,21 @@ export function ContactSidebar({
           {contactDeals && contactDeals.length > 0 ? (
             <div className="space-y-2">
               {contactDeals.map((deal: any) => (
-                <Card key={deal.id} className="border border-gray-200">
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between mb-2">
-                      <h5 className="font-medium text-sm text-gray-900 truncate flex-1">
-                        {deal.name}
-                      </h5>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 ml-2"
-                        onClick={() => {
-                          setEditingDeal(deal);
-                          setEditingDealData({});
-                        }}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-green-600">
-                        {formatCurrency(deal.value || 0)}
-                      </span>
-                      <Badge className={`text-xs ${getStageColor(deal.stage, deal.macrosetor)}`}>
-                        {getStageLabel(deal.stage, deal.macrosetor)}
-                      </Badge>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500">
-                      {deal.macrosetor && getMacrosetorInfo(deal.macrosetor) 
-                        ? `${getMacrosetorInfo(deal.macrosetor)?.name}` 
-                        : deal.macrosetor?.toUpperCase()
-                      } • Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
-                    </div>
-                  </CardContent>
-                </Card>
+                <QuickDealEdit
+                  key={deal.id}
+                  deal={deal}
+                  contactId={activeConversation.contact?.id}
+                />
               ))}
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">Nenhum negócio encontrado</p>
+              <p className="text-xs text-gray-500">Nenhum negócio cadastrado</p>
             </div>
           )}
         </div>
 
-        {/* Modal de Edição de Deal */}
-        {editingDeal && (
-          <Dialog open={!!editingDeal} onOpenChange={() => setEditingDeal(null)}>
-            <DialogContent className="sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle>Editar Negócio</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label>Valor</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      className="pl-8"
-                      defaultValue={(editingDeal.value / 100).toFixed(2)}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        handleUpdateDeal(editingDeal, { value: newValue });
-                      }}
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <Label>Funil de vendas</Label>
-                  <Select 
-                    value={editingDealData.macrosetor || editingDeal.macrosetor} 
-                    onValueChange={(value) => {
-                      setEditingDealData((prev: any) => ({ 
-                        ...prev, 
-                        macrosetor: value,
-                        stage: getStagesForMacrosetor(value)[0]?.id || ''
-                      }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getAllMacrosetores().map(({ id, info }) => (
-                        <SelectItem key={id} value={id}>
-                          {info.name.toUpperCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Etapa do Negócio</Label>
-                  <Select 
-                    value={editingDealData.stage || editingDeal.stage} 
-                    onValueChange={(value) => {
-                      setEditingDealData((prev: any) => ({ ...prev, stage: value }));
-                    }}
-                    disabled={!(editingDealData.macrosetor || editingDeal.macrosetor)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(editingDealData.macrosetor || editingDeal.macrosetor) && 
-                        getStagesForMacrosetor(editingDealData.macrosetor || editingDeal.macrosetor).map((stage) => (
-                          <SelectItem key={stage.id} value={stage.id}>
-                            {stage.name.toUpperCase()}
-                          </SelectItem>
-                        ))
-                      }
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button variant="outline" onClick={() => setEditingDeal(null)}>
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      const updates = { ...editingDealData };
-                      if (Object.keys(updates).length > 0) {
-                        handleUpdateDeal(editingDeal, updates);
-                      }
-                    }}
-                    disabled={updateDealMutation.isPending}
-                  >
-                    {updateDealMutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
 
         {/* 🏷️ Outras Tags */}
         {activeConversation.contact?.tags && Array.isArray(activeConversation.contact.tags) && (

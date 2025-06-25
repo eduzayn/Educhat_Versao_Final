@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:09): EDIÇÃO INLINE DE NOME DO CONTATO E NEGÓCIOS IMPLEMENTADA
+  - Criado componente InlineContactNameEdit para edição do nome com hover e ícone de lápis
+  - Desenvolvido componente QuickDealEdit com modal flutuante para edição de negócios
+  - Substituída edição antiga por interface mais intuitiva e ágil na caixa de entrada
+  - Nome do contato editável com validação e atualização instantânea na UI
+  - Negócios editáveis via clique no card com modal completo (nome, valor, funil, etapa)
+  - Integração com React Query para cache e sincronização automática
+  - Interface consistente com padrão visual existente do sistema
 - June 25, 2025 (05:59): ERRO DE CONTACTSIDEBAR LINHA 84 CORRIGIDO COMPLETAMENTE
   - Identificado erro de acesso a propriedades undefined no ContactSidebar.tsx
   - Adicionada validação robusta: if (!activeConversation || !activeConversation.contact) return null
