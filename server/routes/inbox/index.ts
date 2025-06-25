@@ -160,6 +160,86 @@ export function registerInboxRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
+      // FLUXO AUTOMATIZADO: Criar deal automático quando conversa é atribuída
+      try {
+        if ((validatedData.assignedTeamId !== undefined || validatedData.assignedUserId !== undefined) && 
+            (validatedData.assignedTeamId !== null || validatedData.assignedUserId !== null)) {
+          
+          // Buscar informações da conversa atualizada para o deal
+          const fullConversation = await storage.getConversation(id);
+          if (fullConversation && fullConversation.contactId) {
+            
+            // Determinar canal de origem da conversa
+            const canalOrigem = fullConversation.channel || 'manual';
+            
+            // Determinar equipe/tipo baseado na atribuição
+            let teamType = 'geral';
+            if (validatedData.assignedTeamId) {
+              const team = await storage.getTeam(validatedData.assignedTeamId);
+              if (team) {
+                // Mapear nome da equipe para teamType
+                const teamTypeMap: { [key: string]: string } = {
+                  'Equipe Comercial': 'comercial',
+                  'Equipe Suporte': 'suporte', 
+                  'Equipe Cobrança': 'cobranca',
+                  'Equipe Tutoria': 'tutoria',
+                  'Equipe Secretaria': 'secretaria',
+                  'Equipe Geral': 'geral'
+                };
+                teamType = teamTypeMap[team.name] || 'geral';
+              }
+            }
+            
+            // Criar deal automático usando função existente
+            console.log(`💼 Criando deal automático para atribuição manual: contato ${fullConversation.contactId}, canal ${canalOrigem}, equipe ${teamType}`);
+            const newDeal = await storage.createAutomaticDeal(fullConversation.contactId, canalOrigem, teamType);
+            
+            if (newDeal) {
+              console.log(`✅ Deal criado automaticamente na atribuição: ID ${newDeal.id}`);
+              
+              // Broadcast para atualizar CRM e BI em tempo real
+              const { broadcast, broadcastToAll } = await import('../realtime');
+              
+              // Broadcast específico da conversa
+              broadcast(id, {
+                type: 'deal_created',
+                conversationId: id,
+                dealId: newDeal.id,
+                contactId: fullConversation.contactId
+              });
+              
+              // Broadcast para CRM
+              broadcastToAll({
+                type: 'crm_update',
+                action: 'deal_created',
+                contactId: fullConversation.contactId,
+                dealId: newDeal.id,
+                teamType: teamType
+              });
+              
+              // Broadcast para BI
+              broadcastToAll({
+                type: 'bi_update',
+                action: 'metrics_updated',
+                data: {
+                  conversationId: id,
+                  contactId: fullConversation.contactId,
+                  dealCreated: true,
+                  dealId: newDeal.id,
+                  teamType: teamType,
+                  assignmentMethod: 'manual'
+                }
+              });
+              
+              console.log(`📢 Broadcasts enviados: Deal ${newDeal.id} criado na atribuição`);
+            }
+          }
+        }
+      } catch (dealError) {
+        // Não quebrar a resposta se houver erro na criação do deal
+        console.error('❌ Erro ao criar deal automático na atribuição:', dealError);
+      }
+
       res.json(conversation);
     } catch (error) {
       console.error('Erro ao atualizar conversa:', error);

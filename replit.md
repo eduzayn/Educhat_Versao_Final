@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:49): FLUXO AUTOMATIZADO INBOX → CRM IMPLEMENTADO COMPLETAMENTE
+  - Criação automática de deals quando conversas são atribuídas manualmente a equipes/usuários
+  - Integração perfeita com sistema existente `createAutomaticDeal` sem duplicação de código
+  - Mapeamento automático de equipes para `teamType` (Comercial→comercial, Suporte→suporte, etc.)
+  - Broadcasting em tempo real para CRM e BI com eventos específicos (deal_created, crm_update, bi_update)
+  - Toast notifications confirmando "Negócio criado automaticamente" no frontend
+  - Invalidação inteligente de caches React Query para atualização imediata de deals
+  - Sistema isolado: erros na criação de deals não afetam atribuição de conversas
+  - Logs detalhados para auditoria: canal origem, equipe, método de atribuição
 - June 25, 2025 (16:35): TRATAMENTO DE ERRO PARA ÁUDIO IMPLEMENTADO COM ISOLAMENTO
   - Corrigido erro "Áudio não encontrado" no AudioMessage.tsx com tratamento gracioso
   - Adicionadas verificações específicas para códigos 404, blob vazio e URLs inválidas

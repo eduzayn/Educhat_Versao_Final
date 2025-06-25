@@ -58,9 +58,13 @@ export function ConversationAssignmentDropdown({
         method: 'manual'
       }),
     onSuccess: (updatedConversation, teamId) => {
+      const isAssignment = teamId !== 'none';
+      const toastTitle = isAssignment ? "✅ Atribuição realizada" : "Conversa movida para fila neutra";
+      const toastDesc = isAssignment ? "Deal automático criado no CRM" : "Conversa não atribuída";
+      
       toast({
-        title: "Sucesso",
-        description: teamId === 'none' ? "Conversa movida para fila neutra" : "Conversa atribuída à equipe com sucesso"
+        title: toastTitle,
+        description: toastDesc
       });
       
       // 1. Atualizar imediatamente o cache da conversa específica
@@ -93,6 +97,12 @@ export function ConversationAssignmentDropdown({
         
         return { ...oldData, pages: updatedPages };
       });
+
+      // 3. Invalidar cache do CRM para mostrar novo deal
+      if (isAssignment) {
+        queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/analytics/deals'] });
+      }
     },
     onError: (error: any) => {
       console.error('Erro na atribuição de equipe:', error);
@@ -137,9 +147,13 @@ export function ConversationAssignmentDropdown({
         method: 'manual'
       }),
     onSuccess: (updatedConversation, userId) => {
+      const isAssignment = userId !== 'none';
+      const toastTitle = isAssignment ? "✅ Atribuição realizada" : "Conversa não atribuída";
+      const toastDesc = isAssignment ? "Deal automático criado no CRM" : "Usuário removido da conversa";
+      
       toast({
-        title: "Sucesso",
-        description: userId === 'none' ? "Conversa não atribuída a usuário específico" : "Conversa atribuída ao usuário com sucesso"
+        title: toastTitle,
+        description: toastDesc
       });
       
       // 1. Atualizar imediatamente o cache da conversa específica
@@ -172,6 +186,12 @@ export function ConversationAssignmentDropdown({
         
         return { ...oldData, pages: updatedPages };
       });
+
+      // 3. Invalidar cache do CRM para mostrar novo deal
+      if (isAssignment) {
+        queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/analytics/deals'] });
+      }
     },
     onError: (error: any) => {
       console.error('Erro na atribuição de usuário:', error);
