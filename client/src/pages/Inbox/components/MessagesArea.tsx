@@ -97,7 +97,11 @@ export function MessagesArea({
   }, [messages.length > 0, isLoadingMessages]);
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div 
+      ref={containerRef} 
+      className="flex-1 overflow-y-auto p-4 space-y-4"
+      onScroll={handleScroll}
+    >
       {(messages || []).length === 0 && !isLoadingMessages ? (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
@@ -108,6 +112,25 @@ export function MessagesArea({
         </div>
       ) : (
         <>
+          {/* Indicador de carregamento no topo */}
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-4">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Carregando mensagens anteriores...
+              </div>
+            </div>
+          )}
+          
+          {/* Indicador de fim do histórico */}
+          {!hasNextPage && messages.length > 15 && (
+            <div className="flex justify-center py-4">
+              <div className="text-xs text-gray-400">
+                Início da conversa
+              </div>
+            </div>
+          )}
+
           {/* Loading inicial */}
           {isLoadingMessages && (
             <div className="p-6 text-center text-gray-500">

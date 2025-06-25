@@ -97,6 +97,17 @@ export function InboxPage() {
   
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages?.flat() || [];
+  
+  // Hook de mensagens com verificação de segurança
+  const messagesQuery = useMessages(activeConversation?.id, 15);
+  const { 
+    data: messagesData, 
+    isLoading: isLoadingMessages,
+    hasNextPage: messagesHasNextPage,
+    isFetchingNextPage: messagesIsFetchingNextPage,
+    fetchNextPage: messagesFetchNextPage,
+    refetch: refetchMessages 
+  } = messagesQuery;
   const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
@@ -108,11 +119,25 @@ export function InboxPage() {
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };
   
-  const { 
-    data: messages, 
-    isLoading: isLoadingMessages
-  } = useMessages(activeConversation?.id || null, 100); // Carregar apenas 100 mensagens mais recentes
+  // Flatten das páginas de mensagens com verificação de segurança
+  const apiMessages = messagesData?.pages?.flat() || [];
   
+  // Combinar mensagens do store e da API para garantir renderização imediata
+  const storeMessagesForConversation = activeConversation?.id ? storeMessages[activeConversation.id] || [] : [];
+  
+  // Merge inteligente: usar store para mensagens recentes, API para histórico
+  const allMessages = [...apiMessages];
+  storeMessagesForConversation.forEach(storeMsg => {
+    const exists = allMessages.some(apiMsg => apiMsg.id === storeMsg.id);
+    if (!exists) {
+      allMessages.push(storeMsg);
+    }
+  });
+  
+  // Ordenar por data de envio para exibição cronológica
+  const messages = allMessages.sort((a, b) => 
+    new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
+  );
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -568,6 +593,9 @@ export function InboxPage() {
             <MessagesArea
               messages={messages || []}
               isLoadingMessages={isLoadingMessages}
+              hasNextPage={messagesHasNextPage}
+              isFetchingNextPage={messagesIsFetchingNextPage}
+              fetchNextPage={messagesFetchNextPage}
               activeConversation={activeConversation}
               getChannelInfo={getChannelInfo}
             />

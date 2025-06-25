@@ -15,12 +15,19 @@ export function useMessages(conversationId: number | null, initialLimit = 15) {
       return messages;
     },
     getNextPageParam: (lastPage, allPages) => {
+      // Verificação de segurança para evitar erros
+      if (!lastPage || !Array.isArray(lastPage) || !Array.isArray(allPages)) {
+        return undefined;
+      }
+      
       // Se a última página retornou menos que o limite, não há mais páginas
       const pageLimit = allPages.length === 1 ? initialLimit : 10;
       if (lastPage.length < pageLimit) return undefined;
       
       // Calcular offset para próxima página
-      const totalMessages = allPages.reduce((acc, page) => acc + page.length, 0);
+      const totalMessages = allPages.reduce((acc, page) => {
+        return acc + (Array.isArray(page) ? page.length : 0);
+      }, 0);
       return totalMessages;
     },
     enabled: !!conversationId,

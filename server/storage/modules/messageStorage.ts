@@ -10,17 +10,26 @@ export class MessageStorage extends BaseStorage {
     return this.db.select().from(messages).orderBy(desc(messages.sentAt));
   }
 
-  async getMessages(conversationId: number, limit = 50, offset = 0): Promise<Message[]> {
-    // Query otimizada com índice na conversationId e isDeleted
-    // Ordenação crescente para exibir mensagens antigas no topo e recentes embaixo
-    return this.db.select().from(messages)
-      .where(and(
-        eq(messages.conversationId, conversationId),
-        eq(messages.isDeleted, false)
-      ))
-      .orderBy(messages.sentAt) // Ordem cronológica: mais antigas primeiro
-      .limit(limit)
-      .offset(offset);
+  async getMessages(conversationId: number, limit = 15, offset = 0): Promise<Message[]> {
+    try {
+      // Para scroll infinito invertido: buscar mensagens mais recentes primeiro
+      const result = await this.db
+        .select()
+        .from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false)
+        ))
+        .orderBy(desc(messages.sentAt)) // Ordem decrescente para scroll infinito invertido
+        .limit(limit)
+        .offset(offset);
+
+      // Reverter ordem para exibição cronológica no chat (mais antigas no topo)
+      return result.reverse();
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagens:', error);
+      throw new Error('Falha ao buscar mensagens');
+    }
   }
 
   async getMessageMedia(messageId: number): Promise<string | null> {
