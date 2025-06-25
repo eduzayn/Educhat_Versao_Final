@@ -101,8 +101,8 @@ export function registerBIRoutes(app: Express) {
     }
   });
 
-  // Dados dos macrosetores - REST: GET /api/bi/macrosetores
-  app.get('/api/bi/macrosetores', async (req: AuthenticatedRequest, res: Response) => {
+  // Dados das equipes - REST: GET /api/bi/teams
+  app.get('/api/bi/teams', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { period = '30' } = req.query;
       const days = parseInt(period as string);
@@ -115,31 +115,31 @@ export function registerBIRoutes(app: Express) {
       });
 
       // Agrupar por teamType
-      const macrosetorStats = filteredDeals.reduce((acc, deal) => {
-        const macrosetor = deal.teamType || 'comercial';
-        if (!acc[macrosetor]) {
-          acc[macrosetor] = { 
-            name: macrosetor, 
+      const teamStats = filteredDeals.reduce((acc, deal) => {
+        const team = deal.teamType || 'comercial';
+        if (!acc[team]) {
+          acc[team] = { 
+            name: team, 
             deals: 0, 
             convertidos: 0, 
             taxaConversao: 0,
             valorTotal: 0
           };
         }
-        acc[macrosetor].deals++;
+        acc[team].deals++;
         if (deal.stage === 'won') {
-          acc[macrosetor].convertidos++;
-          acc[macrosetor].valorTotal += deal.value || 0;
+          acc[team].convertidos++;
+          acc[team].valorTotal += deal.value || 0;
         }
         return acc;
       }, {} as Record<string, any>);
 
       // Calcular taxas de conversão
-      Object.values(macrosetorStats).forEach((stat: any) => {
+      Object.values(teamStats).forEach((stat: any) => {
         stat.taxaConversao = stat.deals > 0 ? (stat.convertidos / stat.deals) * 100 : 0;
       });
 
-      res.json(Object.values(macrosetorStats));
+      res.json(Object.values(teamStats));
     } catch (error) {
       console.error('Erro ao buscar dados dos macrosetores:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });

@@ -153,7 +153,7 @@ export function ConversationAssignmentDropdown({
                   {team.name}
                   {team.macrosetor && (
                     <span className="text-xs text-gray-500">
-                      ({team.macrosetor})
+                      ({team.teamType})
                     </span>
                   )}
                 </div>
@@ -201,9 +201,9 @@ export function ConversationAssignmentDropdown({
       </div>
 
       {/* Indicador de categoria detectada automaticamente */}
-      {currentMacrosetor && (
+      {currentTeamType && (
         <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
-          {currentMacrosetor}
+          {currentTeamType}
         </Badge>
       )}
     </div>

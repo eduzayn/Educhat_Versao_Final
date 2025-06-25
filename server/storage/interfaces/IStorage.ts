@@ -207,6 +207,6 @@ export interface IStorage {
   updateAnalyticsAlert(alertId: string, alert: any): Promise<any>;
   deleteAnalyticsAlert(alertId: string): Promise<any>;
 
-  // ==================== MACROSETOR DETECTION ====================
-  detectMacrosetor(content: string, channel?: string): string | null;
+  // ==================== TEAM DETECTION ====================
+  detectTeam(content: string, channel?: string): string | null;
 }

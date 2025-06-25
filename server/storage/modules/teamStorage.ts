@@ -49,11 +49,11 @@ export class TeamStorage extends BaseStorage {
   }
 
   /**
-   * Get team by macrosetor (unification method)
+   * Get team by type (unified method)
    */
-  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
-    // Mapeamento de macrosetores para nomes de equipes (removida dependência da coluna macrosetor)
-    const macrosetorToTeamName = {
+  async getTeamByType(teamType: string): Promise<Team | undefined> {
+    // Mapeamento de tipos de equipe para nomes de equipes
+    const teamTypeToTeamName = {
       'comercial': 'Equipe Comercial',
       'suporte': 'Equipe Suporte',
       'cobranca': 'Equipe Cobrança',
@@ -62,7 +62,7 @@ export class TeamStorage extends BaseStorage {
       'geral': 'Equipe Geral'
     };
     
-    const teamName = macrosetorToTeamName[macrosetor as keyof typeof macrosetorToTeamName] || 'Equipe Geral';
+    const teamName = teamTypeToTeamName[teamType as keyof typeof teamTypeToTeamName] || 'Equipe Geral';
     
     const [team] = await this.db.select()
       .from(teams)
@@ -72,28 +72,6 @@ export class TeamStorage extends BaseStorage {
       ));
     return team;
   }
-
-  /**
-   * Get team by macrosetor
-   */
-  async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
-    // Mapeamento de macrosetores para nomes de equipes
-    const macrosetorToTeamName = {
-      'comercial': 'Equipe Comercial',
-      'suporte': 'Equipe Suporte',
-      'cobranca': 'Equipe Cobrança',
-      'tutoria': 'Equipe Tutoria', 
-      'secretaria': 'Equipe Secretaria',
-      'geral': 'Equipe Geral'
-    };
-    
-    const teamName = macrosetorToTeamName[macrosetor as keyof typeof macrosetorToTeamName] || 'Equipe Geral';
-    
-    const [team] = await this.db
-      .select()
-      .from(teams)
-      .where(eq(teams.name, teamName));
-    return team;
   }
 
   /**

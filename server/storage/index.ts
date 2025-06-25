@@ -584,24 +584,24 @@ export class DatabaseStorage implements IStorage {
     throw new Error("Método não implementado");
   }
 
-  // ==================== TEAM-MACROSETOR UNIFICATION ====================
+  // ==================== TEAM MANAGEMENT ====================
   
-  // Get team by macrosetor (treating them as identical)
-  async getTeamByMacrosetor(macrosetor: string): Promise<any> {
-    if (!macrosetor) return null;
+  // Get team by team type (unified method)
+  async getTeamByType(teamType: string): Promise<any> {
+    if (!teamType) return null;
     
     try {
-      const result = await this.team.getTeamByMacrosetor(macrosetor);
+      const result = await this.team.getTeamByType(teamType);
       return result;
     } catch (error) {
-      console.error('Erro ao buscar equipe por macrosetor:', error);
+      console.error('Erro ao buscar equipe por tipo:', error);
       return null;
     }
   }
 
-  // Get or create team for macrosetor
-  async getOrCreateTeamForMacrosetor(macrosetor: string): Promise<any> {
-    let team = await this.getTeamByMacrosetor(macrosetor);
+  // Get or create team for team type
+  async getOrCreateTeamForType(teamType: string): Promise<any> {
+    let team = await this.getTeamByType(teamType);
     
     if (!team) {
       // Team configuration mapping
@@ -614,7 +614,7 @@ export class DatabaseStorage implements IStorage {
         geral: { name: 'Equipe Geral', description: 'Atendimento geral', color: 'gray', priority: 3, maxCapacity: 100 }
       };
       
-      const config = teamConfigs[macrosetor as keyof typeof teamConfigs] || teamConfigs.geral;
+      const config = teamConfigs[teamType as keyof typeof teamConfigs] || teamConfigs.geral;
       
       try {
         team = await this.team.createTeam({
@@ -721,10 +721,10 @@ export class DatabaseStorage implements IStorage {
       ]
     };
 
-    // Detectar macrosetor com maior número de matches
-    let bestMatch = { macrosetor: 'geral', score: 0 };
+    // Detectar equipe com maior número de matches
+    let bestMatch = { team: 'geral', score: 0 };
 
-    for (const [macrosetor, keywords] of Object.entries(macrosetorKeywords)) {
+    for (const [team, keywords] of Object.entries(teamKeywords)) {
       let score = 0;
       
       for (const keyword of keywords) {
@@ -738,17 +738,17 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (score > bestMatch.score) {
-        bestMatch = { macrosetor, score };
+        bestMatch = { team, score };
       }
     }
 
-    console.log('🔍 Detecção de macrosetor:', {
+    console.log('🔍 Detecção de equipe:', {
       content: content.substring(0, 100) + '...',
-      detected: bestMatch.macrosetor,
+      detected: bestMatch.team,
       score: bestMatch.score
     });
 
-    return bestMatch.score > 0 ? bestMatch.macrosetor : 'geral';
+    return bestMatch.score > 0 ? bestMatch.team : 'geral';
   }
 }
 

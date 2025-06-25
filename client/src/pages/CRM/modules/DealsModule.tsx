@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Configuração unificada dos funis por equipe/macrosetor
-const teamMacrosetores = {
+const teamCategories = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Vendas, matrículas e informações sobre cursos',
