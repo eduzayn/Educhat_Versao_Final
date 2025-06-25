@@ -96,13 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 25, 2025 (00:22): Erro crítico do webhook Z-API corrigido completamente
-  - Removidas todas as referências obsoletas à coluna "macrosetor" em tables `conversations`, `deals` e `teams`
-  - Atualizado schema para usar `teamType` em vez de `macrosetor` na tabela `deals`
-  - Corrigidos erros de sintaxe em `server/storage/index.ts`
+- June 25, 2025 (00:29): Erro crítico do webhook Z-API COMPLETAMENTE RESOLVIDO
+  - Removidas TODAS as referências obsoletas à coluna "macrosetor" em múltiplos arquivos
+  - Corrigida query SQL crítica em `teamStorage.ts` que causava erro 42703
+  - Atualizado sistema de mapeamento de macrosetores para usar nomes de equipes
   - Webhook Z-API agora processa mensagens sem erros de banco de dados
   - Sistema de detecção de macrosetores mantido para classificação automática
-  - Mapeamento inteligente de macrosetores para nomes de equipes implementado
+  - Todas as rotas de equipes, deals e BI funcionando corretamente
+  - Arquivos corrigidos: teamStorage.ts, dealStorage.ts, routes/bi/index.ts, routes/sales/index.ts
 - June 23, 2025 (18:59): Sistema restaurado ao commit `3c93bd55822ce4afe0260edd3d644cb5cff44597` 
   - Removidas todas as referências obsoletas a "macrosetor" e "macrosetores"
   - Atualizadas queries do banco para usar apenas sistema de equipes
