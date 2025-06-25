@@ -94,6 +94,28 @@ const uploadVideo = multer({
   }
 });
 
+// Configurar multer para upload de arquivos em memória
+const uploadFile = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB máximo para arquivos
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf', 'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain', 'text/csv'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido'));
+    }
+  }
+});
+
 import { validateZApiCredentials, buildZApiUrl, getZApiHeaders } from '../../core/zapi-utils';
 
 export function registerWebhookRoutes(app: Express) {
@@ -456,6 +478,131 @@ export function registerWebhookRoutes(app: Express) {
       });
     } catch (error) {
       console.error('❌ Erro ao enviar vídeo via Z-API:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      });
+    }
+  });
+
+  // Send file via Z-API - REST: POST /api/zapi/send-file
+  app.post('/api/zapi/send-file', uploadFile.single('file'), async (req, res) => {
+    try {
+      console.log('📄 Recebendo solicitação de envio de arquivo:', {
+        hasPhone: !!req.body.phone,
+        hasFile: !!req.file,
+        contentType: req.headers['content-type']
+      });
+      
+      const phone = req.body.phone;
+      const conversationId = req.body.conversationId;
+      const caption = req.body.caption || '';
+      
+      if (!phone || !req.file) {
+        return res.status(400).json({ 
+          error: 'Phone e arquivo são obrigatórios' 
+        });
+      }
+
+      const credentials = validateZApiCredentials();
+      if (!credentials.valid) {
+        return res.status(400).json({ error: credentials.error });
+      }
+
+      const { instanceId, token, clientToken } = credentials;
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Converter arquivo para base64 com prefixo data URL conforme documentação Z-API
+      const fileBase64 = req.file.buffer.toString('base64');
+      const dataUrl = `data:${req.file.mimetype};base64,${fileBase64}`;
+      
+      const payload = {
+        phone: cleanPhone,
+        document: dataUrl,
+        filename: req.file.originalname,
+        caption: caption
+      };
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document`;
+      console.log('📄 Enviando arquivo para Z-API:', { 
+        url: url.replace(token, '****'), 
+        phone: cleanPhone,
+        fileSize: fileBase64.length,
+        mimeType: req.file.mimetype,
+        fileName: req.file.originalname,
+        hasCaption: !!caption
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Client-Token': clientToken || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('📥 Resposta Z-API (arquivo):', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText.substring(0, 200) + '...'
+      });
+
+      if (!response.ok) {
+        console.error('❌ Erro na Z-API (arquivo):', responseText);
+        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON (arquivo):', parseError);
+        throw new Error(`Resposta inválida da Z-API: ${responseText}`);
+      }
+
+      console.log('✅ Arquivo enviado com sucesso via Z-API:', data);
+      
+      // Salvar mensagem no banco de dados se conversationId foi fornecido
+      let savedMessage = null;
+      if (conversationId) {
+        try {
+          const messageContent = caption ? `📄 ${caption}` : `📄 ${req.file.originalname}`;
+          
+          savedMessage = await storage.createMessage({
+            conversationId: parseInt(conversationId),
+            content: dataUrl, // Salvar o arquivo em base64 para exibição
+            isFromContact: false,
+            messageType: 'file',
+            sentAt: new Date(),
+            metadata: {
+              zaapId: data.messageId || data.id,
+              fileSent: true,
+              fileName: req.file.originalname,
+              fileSize: req.file.size,
+              mimeType: req.file.mimetype,
+              caption: caption
+            }
+          });
+
+          // Broadcast para WebSocket
+          const { broadcast } = await import('../realtime');
+          broadcast(parseInt(conversationId), {
+            type: 'message_sent',
+            conversationId: parseInt(conversationId)
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem de arquivo no banco:', dbError);
+        }
+      }
+
+      // Retornar resposta com mensagem salva no banco para renderização imediata
+      res.json({
+        ...data,
+        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+      });
+    } catch (error) {
+      console.error('❌ Erro ao enviar arquivo via Z-API:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       });

@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:23): ENDPOINT DE ENVIO DE ARQUIVO IMPLEMENTADO COMPLETAMENTE
+  - Criado endpoint /api/zapi/send-file baseado na documentação oficial da Z-API
+  - Configurado multer para arquivos (50MB máximo, tipos: PDF, DOC, DOCX, XLS, XLSX, TXT, CSV)
+  - Implementada validação robusta no useFileMessage.ts similar às outras correções de mídia
+  - Sistema salva arquivo no banco e retorna savedMessage para renderização imediata
+  - Usado endpoint send-document da Z-API conforme documentação oficial
+  - Todos os tipos de mídia funcionando: texto, imagem, áudio, vídeo, arquivo
 - June 25, 2025 (05:21): ÍCONE DE CLIPS CORRIGIDO PARA POSIÇÃO VERTICAL
   - Removida rotação indevida do ícone Paperclip em InputArea.tsx
   - Ícone agora aparece na posição vertical correta (em pé)
