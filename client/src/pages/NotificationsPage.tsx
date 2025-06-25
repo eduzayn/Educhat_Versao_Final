@@ -1,5 +1,5 @@
 import React from "react";
-import { NotificationPreferences } from "@/components/NotificationPreferences";
+import { NotificationPreferencesSimple } from "@/components/NotificationPreferencesSimple";
 
 export function NotificationsPage() {
   return (
@@ -13,7 +13,7 @@ export function NotificationsPage() {
         </p>
       </div>
       
-      <NotificationPreferences />
+      <NotificationPreferencesSimple />
     </div>
   );
 }

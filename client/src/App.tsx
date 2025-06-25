@@ -27,6 +27,7 @@ import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectio
 // Removido: import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import TeamTransferPage from "@/pages/Teams/TeamTransferPage";
+import { NotificationsPage } from "@/pages/NotificationsPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -132,6 +133,7 @@ function Router() {
           */}
           <Route path="/chat-interno" component={InternalChatPage} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/notifications" component={NotificationsPage} />
           <Route path="/teams">
             {() => (
               <ProtectedRoute
