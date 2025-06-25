@@ -96,6 +96,10 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:51): PROBLEMA DE RENDERIZAÇÃO EXCESSIVA DE CURSOS CORRIGIDO
+  - Removidos console.log desnecessários em ContactSidebar.tsx
+  - Otimizada renderização de listas de cursos e categorias
+  - Eliminado spam de logs "Renderizando curso" no console
 - June 25, 2025 (01:48): FUNCIONALIDADE DE ENVIO DE MENSAGEM ATIVA NO MODAL DE CONTATO IMPLEMENTADA
   - Adicionado campo de seleção de canal WhatsApp no modal de criação de contato
   - Implementado campo de mensagem ativa com validação obrigatória quando canal selecionado

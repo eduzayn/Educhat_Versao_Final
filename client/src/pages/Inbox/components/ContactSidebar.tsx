@@ -515,14 +515,11 @@ export function ContactSidebar({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">Todas as categorias</SelectItem>
-                        {categories.map((category) => {
-                          console.log('🏷️ Renderizando categoria:', category);
-                          return (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          );
-                        })}
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -541,14 +538,11 @@ export function ContactSidebar({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">Nenhum curso específico</SelectItem>
-                        {filteredCourses.map((course) => {
-                          console.log('📚 Renderizando curso:', course);
-                          return (
-                            <SelectItem key={course} value={course}>
-                              {course}
-                            </SelectItem>
-                          );
-                        })}
+                        {filteredCourses.map((course) => (
+                          <SelectItem key={course} value={course}>
+                            {course}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
