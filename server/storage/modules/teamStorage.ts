@@ -260,7 +260,8 @@ export class TeamStorage extends BaseStorage {
         return {
           ...item,
           toTeamName: toTeam?.name || 'Equipe removida',
-          fromTeamName: item.fromTeamName || 'Não atribuída'
+          fromTeamName: item.fromTeamName || 'Não atribuída',
+          contactName: item.contactName || 'Contato sem nome'
         };
       })
     );

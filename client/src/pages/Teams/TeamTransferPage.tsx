@@ -94,7 +94,18 @@ export default function TeamTransferPage() {
     queryFn: async () => {
       const response = await fetch('/api/conversations?include_team_info=true&limit=100');
       if (!response.ok) throw new Error('Erro ao carregar conversas');
-      return response.json();
+      const data = await response.json();
+      // Garantir que cada conversa tenha as propriedades necessárias
+      return Array.isArray(data) ? data.map((conv: any) => ({
+        ...conv,
+        contactName: conv.contactName || conv.contact?.name || 'Contato sem nome',
+        lastMessage: conv.lastMessage || 'Sem mensagens',
+        unreadCount: conv.unreadCount || 0,
+        status: conv.status || 'open',
+        channel: conv.channel || 'unknown',
+        assignedTeamId: conv.assignedTeamId || null,
+        lastMessageAt: conv.lastMessageAt || new Date().toISOString()
+      })) : [];
     }
   });
 
@@ -102,9 +113,15 @@ export default function TeamTransferPage() {
   const { data: transferHistory = [] } = useQuery({
     queryKey: ['/api/teams/transfer-history'],
     queryFn: async () => {
-      const response = await fetch('/api/teams/transfer-history');
-      if (!response.ok) return [];
-      return response.json();
+      try {
+        const response = await fetch('/api/teams/transfer-history');
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        return [];
+      }
     }
   });
 
@@ -135,8 +152,8 @@ export default function TeamTransferPage() {
 
   // Filtrar conversas por termo de busca e equipe selecionada
   const filteredConversations = conversations.filter((conv: ConversationItem) => {
-    const matchesSearch = conv.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         conv.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (conv.contactName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (conv.lastMessage || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTeam = selectedTeamFilter === null || conv.assignedTeamId === selectedTeamFilter;
     return matchesSearch && matchesTeam;
   });
@@ -452,7 +469,7 @@ export default function TeamTransferPage() {
           <CardContent>
             <div className="grid gap-3">
               {transferHistory.slice(0, 10).map((transfer: TransferHistory) => (
-                <TransferHistoryCard key={transfer.id} transfer={transfer} />
+                <HistoryCard key={transfer.id} transfer={transfer} />
               ))}
             </div>
           </CardContent>
