@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
-  registerMacrosetorRoutes(app, {} as any);
+
   
   // Registrar rotas de keyword routing
   app.use('/api/keyword-routing', (await import('./keywordRouting/index.js')).default);

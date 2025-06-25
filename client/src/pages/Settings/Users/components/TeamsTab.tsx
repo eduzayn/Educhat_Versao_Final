@@ -37,7 +37,7 @@ export const TeamsTab = () => {
   const [newTeamForm, setNewTeamForm] = useState({
     name: '',
     description: '',
-    macrosetor: '',
+    category: '',
     color: '',
     isActive: true
   });
@@ -47,9 +47,14 @@ export const TeamsTab = () => {
   const [editTeamForm, setEditTeamForm] = useState({
     name: '',
     description: '',
-    macrosetor: '',
+    category: '',
     isActive: true
   });
+
+  // Estado para controlar membros da equipe
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -305,13 +310,22 @@ export const TeamsTab = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
+                      onClick={() => handleShowMembers(team)}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Ver Membros
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
                       onClick={() => {
                         setSelectedTeam(team);
                         setShowAddMemberDialog(true);
                       }}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Adicionar Membro
+                      Adicionar
                     </Button>
                     <Button 
                       variant="outline" 
@@ -320,7 +334,7 @@ export const TeamsTab = () => {
                       onClick={() => handleOpenConfigDialog(team)}
                     >
                       <Settings className="h-4 w-4 mr-2" />
-                      Configurar
+                      Config
                     </Button>
                   </div>
                 </div>
@@ -550,6 +564,79 @@ export const TeamsTab = () => {
             >
               {updateTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar Configurações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para mostrar e gerenciar membros da equipe */}
+      <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Membros da Equipe: {selectedTeam?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie os membros desta equipe. Você pode remover membros existentes.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-96 overflow-y-auto">
+            {loadingMembers ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                Carregando membros...
+              </div>
+            ) : teamMembers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum membro encontrado nesta equipe.</p>
+                <p className="text-sm">Use o botão "Adicionar" para incluir membros.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-primary">
+                          {member.displayName?.[0]?.toUpperCase() || member.username?.[0]?.toUpperCase() || '?'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.displayName || member.username}</p>
+                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveMember(member.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remover
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedTeam(null);
+                setShowAddMemberDialog(true);
+                setShowMembersDialog(false);
+              }}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar Membro
+            </Button>
+            <Button onClick={() => setShowMembersDialog(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
