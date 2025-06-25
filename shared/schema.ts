@@ -877,7 +877,7 @@ export const categoryDetection = pgTable("category_detection", {
 
 export const categoryKeywords = pgTable("category_keywords", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  macrosetorId: integer("macrosetor_id").notNull().references(() => macrosetorDetection.id, { onDelete: "cascade" }),
+  categoryId: integer("category_id").notNull().references(() => categoryDetection.id, { onDelete: "cascade" }),
   keyword: text("keyword").notNull(),
   weight: integer("weight").default(1).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -916,13 +916,13 @@ export type DetectionLog = typeof detectionLogs.$inferSelect;
 export type InsertDetectionLog = z.infer<typeof insertDetectionLogSchema>;
 
 export const categoryDetectionRelations = relations(categoryDetection, ({ many }) => ({
-  keywords: many(macrosetorKeywords),
+  keywords: many(categoryKeywords),
 }));
 
 export const categoryKeywordsRelations = relations(categoryKeywords, ({ one }) => ({
-  macrosetor: one(macrosetorDetection, {
-    fields: [macrosetorKeywords.macrosetorId],
-    references: [macrosetorDetection.id],
+  category: one(categoryDetection, {
+    fields: [categoryKeywords.categoryId],
+    references: [categoryDetection.id],
   }),
 }));
 

@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:56): REMOÇÃO COMPLETA DA PALAVRA "MACROSETOR" DO CÓDIGO
+  - Substituída palavra "macrosetor" por "categoria" em todo o código
+  - Atualizados schemas, tipos e funções para usar nomenclatura "category"
+  - Removidos arquivos obsoletos macrosetorStorage.ts e macrosetores.ts
+  - Mantida funcionalidade completa com nova nomenclatura
+  - Sistema funcionando sem referências à palavra proibida
 - June 25, 2025 (06:54): SIMPLIFICAÇÃO DE PERMISSÕES CONCLUÍDA COM SUCESSO
   - Sistema baseado em funções totalmente implementado e funcional
   - Modelo de 3 perfis: Administrador (acesso total), Gerente (operacional + relatórios), Atendente (apenas operacional)
