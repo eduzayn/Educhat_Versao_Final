@@ -135,10 +135,11 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       // Calcular posição do autocomplete
       if (textareaRef.current) {
         const rect = textareaRef.current.getBoundingClientRect();
-        setQuickReplyPosition({
-          top: rect.top - 10, // Acima do textarea
+        const position = {
+          top: rect.top - 300, // Acima do textarea
           left: rect.left
-        });
+        };
+        setQuickReplyPosition(position);
       }
       
       setShowQuickReplies(true);
@@ -554,6 +555,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
             position={quickReplyPosition}
           />
         )}
+
+
       </div>
     </div>
   );

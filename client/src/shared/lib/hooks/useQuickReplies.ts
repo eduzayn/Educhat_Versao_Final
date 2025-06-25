@@ -23,14 +23,18 @@ export function useSearchQuickReplies(searchTerm: string) {
   return useQuery({
     queryKey: ['/api/quick-replies/search', searchTerm],
     queryFn: async () => {
-      if (!searchTerm.trim()) return [];
+      // Se termo vazio, buscar todas as respostas rápidas
+      if (!searchTerm.trim()) {
+        const response = await fetch('/api/quick-replies');
+        if (!response.ok) throw new Error('Erro ao buscar respostas rápidas');
+        return response.json() as Promise<QuickReply[]>;
+      }
       
       const params = new URLSearchParams({ q: searchTerm.trim() });
       const response = await fetch(`/api/quick-replies/search?${params}`);
       if (!response.ok) throw new Error('Erro ao buscar respostas rápidas');
       return response.json() as Promise<QuickReply[]>;
     },
-    enabled: Boolean(searchTerm.trim()),
     staleTime: 30 * 1000, // 30 segundos para busca
   });
 }

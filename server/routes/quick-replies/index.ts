@@ -22,6 +22,9 @@ export function registerQuickRepliesRoutes(app: Express) {
   app.get('/api/quick-replies/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid ID format' });
+      }
       const quickReply = await storage.getQuickReply(id);
       
       if (!quickReply) {
