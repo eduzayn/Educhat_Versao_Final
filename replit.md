@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (03:21): SCROLL INFINITO INVERTIDO IMPLEMENTADO PARA MENSAGENS
+  - Hook useMessages convertido para paginação baseada em cursor (before=id) para scroll infinito
+  - API atualizada para suportar parâmetro "before" em /api/conversations/:id/messages
+  - Método getMessagesBefore adicionado ao MessageStorage para carregar mensagens anteriores
+  - Carregamento inicial: 15 mensagens mais recentes, scroll para cima: +10 mensagens anteriores
+  - Preservação da posição de scroll após carregar histórico (evita "pulo de tela")
+  - Ordem cronológica correta: mais antigas no topo, mais recentes embaixo
+  - Controle de requisições duplicadas com isFetchingNextPage flag
 - June 25, 2025 (03:17): RENDERIZAÇÃO IMEDIATA PADRONIZADA PARA TODOS OS TIPOS DE MENSAGENS
   - Criados hooks unificados useImageMessage, useAudioMessage, useFileMessage, useVideoMessage
   - Todos seguem padrão React Query com onSuccess atualizando cache imediatamente

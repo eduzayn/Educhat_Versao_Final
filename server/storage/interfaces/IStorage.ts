@@ -71,6 +71,7 @@ export interface IStorage {
   // ==================== MESSAGE OPERATIONS ====================
   getAllMessages(): Promise<Message[]>;
   getMessages(conversationId: number, limit?: number, offset?: number): Promise<Message[]>;
+  getMessagesBefore(conversationId: number, beforeId: number, limit?: number): Promise<Message[]>;
   getMessageMedia(messageId: number): Promise<string | null>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<void>;

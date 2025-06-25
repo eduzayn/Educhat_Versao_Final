@@ -422,8 +422,199 @@ export function InputArea() {
     conversationId: activeConversation?.id || 0, 
     contactPhone: activeConversation?.contact?.phone || '' 
   });
+
+  // Mutation para enviar link
+  const sendLinkMutation = useMutation({
+    mutationFn: async ({ url, text }: { url: string; text: string }) => {
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
+      }
+
+      const response = await apiRequest("POST", "/api/zapi/send-link", {
+        phone: activeConversation.contact.phone,
+        conversationId: activeConversation.id,
+        url: url,
+        text: text,
+      });
+
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Link enviado",
+        description: "Seu link foi enviado com sucesso!",
+      });
+      setIsAttachmentOpen(false);
+
+      // Invalidar cache para atualizar mensagens
+      if (activeConversation?.id) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/conversations/${activeConversation.id}/messages`],
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao enviar link",
+        description: "Não foi possível enviar o link. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para enviar áudio gravado  
+  const sendAudioMutation = useAudioMessage({ 
+    conversationId: activeConversation?.id || 0, 
+    contactPhone: activeConversation?.contact?.phone || '' 
+  });
+
+  const handleSendAudio = async (audioBlob: Blob, duration: number) => {
+    if (!activeConversation?.contact?.phone) {
+      console.error("❌ Telefone do contato não disponível");
+      return;
+    }
+
+    console.log("🎤 Iniciando envio de áudio:", {
+      duration: duration + "s",
+      size: audioBlob.size + " bytes",
+      conversationId: activeConversation.id,
+      contactPhone: activeConversation.contact.phone,
+    });
+
+    // Converter Blob para File
+    const audioFile = new File([audioBlob], `audio_${Date.now()}.webm`, {
+      type: audioBlob.type || 'audio/webm',
+    });
+
+    sendAudioMutation.mutate({ 
+      file: audioFile, 
+      duration 
+    });
+  };
+
+  const selectQuickReply = (quickReply: QuickReply) => {
+    console.log('📝 Quick reply selecionado:', quickReply);
+    
+    // Se for mensagem de texto, inserir no campo de texto
+    if (quickReply.type === 'text') {
+      setMessage(quickReply.content);
+      textareaRef.current?.focus();
+    } else if (quickReply.type === 'audio') {
+      // Para áudio, enviar diretamente
+      handleSendQuickReplyAudio(quickReply);
+    } else if (quickReply.type === 'image') {
+      // Para imagem, enviar diretamente  
+      handleSendImage(quickReply);
+    } else if (quickReply.type === 'video') {
+      // Para vídeo, enviar diretamente
+      handleSendVideo(quickReply);
+    }
+  };
+
+  const handleSendQuickReplyAudio = async (quickReply: QuickReply) => {
+    console.log("🔊 Enviando quick reply de áudio:", quickReply);
+    
+    if (!quickReply.content || !activeConversation?.contact?.phone) {
+      console.error("❌ Dados insuficientes para envio de áudio");
+      return;
+    }
+
+    try {
+      // Assumir que o content é uma data URL válida de áudio
+      const response = await fetch(quickReply.content);
+      const audioBlob = await response.blob();
+      
+      // Converter para File
+      const audioFile = new File([audioBlob], `quick_reply_audio_${Date.now()}.webm`, {
+        type: audioBlob.type || 'audio/webm',
+      });
+
+      sendAudioMutation.mutate({ 
+        file: audioFile, 
+        duration: 5 // Duração padrão, ajustar conforme necessário
+      });
+    } catch (error) {
+      console.error("❌ Erro ao processar quick reply de áudio:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar o áudio da resposta rápida.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendImage = async (quickReply: QuickReply) => {
+    console.log("🖼️ Enviando quick reply de imagem:", quickReply);
+    
+    if (!quickReply.content || !activeConversation?.contact?.phone) {
+      console.error("❌ Dados insuficientes para envio de imagem");
+      return;
+    }
+
+    try {
+      // Assumir que o content é uma URL válida de imagem
+      const response = await fetch(quickReply.content);
+      const imageBlob = await response.blob();
+      
+      // Converter para File
+      const imageFile = new File([imageBlob], `quick_reply_image_${Date.now()}.jpg`, {
+        type: imageBlob.type || 'image/jpeg',
+      });
+
+      sendImageMutation.mutate({ 
+        file: imageFile, 
+        caption: quickReply.title || '' 
+      });
+    } catch (error) {
+      console.error("❌ Erro ao processar quick reply de imagem:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar a imagem da resposta rápida.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendVideo = async (quickReply: QuickReply) => {
+    console.log("🎥 Enviando quick reply de vídeo:", quickReply);
+    
+    if (!quickReply.content || !activeConversation?.contact?.phone) {
+      console.error("❌ Dados insuficientes para envio de vídeo");
+      return;
+    }
+
+    try {
+      // Assumir que o content é uma URL válida de vídeo
+      const response = await fetch(quickReply.content);
+      const videoBlob = await response.blob();
+      
+      // Converter para File
+      const videoFile = new File([videoBlob], `quick_reply_video_${Date.now()}.mp4`, {
+        type: videoBlob.type || 'video/mp4',
+      });
+
+      sendVideoMutation.mutate({ 
+        file: videoFile, 
+        caption: quickReply.title || '' 
+      });
+    } catch (error) {
+      console.error("❌ Erro ao processar quick reply de vídeo:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar o vídeo da resposta rápida.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mutation para upload de imagem
+  const { mutate: uploadImageMutation, isPending: uploadingImage } = useMutation({
     mutationFn: async (file: File) => {
-      console.log("🎥 Iniciando envio de vídeo:", {
+      if (!activeConversation?.contact.phone || !activeConversation?.id) {
+        throw new Error("Dados da conversa não disponíveis");
+      }
+
+      console.log("📄 Iniciando envio de documento:", {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
@@ -508,13 +699,6 @@ export function InputArea() {
           : "Não foi possível enviar o vídeo. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
-    },
-  });
-
-  // Documentos agora usam o hook padronizado useFileMessage (já declarado acima)
-
-  // Mutation para enviar link
-  const sendLinkMutation = useMutation({
     mutationFn: async ({ url, text }: { url: string; text: string }) => {
       if (!activeConversation?.contact.phone || !activeConversation?.id) {
         throw new Error("Dados da conversa não disponíveis");
