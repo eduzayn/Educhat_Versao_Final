@@ -99,8 +99,8 @@ export function InboxPage() {
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(page => page || []) : [];
   
-  // Hook do store de chat - apenas para estado básico
-  const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();
+  // Estado local para conversa ativa (substituindo Zustand)
+  const [activeConversation, setActiveConversation] = useState<any>(null);
   
   // Hook de mensagens com scroll infinito invertido - FONTE ÚNICA DE VERDADE
   const messagesQuery = useMessages(activeConversation?.id, 15);
@@ -116,7 +116,7 @@ export function InboxPage() {
 
   const handleSelectConversation = (conversation: any) => {
     setActiveConversation(conversation);
-    // Marcar como lida apenas na API - store não gerencia mais estado de mensagens
+    // Marcar como lida apenas na API - React Query é fonte única
     markAsReadMutation.mutate(conversation.id);
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
   };

@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useChatStore } from '@/shared/store/chatStore';
+import { useChatUIStore } from '@/shared/store/chatStore';
 import { useNotifications } from './useNotifications';
 import type { WebSocketMessage } from '../../../types/chat';
 import type { Message } from '../../../types/chat';
@@ -10,7 +10,7 @@ export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
-  const { setConnectionStatus, setTypingIndicator, activeConversation } = useChatStore();
+  const { setConnectionStatus } = useChatUIStore();
   const { handleNewMessage } = useNotifications();
 
   const connect = useCallback(() => {
