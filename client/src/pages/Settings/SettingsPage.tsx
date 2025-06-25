@@ -73,8 +73,8 @@ function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-          {filteredCards.map((card, index) => (
-            <Card key={index} className="bg-muted/50 p-6 rounded-lg border hover:bg-muted/70 transition-colors">
+          {filteredCards.map((card) => (
+            <Card key={card.href} className="bg-muted/50 p-6 rounded-lg border hover:bg-muted/70 transition-colors">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">{card.icon}</span>
                 <div className="flex-1">

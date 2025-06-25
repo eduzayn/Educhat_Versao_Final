@@ -100,7 +100,6 @@ export function ContactSidebar({
     value: '',
     category: '',
     stage: '',
-    category: '',
     course: ''
   });
   const [categories, setCategories] = useState<string[]>([]);
@@ -167,7 +166,7 @@ export function ContactSidebar({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       setShowDealDialog(false);
-      setDealFormData({ name: '', value: '', macrosetor: '', stage: '', category: '', course: '' });
+      setDealFormData({ name: '', value: '', category: '', stage: '', course: '' });
     },
     onError: (error: any) => {
       console.error('Erro ao criar negócio:', error);
@@ -185,9 +184,8 @@ export function ContactSidebar({
       name: dealFormData.name,
       contactId: activeConversation.contact?.id,
       value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
-      category: dealFormData.category,
-      stage: dealFormData.stage,
       category: dealFormData.category || null,
+      stage: dealFormData.stage,
       course: dealFormData.course || null,
       probability: 50,
       owner: 'Sistema'

@@ -8,15 +8,15 @@ export interface Stage {
   color: string;
 }
 
-export interface TeamMacrosetor {
+export interface TeamCategory {
   name: string;
   description?: string;
   color: string;
   stages: Stage[];
 }
 
-// Configuração unificada dos funis por equipe/macrosetor (extraída do DealsModule existente)
-export const teamMacrosetores: Record<string, TeamMacrosetor> = {
+// Configuração unificada dos funis por equipe/categoria (extraída do DealsModule existente)
+export const teamCategories: Record<string, TeamCategory> = {
   comercial: {
     name: 'Equipe Comercial',
     description: 'Vendas, matrículas e informações sobre cursos',
@@ -105,20 +105,20 @@ export const teamMacrosetores: Record<string, TeamMacrosetor> = {
 /**
  * Obtém as etapas de um funil específico
  */
-export function getStagesForMacrosetor(macrosetor: string): Stage[] {
-  return teamMacrosetores[macrosetor]?.stages || [];
+export function getStagesForCategory(category: string): Stage[] {
+  return teamCategories[category]?.stages || [];
 }
 
 /**
  * Obtém informações de um funil específico
  */
-export function getMacrosetorInfo(macrosetor: string): TeamMacrosetor | undefined {
-  return teamMacrosetores[macrosetor];
+export function getCategoryInfo(category: string): TeamCategory | undefined {
+  return teamCategories[category];
 }
 
 /**
  * Obtém todos os funis disponíveis
  */
-export function getAllMacrosetores(): Array<{ id: string; info: TeamMacrosetor }> {
-  return Object.entries(teamMacrosetores).map(([id, info]) => ({ id, info }));
+export function getAllCategories(): Array<{ id: string; info: TeamCategory }> {
+  return Object.entries(teamCategories).map(([id, info]) => ({ id, info }));
 }
