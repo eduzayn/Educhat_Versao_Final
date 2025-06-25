@@ -96,6 +96,10 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (17:09): BUSCA POR TELEFONE NA INBOX CORRIGIDA
+  - Corrigido filtro de busca para números de telefone (removido toLowerCase desnecessário)
+  - Busca agora funciona corretamente para nome, telefone e email
+  - Mantido scroll infinito e funcionalidades existentes intactas
 - June 25, 2025 (16:49): FLUXO AUTOMATIZADO INBOX → CRM IMPLEMENTADO COMPLETAMENTE
   - Criação automática de deals quando conversas são atribuídas manualmente a equipes/usuários
   - Integração perfeita com sistema existente `createAutomaticDeal` sem duplicação de código

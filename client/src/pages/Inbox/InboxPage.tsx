@@ -283,11 +283,11 @@ export function InboxPage() {
       if (!resolvedStatuses.includes(conversation.status)) return false;
     }
     
-    // Filtro por busca - pesquisar em nome e telefone do contato
+    // Filtro por busca - pesquisar em nome, telefone e email do contato
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const nameMatch = conversation.contact.name?.toLowerCase().includes(searchLower) || false;
-      const phoneMatch = conversation.contact.phone?.toLowerCase()?.includes(searchLower) || false;
+      const phoneMatch = conversation.contact.phone?.includes(searchTerm) || false; // Números não precisam lowercase
       const emailMatch = conversation.contact.email?.toLowerCase()?.includes(searchLower) || false;
       
       if (!nameMatch && !phoneMatch && !emailMatch) {
