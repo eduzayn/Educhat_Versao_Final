@@ -473,6 +473,34 @@ export class DatabaseStorage implements IStorage {
     return this.keywordRouting.findTeamByMessage(message);
   }
 
+  async keywordExists(keyword: string, excludeId?: number) {
+    return this.keywordRouting.keywordExists(keyword, excludeId);
+  }
+
+  async toggleKeywordRoutingStatus(id: number) {
+    return this.keywordRouting.toggleKeywordRoutingStatus(id);
+  }
+
+  async getKeywordRouting(id: number) {
+    return this.keywordRouting.getKeywordRouting(id);
+  }
+
+  async createKeywordRouting(data: any) {
+    return this.keywordRouting.createKeywordRouting(data);
+  }
+
+  async updateKeywordRouting(id: number, data: any) {
+    return this.keywordRouting.updateKeywordRouting(id, data);
+  }
+
+  async deleteKeywordRouting(id: number) {
+    return this.keywordRouting.deleteKeywordRouting(id);
+  }
+
+  async findTeamByMessage(message: string) {
+    return this.keywordRouting.findTeamByMessage(message);
+  }
+
   async getKeywordRoutingsByTeam(teamId: number) {
     return this.keywordRouting.getKeywordRoutingsByTeam(teamId);
   }

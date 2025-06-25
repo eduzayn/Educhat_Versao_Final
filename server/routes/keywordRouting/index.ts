@@ -1,13 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
-import { storage } from "../../storage";
+import { storage } from "../../core/storage";
 import { insertKeywordRoutingSchema } from "../../../shared/schema";
-import { requireAuth } from "../auth/middleware";
 
 const router = Router();
-
-// Aplicar middleware de autenticação
-router.use(requireAuth);
 
 /**
  * GET /api/keyword-routing
