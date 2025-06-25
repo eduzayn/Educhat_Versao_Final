@@ -96,7 +96,7 @@ export function InboxPage() {
   }); // Carregar 20 conversas iniciais, mais 20 por vez
   
   // Flatten das páginas de conversas com verificação de segurança
-  const conversations = conversationsData?.pages?.flat() || [];
+  const conversations = conversationsData?.pages ? conversationsData.pages.flat() : [];
   
   // Hook do store de chat - apenas para estado básico
   const { activeConversation, setActiveConversation, markConversationAsRead } = useChatStore();

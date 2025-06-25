@@ -18,25 +18,27 @@ export function useAudioMessage({ conversationId, contactPhone }: UseAudioMessag
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ audioBlob, duration }: { audioBlob: Blob; duration: number }): Promise<Message> => {
-      if (!audioBlob || !contactPhone) {
+    mutationFn: async ({ file, duration }: { file: File; duration?: number }): Promise<Message> => {
+      if (!file || !contactPhone) {
         throw new Error('Arquivo de áudio e telefone do contato são obrigatórios');
       }
 
       console.log('🎤 Iniciando envio de áudio:', {
         conversationId,
-        audioSize: audioBlob.size,
-        audioType: audioBlob.type,
+        audioSize: file.size,
+        audioType: file.type,
         duration,
         contactPhone
       });
 
       // Criar FormData para envio
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'audio.mp4');
+      formData.append('audio', file, 'audio.mp4');
       formData.append('phone', contactPhone);
       formData.append('conversationId', conversationId.toString());
-      formData.append('duration', duration.toString());
+      if (duration) {
+        formData.append('duration', duration.toString());
+      }
 
       const response = await fetch('/api/zapi/send-audio', {
         method: 'POST',
