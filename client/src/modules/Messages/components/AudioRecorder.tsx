@@ -3,6 +3,7 @@ import { Button } from "@/shared/ui/button";
 import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/shared/lib/utils/formatters";
+import { debugLog, infoLog, errorLog, successLog, handleAudioError } from "@/lib/audioLogger";
 
 interface AudioRecorderProps {
   onSendAudio: (audioBlob: Blob, duration: number) => void;
@@ -22,7 +23,8 @@ type RecordingState =
   | "requesting-permission"
   | "recording"
   | "preview"
-  | "sending";
+  | "sending"
+  | "error";
 
 const AudioRecorderComponent = ({
   onSendAudio,
@@ -58,9 +60,9 @@ const AudioRecorderComponent = ({
 
   // Auto-iniciar se solicitado
   useEffect(() => {
-    console.log('🎵 AudioRecorder useEffect:', { autoStart, state });
+    debugLog('AudioRecorder useEffect', { autoStart, state });
     if (autoStart && state === "idle") {
-      console.log('🎤 Iniciando gravação automaticamente...');
+      infoLog('Iniciando gravação automaticamente');
       startRecording();
     }
   }, [autoStart]);
@@ -90,10 +92,10 @@ const AudioRecorderComponent = ({
 
   const startRecording = async () => {
     try {
-      console.log('🎤 Iniciando startRecording...');
+      debugLog('Iniciando startRecording');
       setState("requesting-permission");
 
-      console.log('🎤 Solicitando permissão de microfone...');
+      debugLog('Solicitando permissão de microfone');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       setPermission("granted");
@@ -109,7 +111,7 @@ const AudioRecorderComponent = ({
         mimeType = "audio/wav";
       }
 
-      console.log("🎤 Formato de áudio selecionado:", mimeType);
+      debugLog("Formato de áudio selecionado", mimeType);
 
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: mimeType,
@@ -134,7 +136,7 @@ const AudioRecorderComponent = ({
         tempAudio.onloadedmetadata = () => {
           const realDurationSeconds = Math.round(tempAudio.duration);
           setRealDuration(realDurationSeconds);
-          console.log(`🎵 Duração timer: ${duration}s, Duração real: ${realDurationSeconds}s`);
+          debugLog(`Duração calculada - Timer: ${duration}s, Real: ${realDurationSeconds}s`);
         };
         
         setState("preview");
@@ -162,9 +164,14 @@ const AudioRecorderComponent = ({
         });
       }, 1000);
     } catch (error) {
-      console.error("Erro ao iniciar gravação:", error);
+      const userMessage = handleAudioError(error);
       setPermission("denied");
-      setState("idle");
+      setState("error");
+      
+      // Mostrar mensagem amigável para o usuário
+      setTimeout(() => {
+        setState("idle");
+      }, 3000);
     }
   };
 
@@ -246,7 +253,7 @@ const AudioRecorderComponent = ({
         onCancel();
       }
     } catch (error) {
-      console.error("Erro ao enviar áudio:", error);
+      errorLog("Erro ao enviar áudio", error);
       setState("preview"); // Voltar para preview em caso de erro
     }
     setAudioBlob(null);
