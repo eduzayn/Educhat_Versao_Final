@@ -62,13 +62,20 @@ export function ConversationAssignmentDropdown({
         title: "Sucesso",
         description: teamId === 'none' ? "Conversa movida para fila neutra" : "Conversa atribuída à equipe com sucesso"
       });
-      // Invalidar queries específicas para atualização imediata
+      
+      // Atualizar o cache do React Query diretamente com otimistic update
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((conv: any) => 
+          conv.id === conversationId 
+            ? { ...conv, assignedTeamId: teamId === 'none' ? null : parseInt(teamId) }
+            : conv
+        );
+      });
+      
+      // Invalidar queries para refetch com dados atualizados do servidor
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
-      // Forçar atualização da conversa específica se a resposta incluir dados atualizados
-      if (updatedConversation) {
-        queryClient.setQueryData(['/api/conversations', conversationId], updatedConversation);
-      }
     },
     onError: () => {
       toast({
@@ -94,13 +101,20 @@ export function ConversationAssignmentDropdown({
         title: "Sucesso",
         description: userId === 'none' ? "Conversa não atribuída a usuário específico" : "Conversa atribuída ao usuário com sucesso"
       });
-      // Invalidar queries específicas para atualização imediata
+      
+      // Atualizar o cache do React Query diretamente com otimistic update
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((conv: any) => 
+          conv.id === conversationId 
+            ? { ...conv, assignedUserId: userId === 'none' ? null : parseInt(userId) }
+            : conv
+        );
+      });
+      
+      // Invalidar queries para refetch com dados atualizados do servidor
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
-      // Forçar atualização da conversa específica se a resposta incluir dados atualizados
-      if (updatedConversation) {
-        queryClient.setQueryData(['/api/conversations', conversationId], updatedConversation);
-      }
     },
     onError: () => {
       toast({

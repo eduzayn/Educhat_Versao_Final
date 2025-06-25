@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (15:55): MIGRAÇÃO COMPLETA PARA REACT QUERY COMO FONTE ÚNICA
+  - Removida dependência do Zustand para dados de conversa no ConversationAssignmentDropdown
+  - Implementado optimistic update direto no cache React Query via setQueryData
+  - Conversa ativa agora atualiza instantaneamente após atribuição manual
+  - Eliminados conflitos entre Zustand e React Query para sincronização de conversas
 - June 25, 2025 (15:46): CORREÇÃO DA ATRIBUIÇÃO MANUAL DE CONVERSA
   - Corrigido ConversationAssignmentDropdown para usar React Query mutations
   - Substituído window.location.reload() por invalidateQueries para melhor UX
