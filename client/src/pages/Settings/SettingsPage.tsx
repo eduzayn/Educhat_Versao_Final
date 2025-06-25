@@ -1,6 +1,7 @@
 import { SettingsModule } from '@/modules/Settings';
 import { Card } from '@/shared/ui/card';
 import { BackButton } from '@/shared/components/BackButton';
+import { useAuth } from '@/shared/lib/hooks/useAuth';
 
 const settingsCards = [
   {
@@ -28,10 +29,11 @@ const settingsCards = [
     icon: "🔗"
   },
   {
-    title: "Perfil da Empresa",
-    description: "Informações básicas, logo, contato",
-    href: "/settings/company",
-    icon: "👤"
+    title: "Admin & Permissões",
+    description: "Gerenciamento de permissões e controle de acesso",
+    href: "/admin/permissions",
+    icon: "🛡️",
+    adminOnly: true
   },
   {
     title: "Integrações",
@@ -46,16 +48,11 @@ const settingsCards = [
     icon: "🧠"
   },
   {
-    title: "Notificações",
-    description: "Configurações de alertas e notificações",
-    href: "/settings/notifications",
-    icon: "🔔"
-  },
-  {
-    title: "Segurança",
-    description: "Permissões, autenticação e logs",
-    href: "/settings/security",
-    icon: "🔒"
+    title: "Transferência de Equipes",
+    description: "Gerencie transferências de conversas entre equipes",
+    href: "/teams/transfer",
+    icon: "🔄",
+    adminOnly: true
   }
 ];
 
@@ -72,7 +69,7 @@ function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-          {settingsCards.map((card, index) => (
+          {filteredCards.map((card, index) => (
             <Card key={index} className="bg-muted/50 p-6 rounded-lg border hover:bg-muted/70 transition-colors">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">{card.icon}</span>

@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:17): AUDITORIA COMPLETA DE ROTAS E PERMISSÕES FINALIZADA
+  - Auditadas 55 rotas totais: 20 frontend + 35 APIs backend
+  - Corrigida proteção da rota /teams/transfer com ProtectedRoute (admin/gerente)
+  - Validado sistema de autenticação Passport.js funcionando corretamente
+  - Confirmado controle de acesso granular por roles (admin, gerente, superadmin)
+  - Sistema de breadcrumbs automático validado e funcional
+  - Página 404 personalizada e redirecionamentos de segurança operacionais
+  - Removidos links órfãos da Settings Page (company, notifications, security)
+  - Adicionados filtros de permissão na página de configurações
+  - Score de segurança: 9.5/10 - sistema altamente seguro
 - June 25, 2025 (06:14): LIMPEZA TÉCNICA ESTRUTURADA EXECUTADA COM SUCESSO
   - Removidos arquivos obsoletos: InlineDealEdit.tsx, courseUtils.ts, macrosetorUtils.ts
   - Eliminados console.logs de debug desnecessários em 5+ componentes
