@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:51): ETAPA 3 - SISTEMA GRANULAR DE PERMISSÕES REMOVIDO COMPLETAMENTE
+  - Removido PermissionsPanel.tsx e componentes relacionados 
+  - Comentada rota /admin/permissions no App.tsx
+  - Removidos imports e referências ao painel administrativo granular
+  - ProtectedRoute atualizado para usar apenas sistema baseado em funções
+  - Sistema simplificado: 3 tipos de usuário (Admin, Gerente, Atendente) com páginas predefinidas
+  - Administração centralizada em /settings/users
 - June 25, 2025 (06:50): ETAPA 2 - PAINEL /ADMIN/PERMISSIONS OCULTADO DOS MENUS
   - Removido link "Admin & Permissões" do Dashboard (comentado para Etapa 3)
   - Removido link da página de Configurações (comentado para Etapa 3)  

@@ -24,7 +24,7 @@ import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickReplies
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
 
-import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
+// Removido: import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import TeamTransferPage from "@/pages/Teams/TeamTransferPage";
 

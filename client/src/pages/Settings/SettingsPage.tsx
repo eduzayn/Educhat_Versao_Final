@@ -28,14 +28,7 @@ const settingsCards = [
     href: "/settings/webhooks",
     icon: "🔗"
   },
-  // ETAPA 2: Temporariamente oculto - será removido na Etapa 3
-  // {
-  //   title: "Admin & Permissões",
-  //   description: "Gerenciamento de permissões e controle de acesso",
-  //   href: "/admin/permissions",
-  //   icon: "🛡️",
-  //   adminOnly: true
-  // },
+
   {
     title: "Integrações",
     description: "APIs externas, CRM, automações",
