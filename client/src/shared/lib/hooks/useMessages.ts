@@ -76,15 +76,35 @@ export function useSendMessage() {
       // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
       if (contact?.phone) {
         try {
-          await apiRequest("POST", "/api/zapi/send-message", {
+          console.log('📤 INICIANDO ENVIO Z-API:', {
+            phone: contact.phone,
+            content: message.content.substring(0, 50),
+            conversationId: conversationId
+          });
+          
+          const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
             phone: contact.phone,
             message: message.content,
             conversationId: conversationId
           });
+          
+          console.log('✅ SUCESSO Z-API:', {
+            messageId: zapiResponse.messageId || zapiResponse.id,
+            phone: contact.phone
+          });
+          
         } catch (error) {
-          console.error('Erro ao enviar via Z-API:', error);
-          // Mensagem já está salva localmente, então usuário vê a mensagem mesmo se Z-API falhar
+          console.error('❌ FALHA CRÍTICA Z-API:', {
+            phone: contact.phone,
+            error: error instanceof Error ? error.message : error,
+            content: message.content.substring(0, 50)
+          });
+          
+          // Lançar erro para que apareça no toast do usuário
+          throw new Error(`Falha no envio via WhatsApp: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
+      } else {
+        console.warn('⚠️ ENVIO APENAS LOCAL: Telefone não disponível para', { conversationId, contactId: contact?.id });
       }
 
       return savedMessage;

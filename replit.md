@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (20:21): UNIFICAÇÃO COMPLETA DO FLUXO DE ENVIO DE MENSAGENS IMPLEMENTADA
+  - Resolvido problema de mensagens de texto não sendo entregues via Z-API
+  - Implementado ponto único de controle com logs padronizados em useSendMessage hook
+  - Adicionado tratamento robusto de erros com feedback visual via toast notifications
+  - Corrigido fluxo: mensagem salva local → envio Z-API → feedback ao usuário
+  - Eliminadas falhas silenciosas: erros agora são claramente comunicados ao usuário
+  - Logs explícitos implementados: 📤 INICIANDO ENVIO Z-API → ✅ SUCESSO Z-API
+  - Sistema consolidado: uma única linha de execução para envio de mensagens de texto
+  - Mantida compatibilidade com envio de áudio, imagem e vídeo sem alterações
 - June 25, 2025 (20:02): OTIMIZAÇÃO CRÍTICA DE PERFORMANCE API CONVERSATIONS IMPLEMENTADA
   - Corrigido problema de lentidão extrema (>9s) na rota GET /api/conversations/:id
   - Implementada execução paralela com Promise.allSettled() substituindo 4 queries sequenciais

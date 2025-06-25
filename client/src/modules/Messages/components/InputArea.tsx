@@ -101,10 +101,22 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         referenceMessageId: replyingTo?.messageId || null,
       },
       contact: activeConversation.contact,
+    }, {
+      onSuccess: () => {
+        // Limpar campos apenas se envio foi bem-sucedido
+        setMessage("");
+        setReplyingTo(null);
+      },
+      onError: (error) => {
+        // Exibir erro claramente ao usuário
+        toast({
+          title: "Erro no envio",
+          description: error instanceof Error ? error.message : "Falha ao enviar mensagem via WhatsApp",
+          variant: "destructive",
+        });
+        console.error('❌ ERRO NO ENVIO DE MENSAGEM:', error);
+      }
     });
-
-    setMessage("");
-    setReplyingTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
