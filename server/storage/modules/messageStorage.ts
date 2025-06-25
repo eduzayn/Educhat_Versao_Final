@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { messages, conversations, type Message, type InsertMessage } from "../../../shared/schema";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, lt } from "drizzle-orm";
 
 /**
  * Message storage module - manages messages and media handling
@@ -24,11 +24,56 @@ export class MessageStorage extends BaseStorage {
         .limit(limit)
         .offset(offset);
 
-      // Reverter ordem para exibição cronológica no chat (mais antigas no topo)
-      return result.reverse();
+      return result; // Retornar em ordem decrescente para o frontend processar
     } catch (error) {
       console.error('❌ Erro ao buscar mensagens:', error);
       throw new Error('Falha ao buscar mensagens');
+    }
+  }
+
+  async getMessagesBefore(conversationId: number, beforeId: number, limit = 10): Promise<Message[]> {
+    try {
+      // Primeiro, buscar a mensagem de referência para obter o timestamp
+      const [beforeMessage] = await this.db
+        .select({ sentAt: messages.sentAt })
+        .from(messages)
+        .where(eq(messages.id, beforeId))
+        .limit(1);
+
+      if (!beforeMessage) {
+        return [];
+      }
+
+      // Buscar mensagens anteriores ao timestamp da mensagem de referência
+      const result = await this.db
+        .select()
+        .from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false),
+          // Mensagens anteriores (sentAt menor que a mensagem de referência)
+          lt(messages.sentAt, beforeMessage.sentAt)
+        ))
+        .orderBy(desc(messages.sentAt))
+        .limit(limit);
+
+      return result;
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagens anteriores:', error);
+      // Implementação simplificada como fallback usando ID
+      const result = await this.db
+        .select()
+        .from(messages)
+        .where(and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isDeleted, false),
+          // Usar ID como aproximação se timestamp falhar
+          lt(messages.id, beforeId)
+        ))
+        .orderBy(desc(messages.sentAt))
+        .limit(limit);
+
+      return result;
     }
   }
 

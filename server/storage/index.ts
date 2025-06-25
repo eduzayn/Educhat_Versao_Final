@@ -242,6 +242,10 @@ export class DatabaseStorage implements IStorage {
     return this.message.getMessages(conversationId, limit, offset);
   }
 
+  async getMessagesBefore(conversationId: number, beforeId: number, limit?: number) {
+    return this.message.getMessagesBefore(conversationId, beforeId, limit);
+  }
+
   async getMessage(id: number) {
     return this.message.getMessage(id);
   }

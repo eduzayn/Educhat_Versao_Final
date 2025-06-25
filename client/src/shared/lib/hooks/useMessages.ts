@@ -5,30 +5,49 @@ import type { Message, InsertMessage } from '@shared/schema';
 export function useMessages(conversationId: number | null, initialLimit = 15) {
   return useInfiniteQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
-    queryFn: async ({ pageParam = 0 }) => {
-      const limit = pageParam === 0 ? initialLimit : 10; // Primeira página: 15, demais: 10
-      const response = await fetch(`/api/conversations/${conversationId}/messages?limit=${limit}&offset=${pageParam}`);
+    queryFn: async ({ pageParam }) => {
+      // Primeira página: carregar as mais recentes (limit=15, order=desc)
+      // Páginas seguintes: carregar mais antigas usando before=id (limit=10)
+      
+      let url = `/api/conversations/${conversationId}/messages`;
+      const params = new URLSearchParams();
+      
+      if (pageParam === undefined) {
+        // Primeira página: 15 mensagens mais recentes
+        params.append('limit', initialLimit.toString());
+        params.append('order', 'desc');
+      } else {
+        // Páginas seguintes: 10 mensagens anteriores à última carregada
+        params.append('limit', '10');
+        params.append('before', pageParam.toString());
+        params.append('order', 'desc');
+      }
+      
+      url += '?' + params.toString();
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
+      
       const messages = await response.json();
-      return messages;
+      return Array.isArray(messages) ? messages : [];
     },
     getNextPageParam: (lastPage, allPages) => {
-      // Verificação de segurança para evitar erros
-      if (!lastPage || !Array.isArray(lastPage) || !Array.isArray(allPages)) {
+      // Se não há mensagens na última página, não há mais páginas
+      if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) {
         return undefined;
       }
       
-      // Se a última página retornou menos que o limite, não há mais páginas
-      const pageLimit = allPages.length === 1 ? initialLimit : 10;
-      if (lastPage.length < pageLimit) return undefined;
+      // Se a última página retornou menos mensagens que o limite, chegamos ao fim
+      const expectedLimit = allPages.length === 1 ? initialLimit : 10;
+      if (lastPage.length < expectedLimit) {
+        return undefined;
+      }
       
-      // Calcular offset para próxima página
-      const totalMessages = allPages.reduce((acc, page) => {
-        return acc + (Array.isArray(page) ? page.length : 0);
-      }, 0);
-      return totalMessages;
+      // Retornar o ID da mensagem mais antiga da última página para carregar anteriores
+      const oldestMessage = lastPage[lastPage.length - 1];
+      return oldestMessage?.id;
     },
     enabled: !!conversationId,
     refetchInterval: false,

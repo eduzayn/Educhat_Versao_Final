@@ -48,31 +48,34 @@ export function MessagesArea({
     }
   }, [activeConversation?.id, messages.length]);
 
-  // Detectar scroll próximo ao topo para carregar mais mensagens
+  // Detectar scroll próximo ao topo para carregar mais mensagens (scroll infinito invertido)
   const handleScroll = () => {
     if (!containerRef.current || !fetchNextPage || loadingRef.current) return;
     
-    const { scrollTop } = containerRef.current;
-    const nearTop = scrollTop < 100; // 100px do topo
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const nearTop = scrollTop < 50; // 50px do topo para trigger mais sensível
     
     setIsNearTop(nearTop);
     
-    // Carregar mais mensagens quando próximo ao topo
+    // Carregar mais mensagens quando próximo ao topo E há mais páginas
     if (nearTop && hasNextPage && !isFetchingNextPage) {
       loadingRef.current = true;
       const previousScrollHeight = containerRef.current.scrollHeight;
       const previousScrollTop = containerRef.current.scrollTop;
       
       fetchNextPage().then(() => {
-        // Manter posição do scroll após carregar novas mensagens
+        // Preservar posição do scroll após carregar mensagens antigas no topo
         setTimeout(() => {
           if (containerRef.current) {
             const newScrollHeight = containerRef.current.scrollHeight;
             const heightDifference = newScrollHeight - previousScrollHeight;
+            // Ajustar scroll para manter posição visual estável
             containerRef.current.scrollTop = previousScrollTop + heightDifference;
           }
           loadingRef.current = false;
-        }, 50);
+        }, 100); // Timeout maior para garantir renderização
+      }).catch(() => {
+        loadingRef.current = false;
       });
     }
   };
@@ -139,8 +142,10 @@ export function MessagesArea({
             </div>
           )}
           
-          {/* Lista de mensagens em ordem cronológica */}
-          {Array.isArray(messages) && messages.map((message) => (
+          {/* Lista de mensagens em ordem cronológica (mais antigas no topo, mais recentes embaixo) */}
+          {Array.isArray(messages) && messages
+            .sort((a, b) => new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime())
+            .map((message) => (
             <MessageBubble 
               key={message.id} 
               message={message} 

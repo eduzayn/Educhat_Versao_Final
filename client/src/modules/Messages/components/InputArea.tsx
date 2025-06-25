@@ -411,8 +411,17 @@ export function InputArea() {
     contactPhone: activeConversation?.contact?.phone || '' 
   });
 
-  // Mutation para enviar vídeo
-  const sendVideoMutation = useMutation({
+  // Hook padronizado para envio de arquivos
+  const sendFileMutation = useFileMessage({ 
+    conversationId: activeConversation?.id || 0, 
+    contactPhone: activeConversation?.contact?.phone || '' 
+  });
+
+  // Hook padronizado para envio de vídeo
+  const sendVideoMutation = useVideoMessage({ 
+    conversationId: activeConversation?.id || 0, 
+    contactPhone: activeConversation?.contact?.phone || '' 
+  });
     mutationFn: async (file: File) => {
       console.log("🎥 Iniciando envio de vídeo:", {
         fileName: file.name,

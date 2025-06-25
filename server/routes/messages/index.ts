@@ -5,14 +5,24 @@ import type { AuthenticatedRequest } from "../admin/permissions";
 
 export function registerMessageRoutes(app: Express) {
   
-  // Messages endpoints
+  // Messages endpoints - Suporte a scroll infinito invertido
   app.get('/api/conversations/:id/messages', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const order = req.query.order as string || 'desc'; // desc = mais recentes primeiro
+      const before = req.query.before ? parseInt(req.query.before as string) : undefined;
       const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-      const messages = await storage.getMessages(id, limit, offset);
-      res.json(messages); // Return in descending order (newest first for pagination)
+      
+      // Se tem "before", usar paginação baseada em cursor (ID)
+      if (before) {
+        const messages = await storage.getMessagesBefore(id, before, limit);
+        res.json(messages);
+      } else {
+        // Paginação tradicional com offset para primeira página
+        const messages = await storage.getMessages(id, limit, offset);
+        res.json(messages);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
       res.status(500).json({ message: 'Failed to fetch messages' });
