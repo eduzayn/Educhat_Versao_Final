@@ -65,7 +65,7 @@ export function registerUtilitiesRoutes(app: Express) {
     try {
       console.log('📤 Enviando mensagem via Z-API:', req.body);
       
-      const { phone, message, conversationId } = req.body;
+      const { phone, message, conversationId, channelId } = req.body;
       
       if (!phone || !message) {
         return res.status(400).json({ 

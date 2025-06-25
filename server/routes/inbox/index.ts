@@ -46,10 +46,26 @@ export function registerInboxRoutes(app: Express) {
     }
   });
 
-  app.post('/api/conversations', async (req, res) => {
+  app.post('/api/conversations', async (req: any, res) => {
     try {
-      const validatedData = insertConversationSchema.parse(req.body);
+      const userId = req.user?.id;
+      const validatedData = insertConversationSchema.parse({
+        ...req.body,
+        assignedUserId: userId // Atribuir automaticamente ao usuário logado
+      });
       const conversation = await storage.createConversation(validatedData);
+      
+      // Broadcast para notificar criação de nova conversa
+      try {
+        const { broadcastToAll } = await import('../realtime');
+        broadcastToAll({
+          type: 'new_conversation',
+          conversation: conversation
+        });
+      } catch (broadcastError) {
+        console.warn('Erro no broadcast de nova conversa:', broadcastError);
+      }
+      
       res.status(201).json(conversation);
     } catch (error) {
       console.error('Error creating conversation:', error);

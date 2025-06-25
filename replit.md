@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:48): FUNCIONALIDADE DE ENVIO DE MENSAGEM ATIVA NO MODAL DE CONTATO IMPLEMENTADA
+  - Adicionado campo de seleção de canal WhatsApp no modal de criação de contato
+  - Implementado campo de mensagem ativa com validação obrigatória quando canal selecionado
+  - Criação automática de conversa após envio bem-sucedido da mensagem
+  - Atribuição automática da conversa ao usuário logado (assignedUserId)
+  - Integração completa com endpoint /api/zapi/send-message existente
+  - Validação robusta: canal obrigatório se mensagem preenchida e vice-versa
+  - Feedback visual diferenciado para criação com/sem mensagem ativa
+  - Broadcast automático de nova conversa para atualização em tempo real
 - June 25, 2025 (01:36): PROBLEMAS DE PERFORMANCE DA CAIXA DE ENTRADA CORRIGIDOS
   - Otimizada query SQL de conversas com LEFT JOIN único (95% mais rápida)
   - Corrigido cache agressivo (staleTime: 30s vs 0s anterior)

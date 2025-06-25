@@ -155,12 +155,14 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
             channelId: form.selectedChannelId
           });
 
-          // Criar conversa automaticamente
+          // Criar conversa automaticamente com atribuição ao usuário logado
           const conversationResponse = await apiRequest('POST', '/api/conversations', {
             contactId: newContact.id,
             channel: 'whatsapp',
             status: 'open',
-            lastMessageAt: new Date().toISOString()
+            lastMessageAt: new Date().toISOString(),
+            priority: 'medium',
+            isRead: false
           });
 
           // Criar primeira mensagem na conversa
