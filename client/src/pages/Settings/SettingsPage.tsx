@@ -24,7 +24,7 @@ const settingsCards = [
   {
     title: "Webhook",
     description: "Configurações de webhook para Z-API",
-    href: "/settings/webhook",
+    href: "/settings/webhooks",
     icon: "🔗"
   },
   {
@@ -36,13 +36,13 @@ const settingsCards = [
   {
     title: "Integrações",
     description: "APIs externas, CRM, automações",
-    href: "/settings/integrations",
+    href: "/integrations",
     icon: "🔌"
   },
   {
     title: "Sistema de Detecção",
     description: "Configure expressões e macrosetores para classificação automática",
-    href: "/settings/detection",
+    href: "/settings/ai-detection",
     icon: "🧠"
   },
   {

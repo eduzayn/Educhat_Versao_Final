@@ -122,12 +122,20 @@ export function Dashboard() {
       managerOrAdminOnly: true
     },
     {
+      id: 'admin',
+      label: 'Admin & Permissões',
+      icon: Shield,
+      description: 'Gerenciar permissões do sistema',
+      route: '/admin/permissions',
+      adminOnly: true
+    },
+    {
       id: 'settings',
       label: 'Configurações',
       icon: Settings,
       description: 'Configurar sistema',
       route: '/settings',
-      adminOnly: true
+      managerOrAdminOnly: true
     }
   ];
 
