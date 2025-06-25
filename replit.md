@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (18:48): SISTEMA DE LOGS PADRONIZADOS Z-API IMPLEMENTADO COMPLETAMENTE  
+  - Criado zapiLogger.ts centralizado com logs visuais (✅ sucesso, ❌ erro, 🔄 tentativa)
+  - Implementados logs padronizados para TODOS os tipos de envio: TEXTO, IMAGEM, ÁUDIO, VÍDEO, DOCUMENTO
+  - Sistema ativo apenas em produção (NODE_ENV=production) ou com flag VITE_ENABLE_LOGS
+  - Logs incluem: telefone formatado, tipo de mensagem, ID da mensagem, tamanho de arquivo, duração
+  - Aplicado em 5 endpoints: /send-message, /send-image, /send-audio, /send-video, /send-file
+  - Tratamento de erros específico com contexto detalhado e motivo da falha
+  - Importação dinâmica em cada endpoint para otimização de performance
 - June 25, 2025 (18:34): CORREÇÃO DO ERRO 400 NA BUSCA DE RESPOSTAS RÁPIDAS IMPLEMENTADA
   - Corrigido hook useSearchQuickReplies para validar queries com mínimo 2 caracteres
   - Frontend não faz requisições com menos de 2 caracteres, busca todas as respostas ao invés

@@ -181,7 +181,7 @@ export function registerWebhookRoutes(app: Express) {
       };
 
       // Importar logs padronizados
-      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../../lib/zapiLogger');
+      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../lib/zapiLogger');
       
       // Log de tentativa
       logZApiAttempt({
@@ -321,7 +321,7 @@ export function registerWebhookRoutes(app: Express) {
       };
 
       // Importar logs padronizados
-      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../../lib/zapiLogger');
+      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../lib/zapiLogger');
       
       // Log de tentativa
       logZApiAttempt({
@@ -458,14 +458,18 @@ export function registerWebhookRoutes(app: Express) {
         caption: caption
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-video`;
-      console.log('🎥 Enviando vídeo para Z-API:', { 
-        url: url.replace(token, '****'), 
+      // Importar logs padronizados
+      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../lib/zapiLogger');
+      
+      // Log de tentativa
+      logZApiAttempt({
         phone: cleanPhone,
-        videoSize: videoBase64.length,
-        mimeType: req.file.mimetype,
-        hasCaption: !!caption
+        messageType: 'VÍDEO',
+        fileSize: req.file.size,
+        fileName: req.file.originalname
       });
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-video`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -477,14 +481,15 @@ export function registerWebhookRoutes(app: Express) {
       });
 
       const responseText = await response.text();
-      console.log('📥 Resposta Z-API (vídeo):', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText.substring(0, 200) + '...'
-      });
 
       if (!response.ok) {
-        console.error('❌ Erro na Z-API (vídeo):', responseText);
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'VÍDEO',
+          fileSize: req.file.size,
+          fileName: req.file.originalname,
+          error: `${response.status} - ${response.statusText}: ${responseText}`
+        });
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
       }
 
@@ -492,11 +497,24 @@ export function registerWebhookRoutes(app: Express) {
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON (vídeo):', parseError);
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'VÍDEO',
+          fileSize: req.file.size,
+          fileName: req.file.originalname,
+          error: `Resposta inválida da Z-API: ${responseText}`
+        });
         throw new Error(`Resposta inválida da Z-API: ${responseText}`);
       }
 
-      console.log('✅ Vídeo enviado com sucesso via Z-API:', data);
+      // Log de sucesso padronizado
+      logZApiSuccess({
+        phone: cleanPhone,
+        messageType: 'VÍDEO',
+        messageId: data.messageId || data.id,
+        fileSize: req.file.size,
+        fileName: req.file.originalname
+      });
       
       // Salvar mensagem no banco de dados se conversationId foi fornecido
       let savedMessage = null;
@@ -582,15 +600,18 @@ export function registerWebhookRoutes(app: Express) {
         caption: caption
       };
 
-      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document`;
-      console.log('📄 Enviando arquivo para Z-API:', { 
-        url: url.replace(token, '****'), 
+      // Importar logs padronizados
+      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../lib/zapiLogger');
+      
+      // Log de tentativa
+      logZApiAttempt({
         phone: cleanPhone,
-        fileSize: fileBase64.length,
-        mimeType: req.file.mimetype,
-        fileName: req.file.originalname,
-        hasCaption: !!caption
+        messageType: 'DOCUMENTO',
+        fileSize: req.file.size,
+        fileName: req.file.originalname
       });
+
+      const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-document`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -602,14 +623,15 @@ export function registerWebhookRoutes(app: Express) {
       });
 
       const responseText = await response.text();
-      console.log('📥 Resposta Z-API (arquivo):', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText.substring(0, 200) + '...'
-      });
 
       if (!response.ok) {
-        console.error('❌ Erro na Z-API (arquivo):', responseText);
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'DOCUMENTO',
+          fileSize: req.file.size,
+          fileName: req.file.originalname,
+          error: `${response.status} - ${response.statusText}: ${responseText}`
+        });
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
       }
 
@@ -617,11 +639,24 @@ export function registerWebhookRoutes(app: Express) {
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON (arquivo):', parseError);
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'DOCUMENTO',
+          fileSize: req.file.size,
+          fileName: req.file.originalname,
+          error: `Resposta inválida da Z-API: ${responseText}`
+        });
         throw new Error(`Resposta inválida da Z-API: ${responseText}`);
       }
 
-      console.log('✅ Arquivo enviado com sucesso via Z-API:', data);
+      // Log de sucesso padronizado
+      logZApiSuccess({
+        phone: cleanPhone,
+        messageType: 'DOCUMENTO',
+        messageId: data.messageId || data.id,
+        fileSize: req.file.size,
+        fileName: req.file.originalname
+      });
       
       // Salvar mensagem no banco de dados se conversationId foi fornecido
       let savedMessage = null;
