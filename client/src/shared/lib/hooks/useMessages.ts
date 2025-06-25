@@ -73,6 +73,15 @@ export function useSendMessage() {
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
       const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
 
+      // DEBUG: Verificar dados do contato
+      console.log('🔍 DADOS DO CONTATO PARA ENVIO:', {
+        contact: contact,
+        hasPhone: !!contact?.phone,
+        phone: contact?.phone,
+        conversationId: conversationId,
+        messageContent: message.content.substring(0, 30)
+      });
+
       // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
       if (contact?.phone) {
         try {
