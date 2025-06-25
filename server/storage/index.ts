@@ -671,9 +671,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // ==================== MACROSETOR DETECTION ====================
+  // ==================== TEAM DETECTION ====================
   detectTeam(content: string, channel?: string): string | null {
-    // Implementação direta da detecção de macrosetor
+    // Implementação direta da detecção de equipe
     if (!content || content.trim().length < 3) {
       return 'geral';
     }
