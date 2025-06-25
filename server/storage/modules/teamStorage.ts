@@ -65,10 +65,22 @@ export class TeamStorage extends BaseStorage {
    * Get team by macrosetor
    */
   async getTeamByMacrosetor(macrosetor: string): Promise<Team | undefined> {
+    // Mapeamento de macrosetores para nomes de equipes
+    const macrosetorToTeamName = {
+      'comercial': 'Equipe Comercial',
+      'suporte': 'Equipe Suporte', 
+      'cobranca': 'Equipe Cobrança',
+      'tutoria': 'Equipe Tutoria',
+      'secretaria': 'Equipe Secretaria',
+      'geral': 'Equipe Geral'
+    };
+    
+    const teamName = macrosetorToTeamName[macrosetor as keyof typeof macrosetorToTeamName] || 'Equipe Geral';
+    
     const [team] = await this.db
       .select()
       .from(teams)
-      .where(eq(teams.macrosetor, macrosetor));
+      .where(eq(teams.name, teamName));
     return team;
   }
 

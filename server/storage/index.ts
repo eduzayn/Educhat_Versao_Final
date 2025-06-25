@@ -534,11 +534,11 @@ export class DatabaseStorage implements IStorage {
           name: config.name,
           description: config.description,
           color: config.color,
-          macrosetor: macrosetor,
           isActive: true,
           maxCapacity: config.maxCapacity,
           priority: config.priority,
           autoAssignment: true
+        });ssignment: true
         });
         
         console.log(`✅ Equipe criada automaticamente: ${config.name} (${macrosetor})`);

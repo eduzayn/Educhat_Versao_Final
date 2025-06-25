@@ -147,7 +147,7 @@ export class DealStorage extends BaseStorage {
     // Find appropriate user based on macrosetor
     let assignedUserId = null;
     if (macrosetor) {
-      const [team] = await this.db.select().from(teams).where(eq(teams.macrosetor, macrosetor));
+      const [team] = await this.db.select().from(teams).where(eq(teams.name, macrosetor));
       if (team) {
         // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
         // assignedUserId = team.id;
