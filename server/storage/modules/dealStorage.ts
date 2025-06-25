@@ -147,7 +147,17 @@ export class DealStorage extends BaseStorage {
     // Find appropriate user based on team type
     let assignedUserId = null;
     if (teamType) {
-      const [team] = await this.db.select().from(teams).where(eq(teams.name, teamType));
+      // Buscar equipe por nome (mapeamento de teamType para nome da equipe)
+      const teamNames = {
+        'comercial': 'Equipe Comercial',
+        'suporte': 'Equipe Suporte',
+        'cobranca': 'Equipe Cobrança',
+        'tutoria': 'Equipe Tutoria',
+        'secretaria': 'Equipe Secretaria',
+        'geral': 'Equipe Geral'
+      };
+      const teamName = teamNames[teamType as keyof typeof teamNames] || 'Equipe Geral';
+      const [team] = await this.db.select().from(teams).where(eq(teams.name, teamName));
       if (team) {
         // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
         // assignedUserId = team.id;

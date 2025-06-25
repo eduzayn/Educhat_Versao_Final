@@ -114,9 +114,9 @@ export function registerBIRoutes(app: Express) {
         return deal.createdAt ? new Date(deal.createdAt) >= startDate : false;
       });
 
-      // Agrupar por macrosetor
+      // Agrupar por teamType
       const macrosetorStats = filteredDeals.reduce((acc, deal) => {
-        const macrosetor = deal.macrosetor || 'comercial';
+        const macrosetor = deal.teamType || 'comercial';
         if (!acc[macrosetor]) {
           acc[macrosetor] = { 
             name: macrosetor, 
