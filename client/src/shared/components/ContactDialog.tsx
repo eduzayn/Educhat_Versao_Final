@@ -67,6 +67,21 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
     refetchOnWindowFocus: false
   });
 
+  // Buscar usuários do sistema para o campo proprietário
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-users', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Falha ao buscar usuários');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  });
+
   const isWhatsAppAvailable = zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   const isCreating = createContact.isPending;
   const hasValidChannel = form.selectedChannelId && form.selectedChannelId !== 'none';
@@ -149,7 +164,8 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       const newContact = await createContact.mutateAsync({
         name: form.name,
         email: form.email || null,
-        phone: form.phone || null
+        phone: form.phone || null,
+        ownerId: form.owner ? parseInt(form.owner) : null
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
@@ -282,24 +298,24 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
             />
           </div>
 
-          {/* Empresa */}
+          {/* Proprietário */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Empresa</label>
-            <Input
-              value={form.company}
-              onChange={(e) => setForm({ ...form, company: e.target.value })}
-              placeholder="Nome da empresa"
-            />
-          </div>
-
-          {/* Responsável */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
-            <Input
-              value={form.owner}
-              onChange={(e) => setForm({ ...form, owner: e.target.value })}
-              placeholder="Nome do responsável"
-            />
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Proprietário</label>
+            <Select 
+              value={form.owner} 
+              onValueChange={(value) => setForm({ ...form, owner: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o proprietário" />
+              </SelectTrigger>
+              <SelectContent>
+                {systemUsers.map((user: any) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.username || user.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Tags */}
