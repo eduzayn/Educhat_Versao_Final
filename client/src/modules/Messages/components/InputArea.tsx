@@ -90,6 +90,13 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   const handleSendMessage = () => {
     if (!message.trim() || !activeConversation?.id) return;
 
+    console.log('🚀 INICIANDO ENVIO DE MENSAGEM:', {
+      conversationId: activeConversation.id,
+      hasContact: !!activeConversation.contact,
+      contactPhone: activeConversation.contact?.phone,
+      messageContent: message.trim().substring(0, 30)
+    });
+
     sendMessageMutation.mutate({
       conversationId: activeConversation.id,
       message: {
@@ -103,18 +110,17 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       contact: activeConversation.contact,
     }, {
       onSuccess: () => {
-        // Limpar campos apenas se envio foi bem-sucedido
+        console.log('✅ ENVIO COMPLETO - Limpando campos');
         setMessage("");
         setReplyingTo(null);
       },
       onError: (error) => {
-        // Exibir erro claramente ao usuário
+        console.error('❌ ERRO FINAL NO INPUTAREA:', error);
         toast({
           title: "Erro no envio",
           description: error instanceof Error ? error.message : "Falha ao enviar mensagem via WhatsApp",
           variant: "destructive",
         });
-        console.error('❌ ERRO NO ENVIO DE MENSAGEM:', error);
       }
     });
   };

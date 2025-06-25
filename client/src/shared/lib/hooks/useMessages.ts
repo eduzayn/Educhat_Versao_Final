@@ -73,47 +73,53 @@ export function useSendMessage() {
       // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
       const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
 
-      // DEBUG: Verificar dados do contato
-      console.log('🔍 DADOS DO CONTATO PARA ENVIO:', {
-        contact: contact,
-        hasPhone: !!contact?.phone,
-        phone: contact?.phone,
+      // SEGUNDO: SEMPRE tentar envio Z-API se tiver telefone válido
+      const phoneNumber = contact?.phone;
+      
+      console.log('🔍 VERIFICAÇÃO COMPLETA DE ENVIO:', {
+        hasContact: !!contact,
+        hasPhone: !!phoneNumber,
+        phone: phoneNumber,
         conversationId: conversationId,
-        messageContent: message.content.substring(0, 30)
+        messageType: message.messageType,
+        content: message.content.substring(0, 30)
       });
 
-      // SEGUNDO: Se tiver telefone, enviar via Z-API (mensagem já está salva e visível)
-      if (contact?.phone) {
+      if (phoneNumber && phoneNumber.trim()) {
         try {
           console.log('📤 INICIANDO ENVIO Z-API:', {
-            phone: contact.phone,
+            phone: phoneNumber,
             content: message.content.substring(0, 50),
             conversationId: conversationId
           });
           
           const zapiResponse = await apiRequest("POST", "/api/zapi/send-message", {
-            phone: contact.phone,
+            phone: phoneNumber,
             message: message.content,
             conversationId: conversationId
           });
           
           console.log('✅ SUCESSO Z-API:', {
             messageId: zapiResponse.messageId || zapiResponse.id,
-            phone: contact.phone
+            phone: phoneNumber
           });
           
         } catch (error) {
           console.error('❌ FALHA CRÍTICA Z-API:', {
-            phone: contact.phone,
+            phone: phoneNumber,
             error: error instanceof Error ? error.message : error,
             content: message.content.substring(0, 50)
           });
           
-          // Lançar erro para que apareça no toast do usuário
+          // Propagar erro para exibir toast
           throw new Error(`Falha no envio via WhatsApp: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
       } else {
-        console.warn('⚠️ ENVIO APENAS LOCAL: Telefone não disponível para', { conversationId, contactId: contact?.id });
+        console.warn('⚠️ ENVIO APENAS LOCAL: Telefone inválido ou não disponível', { 
+          conversationId, 
+          contactId: contact?.id,
+          providedPhone: phoneNumber
+        });
       }
 
       return savedMessage;
