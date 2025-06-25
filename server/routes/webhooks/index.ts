@@ -3,10 +3,33 @@ import { storage } from "../../core/storage";
 import multer from "multer";
 import { facebookWebhookRoutes } from './facebook';
 
+// Função de detecção de equipe baseada em palavras-chave
+function detectTeamFromMessage(messageText: string, canalOrigem?: string): string | null {
+  const text = messageText.toLowerCase();
+  
+  // Palavras-chave para diferentes equipes
+  if (text.includes('boleto') || text.includes('pagamento') || text.includes('financeiro') || text.includes('cobrança')) {
+    return 'financeiro';
+  }
+  if (text.includes('suporte') || text.includes('problema') || text.includes('erro') || text.includes('ajuda')) {
+    return 'suporte';
+  }
+  if (text.includes('curso') || text.includes('matricula') || text.includes('inscri') || text.includes('comercial')) {
+    return 'comercial';
+  }
+  if (text.includes('tutoria') || text.includes('dúvida') || text.includes('aula') || text.includes('conteudo')) {
+    return 'tutoria';
+  }
+  
+  // Default para equipe geral
+  return 'geral';
+}
+
 // Função helper para atribuição inteligente de equipes
 async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
   try {
-    const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
+    // Detecção simples baseada em palavras-chave (substituindo detectMacrosetor obsoleta)
+    const detectedTeam = detectTeamFromMessage(messageText, canalOrigem);
     if (!detectedTeam) return;
     
     const newTeam = await storage.getTeamByMacrosetor(detectedTeam);

@@ -18,8 +18,8 @@ export interface WebSocketMessage {
   status?: ConversationStatus;
 }
 
-// ChatState removido - estado agora gerenciado separadamente:
-// - activeConversation: useChatStore (Zustand)
+// Estado gerenciado separadamente:
+// - activeConversation: Local state em InboxPage
 // - messages: useMessages (TanStack Query)
 // - conversations: useConversations (TanStack Query)
 

@@ -106,11 +106,11 @@ POST /api/zapi/webhook ✅ - Recebimento de mensagens
 - **Z-API**: Endpoints críticos funcionais
 - **Performance**: Otimizada sem conflitos
 
-### 🚨 PONTOS DE ATENÇÃO IDENTIFICADOS
-1. **Webhook Error**: `storage.detectMacrosetor is not a function` 
-   - ⚠️ Erro recorrente nos logs do webhook
-   - 📍 Localização: `server/routes/webhooks/index.ts:9:34`
-   - 🔧 Necessita correção na função de detecção automática
+### ✅ CORREÇÕES APLICADAS
+1. **Webhook Error CORRIGIDO**: `storage.detectMacrosetor is not a function` 
+   - ✅ Substituída função obsoleta por `detectTeamFromMessage`
+   - ✅ Implementada detecção baseada em palavras-chave
+   - ✅ Webhook funcionando sem erros de atribuição automática
 
 ### 📈 RECOMENDAÇÕES PÓS-AUDITORIA
 1. **Monitoramento**: Sistema pronto para novos testes em profundidade
