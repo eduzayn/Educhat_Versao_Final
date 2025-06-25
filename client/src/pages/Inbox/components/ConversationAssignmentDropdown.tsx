@@ -9,14 +9,14 @@ interface ConversationAssignmentDropdownProps {
   conversationId: number;
   currentTeamId?: number | null;
   currentUserId?: number | null;
-  currentMacrosetor?: string | null;
+  currentTeamType?: string | null;
 }
 
 export function ConversationAssignmentDropdown({
   conversationId,
   currentTeamId,
   currentUserId,
-  currentMacrosetor
+  currentTeamType
 }: ConversationAssignmentDropdownProps) {
   const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>([]);

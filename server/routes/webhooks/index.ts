@@ -6,10 +6,10 @@ import { facebookWebhookRoutes } from './facebook';
 // Função helper para atribuição inteligente de equipes
 async function assignTeamIntelligently(conversationId: number, messageText: string, canalOrigem?: string) {
   try {
-    const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
-    if (!detectedMacrosetor) return;
+    const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
+    if (!detectedTeam) return;
     
-    const newTeam = await storage.getTeamByMacrosetor(detectedMacrosetor);
+    const newTeam = await storage.getTeamByMacrosetor(detectedTeam);
     
     if (newTeam) {
       // Verificar se a conversa já está atribuída a uma equipe diferente
@@ -18,7 +18,7 @@ async function assignTeamIntelligently(conversationId: number, messageText: stri
                             currentConversation.assignedTeamId !== newTeam.id;
       
       if (shouldReassign) {
-        console.log(`🎯 Equipe encontrada para ${detectedMacrosetor}:`, newTeam.name);
+        console.log(`🎯 Equipe encontrada para ${detectedTeam}:`, newTeam.name);
         await storage.assignConversationToTeam(conversationId, newTeam.id, 'automatic');
         console.log(`✅ Conversa ID ${conversationId} reatribuída automaticamente à equipe ${newTeam.name}`);
         
@@ -1036,14 +1036,14 @@ export function registerWebhookRoutes(app: Express) {
       const { message, canal } = req.body;
       console.log('🧪 Testando detecção de macrosetor:', message);
       
-      const detectedMacrosetor = storage.detectMacrosetor(message, canal);
-      console.log('🎯 Macrosetor detectado:', detectedMacrosetor);
+      const detectedTeam = storage.detectMacrosetor(message, canal);
+      console.log('🎯 Macrosetor detectado:', detectedTeam);
       
       res.json({ 
         success: true, 
         message,
         canal,
-        detectedMacrosetor 
+        detectedTeam 
       });
     } catch (error) {
       console.error('Erro no teste de macrosetor:', error);
@@ -1110,7 +1110,7 @@ async function processInstagramMessage(messagingEvent: any) {
 
     // Criar negócio automaticamente - verificação aprimorada
     try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
       
       // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
@@ -1123,9 +1123,9 @@ async function processInstagramMessage(messagingEvent: any) {
       );
       
       if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato do Instagram (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        console.log(`💼 Criando negócio automático para contato do Instagram (${detectedTeam}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedTeam);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedTeam} para:`, contact.name);
       } else {
         console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
@@ -1198,7 +1198,7 @@ async function processEmailMessage(emailData: any) {
 
     // Criar negócio automaticamente - verificação aprimorada
     try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
       
       // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
@@ -1211,9 +1211,9 @@ async function processEmailMessage(emailData: any) {
       );
       
       if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato de Email (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        console.log(`💼 Criando negócio automático para contato de Email (${detectedTeam}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedTeam);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedTeam} para:`, contact.name);
       } else {
         console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
@@ -1285,7 +1285,7 @@ async function processSMSMessage(smsData: any) {
 
     // Criar negócio automaticamente - verificação aprimorada
     try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
       
       // Verificar se já existe qualquer deal ativo (não só do mesmo macrosetor)
@@ -1298,9 +1298,9 @@ async function processSMSMessage(smsData: any) {
       );
       
       if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato de SMS (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        console.log(`💼 Criando negócio automático para contato de SMS (${detectedTeam}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedTeam);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedTeam} para:`, contact.name);
       } else {
         console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }
@@ -2222,7 +2222,7 @@ async function processManychatMessage(webhookData: any) {
 
     // Criar negócio automaticamente se necessário
     try {
-      const detectedMacrosetor = storage.detectMacrosetor(messageText, canalOrigem);
+      const detectedTeam = storage.detectMacrosetor(messageText, canalOrigem);
       const existingDeals = await storage.getDealsByContact(contact.id);
       
       const hasAnyActiveDeal = existingDeals.some(deal => deal.isActive);
@@ -2232,9 +2232,9 @@ async function processManychatMessage(webhookData: any) {
       );
       
       if (!hasAnyActiveDeal && !hasRecentDeal) {
-        console.log(`💼 Criando negócio automático para contato do Manychat (${detectedMacrosetor}):`, contact.name);
-        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedMacrosetor);
-        console.log(`✅ Negócio criado com sucesso no funil ${detectedMacrosetor} para:`, contact.name);
+        console.log(`💼 Criando negócio automático para contato do Manychat (${detectedTeam}):`, contact.name);
+        await storage.createAutomaticDeal(contact.id, canalOrigem, detectedTeam);
+        console.log(`✅ Negócio criado com sucesso no funil ${detectedTeam} para:`, contact.name);
       } else {
         console.log(`⏭️ Negócio não criado - contato já possui deal ativo ou recente:`, contact.name);
       }

@@ -129,14 +129,14 @@ export function DealsModule() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        macrosetor: selectedMacrosetor
+        teamType: selectedTeamType
       });
       
       const response = await fetch(`/api/deals?${params}`);
       if (!response.ok) throw new Error('Falha ao carregar negócios');
       return response.json();
     },
-    enabled: !!selectedMacrosetor // Só busca se macrosetor estiver selecionado
+    enabled: !!selectedTeamType // Só busca se tipo de equipe estiver selecionado
   });
 
   const rawDeals = dealsResponse?.deals || [];
