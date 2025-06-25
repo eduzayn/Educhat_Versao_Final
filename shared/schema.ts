@@ -247,7 +247,7 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
-  macrosetor: varchar("macrosetor", { length: 20 }).notNull().default("comercial"), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  teamType: varchar("team_type", { length: 20 }).default("comercial"), // comercial, suporte, cobranca, secretaria, tutoria, financeiro
   stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // varia por macrosetor
   value: integer("value").default(0), // valor em centavos
   probability: integer("probability").default(0), // 0-100

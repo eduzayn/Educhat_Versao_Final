@@ -98,8 +98,8 @@ export class DealStorage extends BaseStorage {
     };
   }
 
-  async createAutomaticDeal(contactId: number, canalOrigem?: string, macrosetor?: string): Promise<Deal> {
-    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, macrosetor=${macrosetor}`);
+  async createAutomaticDeal(contactId: number, canalOrigem?: string, teamType?: string): Promise<Deal> {
+    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, teamType=${teamType}`);
     
     // Verificação robusta para evitar duplicação durante criação
     const existingDeals = await this.getDealsByContact(contactId);
@@ -144,10 +144,10 @@ export class DealStorage extends BaseStorage {
       throw new Error(`Contact with ID ${contactId} not found`);
     }
 
-    // Find appropriate user based on macrosetor
+    // Find appropriate user based on team type
     let assignedUserId = null;
-    if (macrosetor) {
-      const [team] = await this.db.select().from(teams).where(eq(teams.name, macrosetor));
+    if (teamType) {
+      const [team] = await this.db.select().from(teams).where(eq(teams.name, teamType));
       if (team) {
         // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
         // assignedUserId = team.id;
@@ -156,7 +156,7 @@ export class DealStorage extends BaseStorage {
 
     // Gerar nome único para o deal baseado no timestamp
     const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-    const dealName = `${contact.name} - ${macrosetor || 'Geral'}`;
+    const dealName = `${contact.name} - ${teamType || 'Geral'}`;
 
     // Verificação final antes da criação para evitar condições de corrida
     const finalCheck = await this.getDealsByContact(contactId);
@@ -181,10 +181,11 @@ export class DealStorage extends BaseStorage {
       canalOrigem: canalOrigem || 'automatic',
 
       notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'} em ${timestamp}`,
+      teamType: teamType || 'comercial',
       tags: {
         automatic: true,
         canalOrigem,
-        macrosetor,
+        teamType,
         createdBy: 'system',
         timestamp: timestamp
       }

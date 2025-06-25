@@ -538,7 +538,6 @@ export class DatabaseStorage implements IStorage {
           maxCapacity: config.maxCapacity,
           priority: config.priority,
           autoAssignment: true
-        });ssignment: true
         });
         
         console.log(`✅ Equipe criada automaticamente: ${config.name} (${macrosetor})`);
