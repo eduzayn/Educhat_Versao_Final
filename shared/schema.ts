@@ -254,6 +254,29 @@ export const contactNotes = pgTable("contact_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Notification Preferences table - Controle personalizado de notificações
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => systemUsers.id).notNull().unique(),
+  notifyOnNewMessage: boolean("notify_on_new_message").default(true),
+  notifyOnNewContact: boolean("notify_on_new_contact").default(false),
+  notifyOnMention: boolean("notify_on_mention").default(true),
+  notifyWithSound: boolean("notify_with_sound").default(false),
+  notifyOnAssignment: boolean("notify_on_assignment").default(true),
+  notifyOnTransfer: boolean("notify_on_transfer").default(true),
+  // Controles específicos por tipo de mensagem
+  notifyOnTextMessage: boolean("notify_on_text_message").default(true),
+  notifyOnAudioMessage: boolean("notify_on_audio_message").default(true),
+  notifyOnImageMessage: boolean("notify_on_image_message").default(true),
+  notifyOnVideoMessage: boolean("notify_on_video_message").default(true),
+  notifyOnDocumentMessage: boolean("notify_on_document_message").default(true),
+  // Configurações avançadas
+  quietHours: jsonb("quiet_hours").default('{"enabled": false, "start": "22:00", "end": "08:00"}'),
+  maxNotificationsPerHour: integer("max_notifications_per_hour").default(20),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Deals table for CRM
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
@@ -341,6 +364,17 @@ export const systemUsersRelations = relations(systemUsers, ({ one }) => ({
   teamRef: one(teams, {
     fields: [systemUsers.teamId],
     references: [teams.id],
+  }),
+  notificationPreferences: one(notificationPreferences, {
+    fields: [systemUsers.id],
+    references: [notificationPreferences.userId],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(systemUsers, {
+    fields: [notificationPreferences.userId],
+    references: [systemUsers.id],
   }),
 }));
 
@@ -431,6 +465,12 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   updatedAt: true,
 });
 
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Custom User interface for authentication compatibility
 export interface User {
   id: number;
@@ -468,6 +508,8 @@ export type ContactNote = typeof contactNotes.$inferSelect;
 export type InsertContactNote = z.infer<typeof insertContactNoteSchema>;
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 
 // Extended types for API responses
 export type ConversationWithContact = Conversation & {
