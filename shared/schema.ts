@@ -154,7 +154,7 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).unique().notNull(),
   description: text("description"),
   color: varchar("color", { length: 20 }).default("blue"),
-  macrosetor: varchar("macrosetor", { length: 20 }).unique().notNull(), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
+  teamType: varchar("team_type", { length: 20 }).default("geral"), // comercial, suporte, cobranca, secretaria, tutoria, financeiro, secretaria_pos
   isActive: boolean("is_active").default(true),
   maxCapacity: integer("max_capacity").default(100), // Maximum concurrent conversations
   priority: integer("priority").default(1), // For distribution priority
@@ -424,7 +424,7 @@ export interface User {
   roleId: number;
   dataKey?: string;
   channels: string[];
-  macrosetores: string[];
+  teamTypes: string[];
   teamId?: number;
   team?: string;
 }
@@ -534,7 +534,7 @@ export const customRules = pgTable("custom_rules", {
   userId: integer("user_id").references(() => systemUsers.id),
   roleId: integer("role_id").references(() => roles.id),
   permissionId: integer("permission_id").references(() => permissions.id).notNull(),
-  conditions: jsonb("conditions"), // JSON with conditions like channel, macrosetor, etc.
+  conditions: jsonb("conditions"), // JSON with conditions like channel, teamType, etc.
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -548,7 +548,7 @@ export const auditLogs = pgTable("audit_logs", {
   resource: varchar("resource", { length: 50 }).notNull(),
   resourceId: varchar("resource_id", { length: 50 }),
   channel: varchar("channel", { length: 50 }),
-  macrosetor: varchar("macrosetor", { length: 20 }),
+  teamType: varchar("team_type", { length: 20 }),
   dataKey: varchar("data_key", { length: 200 }),
   details: jsonb("details"),
   ipAddress: varchar("ip_address", { length: 45 }),
@@ -844,7 +844,7 @@ export const macrosetorKeywords = pgTable("macrosetor_keywords", {
 export const detectionLogs = pgTable("detection_logs", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   content: text("content").notNull(),
-  detectedMacrosetor: text("detected_macrosetor"),
+  detectedTeamType: text("detected_team_type"),
   confidence: integer("confidence"),
   matchedKeywords: text("matched_keywords").array(),
   channel: text("channel"),

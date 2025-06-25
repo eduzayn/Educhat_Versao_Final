@@ -233,7 +233,7 @@ export class DealStorage extends BaseStorage {
     // Buscar todos os deals ativos
     const allDeals = await this.db.select().from(deals).orderBy(deals.contactId, deals.createdAt);
     
-    // Agrupar deals por contato e macrosetor
+    // Agrupar deals por contato e teamType
     const dealGroups = new Map();
     
     for (const deal of allDeals) {
@@ -260,7 +260,7 @@ export class DealStorage extends BaseStorage {
           details.push({
             removed: duplicate,
             kept: keepDeal,
-            reason: 'Duplicate deal for same contact/macrosetor/channel'
+            reason: 'Duplicate deal for same contact/teamType/channel'
           });
         }
       }

@@ -289,7 +289,7 @@ export function registerAdminRoutes(app: Express) {
             team: systemUsers.team,
             dataKey: systemUsers.dataKey,
             channels: systemUsers.channels,
-            macrosetores: systemUsers.macrosetores,
+            teamTypes: systemUsers.teamTypes,
             isActive: systemUsers.isActive,
             status: systemUsers.status,
             isOnline: systemUsers.isOnline,
@@ -343,7 +343,7 @@ export function registerAdminRoutes(app: Express) {
         if (teamId !== undefined) updateData.teamId = teamId;
         if (dataKey !== undefined) updateData.dataKey = dataKey;
         if (channels !== undefined) updateData.channels = channels;
-        if (macrosetores !== undefined) updateData.macrosetores = macrosetores;
+        if (teamTypes !== undefined) updateData.teamTypes = teamTypes;
         if (status !== undefined) updateData.status = status;
 
         updateData.updatedAt = new Date();
@@ -399,7 +399,7 @@ export function registerAdminRoutes(app: Express) {
             resource: auditLogs.resource,
             resourceId: auditLogs.resourceId,
             channel: auditLogs.channel,
-            macrosetor: auditLogs.macrosetor,
+            teamType: auditLogs.teamType,
             dataKey: auditLogs.dataKey,
             details: auditLogs.details,
             ipAddress: auditLogs.ipAddress,
