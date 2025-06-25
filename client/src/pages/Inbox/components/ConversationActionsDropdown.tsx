@@ -88,15 +88,34 @@ export function ConversationActionsDropdown({
       // Snapshot do estado anterior
       const previousConversations = queryClient.getQueryData(['/api/conversations']);
 
-      // Atualização otimista - atualizar cache imediatamente
+      // Atualização otimista - suportar tanto array direto quanto estrutura paginada
       queryClient.setQueryData(['/api/conversations'], (old: any) => {
         if (!old) return old;
         
-        return old.map((conv: any) => 
-          conv.id === conversationId 
-            ? { ...conv, unreadCount: 1 }
-            : conv
-        );
+        // Verificar se é estrutura paginada (useInfiniteQuery)
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => 
+              page.map((conv: any) => 
+                conv.id === conversationId 
+                  ? { ...conv, unreadCount: 1 }
+                  : conv
+              )
+            )
+          };
+        }
+        
+        // Se for array direto
+        if (Array.isArray(old)) {
+          return old.map((conv: any) => 
+            conv.id === conversationId 
+              ? { ...conv, unreadCount: 1 }
+              : conv
+          );
+        }
+        
+        return old;
       });
 
       return { previousConversations };
@@ -106,19 +125,17 @@ export function ConversationActionsDropdown({
       if (context?.previousConversations) {
         queryClient.setQueryData(['/api/conversations'], context.previousConversations);
       }
+      
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar a conversa como não lida.",
+        variant: "destructive"
+      });
     },
     onSuccess: () => {
-      // Atualização otimista para resposta instantânea
-      queryClient.setQueryData(['/api/conversations/unread-count'], (old: any) => {
-        if (!old) return { count: 1 };
-        return { count: old.count + 1 };
-      });
-      
-      // Invalidar apenas após sucesso para garantir sincronização
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
-      }, 100);
+      // Invalidar queries para sincronização completa
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
       
       toast({
         title: "Marcado como não lida",

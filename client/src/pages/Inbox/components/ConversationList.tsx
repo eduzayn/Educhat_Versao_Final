@@ -201,8 +201,10 @@ export function ConversationList({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {getStatusBadge(conversation.status || 'open')}
+                        {/* Debug temporário para verificar unreadCount */}
+                        {console.log(`Conversa ${conversation.id} unreadCount:`, conversation.unreadCount)}
                         {(conversation.unreadCount || 0) > 0 && (
-                          <Badge className="bg-gray-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px]">
+                          <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px] font-semibold">
                             {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
                           </Badge>
                         )}
