@@ -237,7 +237,7 @@ export class DealStorage extends BaseStorage {
     const dealGroups = new Map();
     
     for (const deal of allDeals) {
-      const key = `${deal.contactId}-${deal.macrosetor}-${deal.canalOrigem}`;
+      const key = `${deal.contactId}-${deal.teamType}-${deal.canalOrigem}`;
       if (!dealGroups.has(key)) {
         dealGroups.set(key, []);
       }

@@ -254,7 +254,7 @@ export function registerSalesRoutes(app: Express) {
 
       // Análise por categoria/produto (baseado no macrosetor)
       const productAnalysis = wonDeals.reduce((acc, deal) => {
-        const product = deal.macrosetor || 'Produto Genérico';
+        const product = deal.teamType || 'Produto Genérico';
         if (!acc[product]) {
           acc[product] = {
             name: product,
