@@ -30,7 +30,24 @@ export function useMarkConversationRead() {
       // Atualizar cache específico ao invés de invalidar tudo
       queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
         if (oldData) {
-          return { ...oldData, isRead: true, unreadCount: 0 };
+          return { ...oldData, isRead: true, unreadCount: 0, markedUnreadManually: false };
+        }
+        return oldData;
+      });
+      
+      // Atualizar a lista de conversas para remover o indicador visual
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (oldData?.pages) {
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any[]) => 
+              page.map((conversation: any) => 
+                conversation.id === conversationId
+                  ? { ...conversation, isRead: true, unreadCount: 0, markedUnreadManually: false }
+                  : conversation
+              )
+            )
+          };
         }
         return oldData;
       });

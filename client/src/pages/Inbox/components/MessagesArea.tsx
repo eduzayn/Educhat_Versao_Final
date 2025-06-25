@@ -86,7 +86,7 @@ export function MessagesArea({
       // Aguarda um momento para garantir que a conversa foi carregada
       const timer = setTimeout(() => {
         markAsReadMutation.mutate(activeConversation.id);
-      }, 500);
+      }, 300);
       
       return () => clearTimeout(timer);
     }
