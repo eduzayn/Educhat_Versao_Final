@@ -23,7 +23,7 @@ import InternalChatPage from "@/pages/InternalChat/InternalChatPage";
 import QuickRepliesSettingsPage from "@/pages/Settings/QuickReplies/QuickRepliesSettingsPage";
 import WebhookConfigPage from "@/pages/Settings/Webhooks/WebhookConfigPage";
 import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectionSettingsPage";
-// import DetectionConfigPage from "@/pages/Settings/DetectionConfigPage";
+
 import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import TeamTransferPage from "@/pages/Teams/TeamTransferPage";
@@ -73,15 +73,7 @@ function Router() {
               />
             )}
           </Route>
-          <Route path="/settings/integrations">
-            {() => (
-              <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
-                component={IntegrationsPage}
-              />
-            )}
-          </Route>
-          <Route path="/settings/integrations/facebook">
+          <Route path="/integrations/facebook">
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
@@ -127,31 +119,25 @@ function Router() {
               />
             )}
           </Route>
-          {/* <Route path="/settings/detection">
-            {() => (
-              <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
-                component={DetectionConfigPage}
-              />
-            )}
-          </Route> */}
-          <Route path="/admin">
-            {() => (
-              <ProtectedRoute
-                component={PermissionsPanel}
-              />
-            )}
-          </Route>
+
           <Route path="/admin/permissions">
             {() => (
               <ProtectedRoute
+                requiredRole={["admin"]}
                 component={PermissionsPanel}
               />
             )}
           </Route>
           <Route path="/chat-interno" component={InternalChatPage} />
-          <Route path="/internal-chat" component={InternalChatPage} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/teams">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente"]}
+                component={() => <div className="min-h-screen bg-educhat-light flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-educhat-dark mb-4">Gestão de Equipes</h1><p className="text-educhat-medium">Funcionalidade em desenvolvimento.</p></div></div>}
+              />
+            )}
+          </Route>
           <Route path="/teams/transfer" component={TeamTransferPage} />
           <Route component={() => <div className="min-h-screen bg-educhat-light flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-educhat-dark mb-4">Página não encontrada</h1><p className="text-educhat-medium">A página que você está procurando não existe.</p></div></div>} />
         </>
