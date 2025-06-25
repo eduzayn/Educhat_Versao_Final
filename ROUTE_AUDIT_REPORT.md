@@ -104,12 +104,50 @@
 ✅ Estado de navegação preservado entre sessões
 ✅ Bookmarking funcional para todas as páginas filtradas
 
+## 5️⃣ Rotas de API Auditadas
+
+### APIs Principais Funcionando
+✅ `/api/user` - Autenticação e dados do usuário
+✅ `/api/conversations` - Listagem e gerenciamento de conversas
+✅ `/api/conversations/:id/messages` - Mensagens por conversa
+✅ `/api/contacts` - Gerenciamento de contatos
+✅ `/api/teams` - Equipes e atribuições
+✅ `/api/channels` - Canais de comunicação
+✅ `/api/system-users` - Usuários do sistema
+
+### APIs de Integração
+✅ `/api/zapi/status` - Status da conexão Z-API
+✅ `/api/zapi/send-message` - Envio de mensagens WhatsApp
+✅ `/api/zapi/send-image` - Envio de imagens
+✅ `/api/zapi/send-audio` - Envio de áudios
+✅ `/api/zapi/send-video` - Envio de vídeos
+✅ `/api/zapi/webhook` - Recebimento de webhooks
+
+### APIs de Business Intelligence
+✅ `/api/bi/dashboard` - Métricas do dashboard
+✅ `/api/bi/performance` - Relatórios de performance
+✅ `/api/bi/analytics` - Análises avançadas
+
+### APIs de CRM
+✅ `/api/deals` - Gerenciamento de oportunidades
+✅ `/api/contacts/:id/deals` - Deals por contato
+✅ `/api/contacts/:id/notes` - Notas de contatos
+✅ `/api/contacts/:id/interests` - Interesses detectados
+
+### Segurança das APIs
+✅ **Autenticação**: Todas as APIs protegidas por sessão
+✅ **Autorização**: Verificação de permissões por role
+✅ **Separação**: Rotas `/api/*` não interferem na navegação frontend
+✅ **CORS**: Configurado corretamente para desenvolvimento
+✅ **Rate Limiting**: Proteção contra abuso implementada
+✅ **Validação**: Schemas Zod validando dados de entrada
+
 ### Navegação Programática
 ✅ useLocation hook do wouter funcionando
 ✅ setLocation para redirecionamentos programáticos
 ✅ Navegação entre páginas fluida
 
-## 5️⃣ Páginas 404 e Tratamento de Erros
+## 6️⃣ Páginas 404 e Tratamento de Erros
 
 ### Página 404 Personalizada
 ✅ Rota catch-all implementada
@@ -121,7 +159,7 @@
 ✅ Usuários sem permissão → Tela de acesso negado
 ✅ URLs inválidas → Página 404
 
-## 6️⃣ Rotas Pendentes de Implementação
+## 7️⃣ Rotas Pendentes de Implementação
 
 ### Funcionalidades Identificadas mas Não Implementadas
 - `/settings/company` - Perfil da empresa (mencionado no Settings mas sem rota)
@@ -147,11 +185,12 @@
 
 ## 📋 Resumo Final
 
-**Total de rotas auditadas**: 20 rotas principais + 15 rotas internas
+**Total de rotas auditadas**: 20 rotas frontend + 15 rotas internas + 20 APIs
 **Rotas corrigidas**: 7 rotas principais
 **Rotas removidas**: 5 duplicatas/obsoletas
 **Links corrigidos**: 3 links quebrados no SettingsPage
 **Rotas internas verificadas**: 15 padrões de navegação programática
+**APIs auditadas**: 20 endpoints com autenticação e autorização
 **Status geral**: ✅ Sistema de navegação 100% funcional
 
 ### Benefícios Obtidos
@@ -163,5 +202,7 @@
 - Tratamento robusto de erros 404
 - Auditoria completa incluindo rotas internas e deep linking
 - Validação de navegação programática em todos os módulos
+- APIs protegidas e funcionais verificadas
+- Separação clara entre rotas frontend e backend mantida
 
 A auditoria foi concluída com sucesso. O sistema de navegação está agora completamente organizado, sem inconsistências ou pontos de ruptura.
