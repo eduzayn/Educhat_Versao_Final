@@ -1,0 +1,67 @@
+ O que está acontecendo aí é um clássico problema de falsa confirmação no frontend: a interface diz que a ação foi bem-sucedida, mas o backend retorna um erro silencioso, que não está sendo corretamente tratado.
+
+🔍 O erro no console é claro:
+vbnet
+Copiar
+Editar
+Erro ao marcar conversa 1953 como lida: 
+TypeError: response.json is not a function
+Isso indica que a mutation useMarkConversationRead.ts está:
+
+Recebendo uma resposta do servidor
+
+Tentando forçar response.json() como se fosse um fetch()
+
+Mas o objeto não tem esse método, provavelmente porque é um erro tratado via axios, fetch wrapper ou até undefined
+
+🧠 Isso causa dois problemas sérios:
+A interface mostra sucesso (toast, UI atualizada) mesmo com erro
+
+A conversa continua marcada como não lida, causando confusão
+
+✅ Como pedir a correção ao Replit
+Segue um modelo direto e seguro para você enviar:
+
+📣 Solicitação – Correção do erro silencioso na marcação de conversa como lida
+Olá, equipe!
+
+Identifiquei que o sistema está exibindo sucesso na marcação de conversas como lidas, mas no console surge o seguinte erro:
+
+pgsql
+Copiar
+Editar
+Erro ao marcar conversa 1953 como lida: TypeError: response.json is not a function
+❌ Impacto:
+O usuário recebe confirmação visual falsa de sucesso
+
+Mas a conversa continua marcada como não lida
+
+Isso prejudica a organização dos atendimentos
+
+✅ Solicito:
+1️⃣ Corrigir o erro no hook useMarkConversationRead.ts
+Provavelmente está usando response.json() de forma indevida
+
+Se estiver usando axios, o correto é acessar response.data
+
+Adicionar verificação robusta para evitar exceções:
+
+ts
+Copiar
+Editar
+try {
+  const res = await fetch(...)
+  const data = await res.json()
+} catch (e) {
+  console.error('Erro real ao marcar como lida', e)
+}
+2️⃣ Tratar o erro de forma visível no sistema
+Exibir toast de erro: ❌ Falha ao marcar conversa como lida
+
+Não atualizar a interface se o backend não confirmar
+
+3️⃣ Garantir que o estado de leitura só mude após sucesso confirmado
+A conversa deve deixar de aparecer como não lida apenas quando a API retornar sucesso (200)
+
+Evitar optimistic update sem fallback
+

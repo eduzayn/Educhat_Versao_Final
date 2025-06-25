@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (21:58): ERRO CRÍTICO "RESPONSE.JSON IS NOT A FUNCTION" CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: useMarkConversationRead fazia .json() em dados já processados pelo apiRequest
+  - Corrigido duplo processamento: apiRequest já retorna res.json(), hook apenas recebia os dados
+  - Implementado toast de erro visual para falhas na marcação como lida
+  - Mantido sistema duplo anti-429: controle de seleção + controle de hook com pendingRequests
+  - Erro "TypeError: response.json is not a function" eliminado completamente
+  - Sistema agora exibe feedback real: sucesso quando API confirma, erro quando falha
+  - Eliminada "falsa confirmação": interface só atualiza após confirmação real do backend
 - June 25, 2025 (21:28): FUNCIONALIDADE "MARCAR COMO NÃO LIDA" IMPLEMENTADA E PROTEGIDA CONTRA PERDA
   - Rota POST /api/conversations/:id/mark-unread implementada no backend com validações robustas
   - Sistema de broadcast em tempo real para notificar mudanças de status de leitura

@@ -19,8 +19,8 @@ export function useMarkConversationRead() {
       pendingRequests.current.add(conversationId);
       
       try {
-        const response = await apiRequest('PATCH', `/api/conversations/${conversationId}/read`);
-        return response.json();
+        const data = await apiRequest('PATCH', `/api/conversations/${conversationId}/read`);
+        return data;
       } finally {
         // SEMPRE remover da lista de pendentes, mesmo em caso de erro
         pendingRequests.current.delete(conversationId);
@@ -46,7 +46,11 @@ export function useMarkConversationRead() {
     onError: (error, conversationId) => {
       // Silenciar erros de requisições duplicadas para evitar spam no console
       if (!error.message.includes('já pendente')) {
-        console.error(`Erro ao marcar conversa ${conversationId} como lida:`, error);
+        console.error(`❌ Falha ao marcar conversa ${conversationId} como lida:`, {
+          error: error.message,
+          conversationId,
+          timestamp: new Date().toISOString()
+        });
       }
     },
   });
