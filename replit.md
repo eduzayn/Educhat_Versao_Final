@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (15:46): CORREÇÃO DA ATRIBUIÇÃO MANUAL DE CONVERSA
+  - Corrigido ConversationAssignmentDropdown para usar React Query mutations
+  - Substituído window.location.reload() por invalidateQueries para melhor UX
+  - Implementados mutations assignTeamMutation e assignUserMutation
+  - Adicionados estados de loading (disabled) durante requisições
+  - Sistema agora atualiza cache automaticamente sem reload da página
 - June 25, 2025 (07:29): CORREÇÃO DE KEYS DUPLICADAS NO TEAMSTAB
   - Corrigido erro "Encountered two children with the same key" no TeamsTab
   - Implementadas keys únicas com prefixos: team-{id}, user-{id}, member-{id}
