@@ -265,7 +265,7 @@ export function useWebSocket() {
       console.error('❌ Erro de conexão Socket.IO:', error);
       setConnectionStatus(false);
     });
-  }, [setConnectionStatus, setTypingIndicator, activeConversation, queryClient]);
+  }, [setConnectionStatus, queryClient]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socketRef.current?.connected) {

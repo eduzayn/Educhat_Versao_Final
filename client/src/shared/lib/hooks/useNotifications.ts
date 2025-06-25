@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useChatStore } from '@/shared/store/chatStore';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 
 interface NotificationData {
@@ -20,7 +19,6 @@ interface NotificationData {
 export function useNotifications() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-  const { activeConversation } = useChatStore();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -36,10 +34,7 @@ export function useNotifications() {
   };
 
   const showNotification = (data: NotificationData) => {
-    // Não notificar se a conversa está ativa
-    if (activeConversation?.id === data.conversationId) {
-      return;
-    }
+    // Sempre mostrar notificação - será filtrada no componente se necessário
 
     // Mostrar toast notification
     toast({
