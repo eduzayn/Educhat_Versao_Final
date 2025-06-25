@@ -140,7 +140,7 @@ export function MessagesArea({
           )}
           
           {/* Lista de mensagens em ordem cronológica */}
-          {(messages || []).map((message) => (
+          {Array.isArray(messages) && messages.map((message) => (
             <MessageBubble 
               key={message.id} 
               message={message} 

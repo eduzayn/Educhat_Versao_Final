@@ -98,6 +98,9 @@ export function InboxPage() {
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages?.flat() || [];
   
+  // Hook do store de chat - deve vir antes de usar activeConversation
+  const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
+  
   // Hook de mensagens com verificação de segurança
   const messagesQuery = useMessages(activeConversation?.id, 15);
   const { 
@@ -108,7 +111,6 @@ export function InboxPage() {
     fetchNextPage: messagesFetchNextPage,
     refetch: refetchMessages 
   } = messagesQuery;
-  const { activeConversation, setActiveConversation, markConversationAsRead, messages: storeMessages } = useChatStore();
   const markAsReadMutation = useMarkConversationRead();
 
   const handleSelectConversation = (conversation: any) => {
@@ -120,24 +122,26 @@ export function InboxPage() {
   };
   
   // Flatten das páginas de mensagens com verificação de segurança
-  const apiMessages = messagesData?.pages?.flat() || [];
+  const apiMessages = Array.isArray(messagesData?.pages) ? messagesData.pages.flat() : [];
   
   // Combinar mensagens do store e da API para garantir renderização imediata
-  const storeMessagesForConversation = activeConversation?.id ? storeMessages[activeConversation.id] || [] : [];
+  const storeMessagesForConversation = activeConversation?.id && storeMessages ? (storeMessages[activeConversation.id] || []) : [];
   
   // Merge inteligente: usar store para mensagens recentes, API para histórico
   const allMessages = [...apiMessages];
-  storeMessagesForConversation.forEach(storeMsg => {
-    const exists = allMessages.some(apiMsg => apiMsg.id === storeMsg.id);
-    if (!exists) {
-      allMessages.push(storeMsg);
-    }
-  });
+  if (Array.isArray(storeMessagesForConversation)) {
+    storeMessagesForConversation.forEach(storeMsg => {
+      const exists = allMessages.some(apiMsg => apiMsg.id === storeMsg.id);
+      if (!exists) {
+        allMessages.push(storeMsg);
+      }
+    });
+  }
   
-  // Ordenar por data de envio para exibição cronológica
-  const messages = allMessages.sort((a, b) => 
+  // Ordenar por data de envio para exibição cronológica com verificação de segurança
+  const messages = Array.isArray(allMessages) ? allMessages.sort((a, b) => 
     new Date(a.sentAt || 0).getTime() - new Date(b.sentAt || 0).getTime()
-  );
+  ) : [];
 
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -591,7 +595,7 @@ export function InboxPage() {
 
             {/* Mensagens */}
             <MessagesArea
-              messages={messages || []}
+              messages={Array.isArray(messages) ? messages : []}
               isLoadingMessages={isLoadingMessages}
               hasNextPage={messagesHasNextPage}
               isFetchingNextPage={messagesIsFetchingNextPage}
