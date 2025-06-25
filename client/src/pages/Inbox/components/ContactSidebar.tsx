@@ -265,21 +265,21 @@ export function ContactSidebar({
         <div className="space-y-3">
           <h4 className="font-medium text-sm text-gray-900">Contato</h4>
           
-          {activeConversation.contact.phone && (
+          {activeConversation.contact?.phone && (
             <div className="flex items-center space-x-3 text-sm">
               <Phone className="w-4 h-4 text-gray-400" />
               <span className="text-gray-700">{activeConversation.contact.phone}</span>
             </div>
           )}
           
-          {activeConversation.contact.email && (
+          {activeConversation.contact?.email && (
             <div className="flex items-center space-x-3 text-sm">
               <Mail className="w-4 h-4 text-gray-400" />
               <span className="text-gray-700">{activeConversation.contact.email}</span>
             </div>
           )}
           
-          {activeConversation.contact.address && (
+          {activeConversation.contact?.address && (
             <div className="flex items-center space-x-3 text-sm">
               <MapPin className="w-4 h-4 text-gray-400" />
               <span className="text-gray-700">{activeConversation.contact.address}</span>
@@ -289,7 +289,7 @@ export function ContactSidebar({
           <div className="flex items-center space-x-3 text-sm">
             <Calendar className="w-4 h-4 text-gray-400" />
             <span className="text-gray-700">
-              Criado em {new Date(activeConversation.contact.createdAt).toLocaleDateString('pt-BR')}
+              Criado em {new Date(activeConversation.contact?.createdAt || Date.now()).toLocaleDateString('pt-BR')}
             </span>
           </div>
         </div>
@@ -298,14 +298,14 @@ export function ContactSidebar({
         <div className="space-y-3">
           <InlineEditField
             label="Área de Formação"
-            value={activeConversation.contact.educationalBackground || ''}
-            contactId={activeConversation.contact.id}
+            value={activeConversation.contact?.educationalBackground || ''}
+            contactId={activeConversation.contact?.id}
             field="educationalBackground"
             type="text"
             placeholder="Ex: Administração, Engenharia, etc."
           />
           
-          {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
+          {activeConversation.contact?.tags && Array.isArray(activeConversation.contact.tags) ? (
             (() => {
               const formationTags = activeConversation.contact.tags.filter((tag: string) => 
                 tag.startsWith('Formado:') || tag.startsWith('Graduado:') || tag.startsWith('Pós-graduado:')
@@ -338,14 +338,14 @@ export function ContactSidebar({
         <div className="space-y-3">
           <InlineEditField
             label="Área de Interesse"
-            value={activeConversation.contact.educationalInterest || ''}
-            contactId={activeConversation.contact.id}
+            value={activeConversation.contact?.educationalInterest || ''}
+            contactId={activeConversation.contact?.id}
             field="educationalInterest"
             type="text"
             placeholder="Ex: MBA, Pós-graduação em Marketing, etc."
           />
           
-          {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) ? (
+          {activeConversation.contact?.tags && Array.isArray(activeConversation.contact.tags) ? (
             (() => {
               const interestTags = activeConversation.contact.tags.filter((tag: string) => 
                 tag.startsWith('Interesse:')
@@ -533,12 +533,12 @@ export function ContactSidebar({
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-8 h-8">
                         <AvatarFallback className="text-sm">
-                          {activeConversation.contact.name.charAt(0).toUpperCase()}
+                          {activeConversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-sm">{activeConversation.contact.name}</p>
-                        <p className="text-xs text-gray-500">{activeConversation.contact.phone}</p>
+                        <p className="font-medium text-sm">{activeConversation.contact?.name || 'Contato'}</p>
+                        <p className="text-xs text-gray-500">{activeConversation.contact?.phone || ''}</p>
                       </div>
                     </div>
                   </div>
@@ -704,7 +704,7 @@ export function ContactSidebar({
         )}
 
         {/* 🏷️ Outras Tags */}
-        {activeConversation.contact.tags && Array.isArray(activeConversation.contact.tags) && (
+        {activeConversation.contact?.tags && Array.isArray(activeConversation.contact.tags) && (
           (() => {
             const otherTags = activeConversation.contact.tags.filter((tag: string) => 
               !tag.startsWith('Formado:') && 
@@ -753,7 +753,7 @@ export function ContactSidebar({
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Adicionar nota para {activeConversation.contact.name}
+                      Adicionar nota para {activeConversation.contact?.name || 'Contato'}
                     </label>
                     <Textarea
                       value={newNote}
@@ -838,7 +838,7 @@ export function ContactSidebar({
             </div>
             <div className="bg-orange-50 p-2 rounded text-center">
               <div className="font-semibold text-orange-700">
-                {activeConversation.contact.isOnline ? 'On' : 'Off'}
+                {activeConversation.contact?.isOnline ? 'On' : 'Off'}
               </div>
               <div className="text-orange-600">Status</div>
             </div>
