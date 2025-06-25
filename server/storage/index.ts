@@ -682,8 +682,8 @@ export class DatabaseStorage implements IStorage {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, ''); // Remove accents
 
-    // Definir palavras-chave por macrosetor
-    const macrosetorKeywords = {
+    // Definir palavras-chave por equipe
+    const teamKeywords = {
       'comercial': [
         'curso', 'matricula', 'inscrição', 'valor', 'preço', 'pagamento', 'mensalidade',
         'desconto', 'promoção', 'oferta', 'venda', 'comprar', 'adquirir',

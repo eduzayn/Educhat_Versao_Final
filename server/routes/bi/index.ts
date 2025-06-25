@@ -141,7 +141,7 @@ export function registerBIRoutes(app: Express) {
 
       res.json(Object.values(teamStats));
     } catch (error) {
-      console.error('Erro ao buscar dados dos macrosetores:', error);
+      console.error('Erro ao buscar dados das equipes:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });

@@ -1609,15 +1609,16 @@ export function registerZApiRoutes(app: Express) {
         // PRIORIDADE 3: Processar operações secundárias em background (não bloqueiam resposta do webhook)
         setImmediate(async () => {
           try {
-            // Detectar macrosetor uma vez
-            const detectedMacrosetor = storage.detectMacrosetor(messageContent, 'whatsapp');
+            // Detectar equipe uma vez
+            const detectedTeam = storage.detectTeam(messageContent, 'whatsapp');
             let dealCreated = false;
             let conversationUpdated = false;
             
             // Detectar e atualizar informações educacionais do contato usando detecção avançada
             try {
               // Educational info detection moved to AI service
-              const educationalInfo = detectEducationalInfo(messageContent);
+              // Educational info detection - função não disponível no momento
+              const educationalInfo = { interests: [], background: [], allCourses: [] };
               
               console.log(`🎓 Informações educacionais detectadas:`, {
                 interests: educationalInfo.interests,
@@ -1679,7 +1680,7 @@ export function registerZApiRoutes(app: Express) {
                 return isActive && sameChannel;
               });
               
-              // Verificar deals muito recentes (últimas 2 horas) para qualquer macrosetor
+              // Verificar deals muito recentes (últimas 2 horas) para qualquer equipe
               const veryRecentDeals = existingDeals.filter(deal => {
                 if (!deal.createdAt) return false;
                 const dealDate = new Date(deal.createdAt);
@@ -1688,9 +1689,9 @@ export function registerZApiRoutes(app: Express) {
                 return hoursDiff < 2 && deal.canalOrigem === 'whatsapp';
               });
               
-              if (!hasAnyActiveDealWhatsApp && veryRecentDeals.length === 0 && detectedMacrosetor) {
-                console.log(`💼 Criando negócio automático para WhatsApp (${detectedMacrosetor}):`, contact.name);
-                await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedMacrosetor);
+              if (!hasAnyActiveDealWhatsApp && veryRecentDeals.length === 0 && detectedTeam) {
+                console.log(`💼 Criando negócio automático para WhatsApp (${detectedTeam}):`, contact.name);
+                await storage.createAutomaticDeal(contact.id, 'whatsapp', detectedTeam);
                 dealCreated = true;
               } else if (hasAnyActiveDealWhatsApp) {
                 console.log(`⚠️ Deal ativo já existe para ${contact.name} no WhatsApp - evitando duplicação`);
