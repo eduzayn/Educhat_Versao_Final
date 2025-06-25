@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (20:55): CUSTOMIZAÇÃO COMPLETA DE EMOJIS PARA CONTEXTO EDUCACIONAL IMPLEMENTADA
+  - Reduzidos arrays de emoji de centenas para 20 emojis específicos para atendimento educacional
+  - Emojis customizados: 😘 🤗 😱 😉 😠 🎓 🎶 🌅 🌞 🌙 ⏰ 👍 👏 💪 📚 ✨ ❤️ 😊 🙏 📝
+  - InputArea.tsx: grid de 5 colunas com emojis educacionais para caixa de entrada principal
+  - ChatInput.tsx: array FREQUENT_EMOJIS customizado para chat interno entre equipes
+  - PrivateMessageModal.tsx: emojis padronizados para mensagens privadas entre usuários
+  - Interface consistente em todo o sistema com emojis apropriados para ambiente educacional
+  - Mantida funcionalidade completa de seleção e inserção de emojis em todas as interfaces
 - June 25, 2025 (20:28): UNIFICAÇÃO COMPLETA DO FLUXO DE ENVIO DE MENSAGENS IMPLEMENTADA
   - Resolvido problema de mensagens de texto não sendo entregues via Z-API
   - Implementado ponto único de controle com logs padronizados em useSendMessage hook
