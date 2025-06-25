@@ -110,7 +110,7 @@ const teamCategories = {
 export function DealsModule() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("kanban");
-  const [selectedMacrosetor, setSelectedMacrosetor] = useState("comercial");
+  const [selectedTeamType, setSelectedTeamType] = useState("comercial");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
@@ -124,7 +124,7 @@ export function DealsModule() {
 
   // Fetch deals from database with pagination and filtering
   const { data: dealsResponse, isLoading } = useQuery({
-    queryKey: ['/api/deals', selectedMacrosetor, page, limit],
+    queryKey: ['/api/deals', selectedTeamType, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -146,12 +146,12 @@ export function DealsModule() {
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
   // Get current macrosetor configuration
-  const currentMacrosetor = teamMacrosetores[selectedMacrosetor as keyof typeof teamMacrosetores];
+  const currentTeamCategory = teamCategories[selectedTeamType as keyof typeof teamCategories];
   
   // Reset page when macrosetor changes
   useEffect(() => {
     setPage(1);
-  }, [selectedMacrosetor]);
+  }, [selectedTeamType]);
 
   // Transform deals (already filtered by backend)
   const deals = rawDeals.map(deal => ({
@@ -174,7 +174,7 @@ export function DealsModule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+        queryKey: ['/api/deals', selectedTeamType, page, limit] 
       });
       queryClient.invalidateQueries({ 
         queryKey: ['/api/deals'] 
@@ -193,7 +193,7 @@ export function DealsModule() {
     },
     onMutate: async ({ dealId, stage }) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedMacrosetor, page, limit] });
+      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedTeamType, page, limit] });
       
       // Snapshot the previous value
       const previousDeals = queryClient.getQueryData(['/api/deals', selectedTeamType, page, limit]);
@@ -223,7 +223,7 @@ export function DealsModule() {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedMacrosetor, page, limit] 
+        queryKey: ['/api/deals', selectedTeamType, page, limit] 
       });
     }
   });
