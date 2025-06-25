@@ -405,59 +405,17 @@ export function InboxPage() {
   };
 
   const getSpecificChannelName = (conversation: any) => {
-    // Mapeamento padronizado de categorias para nomes de canal
-    const standardChannelNames = {
-      'comercial': 'Comercial',
-      'suporte': 'Suporte',
-      'cobranca': 'Cobrança',
-      'secretaria': 'Secretaria',
-      'tutoria': 'Tutoria'
-    };
-
-    // PRIORIDADE 1: Busca por channelId específico
-    if (conversation.channelId) {
-      const channel = channels.find(c => c.id === conversation.channelId);
-      if (channel) {
-        return channel.type === 'whatsapp' 
-          ? channel.name 
-          : `${channel.type.charAt(0).toUpperCase() + channel.type.slice(1)} - ${channel.name}`;
-      }
-    }
-    
-    // PRIORIDADE 2: Se há equipe atribuída, usa a categoria padronizada
+    // ETAPA 2: PRIORIDADE ÚNICA - Nome da equipe atribuída
+    // A tag lateral deve sempre mostrar a equipe responsável atual
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team && team.category && standardChannelNames[team.category as keyof typeof standardChannelNames]) {
-        return standardChannelNames[team.category as keyof typeof standardChannelNames];
-      }
-      // Fallback para equipes sem categoria definida
       if (team) {
-        return team.name;
+        return team.name; // Sempre usar o nome configurado da equipe
       }
     }
     
-    // PRIORIDADE 3: Fallback para conversas sem channelId específico
-    const channelType = conversation.channel || 'unknown';
-    if (channelType === 'whatsapp') {
-      const whatsappChannels = channels.filter(c => c.type === 'whatsapp' && c.isActive);
-      if (whatsappChannels.length > 1) {
-        const phoneNumber = conversation.contact?.phoneNumber || '';
-        
-        // Tenta identificar canal baseado em padrões configuráveis
-        for (const channel of whatsappChannels) {
-          const config = channel.configuration as any;
-          if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
-            return channel.name;
-          }
-        }
-        
-        // Fallback: usa primeiro canal ativo disponível
-        return whatsappChannels[0]?.name || 'WhatsApp';
-      }
-      return whatsappChannels[0]?.name || 'WhatsApp';
-    }
-    
-    return getChannelInfo(channelType).label;
+    // FALLBACK: Conversa sem atribuição de equipe
+    return 'Sem Atribuição';
   };
 
   const getChannelStyle = (conversation: any) => {
