@@ -6,11 +6,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw } from 'lucide-react';
+import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw, Send } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
 import { Badge } from '@/shared/ui/badge';
 import { useContacts, useUpdateContact, useCreateContact, useDeleteContact, useImportZApiContacts, useZApiContactMetadata, useZApiProfilePicture, useSyncZApiMessages } from '@/shared/lib/hooks/useContacts';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
@@ -32,7 +34,9 @@ export function ContactsPage() {
     email: '', 
     phone: '', 
     owner: '', 
-    notes: '' 
+    notes: '',
+    selectedChannelId: '',
+    activeMessage: ''
   });
   const [newTags, setNewTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
@@ -45,6 +49,12 @@ export function ContactsPage() {
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
+  
+  // Buscar canais disponíveis
+  const { data: channels = [] } = useQuery({
+    queryKey: ['/api/channels'],
+    queryFn: () => apiRequest('GET', '/api/channels')
+  });
   useGlobalZApiMonitor();
   
   // Verificar se WhatsApp está disponível para sincronização
@@ -224,55 +234,104 @@ export function ContactsPage() {
 
   const handleCreateContact = async () => {
     try {
-      // First, try to add contact to Z-API WhatsApp
-      if (createForm.phone && isWhatsAppAvailable) {
-        try {
-          const [firstName, ...lastNameParts] = createForm.name.split(' ');
-          const lastName = lastNameParts.join(' ');
-          
-          const response = await fetch("/api/zapi/contacts/add", {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              firstName,
-              lastName,
-              phone: createForm.phone
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Failed to add contact to WhatsApp: ${response.status}`);
-          }
-          
-          toast({
-            title: "Contato adicionado ao WhatsApp",
-            description: "O contato foi adicionado à sua agenda do WhatsApp."
-          });
-        } catch (zapiError) {
-
-          toast({
-            title: "Aviso",
-            description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
-            variant: "destructive"
-          });
-        }
+      // Validação para mensagem ativa
+      if (createForm.selectedChannelId && !createForm.activeMessage.trim()) {
+        toast({
+          title: "Erro",
+          description: "Se um canal for selecionado, a mensagem é obrigatória.",
+          variant: "destructive"
+        });
+        return;
       }
-      
-      // Then create in local database
-      await createContact.mutateAsync({
+
+      if (createForm.activeMessage.trim() && !createForm.selectedChannelId) {
+        toast({
+          title: "Erro",
+          description: "Se uma mensagem for inserida, é necessário selecionar um canal.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // 1. Criar contato no banco primeiro
+      const newContact = await createContact.mutateAsync({
         name: createForm.name,
         email: createForm.email,
         phone: createForm.phone
       });
-      
-      toast({
-        title: "Contato criado",
-        description: isWhatsAppAvailable && createForm.phone 
-          ? "Contato criado no sistema e adicionado ao WhatsApp." 
-          : "Contato criado no sistema."
-      });
+
+      // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
+      if (createForm.selectedChannelId && createForm.activeMessage.trim() && createForm.phone) {
+        try {
+          // Enviar mensagem via Z-API
+          const messageResponse = await apiRequest('POST', '/api/zapi/send-message', {
+            phone: createForm.phone,
+            message: createForm.activeMessage,
+            channelId: createForm.selectedChannelId
+          });
+
+          // Criar conversa automaticamente com atribuição ao usuário logado
+          const conversationResponse = await apiRequest('POST', '/api/conversations', {
+            contactId: newContact.id,
+            channel: 'whatsapp',
+            status: 'open',
+            lastMessageAt: new Date().toISOString(),
+            priority: 'medium',
+            isRead: false
+          });
+
+          // Criar primeira mensagem na conversa
+          await apiRequest('POST', `/api/conversations/${conversationResponse.id}/messages`, {
+            content: createForm.activeMessage,
+            isFromContact: false,
+            messageType: 'text',
+            sentAt: new Date().toISOString()
+          });
+
+          toast({
+            title: "Sucesso",
+            description: "Contato criado e mensagem enviada com sucesso! Nova conversa iniciada.",
+            variant: "default"
+          });
+        } catch (messageError) {
+          console.error('Erro ao enviar mensagem:', messageError);
+          toast({
+            title: "Contato criado",
+            description: "Contato criado com sucesso, mas houve erro ao enviar a mensagem.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        // 3. Adicionar ao WhatsApp se disponível (sem mensagem ativa)
+        if (createForm.phone && isWhatsAppAvailable) {
+          try {
+            const [firstName, ...lastNameParts] = createForm.name.split(' ');
+            const lastName = lastNameParts.join(' ');
+            
+            await fetch("/api/zapi/contacts/add", {
+              method: "POST",
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ firstName, lastName, phone: createForm.phone })
+            });
+
+            toast({
+              title: "Contato adicionado ao WhatsApp",
+              description: "O contato foi adicionado à sua agenda do WhatsApp."
+            });
+          } catch (zapiError) {
+            toast({
+              title: "Aviso",
+              description: "Contato criado no sistema, mas não foi possível adicionar ao WhatsApp.",
+              variant: "destructive"
+            });
+          }
+        }
+
+        toast({
+          title: "Contato criado",
+          description: "Contato criado no sistema com sucesso."
+        });
+      }
       
       setIsCreating(false);
       setCreateForm({ 
@@ -280,7 +339,9 @@ export function ContactsPage() {
         email: '', 
         phone: '', 
         owner: '', 
-        notes: '' 
+        notes: '',
+        selectedChannelId: '',
+        activeMessage: ''
       });
       setNewTags([]);
     } catch (error) {
@@ -478,7 +539,9 @@ export function ContactsPage() {
                       email: '', 
                       phone: '', 
                       owner: '', 
-                      notes: '' 
+                      notes: '',
+                      selectedChannelId: '',
+                      activeMessage: ''
                     });
                     setNewTags([]);
                   }}

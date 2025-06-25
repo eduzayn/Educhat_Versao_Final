@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:36): FUNCIONALIDADE DE MENSAGEM ATIVA IMPLEMENTADA NO MODAL DE CONTATO
+  - Adicionados campos de seleção de canal WhatsApp e mensagem ativa no modal de criação
+  - Validação automática: canal obrigatório se mensagem preenchida e vice-versa
+  - Envio automático via Z-API após criação do contato com telefone
+  - Criação automática de conversa vinculada ao contato recém-criado
+  - Atribuição da conversa ao usuário logado automaticamente
+  - Feedback diferenciado para criação com/sem mensagem ativa
+  - Sistema completo: contato → mensagem → conversa → inbox
 - June 25, 2025 (05:34): CAMPOS REMOVIDOS DO MODAL DE CRIAÇÃO DE CONTATO
   - Removidos campos "Empresa", "Tipo de Contato" e "Endereço" do modal de criação
   - Modal mais compacto e focado em informações essenciais
