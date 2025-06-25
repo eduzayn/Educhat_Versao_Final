@@ -159,7 +159,7 @@ export const teamTransferHistory = pgTable("team_transfer_history", {
   transferredAt: timestamp("transferred_at").defaultNow(),
 });
 
-// Teams table (unified with macrosetores)
+// Teams table (unified with categories)
 export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).unique().notNull(),
@@ -259,7 +259,7 @@ export const deals = pgTable("deals", {
   name: text("name").notNull(),
   contactId: integer("contact_id").references(() => contacts.id).notNull(),
   teamType: varchar("team_type", { length: 20 }).default("comercial"), // comercial, suporte, cobranca, secretaria, tutoria, financeiro
-  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // varia por macrosetor
+  stage: varchar("stage", { length: 50 }).notNull().default("prospecting"), // varia por categoria
   value: integer("value").default(0), // valor em centavos
   probability: integer("probability").default(0), // 0-100
   expectedCloseDate: timestamp("expected_close_date"),
@@ -864,7 +864,7 @@ export const facebookWebhookLogsRelations = relations(facebookWebhookLogs, ({ on
   }),
 }));
 
-// Sistema de Detecção de Macrosetores
+// Sistema de Detecção de Categorias
 export const categoryDetection = pgTable("category_detection", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: text("name").notNull(),
