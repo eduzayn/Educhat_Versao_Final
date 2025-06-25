@@ -8,7 +8,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Building2, Plus, Users, Settings, UserPlus, Loader2 } from 'lucide-react';
+import { Building2, Plus, Users, Settings, UserPlus, Loader2, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Team } from '@shared/schema';
@@ -241,6 +241,63 @@ export const TeamsTab = () => {
       isActive: team.isActive || true
     });
     setShowConfigDialog(true);
+  };
+
+  // Função para buscar membros da equipe
+  const loadTeamMembers = async (teamId: number) => {
+    setLoadingMembers(true);
+    try {
+      const response = await fetch(`/api/teams/${teamId}/members`);
+      if (response.ok) {
+        const members = await response.json();
+        setTeamMembers(members);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar membros:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar membros da equipe.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+  // Função para mostrar membros da equipe
+  const handleShowMembers = (team: any) => {
+    setSelectedTeam(team);
+    setShowMembersDialog(true);
+    loadTeamMembers(team.id);
+  };
+
+  // Função para remover membro da equipe
+  const handleRemoveMember = async (userId: number) => {
+    if (!selectedTeam) return;
+    
+    try {
+      const response = await fetch(`/api/teams/${selectedTeam.id}/members/${userId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Membro removido!",
+          description: "O membro foi removido da equipe com sucesso.",
+        });
+        // Recarregar lista de membros
+        loadTeamMembers(selectedTeam.id);
+      } else {
+        throw new Error('Erro ao remover membro');
+      }
+    } catch (error) {
+      console.error('Erro ao remover membro:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover membro da equipe.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
