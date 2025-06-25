@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:35): TRATAMENTO DE ERRO PARA ÁUDIO IMPLEMENTADO COM ISOLAMENTO
+  - Corrigido erro "Áudio não encontrado" no AudioMessage.tsx com tratamento gracioso
+  - Adicionadas verificações específicas para códigos 404, blob vazio e URLs inválidas
+  - Implementada UI de fallback amigável com mensagem de erro e botão "Tentar novamente"
+  - Estado de erro isolado: não afeta outros componentes ou mensagens na conversa
+  - Validação robusta: URL válida, blob não vazio, resposta HTTP adequada
+  - Correção aplicada sem impactar sistema de cache ou outros componentes de mídia
 - June 25, 2025 (16:22): ATUALIZAÇÃO VISUAL DO CABEÇALHO E ISOLAMENTO DE CONVERSAS IMPLEMENTADO
   - Criada query específica para conversa ativa garantindo dados atualizados em tempo real
   - Substituído activeConversation por currentActiveConversation no ChatHeader e InputArea
