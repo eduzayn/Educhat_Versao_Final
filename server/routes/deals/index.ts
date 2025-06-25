@@ -380,7 +380,7 @@ export function registerDealsRoutes(app: Express) {
         filters.assignedUserId = parseInt(userId);
       }
       
-      if (macrosetor && typeof macrosetor === 'string') {
+      if (teamType && typeof teamType === 'string') {
         filters.teamType = teamType;
       }
       
