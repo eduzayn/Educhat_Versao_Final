@@ -23,13 +23,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-// Hook simples para toast
-const useToast = () => ({
-  toast: ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
-    console.log(`${title}: ${description}`);
-    // Implementar toast real posteriormente
-  }
-});
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 interface ConversationActionsDropdownProps {
   conversationId: number;

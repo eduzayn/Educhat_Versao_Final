@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (21:28): FUNCIONALIDADE "MARCAR COMO NÃO LIDA" IMPLEMENTADA E PROTEGIDA CONTRA PERDA
+  - Rota POST /api/conversations/:id/mark-unread implementada no backend com validações robustas
+  - Sistema de broadcast em tempo real para notificar mudanças de status de leitura
+  - Frontend corrigido com import correto do hook useToast
+  - Arquivos obsoletos removidos com segurança: ROUTE_AUDIT_REPORT.md, logs temporários
+  - ConversationActionsDropdown.tsx funcionando sem erros de import
+  - Funcionalidade testada e validada (status 200) - sistema completamente operacional
 - June 25, 2025 (21:09): ERRO CRÍTICO DE KEYS DUPLICADAS EM MENSAGENS CORRIGIDO COMPLETAMENTE
   - Implementada função deduplicateMessages() para eliminar mensagens com IDs duplicados
   - Keys únicas aplicadas: `msg-${message.id}-${message.sentAt}-${index}` para garantir unicidade
