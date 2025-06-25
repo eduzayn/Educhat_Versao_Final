@@ -117,7 +117,9 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
     }
 
     // Validação para mensagem ativa
-    if (form.selectedChannelId && !form.activeMessage.trim()) {
+    const hasValidChannel = form.selectedChannelId && form.selectedChannelId !== 'none';
+    
+    if (hasValidChannel && !form.activeMessage.trim()) {
       toast({
         title: "Erro",
         description: "Se um canal for selecionado, a mensagem é obrigatória.",
@@ -126,7 +128,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       return;
     }
 
-    if (form.activeMessage.trim() && !form.selectedChannelId) {
+    if (form.activeMessage.trim() && !hasValidChannel) {
       toast({
         title: "Erro",
         description: "Se uma mensagem for inserida, é necessário selecionar um canal.",
@@ -362,9 +364,9 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
                 <SelectValue placeholder="Selecione um canal (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum canal</SelectItem>
+                <SelectItem value="none">Nenhum canal</SelectItem>
                 {channels
-                  .filter((channel: any) => channel.type === 'whatsapp')
+                  .filter((channel: any) => channel.type === 'whatsapp' && channel?.id)
                   .map((channel: any) => (
                     <SelectItem key={channel.id} value={channel.id.toString()}>
                       {channel.name || `Canal ${channel.instanceId}`}

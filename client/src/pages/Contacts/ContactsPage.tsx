@@ -238,7 +238,9 @@ export function ContactsPage() {
   const handleCreateContact = async () => {
     try {
       // Validação para mensagem ativa
-      if (createForm.selectedChannelId && !createForm.activeMessage.trim()) {
+      const hasValidChannel = createForm.selectedChannelId && createForm.selectedChannelId !== 'none';
+      
+      if (hasValidChannel && !createForm.activeMessage.trim()) {
         toast({
           title: "Erro",
           description: "Se um canal for selecionado, a mensagem é obrigatória.",
@@ -247,9 +249,9 @@ export function ContactsPage() {
         return;
       }
 
-      if (createForm.activeMessage.trim() && !createForm.selectedChannelId) {
+      if (createForm.activeMessage.trim() && !hasValidChannel) {
         toast({
-          title: "Erro",
+          title: "Erro",  
           description: "Se uma mensagem for inserida, é necessário selecionar um canal.",
           variant: "destructive"
         });
@@ -264,7 +266,7 @@ export function ContactsPage() {
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
-      if (createForm.selectedChannelId && createForm.activeMessage.trim() && createForm.phone) {
+      if (hasValidChannel && createForm.activeMessage.trim() && createForm.phone) {
         try {
           // Enviar mensagem via Z-API
           const messageResponse = await apiRequest('POST', '/api/zapi/send-message', {
@@ -553,9 +555,9 @@ export function ContactsPage() {
                       <SelectValue placeholder="Selecione um canal (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum canal</SelectItem>
+                      <SelectItem value="none">Nenhum canal</SelectItem>
                       {safeChannels
-                        .filter((channel: any) => channel?.type === 'whatsapp')
+                        .filter((channel: any) => channel?.type === 'whatsapp' && channel?.id)
                         .map((channel: any) => (
                           <SelectItem key={channel.id} value={channel.id.toString()}>
                             {channel.name || `Canal ${channel.instanceId}`}
