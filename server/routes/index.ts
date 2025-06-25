@@ -23,7 +23,7 @@ import { registerBIRoutes } from "./bi/index";
 import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
-import { registerMacrosetorRoutes } from "./settings/macrosetores";
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup do sistema de autenticação próprio PRIMEIRO

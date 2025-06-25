@@ -98,7 +98,7 @@ export const TeamsTab = () => {
         description: "A nova equipe foi criada com sucesso.",
       });
       setShowTeamDialog(false);
-      setNewTeamForm({ name: '', description: '', macrosetor: '', color: '', isActive: true });
+      setNewTeamForm({ name: '', description: '', category: '', color: '', isActive: true });
     },
     onError: () => {
       toast({
@@ -171,7 +171,7 @@ export const TeamsTab = () => {
   });
 
   const handleCreateTeam = () => {
-    if (!newTeamForm.name || !newTeamForm.macrosetor) {
+    if (!newTeamForm.name || !newTeamForm.category) {
       toast({
         title: "Campos obrigatórios",
         description: "Nome e macrosetor são obrigatórios.",
@@ -183,7 +183,7 @@ export const TeamsTab = () => {
     createTeamMutation.mutate({
       name: newTeamForm.name,
       description: newTeamForm.description || null,
-      macrosetor: newTeamForm.macrosetor,
+      category: newTeamForm.category,
       color: newTeamForm.color || '#4F46E5',
       isActive: newTeamForm.isActive
     });
@@ -206,7 +206,7 @@ export const TeamsTab = () => {
   };
 
   const handleUpdateTeam = () => {
-    if (!selectedTeam || !editTeamForm.name || !editTeamForm.macrosetor) {
+    if (!selectedTeam || !editTeamForm.name || !editTeamForm.category) {
       toast({
         title: "Campos obrigatórios",
         description: "Nome e macrosetor são obrigatórios.",
@@ -220,7 +220,7 @@ export const TeamsTab = () => {
       teamData: {
         name: editTeamForm.name,
         description: editTeamForm.description || null,
-        macrosetor: editTeamForm.macrosetor,
+        category: editTeamForm.category,
         isActive: editTeamForm.isActive
       }
     });
@@ -232,7 +232,7 @@ export const TeamsTab = () => {
     setEditTeamForm({
       name: team.name,
       description: team.description || '',
-      macrosetor: team.macrosetor || '',
+      category: team.category || '',
       isActive: team.isActive || true
     });
     setShowConfigDialog(true);
@@ -285,10 +285,10 @@ export const TeamsTab = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Macrosetor:</span>
+                    <span className="text-sm font-medium">Categoria:</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {team.macrosetor || 'Não definido'}
+                        {team.category || 'Não definido'}
                       </Badge>
                     </div>
                   </div>
