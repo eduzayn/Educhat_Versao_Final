@@ -87,6 +87,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         direction: 'outbound',
         sentAt: new Date().toISOString(),
         isInternalNote: false,
+        isFromContact: false, // Campo obrigatório que estava faltando
         replyToMessageId: replyingTo?.messageId || null,
       },
       contact: activeConversation.contact,
@@ -96,7 +97,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
     setReplyingTo(null);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -118,6 +119,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           messageType: 'text',
           direction: 'internal',
           isInternalNote: true,
+          isFromContact: false, // Campo obrigatório
           authorId: user?.id,
           authorName: user?.displayName || user?.username || 'Atendente'
         })
@@ -196,9 +198,38 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   };
 
   const handleEmojiSelect = (emoji: string) => {
-    setMessage((prev) => prev + emoji);
-    textareaRef.current?.focus();
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newMessage = message.substring(0, start) + emoji + message.substring(end);
+      setMessage(newMessage);
+      
+      // Manter foco e posição do cursor
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    } else {
+      setMessage((prev) => prev + emoji);
+    }
   };
+
+  // Fechar menus ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.emoji-menu') && !target.closest('.emoji-button')) {
+        setIsEmojiOpen(false);
+      }
+      if (!target.closest('.attachment-menu') && !target.closest('.attachment-button')) {
+        setIsAttachmentOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="border-t bg-white p-4">
@@ -231,14 +262,14 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               variant="ghost"
               size="sm"
               onClick={() => setIsAttachmentOpen(!isAttachmentOpen)}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              className="attachment-button h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
             >
               <Paperclip className="w-5 h-5 rotate-45" />
             </Button>
 
             {/* Menu de anexos modernizado */}
             {isAttachmentOpen && (
-              <div className="absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-[9999] min-w-[160px]">
+              <div className="attachment-menu absolute bottom-full left-0 mb-2 bg-white border rounded-xl shadow-xl p-3 z-[9999] min-w-[160px]">
                 <div className="flex flex-col gap-2">
                   <Button
                     variant="ghost"
@@ -287,7 +318,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem..."
               className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-2 pr-16"
               rows={1}
@@ -300,7 +331,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsEmojiOpen(!isEmojiOpen)}
-                className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                className="emoji-button h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
               >
                 <Smile className="w-4 h-4" />
               </Button>
@@ -377,9 +408,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           </Button>
         </div>
 
-        {/* Menu de emoji */}
+        {/* Menu de emoji - reposicionado */}
         {isEmojiOpen && (
-          <div className="absolute bottom-full right-0 mb-2 z-[9999] bg-white border rounded-xl shadow-xl p-4 max-w-xs">
+          <div className="emoji-menu absolute bottom-full right-16 mb-2 z-[9999] bg-white border rounded-xl shadow-xl p-4 max-w-xs">
             <div className="grid grid-cols-8 gap-2">
               {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '👍', '👎', '❤️', '🔥', '⭐', '✅', '❌', '🎉', '💯'].map(emoji => (
                 <button
@@ -394,6 +425,17 @@ export function InputArea({ activeConversation }: InputAreaProps) {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Componente AudioRecorder que estava faltando */}
+        {isRecording && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-[9999]">
+            <AudioRecorder 
+              onSendAudio={handleSendAudio}
+              isRecording={isRecording}
+              onStopRecording={() => setIsRecording(false)}
+            />
           </div>
         )}
       </div>
