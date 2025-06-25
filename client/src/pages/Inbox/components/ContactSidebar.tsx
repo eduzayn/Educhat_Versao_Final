@@ -190,7 +190,7 @@ export function ContactSidebar({
       apiRequest('PATCH', `/api/deals/${dealId}`, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${activeConversation.contact.id}/deals`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${activeConversation.contact?.id}/deals`] });
       setEditingDeal(null);
       setEditingDealData({});
     },
@@ -206,7 +206,7 @@ export function ContactSidebar({
 
     const data = {
       name: dealFormData.name,
-      contactId: activeConversation.contact.id,
+      contactId: activeConversation.contact?.id,
       value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
       macrosetor: dealFormData.macrosetor,
       stage: dealFormData.stage,
@@ -233,7 +233,7 @@ export function ContactSidebar({
     setNewNote('');
   };
 
-  if (!activeConversation) return null;
+  if (!activeConversation || !activeConversation.contact) return null;
 
   return (
     <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
@@ -241,22 +241,22 @@ export function ContactSidebar({
         {/* 👤 Informações do Contato */}
         <div className="text-center">
           <Avatar className="w-16 h-16 mx-auto mb-3">
-            <AvatarImage src={activeConversation.contact.profileImageUrl || ''} />
+            <AvatarImage src={activeConversation.contact?.profileImageUrl || ''} />
             <AvatarFallback className="text-lg font-semibold">
-              {activeConversation.contact.name.charAt(0).toUpperCase()}
+              {activeConversation.contact?.name?.charAt(0)?.toUpperCase() || 'C'}
             </AvatarFallback>
           </Avatar>
           
           <h3 className="font-semibold text-lg text-gray-900 mb-1">
-            {activeConversation.contact.name}
+            {activeConversation.contact?.name || 'Contato'}
           </h3>
           
           <div className="flex items-center justify-center space-x-2">
             <Badge 
-              variant={activeConversation.contact.isOnline ? "default" : "secondary"}
+              variant={activeConversation.contact?.isOnline ? "default" : "secondary"}
               className="text-xs"
             >
-              {activeConversation.contact.isOnline ? 'Online' : 'Offline'}
+              {activeConversation.contact?.isOnline ? 'Online' : 'Offline'}
             </Badge>
           </div>
         </div>
