@@ -18,7 +18,7 @@ export { MacrosetorStorage } from './modules/macrosetorStorage';
 export { KeywordRoutingStorage } from './modules/keywordRoutingStorage';
 
 // Utilitários
-export * from './utils/macrosetorUtils';
+
 
 /**
  * Classe principal do Storage que implementa a interface IStorage

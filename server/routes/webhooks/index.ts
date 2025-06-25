@@ -1616,7 +1616,7 @@ export function registerZApiRoutes(app: Express) {
             
             // Detectar e atualizar informações educacionais do contato usando detecção avançada
             try {
-              const { detectEducationalInfo } = await import('../../storage/utils/courseUtils');
+              // Educational info detection moved to AI service
               const educationalInfo = detectEducationalInfo(messageContent);
               
               console.log(`🎓 Informações educacionais detectadas:`, {

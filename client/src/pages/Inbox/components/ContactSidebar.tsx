@@ -113,36 +113,26 @@ export function ContactSidebar({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log('🔍 Buscando categorias de cursos...');
         const response = await fetch('/api/courses/categories');
-        console.log('📊 Resposta categorias:', response.status, response.ok);
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Categorias carregadas:', data);
           setCategories(data);
-        } else {
-          console.error('❌ Erro na resposta categorias:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar categorias:', error);
+        // Categorias falharão silenciosamente se API não estiver disponível
       }
     };
 
     const fetchAllCourses = async () => {
       try {
-        console.log('🔍 Buscando todos os cursos...');
         const response = await fetch('/api/courses');
-        console.log('📊 Resposta cursos:', response.status, response.ok);
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Cursos carregados:', data.length, 'cursos');
           setCourses(data);
           setFilteredCourses(data);
-        } else {
-          console.error('❌ Erro na resposta cursos:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar cursos:', error);
+        // Cursos falharão silenciosamente se API não estiver disponível
       }
     };
 
