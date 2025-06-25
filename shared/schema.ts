@@ -510,6 +510,25 @@ export type InsertQuickReplyTeamShare = z.infer<typeof insertQuickReplyTeamShare
 export type TeamTransferHistory = typeof teamTransferHistory.$inferSelect;
 export type InsertTeamTransferHistory = z.infer<typeof insertTeamTransferHistorySchema>;
 
+// Tabela de roteamento por palavras-chave
+export const keywordRouting = pgTable("keyword_routing", {
+  id: serial("id").primaryKey(),
+  keyword: varchar("keyword", { length: 255 }).notNull(),
+  teamId: integer("team_id").references(() => teams.id, { onDelete: "cascade" }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertKeywordRoutingSchema = createInsertSchema(keywordRouting).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type KeywordRouting = typeof keywordRouting.$inferSelect;
+export type InsertKeywordRouting = z.infer<typeof insertKeywordRoutingSchema>;
+
 export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
   id: true,
   joinedAt: true,

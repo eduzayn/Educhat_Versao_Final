@@ -50,6 +50,7 @@ export class DatabaseStorage implements IStorage {
   private quickReply: QuickReplyStorage;
   private team: TeamStorage;
   private message: MessageStorage;
+  private keywordRouting: KeywordRoutingStorage;
   private system: SystemStorage;
   public manychat: ManychatStorage;
   public facebook: FacebookStorage;
@@ -65,6 +66,7 @@ export class DatabaseStorage implements IStorage {
     this.quickReply = new QuickReplyStorage();
     this.team = new TeamStorage();
     this.message = new MessageStorage();
+    this.keywordRouting = new KeywordRoutingStorage();
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();

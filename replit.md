@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (01:17): Sistema de roteamento automático por palavras-chave IMPLEMENTADO
+  - Criada tabela keyword_routing no banco de dados para armazenar regras de roteamento
+  - Implementado storage module KeywordRoutingStorage com todas as operações CRUD
+  - Adicionadas rotas API /api/keyword-routing com endpoints completos
+  - Nova aba "Regras Automáticas" na página de transferências com interface intuitiva
+  - Sistema permite criar, editar, ativar/desativar e deletar palavras-chave
+  - Interface com explicação visual de como o roteamento automático funciona
+  - Integração completa com sistema de equipes existente
+  - Preparado para integração com webhook Z-API para roteamento em tempo real
 - June 25, 2025 (00:58): Sistema de transferências de equipes IMPLEMENTADO
   - Criada página TeamTransferPage com interface drag-and-drop moderna usando @hello-pangea/dnd
   - Implementada tabela team_transfer_history para rastrear histórico de transferências
