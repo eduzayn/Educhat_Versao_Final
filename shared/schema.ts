@@ -148,6 +148,17 @@ export const quickReplyTeamShares = pgTable("quick_reply_team_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Team Transfer History table
+export const teamTransferHistory = pgTable("team_transfer_history", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  fromTeamId: integer("from_team_id").references(() => teams.id),
+  toTeamId: integer("to_team_id").references(() => teams.id).notNull(),
+  reason: text("reason"),
+  transferredBy: varchar("transferred_by", { length: 255 }),
+  transferredAt: timestamp("transferred_at").defaultNow(),
+});
+
 // Teams table (unified with macrosetores)
 export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
@@ -483,6 +494,11 @@ export const insertQuickReplyTeamShareSchema = createInsertSchema(quickReplyTeam
   createdAt: true,
 });
 
+export const insertTeamTransferHistorySchema = createInsertSchema(teamTransferHistory).omit({
+  id: true,
+  transferredAt: true,
+});
+
 export type QuickReply = typeof quickReplies.$inferSelect;
 export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
 
@@ -490,6 +506,9 @@ export type QuickReplyShare = typeof quickReplyShares.$inferSelect;
 export type InsertQuickReplyShare = z.infer<typeof insertQuickReplyShareSchema>;
 export type QuickReplyTeamShare = typeof quickReplyTeamShares.$inferSelect;
 export type InsertQuickReplyTeamShare = z.infer<typeof insertQuickReplyTeamShareSchema>;
+
+export type TeamTransferHistory = typeof teamTransferHistory.$inferSelect;
+export type InsertTeamTransferHistory = z.infer<typeof insertTeamTransferHistorySchema>;
 
 export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
   id: true,

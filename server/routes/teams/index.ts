@@ -342,4 +342,15 @@ export function registerTeamsRoutes(app: Express) {
       res.status(500).json({ message: 'Erro ao transferir conversa entre equipes' });
     }
   });
+
+  // Get transfer history - REST: GET /api/teams/transfer-history
+  app.get('/api/teams/transfer-history', requirePermission('teams:read'), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const history = await storage.getTransferHistory();
+      res.json(history);
+    } catch (error) {
+      console.error('Erro ao buscar histórico de transferências:', error);
+      res.status(500).json({ message: 'Erro ao buscar histórico' });
+    }
+  });
 }
