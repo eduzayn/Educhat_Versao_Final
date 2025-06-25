@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (06:47): ETAPA 1 - SISTEMA DE PERMISSÕES SIMPLIFICADO IMPLEMENTADO (PARALELO)
+  - Criado sistema baseado em funções: Administrador, Gerente, Atendente
+  - Implementado arquivo roleBasedPermissions.ts com mapeamento de páginas por função
+  - Adicionada lógica paralela no ProtectedRoute mantendo sistema antigo como fallback
+  - Garantida compatibilidade: nenhum acesso existente foi removido
+  - Sistema novo funciona em paralelo, testando acesso por função primeiro
+  - Preparação para Etapa 2: ocultação do painel /admin/permissions
 - June 25, 2025 (06:28): PERFORMANCE DA PÁGINA DE CONTATOS OTIMIZADA
   - Reduzida quantidade padrão de contatos por página de 50 para 20
   - Adicionado seletor de quantidade por página (10, 20, 50, 100) no canto inferior direito
