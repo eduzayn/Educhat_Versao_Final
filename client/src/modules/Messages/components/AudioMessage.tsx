@@ -130,8 +130,37 @@ export function AudioMessage({
 
   const progressPercentage = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
 
+  // Cores baseadas em quem enviou a mensagem
+  const containerClasses = isFromContact 
+    ? "bg-gray-100 text-gray-800" // Cinza claro para áudios recebidos
+    : "bg-blue-100 text-blue-800"; // Azul para áudios enviados
+
+  const buttonClasses = isFromContact
+    ? "bg-gray-500 hover:bg-gray-600" // Cinza para áudios recebidos
+    : "bg-blue-500 hover:bg-blue-600"; // Azul para áudios enviados
+
+  const textClasses = isFromContact
+    ? "text-gray-800" // Texto cinza para áudios recebidos
+    : "text-blue-800"; // Texto azul para áudios enviados
+
+  const subTextClasses = isFromContact
+    ? "text-gray-600" // Subtexto cinza para áudios recebidos
+    : "text-blue-600"; // Subtexto azul para áudios enviados
+
+  const progressBgClasses = isFromContact
+    ? "bg-gray-200" // Fundo da barra cinza para áudios recebidos
+    : "bg-blue-200"; // Fundo da barra azul para áudios enviados
+
+  const progressFillClasses = isFromContact
+    ? "bg-gray-500" // Preenchimento da barra cinza para áudios recebidos
+    : "bg-blue-500"; // Preenchimento da barra azul para áudios enviados
+
+  const downloadButtonClasses = isFromContact
+    ? "text-gray-600 hover:text-gray-800 hover:bg-gray-200" // Botão download cinza para áudios recebidos
+    : "text-blue-600 hover:text-blue-800 hover:bg-blue-200"; // Botão download azul para áudios enviados
+
   return (
-    <div className="bg-blue-100 text-blue-800 rounded-xl p-3 w-full max-w-xs md:max-w-sm flex items-center gap-4 shadow-sm">
+    <div className={`${containerClasses} rounded-xl p-3 w-full max-w-xs md:max-w-sm flex items-center gap-4 shadow-sm`}>
       {fetchedAudioUrl && (
         <audio
           ref={audioRef}
@@ -147,7 +176,7 @@ export function AudioMessage({
         size="icon"
         onClick={handlePlayPause}
         disabled={isLoading}
-        className="h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-0 flex-shrink-0 transition-colors"
+        className={`h-10 w-10 rounded-full ${buttonClasses} text-white border-0 flex-shrink-0 transition-colors`}
       >
         {isLoading ? (
           <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -159,7 +188,7 @@ export function AudioMessage({
       </Button>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-blue-800 mb-1">
+        <p className={`text-sm font-medium ${textClasses} mb-1`}>
           {isLoading
             ? "Carregando..."
             : error
@@ -167,13 +196,13 @@ export function AudioMessage({
               : "Áudio"}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-blue-600">
+          <span className={`text-xs ${subTextClasses}`}>
             {formatAudioTime(audioDuration)}
           </span>
           {fetchedAudioUrl && progressPercentage > 0 && (
-            <div className="flex-1 bg-blue-200 rounded-full h-1">
+            <div className={`flex-1 ${progressBgClasses} rounded-full h-1`}>
               <div 
-                className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                className={`${progressFillClasses} h-1 rounded-full transition-all duration-300`}
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -185,7 +214,7 @@ export function AudioMessage({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-200 flex-shrink-0"
+          className={`h-8 w-8 ${downloadButtonClasses} flex-shrink-0`}
           onClick={() => {
             const link = document.createElement('a');
             link.href = fetchedAudioUrl;
