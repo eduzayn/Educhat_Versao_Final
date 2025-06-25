@@ -218,6 +218,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       file: audioFile, 
       duration 
     });
+
+    // Fechar o gravador após envio
+    setIsRecording(false);
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -364,11 +367,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onMouseDown={() => setIsRecording(true)}
-                onMouseUp={() => setIsRecording(false)}
-                onMouseLeave={() => setIsRecording(false)}
+                onClick={() => {
+                  console.log('🎤 Clique no microfone:', { isRecording });
+                  setIsRecording(!isRecording);
+                }}
                 className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                title="Manter pressionado para gravar áudio"
+                title="Clique para gravar áudio"
               >
                 <Mic className={`w-4 h-4 ${isRecording ? 'text-red-500' : ''}`} />
               </Button>
@@ -465,8 +469,9 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-[9999]" id="inbox-audio-recorder">
             <AudioRecorder 
               onSendAudio={handleSendAudio}
-              isRecording={isRecording}
-              onStopRecording={() => setIsRecording(false)}
+              onCancel={() => setIsRecording(false)}
+              autoStart={true}
+              className="bg-white border rounded-lg shadow-lg p-4"
             />
           </div>
         )}

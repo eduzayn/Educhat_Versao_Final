@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (04:21): SISTEMA DE GRAVAÇÃO DE ÁUDIO COMPLETAMENTE CORRIGIDO
+  - Corrigido erro do schema Zod para campo sentAt (string → Date com transform)
+  - Removida sobreposição de textareas na InputArea (import desnecessária removida)
+  - Implementado sistema de clique simples para gravação (mais confiável que mouse events)
+  - Adicionado ID único para textarea principal evitando conflitos entre componentes
+  - Isolado AudioRecorder com ID específico para InputArea vs InternalChat
+  - Logs de debug implementados para monitorar cliques, envios e gravações
+  - Validação robusta de activeConversation implementada no início do componente
+  - Sistema de áudio funcionando: gravação → envio Z-API → callback WhatsApp ✅
 - June 25, 2025 (03:30): SINCRONIZAÇÃO COMPLETA ENTRE SISTEMAS IMPLEMENTADA
   - WebSocket atualiza lista de conversas em tempo real (reordenação e preview)
   - Painéis BI recebem atualizações automáticas via broadcast bi_update

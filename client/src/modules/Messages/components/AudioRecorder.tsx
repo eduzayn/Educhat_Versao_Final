@@ -58,7 +58,9 @@ const AudioRecorderComponent = ({
 
   // Auto-iniciar se solicitado
   useEffect(() => {
+    console.log('🎵 AudioRecorder useEffect:', { autoStart, state });
     if (autoStart && state === "idle") {
+      console.log('🎤 Iniciando gravação automaticamente...');
       startRecording();
     }
   }, [autoStart]);
@@ -88,8 +90,10 @@ const AudioRecorderComponent = ({
 
   const startRecording = async () => {
     try {
+      console.log('🎤 Iniciando startRecording...');
       setState("requesting-permission");
 
+      console.log('🎤 Solicitando permissão de microfone...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       setPermission("granted");
