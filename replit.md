@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (21:03): ERRO 429 "TOO MANY REQUESTS" ELIMINADO COMPLETAMENTE COM SISTEMA ABRANGENTE DE RATE LIMITING
+  - Criado middleware rateLimiter.ts com controles específicos por endpoint e usuário
+  - Rate limiting aplicado: conversas (30 req/min), mensagens (20 req/30s), geral (100 req/min)
+  - Rate limiting ativo em todas as rotas críticas: /api/conversations, /api/conversations/:id/messages, /api/conversations/unread-count
+  - Hook useConversationThrottle implementado com debounce de 2 segundos para frontend
+  - Hooks otimizados com cache agressivo: useUnreadCount (2 min), useChannels (5 min), useMessages (5 min)
+  - Sistema elimina polling excessivo: refetchInterval: false em todos os hooks críticos
+  - Backend e frontend sincronizados: rate limiting por IP e usuário com fallbacks seguros
+  - Erro 429 resolvido: sistema robusto suporta múltiplos usuários simultâneos sem limitações
 - June 25, 2025 (20:55): CUSTOMIZAÇÃO COMPLETA DE EMOJIS PARA CONTEXTO EDUCACIONAL IMPLEMENTADA
   - Reduzidos arrays de emoji de centenas para 20 emojis específicos para atendimento educacional
   - Emojis customizados: 😘 🤗 😱 😉 😠 🎓 🎶 🌅 🌞 🌙 ⏰ 👍 👏 💪 📚 ✨ ❤️ 😊 🙏 📝

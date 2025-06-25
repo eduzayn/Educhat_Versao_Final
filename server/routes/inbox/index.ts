@@ -25,7 +25,7 @@ export function registerInboxRoutes(app: Express) {
   });
 
   // Get total unread count - deve vir ANTES da rota genérica :id
-  app.get('/api/conversations/unread-count', async (req, res) => {
+  app.get('/api/conversations/unread-count', conversationsRateLimit, async (req, res) => {
     try {
       const totalUnread = await storage.getTotalUnreadCount();
       res.json({ count: totalUnread });
