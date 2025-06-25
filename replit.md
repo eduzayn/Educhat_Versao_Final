@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (03:30): SINCRONIZAÇÃO COMPLETA ENTRE SISTEMAS IMPLEMENTADA
+  - WebSocket atualiza lista de conversas em tempo real (reordenação e preview)
+  - Painéis BI recebem atualizações automáticas via broadcast bi_update
+  - Dashboard CRM sincronizado com eventos crm_update em tempo real
+  - Notificações visuais e sonoras implementadas para mensagens de contatos
+  - Cache otimizado: 30s staleTime, 60s refetchInterval como backup
+  - Sistema garante consistência cross-sistema: Mensagens → BI → CRM → Interface
 - June 25, 2025 (03:24): SCROLL INFINITO INVERTIDO TOTALMENTE IMPLEMENTADO
   - Hook useMessages convertido para paginação baseada em cursor (before=id) para scroll infinito
   - API atualizada para suportar parâmetro "before" em /api/conversations/:id/messages

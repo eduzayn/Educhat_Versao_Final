@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatStore } from '@/shared/store/chatStore';
+import { useNotifications } from './useNotifications';
 import type { WebSocketMessage } from '../../../types/chat';
 import type { Message } from '../../../types/chat';
 import { io, Socket } from 'socket.io-client';
@@ -10,6 +11,7 @@ export function useWebSocket() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
   const { setConnectionStatus, setTypingIndicator, activeConversation } = useChatStore();
+  const { handleNewMessage } = useNotifications();
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -127,6 +129,18 @@ export function useWebSocket() {
         
         // Invalidar contadores de não lidas para atualização
         queryClient.invalidateQueries({ queryKey: ['/api/conversations/unread-count'] });
+        
+        // Mostrar notificação para mensagens de contatos
+        if (data.message.isFromContact) {
+          handleNewMessage({
+            conversationId: data.conversationId,
+            message: data.message,
+            contact: {
+              name: data.contactName || 'Contato',
+              phone: data.contactPhone || ''
+            }
+          });
+        }
         
         return;
       }

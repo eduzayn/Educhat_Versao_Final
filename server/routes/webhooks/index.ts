@@ -1409,19 +1409,34 @@ export function registerZApiRoutes(app: Express) {
               console.error('❌ Erro na atribuição automática de equipes:', assignmentError);
             }
 
-            // Broadcast para atualização do CRM se houve mudanças
+            // Broadcast para atualização do CRM e BI se houve mudanças
             if (dealCreated || conversationUpdated) {
               try {
                 const { broadcastToAll } = await import('../realtime');
+                
+                // Broadcast para CRM
                 broadcastToAll({
                   type: 'crm_update',
                   action: dealCreated ? 'deal_created' : 'conversation_updated',
                   contactId: contact.id,
                   conversationId: conversation.id,
                 });
-                console.log(`📢 Broadcast CRM enviado: ${dealCreated ? 'deal_created' : 'conversation_updated'}`);
+                
+                // Broadcast para BI
+                broadcastToAll({
+                  type: 'bi_update',
+                  action: 'metrics_updated',
+                  data: {
+                    conversationId: conversation.id,
+                    contactId: contact.id,
+                    dealCreated,
+                    conversationUpdated
+                  }
+                });
+                
+                console.log(`📢 Broadcasts enviados: CRM e BI atualizados`);
               } catch (broadcastError) {
-                console.error('❌ Erro no broadcast CRM:', broadcastError);
+                console.error('❌ Erro nos broadcasts:', broadcastError);
               }
             }
           } catch (backgroundError) {

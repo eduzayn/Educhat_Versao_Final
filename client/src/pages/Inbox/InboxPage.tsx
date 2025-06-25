@@ -80,7 +80,7 @@ export function InboxPage() {
   const { status: zapiStatus, isConfigured } = useZApiStore();
   useGlobalZApiMonitor();
   
-  // Inicializar WebSocket para mensagens em tempo real
+  // Inicializar WebSocket para mensagens em tempo real com notificações
   useWebSocket();
   
   const { 
