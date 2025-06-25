@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (05:21): ÍCONE DE CLIPS CORRIGIDO PARA POSIÇÃO VERTICAL
+  - Removida rotação indevida do ícone Paperclip em InputArea.tsx
+  - Ícone agora aparece na posição vertical correta (em pé)
+  - Correção aplicada em todos os componentes que usam o ícone de anexo
+  - Interface mais limpa e consistente com padrões de design
 - June 25, 2025 (05:18): ENDPOINT DE ENVIO DE VÍDEO IMPLEMENTADO COMPLETAMENTE
   - Criado endpoint /api/zapi/send-video baseado na documentação oficial da Z-API
   - Configurado multer para upload de vídeos (100MB máximo, tipos suportados)
