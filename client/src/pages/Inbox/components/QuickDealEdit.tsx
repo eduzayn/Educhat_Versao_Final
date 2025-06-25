@@ -200,9 +200,9 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
                 <SelectValue placeholder="Selecione o funil" />
               </SelectTrigger>
               <SelectContent>
-                {allMacrosetores.map((macro) => (
-                  <SelectItem key={macro.id} value={macro.id}>
-                    {macro.name}
+                {allCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -96,6 +96,10 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (07:24): CORREÇÃO DE ERRO ALLMACROSETOR NO QUICKDEALEDIT
+  - Corrigido erro "allMacrosetores is not defined" no componente QuickDealEdit
+  - Substituída referência por allCategories do sistema de categorias de equipes
+  - Componente agora funciona corretamente sem erros de variável indefinida
 - June 25, 2025 (07:22): CORREÇÃO DE EXIBIÇÃO DE NOMES DOS MEMBROS DA EQUIPE
   - Corrigido acesso aos dados dos membros da equipe no modal de gerenciamento
   - Ajustada estrutura para acessar member.user.username/displayName em vez de member.username
