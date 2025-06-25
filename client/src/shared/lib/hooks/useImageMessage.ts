@@ -13,6 +13,37 @@ interface SendImageResponse {
   messageId: string;
 }
 
+// Função para criar mensagem placeholder para renderização imediata
+function createPlaceholderMessage(conversationId: number, file: File, caption?: string): Message {
+  const tempId = Date.now(); // ID temporário único
+  const previewUrl = URL.createObjectURL(file);
+  
+  return {
+    id: tempId,
+    conversationId,
+    content: previewUrl, // URL temporária para preview
+    isFromContact: false,
+    messageType: 'image',
+    sentAt: new Date(),
+    deliveredAt: null,
+    readAt: null,
+    isDeleted: false,
+    whatsappMessageId: null,
+    zapiStatus: null,
+    isGroup: false,
+    referenceMessageId: null,
+    isInternalNote: false,
+    metadata: {
+      uploading: true, // Flag para identificar mensagem em upload
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      caption: caption || null,
+      tempPreviewUrl: previewUrl
+    }
+  };
+}
+
 export function useImageMessage({ conversationId, contactPhone }: UseImageMessageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,9 +54,33 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         throw new Error('Arquivo de imagem e telefone do contato são obrigatórios');
       }
 
+      // 1. RENDERIZAÇÃO IMEDIATA: Criar e exibir placeholder
+      const placeholderMessage = createPlaceholderMessage(conversationId, file, caption);
+      
+      // Adicionar placeholder ao cache imediatamente
+      queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
+        if (!oldData || !oldData.pages) {
+          return {
+            pages: [[placeholderMessage]],
+            pageParams: [0]
+          };
+        }
+        
+        const updatedPages = [...oldData.pages];
+        const firstPage = Array.isArray(updatedPages[0]) ? updatedPages[0] : [];
+        updatedPages[0] = [...firstPage, placeholderMessage].sort((a, b) => {
+          const timeA = a && a.sentAt ? new Date(a.sentAt).getTime() : 0;
+          const timeB = b && b.sentAt ? new Date(b.sentAt).getTime() : 0;
+          return timeA - timeB;
+        });
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        };
+      });
 
-
-      // Criar FormData para envio
+      // 2. ENVIO REAL: Processar upload em segundo plano
       const formData = new FormData();
       formData.append('image', file);
       formData.append('phone', contactPhone);
@@ -46,9 +101,12 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
       }
 
       const data: SendImageResponse = await response.json();
-      console.log('✅ Imagem enviada com sucesso:', data);
-
-      return data.message;
+      
+      // 3. SUBSTITUIÇÃO: Trocar placeholder pela mensagem real
+      return {
+        ...data.message,
+        _placeholderId: placeholderMessage.id // Referência para substituição
+      };
     },
     onSuccess: (newMessage) => {
       if (!newMessage || !newMessage.id || !newMessage.conversationId) {

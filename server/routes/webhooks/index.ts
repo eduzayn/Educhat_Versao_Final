@@ -260,11 +260,12 @@ export function registerWebhookRoutes(app: Express) {
             }
           });
 
-          // Broadcast para WebSocket
-          const { broadcast } = await import('../realtime');
-          broadcast(parseInt(conversationId), {
-            type: 'message_sent',
-            conversationId: parseInt(conversationId)
+          // Broadcast para WebSocket com dados da mensagem para renderização imediata
+          const { broadcastToAll } = await import('../realtime');
+          broadcastToAll({
+            type: 'new_message',
+            conversationId: parseInt(conversationId),
+            message: savedMessage
           });
         } catch (dbError) {
           console.error('❌ Erro ao salvar mensagem de imagem no banco:', dbError);
@@ -538,11 +539,12 @@ export function registerWebhookRoutes(app: Express) {
             }
           });
 
-          // Broadcast para WebSocket
-          const { broadcast } = await import('../realtime');
-          broadcast(parseInt(conversationId), {
-            type: 'message_sent',
-            conversationId: parseInt(conversationId)
+          // Broadcast para WebSocket com dados da mensagem para renderização imediata
+          const { broadcastToAll } = await import('../realtime');
+          broadcastToAll({
+            type: 'new_message',
+            conversationId: parseInt(conversationId),
+            message: savedMessage
           });
         } catch (dbError) {
           console.error('❌ Erro ao salvar mensagem de vídeo no banco:', dbError);
