@@ -144,7 +144,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
           isInternalNote: true,
           isFromContact: false, // Campo obrigatório
           authorId: user?.id,
-          authorName: user?.displayName || user?.username || 'Atendente'
+          authorName: user?.displayName || user?.username || 'Atendente',
+          sentAt: new Date().toISOString()
         })
       });
 

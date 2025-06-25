@@ -226,18 +226,29 @@ const AudioRecorderComponent = ({
     if (!audioBlob) return;
 
     setState("sending");
-    // Usar duração real se disponível, senão usar timer
-    const finalDuration = realDuration > 0 ? realDuration : duration;
-    await onSendAudio(audioBlob, finalDuration);
+    try {
+      // Usar duração real se disponível, senão usar timer
+      const finalDuration = realDuration > 0 ? realDuration : duration;
+      await onSendAudio(audioBlob, finalDuration);
 
-    // Reset após envio
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
-      setAudioUrl(null);
+      // Reset após envio bem-sucedido
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        setAudioUrl(null);
+      }
+      setState("idle");
+      setDuration(0);
+      setRealDuration(0);
+      setAudioBlob(null);
+      
+      // Chamar onCancel para fechar o componente
+      if (onCancel) {
+        onCancel();
+      }
+    } catch (error) {
+      console.error("Erro ao enviar áudio:", error);
+      setState("preview"); // Voltar para preview em caso de erro
     }
-    setState("idle");
-    setDuration(0);
-    setRealDuration(0);
     setAudioBlob(null);
     setCurrentTime(0);
     setIsPlaying(false);

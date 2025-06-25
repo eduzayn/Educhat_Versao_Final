@@ -67,7 +67,7 @@ export function useAudioMessage({ conversationId, contactPhone }: UseAudioMessag
         
         // Verificar se a mensagem já existe em qualquer página
         const messageExists = oldData.pages.some((page: any[]) => 
-          page.some((msg: any) => msg.id === newMessage.id)
+          page && Array.isArray(page) && page.some((msg: any) => msg?.id === newMessage?.id)
         );
         
         if (messageExists) {
