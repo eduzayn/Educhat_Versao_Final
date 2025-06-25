@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
+import { SafeAvatar } from '@/components/SafeAvatar';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Phone, Mail, MapPin, Building, User, Calendar, MessageSquare } from 'lucide-react';

@@ -27,6 +27,12 @@ export function SafeAvatar({
   
   const handleImageError = () => {
     setHasError(true);
+    // Log silencioso do erro (apenas para debug, não polui console)
+    console.debug('Avatar image failed to load:', src);
+  };
+
+  const handleImageLoad = () => {
+    setHasError(false);
   };
 
   return (
@@ -36,10 +42,11 @@ export function SafeAvatar({
           src={src} 
           alt={alt}
           onError={handleImageError}
-          onLoad={() => setHasError(false)}
+          onLoad={handleImageLoad}
+          loading="lazy"
         />
       )}
-      <AvatarFallback className={`text-white font-medium ${fallbackClassName}`}>
+      <AvatarFallback className={`text-white font-medium ${fallbackClassName || 'bg-gray-500'}`}>
         {fallbackText.charAt(0)?.toUpperCase() || '?'}
       </AvatarFallback>
     </Avatar>
