@@ -13,6 +13,40 @@ interface SendVideoResponse {
   messageId: string;
 }
 
+// Função para criar mensagem placeholder para renderização imediata
+function createPlaceholderMessage(conversationId: number, file: File, caption?: string): Message {
+  const tempId = Date.now(); // ID temporário único
+  const previewUrl = URL.createObjectURL(file);
+  
+  return {
+    id: tempId,
+    conversationId,
+    content: previewUrl, // URL temporária para preview
+    isFromContact: false,
+    messageType: 'video',
+    sentAt: new Date(),
+    deliveredAt: null,
+    readAt: null,
+    isDeleted: false,
+    whatsappMessageId: null,
+    zapiStatus: null,
+    isGroup: false,
+    referenceMessageId: null,
+    isInternalNote: false,
+    authorId: null,
+    authorName: null,
+    isHiddenForUser: false,
+    metadata: {
+      uploading: true, // Flag para identificar mensagem em upload
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      caption: caption || null,
+      tempPreviewUrl: previewUrl
+    }
+  };
+}
+
 export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,16 +57,43 @@ export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessag
         throw new Error('Arquivo de vídeo e telefone do contato são obrigatórios');
       }
 
+      // 1. RENDERIZAÇÃO IMEDIATA: Criar e inserir placeholder
+      const placeholderMessage = createPlaceholderMessage(conversationId, file, caption);
+      
+      queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
+        if (!oldData || !oldData.pages) {
+          return {
+            pages: [[placeholderMessage]],
+            pageParams: [0]
+          };
+        }
+        
+        // Adicionar placeholder à primeira página (mais recente)
+        const updatedPages = [...oldData.pages];
+        const firstPage = Array.isArray(updatedPages[0]) ? updatedPages[0] : [];
+        updatedPages[0] = [...firstPage, placeholderMessage].sort((a, b) => {
+          const timeA = a && a.sentAt ? new Date(a.sentAt).getTime() : 0;
+          const timeB = b && b.sentAt ? new Date(b.sentAt).getTime() : 0;
+          return timeA - timeB;
+        });
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        };
+      });
+
       console.log('🎥 Iniciando envio de vídeo:', {
         conversationId,
         fileSize: file.size,
         fileType: file.type,
         fileName: file.name,
         hasCaption: !!caption,
-        contactPhone
+        contactPhone,
+        placeholderId: placeholderMessage.id
       });
 
-      // Criar FormData para envio
+      // 2. UPLOAD: Enviar arquivo para backend
       const formData = new FormData();
       formData.append('video', file);
       formData.append('phone', contactPhone);
@@ -54,9 +115,13 @@ export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessag
       }
 
       const data: SendVideoResponse = await response.json();
-      console.log('✅ Vídeo enviado com sucesso:', data);
-
-      return data.message;
+      
+      // 3. SUBSTITUIÇÃO: Trocar placeholder pela mensagem real
+      return {
+        ...data.message,
+        // @ts-ignore - Propriedade temporária para identificação do placeholder
+        _placeholderId: placeholderMessage.id
+      };
     },
     onSuccess: (newMessage) => {
       // Validação crítica para evitar erros
@@ -65,7 +130,7 @@ export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessag
         return;
       }
 
-      // RENDERIZAÇÃO IMEDIATA: Atualizar cache React Query
+      // 4. SUBSTITUIÇÃO: Atualizar cache substituindo placeholder
       queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
         if (!oldData || !oldData.pages) {
           return {
@@ -74,23 +139,21 @@ export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessag
           };
         }
         
-        // Verificar se a mensagem já existe em qualquer página com validação segura
-        const messageExists = oldData.pages.some((page: any[]) => {
-          if (!Array.isArray(page)) return false;
-          return page.some((msg: any) => msg && msg.id && msg.id === newMessage.id);
-        });
-        
-        if (messageExists) {
-          return oldData;
-        }
-        
-        // Adicionar à primeira página (mais recente) - ordenação cronológica
-        const updatedPages = [...oldData.pages];
-        const firstPage = Array.isArray(updatedPages[0]) ? updatedPages[0] : [];
-        updatedPages[0] = [...firstPage, newMessage].sort((a, b) => {
-          const timeA = a && a.sentAt ? new Date(a.sentAt).getTime() : 0;
-          const timeB = b && b.sentAt ? new Date(b.sentAt).getTime() : 0;
-          return timeA - timeB;
+        // Substituir placeholder pela mensagem real em todas as páginas
+        const updatedPages = oldData.pages.map((page: any[]) => {
+          if (!Array.isArray(page)) return page;
+          
+          return page.map((msg: any) => {
+            // Substituir placeholder pela mensagem real
+            if (msg && msg.metadata && (msg.metadata as any).uploading && (newMessage as any)._placeholderId === msg.id) {
+              // Limpar URL temporária do placeholder
+              if ((msg.metadata as any).tempPreviewUrl) {
+                URL.revokeObjectURL((msg.metadata as any).tempPreviewUrl);
+              }
+              return newMessage;
+            }
+            return msg;
+          });
         });
         
         return {

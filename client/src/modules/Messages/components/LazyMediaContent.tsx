@@ -1,189 +1,106 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/shared/ui/button";
-import { Download, Play, FileText, Image } from "lucide-react";
-import { secureLog } from "@/lib/secureLogger";
+import { useState, useEffect } from "react";
+import { MediaPlaceholder } from "./MediaPlaceholder";
+import type { Message } from "@shared/schema";
 
 interface LazyMediaContentProps {
-  messageId: number;
-  messageType: "audio" | "video" | "image" | "document";
-  conversationId?: number;
-  isFromContact: boolean;
-  metadata?: any;
-  initialContent?: string | null;
+  message: Message;
+  className?: string;
 }
 
-export function LazyMediaContent({
-  messageId,
-  messageType,
-  conversationId,
-  isFromContact,
-  metadata,
-  initialContent,
-}: LazyMediaContentProps) {
-  const [content, setContent] = useState<string | null>(initialContent || null);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(!!initialContent);
+export function LazyMediaContent({ message, className }: LazyMediaContentProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
-  const loadMediaContent = async () => {
-    if (loaded || loading) return;
-
-    setLoading(true);
-    secureLog.debug(`Carregando ${messageType}`, { messageId });
-
-    try {
-      const response = await fetch(`/api/messages/${messageId}/media`);
-      if (response.ok) {
-        const data = await response.json();
-        setContent(data.content);
-        setLoaded(true);
-
-        if (messageType === "video") {
-          secureLog.debug("Vídeo carregado com sucesso", { messageId });
-        } else if (messageType === "image") {
-          secureLog.image("Carregada com sucesso", messageId);
-        }
-      } else {
-        secureLog.error(`Erro ao carregar ${messageType}: ${response.status}`);
+  useEffect(() => {
+    // Detectar se é mensagem em upload
+    const metadata = message.metadata as any;
+    if (metadata && metadata.uploading) {
+      setIsUploading(true);
+      
+      // Se há URL temporária, criar objeto File simulado para preview
+      if (metadata.tempPreviewUrl && metadata.fileName) {
+        // Não criamos um File real aqui, apenas mantemos as informações
+        setFile({
+          name: metadata.fileName,
+          size: metadata.fileSize || 0,
+          type: metadata.mimeType || '',
+        } as File);
       }
-    } catch (error) {
-      secureLog.error(`Erro ao carregar ${messageType}`, error);
-    } finally {
-      setLoading(false);
+    } else {
+      setIsUploading(false);
+      setFile(null);
     }
-  };
+  }, [message]);
 
-  const renderMediaPreview = () => {
-    const fileName = metadata?.fileName || metadata?.caption || "Arquivo";
+  // Se é uma mensagem em upload, usar MediaPlaceholder
+  if (isUploading && file) {
+    const metadata = message.metadata as any;
+    
+    return (
+      <MediaPlaceholder
+        type={message.messageType === 'image' ? 'image' : 'video'}
+        uploadStatus="uploading"
+        caption={metadata.caption}
+        className={className}
+      />
+    );
+  }
 
-    switch (messageType) {
-      case "image":
-        if (content) {
-          return (
-            <div className="relative max-w-xs">
-              <img
-                src={content}
-                alt="Imagem enviada"
-                className="rounded-lg max-w-full h-auto cursor-pointer"
-                onClick={() => window.open(content, "_blank")}
-              />
-            </div>
-          );
-        }
-        return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Image className="w-5 h-5" />
-            <span className="text-sm">Imagem: {fileName}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
-            >
-              {loading ? "Carregando..." : "Ver imagem"}
-            </Button>
+  // Renderização normal para imagens e vídeos processados
+  if (message.messageType === 'image') {
+    const metadata = message.metadata as any;
+    const caption = metadata?.caption;
+    
+    return (
+      <div className={className}>
+        <img
+          src={message.content}
+          alt={caption || "Imagem enviada"}
+          className="max-w-xs rounded-lg object-cover"
+          loading="lazy"
+          onError={(e) => {
+            // Fallback em caso de erro de carregamento
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
+        />
+        {caption && (
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {caption}
           </div>
-        );
+        )}
+      </div>
+    );
+  }
 
-      case "audio":
-        if (content) {
-          return (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <audio controls className="w-48">
-                <source src={content} type="audio/mpeg" />
-                <source src={content} type="audio/mp4" />
-                <source src={content} type="audio/wav" />
-                Seu navegador não suporta áudio.
-              </audio>
-            </div>
-          );
-        }
-        return (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <Play className="w-5 h-5" />
-            <span className="text-sm">
-              Áudio: {metadata?.duration || "Duração desconhecida"}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
-            >
-              {loading ? "Carregando..." : "Reproduzir"}
-            </Button>
+  if (message.messageType === 'video') {
+    const metadata = message.metadata as any;
+    const caption = metadata?.caption;
+    
+    return (
+      <div className={className}>
+        <video
+          src={message.content}
+          controls
+          className="max-w-xs rounded-lg object-cover"
+          preload="metadata"
+          onError={(e) => {
+            // Fallback em caso de erro de carregamento
+            const target = e.target as HTMLVideoElement;
+            target.style.display = 'none';
+          }}
+        >
+          Seu navegador não suporta reprodução de vídeo.
+        </video>
+        {caption && (
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {caption}
           </div>
-        );
+        )}
+      </div>
+    );
+  }
 
-      case "video":
-        if (content) {
-          return (
-            <div className="relative max-w-sm">
-              <video
-                controls
-                className="rounded-lg w-full h-auto"
-                preload="metadata"
-                style={{ maxHeight: "400px", minWidth: "280px" }}
-                onError={() =>
-                  secureLog.error("Erro ao carregar vídeo", { messageId })
-                }
-                onLoadedData={() =>
-                  secureLog.debug("Vídeo carregado", { messageId })
-                }
-              >
-                <source src={content} type="video/mp4" />
-                <source src={content} type="video/webm" />
-                <source src={content} type="video/ogg" />
-                Seu navegador não suporta vídeo.
-              </video>
-            </div>
-          );
-        }
-        return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <Play className="w-5 h-5" />
-            <span className="text-sm">Vídeo: {fileName}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadMediaContent}
-              disabled={loading}
-            >
-              {loading ? "Carregando..." : "Reproduzir"}
-            </Button>
-          </div>
-        );
-
-      case "document":
-        return (
-          <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <FileText className="w-5 h-5" />
-            <span className="text-sm">Documento: {fileName}</span>
-            {content ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(content, "_blank")}
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Baixar
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadMediaContent}
-                disabled={loading}
-              >
-                {loading ? "Carregando..." : "Carregar"}
-              </Button>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return <div className="my-1">{renderMediaPreview()}</div>;
+  // Para outros tipos de mensagem, retornar null
+  return null;
 }

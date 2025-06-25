@@ -33,6 +33,9 @@ function createPlaceholderMessage(conversationId: number, file: File, caption?: 
     isGroup: false,
     referenceMessageId: null,
     isInternalNote: false,
+    authorId: null,
+    authorName: null,
+    isHiddenForUser: false,
     metadata: {
       uploading: true, // Flag para identificar mensagem em upload
       fileName: file.name,
@@ -105,7 +108,8 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
       // 3. SUBSTITUIÇÃO: Trocar placeholder pela mensagem real
       return {
         ...data.message,
-        _placeholderId: placeholderMessage.id // Referência para substituição
+        // @ts-ignore - Propriedade temporária para identificação do placeholder
+        _placeholderId: placeholderMessage.id
       };
     },
     onSuccess: (newMessage) => {
@@ -113,7 +117,7 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
         return;
       }
 
-      // RENDERIZAÇÃO IMEDIATA: Atualizar cache React Query
+      // SUBSTITUIÇÃO DO PLACEHOLDER: Trocar mensagem temporária pela real
       queryClient.setQueryData([`/api/conversations/${conversationId}/messages`], (oldData: any) => {
         if (!oldData || !oldData.pages) {
           return {
@@ -122,23 +126,20 @@ export function useImageMessage({ conversationId, contactPhone }: UseImageMessag
           };
         }
         
-        // Verificar se a mensagem já existe em qualquer página com validação segura
-        const messageExists = oldData.pages.some((page: any[]) => {
-          if (!Array.isArray(page)) return false;
-          return page.some((msg: any) => msg && msg.id && msg.id === newMessage.id);
-        });
-        
-        if (messageExists) {
-          return oldData;
-        }
-        
-        // Adicionar à primeira página (mais recente) - ordenação cronológica
-        const updatedPages = [...oldData.pages];
-        const firstPage = Array.isArray(updatedPages[0]) ? updatedPages[0] : [];
-        updatedPages[0] = [...firstPage, newMessage].sort((a, b) => {
-          const timeA = a && a.sentAt ? new Date(a.sentAt).getTime() : 0;
-          const timeB = b && b.sentAt ? new Date(b.sentAt).getTime() : 0;
-          return timeA - timeB;
+        const updatedPages = oldData.pages.map((page: any[]) => {
+          if (!Array.isArray(page)) return page;
+          
+          return page.map((msg: any) => {
+            // Substituir placeholder pela mensagem real
+            if (msg && msg.metadata && (msg.metadata as any).uploading && (newMessage as any)._placeholderId === msg.id) {
+              // Limpar URL temporária do placeholder
+              if ((msg.metadata as any).tempPreviewUrl) {
+                URL.revokeObjectURL((msg.metadata as any).tempPreviewUrl);
+              }
+              return newMessage;
+            }
+            return msg;
+          });
         });
         
         return {
