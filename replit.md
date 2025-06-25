@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (02:03): SCROLL INFINITO POR COLUNA IMPLEMENTADO NA PÁGINA DE TRANSFERÊNCIAS
+  - Limitado exibição inicial a 6 cards por coluna com scroll vertical
+  - Implementado scroll infinito para visualizar todas as 50 conversas carregadas
+  - Interface muito mais organizada e compacta (altura máxima 600px por coluna)
+  - Mantida funcionalidade drag-and-drop em todas as conversas (visíveis e com scroll)
 - June 25, 2025 (01:59): OTIMIZAÇÃO DE PERFORMANCE DA PÁGINA DE TRANSFERÊNCIAS IMPLEMENTADA
   - Limitado carregamento para apenas últimas 50 conversas (era ilimitado)
   - Simplificados cards de transferência: removidas mensagens, mantidos nome e telefone

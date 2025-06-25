@@ -452,8 +452,8 @@ export default function TeamTransferPage() {
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {(conversationsByTeam['unassigned'] || []).map((conversation: ConversationItem, index: number) => (
+                <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+                  {(conversationsByTeam['unassigned'] || []).slice(0, CARDS_PER_COLUMN).map((conversation: ConversationItem, index: number) => (
                     <Draggable key={conversation.id} draggableId={conversation.id.toString()} index={index}>
                       {(provided, snapshot) => (
                         <div
@@ -496,6 +496,56 @@ export default function TeamTransferPage() {
                       )}
                     </Draggable>
                   ))}
+                  
+                  {/* Scroll infinito para conversas adicionais */}
+                  {(conversationsByTeam['unassigned'] || []).length > CARDS_PER_COLUMN && (
+                    <div className="space-y-3">
+                      {(conversationsByTeam['unassigned'] || []).slice(CARDS_PER_COLUMN).map((conversation: ConversationItem, index: number) => (
+                        <Draggable key={conversation.id} draggableId={conversation.id.toString()} index={index + CARDS_PER_COLUMN}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`p-3 border rounded-lg cursor-move transition-all ${
+                                snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-sm truncate">
+                                    {conversation.contactName}
+                                  </h4>
+                                  {conversation.contactPhone && (
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {conversation.contactPhone}
+                                    </p>
+                                  )}
+                                </div>
+                                {conversation.unreadCount > 0 && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    {conversation.unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <Badge variant="outline" className={getStatusColor(conversation.status)}>
+                                  {conversation.status}
+                                </Badge>
+                                <span className="text-gray-400">
+                                  {new Date(conversation.lastMessageAt).toLocaleTimeString('pt-BR', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                    </div>
+                  )}
+                  
                   {provided.placeholder}
                   {conversationsByTeam['unassigned']?.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
@@ -525,8 +575,8 @@ export default function TeamTransferPage() {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {(conversationsByTeam[team.id] || []).map((conversation: ConversationItem, index: number) => (
+                  <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {(conversationsByTeam[team.id] || []).slice(0, CARDS_PER_COLUMN).map((conversation: ConversationItem, index: number) => (
                       <Draggable key={conversation.id} draggableId={conversation.id.toString()} index={index}>
                         {(provided, snapshot) => (
                           <div
@@ -569,6 +619,56 @@ export default function TeamTransferPage() {
                         )}
                       </Draggable>
                     ))}
+
+                    {/* Scroll infinito para conversas adicionais */}
+                    {(conversationsByTeam[team.id] || []).length > CARDS_PER_COLUMN && (
+                      <div className="space-y-3">
+                        {(conversationsByTeam[team.id] || []).slice(CARDS_PER_COLUMN).map((conversation: ConversationItem, index: number) => (
+                          <Draggable key={conversation.id} draggableId={conversation.id.toString()} index={index + CARDS_PER_COLUMN}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`p-3 border rounded-lg cursor-move transition-all ${
+                                  snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-medium text-sm truncate">
+                                      {conversation.contactName}
+                                    </h4>
+                                    {conversation.contactPhone && (
+                                      <p className="text-xs text-gray-500 truncate">
+                                        {conversation.contactPhone}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {conversation.unreadCount > 0 && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      {conversation.unreadCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                  <Badge variant="outline" className={getStatusColor(conversation.status)}>
+                                    {conversation.status}
+                                  </Badge>
+                                  <span className="text-gray-400">
+                                    {new Date(conversation.lastMessageAt).toLocaleTimeString('pt-BR', { 
+                                      hour: '2-digit', 
+                                      minute: '2-digit' 
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                      </div>
+                    )}
+
                     {provided.placeholder}
                     {conversationsByTeam[team.id]?.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
