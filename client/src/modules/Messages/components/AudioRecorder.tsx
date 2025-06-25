@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import { Button } from "@/shared/ui/button";
-import { Mic, Square, Trash2, Send, Play, Pause } from "lucide-react";
+import { Mic, Square, Trash2, Send, Play, Pause, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDurationSeconds } from "@/shared/lib/utils/formatters";
 import { debugLog, infoLog, errorLog, successLog, handleAudioError } from "@/lib/audioLogger";
@@ -43,6 +43,7 @@ const AudioRecorderComponent = ({
   const [permission, setPermission] = useState<"granted" | "denied" | "prompt">(
     "prompt",
   );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -165,13 +166,15 @@ const AudioRecorderComponent = ({
       }, 1000);
     } catch (error) {
       const userMessage = handleAudioError(error);
+      setErrorMessage(userMessage);
       setPermission("denied");
       setState("error");
       
-      // Mostrar mensagem amigável para o usuário
+      // Mostrar mensagem amigável para o usuário por 4 segundos
       setTimeout(() => {
         setState("idle");
-      }, 3000);
+        setErrorMessage("");
+      }, 4000);
     }
   };
 
@@ -293,6 +296,41 @@ const AudioRecorderComponent = ({
         <span className="text-sm text-blue-700 dark:text-blue-300">
           Solicitando permissão do microfone...
         </span>
+      </div>
+    );
+  }
+
+  // Estado de Erro
+  if (state === "error") {
+    return (
+      <div
+        className={cn(
+          "flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800",
+          className,
+        )}
+      >
+        <div className="flex items-center justify-center w-8 h-8 bg-red-100 dark:bg-red-800 rounded-full">
+          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-medium text-red-800 dark:text-red-200">
+            Erro na gravação de áudio
+          </div>
+          <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+            {errorMessage || "Não foi possível acessar o microfone"}
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setState("idle");
+            setErrorMessage("");
+          }}
+          className="text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
+        >
+          Tentar novamente
+        </Button>
       </div>
     );
   }

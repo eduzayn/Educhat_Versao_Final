@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (18:55): SISTEMA DE LOGGING ELEGANTE PARA ÁUDIO IMPLEMENTADO COMPLETAMENTE
+  - Criado audioLogger.ts centralizado com logs controlados por ambiente (desenvolvimento vs produção)
+  - Substituídos todos os console.log do AudioRecorder pelo sistema de logging padronizado
+  - Implementado tratamento de erro NotSupportedError com mensagens amigáveis ao usuário
+  - Adicionado estado visual de erro no AudioRecorder com ícone, mensagem e botão "Tentar novamente"
+  - Criado fallback para navegadores incompatíveis com interface informativa
+  - Sistema ativo apenas em desenvolvimento (VITE_NODE_ENV=development) ou com flag VITE_ENABLE_LOGS=true
+  - Console limpo: apenas erros críticos são exibidos, logs técnicos ficam em nível debug
+  - Interface de erro moderna com suporte a tema claro/escuro e feedback visual adequado
 - June 25, 2025 (18:48): SISTEMA DE LOGS PADRONIZADOS Z-API IMPLEMENTADO COMPLETAMENTE  
   - Criado zapiLogger.ts centralizado com logs visuais (✅ sucesso, ❌ erro, 🔄 tentativa)
   - Implementados logs padronizados para TODOS os tipos de envio: TEXTO, IMAGEM, ÁUDIO, VÍDEO, DOCUMENTO
