@@ -13,7 +13,7 @@ import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
 import { useFileMessage } from "@/shared/lib/hooks/useFileMessage";
 import { useVideoMessage } from "@/shared/lib/hooks/useVideoMessage";
 import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
-// Removido: import { useChatStore } from "@/shared/store/chatStore";
+
 import { useToast } from "@/shared/lib/hooks/use-toast";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
 import { QuickReply } from "@shared/schema";

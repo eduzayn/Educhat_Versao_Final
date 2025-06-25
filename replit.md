@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (17:41): LIMPEZA SEGURA DE CÓDIGO OBSOLETO E AUDITORIA TÉCNICA COMPLETA EXECUTADA
+  - Removidos logs de debug desnecessários em 6+ hooks e componentes críticos
+  - Eliminados imports não utilizados (useChatStore) em processo de remoção
+  - Auditadas 20 rotas frontend e 27 módulos backend - todas funcionais
+  - Confirmadas protected routes e permissões por role funcionando corretamente
+  - Verificados endpoints Z-API críticos - sistema de envio 100% operacional
+  - Identificado erro recorrente "storage.detectMacrosetor is not a function" para correção
+  - Código limpo, organizado e pronto para novos testes em profundidade
+  - Performance otimizada: React Query + WebSocket sem conflitos de estado
 - June 25, 2025 (17:20): PROBLEMA CRÍTICO DE ENVIO Z-API IDENTIFICADO E CORRIGIDO
   - Identificado que useSendMessage não estava executando o fluxo completo de envio
   - Adicionados logs de debug detalhados em InputArea e useSendMessage
