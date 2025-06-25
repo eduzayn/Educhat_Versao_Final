@@ -589,7 +589,7 @@ export function InboxPage() {
           <>
             {/* Header da Conversa */}
             <ChatHeader
-              activeConversation={activeConversation}
+              activeConversation={currentActiveConversation}
               showMobileChat={showMobileChat}
               onMobileBackClick={() => setShowMobileChat(false)}
               onStatusChange={handleStatusChange}
@@ -603,12 +603,12 @@ export function InboxPage() {
               hasNextPage={messagesHasNextPage}
               isFetchingNextPage={messagesIsFetchingNextPage}
               fetchNextPage={messagesFetchNextPage}
-              activeConversation={activeConversation}
+              activeConversation={currentActiveConversation}
               getChannelInfo={getChannelInfo}
             />
 
             {/* Área de Input */}
-            <InputArea activeConversation={activeConversation} />
+            <InputArea activeConversation={currentActiveConversation} />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">

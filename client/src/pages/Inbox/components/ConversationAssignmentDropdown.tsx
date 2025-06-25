@@ -63,28 +63,36 @@ export function ConversationAssignmentDropdown({
         description: teamId === 'none' ? "Conversa movida para fila neutra" : "Conversa atribuída à equipe com sucesso"
       });
       
-      // Atualizar o cache do React Query diretamente com otimistic update
-      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-        if (!oldData || !Array.isArray(oldData)) return oldData;
-        return oldData.map((conv: any) => 
-          conv.id === conversationId 
-            ? { ...conv, assignedTeamId: teamId === 'none' ? null : parseInt(teamId) }
-            : conv
-        );
-      });
-
-      // Atualizar cache da conversa específica se existir
-      queryClient.setQueryData([`/api/conversations/${conversationId}`], (oldData: any) => {
-        if (!oldData || typeof oldData !== 'object') return oldData;
+      // 1. Atualizar imediatamente o cache da conversa específica
+      queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
+        if (!oldData) return oldData;
         return {
           ...oldData,
-          assignedTeamId: teamId === 'none' ? null : parseInt(teamId)
+          assignedTeamId: teamId === 'none' ? null : parseInt(teamId),
+          assignmentMethod: 'manual',
+          assignedAt: new Date().toISOString()
         };
       });
-      
-      // Invalidar queries para refetch com dados atualizados do servidor
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+
+      // 2. Atualizar cache da lista de conversas para sincronização
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData.pages)) return oldData;
+        
+        const updatedPages = oldData.pages.map((page: any[]) => 
+          page.map((conv: any) => 
+            conv.id === conversationId 
+              ? { 
+                  ...conv, 
+                  assignedTeamId: teamId === 'none' ? null : parseInt(teamId),
+                  assignmentMethod: 'manual',
+                  assignedAt: new Date().toISOString()
+                }
+              : conv
+          )
+        );
+        
+        return { ...oldData, pages: updatedPages };
+      });
     },
     onError: (error: any) => {
       console.error('Erro na atribuição de equipe:', error);
@@ -134,28 +142,36 @@ export function ConversationAssignmentDropdown({
         description: userId === 'none' ? "Conversa não atribuída a usuário específico" : "Conversa atribuída ao usuário com sucesso"
       });
       
-      // Atualizar o cache do React Query diretamente com otimistic update
-      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-        if (!oldData || !Array.isArray(oldData)) return oldData;
-        return oldData.map((conv: any) => 
-          conv.id === conversationId 
-            ? { ...conv, assignedUserId: userId === 'none' ? null : parseInt(userId) }
-            : conv
-        );
-      });
-
-      // Atualizar cache da conversa específica se existir
-      queryClient.setQueryData([`/api/conversations/${conversationId}`], (oldData: any) => {
-        if (!oldData || typeof oldData !== 'object') return oldData;
+      // 1. Atualizar imediatamente o cache da conversa específica
+      queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
+        if (!oldData) return oldData;
         return {
           ...oldData,
-          assignedUserId: userId === 'none' ? null : parseInt(userId)
+          assignedUserId: userId === 'none' ? null : parseInt(userId),
+          assignmentMethod: 'manual',
+          assignedAt: new Date().toISOString()
         };
       });
-      
-      // Invalidar queries para refetch com dados atualizados do servidor
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations', conversationId] });
+
+      // 2. Atualizar cache da lista de conversas para sincronização
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData.pages)) return oldData;
+        
+        const updatedPages = oldData.pages.map((page: any[]) => 
+          page.map((conv: any) => 
+            conv.id === conversationId 
+              ? { 
+                  ...conv, 
+                  assignedUserId: userId === 'none' ? null : parseInt(userId),
+                  assignmentMethod: 'manual',
+                  assignedAt: new Date().toISOString()
+                }
+              : conv
+          )
+        );
+        
+        return { ...oldData, pages: updatedPages };
+      });
     },
     onError: (error: any) => {
       console.error('Erro na atribuição de usuário:', error);

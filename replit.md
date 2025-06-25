@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (16:22): ATUALIZAÇÃO VISUAL DO CABEÇALHO E ISOLAMENTO DE CONVERSAS IMPLEMENTADO
+  - Criada query específica para conversa ativa garantindo dados atualizados em tempo real
+  - Substituído activeConversation por currentActiveConversation no ChatHeader e InputArea
+  - Corrigido cache React Query para atualizar imediatamente após atribuições
+  - Implementado isolamento: cada conversa tem cache próprio evitando interferência cruzada
+  - Cache otimizado: setQueryData atualiza instantaneamente, sem esperar invalidação
+  - Sistema de loading adicionado nos dropdowns durante mutations
 - June 25, 2025 (16:14): ERRO 502 BAD GATEWAY NA ATRIBUIÇÃO CORRIGIDO
   - Adicionado logging detalhado no apiRequest para debug de erros HTTP
   - Implementado tratamento específico para erro 502 com mensagens amigáveis
