@@ -1,9 +1,12 @@
 import React from "react";
 import { NotificationPreferencesSimple } from "@/components/NotificationPreferencesSimple";
+import { BackButton } from "@/shared/components/BackButton";
 
 export function NotificationsPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <BackButton to="/" label="Voltar ao Dashboard" />
+      
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Preferências de Notificação
