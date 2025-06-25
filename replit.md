@@ -96,6 +96,20 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 25, 2025 (18:34): CORREÇÃO DO ERRO 400 NA BUSCA DE RESPOSTAS RÁPIDAS IMPLEMENTADA
+  - Corrigido hook useSearchQuickReplies para validar queries com mínimo 2 caracteres
+  - Frontend não faz requisições com menos de 2 caracteres, busca todas as respostas ao invés
+  - Backend atualizado com validação robusta e mensagens de erro em português
+  - Corrigida ordem das rotas Express: /search antes de /:id para evitar conflitos
+  - Sistema agora funciona sem erros 400 para queries curtas como "t"
+  - Mantida funcionalidade completa da caixa de entrada sem alterações
+- June 25, 2025 (18:11): PROBLEMA DAS IMAGENS 403 DO WHATSAPP RESOLVIDO DEFINITIVAMENTE  
+  - Criado componente SafeAvatar com fallback automático para URLs expiradas do WhatsApp
+  - Substituído Avatar padrão por SafeAvatar em todos os componentes relevantes
+  - Aplicado em ConversationList, ContactSidebar, ViewContactDialog e ContactsPage
+  - Sistema detecta automaticamente falhas 403/404 e substitui por iniciais do contato
+  - Eliminados completamente os erros de console "GET https://pps.whatsapp.net/... 403"
+  - Adicionado loading="lazy" e logs de debug silenciosos para otimização
 - June 25, 2025 (17:54): ATALHO DE RESPOSTAS RÁPIDAS (/*) IMPLEMENTADO COMPLETAMENTE E FUNCIONANDO
   - Criado hook useQuickReplies com busca dinâmica e cache otimizado
   - Desenvolvido componente QuickReplyAutocomplete com navegação por teclado (↑↓ Enter Esc)

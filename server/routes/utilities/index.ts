@@ -63,16 +63,9 @@ export function registerUtilitiesRoutes(app: Express) {
   // Send message via Z-API - REST: POST /api/zapi/send-message
   app.post('/api/zapi/send-message', async (req, res) => {
     try {
-      console.log('📤 ENDPOINT /api/zapi/send-message CHAMADO:', {
-        body: req.body,
-        timestamp: new Date().toISOString(),
-        ip: req.ip || 'unknown'
-      });
-      
       const { phone, message, conversationId, channelId } = req.body;
       
       if (!phone || !message) {
-        console.error('❌ Parâmetros obrigatórios ausentes:', { phone: !!phone, message: !!message });
         return res.status(400).json({ 
           error: 'Phone e message são obrigatórios' 
         });
@@ -80,12 +73,20 @@ export function registerUtilitiesRoutes(app: Express) {
 
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
-        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
         return res.status(400).json({ error: credentials.error });
       }
 
       const { instanceId, token, clientToken } = credentials;
       const cleanPhone = phone.replace(/\D/g, '');
+      
+      // Importar logs padronizados
+      const { logZApiAttempt, logZApiSuccess, logZApiError } = await import('../../lib/zapiLogger');
+      
+      // Log de tentativa
+      logZApiAttempt({
+        phone: cleanPhone,
+        messageType: 'TEXTO'
+      });
       
       const payload = {
         phone: cleanPhone,
@@ -93,12 +94,6 @@ export function registerUtilitiesRoutes(app: Express) {
       };
 
       const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-      console.log('📤 Enviando para Z-API:', { 
-        url: url.replace(token!, '****'), 
-        payload,
-        instanceId,
-        hasClientToken: !!clientToken
-      });
 
       const response = await fetch(url, {
         method: 'POST',
@@ -110,19 +105,13 @@ export function registerUtilitiesRoutes(app: Express) {
       });
 
       const responseText = await response.text();
-      console.log('📥 Resposta Z-API COMPLETA:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        body: responseText
-      });
 
       if (!response.ok) {
-        console.error('❌ FALHA na Z-API:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText,
-          payload: payload
+        // Log de erro padronizado
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'TEXTO',
+          error: `${response.status} - ${response.statusText}: ${responseText}`
         });
         throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}: ${responseText}`);
       }
@@ -131,23 +120,28 @@ export function registerUtilitiesRoutes(app: Express) {
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('❌ Erro ao parsear resposta JSON:', parseError);
+        logZApiError({
+          phone: cleanPhone,
+          messageType: 'TEXTO',
+          error: `Resposta inválida da Z-API: ${responseText}`
+        });
         throw new Error(`Resposta inválida da Z-API: ${responseText}`);
       }
 
-      console.log('✅ SUCESSO TOTAL - Mensagem enviada via Z-API:', {
-        data,
+      // Log de sucesso padronizado
+      logZApiSuccess({
         phone: cleanPhone,
-        message: message.toString(),
-        conversationId
+        messageType: 'TEXTO',
+        messageId: data.messageId || data.id
       });
       
       res.json(data);
     } catch (error) {
-      console.error('❌ ERRO CRÍTICO no endpoint send-message:', {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        request: req.body
+      const { logZApiError } = await import('../../lib/zapiLogger');
+      logZApiError({
+        phone: req.body.phone || 'unknown',
+        messageType: 'TEXTO',
+        error: error instanceof Error ? error.message : error
       });
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Erro interno do servidor' 

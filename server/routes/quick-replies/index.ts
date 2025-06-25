@@ -231,40 +231,6 @@ export function registerQuickRepliesRoutes(app: Express) {
     }
   });
 
-  // Search quick replies - REST: GET /api/quick-replies/search
-  app.get('/api/quick-replies/search', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { q, category, type } = req.query;
-      
-      if (!q) {
-        return res.status(400).json({ 
-          error: 'Search query is required',
-          message: 'Por favor, forneça uma query de busca'
-        });
-      }
-      
-      const queryString = (q as string).trim();
-      if (queryString.length < 2) {
-        return res.status(400).json({ 
-          error: 'Query too short. Please provide at least 2 characters.',
-          message: 'Query muito curta. Digite pelo menos 2 caracteres para buscar.'
-        });
-      }
-      
-      const quickReplies = await storage.searchQuickReplies({
-        query: queryString,
-        category: category as string,
-        type: type as string,
-        userId: req.user?.id
-      });
-      
-      res.json(quickReplies);
-    } catch (error) {
-      console.error('Error searching quick replies:', error);
-      res.status(500).json({ message: 'Failed to search quick replies' });
-    }
-  });
-
   // Get most used quick replies - REST: GET /api/quick-replies/most-used
   app.get('/api/quick-replies/most-used', async (req: AuthenticatedRequest, res: Response) => {
     try {
