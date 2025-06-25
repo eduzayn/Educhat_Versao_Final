@@ -185,7 +185,7 @@ export function ContactSidebar({
       name: dealFormData.name,
       contactId: activeConversation.contact?.id,
       value: dealFormData.value ? Math.round(parseFloat(dealFormData.value) * 100) : 0,
-      macrosetor: dealFormData.macrosetor,
+      category: dealFormData.category,
       stage: dealFormData.stage,
       category: dealFormData.category || null,
       course: dealFormData.course || null,
@@ -423,7 +423,7 @@ export function ContactSidebar({
                         <SelectValue placeholder="Selecione o funil" />
                       </SelectTrigger>
                       <SelectContent>
-                        {getAllMacrosetores().map(({ id, info }) => (
+                        {getAllCategories().map(({ id, info }) => (
                           <SelectItem key={id} value={id}>
                             {info.name.toUpperCase()}
                           </SelectItem>
@@ -432,7 +432,7 @@ export function ContactSidebar({
                     </Select>
                     {dealFormData.macrosetor && (
                       <div className="mt-2 text-sm text-gray-600">
-                        {getMacrosetorInfo(dealFormData.macrosetor)?.description}
+                        {getCategoryInfo(dealFormData.category)?.description}
                       </div>
                     )}
                   </div>
@@ -442,13 +442,13 @@ export function ContactSidebar({
                     <Select 
                       value={dealFormData.stage} 
                       onValueChange={(value) => setDealFormData(prev => ({ ...prev, stage: value }))}
-                      disabled={!dealFormData.macrosetor}
+                      disabled={!dealFormData.category}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={dealFormData.macrosetor ? "Selecione a etapa" : "Primeiro selecione o funil"} />
+                        <SelectValue placeholder={dealFormData.category ? "Selecione a etapa" : "Primeiro selecione o funil"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {dealFormData.macrosetor && getStagesForMacrosetor(dealFormData.macrosetor).map((stage) => (
+                        {dealFormData.category && getStagesForCategory(dealFormData.category).map((stage) => (
                           <SelectItem key={stage.id} value={stage.id}>
                             {stage.name.toUpperCase()}
                           </SelectItem>

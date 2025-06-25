@@ -54,7 +54,7 @@ export class DatabaseStorage implements IStorage {
   private system: SystemStorage;
   public manychat: ManychatStorage;
   public facebook: FacebookStorage;
-  public macrosetor: MacrosetorStorage;
+
 
   constructor() {
     this.auth = new AuthStorage();

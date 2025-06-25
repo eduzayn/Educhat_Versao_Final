@@ -320,7 +320,7 @@ export function InboxPage() {
   };
 
   const getSpecificChannelName = (conversation: any) => {
-    // Mapeamento padronizado de macrosetores para nomes de canal
+    // Mapeamento padronizado de categorias para nomes de canal
     const standardChannelNames = {
       'comercial': 'Comercial',
       'suporte': 'Suporte',
@@ -339,13 +339,13 @@ export function InboxPage() {
       }
     }
     
-    // PRIORIDADE 2: Se há equipe atribuída, usa o macrosetor padronizado
+    // PRIORIDADE 2: Se há equipe atribuída, usa a categoria padronizada
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team && team.macrosetor && standardChannelNames[team.macrosetor as keyof typeof standardChannelNames]) {
-        return standardChannelNames[team.macrosetor as keyof typeof standardChannelNames];
+      if (team && team.category && standardChannelNames[team.category as keyof typeof standardChannelNames]) {
+        return standardChannelNames[team.category as keyof typeof standardChannelNames];
       }
-      // Fallback para equipes sem macrosetor definido
+      // Fallback para equipes sem categoria definida
       if (team) {
         return team.name;
       }
@@ -385,11 +385,11 @@ export function InboxPage() {
       'tutoria': 'bg-green-100 text-green-700'
     };
 
-    // PRIORIDADE 1: Se há equipe atribuída, sempre usa cores baseadas no macrosetor
+    // PRIORIDADE 1: Se há equipe atribuída, sempre usa cores baseadas na categoria
     if (conversation.assignedTeamId) {
       const team = teams.find((t: any) => t.id === conversation.assignedTeamId);
-      if (team && team.macrosetor && standardColors[team.macrosetor as keyof typeof standardColors]) {
-        return standardColors[team.macrosetor as keyof typeof standardColors];
+      if (team && team.category && standardColors[team.category as keyof typeof standardColors]) {
+        return standardColors[team.category as keyof typeof standardColors];
       }
     }
     

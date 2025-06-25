@@ -127,7 +127,7 @@ export function registerTeamsRoutes(app: Express) {
       const teamId = parseInt(req.params.teamId);
       const userId = parseInt(req.params.userId);
       
-      await storage.removeUserFromTeam(userId, teamId);
+      await storage.removeUserFromTeam({ userId, teamId });
       console.log(`❌ Usuário ${userId} removido da equipe ${teamId}`);
       res.status(204).send();
     } catch (error) {
