@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (03:00): FILTRO DE STATUS REDUNDANTE REMOVIDO DEFINITIVAMENTE - PROBLEMA VISUAL SOLUCIONADO
+  - Removido filtro de Status (com ícone de funil) que era redundante às abas existentes
+  - Interface agora exibe apenas 3 filtros essenciais: Canal, Responsável e Equipe
+  - Problema de filtros ultrapassando limites visuais da coluna lateral completamente resolvido
+  - Mantida funcionalidade completa: abas "Entrada", "Todas" e "Resolvidas" cumprem função de filtro de status
+  - Correção cirúrgica aplicada apenas aos arquivos relacionados sem impactar outras funcionalidades
+  - Layout limpo e organizado conforme solicitação prévia do usuário
 - June 26, 2025 (02:05): FILTRO POR USUÁRIO RESPONSÁVEL IMPLEMENTADO CIRURGICAMENTE
   - Adicionado terceiro filtro "Responsável" ao lado dos filtros existentes (Status e Canal)
   - Query para carregar usuários do sistema integrada com cache otimizado (5 minutos)
