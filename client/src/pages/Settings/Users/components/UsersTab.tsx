@@ -151,6 +151,19 @@ export const UsersTab = () => {
     pending: users.filter((user: any) => user.status === 'pending').length
   };
 
+  // Buscar equipes disponíveis
+  const { data: teams = [] } = useQuery({
+    queryKey: ['/api/teams'],
+    queryFn: () => apiRequest('GET', '/api/teams'),
+  });
+
+  // Buscar conversas do usuário a ser excluído (só quando modal estiver aberto)
+  const { data: userConversations = [], isLoading: conversationsLoading } = useQuery({
+    queryKey: ['/api/conversations', { userId: userToDelete?.id }],
+    queryFn: () => apiRequest('GET', `/api/conversations?userId=${userToDelete.id}`),
+    enabled: !!userToDelete?.id && showDeleteDialog,
+  });
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: (userData: any) => 
@@ -194,12 +207,64 @@ export const UsersTab = () => {
     }
   });
 
-  // Delete user mutation
+  // Delete user mutation with safe transfer
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => 
-      apiRequest('DELETE', `/api/system-users/${userId}`),
-    onSuccess: () => {
+    mutationFn: async ({ userId, transferData }: { userId: number, transferData: { targetUserId: string, targetTeamId: string } }) => {
+      // Primeiro, transferir conversas se existirem
+      if (userConversations.length > 0) {
+        const transferPromises = userConversations.map(async (conversation: any) => {
+          // Transferir para usuário específico se selecionado
+          if (transferData.targetUserId) {
+            await apiRequest('PATCH', `/api/conversations/${conversation.id}/assign-user`, {
+              userId: parseInt(transferData.targetUserId),
+              method: 'manual'
+            });
+          }
+          
+          // Transferir para equipe se selecionada
+          if (transferData.targetTeamId) {
+            await apiRequest('PATCH', `/api/conversations/${conversation.id}/assign-team`, {
+              teamId: parseInt(transferData.targetTeamId),
+              method: 'manual'
+            });
+          }
+        });
+        
+        await Promise.all(transferPromises);
+      }
+      
+      // Depois excluir o usuário
+      return apiRequest('DELETE', `/api/system-users/${userId}`);
+    },
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      
+      const transferredCount = userConversations.length;
+      const targetUserName = transferData.targetUserId ? 
+        users.find((u: any) => u.id === parseInt(transferData.targetUserId))?.displayName : null;
+      const targetTeamName = transferData.targetTeamId ? 
+        teams.find((t: any) => t.id === parseInt(transferData.targetTeamId))?.name : null;
+      
+      let message = `Usuário excluído com sucesso!`;
+      if (transferredCount > 0) {
+        message += `\n${transferredCount} atendimento(s) transferido(s)`;
+        if (targetUserName) message += ` para ${targetUserName}`;
+        if (targetTeamName) message += ` (equipe ${targetTeamName})`;
+      }
+      
+      toast({
+        title: "✅ Exclusão Concluída",
+        description: message,
+        variant: "default"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "❌ Erro na Exclusão",
+        description: error.message || "Erro ao excluir usuário e transferir atendimentos",
+        variant: "destructive"
+      });
     }
   });
 
@@ -318,14 +383,31 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
   const handleDeleteUser = (user: any) => {
     setUserToDelete(user);
+    setTransferData({ targetUserId: '', targetTeamId: '' });
     setShowDeleteDialog(true);
   };
 
   const handleConfirmDelete = () => {
     if (userToDelete) {
-      deleteUserMutation.mutate(userToDelete.id);
+      // Validar se tem conversas e se campos obrigatórios estão preenchidos
+      if (userConversations.length > 0) {
+        if (!transferData.targetUserId && !transferData.targetTeamId) {
+          toast({
+            title: "⚠️ Transferência Obrigatória",
+            description: "É necessário selecionar pelo menos um usuário OU uma equipe para transferir os atendimentos ativos.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
+      deleteUserMutation.mutate({ 
+        userId: userToDelete.id, 
+        transferData 
+      });
       setShowDeleteDialog(false);
       setUserToDelete(null);
+      setTransferData({ targetUserId: '', targetTeamId: '' });
     }
   };
 
@@ -863,58 +945,184 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de Confirmação de Exclusão */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="sm:max-w-[425px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+      {/* Diálogo de Exclusão Segura com Transferência */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <Trash className="h-5 w-5" />
-              Confirmar Exclusão
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-left">
-              Tem certeza que deseja excluir o usuário <strong className="text-foreground">{userToDelete?.displayName || userToDelete?.name}</strong>?
-              <br /><br />
-              <div className="bg-muted p-3 rounded-md border-l-4 border-destructive">
-                <div className="flex items-start gap-2">
-                  <div className="text-destructive mt-0.5">⚠️</div>
-                  <div className="text-sm">
-                    <strong>Esta ação não pode ser desfeita.</strong><br />
-                    Todos os dados relacionados a este usuário serão permanentemente removidos do sistema.
-                  </div>
+              Exclusão Segura de Usuário
+            </DialogTitle>
+            <DialogDescription className="text-left">
+              Excluindo <strong className="text-foreground">{userToDelete?.displayName || userToDelete?.name}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Informações dos atendimentos */}
+            <div className="bg-blue-50 p-4 rounded-md border-l-4 border-blue-500">
+              <div className="flex items-start gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-blue-800">Atendimentos Ativos</h4>
+                  {conversationsLoading ? (
+                    <p className="text-sm text-blue-600">Verificando atendimentos...</p>
+                  ) : (
+                    <p className="text-sm text-blue-600">
+                      {userConversations.length} atendimento(s) em aberto precisam ser transferidos
+                    </p>
+                  )}
                 </div>
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel 
+            </div>
+
+            {/* Lista de conversas (se houver) */}
+            {userConversations.length > 0 && (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h5 className="font-medium text-gray-800 mb-2">Conversas que serão transferidas:</h5>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {userConversations.slice(0, 5).map((conv: any) => (
+                    <div key={conv.id} className="flex items-center gap-2 text-sm">
+                      <MessageSquare className="h-3 w-3 text-gray-500" />
+                      <span className="text-gray-700">{conv.contact?.name || 'Contato'}</span>
+                      <span className="text-gray-500">- {conv.contact?.phone}</span>
+                    </div>
+                  ))}
+                  {userConversations.length > 5 && (
+                    <p className="text-xs text-gray-500">+ {userConversations.length - 5} outras conversas</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Campos de transferência obrigatórios */}
+            {userConversations.length > 0 && (
+              <div className="space-y-4">
+                <div className="bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">
+                  <p className="text-sm text-yellow-800">
+                    <strong>⚠️ Transferência Obrigatória:</strong> Selecione pelo menos um usuário OU uma equipe para receber os atendimentos.
+                  </p>
+                </div>
+
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="targetUser" className="text-sm font-medium">
+                      Transferir para Usuário (opcional)
+                    </Label>
+                    <Select 
+                      value={transferData.targetUserId} 
+                      onValueChange={(value) => setTransferData(prev => ({...prev, targetUserId: value}))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecionar usuário..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum usuário específico</SelectItem>
+                        {users
+                          .filter((u: any) => u.id !== userToDelete?.id && u.isActive !== false)
+                          .map((user: any) => (
+                            <SelectItem key={user.id} value={user.id.toString()}>
+                              {user.displayName} ({user.role})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <span className="text-sm">OU</span>
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="targetTeam" className="text-sm font-medium">
+                      Transferir para Equipe (opcional)
+                    </Label>
+                    <Select 
+                      value={transferData.targetTeamId} 
+                      onValueChange={(value) => setTransferData(prev => ({...prev, targetTeamId: value}))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecionar equipe..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhuma equipe específica</SelectItem>
+                        {teams.map((team: any) => (
+                          <SelectItem key={team.id} value={team.id.toString()}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Preview da transferência */}
+                {(transferData.targetUserId || transferData.targetTeamId) && (
+                  <div className="bg-green-50 p-3 rounded-md border-l-4 border-green-400">
+                    <div className="flex items-center gap-2">
+                      <ArrowRight className="h-4 w-4 text-green-600" />
+                      <p className="text-sm text-green-800">
+                        <strong>Transferência configurada:</strong> {userConversations.length} atendimento(s) serão transferidos
+                        {transferData.targetUserId && (
+                          <span> para {users.find((u: any) => u.id === parseInt(transferData.targetUserId))?.displayName}</span>
+                        )}
+                        {transferData.targetTeamId && (
+                          <span> para equipe {teams.find((t: any) => t.id === parseInt(transferData.targetTeamId))?.name}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Aviso de exclusão permanente */}
+            <div className="bg-red-50 p-3 rounded-md border-l-4 border-red-400">
+              <div className="flex items-start gap-2">
+                <div className="text-red-500 mt-0.5">⚠️</div>
+                <div className="text-sm">
+                  <strong className="text-red-800">Esta ação não pode ser desfeita.</strong><br />
+                  <span className="text-red-700">O usuário será permanentemente removido do sistema após a transferência dos atendimentos.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline"
               onClick={() => {
                 setShowDeleteDialog(false);
                 setUserToDelete(null);
+                setTransferData({ targetUserId: '', targetTeamId: '' });
               }}
               className="flex-1"
             >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={handleConfirmDelete}
-              disabled={deleteUserMutation.isPending}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground flex-1"
+              disabled={deleteUserMutation.isPending || (userConversations.length > 0 && !transferData.targetUserId && !transferData.targetTeamId)}
+              variant="destructive"
+              className="flex-1"
             >
               {deleteUserMutation.isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Excluindo...
+                  Processando...
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Trash className="h-4 w-4" />
-                  Excluir Usuário
+                  Excluir e Transferir
                 </div>
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (20:01): SISTEMA DE TRANSFERÊNCIA SEGURA DE USUÁRIOS IMPLEMENTADO COMPLETAMENTE
+  - Modal de exclusão substituído por interface moderna com campos obrigatórios de transferência
+  - Implementados dois Select obrigatórios: usuário de destino e equipe de destino
+  - Sistema detecta automaticamente atendimentos ativos do usuário a ser excluído
+  - Preview visual mostra conversas que serão transferidas (nome, telefone, canal)
+  - Validação obrigatória: pelo menos um campo (usuário OU equipe) deve ser preenchido
+  - Transferência automática usando APIs existentes: assign-user e assign-team
+  - Toast detalhado confirma: usuário excluído + quantidade de atendimentos transferidos
+  - Interface responsiva com scroll para muitas conversas, limitada a 5 visíveis + contador
+  - Sistema elimina perda de atendimentos: exclusão segura garantida
+  - Aproveitamento máximo do código existente: hooks, APIs e componentes mantidos
 - June 26, 2025 (19:42): ERRO DE ENVIO DE MENSAGEM ATIVA CORRIGIDO DEFINITIVAMENTE
   - Problema identificado: schema insertConversationSchema não aceitava strings ISO para lastMessageAt
   - Corrigido schema: adicionado transform z.union para aceitar string ou Date em lastMessageAt
