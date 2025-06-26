@@ -668,7 +668,7 @@ export function registerWebhookRoutes(app: Express) {
           
           savedMessage = await storage.createMessage({
             conversationId: parseInt(conversationId),
-            content: dataUrl, // Salvar o arquivo em base64 para exibição
+            content: messageContent, // Usar messageContent ao invés de dataUrl para evitar problemas de tamanho
             isFromContact: false,
             messageType: 'file',
             sentAt: new Date(),
@@ -678,16 +678,22 @@ export function registerWebhookRoutes(app: Express) {
               fileName: req.file.originalname,
               fileSize: req.file.size,
               mimeType: req.file.mimetype,
-              caption: caption
+              caption: caption,
+              fileData: dataUrl // Mover dados do arquivo para metadata
             }
           });
 
-          // Broadcast para WebSocket
-          const { broadcast } = await import('../realtime');
-          broadcast(parseInt(conversationId), {
-            type: 'message_sent',
-            conversationId: parseInt(conversationId)
-          });
+          // Broadcast para WebSocket - com tratamento de erro
+          try {
+            const { broadcast } = await import('../realtime');
+            broadcast(parseInt(conversationId), {
+              type: 'message_sent',
+              conversationId: parseInt(conversationId),
+              message: savedMessage
+            });
+          } catch (broadcastError) {
+            console.error('❌ Erro no broadcast do arquivo:', broadcastError);
+          }
         } catch (dbError) {
           console.error('❌ Erro ao salvar mensagem de arquivo no banco:', dbError);
         }
