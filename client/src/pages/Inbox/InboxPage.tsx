@@ -42,6 +42,7 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
+import { useSystemUsers } from '@/shared/lib/hooks/useSystemUsers';
 
 import { STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
