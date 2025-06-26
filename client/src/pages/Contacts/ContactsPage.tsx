@@ -271,7 +271,7 @@ export function ContactsPage() {
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
-      if (hasValidChannel && createForm.activeMessage.trim() && createForm.phone) {
+      if (createForm.selectedChannelId && createForm.activeMessage.trim() && createForm.phone) {
         try {
           // Validações adicionais para evitar erro 400
           if (!createForm.selectedChannelId || isNaN(parseInt(createForm.selectedChannelId))) {
@@ -577,8 +577,8 @@ export function ContactsPage() {
                   disabled={
                     createContact.isPending || 
                     !createForm.name.trim() ||
-                    (createForm.activeMessage.trim() && !hasValidChannel) ||
-                    (hasValidChannel && createForm.activeMessage.trim() && !createForm.phone.trim())
+                    (createForm.activeMessage.trim() && !createForm.selectedChannelId) ||
+                    (!!createForm.selectedChannelId && createForm.activeMessage.trim() && !createForm.phone.trim())
                   }
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                 >

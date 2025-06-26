@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (16:50): ERRO 400 "INVALID CONVERSATION DATA" CORRIGIDO COMPLETAMENTE
+  - Identificado problema: payload da conversa não incluía channelId obrigatório
+  - Corrigido frontend: adicionado parseInt(createForm.selectedChannelId) ao criar conversa
+  - Implementadas validações robustas no backend: campos obrigatórios e tipos corretos
+  - Melhorado tratamento de erro: mensagens específicas para problemas de validação
+  - Adicionadas validações no frontend: botão bloqueado com dados incompletos
+  - Sistema de criação de contato com mensagem ativa funcionando: contato → Z-API → conversa → inbox
+  - Correção cirúrgica: apenas arquivos relacionados ao fluxo de criação alterados
 - June 26, 2025 (16:36): PADRONIZAÇÃO DA PAGINAÇÃO PARA 20 CONTATOS POR PÁGINA IMPLEMENTADA
   - Simplificada lógica de paginação: sempre 20 contatos por página (removida variação 20/30)
   - Removidos seletores de quantidade por página da interface
