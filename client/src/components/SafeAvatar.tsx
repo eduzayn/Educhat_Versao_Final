@@ -27,7 +27,11 @@ export function SafeAvatar({
   
   const handleImageError = () => {
     setHasError(true);
-    // Log silencioso do erro (apenas para debug, não polui console)
+    // Silenciar completamente erros de imagem do WhatsApp para evitar spam no console
+    if (src?.includes('pps.whatsapp.net')) {
+      // Não fazer log de erros 403/404 do WhatsApp - são esperados
+      return;
+    }
     console.debug('Avatar image failed to load:', src);
   };
 

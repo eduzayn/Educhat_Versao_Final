@@ -68,13 +68,13 @@ export function createRateLimiter(options: {
 // Rate limiters específicos para diferentes endpoints
 export const conversationsRateLimit = createRateLimiter({
   windowMs: 60 * 1000, // 1 minuto
-  maxRequests: 30, // Máximo 30 requisições por minuto por IP
+  maxRequests: 120, // Aumentado para 120 requisições por minuto
   keyGenerator: (req) => `conversations_${req.ip}_${req.user?.id || 'anonymous'}`
 });
 
 export const messagesRateLimit = createRateLimiter({
   windowMs: 30 * 1000, // 30 segundos
-  maxRequests: 20, // Máximo 20 requisições por 30s
+  maxRequests: 60, // Aumentado para 60 requisições por 30s
   keyGenerator: (req) => `messages_${req.ip}_${req.user?.id || 'anonymous'}`
 });
 

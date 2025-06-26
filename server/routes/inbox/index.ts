@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../../core/storage";
 import { insertConversationSchema, insertContactNoteSchema } from "@shared/schema";
-import { conversationsRateLimit, messagesRateLimit } from "../../middleware/rateLimiter";
+import { conversationsRateLimit, messagesRateLimit, createRateLimiter } from "../../middleware/rateLimiter";
 
 export function registerInboxRoutes(app: Express) {
   
@@ -348,8 +348,12 @@ export function registerInboxRoutes(app: Express) {
     }
   });
 
-  // Mark conversation as read
-  app.patch('/api/conversations/:id/read', async (req, res) => {
+  // Mark conversation as read - rate limiting específico mais generoso
+  app.patch('/api/conversations/:id/read', createRateLimiter({
+    windowMs: 10 * 1000, // 10 segundos 
+    maxRequests: 50, // 50 requisições por 10s - muito mais generoso
+    keyGenerator: (req) => `read_${req.ip}_${req.user?.id || 'anonymous'}`
+  }), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.markConversationAsRead(id);
