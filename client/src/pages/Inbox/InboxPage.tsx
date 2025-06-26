@@ -63,25 +63,12 @@ export function InboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
-  const [userFilter, setUserFilter] = useState('all');
-  const [teamFilter, setTeamFilter] = useState('all');
-  const [periodFilter, setPeriodFilter] = useState('all');
+  const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
+  const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
-  // Carregar usuários do sistema para o filtro por responsável
-  const { data: systemUsers = [] } = useQuery({
-    queryKey: ['/api/system-users'],
-    queryFn: async () => {
-      const response = await fetch('/api/system-users');
-      if (!response.ok) throw new Error('Erro ao carregar usuários');
-      return response.json();
-    },
-    staleTime: 300000, // Cache válido por 5 minutos
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-  });
-
-  // Carregar equipes para o filtro por equipe
+  // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
     queryKey: ['/api/teams'],
     queryFn: async () => {
@@ -90,13 +77,9 @@ export function InboxPage() {
       return response.json();
     },
     staleTime: 300000, // Cache válido por 5 minutos
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    refetchInterval: false, // WebSocket atualiza quando necessário
   });
-
-  const [showMobileChat, setShowMobileChat] = useState(false);
-  
-
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -105,14 +88,6 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real com notificações
   useWebSocket();
   
-  // Montar filtros para API
-  const filters = {
-    period: periodFilter !== 'all' ? periodFilter : undefined,
-    channel: channelFilter !== 'all' ? channelFilter : undefined,
-    user: userFilter !== 'all' ? userFilter : undefined,
-    team: teamFilter !== 'all' ? teamFilter : undefined,
-  };
-
   const { 
     data: conversationsData, 
     isLoading, 
@@ -120,7 +95,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(15, filters, { 
+  } = useConversations(15, { 
     refetchInterval: false, // WebSocket cuida das atualizações - sem polling
     staleTime: 60000, // Cache por 1 minuto para reduzir requisições
     refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
@@ -404,30 +379,6 @@ export function InboxPage() {
       // Se não corresponde a nenhum filtro específico, excluir
       return false;
     }
-
-    // Filtro por usuário responsável
-    if (userFilter !== 'all') {
-      if (userFilter === 'unassigned') {
-        // Mostrar apenas conversas sem atribuição
-        return !conversation.assignedUserId;
-      } else {
-        // Mostrar apenas conversas atribuídas ao usuário específico
-        const selectedUserId = parseInt(userFilter);
-        return conversation.assignedUserId === selectedUserId;
-      }
-    }
-
-    // Filtro por equipe
-    if (teamFilter !== 'all') {
-      if (teamFilter === 'unassigned') {
-        // Mostrar apenas conversas sem equipe
-        return !conversation.assignedTeamId;
-      } else {
-        // Mostrar apenas conversas atribuídas à equipe específica
-        const selectedTeamId = parseInt(teamFilter);
-        return conversation.assignedTeamId === selectedTeamId;
-      }
-    }
     
     return true;
   });
@@ -580,32 +531,21 @@ export function InboxPage() {
         {/* Header */}
         <ConversationListHeader
           activeTab={activeTab}
+          searchTerm={searchTerm}
           isWhatsAppAvailable={isWhatsAppAvailable}
           onTabChange={setActiveTab}
+          onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
         />
 
-        {/* Filtros em cascata com período personalizado */}
+        {/* Filtros compactos */}
         <ConversationFilters
+          statusFilter={statusFilter}
           channelFilter={channelFilter}
-          userFilter={userFilter}
-          teamFilter={teamFilter}
-          periodFilter={periodFilter}
+          onStatusFilterChange={setStatusFilter}
           onChannelFilterChange={setChannelFilter}
-          onUserFilterChange={setUserFilter}
-          onTeamFilterChange={setTeamFilter}
-          onPeriodFilterChange={setPeriodFilter}
-          onDateRangeChange={(startDate, endDate) => {
-            // Implementar lógica de filtro por período personalizado
-            console.log('Período personalizado:', { startDate, endDate });
-            // Aqui você pode atualizar os filtros para usar o período customizado
-          }}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
           channels={channels}
-          users={systemUsers}
-          teams={teams}
         />
 
         {/* Lista de Conversas com Scroll Infinito */}

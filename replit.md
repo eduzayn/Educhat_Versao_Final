@@ -96,29 +96,6 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 26, 2025 (03:45): SISTEMA DE FILTROS EM CASCATA IMPLEMENTADO COMPLETAMENTE
-  - Reestruturado ConversationFilters.tsx com nova arquitetura de duas linhas
-  - Primeira linha: filtros principais (período personalizado com campos "De" e "Até", status via abas, atribuição, equipe, canal)
-  - Segunda linha: busca global centralizada + ações rápidas (marcar como lida, atribuir, exportar)
-  - Corrigido erro "NaN" no backend através de sanitização de filtros na rota /api/conversations
-  - Removida funcionalidade duplicada de busca do ConversationListHeader.tsx
-  - Sistema responsivo com colapso automático em dispositivos móveis
-  - Arquitetura modular preparada para expansão futura (tags, filtros customizados)
-- June 26, 2025 (03:00): FILTRO DE STATUS REDUNDANTE REMOVIDO DEFINITIVAMENTE - PROBLEMA VISUAL SOLUCIONADO
-  - Removido filtro de Status (com ícone de funil) que era redundante às abas existentes
-  - Interface agora exibe apenas 3 filtros essenciais: Canal, Responsável e Equipe
-  - Problema de filtros ultrapassando limites visuais da coluna lateral completamente resolvido
-  - Mantida funcionalidade completa: abas "Entrada", "Todas" e "Resolvidas" cumprem função de filtro de status
-  - Correção cirúrgica aplicada apenas aos arquivos relacionados sem impactar outras funcionalidades
-  - Layout limpo e organizado conforme solicitação prévia do usuário
-- June 26, 2025 (02:05): FILTRO POR USUÁRIO RESPONSÁVEL IMPLEMENTADO CIRURGICAMENTE
-  - Adicionado terceiro filtro "Responsável" ao lado dos filtros existentes (Status e Canal)
-  - Query para carregar usuários do sistema integrada com cache otimizado (5 minutos)
-  - Lógica de filtro implementada: "Todos os usuários", "Sem atribuição", e usuários específicos
-  - ConversationFilters.tsx expandido com ícone User e dropdown de responsáveis
-  - Interface mantém consistência visual e funcional com filtros existentes
-  - Funcionalidade permite organização pessoal: usuários filtram apenas seus atendimentos
-  - Implementação aproveitou 100% do código existente sem duplicações
 - June 26, 2025 (01:54): CORREÇÃO CIRÚRGICA DOS ERROS 429 E 403 IMPLEMENTADA COM SUCESSO
   - Rate limiting otimizado: conversas 120 req/min, mensagens 60 req/30s (aumentados substancialmente)
   - Endpoint /api/conversations/:id/read recebeu rate limiting específico: 50 req/10s (muito mais generoso)

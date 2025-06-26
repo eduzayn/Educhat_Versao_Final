@@ -36,21 +36,7 @@ export function registerInboxRoutes(app: Express) {
       const maxLimit = 100;
       const safeLimit = Math.min(limit, maxLimit);
       
-      // Extrair filtros de período
-      const periodFilter = req.query.period as string;
-      const channelFilter = req.query.channel as string;
-      const userFilter = req.query.user as string;
-      const teamFilter = req.query.team as string;
-      
-      // Sanitizar filtros para evitar valores "NaN" ou inválidos
-      const sanitizedFilters = {
-        period: periodFilter && periodFilter !== 'all' ? periodFilter : undefined,
-        channel: channelFilter && channelFilter !== 'all' ? channelFilter : undefined,
-        user: userFilter && userFilter !== 'all' ? userFilter : undefined,
-        team: teamFilter && teamFilter !== 'all' ? teamFilter : undefined
-      };
-      
-      const conversations = await storage.getConversations(safeLimit, offset, sanitizedFilters);
+      const conversations = await storage.getConversations(safeLimit, offset);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);

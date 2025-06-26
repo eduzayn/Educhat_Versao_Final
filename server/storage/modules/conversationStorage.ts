@@ -1,95 +1,15 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { conversations, contacts, channels, messages, contactTags, type Conversation, type InsertConversation, type ConversationWithContact } from "../../../shared/schema";
 import { deals } from "../../../shared/schema";
-import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, and, count, sql } from "drizzle-orm";
 
 /**
  * Conversation storage module - manages conversations and assignments
  */
 export class ConversationStorage extends BaseStorage {
-  async getConversations(limit = 50, offset = 0, filters?: { period?: string; channel?: string; user?: string; team?: string }): Promise<ConversationWithContact[]> {
-    // Calcular datas de filtro por período
-    const now = new Date();
-    let dateFilter: Date | null = null;
-    
-    if (filters?.period) {
-      switch (filters.period) {
-        case 'today':
-          dateFilter = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          break;
-        case 'yesterday':
-          dateFilter = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-          break;
-        case 'last7days':
-          dateFilter = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-          break;
-        case 'last30days':
-          dateFilter = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-          break;
-        case 'last90days':
-          dateFilter = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-          break;
-        case 'last6months':
-          dateFilter = new Date(now.getTime() - (180 * 24 * 60 * 60 * 1000));
-          break;
-        case 'lastyear':
-          dateFilter = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
-          break;
-      }
-    }
-
-    // Construir condições WHERE
-    const whereConditions = [];
-    
-    // Filtro por período
-    if (dateFilter) {
-      if (filters?.period === 'today' || filters?.period === 'yesterday') {
-        // Para hoje e ontem, filtrar exato por dia
-        const endDate = new Date(dateFilter);
-        endDate.setDate(endDate.getDate() + 1);
-        whereConditions.push(
-          and(
-            gte(conversations.lastMessageAt, dateFilter),
-            lte(conversations.lastMessageAt, endDate)
-          )
-        );
-      } else {
-        // Para outros períodos, filtrar desde a data até agora
-        whereConditions.push(gte(conversations.lastMessageAt, dateFilter));
-      }
-    }
-    
-    // Filtro por canal
-    if (filters?.channel) {
-      whereConditions.push(eq(conversations.channel, filters.channel));
-    }
-    
-    // Filtro por usuário responsável
-    if (filters?.user && filters.user !== 'all') {
-      if (filters.user === 'unassigned') {
-        whereConditions.push(eq(conversations.assignedUserId, null));
-      } else {
-        const userId = parseInt(filters.user);
-        if (!isNaN(userId)) {
-          whereConditions.push(eq(conversations.assignedUserId, userId));
-        }
-      }
-    }
-    
-    // Filtro por equipe
-    if (filters?.team && filters.team !== 'all') {
-      if (filters.team === 'unassigned') {
-        whereConditions.push(eq(conversations.assignedTeamId, null));
-      } else {
-        const teamId = parseInt(filters.team);
-        if (!isNaN(teamId)) {
-          whereConditions.push(eq(conversations.assignedTeamId, teamId));
-        }
-      }
-    }
-
+  async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
     // Query otimizada com LEFT JOIN para buscar última mensagem em uma única consulta
-    let query = this.db
+    const query = this.db
       .select({
         // Conversation fields
         id: conversations.id,
@@ -159,15 +79,7 @@ export class ConversationStorage extends BaseStorage {
             )`
           )
         )
-      );
-
-    // Aplicar filtros WHERE se houver condições
-    if (whereConditions.length > 0) {
-      query = query.where(and(...whereConditions));
-    }
-
-    // Finalizar query com ordenação, limite e offset
-    query = query
+      )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
       .limit(limit)
       .offset(offset);

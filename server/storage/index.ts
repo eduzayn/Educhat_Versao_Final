@@ -156,8 +156,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==================== CONVERSATION OPERATIONS ====================
-  async getConversations(limit?: number, offset?: number, filters?: { period?: string; channel?: string; user?: string; team?: string }) {
-    return this.conversation.getConversations(limit, offset, filters);
+  async getConversations(limit?: number, offset?: number) {
+    return this.conversation.getConversations(limit, offset);
   }
 
   async getConversation(id: number) {
