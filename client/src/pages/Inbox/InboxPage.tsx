@@ -53,6 +53,7 @@ import { ConversationActionsDropdown } from './components/ConversationActionsDro
 import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
 import { ContactSidebar } from './components/ContactSidebar';
 import { ConversationFilters } from './components/ConversationFilters';
+import { AdvancedFiltersPanel } from './components/AdvancedFiltersPanel';
 import { ConversationListHeader } from './components/ConversationListHeader';
 import { ConversationItem } from './components/ConversationItem';
 import { ChatHeader } from './components/ChatHeader';
@@ -66,7 +67,16 @@ export function InboxPage() {
   const [channelFilter, setChannelFilter] = useState('all');
   const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
+  
+  // Estados para filtros avançados
+  const [userFilter, setUserFilter] = useState('all');
+  const [teamFilter, setTeamFilter] = useState('all');
+  const [periodFilter, setPeriodFilter] = useState('all');
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
+  
   const { data: channels = [] } = useChannels();
+  const { data: systemUsers = [] } = useSystemUsers();
   const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Carregar equipes para identificação de canais
@@ -341,45 +351,123 @@ export function InboxPage() {
     ? (searchResults || []) 
     : (conversations || []);
 
-  // Filtrar conversas baseado na aba ativa e filtros
+  // Função para verificar se uma conversa está dentro do período selecionado
+  const isConversationInPeriod = (conversation: any) => {
+    if (periodFilter === 'all') return true;
+    
+    const conversationDate = new Date(conversation.lastMessageAt || conversation.createdAt);
+    
+    switch (periodFilter) {
+      case 'today':
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+        return conversationDate >= today && conversationDate <= todayEnd;
+        
+      case 'yesterday':
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+        const yesterdayEnd = new Date();
+        yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+        yesterdayEnd.setHours(23, 59, 59, 999);
+        return conversationDate >= yesterday && conversationDate <= yesterdayEnd;
+        
+      case 'last7days':
+        const last7Days = new Date();
+        last7Days.setDate(last7Days.getDate() - 7);
+        return conversationDate >= last7Days;
+        
+      case 'last30days':
+        const last30Days = new Date();
+        last30Days.setDate(last30Days.getDate() - 30);
+        return conversationDate >= last30Days;
+        
+      case 'custom':
+        if (!customDateFrom && !customDateTo) return true;
+        if (customDateFrom && !customDateTo) {
+          return conversationDate >= customDateFrom;
+        }
+        if (!customDateFrom && customDateTo) {
+          const endOfDay = new Date(customDateTo);
+          endOfDay.setHours(23, 59, 59, 999);
+          return conversationDate <= endOfDay;
+        }
+        if (customDateFrom && customDateTo) {
+          const endOfDay = new Date(customDateTo);
+          endOfDay.setHours(23, 59, 59, 999);
+          return conversationDate >= customDateFrom && conversationDate <= endOfDay;
+        }
+        return true;
+        
+      default:
+        return true;
+    }
+  };
+
+  // Função para lidar com mudanças de datas personalizadas
+  const handleCustomDateChange = (from?: Date, to?: Date) => {
+    setCustomDateFrom(from);
+    setCustomDateTo(to);
+  };
+
+  // Filtrar conversas baseado na aba ativa e filtros (incluindo filtros avançados)
   const filteredConversations = conversationsToFilter.filter(conversation => {
     // Validação básica de segurança
     if (!conversation || !conversation.contact) return false;
     
-    // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
+    // Filtro por aba - conversas reabertas devem aparecer na inbox
     if (activeTab === 'inbox') {
-      // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
       const activeStatuses = ['open', 'pending', 'unread'];
       if (!conversation.status || !activeStatuses.includes(conversation.status)) return false;
     }
     if (activeTab === 'resolved') {
-      // Mostrar apenas conversas resolvidas/fechadas
       const resolvedStatuses = ['resolved', 'closed'];
       if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
     }
     
-    // Para busca no banco de dados, pular filtro local (já filtrado no backend)
-    // Para lista local sem busca, aplicar filtros de status e canal normalmente
-    
-    // Filtro por status
+    // Filtro por status (filtros básicos)
     if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
     
-    // Filtro por canal - implementação escalável para canais específicos
+    // Filtro por canal (filtros básicos)
     if (channelFilter !== 'all') {
-      // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
       if (channelFilter === conversation.channel) {
-        return true;
-      }
-      
-      // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
-      if (channelFilter.startsWith('whatsapp-')) {
+        // Corresponde ao tipo de canal
+      } else if (channelFilter.startsWith('whatsapp-')) {
         const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
+        if (!(conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId)) {
+          return false;
+        }
+      } else {
+        return false;
       }
-      
-      // Se não corresponde a nenhum filtro específico, excluir
-      return false;
     }
+    
+    // FILTROS AVANÇADOS
+    
+    // Filtro por usuário atribuído
+    if (userFilter !== 'all') {
+      if (userFilter === 'unassigned') {
+        if (conversation.assignedUserId) return false;
+      } else {
+        const userId = parseInt(userFilter);
+        if (conversation.assignedUserId !== userId) return false;
+      }
+    }
+    
+    // Filtro por equipe
+    if (teamFilter !== 'all') {
+      if (teamFilter === 'unassigned') {
+        if (conversation.assignedTeamId) return false;
+      } else {
+        const teamId = parseInt(teamFilter);
+        if (conversation.assignedTeamId !== teamId) return false;
+      }
+    }
+    
+    // Filtro por período
+    if (!isConversationInPeriod(conversation)) return false;
     
     return true;
   });
@@ -547,6 +635,21 @@ export function InboxPage() {
           onStatusFilterChange={setStatusFilter}
           onChannelFilterChange={setChannelFilter}
           channels={channels}
+        />
+
+        {/* Painel de filtros avançados */}
+        <AdvancedFiltersPanel
+          userFilter={userFilter}
+          teamFilter={teamFilter}
+          periodFilter={periodFilter}
+          customDateFrom={customDateFrom}
+          customDateTo={customDateTo}
+          onUserFilterChange={setUserFilter}
+          onTeamFilterChange={setTeamFilter}
+          onPeriodFilterChange={setPeriodFilter}
+          onCustomDateChange={handleCustomDateChange}
+          teams={teams || []}
+          users={systemUsers || []}
         />
 
         {/* Lista de Conversas com Scroll Infinito */}

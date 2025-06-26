@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Calendar } from '@/shared/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ChevronDown, ChevronUp, Filter, Calendar as CalendarIcon, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
 
 interface AdvancedFiltersPanelProps {
   userFilter: string;
@@ -36,7 +29,6 @@ export function AdvancedFiltersPanel({
   users
 }: AdvancedFiltersPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   // Contar filtros ativos
   const activeFiltersCount = [
@@ -54,53 +46,46 @@ export function AdvancedFiltersPanel({
     onCustomDateChange(undefined, undefined);
   };
 
-  // Obter cores das equipes baseado no teamType
-  const getTeamBadgeColor = (teamType: string) => {
-    const colorMap: { [key: string]: string } = {
-      'comercial': 'bg-blue-100 text-blue-700',
-      'suporte': 'bg-pink-100 text-pink-700',
-      'cobranca': 'bg-orange-100 text-orange-700',
-      'secretaria': 'bg-purple-100 text-purple-700',
-      'tutoria': 'bg-green-100 text-green-700',
-      'financeiro': 'bg-yellow-100 text-yellow-700'
-    };
-    return colorMap[teamType] || 'bg-gray-100 text-gray-700';
+  // Formatar data para input
+  const formatDateForInput = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Converter string para Date
+  const parseInputDate = (dateString: string) => {
+    return dateString ? new Date(dateString + 'T00:00:00') : undefined;
   };
 
   return (
     <div className="px-4 py-2 border-b border-gray-100 bg-white">
       {/* Botão de toggle dos filtros avançados */}
       <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 text-xs text-gray-600 hover:text-gray-900"
+        <button
+          className="h-8 text-xs text-gray-600 hover:text-gray-900 flex items-center bg-transparent border-none cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <Filter className="w-3 h-3 mr-1" />
           Filtros avançados
           {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+            <span className="ml-2 h-5 px-1.5 text-xs bg-gray-100 text-gray-700 rounded-full">
               {activeFiltersCount}
-            </Badge>
+            </span>
           )}
           {isExpanded ? (
             <ChevronUp className="w-3 h-3 ml-1" />
           ) : (
             <ChevronDown className="w-3 h-3 ml-1" />
           )}
-        </Button>
+        </button>
 
         {activeFiltersCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+          <button
+            className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center bg-transparent border-none cursor-pointer"
             onClick={clearAllFilters}
           >
             <X className="w-3 h-3 mr-1" />
             Limpar
-          </Button>
+          </button>
         )}
       </div>
 
@@ -116,20 +101,19 @@ export function AdvancedFiltersPanel({
             <label className="text-xs font-medium text-gray-700 mb-1 block">
               👤 Usuário atribuído
             </label>
-            <Select value={userFilter} onValueChange={onUserFilterChange}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Selecionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os usuários</SelectItem>
-                <SelectItem value="unassigned">Sem atribuição</SelectItem>
-                {users.filter(u => u.isActive).map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.displayName || user.username}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              value={userFilter}
+              onChange={(e) => onUserFilterChange(e.target.value)}
+              className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
+            >
+              <option value="all">Todos os usuários</option>
+              <option value="unassigned">Sem atribuição</option>
+              {users.filter(u => u.isActive).map(user => (
+                <option key={user.id} value={user.id.toString()}>
+                  {user.displayName || user.username}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Filtro por equipe */}
@@ -137,23 +121,19 @@ export function AdvancedFiltersPanel({
             <label className="text-xs font-medium text-gray-700 mb-1 block">
               🏷️ Equipe
             </label>
-            <Select value={teamFilter} onValueChange={onTeamFilterChange}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Selecionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as equipes</SelectItem>
-                <SelectItem value="unassigned">Sem equipe</SelectItem>
-                {teams.filter(t => t.isActive).map(team => (
-                  <SelectItem key={team.id} value={team.id.toString()}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${getTeamBadgeColor(team.teamType)}`}></div>
-                      {team.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              value={teamFilter}
+              onChange={(e) => onTeamFilterChange(e.target.value)}
+              className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
+            >
+              <option value="all">Todas as equipes</option>
+              <option value="unassigned">Sem equipe</option>
+              {teams.filter(t => t.isActive).map(team => (
+                <option key={team.id} value={team.id.toString()}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Filtro por período */}
@@ -161,19 +141,18 @@ export function AdvancedFiltersPanel({
             <label className="text-xs font-medium text-gray-700 mb-1 block">
               📅 Período
             </label>
-            <Select value={periodFilter} onValueChange={onPeriodFilterChange}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Selecionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Qualquer período</SelectItem>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="yesterday">Ontem</SelectItem>
-                <SelectItem value="last7days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last30days">Últimos 30 dias</SelectItem>
-                <SelectItem value="custom">Período personalizado</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              value={periodFilter}
+              onChange={(e) => onPeriodFilterChange(e.target.value)}
+              className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
+            >
+              <option value="all">Qualquer período</option>
+              <option value="today">Hoje</option>
+              <option value="yesterday">Ontem</option>
+              <option value="last7days">Últimos 7 dias</option>
+              <option value="last30days">Últimos 30 dias</option>
+              <option value="custom">Período personalizado</option>
+            </select>
           </div>
         </div>
 
@@ -181,55 +160,31 @@ export function AdvancedFiltersPanel({
         {periodFilter === 'custom' && (
           <div className="mt-3 p-3 bg-gray-50 rounded-md">
             <div className="flex items-center gap-2">
-              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-3 w-3" />
-                    {customDateFrom ? (
-                      customDateTo ? (
-                        <>
-                          {format(customDateFrom, "dd/MM/yy", { locale: ptBR })} -{' '}
-                          {format(customDateTo, "dd/MM/yy", { locale: ptBR })}
-                        </>
-                      ) : (
-                        format(customDateFrom, "dd/MM/yyyy", { locale: ptBR })
-                      )
-                    ) : (
-                      <span>Selecionar período</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={customDateFrom}
-                    selected={{
-                      from: customDateFrom,
-                      to: customDateTo,
-                    }}
-                    onSelect={(range) => {
-                      onCustomDateChange(range?.from, range?.to);
-                    }}
-                    numberOfMonths={2}
-                    locale={ptBR}
-                  />
-                </PopoverContent>
-              </Popover>
-
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-600">De:</label>
+                <input
+                  type="date"
+                  value={customDateFrom ? formatDateForInput(customDateFrom) : ''}
+                  onChange={(e) => onCustomDateChange(parseInputDate(e.target.value), customDateTo)}
+                  className="h-7 text-xs border border-gray-200 rounded px-2"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-600">Até:</label>
+                <input
+                  type="date"
+                  value={customDateTo ? formatDateForInput(customDateTo) : ''}
+                  onChange={(e) => onCustomDateChange(customDateFrom, parseInputDate(e.target.value))}
+                  className="h-7 text-xs border border-gray-200 rounded px-2"
+                />
+              </div>
               {(customDateFrom || customDateTo) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
+                <button
+                  className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center bg-transparent border-none cursor-pointer"
                   onClick={() => onCustomDateChange(undefined, undefined)}
                 >
                   <X className="w-3 h-3" />
-                </Button>
+                </button>
               )}
             </div>
           </div>
