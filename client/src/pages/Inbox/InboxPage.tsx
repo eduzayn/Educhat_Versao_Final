@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
 import { useMessages } from '@/shared/lib/hooks/useMessages';
+import { useSearchConversations } from '@/shared/lib/hooks/useSearchConversations';
 
 import { useZApiStore } from '@/shared/store/zapiStore';
 import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';

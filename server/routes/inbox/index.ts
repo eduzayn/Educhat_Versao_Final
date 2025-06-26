@@ -5,6 +5,26 @@ import { conversationsRateLimit, messagesRateLimit } from "../../middleware/rate
 
 export function registerInboxRoutes(app: Express) {
   
+  // Busca de conversas no banco de dados completo - DEVE ESTAR ANTES da rota genérica
+  app.get('/api/conversations/search', conversationsRateLimit, async (req, res) => {
+    try {
+      const searchTerm = req.query.q as string;
+      
+      if (!searchTerm || searchTerm.trim().length < 1) {
+        return res.status(400).json({ 
+          message: 'Termo de busca obrigatório',
+          details: 'Forneça um termo de busca válido'
+        });
+      }
+      
+      const conversations = await storage.searchConversations(searchTerm.trim());
+      res.json(conversations);
+    } catch (error) {
+      console.error('Erro ao buscar conversas:', error);
+      res.status(500).json({ message: 'Falha na busca de conversas' });
+    }
+  });
+
   // Conversations endpoints
   app.get('/api/conversations', conversationsRateLimit, async (req, res) => {
     try {

@@ -737,4 +737,80 @@ export class ConversationStorage extends BaseStorage {
       _count: { messages: result.unreadCount || 0 }
     } as ConversationWithContact;
   }
+
+  /**
+   * Busca conversas no banco de dados completo baseado em nome, telefone ou email do contato
+   */
+  async searchConversations(searchTerm: string): Promise<ConversationWithContact[]> {
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    // Query otimizada que busca em todo o banco de dados
+    const results = await this.db
+      .select({
+        // Conversation fields
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        assignmentMethod: conversations.assignmentMethod,
+        assignedAt: conversations.assignedAt,
+        isRead: conversations.isRead,
+        priority: conversations.priority,
+        tags: conversations.tags,
+        metadata: conversations.metadata,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        
+        // Contact fields
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          location: contacts.location,
+          age: contacts.age,
+          isOnline: contacts.isOnline,
+          lastSeenAt: contacts.lastSeenAt,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          assignedUserId: contacts.assignedUserId,
+          tags: contacts.tags,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(
+        // Busca flexível em nome, telefone e email
+        sql`(
+          LOWER(${contacts.name}) LIKE ${'%' + searchLower + '%'} OR
+          ${contacts.phone} LIKE ${'%' + searchTerm + '%'} OR
+          LOWER(${contacts.email}) LIKE ${'%' + searchLower + '%'}
+        )`
+      )
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(100); // Limitar para evitar sobrecarga
+
+    // Transformar resultados no formato esperado
+    return results.map(result => ({
+      ...result,
+      contact: {
+        ...result.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: [],
+      _count: { messages: result.unreadCount || 0 }
+    })) as ConversationWithContact[];
+  }
 }
