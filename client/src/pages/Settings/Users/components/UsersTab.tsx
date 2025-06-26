@@ -196,13 +196,7 @@ export const UsersTab = () => {
   // Import users mutation
   const importUsersMutation = useMutation({
     mutationFn: (usersData: any[]) => 
-      fetch('/api/system-users/bulk-import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ users: usersData })
-      }).then(res => res.json()),
+      apiRequest('POST', '/api/system-users/bulk-import', { users: usersData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
       setShowImportDialog(false);
