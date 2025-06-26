@@ -1,13 +1,15 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Filter, Users } from 'lucide-react';
+import { Filter, User, Users } from 'lucide-react';
 
 interface ConversationFiltersProps {
   statusFilter: string;
   channelFilter: string;
-  assignmentFilter: string;
+  userFilter: string;
+  teamFilter: string;
   onStatusFilterChange: (value: string) => void;
   onChannelFilterChange: (value: string) => void;
-  onAssignmentFilterChange: (value: string) => void;
+  onUserFilterChange: (value: string) => void;
+  onTeamFilterChange: (value: string) => void;
   channels: any[];
   users: any[];
   teams: any[];
@@ -16,10 +18,12 @@ interface ConversationFiltersProps {
 export function ConversationFilters({
   statusFilter,
   channelFilter,
-  assignmentFilter,
+  userFilter,
+  teamFilter,
   onStatusFilterChange,
   onChannelFilterChange,
-  onAssignmentFilterChange,
+  onUserFilterChange,
+  onTeamFilterChange,
   channels,
   users,
   teams
@@ -33,7 +37,6 @@ export function ConversationFilters({
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="open">Aberta</SelectItem>
             <SelectItem value="pending">Pendente</SelectItem>
             <SelectItem value="resolved">Resolvida</SelectItem>
@@ -58,24 +61,33 @@ export function ConversationFilters({
           </SelectContent>
         </Select>
 
-        <Select value={assignmentFilter} onValueChange={onAssignmentFilterChange}>
+        <Select value={userFilter} onValueChange={onUserFilterChange}>
           <SelectTrigger className="h-8 text-xs">
-            <Users className="w-3 h-3 mr-1" />
-            <SelectValue placeholder="Atribuição" />
+            <User className="w-3 h-3 mr-1" />
+            <SelectValue placeholder="Responsável" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os atendimentos</SelectItem>
+            <SelectItem value="all">Todos os usuários</SelectItem>
             <SelectItem value="unassigned">Sem atribuição</SelectItem>
-            <SelectItem value="separator-users" disabled>--- Por Usuário ---</SelectItem>
             {users.map(user => (
-              <SelectItem key={`user-${user.id}`} value={`user-${user.id}`}>
-                👤 {user.displayName || user.username}
+              <SelectItem key={user.id} value={user.id.toString()}>
+                {user.displayName || user.username}
               </SelectItem>
             ))}
-            <SelectItem value="separator-teams" disabled>--- Por Equipe ---</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={teamFilter} onValueChange={onTeamFilterChange}>
+          <SelectTrigger className="h-8 text-xs">
+            <Users className="w-3 h-3 mr-1" />
+            <SelectValue placeholder="Equipe" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as equipes</SelectItem>
+            <SelectItem value="unassigned">Sem equipe</SelectItem>
             {teams.map(team => (
-              <SelectItem key={`team-${team.id}`} value={`team-${team.id}`}>
-                👥 {team.name}
+              <SelectItem key={team.id} value={team.id.toString()}>
+                {team.name}
               </SelectItem>
             ))}
           </SelectContent>

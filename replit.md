@@ -96,15 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 26, 2025 (02:20): FILTRO UNIFICADO "ATRIBUIÇÃO" IMPLEMENTADO COMBINANDO USUÁRIOS E EQUIPES
-  - Substituído filtro individual "Responsável" por filtro unificado "Atribuição" 
-  - Dropdown organizado com separadores: "Todos", "Sem atribuição", "--- Por Usuário ---", lista de usuários, "--- Por Equipe ---", lista de equipes
-  - Query para carregar equipes integrada com cache otimizado (5 minutos) junto com usuários
-  - Lógica de filtro expandida: suporte a prefixos "user-{id}" e "team-{id}" para identificação única
-  - Ícone alterado de User para Users refletindo natureza unificada do filtro
-  - Interface compacta mantém 3 filtros principais: Status, Canal, Atribuição
-  - Economia de espaço visual permitindo futura expansão sem sobrecarga
-  - Aproveitamento total da infraestrutura existente sem código duplicado
+- June 26, 2025 (02:05): FILTRO POR USUÁRIO RESPONSÁVEL IMPLEMENTADO CIRURGICAMENTE
+  - Adicionado terceiro filtro "Responsável" ao lado dos filtros existentes (Status e Canal)
+  - Query para carregar usuários do sistema integrada com cache otimizado (5 minutos)
+  - Lógica de filtro implementada: "Todos os usuários", "Sem atribuição", e usuários específicos
+  - ConversationFilters.tsx expandido com ícone User e dropdown de responsáveis
+  - Interface mantém consistência visual e funcional com filtros existentes
+  - Funcionalidade permite organização pessoal: usuários filtram apenas seus atendimentos
+  - Implementação aproveitou 100% do código existente sem duplicações
 - June 26, 2025 (01:54): CORREÇÃO CIRÚRGICA DOS ERROS 429 E 403 IMPLEMENTADA COM SUCESSO
   - Rate limiting otimizado: conversas 120 req/min, mensagens 60 req/30s (aumentados substancialmente)
   - Endpoint /api/conversations/:id/read recebeu rate limiting específico: 50 req/10s (muito mais generoso)
