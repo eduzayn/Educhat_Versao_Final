@@ -64,6 +64,22 @@ export function ContactsPage() {
 
   // Garantir que channels é sempre um array
   const safeChannels = Array.isArray(channels) ? channels : [];
+
+  // Buscar usuários do sistema para o dropdown de proprietário
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-users', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Falha ao buscar usuários');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  });
+
   useGlobalZApiMonitor();
   
   // Verificar se WhatsApp está disponível para sincronização
