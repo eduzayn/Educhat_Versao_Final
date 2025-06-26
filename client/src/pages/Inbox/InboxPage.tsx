@@ -187,19 +187,14 @@ export function InboxPage() {
     
     if (needsMarkAsRead) {
       // Adicionar ao set de IDs já processados ANTES da requisição
-      setMarkedAsReadIds(prev => new Set([...prev, conversation.id]));
+      setMarkedAsReadIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(conversation.id);
+        return newSet;
+      });
       
       // Fazer a requisição apenas uma vez
-      markAsReadMutation.mutate(conversation.id, {
-        onError: () => {
-          // Se falhar, remover do set para permitir nova tentativa
-          setMarkedAsReadIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(conversation.id);
-            return newSet;
-          });
-        }
-      });
+      markAsReadMutation.mutate(conversation.id);
     }
     
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
@@ -403,7 +398,7 @@ export function InboxPage() {
   };
 
   // Filtrar conversas baseado na aba ativa e filtros (incluindo filtros avançados)
-  const filteredConversations = conversationsToFilter.filter(conversation => {
+  const filteredConversations = conversationsToFilter.filter((conversation: any) => {
     // Validação básica de segurança
     if (!conversation || !conversation.contact) return false;
     
@@ -660,7 +655,7 @@ export function InboxPage() {
             }
           }}
         >
-          {filteredConversations.map((conversation, index) => (
+          {filteredConversations.map((conversation: any, index: number) => (
             <ConversationItem
               key={`conversation-${conversation.id}-${index}`}
               conversation={conversation}

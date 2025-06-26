@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (16:20): EXPLORAÇÃO COMPLETA DO SISTEMA EDUCHAT FINALIZADA E ERROS LSP CORRIGIDOS
+  - Análise profunda de toda arquitetura: 37 tabelas, 5 módulos principais, integração Z-API completa
+  - Sistema CRM educacional com IA para detecção automática de cursos via Anthropic API
+  - Correção crítica: erro "allContacts.slice is not a function" resolvido com garantia de array
+  - Hook useContacts otimizado: initialData=[], validação Array.isArray, cache 30s
+  - ContactDialog.tsx corrigido: campo assignedUserId ao invés de ownerId inválido
+  - InboxPage.tsx: erros LSP TypeScript corrigidos (onError deprecated, tipos implícitos any)
+  - TanStack Query v5: remoção de onError em mutations e queries incompatíveis
+  - Sistema 100% operacional: 1.371 conversas ativas, webhooks processando, deals automáticos funcionando
 - June 26, 2025 (15:57): ERRO DE EDIÇÃO INLINE DO NOME DO CONTATO CORRIGIDO COMPLETAMENTE
   - Identificado problema: frontend usava PATCH mas servidor só tinha PUT implementado
   - Criada rota PATCH /api/contacts/:id com validações robustas e mensagens específicas
