@@ -273,6 +273,15 @@ export function ContactsPage() {
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
       if (hasValidChannel && createForm.activeMessage.trim() && createForm.phone) {
         try {
+          // Validações adicionais para evitar erro 400
+          if (!createForm.selectedChannelId || isNaN(parseInt(createForm.selectedChannelId))) {
+            throw new Error('Canal inválido selecionado');
+          }
+
+          if (!newContact.id) {
+            throw new Error('Erro ao criar contato - ID não disponível');
+          }
+
           // Enviar mensagem via Z-API
           const messageResponse = await apiRequest('POST', '/api/zapi/send-message', {
             phone: createForm.phone,
@@ -284,6 +293,7 @@ export function ContactsPage() {
           const conversationResponse = await apiRequest('POST', '/api/conversations', {
             contactId: newContact.id,
             channel: 'whatsapp',
+            channelId: parseInt(createForm.selectedChannelId),
             status: 'open',
             lastMessageAt: new Date().toISOString(),
             priority: 'medium',
@@ -564,7 +574,12 @@ export function ContactsPage() {
                 </Button>
                 <Button 
                   onClick={handleCreateContact}
-                  disabled={createContact.isPending || !createForm.name.trim()}
+                  disabled={
+                    createContact.isPending || 
+                    !createForm.name.trim() ||
+                    (createForm.activeMessage.trim() && !hasValidChannel) ||
+                    (hasValidChannel && createForm.activeMessage.trim() && !createForm.phone.trim())
+                  }
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                 >
                   {createContact.isPending ? 'Criando...' : 'Criar Contato'}

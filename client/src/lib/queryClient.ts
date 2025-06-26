@@ -31,7 +31,14 @@ async function throwIfResNotOk(res: Response) {
     });
 
     // Criar erro com informações detalhadas para mutations
-    const error = new Error(errorDetails.message || `${res.status}: ${res.statusText}`);
+    let errorMessage = errorDetails.message || `${res.status}: ${res.statusText}`;
+    
+    // Mensagens específicas para erros comuns
+    if (res.status === 400 && errorDetails.message === 'Invalid conversation data') {
+      errorMessage = 'Dados da conversa inválidos. Verifique se o canal foi selecionado corretamente.';
+    }
+    
+    const error = new Error(errorMessage);
     (error as any).response = {
       status: res.status,
       statusText: res.statusText,

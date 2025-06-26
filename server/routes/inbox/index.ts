@@ -92,10 +92,34 @@ export function registerInboxRoutes(app: Express) {
   app.post('/api/conversations', async (req: any, res) => {
     try {
       const userId = req.user?.id;
+      
+      // Validações específicas antes do schema
+      if (!req.body.contactId) {
+        return res.status(400).json({ 
+          message: 'ID do contato é obrigatório',
+          details: 'O campo contactId deve ser fornecido para criar uma conversa'
+        });
+      }
+      
+      if (!req.body.channel) {
+        return res.status(400).json({ 
+          message: 'Canal é obrigatório',
+          details: 'O campo channel deve ser fornecido (ex: whatsapp, instagram)'
+        });
+      }
+      
+      if (req.body.channelId && isNaN(parseInt(req.body.channelId))) {
+        return res.status(400).json({ 
+          message: 'ID do canal inválido',
+          details: 'O channelId deve ser um número válido'
+        });
+      }
+      
       const validatedData = insertConversationSchema.parse({
         ...req.body,
         assignedUserId: userId // Atribuir automaticamente ao usuário logado
       });
+      
       const conversation = await storage.createConversation(validatedData);
       
       // Broadcast para notificar criação de nova conversa
@@ -112,7 +136,20 @@ export function registerInboxRoutes(app: Express) {
       res.status(201).json(conversation);
     } catch (error) {
       console.error('Error creating conversation:', error);
-      res.status(400).json({ message: 'Invalid conversation data' });
+      
+      // Mensagens de erro mais específicas
+      if (error instanceof Error && error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: 'Dados de conversa inválidos',
+          details: 'Verifique se todos os campos obrigatórios foram preenchidos corretamente',
+          validationErrors: (error as any).errors
+        });
+      }
+      
+      res.status(400).json({ 
+        message: 'Erro ao criar conversa',
+        details: 'Verifique se o contato existe e o canal foi selecionado corretamente'
+      });
     }
   });
 
