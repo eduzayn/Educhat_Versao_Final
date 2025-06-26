@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Input } from '@/shared/ui/input';
 import { BackButton } from '@/shared/components/BackButton';
 import { 
-  Search, 
   Plus,
   AlertCircle,
   RefreshCw
@@ -67,8 +64,6 @@ export function ConversationListHeader({
           </div>
         </div>
       )}
-      
-
       
       {/* Abas simplificadas */}
       <Tabs value={activeTab} onValueChange={onTabChange}>

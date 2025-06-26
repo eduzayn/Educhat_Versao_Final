@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (03:45): SISTEMA DE FILTROS EM CASCATA IMPLEMENTADO COMPLETAMENTE
+  - Reestruturado ConversationFilters.tsx com nova arquitetura de duas linhas
+  - Primeira linha: filtros principais (período personalizado com campos "De" e "Até", status via abas, atribuição, equipe, canal)
+  - Segunda linha: busca global centralizada + ações rápidas (marcar como lida, atribuir, exportar)
+  - Corrigido erro "NaN" no backend através de sanitização de filtros na rota /api/conversations
+  - Removida funcionalidade duplicada de busca do ConversationListHeader.tsx
+  - Sistema responsivo com colapso automático em dispositivos móveis
+  - Arquitetura modular preparada para expansão futura (tags, filtros customizados)
 - June 26, 2025 (03:00): FILTRO DE STATUS REDUNDANTE REMOVIDO DEFINITIVAMENTE - PROBLEMA VISUAL SOLUCIONADO
   - Removido filtro de Status (com ícone de funil) que era redundante às abas existentes
   - Interface agora exibe apenas 3 filtros essenciais: Canal, Responsável e Equipe
