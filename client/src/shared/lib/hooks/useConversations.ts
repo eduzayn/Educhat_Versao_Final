@@ -2,12 +2,40 @@ import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tansta
 import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
-export function useConversations(initialLimit = 20, options = {}) {
+interface ConversationFilters {
+  userId?: number;
+  teamId?: number;
+  unassigned?: boolean;
+}
+
+export function useConversations(initialLimit = 20, filters: ConversationFilters = {}, options = {}) {
+  // Construir parâmetros de filtro para a URL
+  const buildFilterParams = (pageParam: number) => {
+    const params = new URLSearchParams();
+    params.set('page', pageParam.toString());
+    
+    const limit = pageParam === 1 ? initialLimit : 20;
+    params.set('limit', limit.toString());
+    
+    // Adicionar filtros específicos
+    if (filters.userId) {
+      params.set('userId', filters.userId.toString());
+    }
+    if (filters.teamId) {
+      params.set('teamId', filters.teamId.toString());
+    }
+    if (filters.unassigned) {
+      params.set('unassigned', 'true');
+    }
+    
+    return params.toString();
+  };
+
   return useInfiniteQuery<ConversationWithContact[]>({
-    queryKey: ['/api/conversations'],
+    queryKey: ['/api/conversations', filters], // Incluir filtros na chave de cache
     queryFn: async ({ pageParam = 1 }) => {
-      const limit = pageParam === 1 ? initialLimit : 20; // Primeira página: inicial, demais: 20
-      const response = await fetch(`/api/conversations?page=${pageParam}&limit=${limit}`);
+      const queryString = buildFilterParams(pageParam);
+      const response = await fetch(`/api/conversations?${queryString}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
       }

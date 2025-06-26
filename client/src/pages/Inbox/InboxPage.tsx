@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
@@ -99,6 +99,31 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real com notificações
   useWebSocket();
   
+  // Construir filtros para a API backend baseado nos filtros avançados
+  const apiFilters = useMemo(() => {
+    const filters: any = {};
+    
+    // Filtro por usuário
+    if (userFilter !== 'all') {
+      if (userFilter === 'unassigned') {
+        filters.unassigned = true;
+      } else {
+        filters.userId = parseInt(userFilter);
+      }
+    }
+    
+    // Filtro por equipe (apenas se não há filtro de usuário)
+    if (teamFilter !== 'all' && userFilter === 'all') {
+      if (teamFilter === 'unassigned') {
+        filters.unassigned = true;
+      } else {
+        filters.teamId = parseInt(teamFilter);
+      }
+    }
+    
+    return filters;
+  }, [userFilter, teamFilter]);
+
   const { 
     data: conversationsData, 
     isLoading, 
@@ -106,7 +131,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(15, { 
+  } = useConversations(15, apiFilters, { 
     refetchInterval: false, // WebSocket cuida das atualizações - sem polling
     staleTime: 60000, // Cache por 1 minuto para reduzir requisições
     refetchOnWindowFocus: false // Evitar requisições ao trocar de aba

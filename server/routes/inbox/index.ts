@@ -32,11 +32,35 @@ export function registerInboxRoutes(app: Express) {
       const limit = parseInt(req.query.limit as string) || 20; // Limite padrão reduzido para 20
       const offset = (page - 1) * limit;
       
+      // Novos filtros para usuário e equipe
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : undefined;
+      const unassignedOnly = req.query.unassigned === 'true';
+      
       // Validar limite máximo para evitar sobrecarga
       const maxLimit = 100;
       const safeLimit = Math.min(limit, maxLimit);
       
-      const conversations = await storage.getConversations(safeLimit, offset);
+      let conversations;
+      
+      // Aplicar filtros específicos no backend
+      if (userId) {
+        conversations = await storage.getConversationsByUser(userId);
+        // Aplicar paginação após filtro
+        conversations = conversations.slice(offset, offset + safeLimit);
+      } else if (teamId) {
+        conversations = await storage.getConversationsByTeam(teamId);
+        // Aplicar paginação após filtro
+        conversations = conversations.slice(offset, offset + safeLimit);
+      } else if (unassignedOnly) {
+        const allConversations = await storage.getConversations(1000, 0); // Buscar mais conversas para filtrar
+        conversations = allConversations.filter(conv => !conv.assignedUserId && !conv.assignedTeamId);
+        // Aplicar paginação após filtro
+        conversations = conversations.slice(offset, offset + safeLimit);
+      } else {
+        conversations = await storage.getConversations(safeLimit, offset);
+      }
+      
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
