@@ -3,19 +3,37 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import type { Contact, ContactWithTags, InsertContact } from '@shared/schema';
 
-export function useContacts(search?: string) {
-  return useQuery<Contact[]>({
-    queryKey: ['/api/contacts', { search }],
+export function useContacts(search?: string, page: number = 1, limit: number = 20) {
+  return useQuery({
+    queryKey: ['/api/contacts', { search, page, limit }],
     queryFn: async () => {
-      const url = search ? `/api/contacts?search=${encodeURIComponent(search)}` : '/api/contacts';
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      
+      const url = `/api/contacts?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch contacts');
       const data = await response.json();
-      // Garantir que sempre retorna um array
-      return Array.isArray(data) ? data : [];
+      
+      // Retornar objeto com dados de paginação
+      return {
+        data: Array.isArray(data.data) ? data.data : [],
+        total: data.total || 0,
+        page: data.page || 1,
+        limit: data.limit || limit,
+        totalPages: data.totalPages || 1
+      };
     },
-    // Valor padrão para evitar erro de slice
-    initialData: [],
+    // Valor padrão para evitar erro
+    initialData: {
+      data: [],
+      total: 0,
+      page: 1,
+      limit: limit,
+      totalPages: 1
+    },
     staleTime: 30 * 1000, // 30 segundos de cache
     retry: 2
   });

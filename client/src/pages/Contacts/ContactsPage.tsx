@@ -30,6 +30,10 @@ export function ContactsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [contactsPerPage, setContactsPerPage] = useState(20);
+  
+  // Ajustar limite: primeira página 20, demais 30
+  const currentLimit = currentPage === 1 ? 20 : 30;
+  
   const [createForm, setCreateForm] = useState({ 
     name: '', 
     email: '', 
@@ -65,7 +69,11 @@ export function ContactsPage() {
   // Verificar se WhatsApp está disponível para sincronização
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
-  const { data: allContacts = [], isLoading } = useContacts(searchQuery);
+  // Hook de contatos com paginação do backend
+  const { data: contactsData, isLoading } = useContacts(searchQuery, currentPage, currentLimit);
+  const allContacts = contactsData?.data || [];
+  const totalContacts = contactsData?.total || 0;
+  const totalPages = contactsData?.totalPages || 1;
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const deleteContact = useDeleteContact();
@@ -78,12 +86,8 @@ export function ContactsPage() {
   // Hook para buscar foto de perfil atualizada via Z-API
   const { data: profilePicture, isLoading: loadingProfilePicture, refetch: fetchProfilePicture } = useZApiProfilePicture(profilePicturePhone);
 
-  // Calcular paginação
-  const totalContacts = allContacts.length;
-  const totalPages = Math.ceil(totalContacts / contactsPerPage);
-  const startIndex = (currentPage - 1) * contactsPerPage;
-  const endIndex = startIndex + contactsPerPage;
-  const contacts = allContacts.slice(startIndex, endIndex);
+  // Os contatos já vêm paginados do backend
+  const contacts = allContacts;
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
@@ -944,7 +948,7 @@ export function ContactsPage() {
               {totalContacts > 0 && (
                 <div className="border-t border-gray-200 p-4 flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Mostrando {startIndex + 1}-{Math.min(endIndex, totalContacts)} de {totalContacts} contatos
+                    Mostrando {((currentPage - 1) * currentLimit) + 1}-{Math.min(currentPage * currentLimit, totalContacts)} de {totalContacts} contatos
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button 
