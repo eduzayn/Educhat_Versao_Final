@@ -22,7 +22,7 @@ export function ConversationFilters({
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger className="h-8 text-xs">
             <Filter className="w-3 h-3 mr-1" />
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Aberta" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="open">Aberta</SelectItem>
@@ -33,7 +33,7 @@ export function ConversationFilters({
         
         <Select value={channelFilter} onValueChange={onChannelFilterChange}>
           <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="Canal" />
+            <SelectValue placeholder="Todos os canais" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os canais</SelectItem>

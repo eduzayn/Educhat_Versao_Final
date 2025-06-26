@@ -85,8 +85,7 @@ export function ConversationListHeader({
       
       {/* Abas simplificadas */}
       <Tabs value={activeTab} onValueChange={onTabChange}>
-        <TabsList className="grid w-full grid-cols-3 h-8">
-          <TabsTrigger value="inbox" className="text-xs">Entrada</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-8">
           <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
           <TabsTrigger value="resolved" className="text-xs">Resolvidas</TabsTrigger>
         </TabsList>

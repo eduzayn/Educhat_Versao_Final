@@ -61,7 +61,7 @@ import { MessagesArea } from './components/MessagesArea';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 export function InboxPage() {
-  const [activeTab, setActiveTab] = useState('inbox');
+  const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('open');
   const [channelFilter, setChannelFilter] = useState('all');
