@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (16:36): PADRONIZAÇÃO DA PAGINAÇÃO PARA 20 CONTATOS POR PÁGINA IMPLEMENTADA
+  - Simplificada lógica de paginação: sempre 20 contatos por página (removida variação 20/30)
+  - Removidos seletores de quantidade por página da interface
+  - Código limpo: eliminadas variáveis e funções relacionadas ao controle de quantidade
+  - Sistema mais simples e consistente para melhor experiência do usuário
+  - Correção cirúrgica: apenas ContactsPage.tsx alterado, funcionalidade mantida
 - June 26, 2025 (16:31): CORREÇÃO CRÍTICA DA LISTA DE CONTATOS IMPLEMENTADA COM SUCESSO
   - Hook useContacts corrigido: substituído fetch() direto por apiRequest() configurado
   - Problema identificado: autenticação não funcionava com fetch direto sem cookies de sessão

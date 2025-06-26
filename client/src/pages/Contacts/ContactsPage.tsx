@@ -29,10 +29,10 @@ export function ContactsPage() {
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [contactsPerPage, setContactsPerPage] = useState(20);
+  // Removido: sempre 20 contatos por página
   
-  // Ajustar limite: primeira página 20, demais 30
-  const currentLimit = currentPage === 1 ? 20 : 30;
+  // Padronizado: sempre 20 contatos por página
+  const currentLimit = 20;
   
   const [createForm, setCreateForm] = useState({ 
     name: '', 
@@ -70,25 +70,15 @@ export function ContactsPage() {
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
   // Hook de contatos com paginação do backend
-  const { data: contactsData, isLoading, error, isPending, isSuccess } = useContacts(searchQuery, currentPage, currentLimit);
+  const { data: contactsData, isLoading, error } = useContacts(searchQuery, currentPage, currentLimit);
   
   // Fallback robusto para garantir que sempre temos dados
   const allContacts = Array.isArray(contactsData?.data) ? contactsData.data : [];
   const totalContacts = contactsData?.total || 0;
   const totalPages = contactsData?.totalPages || 1;
   
-  // Estado local para manter os últimos dados válidos
-  const [lastValidContacts, setLastValidContacts] = useState<any[]>([]);
-  
-  // Atualizar dados locais quando recebemos dados válidos
-  useState(() => {
-    if (isSuccess && allContacts.length > 0) {
-      setLastValidContacts(allContacts);
-    }
-  });
-  
-  // Usar dados do cache local se os dados atuais estão vazios
-  const displayContacts = allContacts.length > 0 ? allContacts : lastValidContacts;
+  // Os contatos a serem exibidos
+  const contacts = allContacts;
   
 
   
@@ -135,10 +125,7 @@ export function ContactsPage() {
     setCurrentPage(page);
   };
 
-  const handleContactsPerPageChange = (value: string) => {
-    setContactsPerPage(parseInt(value));
-    setCurrentPage(1); // Reset para primeira página
-  };
+  // Removido: sempre 20 contatos por página
 
   const handleViewContact = (contact: Contact) => {
     setViewingContact(contact);
