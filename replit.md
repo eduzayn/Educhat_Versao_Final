@@ -96,6 +96,21 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (01:08): ERRO DE DELEÇÃO "UNEXPECTED TOKEN '<', '<!DOCTYPE'..." CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: frontend chamava POST /api/zapi/delete-message (inexistente)
+  - Endpoint inexistente retornava HTML 404 ao invés de JSON causando SyntaxError
+  - Corrigido para usar DELETE /api/zapi/messages/${messageId} (endpoint real existente)
+  - Sistema de deleção funcionando: status 200, resposta JSON válida
+  - Mantida funcionalidade completa: deleção Z-API, soft delete, broadcast WebSocket
+  - Correção cirúrgica: apenas MessageBubble.tsx alterado, uma linha modificada
+- June 26, 2025 (01:03): ERRO 500 NO ENDPOINT /API/ZAPI/SEND-FILE CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: broadcast WebSocket sem tratamento de erro causava falha no endpoint
+  - Adicionado try-catch específico para broadcast evitando propagação de erro
+  - Otimizado salvamento: dados do arquivo movidos para metadata.fileData ao invés de content
+  - Campo content agora usa messageContent (nome/caption) evitando problemas de tamanho
+  - Endpoint funcionando: status 200 ao invés de 500, mensagem salva corretamente no banco
+  - Mantida funcionalidade completa: Z-API, broadcast WebSocket, renderização frontend
+  - Correção cirúrgica: apenas arquivo webhooks/index.ts alterado, sistema intacto
 - June 25, 2025 (21:58): ERRO CRÍTICO "RESPONSE.JSON IS NOT A FUNCTION" CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: useMarkConversationRead fazia .json() em dados já processados pelo apiRequest
   - Corrigido duplo processamento: apiRequest já retorna res.json(), hook apenas recebia os dados
