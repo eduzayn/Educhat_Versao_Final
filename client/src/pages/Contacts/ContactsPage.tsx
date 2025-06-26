@@ -5,6 +5,7 @@ import { Input } from '@/shared/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/ui/alert-dialog';
 import { SafeAvatar } from '@/components/SafeAvatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Search, Plus, Filter, Download, Eye, Edit, Trash2, Phone, ChevronRight, X, RefreshCw, Send } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
