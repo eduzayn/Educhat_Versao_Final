@@ -99,7 +99,7 @@ export function AdvancedFiltersPanel({
           {/* Filtro por usuário atribuído */}
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1 block">
-              👤 Usuário atribuído
+              👤 Usuário
             </label>
             <select
               value={userFilter}
