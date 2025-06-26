@@ -36,7 +36,18 @@ export function registerInboxRoutes(app: Express) {
       const maxLimit = 100;
       const safeLimit = Math.min(limit, maxLimit);
       
-      const conversations = await storage.getConversations(safeLimit, offset);
+      // Extrair filtros de período
+      const periodFilter = req.query.period as string;
+      const channelFilter = req.query.channel as string;
+      const userFilter = req.query.user as string;
+      const teamFilter = req.query.team as string;
+      
+      const conversations = await storage.getConversations(safeLimit, offset, {
+        period: periodFilter,
+        channel: channelFilter,
+        user: userFilter,
+        team: teamFilter
+      });
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
