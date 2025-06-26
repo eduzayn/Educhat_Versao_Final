@@ -25,13 +25,54 @@ export function InlineContactNameEdit({
   const updateNameMutation = useMutation({
     mutationFn: (newName: string) => 
       apiRequest('PATCH', `/api/contacts/${contactId}`, { name: newName }),
-    onSuccess: () => {
+    onSuccess: (updatedContact) => {
       toast({
         title: "Nome atualizado",
         description: "Nome do contato foi atualizado com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      
+      // Atualizar diretamente o cache das conversas com o novo nome
+      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+        if (Array.isArray(oldData)) {
+          return oldData.map((conversation: any) => {
+            if (conversation.contact?.id === contactId) {
+              return {
+                ...conversation,
+                contact: {
+                  ...conversation.contact,
+                  name: editValue.trim()
+                }
+              };
+            }
+            return conversation;
+          });
+        }
+        return oldData;
+      });
+
+      // Atualizar cache de conversas específicas que usam este contato
+      queryClient.getQueryCache().getAll().forEach((query) => {
+        const key = query.queryKey[0] as string;
+        if (key?.startsWith('/api/conversations/') && !key.includes('/messages')) {
+          queryClient.setQueryData(query.queryKey, (oldData: any) => {
+            if (oldData?.contact?.id === contactId) {
+              return {
+                ...oldData,
+                contact: {
+                  ...oldData.contact,
+                  name: editValue.trim()
+                }
+              };
+            }
+            return oldData;
+          });
+        }
+      });
+      
+      // Invalidar queries que precisam de reload completo
       queryClient.invalidateQueries({ queryKey: [`/api/contacts/${contactId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      
       setIsEditing(false);
     },
     onError: (error: any) => {
