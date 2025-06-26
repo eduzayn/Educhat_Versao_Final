@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { quickReplies, quickReplyTeamShares, quickReplyShares, type QuickReply, type InsertQuickReply } from "@shared/schema";
-import { eq, desc, and, or, inArray } from "drizzle-orm";
+import { eq, desc, and, or, inArray, ilike } from "drizzle-orm";
 
 /**
  * Quick Reply storage module - manages quick replies and sharing
@@ -67,5 +67,17 @@ export class QuickReplyStorage extends BaseStorage {
 
   async deleteQuickReplyUserShares(quickReplyId: number): Promise<void> {
     await this.db.delete(quickReplyShares).where(eq(quickReplyShares.quickReplyId, quickReplyId));
+  }
+
+  async getUserQuickReplies(userId: number): Promise<QuickReply[]> {
+    // Buscar respostas rápidas do usuário (próprias + compartilhadas)
+    return this.db.select().from(quickReplies)
+      .where(
+        or(
+          eq(quickReplies.createdBy, userId),
+          eq(quickReplies.shareScope, 'global')
+        )
+      )
+      .orderBy(desc(quickReplies.usageCount), desc(quickReplies.createdAt));
   }
 }
