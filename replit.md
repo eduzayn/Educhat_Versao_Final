@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (15:27): CAMPOS DE OBSERVAÇÕES E TAGS REMOVIDOS COMPLETAMENTE DO MODAL DE CONTATO
+  - Removidos campos 'notes' e sistema completo de tags da interface ContactsPage.tsx
+  - Eliminadas funções handleAddTag e handleRemoveTag não utilizadas
+  - Removidos estados newTags, currentTag e setNewTags do componente
+  - Modal de criação reorganizado com melhor aproveitamento de espaço vertical
+  - Interface mais limpa focada apenas nos campos essenciais: nome, email, telefone, proprietário, mensagem ativa
+  - Correção cirúrgica: apenas ContactsPage.tsx alterado, funcionalidade de WhatsApp mantida intacta
 - June 26, 2025 (15:20): CAMPO DE OBSERVAÇÕES REMOVIDO DO MODAL DE CONTATO PARA MELHOR APROVEITAMENTO DE ESPAÇO
   - Removido campo 'notes' da interface ContactForm e todos os estados relacionados
   - Eliminada seção HTML de observações do formulário de criação de contato

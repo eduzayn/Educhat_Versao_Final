@@ -342,7 +342,6 @@ export function ContactsPage() {
         selectedChannelId: '',
         activeMessage: ''
       });
-      setNewTags([]);
     } catch (error) {
       toast({
         title: "Erro",
@@ -549,7 +548,6 @@ export function ContactsPage() {
                       selectedChannelId: '',
                       activeMessage: ''
                     });
-                    setNewTags([]);
                   }}
                 >
                   Cancelar
