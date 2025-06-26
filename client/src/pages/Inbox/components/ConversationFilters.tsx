@@ -25,7 +25,6 @@ export function ConversationFilters({
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="open">Aberta</SelectItem>
             <SelectItem value="pending">Pendente</SelectItem>
             <SelectItem value="resolved">Resolvida</SelectItem>

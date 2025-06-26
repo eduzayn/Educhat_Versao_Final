@@ -63,7 +63,7 @@ import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 export function InboxPage() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('open');
   const [channelFilter, setChannelFilter] = useState('all');
   const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
