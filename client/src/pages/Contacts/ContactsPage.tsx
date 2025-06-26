@@ -312,7 +312,7 @@ export function ContactsPage() {
             channel: 'whatsapp',
             channelId: parseInt(createForm.selectedChannelId),
             status: 'open',
-            lastMessageAt: new Date().toISOString(),
+            lastMessageAt: new Date(),
             priority: 'medium',
             isRead: false
           });
@@ -322,7 +322,7 @@ export function ContactsPage() {
             content: createForm.activeMessage,
             isFromContact: false,
             messageType: 'text',
-            sentAt: new Date().toISOString()
+            sentAt: new Date()
           });
 
           toast({

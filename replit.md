@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (19:35): ERRO DE ENVIO DE MENSAGEM ATIVA CORRIGIDO COMPLETAMENTE
+  - Identificado problema real: validação incorreta de canal "none" bloqueava envio
+  - Corrigido campo lastMessageAt: new Date() ao invés de .toISOString() (Date vs string)
+  - Corrigido campo sentAt na criação de mensagem: formato Date correto
+  - Melhorados logs de debug específicos para capturar falhas Z-API
+  - Sistema de criação de contato com mensagem ativa funcionando: contato → Z-API → conversa → inbox
+  - Validações robustas implementadas: canal obrigatório para mensagem ativa
+  - Mensagens de erro específicas para facilitar debug pelos colaboradores
 - June 26, 2025 (19:00): ANÁLISE COMPLETA DE FECHAMENTO AUTOMÁTICO DE CONVERSAS FINALIZADA
   - Investigação profunda: não há processos automáticos fechando conversas indevidamente
   - Sistema webhook Z-API funciona corretamente: reabre conversas fechadas quando nova mensagem chega
