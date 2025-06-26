@@ -10,8 +10,14 @@ export function useContacts(search?: string) {
       const url = search ? `/api/contacts?search=${encodeURIComponent(search)}` : '/api/contacts';
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch contacts');
-      return response.json();
-    }
+      const data = await response.json();
+      // Garantir que sempre retorna um array
+      return Array.isArray(data) ? data : [];
+    },
+    // Valor padrão para evitar erro de slice
+    initialData: [],
+    staleTime: 30 * 1000, // 30 segundos de cache
+    retry: 2
   });
 }
 

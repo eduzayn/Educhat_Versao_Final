@@ -163,7 +163,7 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
         name: form.name,
         email: form.email || null,
         phone: form.phone || null,
-        ownerId: form.owner ? parseInt(form.owner) : null
+        assignedUserId: form.owner ? parseInt(form.owner) : null
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa

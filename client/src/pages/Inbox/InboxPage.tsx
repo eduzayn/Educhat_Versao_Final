@@ -155,16 +155,6 @@ export function InboxPage() {
       }
       // Máximo 2 tentativas para erros 500
       return failureCount < 2;
-    },
-    onError: (error: any) => {
-      console.error('Erro ao carregar conversa ativa:', error);
-      toast({
-        title: "Conversa indisponível",
-        description: "Esta conversa não pôde ser carregada. Selecione outra conversa.",
-        variant: "destructive"
-      });
-      // Limpar seleção de conversa problemática
-      setActiveConversation(null);
     }
   });
   
