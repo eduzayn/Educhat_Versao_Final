@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (01:54): CORREÇÃO CIRÚRGICA DOS ERROS 429 E 403 IMPLEMENTADA COM SUCESSO
+  - Rate limiting otimizado: conversas 120 req/min, mensagens 60 req/30s (aumentados substancialmente)
+  - Endpoint /api/conversations/:id/read recebeu rate limiting específico: 50 req/10s (muito mais generoso)
+  - SafeAvatar aprimorado: elimina completamente logs de erro 403 das imagens WhatsApp
+  - Correção focada apenas nos pontos problemáticos sem alterar outras funcionalidades
+  - Sistema mantém robustez contra ataques mas permite uso normal intensivo
+  - Erros 429 "Too Many Requests" solucionados para operação fluida da interface
 - June 26, 2025 (01:17): BUSCA DE RESPOSTAS RÁPIDAS MELHORADA COM ALGORITMO INTELIGENTE DE PRECISÃO
   - Implementado sistema de score de relevância que prioriza correspondências no início das palavras-chave
   - Score 100 para correspondência exata no início do título (ex: "M" encontra "Modelo Diploma")
