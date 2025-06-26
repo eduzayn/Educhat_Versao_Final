@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (19:00): ANÁLISE COMPLETA DE FECHAMENTO AUTOMÁTICO DE CONVERSAS FINALIZADA
+  - Investigação profunda: não há processos automáticos fechando conversas indevidamente
+  - Sistema webhook Z-API funciona corretamente: reabre conversas fechadas quando nova mensagem chega
+  - Conversas são fechadas apenas manualmente pelos atendentes através da interface
+  - Caso do "Cícero": conversa foi fechada manualmente, agora reaberta e funcionando
+  - Duplicação de contatos consolidada: conversa única atribuída à "Tati Corsi"
+  - Sistema de integridade referencial funcionando: deals, mensagens, conversas sincronizados
 - June 26, 2025 (16:50): ERRO 400 "INVALID CONVERSATION DATA" CORRIGIDO COMPLETAMENTE
   - Identificado problema: payload da conversa não incluía channelId obrigatório
   - Corrigido frontend: adicionado parseInt(createForm.selectedChannelId) ao criar conversa
