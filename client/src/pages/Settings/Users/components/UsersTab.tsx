@@ -169,19 +169,13 @@ export const UsersTab = () => {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: ({ id, userData }: { id: number; userData: any }) => 
-      apiRequest(`/api/system-users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: userData.username,
-          displayName: userData.name,
-          email: userData.email,
-          role: userData.role,
-          team: userData.team,
-          isActive: userData.isActive
-        })
+      apiRequest('PUT', `/api/system-users/${id}`, {
+        username: userData.username,
+        displayName: userData.name,
+        email: userData.email,
+        role: userData.role,
+        team: userData.team,
+        isActive: userData.isActive
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
@@ -193,9 +187,7 @@ export const UsersTab = () => {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => 
-      apiRequest(`/api/system-users/${userId}`, {
-        method: 'DELETE'
-      }),
+      apiRequest('DELETE', `/api/system-users/${userId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
     }
