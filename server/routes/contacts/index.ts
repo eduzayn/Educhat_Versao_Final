@@ -130,6 +130,36 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  app.patch("/api/contacts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ message: "ID do contato inválido" });
+      }
+
+      const validatedData = insertContactSchema.partial().parse(req.body);
+      
+      if (Object.keys(validatedData).length === 0) {
+        return res.status(400).json({ message: "Nenhum campo fornecido para atualização" });
+      }
+
+      const contact = await storage.updateContact(id, validatedData);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contato não encontrado" });
+      }
+
+      res.json(contact);
+    } catch (error) {
+      console.error("Error updating contact:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Dados de contato inválidos: " + error.message });
+      }
+      res.status(500).json({ message: "Erro interno do servidor ao atualizar contato" });
+    }
+  });
+
   // Contact tags endpoints
   app.get("/api/contacts/:id/tags", async (req, res) => {
     try {

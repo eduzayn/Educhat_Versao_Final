@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (15:57): ERRO DE EDIÇÃO INLINE DO NOME DO CONTATO CORRIGIDO COMPLETAMENTE
+  - Identificado problema: frontend usava PATCH mas servidor só tinha PUT implementado
+  - Criada rota PATCH /api/contacts/:id com validações robustas e mensagens específicas
+  - Melhorado tratamento de erro no InlineContactNameEdit.tsx para capturar mensagens detalhadas da API
+  - Sistema agora exibe motivo específico da falha ao invés de mensagem genérica
+  - Validações adicionadas: ID válido, campos obrigatórios, contato existente
+  - Edição inline de nome do contato funcionando perfeitamente na caixa de entrada
 - June 26, 2025 (15:27): CAMPOS DE OBSERVAÇÕES E TAGS REMOVIDOS COMPLETAMENTE DO MODAL DE CONTATO
   - Removidos campos 'notes' e sistema completo de tags da interface ContactsPage.tsx
   - Eliminadas funções handleAddTag e handleRemoveTag não utilizadas

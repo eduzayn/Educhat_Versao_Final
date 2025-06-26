@@ -34,10 +34,21 @@ export function InlineContactNameEdit({
       queryClient.invalidateQueries({ queryKey: [`/api/contacts/${contactId}`] });
       setIsEditing(false);
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Não foi possível atualizar o nome do contato.";
+      
+      // Captura mensagem específica do erro da API
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o nome do contato.",
+        title: "Erro ao atualizar nome",
+        description: errorMessage,
         variant: "destructive",
       });
     },
