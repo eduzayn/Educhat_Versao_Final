@@ -42,12 +42,15 @@ export function registerInboxRoutes(app: Express) {
       const userFilter = req.query.user as string;
       const teamFilter = req.query.team as string;
       
-      const conversations = await storage.getConversations(safeLimit, offset, {
-        period: periodFilter,
-        channel: channelFilter,
-        user: userFilter,
-        team: teamFilter
-      });
+      // Sanitizar filtros para evitar valores "NaN" ou inválidos
+      const sanitizedFilters = {
+        period: periodFilter && periodFilter !== 'all' ? periodFilter : undefined,
+        channel: channelFilter && channelFilter !== 'all' ? channelFilter : undefined,
+        user: userFilter && userFilter !== 'all' ? userFilter : undefined,
+        team: teamFilter && teamFilter !== 'all' ? teamFilter : undefined
+      };
+      
+      const conversations = await storage.getConversations(safeLimit, offset, sanitizedFilters);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);

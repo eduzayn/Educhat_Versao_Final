@@ -65,20 +65,26 @@ export class ConversationStorage extends BaseStorage {
     }
     
     // Filtro por usuário responsável
-    if (filters?.user) {
+    if (filters?.user && filters.user !== 'all') {
       if (filters.user === 'unassigned') {
         whereConditions.push(eq(conversations.assignedUserId, null));
       } else {
-        whereConditions.push(eq(conversations.assignedUserId, parseInt(filters.user)));
+        const userId = parseInt(filters.user);
+        if (!isNaN(userId)) {
+          whereConditions.push(eq(conversations.assignedUserId, userId));
+        }
       }
     }
     
     // Filtro por equipe
-    if (filters?.team) {
+    if (filters?.team && filters.team !== 'all') {
       if (filters.team === 'unassigned') {
         whereConditions.push(eq(conversations.assignedTeamId, null));
       } else {
-        whereConditions.push(eq(conversations.assignedTeamId, parseInt(filters.team)));
+        const teamId = parseInt(filters.team);
+        if (!isNaN(teamId)) {
+          whereConditions.push(eq(conversations.assignedTeamId, teamId));
+        }
       }
     }
 

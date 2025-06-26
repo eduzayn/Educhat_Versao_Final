@@ -235,6 +235,10 @@ export function ConversationFilters({
             size="sm"
             variant="outline"
             className="h-8 px-3 text-xs gap-1"
+            onClick={() => {
+              // Implementar marcação em massa como lida
+              console.log('Marcar conversas selecionadas como lidas');
+            }}
           >
             <Check className="w-3 h-3" />
             Marcar como lida
@@ -243,6 +247,10 @@ export function ConversationFilters({
             size="sm"
             variant="outline"
             className="h-8 px-3 text-xs gap-1"
+            onClick={() => {
+              // Implementar atribuição em massa
+              console.log('Atribuir conversas selecionadas');
+            }}
           >
             <UserCheck className="w-3 h-3" />
             Atribuir
@@ -251,6 +259,10 @@ export function ConversationFilters({
             size="sm"
             variant="outline"
             className="h-8 px-3 text-xs gap-1"
+            onClick={() => {
+              // Implementar exportação CSV
+              console.log('Exportar conversas filtradas');
+            }}
           >
             <Download className="w-3 h-3" />
             Exportar
