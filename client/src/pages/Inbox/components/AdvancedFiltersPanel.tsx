@@ -61,11 +61,11 @@ export function AdvancedFiltersPanel({
       {/* Botão de toggle dos filtros avançados */}
       <div className="flex items-center justify-between">
         <button
-          className="h-8 text-xs text-gray-600 hover:text-gray-900 flex items-center bg-transparent border-none cursor-pointer"
+          className="h-8 text-xs text-black hover:text-gray-900 flex items-center bg-transparent border-none cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
         >
-          <Filter className="w-3 h-3 mr-1" />
+          <Filter className="w-3 h-3 mr-1 text-black" />
           Filtros avançados
           {activeFiltersCount > 0 && (
             <span className="ml-2 h-5 px-1.5 text-xs bg-gray-100 text-gray-700 rounded-full">
