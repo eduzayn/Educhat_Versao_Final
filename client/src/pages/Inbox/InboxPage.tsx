@@ -623,11 +623,14 @@ export function InboxPage() {
           searchTerm={searchTerm}
           isWhatsAppAvailable={isWhatsAppAvailable}
           periodFilter={periodFilter}
+          customDateFrom={customDateFrom}
+          customDateTo={customDateTo}
           onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
           onPeriodFilterChange={setPeriodFilter}
+          onCustomDateChange={handleCustomDateChange}
         />
 
         {/* Filtros compactos */}

@@ -13,16 +13,30 @@ import {
 } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
+// Funções utilitárias para formatação de datas
+const formatDateForInput = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+const parseInputDate = (dateString: string): Date | undefined => {
+  if (!dateString) return undefined;
+  const date = new Date(dateString + 'T00:00:00');
+  return isNaN(date.getTime()) ? undefined : date;
+};
+
 interface ConversationListHeaderProps {
   activeTab: string;
   searchTerm: string;
   isWhatsAppAvailable: boolean;
   periodFilter: string;
+  customDateFrom?: Date;
+  customDateTo?: Date;
   onTabChange: (value: string) => void;
   onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
   onRefresh?: () => void;
   onPeriodFilterChange: (value: string) => void;
+  onCustomDateChange: (from?: Date, to?: Date) => void;
 }
 
 export function ConversationListHeader({
@@ -30,11 +44,14 @@ export function ConversationListHeader({
   searchTerm,
   isWhatsAppAvailable,
   periodFilter,
+  customDateFrom,
+  customDateTo,
   onTabChange,
   onSearchChange,
   onNewContactClick,
   onRefresh,
-  onPeriodFilterChange
+  onPeriodFilterChange,
+  onCustomDateChange
 }: ConversationListHeaderProps) {
   return (
     <div className="p-4 border-b border-gray-200">
@@ -104,6 +121,32 @@ export function ConversationListHeader({
           <SelectItem value="custom">Período personalizado</SelectItem>
         </SelectContent>
       </Select>
+
+      {/* Seletor de data personalizado */}
+      {periodFilter === 'custom' && (
+        <div className="mt-3 p-3 bg-gray-50 rounded-md">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">De:</label>
+              <input
+                type="date"
+                value={customDateFrom ? formatDateForInput(customDateFrom) : ''}
+                onChange={(e) => onCustomDateChange(parseInputDate(e.target.value), customDateTo)}
+                className="h-7 text-xs border border-gray-200 rounded px-2"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Até:</label>
+              <input
+                type="date"
+                value={customDateTo ? formatDateForInput(customDateTo) : ''}
+                onChange={(e) => onCustomDateChange(customDateFrom, parseInputDate(e.target.value))}
+                className="h-7 text-xs border border-gray-200 rounded px-2"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -139,39 +139,7 @@ export function AdvancedFiltersPanel({
 
         </div>
 
-        {/* Seletor de data personalizado */}
-        {periodFilter === 'custom' && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-600">De:</label>
-                <input
-                  type="date"
-                  value={customDateFrom ? formatDateForInput(customDateFrom) : ''}
-                  onChange={(e) => onCustomDateChange(parseInputDate(e.target.value), customDateTo)}
-                  className="h-7 text-xs border border-gray-200 rounded px-2"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-600">Até:</label>
-                <input
-                  type="date"
-                  value={customDateTo ? formatDateForInput(customDateTo) : ''}
-                  onChange={(e) => onCustomDateChange(customDateFrom, parseInputDate(e.target.value))}
-                  className="h-7 text-xs border border-gray-200 rounded px-2"
-                />
-              </div>
-              {(customDateFrom || customDateTo) && (
-                <button
-                  className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center bg-transparent border-none cursor-pointer"
-                  onClick={() => onCustomDateChange(undefined, undefined)}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );
