@@ -63,6 +63,7 @@ export function AdvancedFiltersPanel({
         <button
           className="h-8 text-xs text-gray-600 hover:text-gray-900 flex items-center bg-transparent border-none cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
+          aria-expanded={isExpanded}
         >
           <Filter className="w-3 h-3 mr-1" />
           Filtros avançados
@@ -92,7 +93,7 @@ export function AdvancedFiltersPanel({
       {/* Painel expansível */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isExpanded ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
+          isExpanded ? 'max-h-[500px] opacity-100 mt-3' : 'max-h-0 opacity-0'
         }`}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -108,7 +109,7 @@ export function AdvancedFiltersPanel({
             >
               <option value="all">Todos os usuários</option>
               <option value="unassigned">Sem atribuição</option>
-              {users.filter(u => u.isActive).map(user => (
+              {(users || []).filter(u => u.isActive).map(user => (
                 <option key={user.id} value={user.id.toString()}>
                   {user.displayName || user.username}
                 </option>
@@ -128,7 +129,7 @@ export function AdvancedFiltersPanel({
             >
               <option value="all">Todas as equipes</option>
               <option value="unassigned">Sem equipe</option>
-              {teams.filter(t => t.isActive).map(team => (
+              {(teams || []).filter(t => t.isActive).map(team => (
                 <option key={team.id} value={team.id.toString()}>
                   {team.name}
                 </option>

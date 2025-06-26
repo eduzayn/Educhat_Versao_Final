@@ -96,6 +96,18 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (15:08): MELHORIAS DE ACESSIBILIDADE E ROBUSTEZ NO ADVANCEDFILTERS IMPLEMENTADAS
+  - Adicionado aria-expanded ao botão de toggle para melhor suporte a leitores de tela
+  - Implementado fallback defensivo (teams || []) e (users || []) para evitar erros com dados undefined
+  - Otimizada transição do painel expansível: max-h-[500px] ao invés de max-h-40 para suportar mais filtros
+  - Melhorias cirúrgicas aplicadas sem impacto em outras funcionalidades
+  - Interface mais robusta e acessível seguindo padrões de usabilidade moderna
+- June 26, 2025 (15:00): ERRO "RESPONSE.JSON IS NOT A FUNCTION" CORRIGIDO DEFINITIVAMENTE
+  - Identificado duplo processamento .json() nos hooks useContacts
+  - Corrigidos 6 hooks: useCreateContact, useUpdateContact, useDeleteContact, useValidatePhoneNumber, useBlockContact, useImportZApiContacts
+  - Removido .json() desnecessário já que apiRequest retorna dados processados
+  - Sistema de criação de contatos funcionando sem erros de processamento
+  - Correção cirúrgica: apenas useContacts.ts alterado, funcionalidade completa mantida
 - June 26, 2025 (01:54): CORREÇÃO CIRÚRGICA DOS ERROS 429 E 403 IMPLEMENTADA COM SUCESSO
   - Rate limiting otimizado: conversas 120 req/min, mensagens 60 req/30s (aumentados substancialmente)
   - Endpoint /api/conversations/:id/read recebeu rate limiting específico: 50 req/10s (muito mais generoso)
