@@ -37,8 +37,7 @@ export function ContactsPage() {
     selectedChannelId: '',
     activeMessage: ''
   });
-  const [newTags, setNewTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState('');
+
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [selectedContactPhone, setSelectedContactPhone] = useState<string | null>(null);
   const [profilePicturePhone, setProfilePicturePhone] = useState<string | null>(null);
@@ -231,17 +230,6 @@ export function ContactsPage() {
     }
   };
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !newTags.includes(currentTag.trim())) {
-      setNewTags([...newTags, currentTag.trim()]);
-      setCurrentTag('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setNewTags(newTags.filter(tag => tag !== tagToRemove));
-  };
-
   const handleCreateContact = async () => {
     try {
       // Validação para mensagem ativa
@@ -351,7 +339,6 @@ export function ContactsPage() {
         email: '', 
         phone: '', 
         owner: '', 
-        notes: '',
         selectedChannelId: '',
         activeMessage: ''
       });
@@ -490,41 +477,6 @@ export function ContactsPage() {
                       <SelectItem value="Pedro Oliveira">Pedro Oliveira</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                {/* Tags */}
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Tags</label>
-                  <div className="space-y-2">
-                    {newTags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {newTags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                            {tag}
-                            <X 
-                              className="w-3 h-3 cursor-pointer hover:text-red-500" 
-                              onClick={() => handleRemoveTag(tag)}
-                            />
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <Input
-                        value={currentTag}
-                        onChange={(e) => setCurrentTag(e.target.value)}
-                        placeholder="Nova tag"
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                        className="flex-1"
-                      />
-                      <Button type="button" onClick={handleAddTag} variant="outline" size="sm">
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {newTags.length === 0 && (
-                      <p className="text-sm text-gray-500">Nenhuma tag adicionada</p>
-                    )}
-                  </div>
                 </div>
 
                 {/* Separador para seção de mensagem ativa */}
