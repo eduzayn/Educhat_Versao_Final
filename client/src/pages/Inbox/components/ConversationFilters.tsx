@@ -2,11 +2,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Filter, User, Users } from 'lucide-react';
 
 interface ConversationFiltersProps {
-  statusFilter: string;
   channelFilter: string;
   userFilter: string;
   teamFilter: string;
-  onStatusFilterChange: (value: string) => void;
   onChannelFilterChange: (value: string) => void;
   onUserFilterChange: (value: string) => void;
   onTeamFilterChange: (value: string) => void;
@@ -16,11 +14,9 @@ interface ConversationFiltersProps {
 }
 
 export function ConversationFilters({
-  statusFilter,
   channelFilter,
   userFilter,
   teamFilter,
-  onStatusFilterChange,
   onChannelFilterChange,
   onUserFilterChange,
   onTeamFilterChange,
@@ -31,18 +27,7 @@ export function ConversationFilters({
   return (
     <div className="px-4 py-2 border-b border-gray-100">
       <div className="flex gap-2">
-        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="h-8 text-xs">
-            <Filter className="w-3 h-3 mr-1" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Aberta</SelectItem>
-            <SelectItem value="pending">Pendente</SelectItem>
-            <SelectItem value="resolved">Resolvida</SelectItem>
-          </SelectContent>
-        </Select>
-        
+
         <Select value={channelFilter} onValueChange={onChannelFilterChange}>
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Canal" />

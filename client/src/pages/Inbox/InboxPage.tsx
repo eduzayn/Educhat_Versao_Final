@@ -65,8 +65,6 @@ export function InboxPage() {
   const [channelFilter, setChannelFilter] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
-  const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
-  const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   
   // Carregar usuários do sistema para o filtro por responsável
@@ -583,11 +581,9 @@ export function InboxPage() {
 
         {/* Filtros compactos */}
         <ConversationFilters
-          statusFilter={statusFilter}
           channelFilter={channelFilter}
           userFilter={userFilter}
           teamFilter={teamFilter}
-          onStatusFilterChange={setStatusFilter}
           onChannelFilterChange={setChannelFilter}
           onUserFilterChange={setUserFilter}
           onTeamFilterChange={setTeamFilter}
