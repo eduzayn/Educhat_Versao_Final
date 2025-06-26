@@ -63,9 +63,23 @@ export function InboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
+  const [userFilter, setUserFilter] = useState('all');
   const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
+  
+  // Carregar usuários do sistema para o filtro por responsável
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['/api/system-users'],
+    queryFn: async () => {
+      const response = await fetch('/api/system-users');
+      if (!response.ok) throw new Error('Erro ao carregar usuários');
+      return response.json();
+    },
+    staleTime: 300000, // Cache válido por 5 minutos
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
   const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Carregar equipes para identificação de canais
@@ -379,6 +393,18 @@ export function InboxPage() {
       // Se não corresponde a nenhum filtro específico, excluir
       return false;
     }
+
+    // Filtro por usuário responsável
+    if (userFilter !== 'all') {
+      if (userFilter === 'unassigned') {
+        // Mostrar apenas conversas sem atribuição
+        return !conversation.assignedUserId;
+      } else {
+        // Mostrar apenas conversas atribuídas ao usuário específico
+        const selectedUserId = parseInt(userFilter);
+        return conversation.assignedUserId === selectedUserId;
+      }
+    }
     
     return true;
   });
@@ -543,9 +569,12 @@ export function InboxPage() {
         <ConversationFilters
           statusFilter={statusFilter}
           channelFilter={channelFilter}
+          userFilter={userFilter}
           onStatusFilterChange={setStatusFilter}
           onChannelFilterChange={setChannelFilter}
+          onUserFilterChange={setUserFilter}
           channels={channels}
+          users={systemUsers}
         />
 
         {/* Lista de Conversas com Scroll Infinito */}
