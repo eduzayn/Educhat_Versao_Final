@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
@@ -333,57 +333,61 @@ export function InboxPage() {
 
 
 
-  // Filtrar conversas baseado na aba ativa e filtros
-  const filteredConversations = (conversations || []).filter(conversation => {
-    // Validação básica de segurança
-    if (!conversation || !conversation.contact) return false;
+  // 🔍 CORREÇÃO: Filtrar conversas com força de reatividade para busca
+  const filteredConversations = useMemo(() => {
+    const allConversations = conversations || [];
     
-    // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
-    if (activeTab === 'inbox') {
-      // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
-      const activeStatuses = ['open', 'pending', 'unread'];
-      if (!conversation.status || !activeStatuses.includes(conversation.status)) return false;
-    }
-    if (activeTab === 'resolved') {
-      // Mostrar apenas conversas resolvidas/fechadas
-      const resolvedStatuses = ['resolved', 'closed'];
-      if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
-    }
-    
-    // Filtro por busca - pesquisar em nome, telefone e email do contato
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const nameMatch = conversation.contact?.name?.toLowerCase()?.includes(searchLower) || false;
-      const phoneMatch = conversation.contact?.phone?.includes(searchTerm) || false; // Números não precisam lowercase
-      const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower) || false;
+    return allConversations.filter(conversation => {
+      // Validação básica de segurança
+      if (!conversation || !conversation.contact) return false;
       
-      if (!nameMatch && !phoneMatch && !emailMatch) {
+      // Filtro por aba - CORRIGIDO: conversas reabertas devem aparecer na inbox
+      if (activeTab === 'inbox') {
+        // Mostrar apenas conversas abertas, pendentes ou não lidas (não mostrar resolvidas/fechadas)
+        const activeStatuses = ['open', 'pending', 'unread'];
+        if (!conversation.status || !activeStatuses.includes(conversation.status)) return false;
+      }
+      if (activeTab === 'resolved') {
+        // Mostrar apenas conversas resolvidas/fechadas
+        const resolvedStatuses = ['resolved', 'closed'];
+        if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
+      }
+      
+      // 🔍 Filtro por busca CORRIGIDO - busca em nome, telefone e email do contato
+      if (searchTerm && searchTerm.trim().length > 0) {
+        const searchLower = searchTerm.toLowerCase().trim();
+        const nameMatch = conversation.contact?.name?.toLowerCase()?.includes(searchLower) || false;
+        const phoneMatch = conversation.contact?.phone?.replace(/\D/g, '')?.includes(searchTerm.replace(/\D/g, '')) || false; // Busca apenas números
+        const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower) || false;
+        
+        if (!nameMatch && !phoneMatch && !emailMatch) {
+          return false;
+        }
+      }
+      
+      // Filtro por status
+      if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
+      
+      // Filtro por canal - implementação escalável para canais específicos
+      if (channelFilter !== 'all') {
+        // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
+        if (channelFilter === conversation.channel) {
+          return true;
+        }
+        
+        // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
+        if (channelFilter.startsWith('whatsapp-')) {
+          const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
+          return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
+        }
+        
+        // Se não corresponde a nenhum filtro específico, excluir
         return false;
       }
-    }
-    
-    // Filtro por status
-    if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
-    
-    // Filtro por canal - implementação escalável para canais específicos
-    if (channelFilter !== 'all') {
-      // Filtro geral por tipo de canal (ex: "whatsapp", "instagram")
-      if (channelFilter === conversation.channel) {
-        return true;
-      }
       
-      // Filtro específico por canal WhatsApp (ex: "whatsapp-1", "whatsapp-2")
-      if (channelFilter.startsWith('whatsapp-')) {
-        const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        return conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId;
-      }
-      
-      // Se não corresponde a nenhum filtro específico, excluir
-      return false;
-    }
-    
-    return true;
-  });
+      return true;
+    });
+  }, [conversations, activeTab, searchTerm, statusFilter, channelFilter]); // 🔍 Dependências explícitas para forçar reatividade
 
   const getStatusBadge = (status: string) => {
     const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
