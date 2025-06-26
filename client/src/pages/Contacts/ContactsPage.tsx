@@ -34,7 +34,6 @@ export function ContactsPage() {
     email: '', 
     phone: '', 
     owner: '', 
-    notes: '',
     selectedChannelId: '',
     activeMessage: ''
   });
@@ -528,18 +527,6 @@ export function ContactsPage() {
                   </div>
                 </div>
 
-                {/* Notas */}
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Notas</label>
-                  <Textarea
-                    value={createForm.notes}
-                    onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
-                    placeholder="Adicione observações importantes sobre este contato"
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-
                 {/* Separador para seção de mensagem ativa */}
                 <div className="md:col-span-2">
                   <hr className="border-gray-200 my-4" />
@@ -607,7 +594,6 @@ export function ContactsPage() {
                       email: '', 
                       phone: '', 
                       owner: '', 
-                      notes: '',
                       selectedChannelId: '',
                       activeMessage: ''
                     });
