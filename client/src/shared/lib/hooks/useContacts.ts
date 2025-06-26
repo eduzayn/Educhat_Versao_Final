@@ -34,7 +34,7 @@ export function useCreateContact() {
   return useMutation({
     mutationFn: async (contact: InsertContact) => {
       const response = await apiRequest('POST', '/api/contacts', contact);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -48,7 +48,7 @@ export function useUpdateContact() {
   return useMutation({
     mutationFn: async ({ id, contact }: { id: number; contact: Partial<InsertContact> }) => {
       const response = await apiRequest('PUT', `/api/contacts/${id}`, contact);
-      return response.json();
+      return response;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -63,7 +63,7 @@ export function useDeleteContact() {
   return useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('DELETE', `/api/contacts/${id}`);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -89,7 +89,7 @@ export function useValidatePhoneNumber() {
   return useMutation({
     mutationFn: async (phone: string) => {
       const response = await apiRequest('POST', `/api/zapi/contacts/${encodeURIComponent(phone)}/validate`);
-      return response.json();
+      return response;
     }
   });
 }
@@ -98,7 +98,7 @@ export function useBlockContact() {
   return useMutation({
     mutationFn: async (phone: string) => {
       const response = await apiRequest('POST', `/api/zapi/contacts/${encodeURIComponent(phone)}/block`);
-      return response.json();
+      return response;
     }
   });
 }
@@ -110,7 +110,7 @@ export function useImportZApiContacts() {
   return useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/zapi/import-contacts');
-      return response.json();
+      return response;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
