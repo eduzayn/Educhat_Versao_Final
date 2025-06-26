@@ -95,7 +95,7 @@ export function AdvancedFiltersPanel({
           isExpanded ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Filtro por usuário atribuído */}
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1 block">
@@ -136,24 +136,7 @@ export function AdvancedFiltersPanel({
             </select>
           </div>
 
-          {/* Filtro por período */}
-          <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">
-              📅 Período
-            </label>
-            <select
-              value={periodFilter}
-              onChange={(e) => onPeriodFilterChange(e.target.value)}
-              className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
-            >
-              <option value="all">Qualquer período</option>
-              <option value="today">Hoje</option>
-              <option value="yesterday">Ontem</option>
-              <option value="last7days">Últimos 7 dias</option>
-              <option value="last30days">Últimos 30 dias</option>
-              <option value="custom">Período personalizado</option>
-            </select>
-          </div>
+
         </div>
 
         {/* Seletor de data personalizado */}

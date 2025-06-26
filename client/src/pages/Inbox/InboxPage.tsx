@@ -622,10 +622,12 @@ export function InboxPage() {
           activeTab={activeTab}
           searchTerm={searchTerm}
           isWhatsAppAvailable={isWhatsAppAvailable}
+          periodFilter={periodFilter}
           onTabChange={setActiveTab}
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
+          onPeriodFilterChange={setPeriodFilter}
         />
 
         {/* Filtros compactos */}

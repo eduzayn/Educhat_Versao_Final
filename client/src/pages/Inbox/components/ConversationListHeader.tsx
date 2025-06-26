@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { BackButton } from '@/shared/components/BackButton';
 import { 
   Search, 
   Plus,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Calendar
 } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 
@@ -15,20 +17,24 @@ interface ConversationListHeaderProps {
   activeTab: string;
   searchTerm: string;
   isWhatsAppAvailable: boolean;
+  periodFilter: string;
   onTabChange: (value: string) => void;
   onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
   onRefresh?: () => void;
+  onPeriodFilterChange: (value: string) => void;
 }
 
 export function ConversationListHeader({
   activeTab,
   searchTerm,
   isWhatsAppAvailable,
+  periodFilter,
   onTabChange,
   onSearchChange,
   onNewContactClick,
-  onRefresh
+  onRefresh,
+  onPeriodFilterChange
 }: ConversationListHeaderProps) {
   return (
     <div className="p-4 border-b border-gray-200">
@@ -83,13 +89,22 @@ export function ConversationListHeader({
         />
       </div>
       
-      {/* Abas simplificadas */}
-      <Tabs value={activeTab} onValueChange={onTabChange}>
-        <TabsList className="grid w-full grid-cols-2 h-8">
-          <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
-          <TabsTrigger value="resolved" className="text-xs">Resolvidas</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Filtro de Período */}
+      <Select value={periodFilter} onValueChange={onPeriodFilterChange}>
+        <SelectTrigger className="h-8 text-xs">
+          <Calendar className="w-3 h-3 mr-1" />
+          <SelectValue placeholder="Período" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Qualquer período</SelectItem>
+          <SelectItem value="today">Hoje</SelectItem>
+          <SelectItem value="yesterday">Ontem</SelectItem>
+          <SelectItem value="last7days">Últimos 7 dias</SelectItem>
+          <SelectItem value="last30days">Últimos 30 dias</SelectItem>
+          <SelectItem value="custom">Período personalizado</SelectItem>
+        </SelectContent>
+      </Select>
+
     </div>
   );
 }
