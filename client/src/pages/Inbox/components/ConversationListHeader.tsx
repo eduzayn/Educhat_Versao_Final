@@ -13,20 +13,16 @@ import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/compone
 
 interface ConversationListHeaderProps {
   activeTab: string;
-  searchTerm: string;
   isWhatsAppAvailable: boolean;
   onTabChange: (value: string) => void;
-  onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
   onRefresh?: () => void;
 }
 
 export function ConversationListHeader({
   activeTab,
-  searchTerm,
   isWhatsAppAvailable,
   onTabChange,
-  onSearchChange,
   onNewContactClick,
   onRefresh
 }: ConversationListHeaderProps) {
@@ -72,16 +68,7 @@ export function ConversationListHeader({
         </div>
       )}
       
-      {/* Busca */}
-      <div className="relative mb-3">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        <Input
-          placeholder="Buscar conversas..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-9"
-        />
-      </div>
+
       
       {/* Abas simplificadas */}
       <Tabs value={activeTab} onValueChange={onTabChange}>

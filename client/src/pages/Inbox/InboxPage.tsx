@@ -580,15 +580,13 @@ export function InboxPage() {
         {/* Header */}
         <ConversationListHeader
           activeTab={activeTab}
-          searchTerm={searchTerm}
           isWhatsAppAvailable={isWhatsAppAvailable}
           onTabChange={setActiveTab}
-          onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
         />
 
-        {/* Filtros compactos */}
+        {/* Filtros em cascata com período personalizado */}
         <ConversationFilters
           channelFilter={channelFilter}
           userFilter={userFilter}
@@ -598,6 +596,13 @@ export function InboxPage() {
           onUserFilterChange={setUserFilter}
           onTeamFilterChange={setTeamFilter}
           onPeriodFilterChange={setPeriodFilter}
+          onDateRangeChange={(startDate, endDate) => {
+            // Implementar lógica de filtro por período personalizado
+            console.log('Período personalizado:', { startDate, endDate });
+            // Aqui você pode atualizar os filtros para usar o período customizado
+          }}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
           channels={channels}
           users={systemUsers}
           teams={teams}
