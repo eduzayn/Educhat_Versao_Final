@@ -5,9 +5,21 @@ async function throwIfResNotOk(res: Response) {
     let errorDetails;
     try {
       const text = await res.text();
-      errorDetails = text ? JSON.parse(text) : { message: res.statusText };
-    } catch {
-      errorDetails = { message: res.statusText };
+      
+      // Verificar se a resposta é HTML (indicando erro de rota)
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        errorDetails = { 
+          message: `Endpoint não encontrado (${res.status}): ${res.url}`,
+          isHtmlError: true 
+        };
+      } else {
+        errorDetails = text ? JSON.parse(text) : { message: res.statusText };
+      }
+    } catch (parseError) {
+      errorDetails = { 
+        message: `Erro de formato na resposta da API (${res.status})`,
+        originalError: res.statusText 
+      };
     }
 
     // Log detalhado para debug
@@ -19,7 +31,7 @@ async function throwIfResNotOk(res: Response) {
     });
 
     // Criar erro com informações detalhadas para mutations
-    const error = new Error(`${res.status}: ${errorDetails.message || res.statusText}`);
+    const error = new Error(errorDetails.message || `${res.status}: ${res.statusText}`);
     (error as any).response = {
       status: res.status,
       statusText: res.statusText,

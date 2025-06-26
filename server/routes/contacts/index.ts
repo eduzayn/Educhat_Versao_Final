@@ -151,9 +151,9 @@ export function registerContactRoutes(app: Express) {
       }
 
       res.json(contact);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating contact:", error);
-      if (error.name === 'ZodError') {
+      if (error?.name === 'ZodError') {
         return res.status(400).json({ message: "Dados de contato inválidos: " + error.message });
       }
       res.status(500).json({ message: "Erro interno do servidor ao atualizar contato" });
