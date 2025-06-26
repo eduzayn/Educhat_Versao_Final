@@ -402,6 +402,11 @@ export const insertConversationSchema = createInsertSchema(conversations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  lastMessageAt: z.union([
+    z.string().transform((val) => new Date(val)), 
+    z.date()
+  ]).optional()
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
