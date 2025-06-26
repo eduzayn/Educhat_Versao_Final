@@ -65,6 +65,7 @@ export function InboxPage() {
   const [channelFilter, setChannelFilter] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
+  const [periodFilter, setPeriodFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   
   // Carregar usuários do sistema para o filtro por responsável
@@ -104,6 +105,14 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real com notificações
   useWebSocket();
   
+  // Montar filtros para API
+  const filters = {
+    period: periodFilter !== 'all' ? periodFilter : undefined,
+    channel: channelFilter !== 'all' ? channelFilter : undefined,
+    user: userFilter !== 'all' ? userFilter : undefined,
+    team: teamFilter !== 'all' ? teamFilter : undefined,
+  };
+
   const { 
     data: conversationsData, 
     isLoading, 
@@ -111,7 +120,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(15, { 
+  } = useConversations(15, filters, { 
     refetchInterval: false, // WebSocket cuida das atualizações - sem polling
     staleTime: 60000, // Cache por 1 minuto para reduzir requisições
     refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
@@ -584,9 +593,11 @@ export function InboxPage() {
           channelFilter={channelFilter}
           userFilter={userFilter}
           teamFilter={teamFilter}
+          periodFilter={periodFilter}
           onChannelFilterChange={setChannelFilter}
           onUserFilterChange={setUserFilter}
           onTeamFilterChange={setTeamFilter}
+          onPeriodFilterChange={setPeriodFilter}
           channels={channels}
           users={systemUsers}
           teams={teams}

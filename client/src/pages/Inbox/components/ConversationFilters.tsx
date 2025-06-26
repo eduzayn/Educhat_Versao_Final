@@ -1,13 +1,15 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Filter, User, Users } from 'lucide-react';
+import { Filter, User, Users, Calendar } from 'lucide-react';
 
 interface ConversationFiltersProps {
   channelFilter: string;
   userFilter: string;
   teamFilter: string;
+  periodFilter: string;
   onChannelFilterChange: (value: string) => void;
   onUserFilterChange: (value: string) => void;
   onTeamFilterChange: (value: string) => void;
+  onPeriodFilterChange: (value: string) => void;
   channels: any[];
   users: any[];
   teams: any[];
@@ -17,9 +19,11 @@ export function ConversationFilters({
   channelFilter,
   userFilter,
   teamFilter,
+  periodFilter,
   onChannelFilterChange,
   onUserFilterChange,
   onTeamFilterChange,
+  onPeriodFilterChange,
   channels,
   users,
   teams
@@ -75,6 +79,23 @@ export function ConversationFilters({
                 {team.name}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={periodFilter} onValueChange={onPeriodFilterChange}>
+          <SelectTrigger className="h-8 text-xs">
+            <Calendar className="w-3 h-3 mr-1" />
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os períodos</SelectItem>
+            <SelectItem value="today">Hoje</SelectItem>
+            <SelectItem value="yesterday">Ontem</SelectItem>
+            <SelectItem value="last7days">Últimos 7 dias</SelectItem>
+            <SelectItem value="last30days">Últimos 30 dias</SelectItem>
+            <SelectItem value="last90days">Últimos 90 dias</SelectItem>
+            <SelectItem value="last6months">Últimos 6 meses</SelectItem>
+            <SelectItem value="lastyear">Último ano</SelectItem>
           </SelectContent>
         </Select>
       </div>

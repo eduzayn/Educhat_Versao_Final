@@ -2,12 +2,17 @@ import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tansta
 import { apiRequest } from '@/lib/queryClient';
 import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
-export function useConversations(initialLimit = 20, options = {}) {
+export function useConversations(initialLimit = 20, filters = {}, options = {}) {
   return useInfiniteQuery<ConversationWithContact[]>({
-    queryKey: ['/api/conversations'],
+    queryKey: ['/api/conversations', filters],
     queryFn: async ({ pageParam = 1 }) => {
       const limit = pageParam === 1 ? initialLimit : 20; // Primeira página: inicial, demais: 20
-      const response = await fetch(`/api/conversations?page=${pageParam}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: limit.toString(),
+        ...filters
+      });
+      const response = await fetch(`/api/conversations?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
       }
