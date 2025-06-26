@@ -94,6 +94,7 @@ export function InboxPage() {
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
+
   const [showMobileChat, setShowMobileChat] = useState(false);
   
 
