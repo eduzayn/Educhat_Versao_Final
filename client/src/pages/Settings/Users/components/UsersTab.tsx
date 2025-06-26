@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Label } from '@/shared/ui/label';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 import { 
   Search, 
   UserPlus, 
@@ -29,7 +30,9 @@ import {
   Mail, 
   Building2,
   Upload,
-  Download
+  Download,
+  MessageSquare,
+  ArrowRight
 } from 'lucide-react';
 
 
@@ -108,6 +111,7 @@ const formatDistanceToNow = (date: Date | null | string) => {
 
 export const UsersTab = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -125,6 +129,12 @@ export const UsersTab = () => {
     password: '',
     role: '',
     team: ''
+  });
+
+  // Estados para transferência de atendimentos
+  const [transferData, setTransferData] = useState({
+    targetUserId: '',
+    targetTeamId: ''
   });
 
   // Fetch users from API
