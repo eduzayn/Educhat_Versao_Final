@@ -24,16 +24,11 @@ export function useContacts(search?: string, page: number = 1, limit: number = 2
         totalPages: data.totalPages || 1
       };
     },
-    // Valor padrão para evitar erro
-    initialData: {
-      data: [],
-      total: 0,
-      page: 1,
-      limit: limit,
-      totalPages: 1
-    },
-    staleTime: 30 * 1000, // 30 segundos de cache
-    retry: 2
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    gcTime: 10 * 60 * 1000, // 10 minutos no garbage collector
+    retry: 3,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
 }
 

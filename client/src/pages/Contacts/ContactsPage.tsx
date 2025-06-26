@@ -70,10 +70,27 @@ export function ContactsPage() {
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
   // Hook de contatos com paginação do backend
-  const { data: contactsData, isLoading, error } = useContacts(searchQuery, currentPage, currentLimit);
-  const allContacts = contactsData?.data || [];
+  const { data: contactsData, isLoading, error, isPending, isSuccess } = useContacts(searchQuery, currentPage, currentLimit);
+  
+  // Fallback robusto para garantir que sempre temos dados
+  const allContacts = Array.isArray(contactsData?.data) ? contactsData.data : [];
   const totalContacts = contactsData?.total || 0;
   const totalPages = contactsData?.totalPages || 1;
+  
+  // Estado local para manter os últimos dados válidos
+  const [lastValidContacts, setLastValidContacts] = useState<any[]>([]);
+  
+  // Atualizar dados locais quando recebemos dados válidos
+  useState(() => {
+    if (isSuccess && allContacts.length > 0) {
+      setLastValidContacts(allContacts);
+    }
+  });
+  
+  // Usar dados do cache local se os dados atuais estão vazios
+  const displayContacts = allContacts.length > 0 ? allContacts : lastValidContacts;
+  
+
   
 
   const updateContact = useUpdateContact();
@@ -88,8 +105,7 @@ export function ContactsPage() {
   // Hook para buscar foto de perfil atualizada via Z-API
   const { data: profilePicture, isLoading: loadingProfilePicture, refetch: fetchProfilePicture } = useZApiProfilePicture(profilePicturePhone);
 
-  // Os contatos já vêm paginados do backend
-  const contacts = allContacts;
+
 
   const handleSelectContact = (contactId: number) => {
     setSelectedContacts(prev => 
