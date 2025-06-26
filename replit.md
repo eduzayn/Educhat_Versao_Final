@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (16:31): CORREÇÃO CRÍTICA DA LISTA DE CONTATOS IMPLEMENTADA COM SUCESSO
+  - Hook useContacts corrigido: substituído fetch() direto por apiRequest() configurado
+  - Problema identificado: autenticação não funcionava com fetch direto sem cookies de sessão
+  - Lista de contatos agora carrega corretamente com paginação: 20 primeira página, 30 demais
+  - Sistema de numeração de páginas funcionando na parte inferior conforme solicitado
+  - Correção cirúrgica: apenas useContacts.ts alterado, funcionalidade completa mantida
+  - 8.635 contatos sendo exibidos corretamente na interface web
 - June 26, 2025 (16:20): EXPLORAÇÃO COMPLETA DO SISTEMA EDUCHAT FINALIZADA E ERROS LSP CORRIGIDOS
   - Análise profunda de toda arquitetura: 37 tabelas, 5 módulos principais, integração Z-API completa
   - Sistema CRM educacional com IA para detecção automática de cursos via Anthropic API

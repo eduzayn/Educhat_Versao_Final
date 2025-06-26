@@ -13,9 +13,7 @@ export function useContacts(search?: string, page: number = 1, limit: number = 2
       params.append('limit', limit.toString());
       
       const url = `/api/contacts?${params.toString()}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch contacts');
-      const data = await response.json();
+      const data = await apiRequest('GET', url);
       
       // Retornar objeto com dados de paginação
       return {

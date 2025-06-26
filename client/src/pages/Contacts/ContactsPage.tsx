@@ -70,10 +70,12 @@ export function ContactsPage() {
   const isWhatsAppAvailable = isConfigured && zapiStatus?.connected && zapiStatus?.smartphoneConnected;
   
   // Hook de contatos com paginação do backend
-  const { data: contactsData, isLoading } = useContacts(searchQuery, currentPage, currentLimit);
+  const { data: contactsData, isLoading, error } = useContacts(searchQuery, currentPage, currentLimit);
   const allContacts = contactsData?.data || [];
   const totalContacts = contactsData?.total || 0;
   const totalPages = contactsData?.totalPages || 1;
+  
+
   const updateContact = useUpdateContact();
   const createContact = useCreateContact();
   const deleteContact = useDeleteContact();
@@ -101,7 +103,7 @@ export function ContactsPage() {
     if (selectedContacts.length === contacts.length) {
       setSelectedContacts([]);
     } else {
-      setSelectedContacts(contacts.map((c) => c.id));
+      setSelectedContacts(contacts.map((c: Contact) => c.id));
     }
   };
 
