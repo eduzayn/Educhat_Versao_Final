@@ -283,7 +283,8 @@ export function ContactsPage() {
       const newContact = await createContact.mutateAsync({
         name: createForm.name,
         email: createForm.email,
-        phone: createForm.phone
+        phone: createForm.phone,
+        assignedUserId: createForm.owner ? parseInt(createForm.owner) : null
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
@@ -507,9 +508,11 @@ export function ContactsPage() {
                       <SelectValue placeholder="Selecione o proprietário" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="João da Silva">João da Silva</SelectItem>
-                      <SelectItem value="Maria Santos">Maria Santos</SelectItem>
-                      <SelectItem value="Pedro Oliveira">Pedro Oliveira</SelectItem>
+                      {systemUsers.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.username || user.displayName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
