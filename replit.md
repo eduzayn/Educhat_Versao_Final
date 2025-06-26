@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (01:17): BUSCA DE RESPOSTAS RÁPIDAS MELHORADA COM ALGORITMO INTELIGENTE DE PRECISÃO
+  - Implementado sistema de score de relevância que prioriza correspondências no início das palavras-chave
+  - Score 100 para correspondência exata no início do título (ex: "M" encontra "Modelo Diploma")
+  - Score 80 para correspondência no início de palavra no título (ex: "música" em "FAQ Música")
+  - Score 60 para correspondência em qualquer lugar do título
+  - Score 40 adicional para correspondências de palavras completas ou que começam com o termo
+  - Score 30/15 adicional para buscas com múltiplas palavras (todas/algumas encontradas)
+  - Separação inteligente por espaços, hífens e underscores para melhor detecção de palavras
+  - Ordenação por relevância: score → frequência de uso → ordem alfabética
+  - Busca cirúrgica implementada apenas no hook useSearchQuickReplies frontend
 - June 26, 2025 (01:08): ERRO DE DELEÇÃO "UNEXPECTED TOKEN '<', '<!DOCTYPE'..." CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: frontend chamava POST /api/zapi/delete-message (inexistente)
   - Endpoint inexistente retornava HTML 404 ao invés de JSON causando SyntaxError
