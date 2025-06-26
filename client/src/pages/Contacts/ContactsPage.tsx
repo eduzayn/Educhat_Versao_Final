@@ -288,11 +288,11 @@ export function ContactsPage() {
       });
 
       // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
-      if (createForm.selectedChannelId && createForm.activeMessage.trim() && createForm.phone) {
+      if (createForm.selectedChannelId && createForm.selectedChannelId !== 'none' && createForm.activeMessage.trim() && createForm.phone) {
         try {
           // Validações adicionais para evitar erro 400
-          if (!createForm.selectedChannelId || isNaN(parseInt(createForm.selectedChannelId))) {
-            throw new Error('Canal inválido selecionado');
+          if (!createForm.selectedChannelId || createForm.selectedChannelId === 'none' || isNaN(parseInt(createForm.selectedChannelId))) {
+            throw new Error('Canal válido deve ser selecionado para envio de mensagem ativa');
           }
 
           if (!newContact.id) {
@@ -331,10 +331,24 @@ export function ContactsPage() {
             variant: "default"
           });
         } catch (messageError) {
-          console.error('Erro ao enviar mensagem:', messageError);
+          console.error('❌ ERRO DETALHADO ENVIO MENSAGEM ATIVA:', {
+            error: messageError,
+            formData: {
+              phone: createForm.phone,
+              message: createForm.activeMessage.substring(0, 50) + '...',
+              channelId: createForm.selectedChannelId
+            },
+            timestamp: new Date().toISOString()
+          });
+          
+          // Capturar detalhes específicos do erro da API
+          const errorDetails = messageError instanceof Error ? messageError.message : 
+                              (messageError as any)?.response?.data?.details || 
+                              'Erro desconhecido ao enviar mensagem';
+          
           toast({
             title: "Contato criado",
-            description: "Contato criado com sucesso, mas houve erro ao enviar a mensagem.",
+            description: `Contato criado com sucesso, mas não foi possível enviar mensagem via ZAPI: ${errorDetails}`,
             variant: "destructive"
           });
         }

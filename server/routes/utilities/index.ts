@@ -63,24 +63,41 @@ export function registerUtilitiesRoutes(app: Express) {
   // Send message via Z-API - REST: POST /api/zapi/send-message
   app.post('/api/zapi/send-message', async (req, res) => {
     try {
-      console.log('📥 RECEBENDO REQUISIÇÃO Z-API SEND-MESSAGE:', {
+      console.log('📥 RECEBENDO REQUISIÇÃO Z-API SEND-MESSAGE (CRIAÇÃO CONTATO):', {
         body: req.body,
+        headers: {
+          'content-type': req.headers['content-type'],
+          'user-agent': req.headers['user-agent']
+        },
         timestamp: new Date().toISOString()
       });
 
       const { phone, message, conversationId, channelId } = req.body;
       
-      if (!phone || !message) {
-        console.error('❌ DADOS OBRIGATÓRIOS FALTANDO:', { phone: !!phone, message: !!message });
+      // Validação aprimorada com logs específicos
+      if (!phone) {
+        console.error('❌ TELEFONE FALTANDO:', { body: req.body });
         return res.status(400).json({ 
-          error: 'Phone e message são obrigatórios' 
+          error: 'Telefone é obrigatório',
+          details: 'Campo phone não fornecido'
+        });
+      }
+      
+      if (!message) {
+        console.error('❌ MENSAGEM FALTANDO:', { body: req.body });
+        return res.status(400).json({ 
+          error: 'Mensagem é obrigatória',
+          details: 'Campo message não fornecido'
         });
       }
 
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
         console.error('❌ CREDENCIAIS Z-API INVÁLIDAS:', credentials.error);
-        return res.status(400).json({ error: credentials.error });
+        return res.status(400).json({ 
+          error: 'Credenciais Z-API não configuradas',
+          details: credentials.error
+        });
       }
 
       const { instanceId, token, clientToken } = credentials;
@@ -134,14 +151,31 @@ export function registerUtilitiesRoutes(app: Express) {
       });
 
       if (!response.ok) {
+        const errorDetails = {
+          status: response.status,
+          statusText: response.statusText,
+          responseText: responseText,
+          phone: cleanPhone,
+          message: message.substring(0, 100),
+          url: url.substring(0, 50) + '...',
+          timestamp: new Date().toISOString()
+        };
+        
+        console.error('❌ ERRO DETALHADO Z-API (CRIAÇÃO CONTATO):', errorDetails);
+        
         // Log de erro padronizado
         logZApiError({
           phone: cleanPhone,
           messageType: 'TEXTO',
           error: `${response.status} - ${response.statusText}: ${responseText}`
         });
-        console.error('❌ ERRO Z-API:', { status: response.status, statusText: response.statusText, response: responseText });
-        throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}: ${responseText}`);
+        
+        return res.status(400).json({ 
+          error: 'Falha ao enviar mensagem via Z-API',
+          details: `${response.status} - ${response.statusText}`,
+          response: responseText,
+          phone: cleanPhone
+        });
       }
 
       let data;
@@ -180,14 +214,19 @@ export function registerUtilitiesRoutes(app: Express) {
         error: error instanceof Error ? error.message : error
       });
       
-      console.error('❌ ERRO CRÍTICO NO ENDPOINT Z-API:', {
+      console.error('❌ ERRO CRÍTICO NO ENDPOINT Z-API (CRIAÇÃO CONTATO):', {
         error: error instanceof Error ? error.message : error,
         stack: error instanceof Error ? error.stack : undefined,
-        body: req.body
+        body: req.body,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date().toISOString()
       });
       
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+        error: 'Contato criado com sucesso, mas não foi possível enviar mensagem via ZAPI',
+        details: error instanceof Error ? error.message : 'Erro interno do servidor',
+        phone: req.body.phone,
+        timestamp: new Date().toISOString()
       });
     }
   });
