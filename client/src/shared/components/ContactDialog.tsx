@@ -26,7 +26,7 @@ interface ContactForm {
   address: string;
   contactType: string;
   owner: string;
-  notes: string;
+
   selectedChannelId: string;
   activeMessage: string;
 }
@@ -40,7 +40,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
     address: '',
     contactType: 'Lead',
     owner: '',
-    notes: '',
     selectedChannelId: '',
     activeMessage: ''
   });
@@ -95,7 +94,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
       address: '',
       contactType: 'Lead',
       owner: '',
-      notes: '',
       selectedChannelId: '',
       activeMessage: ''
     });
@@ -349,17 +347,6 @@ export function ContactDialog({ isOpen, onClose, onSuccess }: ContactDialogProps
                 </Badge>
               ))}
             </div>
-          </div>
-
-          {/* Observações */}
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Observações</label>
-            <Textarea
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Observações adicionais sobre o contato..."
-              rows={3}
-            />
           </div>
 
           {/* Separador para seção de mensagem ativa */}

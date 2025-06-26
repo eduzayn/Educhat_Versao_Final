@@ -96,6 +96,18 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (15:20): CAMPO DE OBSERVAÇÕES REMOVIDO DO MODAL DE CONTATO PARA MELHOR APROVEITAMENTO DE ESPAÇO
+  - Removido campo 'notes' da interface ContactForm e todos os estados relacionados
+  - Eliminada seção HTML de observações do formulário de criação de contato
+  - Reorganizado espaçamento visual para melhor apresentação dos campos restantes
+  - Modal mais compacto e focado nos campos essenciais (nome, email, telefone, proprietário, tags)
+  - Maior destaque para funcionalidade de mensagem ativa do WhatsApp
+  - Correção cirúrgica: apenas ContactDialog.tsx alterado, mantendo funcionalidade completa
+- June 26, 2025 (15:12): ÍCONE E FONTE DOS FILTROS AVANÇADOS ALTERADOS PARA PRETO
+  - Cor do ícone de funil (Filter) alterada para text-black para maior contraste visual
+  - Fonte do texto "Filtros avançados" mudada de text-gray-600 para text-black
+  - Mantido hover em text-gray-900 para boa experiência de usuário
+  - Melhoria visual cirúrgica aplicada apenas ao componente AdvancedFiltersPanel.tsx
 - June 26, 2025 (15:08): MELHORIAS DE ACESSIBILIDADE E ROBUSTEZ NO ADVANCEDFILTERS IMPLEMENTADAS
   - Adicionado aria-expanded ao botão de toggle para melhor suporte a leitores de tela
   - Implementado fallback defensivo (teams || []) e (users || []) para evitar erros com dados undefined
