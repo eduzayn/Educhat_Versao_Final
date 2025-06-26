@@ -1,26 +1,28 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Filter, User } from 'lucide-react';
+import { Filter, Users } from 'lucide-react';
 
 interface ConversationFiltersProps {
   statusFilter: string;
   channelFilter: string;
-  userFilter: string;
+  assignmentFilter: string;
   onStatusFilterChange: (value: string) => void;
   onChannelFilterChange: (value: string) => void;
-  onUserFilterChange: (value: string) => void;
+  onAssignmentFilterChange: (value: string) => void;
   channels: any[];
   users: any[];
+  teams: any[];
 }
 
 export function ConversationFilters({
   statusFilter,
   channelFilter,
-  userFilter,
+  assignmentFilter,
   onStatusFilterChange,
   onChannelFilterChange,
-  onUserFilterChange,
+  onAssignmentFilterChange,
   channels,
-  users
+  users,
+  teams
 }: ConversationFiltersProps) {
   return (
     <div className="px-4 py-2 border-b border-gray-100">
@@ -56,17 +58,24 @@ export function ConversationFilters({
           </SelectContent>
         </Select>
 
-        <Select value={userFilter} onValueChange={onUserFilterChange}>
+        <Select value={assignmentFilter} onValueChange={onAssignmentFilterChange}>
           <SelectTrigger className="h-8 text-xs">
-            <User className="w-3 h-3 mr-1" />
-            <SelectValue placeholder="Responsável" />
+            <Users className="w-3 h-3 mr-1" />
+            <SelectValue placeholder="Atribuição" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os usuários</SelectItem>
+            <SelectItem value="all">Todos os atendimentos</SelectItem>
             <SelectItem value="unassigned">Sem atribuição</SelectItem>
+            <SelectItem value="separator-users" disabled>--- Por Usuário ---</SelectItem>
             {users.map(user => (
-              <SelectItem key={user.id} value={user.id.toString()}>
-                {user.displayName || user.username}
+              <SelectItem key={`user-${user.id}`} value={`user-${user.id}`}>
+                👤 {user.displayName || user.username}
+              </SelectItem>
+            ))}
+            <SelectItem value="separator-teams" disabled>--- Por Equipe ---</SelectItem>
+            {teams.map(team => (
+              <SelectItem key={`team-${team.id}`} value={`team-${team.id}`}>
+                👥 {team.name}
               </SelectItem>
             ))}
           </SelectContent>

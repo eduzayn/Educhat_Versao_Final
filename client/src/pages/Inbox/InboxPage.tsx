@@ -63,12 +63,12 @@ export function InboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
-  const [userFilter, setUserFilter] = useState('all');
+  const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [canalOrigemFilter, setCanalOrigemFilter] = useState('all');
   const [nomeCanalFilter, setNomeCanalFilter] = useState('all');
   const { data: channels = [] } = useChannels();
   
-  // Carregar usuários do sistema para o filtro por responsável
+  // Carregar usuários do sistema para o filtro por atribuição
   const { data: systemUsers = [] } = useQuery({
     queryKey: ['/api/system-users'],
     queryFn: async () => {
@@ -80,9 +80,8 @@ export function InboxPage() {
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
-  const [showMobileChat, setShowMobileChat] = useState(false);
-  
-  // Carregar equipes para identificação de canais
+
+  // Carregar equipes do sistema para o filtro por atribuição
   const { data: teams = [] } = useQuery({
     queryKey: ['/api/teams'],
     queryFn: async () => {
@@ -91,9 +90,10 @@ export function InboxPage() {
       return response.json();
     },
     staleTime: 300000, // Cache válido por 5 minutos
-    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
-    refetchInterval: false, // WebSocket atualiza quando necessário
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Integração com Z-API para comunicação em tempo real
   const { status: zapiStatus, isConfigured } = useZApiStore();
@@ -394,15 +394,19 @@ export function InboxPage() {
       return false;
     }
 
-    // Filtro por usuário responsável
-    if (userFilter !== 'all') {
-      if (userFilter === 'unassigned') {
+    // Filtro por atribuição (usuário ou equipe)
+    if (assignmentFilter !== 'all') {
+      if (assignmentFilter === 'unassigned') {
         // Mostrar apenas conversas sem atribuição
-        return !conversation.assignedUserId;
-      } else {
-        // Mostrar apenas conversas atribuídas ao usuário específico
-        const selectedUserId = parseInt(userFilter);
+        return !conversation.assignedUserId && !conversation.assignedTeamId;
+      } else if (assignmentFilter.startsWith('user-')) {
+        // Filtro por usuário específico
+        const selectedUserId = parseInt(assignmentFilter.replace('user-', ''));
         return conversation.assignedUserId === selectedUserId;
+      } else if (assignmentFilter.startsWith('team-')) {
+        // Filtro por equipe específica
+        const selectedTeamId = parseInt(assignmentFilter.replace('team-', ''));
+        return conversation.assignedTeamId === selectedTeamId;
       }
     }
     
@@ -569,12 +573,13 @@ export function InboxPage() {
         <ConversationFilters
           statusFilter={statusFilter}
           channelFilter={channelFilter}
-          userFilter={userFilter}
+          assignmentFilter={assignmentFilter}
           onStatusFilterChange={setStatusFilter}
           onChannelFilterChange={setChannelFilter}
-          onUserFilterChange={setUserFilter}
+          onAssignmentFilterChange={setAssignmentFilter}
           channels={channels}
           users={systemUsers}
+          teams={teams}
         />
 
         {/* Lista de Conversas com Scroll Infinito */}
