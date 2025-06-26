@@ -63,6 +63,7 @@ export const conversations = pgTable("conversations", {
   assignedUserId: integer("assigned_user_id").references(() => systemUsers.id), // usuário atribuído
   assignmentMethod: varchar("assignment_method", { length: 20 }).default("automatic"), // automatic, manual
   assignedAt: timestamp("assigned_at"),
+  teamType: varchar("team_type", { length: 50 }), // tipo da equipe para filtros rápidos
   // Campos adicionais para compatibilidade
   isRead: boolean("is_read").default(false),
   markedUnreadManually: boolean("marked_unread_manually").default(false), // true se marcada manualmente como não lida
