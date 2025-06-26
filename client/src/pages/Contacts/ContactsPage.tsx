@@ -101,7 +101,7 @@ export function ContactsPage() {
     if (selectedContacts.length === contacts.length) {
       setSelectedContacts([]);
     } else {
-      setSelectedContacts(contacts.map(c => c.id));
+      setSelectedContacts(contacts.map((c) => c.id));
     }
   };
 
@@ -855,7 +855,7 @@ export function ContactsPage() {
                     </p>
                   </div>
                 ) : (
-                  contacts.map((contact) => (
+                  contacts.map((contact: Contact) => (
                     <div
                       key={contact.id}
                       className="grid grid-cols-12 gap-4 p-4 text-sm hover:bg-gray-50 transition-colors"
