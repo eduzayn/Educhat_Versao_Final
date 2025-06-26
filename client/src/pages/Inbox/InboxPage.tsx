@@ -332,10 +332,16 @@ export function InboxPage() {
     loadContactNotes();
   }, [activeConversation?.contactId]);
 
+  // Busca no banco de dados completo quando há termo de busca
+  const { data: searchResults, isLoading: isSearching } = useSearchConversations(searchTerm);
 
+  // Determinar quais conversas usar: busca no banco ou lista local
+  const conversationsToFilter = searchTerm && searchTerm.trim() 
+    ? (searchResults || []) 
+    : (conversations || []);
 
   // Filtrar conversas baseado na aba ativa e filtros
-  const filteredConversations = (conversations || []).filter(conversation => {
+  const filteredConversations = conversationsToFilter.filter(conversation => {
     // Validação básica de segurança
     if (!conversation || !conversation.contact) return false;
     
@@ -351,35 +357,8 @@ export function InboxPage() {
       if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
     }
     
-    // Filtro por busca - pesquisar em nome, telefone e email do contato
-    if (searchTerm && searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
-      
-      // Busca em nome
-      const nameMatch = conversation.contact?.name?.toLowerCase()?.includes(searchLower) || false;
-      
-      // Busca em telefone - mais flexível para números
-      const phoneMatch = (() => {
-        const phone = conversation.contact?.phone;
-        if (!phone) return false;
-        
-        // Se a busca contém apenas números, compara apenas números
-        if (/^\d+$/.test(searchTerm.trim())) {
-          const phoneDigits = phone.replace(/\D/g, '');
-          return phoneDigits.includes(searchTerm.trim());
-        }
-        
-        // Caso contrário, busca direta no telefone
-        return phone.includes(searchTerm);
-      })();
-      
-      // Busca em email
-      const emailMatch = conversation.contact?.email?.toLowerCase()?.includes(searchLower) || false;
-      
-      if (!nameMatch && !phoneMatch && !emailMatch) {
-        return false;
-      }
-    }
+    // Para busca no banco de dados, pular filtro local (já filtrado no backend)
+    // Para lista local sem busca, aplicar filtros de status e canal normalmente
     
     // Filtro por status
     if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;

@@ -200,6 +200,10 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.markConversationAsRead(conversationId);
   }
 
+  async searchConversations(searchTerm: string) {
+    return this.conversation.searchConversations(searchTerm);
+  }
+
   // ==================== CHANNEL OPERATIONS ====================
   async getChannels() {
     return this.channel.getChannels();

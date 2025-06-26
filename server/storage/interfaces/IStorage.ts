@@ -67,6 +67,7 @@ export interface IStorage {
   getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]>;
   getConversationsByUser(userId: number): Promise<ConversationWithContact[]>;
   getTotalUnreadCount(): Promise<number>;
+  searchConversations(searchTerm: string): Promise<ConversationWithContact[]>;
 
   // ==================== MESSAGE OPERATIONS ====================
   getAllMessages(): Promise<Message[]>;
