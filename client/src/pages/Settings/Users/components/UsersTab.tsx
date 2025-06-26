@@ -144,20 +144,14 @@ export const UsersTab = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: (userData: any) => 
-      fetch('/api/system-users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: userData.username,
-          displayName: userData.name,
-          email: userData.email,
-          password: userData.password,
-          role: userData.role,
-          team: userData.team
-        })
-      }).then(res => res.json()),
+      apiRequest('POST', '/api/system-users', {
+        username: userData.username,
+        displayName: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role,
+        team: userData.team
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
       setShowUserDialog(false);
@@ -175,7 +169,7 @@ export const UsersTab = () => {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: ({ id, userData }: { id: number; userData: any }) => 
-      fetch(`/api/system-users/${id}`, {
+      apiRequest(`/api/system-users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +182,7 @@ export const UsersTab = () => {
           team: userData.team,
           isActive: userData.isActive
         })
-      }).then(res => res.json()),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/system-users'] });
       setShowEditDialog(false);
@@ -199,7 +193,7 @@ export const UsersTab = () => {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => 
-      fetch(`/api/system-users/${userId}`, {
+      apiRequest(`/api/system-users/${userId}`, {
         method: 'DELETE'
       }),
     onSuccess: () => {
