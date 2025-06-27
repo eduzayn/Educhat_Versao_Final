@@ -554,8 +554,10 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async getConversationsByTeam(teamId: number): Promise<ConversationWithContact[]> {
+    // Query otimizada com LEFT JOIN para buscar última mensagem (igual ao método principal)
     const conversationsWithContacts = await this.db
       .select({
+        // Conversation fields
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
@@ -563,7 +565,6 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -575,6 +576,7 @@ export class ConversationStorage extends BaseStorage {
         createdAt: conversations.createdAt,
         updatedAt: conversations.updatedAt,
         
+        // Contact fields
         contact: {
           id: contacts.id,
           userIdentity: contacts.userIdentity,
@@ -593,13 +595,41 @@ export class ConversationStorage extends BaseStorage {
           tags: contacts.tags,
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
+        },
+        
+        // Last message fields (mesma lógica do método principal)
+        lastMessage: {
+          id: messages.id,
+          content: messages.content,
+          sentAt: messages.sentAt,
+          isFromContact: messages.isFromContact,
+          messageType: messages.messageType,
+          metadata: messages.metadata
         }
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(
+        messages,
+        and(
+          eq(messages.conversationId, conversations.id),
+          eq(messages.isDeleted, false),
+          eq(messages.id, 
+            sql`(
+              SELECT m.id 
+              FROM messages m 
+              WHERE m.conversation_id = ${conversations.id} 
+                AND m.is_deleted = false 
+              ORDER BY m.sent_at DESC 
+              LIMIT 1
+            )`
+          )
+        )
+      )
       .where(eq(conversations.assignedTeamId, teamId))
-      .orderBy(desc(conversations.lastMessageAt));
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt));
 
+    // Processar resultados para o formato esperado (incluindo mensagens)
     return conversationsWithContacts.map(conv => ({
       ...conv,
       contact: {
@@ -608,14 +638,18 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [],
+      // Converter lastMessage de objeto para string para compatibilidade com frontend
+      lastMessage: conv.lastMessage?.content || '',
+      messages: conv.lastMessage?.id ? [conv.lastMessage] : [],
       _count: { messages: conv.unreadCount || 0 }
     } as ConversationWithContact));
   }
 
   async getConversationsByUser(userId: number): Promise<ConversationWithContact[]> {
+    // Query otimizada com LEFT JOIN para buscar última mensagem (igual ao método principal)
     const conversationsWithContacts = await this.db
       .select({
+        // Conversation fields
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
@@ -623,7 +657,6 @@ export class ConversationStorage extends BaseStorage {
         status: conversations.status,
         lastMessageAt: conversations.lastMessageAt,
         unreadCount: conversations.unreadCount,
-
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
         assignmentMethod: conversations.assignmentMethod,
@@ -635,6 +668,7 @@ export class ConversationStorage extends BaseStorage {
         createdAt: conversations.createdAt,
         updatedAt: conversations.updatedAt,
         
+        // Contact fields
         contact: {
           id: contacts.id,
           userIdentity: contacts.userIdentity,
@@ -653,13 +687,41 @@ export class ConversationStorage extends BaseStorage {
           tags: contacts.tags,
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
+        },
+        
+        // Last message fields (mesma lógica do método principal)
+        lastMessage: {
+          id: messages.id,
+          content: messages.content,
+          sentAt: messages.sentAt,
+          isFromContact: messages.isFromContact,
+          messageType: messages.messageType,
+          metadata: messages.metadata
         }
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(
+        messages,
+        and(
+          eq(messages.conversationId, conversations.id),
+          eq(messages.isDeleted, false),
+          eq(messages.id, 
+            sql`(
+              SELECT m.id 
+              FROM messages m 
+              WHERE m.conversation_id = ${conversations.id} 
+                AND m.is_deleted = false 
+              ORDER BY m.sent_at DESC 
+              LIMIT 1
+            )`
+          )
+        )
+      )
       .where(eq(conversations.assignedUserId, userId))
-      .orderBy(desc(conversations.lastMessageAt));
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt));
 
+    // Processar resultados para o formato esperado (incluindo mensagens)
     return conversationsWithContacts.map(conv => ({
       ...conv,
       contact: {
@@ -668,7 +730,9 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [],
+      // Converter lastMessage de objeto para string para compatibilidade com frontend
+      lastMessage: conv.lastMessage?.content || '',
+      messages: conv.lastMessage?.id ? [conv.lastMessage] : [],
       _count: { messages: conv.unreadCount || 0 }
     } as ConversationWithContact));
   }
