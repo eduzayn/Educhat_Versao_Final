@@ -444,9 +444,15 @@ export function InboxPage() {
     if (channelFilter !== 'all') {
       if (channelFilter === conversation.channel) {
         // Corresponde ao tipo de canal
+      } else if (channelFilter === 'whatsapp') {
+        // Filtro "WhatsApp (Todos)" - inclui todos os canais WhatsApp
+        if (!['whatsapp', 'comercial', 'suporte'].includes(conversation.channel)) {
+          return false;
+        }
       } else if (channelFilter.startsWith('whatsapp-')) {
+        // Filtro específico de canal WhatsApp
         const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        if (!(conversation.channel === 'whatsapp' && conversation.channelId === specificChannelId)) {
+        if (conversation.channelId !== specificChannelId) {
           return false;
         }
       } else {
