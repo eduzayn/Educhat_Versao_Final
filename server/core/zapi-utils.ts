@@ -10,14 +10,15 @@ export function validateZApiCredentialsByChannel(channel?: string) {
   // Determinar a instância baseada no canal
   const targetInstanceId = channel ? channelInstanceMap[channel as keyof typeof channelInstanceMap] : null;
   
-  // Se canal for suporte, tentar buscar credenciais específicas
+  // Se canal for suporte, verificar se existem credenciais específicas
   if (channel === 'suporte' && targetInstanceId === '3E22F2A24288809C2217D63E28193647') {
-    // Verificar se existem credenciais específicas para o suporte
-    const supportInstanceId = process.env.ZAPI_SUPPORT_INSTANCE_ID || targetInstanceId;
-    const supportToken = process.env.ZAPI_SUPPORT_TOKEN || process.env.ZAPI_TOKEN;
-    const supportClientToken = process.env.ZAPI_SUPPORT_CLIENT_TOKEN || process.env.ZAPI_CLIENT_TOKEN;
+    const supportInstanceId = process.env.ZAPI_SUPPORT_INSTANCE_ID;
+    const supportToken = process.env.ZAPI_SUPPORT_TOKEN;
+    const supportClientToken = process.env.ZAPI_SUPPORT_CLIENT_TOKEN;
 
-    if (supportInstanceId && supportToken && supportClientToken) {
+    // Se todas as credenciais específicas estão configuradas e não são placeholders
+    if (supportInstanceId && supportToken && supportClientToken &&
+        !supportToken.includes('PLACEHOLDER') && !supportClientToken.includes('PLACEHOLDER')) {
       return {
         valid: true,
         instanceId: supportInstanceId,
@@ -25,6 +26,10 @@ export function validateZApiCredentialsByChannel(channel?: string) {
         clientToken: supportClientToken
       };
     }
+    
+    // Fallback temporário: usar credenciais comerciais para canal suporte
+    // até que credenciais específicas sejam configuradas
+    console.log('⚠️ Canal suporte usando credenciais comerciais (fallback temporário)');
   }
 
   // Fallback para credenciais padrão (comercial)

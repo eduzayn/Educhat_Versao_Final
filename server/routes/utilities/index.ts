@@ -91,11 +91,36 @@ export function registerUtilitiesRoutes(app: Express) {
         });
       }
 
-      const credentials = validateZApiCredentials();
+      // Determinar canal baseado no channelId recebido
+      let targetChannel = 'comercial'; // default
+      if (channelId) {
+        try {
+          const channel = await storage.getChannel(parseInt(channelId));
+          if (channel && channel.name) {
+            targetChannel = channel.name.toLowerCase();
+          }
+        } catch (error) {
+          console.log('⚠️ Erro ao buscar canal:', error);
+        }
+      }
+
+      console.log('🎯 CANAL IDENTIFICADO PARA ENVIO:', {
+        channelId,
+        targetChannel,
+        phone: phone.replace(/\D/g, '').substring(0, 5) + '...'
+      });
+
+      // Buscar credenciais específicas por canal
+      const { validateZApiCredentialsByChannel } = await import('../../core/zapi-utils');
+      const credentials = validateZApiCredentialsByChannel(targetChannel);
+      
       if (!credentials.valid) {
-        console.error('❌ CREDENCIAIS Z-API INVÁLIDAS:', credentials.error);
+        console.error('❌ CREDENCIAIS Z-API INVÁLIDAS PARA CANAL:', {
+          canal: targetChannel,
+          error: credentials.error
+        });
         return res.status(400).json({ 
-          error: 'Credenciais Z-API não configuradas',
+          error: `Credenciais Z-API não configuradas para canal ${targetChannel}`,
           details: credentials.error
         });
       }
