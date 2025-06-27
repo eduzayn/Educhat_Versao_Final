@@ -91,32 +91,54 @@ export function registerUtilitiesRoutes(app: Express) {
         });
       }
 
-      // Determinar canal baseado no channelId recebido
-      let targetChannel = 'comercial'; // default
+      // Buscar credenciais do canal específico no banco de dados
+      let credentials = { valid: false, error: 'Canal não encontrado' };
+      let targetChannel = 'desconhecido';
+
       if (channelId) {
         try {
           const channel = await storage.getChannel(parseInt(channelId));
-          if (channel && channel.name) {
-            targetChannel = channel.name.toLowerCase();
+          if (channel && channel.instanceId && channel.token && channel.clientToken) {
+            credentials = {
+              valid: true,
+              instanceId: channel.instanceId,
+              token: channel.token,
+              clientToken: channel.clientToken
+            };
+            targetChannel = channel.name?.toLowerCase() || 'canal-sem-nome';
+            
+            console.log('🎯 CREDENCIAIS DO BANCO ENCONTRADAS:', {
+              channelId,
+              channelName: targetChannel,
+              instanceId: channel.instanceId.substring(0, 8) + '...',
+              hasToken: !!channel.token,
+              hasClientToken: !!channel.clientToken,
+              phone: phone.replace(/\D/g, '').substring(0, 5) + '...'
+            });
+          } else {
+            console.error('❌ Canal encontrado mas sem credenciais completas:', {
+              channelId,
+              hasChannel: !!channel,
+              hasInstanceId: !!channel?.instanceId,
+              hasToken: !!channel?.token,
+              hasClientToken: !!channel?.clientToken
+            });
+            credentials = { valid: false, error: 'Canal sem credenciais Z-API configuradas' };
           }
         } catch (error) {
-          console.log('⚠️ Erro ao buscar canal:', error);
+          console.error('❌ Erro ao buscar canal no banco:', error);
+          credentials = { valid: false, error: 'Erro ao acessar dados do canal' };
         }
+      } else {
+        console.log('⚠️ ChannelId não informado, usando credenciais padrão do .env');
+        credentials = validateZApiCredentials();
+        targetChannel = 'padrão-env';
       }
-
-      console.log('🎯 CANAL IDENTIFICADO PARA ENVIO:', {
-        channelId,
-        targetChannel,
-        phone: phone.replace(/\D/g, '').substring(0, 5) + '...'
-      });
-
-      // Buscar credenciais específicas por canal
-      const { validateZApiCredentialsByChannel } = await import('../../core/zapi-utils');
-      const credentials = validateZApiCredentialsByChannel(targetChannel);
       
       if (!credentials.valid) {
-        console.error('❌ CREDENCIAIS Z-API INVÁLIDAS PARA CANAL:', {
+        console.error('❌ CREDENCIAIS Z-API INVÁLIDAS:', {
           canal: targetChannel,
+          channelId,
           error: credentials.error
         });
         return res.status(400).json({ 
