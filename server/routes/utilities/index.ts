@@ -269,10 +269,31 @@ export function registerUtilitiesRoutes(app: Express) {
   app.delete('/api/system-users/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`🗑️ Tentando excluir usuário ID: ${id}`);
+      
+      // Verificar se o ID é válido
+      if (isNaN(id) || id <= 0) {
+        console.log(`❌ ID inválido: ${req.params.id}`);
+        return res.status(400).json({ message: 'ID de usuário inválido' });
+      }
+      
+      // Verificar se o usuário existe
+      const existingUser = await storage.getSystemUser(id);
+      if (!existingUser) {
+        console.log(`❌ Usuário não encontrado: ${id}`);
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      
+      console.log(`✅ Usuário encontrado: ${existingUser.displayName} (${existingUser.email})`);
+      
+      // Excluir o usuário
       await storage.deleteSystemUser(id);
+      console.log(`✅ Usuário ID ${id} excluído com sucesso`);
+      
       res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting system user:', error);
+    } catch (error: any) {
+      console.error('🔥 Error deleting system user:', error);
+      console.error('🔥 Stack trace:', error?.stack);
       res.status(500).json({ message: 'Failed to delete system user' });
     }
   });

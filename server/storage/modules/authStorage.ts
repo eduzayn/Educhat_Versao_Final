@@ -133,10 +133,21 @@ export class AuthStorage extends BaseStorage {
   }
 
   async deleteSystemUser(id: number): Promise<void> {
-    // Primeiro, remover relacionamentos de equipes do usuário
-    await this.db.delete(userTeams).where(eq(userTeams.userId, id));
+    console.log(`🔧 AuthStorage.deleteSystemUser iniciado para ID: ${id}`);
     
-    // Depois, excluir o usuário
-    await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
+    try {
+      // Primeiro, remover relacionamentos de equipes do usuário
+      console.log(`🔧 Removendo relacionamentos de equipes para usuário ${id}...`);
+      const deletedTeamRelations = await this.db.delete(userTeams).where(eq(userTeams.userId, id));
+      console.log(`✅ Relacionamentos de equipes removidos:`, deletedTeamRelations);
+      
+      // Depois, excluir o usuário
+      console.log(`🔧 Excluindo usuário ${id} da tabela system_users...`);
+      const deletedUser = await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
+      console.log(`✅ Usuário excluído com sucesso:`, deletedUser);
+    } catch (error) {
+      console.error(`🔥 Erro em AuthStorage.deleteSystemUser para ID ${id}:`, error);
+      throw error;
+    }
   }
 }
