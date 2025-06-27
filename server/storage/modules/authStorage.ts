@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { systemUsers, userTeams, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
+import { systemUsers, userTeams, conversations, messages, deals, contacts, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -136,12 +136,48 @@ export class AuthStorage extends BaseStorage {
     console.log(`🔧 AuthStorage.deleteSystemUser iniciado para ID: ${id}`);
     
     try {
-      // Primeiro, remover relacionamentos de equipes do usuário
-      console.log(`🔧 Removendo relacionamentos de equipes para usuário ${id}...`);
+      // 1. Remover atribuições de conversas (definir assigned_user_id como NULL)
+      console.log(`🔧 Removendo atribuições de conversas para usuário ${id}...`);
+      const updatedConversations = await this.db
+        .update(conversations)
+        .set({ assignedUserId: null })
+        .where(eq(conversations.assignedUserId, id));
+      console.log(`✅ Atribuições de conversas removidas:`, updatedConversations);
+      
+      // 2. Remover referências nas mensagens (definir author_id como NULL para notas internas)
+      console.log(`🔧 Removendo referências do usuário em mensagens...`);
+      const updatedMessages = await this.db
+        .update(messages)
+        .set({ authorId: null })
+        .where(eq(messages.authorId, id));
+      console.log(`✅ Referências em mensagens removidas:`, updatedMessages);
+      
+      // 3. Remover atribuições de deals (definir assigned_user_id e created_by_user_id como NULL)
+      console.log(`🔧 Removendo atribuições de deals...`);
+      const updatedDealsAssigned = await this.db
+        .update(deals)
+        .set({ assignedUserId: null })
+        .where(eq(deals.assignedUserId, id));
+      const updatedDealsCreated = await this.db
+        .update(deals)
+        .set({ createdByUserId: null })
+        .where(eq(deals.createdByUserId, id));
+      console.log(`✅ Atribuições de deals removidas:`, { assigned: updatedDealsAssigned, created: updatedDealsCreated });
+      
+      // 4. Remover atribuições de contatos (definir assigned_user_id como NULL)
+      console.log(`🔧 Removendo atribuições de contatos...`);
+      const updatedContacts = await this.db
+        .update(contacts)
+        .set({ assignedUserId: null })
+        .where(eq(contacts.assignedUserId, id));
+      console.log(`✅ Atribuições de contatos removidas:`, updatedContacts);
+      
+      // 5. Remover relacionamentos de equipes do usuário
+      console.log(`🔧 Removendo relacionamentos de equipes...`);
       const deletedTeamRelations = await this.db.delete(userTeams).where(eq(userTeams.userId, id));
       console.log(`✅ Relacionamentos de equipes removidos:`, deletedTeamRelations);
       
-      // Depois, excluir o usuário
+      // 6. Por último, excluir o usuário
       console.log(`🔧 Excluindo usuário ${id} da tabela system_users...`);
       const deletedUser = await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
       console.log(`✅ Usuário excluído com sucesso:`, deletedUser);
