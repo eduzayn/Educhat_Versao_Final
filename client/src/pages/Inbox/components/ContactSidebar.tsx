@@ -101,11 +101,14 @@ export function ContactSidebar({
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
+  // Type guard para garantir que channels é um array
+  const safeChannels = Array.isArray(channels) ? channels : [];
+
   // Função para determinar o canal de origem (aproveitando lógica existente)
   const getOriginChannelName = (conversation: any) => {
     // PRIORIDADE 1: Busca por channelId específico (canal real de origem)
     if (conversation.channelId) {
-      const channel = channels.find((c: any) => c.id === conversation.channelId);
+      const channel = safeChannels.find((c: any) => c.id === conversation.channelId);
       if (channel) {
         return channel.type === 'whatsapp' 
           ? channel.name 
@@ -119,8 +122,8 @@ export function ContactSidebar({
     // Mapeamento direto dos canais do webhook Z-API
     const directChannelMapping: Record<string, string> = {
       'comercial': 'Canal Comercial',
-      'suporte': 'Canal Suporte',
-      'whatsapp': 'WhatsApp Geral'
+      'suporte': 'Canal Suporte'
+      // Removido mapeamento genérico 'whatsapp': 'WhatsApp Geral' para evitar exibição incorreta
     };
     
     // Se é um canal mapeado diretamente, retorna o nome correto
@@ -128,36 +131,28 @@ export function ContactSidebar({
       return directChannelMapping[channelType];
     }
     
-    // PRIORIDADE 3: Buscar canal WhatsApp por configuração
-    if (channelType === 'whatsapp' || directChannelMapping[channelType]) {
-      const whatsappChannels = channels.filter((c: any) => c.type === 'whatsapp' && c.isActive);
+    // PRIORIDADE 3: Buscar canal WhatsApp por configuração (apenas quando não há mapeamento direto)
+    if ((channelType === 'whatsapp' && !directChannelMapping[channelType]) || (!directChannelMapping[channelType] && channelType.includes('whatsapp'))) {
+      const whatsappChannels = safeChannels.filter((c: any) => c.type === 'whatsapp' && c.isActive);
       
-      // Tentar mapear por nome do canal específico
+      // Se há apenas um canal ativo, usa esse
+      if (whatsappChannels.length === 1) {
+        return whatsappChannels[0]?.name || 'WhatsApp';
+      }
+      
+      // Se há múltiplos canais, tenta mapear por nome do canal específico
       const specificChannel = whatsappChannels.find((c: any) => {
         const channelName = c.name?.toLowerCase() || '';
-        return channelName.includes('comercial') && channelType === 'comercial' ||
-               channelName.includes('suporte') && channelType === 'suporte';
+        return (channelName.includes('comercial') && channelType === 'comercial') ||
+               (channelName.includes('suporte') && channelType === 'suporte');
       });
       
       if (specificChannel) {
         return specificChannel.name;
       }
       
-      if (whatsappChannels.length > 1) {
-        const phoneNumber = conversation.contact?.phone || '';
-        
-        // Tenta identificar canal baseado em padrões configuráveis
-        for (const channel of whatsappChannels) {
-          const config = channel.configuration as any;
-          if (config?.phonePattern && phoneNumber.includes(config.phonePattern)) {
-            return channel.name;
-          }
-        }
-        
-        // Fallback: usa primeiro canal ativo disponível
-        return whatsappChannels[0]?.name || 'WhatsApp';
-      }
-      return whatsappChannels[0]?.name || 'WhatsApp';
+      // Fallback: usa primeiro canal ativo disponível
+      return whatsappChannels[0]?.name || 'Canal WhatsApp';
     }
     
     // PRIORIDADE 4: Mapeamento de tipos de canal conhecidos

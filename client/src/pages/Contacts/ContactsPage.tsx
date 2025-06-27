@@ -299,6 +299,16 @@ export function ContactsPage() {
             throw new Error('Erro ao criar contato - ID não disponível');
           }
 
+          // Buscar o canal selecionado para obter o nome correto
+          const selectedChannel = safeChannels.find((c: any) => c.id === parseInt(createForm.selectedChannelId));
+          const channelName = selectedChannel?.name?.toLowerCase() || 'whatsapp';
+          
+          console.log('🎯 Canal selecionado para criação:', {
+            selectedChannelId: createForm.selectedChannelId,
+            channelName,
+            selectedChannel: selectedChannel?.name
+          });
+
           // Enviar mensagem via Z-API
           const messageResponse = await apiRequest('POST', '/api/zapi/send-message', {
             phone: createForm.phone,
@@ -306,10 +316,10 @@ export function ContactsPage() {
             channelId: createForm.selectedChannelId
           });
 
-          // Criar conversa automaticamente com atribuição ao usuário logado
+          // Criar conversa automaticamente com o nome correto do canal
           const conversationResponse = await apiRequest('POST', '/api/conversations', {
             contactId: newContact.id,
-            channel: 'whatsapp',
+            channel: channelName,
             channelId: parseInt(createForm.selectedChannelId),
             status: 'open',
             lastMessageAt: new Date(),
