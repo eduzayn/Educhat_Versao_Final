@@ -113,10 +113,36 @@ export function ContactSidebar({
       }
     }
     
-    // PRIORIDADE 2: Fallback para conversas sem channelId específico
+    // PRIORIDADE 2: Usar o nome do canal do webhook (comercial, suporte, etc.)
     const channelType = conversation.channel || 'unknown';
-    if (channelType === 'whatsapp') {
+    
+    // Mapeamento direto dos canais do webhook Z-API
+    const directChannelMapping: Record<string, string> = {
+      'comercial': 'Canal Comercial',
+      'suporte': 'Canal Suporte',
+      'whatsapp': 'WhatsApp Geral'
+    };
+    
+    // Se é um canal mapeado diretamente, retorna o nome correto
+    if (directChannelMapping[channelType]) {
+      return directChannelMapping[channelType];
+    }
+    
+    // PRIORIDADE 3: Buscar canal WhatsApp por configuração
+    if (channelType === 'whatsapp' || directChannelMapping[channelType]) {
       const whatsappChannels = channels.filter((c: any) => c.type === 'whatsapp' && c.isActive);
+      
+      // Tentar mapear por nome do canal específico
+      const specificChannel = whatsappChannels.find((c: any) => {
+        const channelName = c.name?.toLowerCase() || '';
+        return channelName.includes('comercial') && channelType === 'comercial' ||
+               channelName.includes('suporte') && channelType === 'suporte';
+      });
+      
+      if (specificChannel) {
+        return specificChannel.name;
+      }
+      
       if (whatsappChannels.length > 1) {
         const phoneNumber = conversation.contact?.phone || '';
         
@@ -134,7 +160,7 @@ export function ContactSidebar({
       return whatsappChannels[0]?.name || 'WhatsApp';
     }
     
-    // Mapeamento de tipos de canal conhecidos
+    // PRIORIDADE 4: Mapeamento de tipos de canal conhecidos
     const channelTypeNames: Record<string, string> = {
       'whatsapp': 'WhatsApp',
       'telegram': 'Telegram',
