@@ -96,13 +96,20 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (23:42): PRÉVIAS DE MENSAGENS NA BUSCA CORRIGIDAS COMPLETAMENTE
+  - Identificado problema: método searchConversations não incluía mensagens como getConversations
+  - Corrigido método searchConversations para incluir LEFT JOIN com última mensagem
+  - Adicionada mesma lógica de subquery SQL do método principal para consistência
+  - Busca agora exibe prévias reais das mensagens ao invés de "Sem mensagens"
+  - Mantida otimização de performance (limite 100 resultados, ordenação por data)
+  - Correção cirúrgica: apenas conversationStorage.ts alterado, funcionalidades preservadas
 - June 27, 2025 (22:56): LARGURAS DAS COLUNAS DA INBOX OTIMIZADAS PARA MELHOR USABILIDADE
   - Coluna esquerda (lista de conversas): aumentada de w-80 para w-96 (+64px para prévias mais longas)
   - Coluna direita (detalhes do contato): aumentada de w-80 para w-96 (+64px para mais campos)
   - Coluna central (mensagens): reduzida proporcionalmente via flex-1 para compensar aumento lateral
   - Prévias de mensagens agora exibem mais conteúdo sem truncamento excessivo
   - Área de detalhes do contato com espaço ampliado para negócios e informações
-  - Correção cirúrgica: apenas InboxPage.tsx e ContactSidebar.tsx alterados, responsividade preservada
+  - Correção cirúrgica: apenas InboxPage.tsx e ContactSidebar.tsx alterados, responsividade preservadas
 - June 27, 2025 (22:32): SEPARADORES DE DATA COM CINZA ESCURO PARA DESTAQUE VISUAL ELEGANTE
   - Alterado componente DateSeparator para usar fundo cinza escuro (bg-gray-700/bg-gray-800) com texto branco
   - Separação visual elegante e discreta entre dias diferentes na timeline das conversas

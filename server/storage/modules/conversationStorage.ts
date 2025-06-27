@@ -808,7 +808,7 @@ export class ConversationStorage extends BaseStorage {
   async searchConversations(searchTerm: string): Promise<ConversationWithContact[]> {
     const searchLower = searchTerm.toLowerCase().trim();
     
-    // Query otimizada que busca em todo o banco de dados
+    // Query otimizada que busca em todo o banco de dados incluindo a última mensagem
     const results = await this.db
       .select({
         // Conversation fields
@@ -849,10 +849,37 @@ export class ConversationStorage extends BaseStorage {
           tags: contacts.tags,
           createdAt: contacts.createdAt,
           updatedAt: contacts.updatedAt
+        },
+        
+        // Last message fields (mesma lógica do método principal)
+        lastMessage: {
+          id: messages.id,
+          content: messages.content,
+          sentAt: messages.sentAt,
+          isFromContact: messages.isFromContact,
+          messageType: messages.messageType,
+          metadata: messages.metadata
         }
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .leftJoin(
+        messages,
+        and(
+          eq(messages.conversationId, conversations.id),
+          eq(messages.isDeleted, false),
+          eq(messages.id, 
+            sql`(
+              SELECT m.id 
+              FROM messages m 
+              WHERE m.conversation_id = ${conversations.id} 
+                AND m.is_deleted = false 
+              ORDER BY m.sent_at DESC 
+              LIMIT 1
+            )`
+          )
+        )
+      )
       .where(
         // Busca flexível em nome, telefone e email
         sql`(
@@ -864,7 +891,7 @@ export class ConversationStorage extends BaseStorage {
       .orderBy(desc(conversations.lastMessageAt))
       .limit(100); // Limitar para evitar sobrecarga
 
-    // Transformar resultados no formato esperado
+    // Transformar resultados no formato esperado com mensagens incluídas
     return results.map(result => ({
       ...result,
       contact: {
@@ -873,8 +900,12 @@ export class ConversationStorage extends BaseStorage {
         deals: []
       },
       channelInfo: undefined,
-      messages: [],
+      teamType: null,
+      markedUnreadManually: false,
+      // Converter lastMessage de objeto para string para compatibilidade com frontend
+      lastMessage: result.lastMessage?.content || '',
+      messages: result.lastMessage?.id ? [result.lastMessage] : [],
       _count: { messages: result.unreadCount || 0 }
-    })) as ConversationWithContact[];
+    } as unknown)) as ConversationWithContact[];
   }
 }
