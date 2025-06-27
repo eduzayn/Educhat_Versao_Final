@@ -1,5 +1,5 @@
 import { BaseStorage } from "../base/BaseStorage";
-import { systemUsers, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
+import { systemUsers, userTeams, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -133,6 +133,10 @@ export class AuthStorage extends BaseStorage {
   }
 
   async deleteSystemUser(id: number): Promise<void> {
+    // Primeiro, remover relacionamentos de equipes do usuário
+    await this.db.delete(userTeams).where(eq(userTeams.userId, id));
+    
+    // Depois, excluir o usuário
     await this.db.delete(systemUsers).where(eq(systemUsers.id, id));
   }
 }
