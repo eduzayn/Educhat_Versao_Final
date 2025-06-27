@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (04:11): FILTRO DE ERROS DA INFRAESTRUTURA REPLIT IMPLEMENTADO
+  - Identificado: erro "net::ERR_CONNECTION_CLOSED" em "replit.com/graphql" é da infraestrutura Replit
+  - Não afeta funcionalidades do EduChat (Z-API, caixa de entrada, CRM permanecem intactos)
+  - Implementado filtro cirúrgico em main.tsx para suprimir erros de infraestrutura:
+    * Console.error interceptado para filtrar mensagens da infraestrutura Replit
+    * Event listener para capturar erros de rede específicos
+    * Interceptor de fetch para tratar falhas do GraphQL Replit sem quebrar aplicação
+  - Sistema EduChat funciona perfeitamente independente da conectividade GraphQL Replit
+  - Correção cirúrgica: apenas main.tsx alterado, nenhuma funcionalidade afetada
 - June 27, 2025 (04:06): ERRO CRÍTICO DE EXCLUSÃO DE USUÁRIOS CORRIGIDO COMPLETAMENTE
   - Identificado problema: usuários com relacionamentos FK não podiam ser excluídos (erro 500)
   - Implementada limpeza automática completa de todas as dependências antes da exclusão:
