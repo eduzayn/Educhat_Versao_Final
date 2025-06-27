@@ -278,7 +278,7 @@ function DocumentMessage({
   };
 
   // Verificar se há URL de download disponível
-  const hasDownloadUrl = (metadata && ('documentUrl' in metadata || 'fileData' in metadata)) || 
+  const hasDownloadUrl = (metadata && ('mediaUrl' in metadata || 'documentUrl' in metadata || 'fileData' in metadata)) || 
     (message.content && (message.content.startsWith("data:") || message.content.startsWith("http")));
 
   return (
