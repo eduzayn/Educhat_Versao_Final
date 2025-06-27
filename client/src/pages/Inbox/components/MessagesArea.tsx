@@ -1,7 +1,47 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
+import { format, isToday, isYesterday, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { MessageBubble } from "@/modules/Messages/components/MessageBubble";
 import { useMarkConversationRead } from "@/shared/lib/hooks/useMarkConversationRead";
+
+// Funções para agrupamento e formatação de datas
+const formatDateSeparator = (date: Date) => {
+  if (isToday(date)) return "Hoje";
+  if (isYesterday(date)) return "Ontem";
+  return format(date, "dd 'de' MMMM", { locale: ptBR });
+};
+
+const groupMessagesByDate = (messages: any[]) => {
+  const groups: { date: Date; messages: any[] }[] = [];
+
+  messages.forEach((message) => {
+    const messageDate = new Date(message.sentAt);
+    const lastGroup = groups[groups.length - 1];
+    
+    if (lastGroup && isSameDay(lastGroup.date, messageDate)) {
+      lastGroup.messages.push(message);
+    } else {
+      groups.push({
+        date: messageDate,
+        messages: [message],
+      });
+    }
+  });
+
+  return groups;
+};
+
+// Componente para o separador de data
+const DateSeparator = ({ date }: { date: Date }) => (
+  <div className="flex items-center justify-center my-4">
+    <div className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full shadow-sm">
+      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+        {formatDateSeparator(date)}
+      </span>
+    </div>
+  </div>
+);
 
 interface MessagesAreaProps {
   messages: any[];
@@ -173,43 +213,54 @@ export function MessagesArea({
             </div>
           )}
 
-          {deduplicateMessages(messages ?? [])
-            .sort(
+          {/* Renderizar mensagens agrupadas por data */}
+          {groupMessagesByDate(
+            deduplicateMessages(messages ?? []).sort(
               (a, b) =>
                 new Date(a.sentAt || 0).getTime() -
                 new Date(b.sentAt || 0).getTime(),
             )
-            .map((message, index) => (
-              <MessageBubble
-                key={`msg-${message.id}-${message.sentAt || ''}-${index}`}
-                message={message}
-                contact={activeConversation?.contact}
-                channelIcon={
-                  getChannelInfo(activeConversation?.channel || "").icon
-                }
-                channelColor={
-                  getChannelInfo(activeConversation?.channel || "").color
-                }
-                conversationId={activeConversation?.id || 0}
-                onReply={(message) => {
-                  const metadata =
-                    typeof message.metadata === "object"
-                      ? message.metadata
-                      : {};
-                  const messageId =
-                    metadata?.messageId ||
-                    metadata?.zaapId ||
-                    metadata?.id ||
-                    null;
+          ).map((group, groupIndex) => (
+            <div key={`group-${group.date.getTime()}`}>
+              {/* Separador de data */}
+              <DateSeparator date={group.date} />
+              
+              {/* Mensagens do grupo com espaçamento reduzido */}
+              <div className="space-y-2">
+                {group.messages.map((message, messageIndex) => (
+                <MessageBubble
+                  key={`msg-${message.id}-${message.sentAt || ''}-${messageIndex}`}
+                  message={message}
+                  contact={activeConversation?.contact}
+                  channelIcon={
+                    getChannelInfo(activeConversation?.channel || "").icon
+                  }
+                  channelColor={
+                    getChannelInfo(activeConversation?.channel || "").color
+                  }
+                  conversationId={activeConversation?.id || 0}
+                  onReply={(message) => {
+                    const metadata =
+                      typeof message.metadata === "object"
+                        ? message.metadata
+                        : {};
+                    const messageId =
+                      (metadata as any)?.messageId ||
+                      (metadata as any)?.zaapId ||
+                      (metadata as any)?.id ||
+                      null;
 
-                  window.dispatchEvent(
-                    new CustomEvent("replyToMessage", {
-                      detail: { messageId, content: message.content },
-                    }),
-                  );
-                }}
-              />
-            ))}
+                    window.dispatchEvent(
+                      new CustomEvent("replyToMessage", {
+                        detail: { messageId, content: message.content },
+                      }),
+                    );
+                  }}
+                />
+              ))}
+              </div>
+            </div>
+          ))}
 
           <div ref={messagesEndRef} />
         </>
