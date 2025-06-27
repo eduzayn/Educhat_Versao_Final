@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (04:22): AUTOCOMPLETE GENÉRICO DO NAVEGADOR DESABILITADO NO TEXTAREA DE MENSAGENS
+  - Identificado: autocomplete nativo do navegador estava interferindo com respostas rápidas
+  - Problema: palavras genéricas ("MEL", "EM", "MEU", "MECÂNICO") apareciam ao invés das respostas salvas
+  - Solução implementada no InputArea.tsx: adicionadas propriedades para desabilitar autocomplete:
+    * autoComplete="off" - desabilita autocomplete do navegador
+    * autoCorrect="off" - desabilita correção automática
+    * autoCapitalize="off" - desabilita capitalização automática
+    * spellCheck="false" - desabilita verificação ortográfica
+    * Propriedades anti-Grammarly para evitar interferência de extensões
+  - Sistema de respostas rápidas com /* agora funciona sem interferências externas
+  - Correção cirúrgica: apenas textarea da caixa de entrada alterado, demais funcionalidades preservadas
 - June 27, 2025 (04:11): FILTRO DE ERROS DA INFRAESTRUTURA REPLIT IMPLEMENTADO
   - Identificado: erro "net::ERR_CONNECTION_CLOSED" em "replit.com/graphql" é da infraestrutura Replit
   - Não afeta funcionalidades do EduChat (Z-API, caixa de entrada, CRM permanecem intactos)
