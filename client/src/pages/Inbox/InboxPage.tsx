@@ -632,7 +632,7 @@ export function InboxPage() {
   return (
     <div className="flex h-screen bg-gray-50 mobile-full-height">
       {/* Lista de Conversas */}
-      <div className={`w-80 md:w-80 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
+      <div className={`w-96 md:w-96 ${showMobileChat ? 'mobile-hide' : 'mobile-full-width'} bg-white border-r border-gray-200 flex flex-col`}>
         {/* Header */}
         <ConversationListHeader
           activeTab={activeTab}
@@ -793,7 +793,6 @@ export function InboxPage() {
                   isFetchingNextPage={messagesIsFetchingNextPage}
                   fetchNextPage={messagesFetchNextPage}
                   activeConversation={currentActiveConversation}
-                  getChannelInfo={getChannelInfo}
                 />
 
                 {/* Área de Input */}

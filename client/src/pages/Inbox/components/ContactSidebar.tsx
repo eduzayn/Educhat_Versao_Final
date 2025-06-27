@@ -282,7 +282,7 @@ export function ContactSidebar({
   if (!activeConversation || !activeConversation.contact) return null;
 
   return (
-    <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+    <div className="w-96 bg-white border-l border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-6">
         {/* 👤 Informações do Contato */}
         <div className="text-center">

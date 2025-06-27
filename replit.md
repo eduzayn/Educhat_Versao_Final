@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (22:56): LARGURAS DAS COLUNAS DA INBOX OTIMIZADAS PARA MELHOR USABILIDADE
+  - Coluna esquerda (lista de conversas): aumentada de w-80 para w-96 (+64px para prévias mais longas)
+  - Coluna direita (detalhes do contato): aumentada de w-80 para w-96 (+64px para mais campos)
+  - Coluna central (mensagens): reduzida proporcionalmente via flex-1 para compensar aumento lateral
+  - Prévias de mensagens agora exibem mais conteúdo sem truncamento excessivo
+  - Área de detalhes do contato com espaço ampliado para negócios e informações
+  - Correção cirúrgica: apenas InboxPage.tsx e ContactSidebar.tsx alterados, responsividade preservada
 - June 27, 2025 (22:32): SEPARADORES DE DATA COM CINZA ESCURO PARA DESTAQUE VISUAL ELEGANTE
   - Alterado componente DateSeparator para usar fundo cinza escuro (bg-gray-700/bg-gray-800) com texto branco
   - Separação visual elegante e discreta entre dias diferentes na timeline das conversas
