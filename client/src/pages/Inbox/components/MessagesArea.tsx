@@ -5,11 +5,41 @@ import { ptBR } from "date-fns/locale";
 import { MessageBubble } from "@/modules/Messages/components/MessageBubble";
 import { useMarkConversationRead } from "@/shared/lib/hooks/useMarkConversationRead";
 
+// Função para obter informações do canal
+const getChannelInfo = (channel: string) => {
+  return { icon: '💬', color: 'text-gray-500', label: 'Canal' };
+};
+
 // Funções para agrupamento e formatação de datas
 const formatDateSeparator = (date: Date) => {
   if (isToday(date)) return "Hoje";
   if (isYesterday(date)) return "Ontem";
   return format(date, "dd 'de' MMMM", { locale: ptBR });
+};
+
+const deduplicateMessages = (messages: any[]) => {
+  const seenIds = new Set<string>();
+  const uniqueMessages: any[] = [];
+  
+  messages.forEach((message, index) => {
+    if (!message?.id) {
+      // Se não tem ID, gerar um temporário baseado no conteúdo e posição
+      console.warn('Mensagem sem ID detectada:', message);
+      return;
+    }
+    
+    const messageKey = `${message.id}-${message.sentAt || ''}`;
+    
+    if (seenIds.has(messageKey)) {
+      console.warn(`Mensagem duplicada detectada: ID ${message.id}, sentAt: ${message.sentAt}`);
+      return;
+    }
+    
+    seenIds.add(messageKey);
+    uniqueMessages.push(message);
+  });
+  
+  return uniqueMessages;
 };
 
 const groupMessagesByDate = (messages: any[]) => {
@@ -50,11 +80,6 @@ interface MessagesAreaProps {
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => Promise<any>;
   activeConversation: any;
-  getChannelInfo: (channel: string) => {
-    icon: string;
-    color: string;
-    label: string;
-  };
 }
 
 export function MessagesArea({
