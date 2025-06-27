@@ -92,7 +92,13 @@ export function registerUtilitiesRoutes(app: Express) {
       }
 
       // Buscar credenciais do canal específico no banco de dados
-      let credentials = { valid: false, error: 'Canal não encontrado' };
+      let credentials: {
+        valid: boolean;
+        error?: string;
+        instanceId?: string;
+        token?: string;
+        clientToken?: string;
+      } = { valid: false, error: 'Canal não encontrado' };
       let targetChannel = 'desconhecido';
 
       if (channelId) {
@@ -252,7 +258,12 @@ export function registerUtilitiesRoutes(app: Express) {
         conversationId
       });
       
-      res.json(data);
+      // Retornar no formato padronizado esperado pelo frontend
+      res.json({
+        success: true,
+        data: data,
+        message: 'Mensagem enviada com sucesso via Z-API'
+      });
     } catch (error) {
       const { logZApiError } = await import('../../lib/zapiLogger');
       logZApiError({
@@ -269,11 +280,16 @@ export function registerUtilitiesRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
       
-      res.status(500).json({ 
-        error: 'Contato criado com sucesso, mas não foi possível enviar mensagem via ZAPI',
-        details: error instanceof Error ? error.message : 'Erro interno do servidor',
-        phone: req.body.phone,
-        timestamp: new Date().toISOString()
+      // Retornar status 400 com formato JSON válido ao invés de 500
+      res.status(400).json({ 
+        success: false,
+        error: 'Não foi possível enviar mensagem via Z-API',
+        message: error instanceof Error ? error.message : 'Erro na comunicação com Z-API',
+        details: {
+          phone: req.body.phone,
+          timestamp: new Date().toISOString(),
+          originalError: error instanceof Error ? error.message : 'Erro interno do servidor'
+        }
       });
     }
   });
