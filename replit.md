@@ -96,6 +96,19 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (04:38): INCONSISTÊNCIA CRÍTICA DOS FILTROS DE CANAIS CORRIGIDA COMPLETAMENTE
+  - Identificado: filtros por canal não exibiam todas as conversas corretas devido a inconsistências de dados
+  - Problemas encontrados:
+    * 1662 conversas comerciais com channel="whatsapp" e channel_id=1 (deveria ser channel="comercial")
+    * 312 conversas suporte com channel="whatsapp" e channel_id=2 (deveria ser channel="suporte")
+    * Lógica de filtragem não considerava novos nomes de canais ("comercial", "suporte")
+  - Correções implementadas:
+    * Migração de dados: 1974 conversas atualizadas com nomes corretos de canal
+    * Lógica de filtragem corrigida para incluir todos os canais WhatsApp ("whatsapp", "comercial", "suporte")
+    * Filtro específico por channelId funcionando corretamente
+    * channel_id nulo corrigido para conversas comerciais (14 conversas)
+  - Resultado: filtro "WhatsApp Comercial" agora exibe todas as 1703 conversas comerciais corretamente
+  - Correção cirúrgica: apenas dados do banco e InboxPage.tsx alterados, funcionalidades preservadas
 - June 27, 2025 (04:32): PROBLEMA DE SINCRONIZAÇÃO DE MENSAGENS NO CANAL COMERCIAL CORRIGIDO COMPLETAMENTE
   - Identificado: mensagens recebidas após 19:55 (período de desconexão) não apareciam no canal comercial correto
   - Problema: webhook Z-API usava canal "whatsapp" genérico ao invés de mapear para canal específico baseado na instância
