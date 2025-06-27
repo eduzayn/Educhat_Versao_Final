@@ -62,7 +62,20 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res.json();
+  
+  // Se o status for 204 (No Content), não há JSON para processar
+  if (res.status === 204) {
+    return null;
+  }
+  
+  // Verificar se há conteúdo para processar
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return res.json();
+  }
+  
+  // Para outros tipos de conteúdo ou resposta vazia
+  return res.text().then(text => text ? text : null);
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

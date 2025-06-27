@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (04:06): ERRO CRÍTICO DE EXCLUSÃO DE USUÁRIOS CORRIGIDO COMPLETAMENTE
+  - Identificado problema: usuários com relacionamentos FK não podiam ser excluídos (erro 500)
+  - Implementada limpeza automática completa de todas as dependências antes da exclusão:
+    * Conversas atribuídas (assigned_user_id → NULL)
+    * Mensagens com autor (author_id → NULL)
+    * Deals atribuídos e criados (assigned_user_id, created_by_user_id → NULL)
+    * Contatos atribuídos (assigned_user_id → NULL)
+    * Relacionamentos de equipes (removidos da tabela user_teams)
+  - Corrigido erro frontend "Unexpected end of JSON input" no apiRequest para status 204
+  - Sistema de exclusão agora funciona perfeitamente com logs detalhados
+  - Mantida integridade: conversas ficam sem atribuição mas preservam histórico
 - June 26, 2025 (20:02): ERRO CRÍTICO "SELECTITEM VALUE VAZIO" CORRIGIDO DEFINITIVAMENTE
   - Identificado erro React: "A <Select.Item /> must have a value prop that is not an empty string"
   - Substituídos valores vazios ("") por "none" nos dois SelectItem do modal de transferência
