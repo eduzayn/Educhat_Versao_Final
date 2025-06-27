@@ -54,11 +54,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
-  
+
   // Registrar rotas de preferências de notificação
   app.use('/api/notification-preferences', notificationPreferencesRoutes);
 
-  
+
   // Registrar rotas de keyword routing
   app.use('/api/keyword-routing', (await import('./keywordRouting/index.js')).default);
 
