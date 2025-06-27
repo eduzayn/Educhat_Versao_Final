@@ -133,8 +133,8 @@ export const UsersTab = () => {
 
   // Estados para transferência de atendimentos
   const [transferData, setTransferData] = useState({
-    targetUserId: '',
-    targetTeamId: ''
+    targetUserId: 'none',
+    targetTeamId: 'none'
   });
 
   // Fetch users from API
@@ -383,7 +383,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
 
   const handleDeleteUser = (user: any) => {
     setUserToDelete(user);
-    setTransferData({ targetUserId: '', targetTeamId: '' });
+    setTransferData({ targetUserId: 'none', targetTeamId: 'none' });
     setShowDeleteDialog(true);
   };
 
@@ -408,7 +408,7 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
       });
       setShowDeleteDialog(false);
       setUserToDelete(null);
-      setTransferData({ targetUserId: '', targetTeamId: '' });
+      setTransferData({ targetUserId: 'none', targetTeamId: 'none' });
     }
   };
 
@@ -1098,7 +1098,7 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
               onClick={() => {
                 setShowDeleteDialog(false);
                 setUserToDelete(null);
-                setTransferData({ targetUserId: '', targetTeamId: '' });
+                setTransferData({ targetUserId: 'none', targetTeamId: 'none' });
               }}
               className="flex-1"
             >

@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 26, 2025 (20:02): ERRO CRÍTICO "SELECTITEM VALUE VAZIO" CORRIGIDO DEFINITIVAMENTE
+  - Identificado erro React: "A <Select.Item /> must have a value prop that is not an empty string"
+  - Substituídos valores vazios ("") por "none" nos dois SelectItem do modal de transferência
+  - Atualizada lógica de validação para considerar "none" como valor não selecionado
+  - Corrigidas funções de transferência para tratar corretamente valor "none"
+  - Estados iniciais padronizados para começar com "none" ao invés de string vazia
+  - Sistema funcionando sem erros React no console do navegador
+  - Correção cirúrgica: apenas UsersTab.tsx alterado, funcionalidade mantida
 - June 26, 2025 (20:01): SISTEMA DE TRANSFERÊNCIA SEGURA DE USUÁRIOS IMPLEMENTADO COMPLETAMENTE
   - Modal de exclusão substituído por interface moderna com campos obrigatórios de transferência
   - Implementados dois Select obrigatórios: usuário de destino e equipe de destino
