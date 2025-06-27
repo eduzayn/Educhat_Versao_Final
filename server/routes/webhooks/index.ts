@@ -3,6 +3,21 @@ import { storage } from "../../core/storage";
 import multer from "multer";
 import { facebookWebhookRoutes } from './facebook';
 
+// Função para mapear instância Z-API para canal específico
+function getChannelFromInstance(instanceId?: string): string {
+  if (!instanceId) return 'whatsapp';
+  
+  // Mapeamento baseado na tabela channels
+  switch (instanceId) {
+    case '3DF871A7ADFB20FB49998E66062CE0C1':
+      return 'comercial';
+    case '3E22F2A24288809C2217D63E28193647':
+      return 'suporte';
+    default:
+      return 'whatsapp';
+  }
+}
+
 // Função de detecção de equipe baseada em palavras-chave
 function detectTeamFromMessage(messageText: string, canalOrigem?: string): string | null {
   const text = messageText.toLowerCase();
@@ -1619,6 +1634,10 @@ export function registerZApiRoutes(app: Express) {
 
         console.log(`📱 Processando mensagem WhatsApp de ${phone}: ${messageContent.substring(0, 100)}...`);
 
+        // Determinar canal correto baseado na instância Z-API
+        const channelName = getChannelFromInstance(webhookData.instanceId);
+        console.log(`🎯 Canal mapeado: ${channelName} (instância: ${webhookData.instanceId})`);
+
         // Criar ou encontrar o contato
         const contact = await storage.findOrCreateContact(phone, {
           name: webhookData.senderName || `WhatsApp ${phone}`,
@@ -1626,20 +1645,20 @@ export function registerZApiRoutes(app: Express) {
           email: null,
           isOnline: true,
           profileImageUrl: null,
-          canalOrigem: 'whatsapp',
-          nomeCanal: 'WhatsApp',
-          idCanal: `whatsapp-${phone}`
+          canalOrigem: channelName,
+          nomeCanal: channelName === 'comercial' ? 'Comercial' : (channelName === 'suporte' ? 'Suporte' : 'WhatsApp'),
+          idCanal: `${channelName}-${phone}`
         });
 
         // Atualizar status online do contato
         await storage.updateContactOnlineStatus(contact.id, true);
 
         // Criar ou encontrar a conversa
-        let conversation = await storage.getConversationByContactAndChannel(contact.id, 'whatsapp');
+        let conversation = await storage.getConversationByContactAndChannel(contact.id, channelName);
         if (!conversation) {
           conversation = await storage.createConversation({
             contactId: contact.id,
-            channel: 'whatsapp',
+            channel: channelName,
             status: 'open',
             lastMessageAt: new Date()
           });

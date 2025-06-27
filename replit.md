@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (04:32): PROBLEMA DE SINCRONIZAÇÃO DE MENSAGENS NO CANAL COMERCIAL CORRIGIDO COMPLETAMENTE
+  - Identificado: mensagens recebidas após 19:55 (período de desconexão) não apareciam no canal comercial correto
+  - Problema: webhook Z-API usava canal "whatsapp" genérico ao invés de mapear para canal específico baseado na instância
+  - Correções implementadas:
+    * Função getChannelFromInstance() criada para mapear instância Z-API 3DF871A7ADFB20FB49998E66062CE0C1 → "comercial"
+    * Webhook atualizado para usar canal correto baseado na instanceId recebida
+    * 41 conversas existentes migradas de "whatsapp" para "comercial"
+    * 206 mensagens após 19:55 agora exibidas corretamente no canal comercial
+    * Erro "response.json is not a function" em useSyncZApiMessages corrigido
+  - Sistema garante: mensagens chegam no canal correto desde o primeiro webhook
+  - Correção cirúrgica: apenas webhooks/index.ts e useContacts.ts alterados, funcionalidade preservada
 - June 27, 2025 (04:22): AUTOCOMPLETE GENÉRICO DO NAVEGADOR DESABILITADO NO TEXTAREA DE MENSAGENS
   - Identificado: autocomplete nativo do navegador estava interferindo com respostas rápidas
   - Problema: palavras genéricas ("MEL", "EM", "MEU", "MECÂNICO") apareciam ao invés das respostas salvas

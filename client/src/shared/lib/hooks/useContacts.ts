@@ -153,7 +153,7 @@ export function useSyncZApiMessages() {
   return useMutation({
     mutationFn: async ({ since, phone }: { since?: string; phone?: string } = {}) => {
       const response = await apiRequest('POST', '/api/zapi/sync-messages', { since, phone });
-      return response.json();
+      return response;
     },
     onSuccess: (data) => {
       toast({
