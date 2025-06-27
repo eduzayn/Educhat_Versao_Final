@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (23:51): BUG CRÍTICO DE EXCLUSÃO DE MENSAGENS Z-API CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: endpoint /api/zapi/send-message não salvava ID da Z-API no banco
+  - Mensagens eram enviadas via Z-API mas não tinham zaapId/messageId nos metadados
+  - MessageBubble.tsx não encontrava ID para exclusão, exibindo erro "ID da Z-API não encontrado"
+  - Corrigido endpoint para salvar mensagem no banco após envio bem-sucedido via Z-API
+  - Adicionados metadatos completos: zaapId, messageId, textSent, channel, phone
+  - Campo whatsappMessageId preenchido corretamente com ID retornado pela Z-API
+  - Broadcast em tempo real implementado para renderização imediata
+  - Logs específicos adicionados para debug futuro de exclusões
+  - Exclusão em até 7 minutos agora funciona tanto na interface quanto para destinatários
+  - Correção cirúrgica: apenas utilities/index.ts e webhooks/index.ts alterados, sem afetar outras rotinas
 - June 27, 2025 (23:42): PRÉVIAS DE MENSAGENS NA BUSCA CORRIGIDAS COMPLETAMENTE
   - Identificado problema: método searchConversations não incluía mensagens como getConversations
   - Corrigido método searchConversations para incluir LEFT JOIN com última mensagem

@@ -2135,7 +2135,11 @@ export function registerZApiRoutes(app: Express) {
   // Delete message via Z-API - REST: DELETE /api/zapi/messages/:messageId
   app.delete('/api/zapi/messages/:messageId', async (req, res) => {
     try {
-      console.log('🗑️ Recebendo solicitação de exclusão de mensagem:', req.body);
+      console.log('🗑️ INICIANDO EXCLUSÃO DE MENSAGEM Z-API:', {
+        messageId: req.params.messageId,
+        body: req.body,
+        timestamp: new Date().toISOString()
+      });
       
       const { phone, conversationId } = req.body;
       const messageId = req.params.messageId;

@@ -258,11 +258,51 @@ export function registerUtilitiesRoutes(app: Express) {
         conversationId
       });
       
+      // Salvar mensagem no banco de dados se conversationId foi fornecido
+      let savedMessage = null;
+      if (conversationId) {
+        try {
+          savedMessage = await storage.createMessage({
+            conversationId: parseInt(conversationId),
+            content: message.toString(),
+            isFromContact: false,
+            messageType: 'text',
+            sentAt: new Date(),
+            whatsappMessageId: data.messageId || data.id,
+            metadata: {
+              zaapId: data.messageId || data.id,
+              messageId: data.messageId || data.id,
+              textSent: true,
+              channel: targetChannel,
+              phone: cleanPhone
+            }
+          });
+
+          console.log('💾 MENSAGEM SALVA NO BANCO:', {
+            messageId: savedMessage.id,
+            zaapId: data.messageId || data.id,
+            conversationId: parseInt(conversationId)
+          });
+
+          // Broadcast para WebSocket com dados da mensagem para renderização imediata
+          const { broadcastToAll } = await import('../realtime');
+          broadcastToAll({
+            type: 'new_message',
+            conversationId: parseInt(conversationId),
+            message: savedMessage
+          });
+        } catch (dbError) {
+          console.error('❌ Erro ao salvar mensagem de texto no banco:', dbError);
+          // Não falhar o endpoint se salvar no banco falhar - mensagem já foi enviada
+        }
+      }
+      
       // Retornar no formato padronizado esperado pelo frontend
       res.json({
         success: true,
         data: data,
-        message: 'Mensagem enviada com sucesso via Z-API'
+        message: 'Mensagem enviada com sucesso via Z-API',
+        savedMessage: savedMessage // Incluir mensagem salva para renderização imediata
       });
     } catch (error) {
       const { logZApiError } = await import('../../lib/zapiLogger');
