@@ -233,22 +233,61 @@ function DocumentMessage({
     }
   };
 
-  const handleDownload = () => {
-    if (message.content && message.content.startsWith("data:")) {
-      const link = document.createElement("a");
-      link.href = message.content;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      let downloadUrl = '';
+      
+      // Verificar se tem mediaUrl nos metadados (documento recebido via webhook Z-API)
+      if (metadata && 'mediaUrl' in metadata && metadata.mediaUrl) {
+        downloadUrl = metadata.mediaUrl as string;
+      }
+      // Verificar se tem documentUrl nos metadados (fallback)
+      else if (metadata && 'documentUrl' in metadata && metadata.documentUrl) {
+        downloadUrl = metadata.documentUrl as string;
+      }
+      // Verificar se tem fileData nos metadados (documento enviado via sistema)
+      else if (metadata && 'fileData' in metadata && metadata.fileData) {
+        downloadUrl = metadata.fileData as string;
+      }
+      // Fallback para content direto (dados base64)
+      else if (message.content && message.content.startsWith("data:")) {
+        downloadUrl = message.content;
+      }
+      // Fallback para URL externa no content
+      else if (message.content && (message.content.startsWith("http://") || message.content.startsWith("https://"))) {
+        downloadUrl = message.content;
+      }
+      
+      if (downloadUrl) {
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.target = "_blank"; // Abrir em nova aba para URLs externas
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('📥 Download iniciado:', { fileName, downloadUrl: downloadUrl.substring(0, 50) + '...' });
+      } else {
+        console.warn('⚠️ Nenhuma URL de download encontrada para o documento');
+        console.log('🔍 Debug metadados:', metadata);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao fazer download do documento:', error);
     }
   };
+
+  // Verificar se há URL de download disponível
+  const hasDownloadUrl = (metadata && ('documentUrl' in metadata || 'fileData' in metadata)) || 
+    (message.content && (message.content.startsWith("data:") || message.content.startsWith("http")));
 
   return (
     <div
       className={`max-w-md ${
         isFromContact ? "bg-gray-100" : "bg-blue-600"
-      } rounded-lg overflow-hidden`}
+      } rounded-lg overflow-hidden ${hasDownloadUrl ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      onClick={hasDownloadUrl ? handleDownload : undefined}
+      title={hasDownloadUrl ? `Clique para baixar ${fileName}` : undefined}
     >
       <div className={`p-4 ${isFromContact ? "text-gray-900" : "text-white"}`}>
         <div className="flex items-center gap-3">
@@ -263,16 +302,11 @@ function DocumentMessage({
               Documento{sizeText}
             </div>
           </div>
-          {message.content && message.content.startsWith("data:") && (
-            <button
-              onClick={handleDownload}
-              className={`p-2 rounded-full hover:bg-opacity-20 hover:bg-white transition-colors ${
-                isFromContact ? "text-gray-600 hover:bg-gray-200" : "text-white"
-              }`}
-              title="Baixar documento"
-            >
+          {/* Mostrar ícone de download se houver URL disponível */}
+          {hasDownloadUrl && (
+            <div className={`p-2 ${isFromContact ? "text-gray-400" : "text-blue-200"}`}>
               <Download className="w-4 h-4" />
-            </button>
+            </div>
           )}
         </div>
       </div>
