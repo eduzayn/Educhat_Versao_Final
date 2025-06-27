@@ -214,7 +214,7 @@ export const UsersTab = () => {
       if (userConversations.length > 0) {
         const transferPromises = userConversations.map(async (conversation: any) => {
           // Transferir para usuário específico se selecionado
-          if (transferData.targetUserId) {
+          if (transferData.targetUserId && transferData.targetUserId !== 'none') {
             await apiRequest('PATCH', `/api/conversations/${conversation.id}/assign-user`, {
               userId: parseInt(transferData.targetUserId),
               method: 'manual'
@@ -222,7 +222,7 @@ export const UsersTab = () => {
           }
           
           // Transferir para equipe se selecionada
-          if (transferData.targetTeamId) {
+          if (transferData.targetTeamId && transferData.targetTeamId !== 'none') {
             await apiRequest('PATCH', `/api/conversations/${conversation.id}/assign-team`, {
               teamId: parseInt(transferData.targetTeamId),
               method: 'manual'
@@ -241,9 +241,9 @@ export const UsersTab = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       
       const transferredCount = userConversations.length;
-      const targetUserName = transferData.targetUserId ? 
+      const targetUserName = (transferData.targetUserId && transferData.targetUserId !== 'none') ? 
         users.find((u: any) => u.id === parseInt(transferData.targetUserId))?.displayName : null;
-      const targetTeamName = transferData.targetTeamId ? 
+      const targetTeamName = (transferData.targetTeamId && transferData.targetTeamId !== 'none') ? 
         teams.find((t: any) => t.id === parseInt(transferData.targetTeamId))?.name : null;
       
       let message = `Usuário excluído com sucesso!`;
@@ -391,7 +391,8 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
     if (userToDelete) {
       // Validar se tem conversas e se campos obrigatórios estão preenchidos
       if (userConversations.length > 0) {
-        if (!transferData.targetUserId && !transferData.targetTeamId) {
+        if ((!transferData.targetUserId || transferData.targetUserId === 'none') && 
+            (!transferData.targetTeamId || transferData.targetTeamId === 'none')) {
           toast({
             title: "⚠️ Transferência Obrigatória",
             description: "É necessário selecionar pelo menos um usuário OU uma equipe para transferir os atendimentos ativos.",
@@ -1017,7 +1018,7 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
                         <SelectValue placeholder="Selecionar usuário..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum usuário específico</SelectItem>
+                        <SelectItem value="none">Nenhum usuário específico</SelectItem>
                         {users
                           .filter((u: any) => u.id !== userToDelete?.id && u.isActive !== false)
                           .map((user: any) => (
@@ -1047,7 +1048,7 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
                         <SelectValue placeholder="Selecionar equipe..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma equipe específica</SelectItem>
+                        <SelectItem value="none">Nenhuma equipe específica</SelectItem>
                         {teams.map((team: any) => (
                           <SelectItem key={team.id} value={team.id.toString()}>
                             {team.name}
@@ -1059,16 +1060,17 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
                 </div>
 
                 {/* Preview da transferência */}
-                {(transferData.targetUserId || transferData.targetTeamId) && (
+                {((transferData.targetUserId && transferData.targetUserId !== 'none') || 
+                  (transferData.targetTeamId && transferData.targetTeamId !== 'none')) && (
                   <div className="bg-green-50 p-3 rounded-md border-l-4 border-green-400">
                     <div className="flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 text-green-600" />
                       <p className="text-sm text-green-800">
                         <strong>Transferência configurada:</strong> {userConversations.length} atendimento(s) serão transferidos
-                        {transferData.targetUserId && (
+                        {(transferData.targetUserId && transferData.targetUserId !== 'none') && (
                           <span> para {users.find((u: any) => u.id === parseInt(transferData.targetUserId))?.displayName}</span>
                         )}
-                        {transferData.targetTeamId && (
+                        {(transferData.targetTeamId && transferData.targetTeamId !== 'none') && (
                           <span> para equipe {teams.find((t: any) => t.id === parseInt(transferData.targetTeamId))?.name}</span>
                         )}
                       </p>
@@ -1104,7 +1106,9 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
             </Button>
             <Button
               onClick={handleConfirmDelete}
-              disabled={deleteUserMutation.isPending || (userConversations.length > 0 && !transferData.targetUserId && !transferData.targetTeamId)}
+              disabled={deleteUserMutation.isPending || (userConversations.length > 0 && 
+                (!transferData.targetUserId || transferData.targetUserId === 'none') && 
+                (!transferData.targetTeamId || transferData.targetTeamId === 'none'))}
               variant="destructive"
               className="flex-1"
             >
