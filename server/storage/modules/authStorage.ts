@@ -22,7 +22,7 @@ export class AuthStorage extends BaseStorage {
       roleId: systemUser.roleId || 1,
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-      macrosetores: [], // Removido - agora usamos sistema de equipes
+      teamTypes: [], // Sistema de equipes baseado em tipos
       teamId: systemUser.teamId || undefined,
       team: systemUser.team || undefined
     };
@@ -63,7 +63,7 @@ export class AuthStorage extends BaseStorage {
       roleId: systemUser.roleId || 1,
       dataKey: systemUser.dataKey || undefined,
       channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-      macrosetores: [], // Removido - agora usamos sistema de equipes
+      teamTypes: [], // Sistema de equipes baseado em tipos
       teamId: systemUser.teamId || undefined,
       team: systemUser.team || undefined
     };
@@ -98,7 +98,7 @@ export class AuthStorage extends BaseStorage {
         roleId: updated.roleId || 1,
         dataKey: updated.dataKey || undefined,
         channels: Array.isArray(updated.channels) ? updated.channels : [],
-        macrosetores: [], // Removido - agora usamos sistema de equipes
+        teamTypes: [], // Sistema de equipes baseado em tipos
         teamId: updated.teamId || undefined,
         team: updated.team || undefined
       };
