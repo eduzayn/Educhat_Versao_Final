@@ -65,8 +65,8 @@ const groupMessagesByDate = (messages: any[]) => {
 // Componente para o separador de data
 const DateSeparator = ({ date }: { date: Date }) => (
   <div className="flex items-center justify-center my-4">
-    <div className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full shadow-sm">
-      <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+    <div className="px-3 py-1 bg-blue-500 dark:bg-blue-600 rounded-full shadow-sm">
+      <span className="text-xs font-medium text-white">
         {formatDateSeparator(date)}
       </span>
     </div>
@@ -89,7 +89,6 @@ export function MessagesArea({
   isFetchingNextPage,
   fetchNextPage,
   activeConversation,
-  getChannelInfo,
 }: MessagesAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

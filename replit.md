@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 27, 2025 (22:08): SEPARADORES DE DATA AZUIS IMPLEMENTADOS PARA MELHOR DESTAQUE VISUAL
+  - Alterado componente DateSeparator para usar fundo azul (bg-blue-500/bg-blue-600) com texto branco
+  - Separação visual mais forte entre dias diferentes na timeline das conversas
+  - Design consistente com padrão visual do sistema EduChat
+  - Correção cirúrgica: apenas MessagesArea.tsx alterado, funcionalidades preservadas
 - June 27, 2025 (04:38): INCONSISTÊNCIA CRÍTICA DOS FILTROS DE CANAIS CORRIGIDA COMPLETAMENTE
   - Identificado: filtros por canal não exibiam todas as conversas corretas devido a inconsistências de dados
   - Problemas encontrados:
