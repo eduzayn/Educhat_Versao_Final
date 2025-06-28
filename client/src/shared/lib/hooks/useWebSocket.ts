@@ -151,11 +151,47 @@ export function useWebSocket() {
           break;
         case 'message_deleted':
           if (data.messageId && data.conversationId) {
-            console.log('🗑️ Mensagem deletada:', {
+            console.log('🗑️ Mensagem deletada via WebSocket:', {
               messageId: data.messageId,
-              conversationId: data.conversationId
+              whatsappMessageId: data.whatsappMessageId,
+              conversationId: data.conversationId,
+              deletedAt: data.deletedAt
             });
             
+            // Atualizar cache diretamente para marcar mensagem como deletada
+            queryClient.setQueryData([`/api/conversations/${data.conversationId}/messages`], (oldData: any) => {
+              if (!oldData || !oldData.pages) return oldData;
+              
+              // Encontrar e marcar mensagem como deletada em todas as páginas
+              const updatedPages = oldData.pages.map((page: any[]) => {
+                if (!Array.isArray(page)) return page;
+                
+                return page.map((msg: any) => {
+                  if (!msg || !msg.id) return msg;
+                  
+                  // Marcar como deletada por ID interno ou ID da Z-API
+                  if (msg.id === data.messageId || 
+                      (msg.metadata && typeof msg.metadata === 'object' && 
+                       ((msg.metadata as any).messageId === data.whatsappMessageId ||
+                        (msg.metadata as any).zaapId === data.whatsappMessageId))) {
+                    console.log(`🗑️ Marcando mensagem ${msg.id} como deletada na interface`);
+                    return {
+                      ...msg,
+                      isDeleted: true,
+                      deletedAt: data.deletedAt
+                    };
+                  }
+                  return msg;
+                });
+              });
+              
+              return {
+                ...oldData,
+                pages: updatedPages
+              };
+            });
+            
+            // Invalidar também como backup
             queryClient.invalidateQueries({ 
               queryKey: [`/api/conversations/${data.conversationId}/messages`] 
             });

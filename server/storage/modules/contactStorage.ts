@@ -44,6 +44,19 @@ export class ContactStorage extends BaseStorage {
       .orderBy(desc(contacts.createdAt));
   }
 
+  async findContactByPhone(phone: string): Promise<Contact | undefined> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const [contact] = await this.db.select().from(contacts)
+      .where(
+        or(
+          eq(contacts.phone, phone),
+          eq(contacts.phone, cleanPhone),
+          ilike(contacts.phone, `%${cleanPhone}%`)
+        )
+      );
+    return contact;
+  }
+
   async updateContactOnlineStatus(id: number, isOnline: boolean): Promise<void> {
     await this.db.update(contacts)
       .set({ 

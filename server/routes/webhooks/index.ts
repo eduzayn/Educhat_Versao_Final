@@ -1599,6 +1599,62 @@ export function registerZApiRoutes(app: Express) {
         console.log(`📋 Status da mensagem atualizado: ${webhookData.status} para ${webhookData.phone}`);
         return res.status(200).json({ success: true, type: 'status_update' });
       }
+
+      // Verificar se é um callback de mensagem deletada
+      if (webhookData.type === 'DeletedMessage' || webhookData.type === 'MessageDeleted' || 
+          (webhookData.type === 'MessageStatusCallback' && webhookData.status === 'DELETED')) {
+        console.log(`🗑️ Mensagem deletada via WhatsApp:`, {
+          messageId: webhookData.messageId || webhookData.ids?.[0],
+          phone: webhookData.phone,
+          deletedAt: new Date().toISOString()
+        });
+        
+        try {
+          // Buscar mensagem no banco pelo ID da Z-API
+          const messageId = webhookData.messageId || webhookData.ids?.[0];
+          if (messageId) {
+            const phone = webhookData.phone?.replace(/\D/g, '');
+            
+            // Buscar conversa por telefone
+            const contact = await storage.findContactByPhone(phone);
+            if (contact) {
+              const conversations = await storage.getConversationsByContactId(contact.id);
+              for (const conversation of conversations) {
+                const messages = await storage.getMessages(conversation.id);
+                const messageToDelete = messages.find(msg => {
+                  const metadata = msg.metadata && typeof msg.metadata === 'object' ? msg.metadata : {};
+                  const msgId = 'messageId' in metadata ? metadata.messageId : 
+                              'zaapId' in metadata ? metadata.zaapId : 
+                              'id' in metadata ? metadata.id : null;
+                  return msgId === messageId.toString();
+                });
+
+                if (messageToDelete) {
+                  console.log(`🗑️ Marcando mensagem como deletada no banco: ${messageToDelete.id}`);
+                  await storage.markMessageAsDeleted(messageToDelete.id);
+                  
+                  // Broadcast para atualizar interface em tempo real
+                  const { broadcast } = await import('../realtime');
+                  broadcast(conversation.id, {
+                    type: 'message_deleted',
+                    messageId: messageToDelete.id,
+                    whatsappMessageId: messageId,
+                    deletedAt: new Date().toISOString(),
+                    conversationId: conversation.id
+                  });
+                  
+                  console.log(`✅ Mensagem ${messageToDelete.id} marcada como deletada e broadcast enviado`);
+                  break;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erro ao processar mensagem deletada:', error);
+        }
+        
+        return res.status(200).json({ success: true, type: 'message_deleted' });
+      }
       
       // Verificar se é um callback de mensagem recebida (baseado na documentação)
       if (webhookData.type === 'ReceivedCallback' && webhookData.phone) {
