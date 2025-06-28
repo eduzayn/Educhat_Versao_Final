@@ -89,6 +89,7 @@ export class ConversationStorage extends BaseStorage {
         
         // Última mensagem apenas preview
         lastMessage: {
+          id: messages.id,
           content: messages.content,
           sentAt: messages.sentAt,
           isFromContact: messages.isFromContact
@@ -133,7 +134,7 @@ export class ConversationStorage extends BaseStorage {
       lastMessage: row.lastMessage?.content || '',
       // CORREÇÃO: Frontend espera messages[0] para prévia da mensagem
       messages: row.lastMessage?.content ? [{
-        id: row.lastMessage.id || 0,
+        id: row.lastMessage?.id || 0,
         content: row.lastMessage.content,
         sentAt: row.lastMessage.sentAt,
         isFromContact: row.lastMessage.isFromContact || false,
