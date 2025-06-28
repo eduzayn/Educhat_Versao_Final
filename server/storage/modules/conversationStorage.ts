@@ -508,8 +508,10 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async resetUnreadCount(conversationId: number): Promise<void> {
+    console.log(`🔄 [DB] resetUnreadCount INÍCIO - Conversa ${conversationId}`);
+    
     // Query única otimizada que marca conversa como lida e reseta flag manual
-    await this.db
+    const result = await this.db
       .update(conversations)
       .set({
         unreadCount: 0,
@@ -518,7 +520,18 @@ export class ConversationStorage extends BaseStorage {
         markedUnreadManually: false,
         updatedAt: new Date()
       })
-      .where(eq(conversations.id, conversationId));
+      .where(eq(conversations.id, conversationId))
+      .returning();
+    
+    console.log(`✅ [DB] resetUnreadCount SUCESSO - Conversa ${conversationId}:`, {
+      rowsUpdated: result.length,
+      updatedData: result[0] ? {
+        id: result[0].id,
+        unreadCount: result[0].unreadCount,
+        isRead: result[0].isRead,
+        markedUnreadManually: result[0].markedUnreadManually
+      } : 'Nenhuma linha retornada'
+    });
   }
 
   async getUnreadCount(): Promise<number> {
