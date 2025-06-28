@@ -27,37 +27,62 @@ export function useMarkConversationRead() {
       }
     },
     onSuccess: (_, conversationId) => {
-      // Atualizar cache específico ao invés de invalidar tudo
+      console.log(`✅ [CACHE] Atualizando cache para conversa ${conversationId}`);
+      
+      // Atualizar cache específico da conversa individual
       queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
         if (oldData) {
+          console.log(`✅ [CACHE] Cache individual atualizado para conversa ${conversationId}`);
           return { ...oldData, isRead: true, unreadCount: 0, markedUnreadManually: false };
         }
         return oldData;
       });
       
-      // Atualizar a lista de conversas para remover o indicador visual
-      queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
-        if (oldData?.pages) {
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page: any[]) => 
-              page.map((conversation: any) => 
-                conversation.id === conversationId
-                  ? { ...conversation, isRead: true, unreadCount: 0, markedUnreadManually: false }
-                  : conversation
+      // CORREÇÃO CRÍTICA: Atualizar TODAS as variações de cache com filtros diferentes
+      const cacheKeys = queryClient.getQueryCache().getAll()
+        .map(query => query.queryKey)
+        .filter(key => 
+          Array.isArray(key) && 
+          key.length >= 1 && 
+          key[0] === '/api/conversations' &&
+          key.length === 2 // ['/api/conversations', filters]
+        );
+      
+      console.log(`✅ [CACHE] Encontradas ${cacheKeys.length} chaves de cache para atualizar`);
+      
+      // Atualizar cada variação de cache de conversas
+      cacheKeys.forEach(cacheKey => {
+        queryClient.setQueryData(cacheKey, (oldData: any) => {
+          if (oldData?.pages) {
+            console.log(`✅ [CACHE] Atualizando páginas para chave:`, cacheKey);
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page: any[]) => 
+                page.map((conversation: any) => 
+                  conversation.id === conversationId
+                    ? { ...conversation, isRead: true, unreadCount: 0, markedUnreadManually: false }
+                    : conversation
+                )
               )
-            )
-          };
+            };
+          }
+          return oldData;
+        });
+      });
+      
+      // Atualizar contador de não lidas
+      queryClient.setQueryData(['/api/conversations/unread-count'], (oldData: any) => {
+        if (oldData && oldData.count > 0) {
+          console.log(`✅ [CACHE] Contador atualizado: ${oldData.count} → ${oldData.count - 1}`);
+          return { ...oldData, count: oldData.count - 1 };
         }
         return oldData;
       });
       
-      // Atualizar contador de não lidas diretamente sem invalidar
-      queryClient.setQueryData(['/api/conversations/unread-count'], (oldData: any) => {
-        if (oldData && oldData.count > 0) {
-          return { ...oldData, count: oldData.count - 1 };
-        }
-        return oldData;
+      // Invalidar queries para forçar recarregamento se necessário
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/conversations'], 
+        exact: false // Invalidar todas as variações 
       });
     },
     onError: (error, conversationId) => {
