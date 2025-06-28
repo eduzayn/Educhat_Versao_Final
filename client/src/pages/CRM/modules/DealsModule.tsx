@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/shared/ui/button';
@@ -31,6 +31,193 @@ import {
 } from "lucide-react";
 
 // CORREÇÃO: Configuração movida para crmFunnels.ts centralizado - removida duplicação
+
+// Componente para coluna individual com scroll infinito vertical
+interface KanbanColumnProps {
+  stage: any;
+  deals: any[];
+  teamType: string;
+  onDragEnd: (result: DropResult) => void;
+  onNewDeal: (stageId: string) => void;
+}
+
+function KanbanColumn({ stage, deals: initialDeals, teamType, onNewDeal }: { stage: any; deals: any[]; teamType: string; onNewDeal: (stageId: string) => void }) {
+  // Hook para scroll infinito específico desta coluna
+  const {
+    data: columnData,
+    isLoading: isColumnLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage
+  } = useInfiniteQuery({
+    queryKey: ['/api/deals', teamType, stage.id],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: '10', // 10 negócios por vez
+        teamType: teamType,
+        stage: stage.id
+      });
+      
+      const response = await fetch(`/api/deals?${params}`);
+      if (!response.ok) throw new Error('Falha ao carregar negócios da coluna');
+      return response.json();
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
+    },
+    initialPageParam: 1,
+    enabled: !!teamType && !!stage.id
+  });
+
+  // Consolidar dados de todas as páginas carregadas para esta coluna
+  const columnDeals = columnData?.pages.flatMap(page => page.deals) || initialDeals;
+
+  // Transform deals específicos desta coluna
+  const transformedDeals = columnDeals.map((deal: any) => ({
+    ...deal,
+    id: deal.id.toString(),
+    stage: deal.stage,
+    tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : (typeof deal.tags === 'string' ? JSON.parse(deal.tags || '[]') : [])) : [],
+    company: 'Empresa não definida',
+    owner: deal.owner || 'Sistema',
+    value: deal.value || 0,
+    probability: deal.probability || 0
+  }));
+
+  const calculateStageValue = (deals: any[]) => deals.reduce((acc: number, deal: any) => acc + (deal.value || 0), 0);
+
+  // Callback para detectar scroll e carregar mais
+  const scrollTriggerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(node);
+    
+    // Cleanup no retorno
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  return (
+    <div className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${stage.color}`} />
+          <h3 className="font-medium">{stage.name}</h3>
+          <Badge variant="secondary">{transformedDeals.length}</Badge>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          R$ {calculateStageValue(transformedDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        </div>
+      </div>
+      
+      <Droppable droppableId={stage.id} type="DEAL">
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`space-y-3 flex-1 overflow-y-auto min-h-[400px] max-h-[calc(100vh-300px)] pr-2 deals-column-scroll ${
+              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
+            }`}
+          >
+            {transformedDeals.map((deal: any, index: number) => (
+              <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
+                {(provided, snapshot) => (
+                  <Card
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab ${
+                      snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50' : ''
+                    }`}
+                    style={{
+                      ...provided.draggableProps.style,
+                    }}
+                  >
+                    <CardContent className="p-2.5 space-y-1.5">
+                      <div className="flex items-start justify-between">
+                        <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Building2 className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{deal.company}</span>
+                      </div>
+                      <p className="text-sm text-green-600 font-semibold">
+                        R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-xs py-0 px-1.5">
+                          {deal.probability}%
+                        </Badge>
+                        <span className="text-xs text-muted-foreground truncate max-w-[60px]">{deal.owner}</span>
+                      </div>
+                      {deal.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 max-h-6 overflow-hidden">
+                          {deal.tags.slice(0, 2).map((tag: string, i: number) => (
+                            <Badge key={i} variant="outline" className="text-xs py-0 px-1">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {deal.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs py-0 px-1">
+                              +{deal.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+            
+            {/* Scroll infinito: elemento trigger */}
+            {hasNextPage && (
+              <div 
+                ref={scrollTriggerRef}
+                className="h-10 w-full flex items-center justify-center"
+              >
+                {isFetchingNextPage && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                )}
+              </div>
+            )}
+            
+            {/* Status da coluna */}
+            {!isColumnLoading && !hasNextPage && transformedDeals.length > 10 && (
+              <div className="text-center py-2">
+                <span className="text-xs text-muted-foreground">
+                  Todos os {transformedDeals.length} negócios carregados
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </Droppable>
+      
+      <Button 
+        variant="ghost" 
+        className="w-full mt-3" 
+        size="sm"
+        onClick={() => onNewDeal(stage.id)}
+      >
+        <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
+      </Button>
+    </div>
+  );
+}
 
 export function DealsModule() {
   const [search, setSearch] = useState("");
@@ -107,7 +294,7 @@ export function DealsModule() {
   }, [selectedTeamType, queryClient]);
 
   // Transform deals (already filtered by backend)
-  const deals = rawDeals.map(deal => ({
+  const deals = rawDeals.map((deal: any) => ({
       ...deal,
       id: deal.id.toString(),
       stage: deal.stage,
@@ -209,14 +396,14 @@ export function DealsModule() {
     setIsNewDealDialogOpen(true);
   };
 
-  const filtered = deals.filter((deal) =>
+  const filtered = deals.filter((deal: any) =>
     deal.name.toLowerCase().includes(search.toLowerCase()) ||
     deal.company.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getDealsForStage = (stageId: string) => filtered.filter(d => d.stage === stageId);
+  const getDealsForStage = (stageId: string) => filtered.filter((d: any) => d.stage === stageId);
 
-  const calculateStageValue = (deals: any[]) => deals.reduce((acc, deal) => acc + (deal.value || 0), 0);
+  const calculateStageValue = (deals: any[]) => deals.reduce((acc: number, deal: any) => acc + (deal.value || 0), 0);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -232,7 +419,7 @@ export function DealsModule() {
       return;
     }
 
-    const deal = deals.find(d => String(d.id) === draggableId);
+    const deal = deals.find((d: any) => String(d.id) === draggableId);
     if (!deal) return;
 
     // Update deal stage in database
