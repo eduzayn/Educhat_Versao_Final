@@ -60,8 +60,8 @@ export class ConversationStorage extends BaseStorage {
     .innerJoin(contacts, eq(conversations.contactId, contacts.id));
   }
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // ABORDAGEM HÍBRIDA: Query simples + fetch das últimas mensagens separadamente para performance
-    const conversationsQuery = this.db
+    // ABORDAGEM SIMPLIFICADA: Buscar conversas e depois suas últimas mensagens individualmente
+    const conversationsResult = await this.db
       .select({
         // Conversation fields essenciais
         id: conversations.id,
@@ -93,35 +93,44 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    const conversationsResult = await conversationsQuery;
-
-    // Fetch últimas mensagens para as conversas obtidas (em paralelo para performance)
-    const conversationIds = conversationsResult.map(c => c.id);
-    
-    if (conversationIds.length === 0) {
+    if (conversationsResult.length === 0) {
       return [];
     }
 
-    // Query simplificada para últimas mensagens usando DISTINCT ON (mais eficiente)
-    const lastMessages = await this.db.execute(sql`
-      SELECT DISTINCT ON (conversation_id) 
-        conversation_id as "conversationId",
-        id,
-        content,
-        sent_at as "sentAt",
-        is_from_contact as "isFromContact",
-        message_type as "messageType"
-      FROM messages 
-      WHERE conversation_id = ANY(${conversationIds}) 
-        AND is_deleted = false
-      ORDER BY conversation_id, sent_at DESC
-    `);
+    // OTIMIZAÇÃO: Buscar últimas mensagens usando Promise.allSettled para evitar falhas
+    const lastMessagesPromises = conversationsResult.map(async (conv) => {
+      try {
+        const [lastMessage] = await this.db
+          .select({
+            id: messages.id,
+            content: messages.content,
+            sentAt: messages.sentAt,
+            isFromContact: messages.isFromContact,
+            messageType: messages.messageType
+          })
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+        
+        return { conversationId: conv.id, message: lastMessage };
+      } catch (error) {
+        console.warn(`Erro ao buscar última mensagem da conversa ${conv.id}:`, error);
+        return { conversationId: conv.id, message: null };
+      }
+    });
 
-    // Criar mapa de últimas mensagens por conversação
+    const lastMessagesResults = await Promise.allSettled(lastMessagesPromises);
+    
+    // Criar mapa de últimas mensagens
     const lastMessageMap = new Map();
-    const messageRows = Array.isArray(lastMessages) ? lastMessages : lastMessages.rows || [];
-    messageRows.forEach((msg: any) => {
-      lastMessageMap.set(msg.conversationId, msg);
+    lastMessagesResults.forEach((result) => {
+      if (result.status === 'fulfilled' && result.value.message) {
+        lastMessageMap.set(result.value.conversationId, result.value.message);
+      }
     });
 
     // RESULTADO: Conversas com prévias das mensagens preservadas
