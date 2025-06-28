@@ -9,13 +9,16 @@ interface ConversationFilters {
   unassigned?: boolean;
 }
 
-export function useConversations(initialLimit = 20, filters: ConversationFilters = {}, options = {}) {
+export function useConversations(initialLimit = 10, filters: ConversationFilters = {}, options = {}) {
+  // OTIMIZAÇÃO: Reduzir limite inicial para carregamento mais rápido
+  const optimizedInitialLimit = Math.min(initialLimit, 10); // Máximo 10 conversas iniciais
+  
   // Construir parâmetros de filtro para a URL
   const buildFilterParams = (pageParam: number) => {
     const params = new URLSearchParams();
     params.set('page', pageParam.toString());
     
-    const limit = pageParam === 1 ? initialLimit : 20;
+    const limit = pageParam === 1 ? optimizedInitialLimit : 15; // Páginas seguintes um pouco maiores
     params.set('limit', limit.toString());
     
     // Adicionar filtros específicos

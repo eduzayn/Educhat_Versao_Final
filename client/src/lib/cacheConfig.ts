@@ -1,13 +1,13 @@
-// Configurações padronizadas de cache para todo o sistema
+// Configurações padronizadas de cache para todo o sistema - OTIMIZADAS PARA PERFORMANCE
 export const CACHE_TIMES = {
-  CONVERSATIONS: 60000,    // 1 minuto - lista de conversas
-  MESSAGES: 120000,        // 2 minutos - mensagens da conversa
-  UNREAD_COUNT: 30000,     // 30 segundos - contador não lidas
+  CONVERSATIONS: 45000,    // 45 segundos - lista de conversas (reduzido para atualizações mais frequentes)
+  MESSAGES: 180000,        // 3 minutos - mensagens da conversa (aumentado para reduzir requisições)
+  UNREAD_COUNT: 20000,     // 20 segundos - contador não lidas (mais responsivo)
   CONTACT_DATA: 300000,    // 5 minutos - dados do contato
-  CHANNELS: 300000,        // 5 minutos - canais disponíveis
-  TEAMS: 300000,           // 5 minutos - equipes e usuários
+  CHANNELS: 600000,        // 10 minutos - canais disponíveis (raramente mudam)
+  TEAMS: 600000,           // 10 minutos - equipes e usuários (raramente mudam)
   QUICK_REPLIES: 300000,   // 5 minutos - respostas rápidas
-  SYSTEM_DATA: 600000      // 10 minutos - dados do sistema (roles, etc)
+  SYSTEM_DATA: 900000      // 15 minutos - dados do sistema (muito estáticos)
 } as const;
 
 // GC Time padrão para limpeza de cache
