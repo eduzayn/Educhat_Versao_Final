@@ -94,9 +94,7 @@ export default function TeamTransferPage() {
     queryKey: ['/api/teams'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/teams');
-        if (!response.ok) return [];
-        const data = await response.json();
+        const data = await apiRequest('GET', '/api/teams');
         return Array.isArray(data) ? data.map((team: any) => ({
           id: team.id,
           name: team.name,
@@ -116,9 +114,7 @@ export default function TeamTransferPage() {
     queryKey: ['/api/conversations'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/conversations?limit=50');
-        if (!response.ok) return [];
-        const data = await response.json();
+        const data = await apiRequest('GET', '/api/conversations?limit=50');
         return Array.isArray(data) ? data.map((conv: any) => ({
           id: conv.id,
           contactName: conv.contact?.name || conv.contactName || 'Contato',
@@ -145,9 +141,7 @@ export default function TeamTransferPage() {
     queryKey: ['/api/teams/transfer-history'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/teams/transfer-history');
-        if (!response.ok) return [];
-        const data = await response.json();
+        const data = await apiRequest('GET', '/api/teams/transfer-history');
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Erro ao carregar histórico:', error);
@@ -161,9 +155,7 @@ export default function TeamTransferPage() {
     queryKey: ['/api/keyword-routing'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/keyword-routing');
-        if (!response.ok) return [];
-        const data = await response.json();
+        const data = await apiRequest('GET', '/api/keyword-routing');
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Erro ao carregar palavras-chave:', error);

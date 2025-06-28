@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Building2, Plus, Users, Settings, UserPlus, Loader2, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import type { Team } from '@shared/schema';
 
 // Função para obter a cor baseada na cor hex da equipe
@@ -62,25 +63,13 @@ export const TeamsTab = () => {
   // Buscar equipes do banco de dados
   const { data: teams = [], isLoading, error } = useQuery({
     queryKey: ['/api/teams'],
-    queryFn: async () => {
-      const response = await fetch('/api/teams');
-      if (!response.ok) {
-        throw new Error('Erro ao carregar equipes');
-      }
-      return response.json() as Promise<Team[]>;
-    }
+    queryFn: () => apiRequest('GET', '/api/teams')
   });
 
   // Buscar usuários disponíveis
   const { data: systemUsers = [] } = useQuery({
     queryKey: ['/api/system-users'],
-    queryFn: async () => {
-      const response = await fetch('/api/system-users');
-      if (!response.ok) {
-        throw new Error('Erro ao carregar usuários');
-      }
-      return response.json();
-    }
+    queryFn: () => apiRequest('GET', '/api/system-users')
   });
 
   // Mutação para criar nova equipe
