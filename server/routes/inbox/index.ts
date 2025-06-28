@@ -492,11 +492,8 @@ export function registerInboxRoutes(app: Express) {
         });
       }
 
-      // Marcar como não lida definindo unreadCount como 1 e marcando como manual
-      await storage.updateConversation(id, { 
-        unreadCount: 1,
-        markedUnreadManually: true 
-      });
+      // Marcar como não lida usando método específico
+      await storage.markConversationAsUnread(id);
       
       // Broadcast para notificar mudança de status de leitura
       try {

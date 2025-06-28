@@ -208,6 +208,10 @@ export class DatabaseStorage implements IStorage {
     return this.conversation.markConversationAsRead(conversationId);
   }
 
+  async markConversationAsUnread(conversationId: number) {
+    return this.conversation.markConversationAsUnread(conversationId);
+  }
+
   async searchConversations(searchTerm: string) {
     return this.conversation.searchConversations(searchTerm);
   }
