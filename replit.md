@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (09:39): USO INCONSISTENTE DE FETCH VS APIREQUEST PADRONIZADO COMPLETAMENTE
+  - Substituídos 8+ usos diretos de fetch() por apiRequest() nos componentes CRM
+  - Arquivos corrigidos: TeamTransferPage.tsx, TeamsTab.tsx, UsersTab.tsx
+  - Eliminadas inconsistências de autenticação: todas as queries agora usam sessões automaticamente
+  - Tratamento de erro padronizado: apiRequest() fornece mensagens consistentes em português
+  - Reduzido código duplicado: removidas 20+ linhas de tratamento manual de response/json
+  - Sistema mais robusto: cookies de sessão incluídos automaticamente em todas as requisições
+  - Correção cirúrgica: apenas queries substituídas, lógica de negócio preservada intacta
 - June 28, 2025 (09:34): SISTEMA DE LIMPEZA DE DEALS DUPLICADOS SIMPLIFICADO DRASTICAMENTE
   - Método cleanupDuplicateDeals() refatorado: de 50+ linhas para 15 linhas eficientes
   - Substituída lógica complexa por query SQL direta com window functions (ROW_NUMBER)

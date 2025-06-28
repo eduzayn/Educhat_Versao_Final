@@ -74,17 +74,7 @@ export const TeamsTab = () => {
 
   // Mutação para criar nova equipe
   const createTeamMutation = useMutation({
-    mutationFn: async (teamData: any) => {
-      const response = await fetch('/api/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teamData)
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao criar equipe');
-      }
-      return response.json();
-    },
+    mutationFn: (teamData: any) => apiRequest('POST', '/api/teams', teamData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
       toast({
@@ -105,17 +95,8 @@ export const TeamsTab = () => {
 
   // Mutação para adicionar membro à equipe
   const addMemberMutation = useMutation({
-    mutationFn: async ({ userId, teamId }: { userId: number; teamId: number }) => {
-      const response = await fetch('/api/user-teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, teamId })
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao adicionar membro');
-      }
-      return response.json();
-    },
+    mutationFn: ({ userId, teamId }: { userId: number; teamId: number }) => 
+      apiRequest('POST', '/api/user-teams', { userId, teamId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
       toast({
@@ -136,17 +117,8 @@ export const TeamsTab = () => {
 
   // Mutação para atualizar configurações da equipe
   const updateTeamMutation = useMutation({
-    mutationFn: async ({ teamId, teamData }: { teamId: number; teamData: any }) => {
-      const response = await fetch(`/api/teams/${teamId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teamData)
-      });
-      if (!response.ok) {
-        throw new Error('Erro ao atualizar equipe');
-      }
-      return response.json();
-    },
+    mutationFn: ({ teamId, teamData }: { teamId: number; teamData: any }) => 
+      apiRequest('PATCH', `/api/teams/${teamId}`, teamData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
       toast({
