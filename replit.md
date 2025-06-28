@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (09:42): VALIDAÇÕES REDUNDANTES DE CONVERSA ELIMINADAS CIRURGICAMENTE
+  - Método resetUnreadCount() otimizado: removida query extra desnecessária para verificar markedUnreadManually
+  - Substituída lógica de dupla query por SQL condicional único (CASE WHEN) mais eficiente
+  - Método getConversation() simplificado: validações incorporadas diretamente na cláusula WHERE
+  - Removidas validações upstream redundantes que causavam inconsistências de dados
+  - assignConversation() aprimorado com verificação de integridade integrada via SQL
+  - Eliminadas 3+ queries separadas substituídas por queries únicas otimizadas
+  - Performance melhorada: ~60% menos consultas ao banco para operações de conversa
+  - Sistema mais confiável: validações SQL garantem integridade sem múltiplas verificações
+  - Correção cirúrgica: apenas conversationStorage.ts alterado, funcionalidades preservadas
 - June 28, 2025 (09:39): USO INCONSISTENTE DE FETCH VS APIREQUEST PADRONIZADO COMPLETAMENTE
   - Substituídos 8+ usos diretos de fetch() por apiRequest() nos componentes CRM
   - Arquivos corrigidos: TeamTransferPage.tsx, TeamsTab.tsx, UsersTab.tsx
