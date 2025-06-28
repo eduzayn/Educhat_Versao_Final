@@ -60,8 +60,8 @@ export class ConversationStorage extends BaseStorage {
     .innerJoin(contacts, eq(conversations.contactId, contacts.id));
   }
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // OTIMIZAÇÃO CRÍTICA: Query ultra-simplificada sem subqueries pesadas
-    const query = this.db
+    // ABORDAGEM HÍBRIDA: Query simples + fetch das últimas mensagens separadamente para performance
+    const conversationsQuery = this.db
       .select({
         // Conversation fields essenciais
         id: conversations.id,
@@ -78,7 +78,7 @@ export class ConversationStorage extends BaseStorage {
         priority: conversations.priority,
         createdAt: conversations.createdAt,
         
-        // Contact fields básicos apenas
+        // Contact fields básicos
         contact: {
           id: contacts.id,
           name: contacts.name,
@@ -93,23 +93,64 @@ export class ConversationStorage extends BaseStorage {
       .limit(limit)
       .offset(offset);
 
-    const results = await query;
+    const conversationsResult = await conversationsQuery;
 
-    // OTIMIZAÇÃO: Processamento ultra-simplificado para performance máxima
-    return results.map(row => ({
-      ...row,
-      contact: {
-        ...row.contact,
-        // Lazy loading: dados complementares carregados sob demanda
-        tags: [],
-        deals: []
-      },
-      // LAZY LOADING: campos pesados removidos da carga inicial
-      channelInfo: undefined,
-      lastMessage: '', // Prévia será carregada sob demanda se necessário
-      messages: [], // Mensagens carregadas sob demanda ao abrir conversa
-      _count: { messages: row.unreadCount || 0 }
-    } as unknown as ConversationWithContact));
+    // Fetch últimas mensagens para as conversas obtidas (em paralelo para performance)
+    const conversationIds = conversationsResult.map(c => c.id);
+    
+    if (conversationIds.length === 0) {
+      return [];
+    }
+
+    // Query simplificada para últimas mensagens usando DISTINCT ON (mais eficiente)
+    const lastMessages = await this.db.execute(sql`
+      SELECT DISTINCT ON (conversation_id) 
+        conversation_id as "conversationId",
+        id,
+        content,
+        sent_at as "sentAt",
+        is_from_contact as "isFromContact",
+        message_type as "messageType"
+      FROM messages 
+      WHERE conversation_id = ANY(${conversationIds}) 
+        AND is_deleted = false
+      ORDER BY conversation_id, sent_at DESC
+    `);
+
+    // Criar mapa de últimas mensagens por conversação
+    const lastMessageMap = new Map();
+    const messageRows = Array.isArray(lastMessages) ? lastMessages : lastMessages.rows || [];
+    messageRows.forEach((msg: any) => {
+      lastMessageMap.set(msg.conversationId, msg);
+    });
+
+    // RESULTADO: Conversas com prévias das mensagens preservadas
+    return conversationsResult.map(row => {
+      const lastMsg = lastMessageMap.get(row.id);
+      
+      return {
+        ...row,
+        contact: {
+          ...row.contact,
+          // Lazy loading: dados complementares carregados sob demanda
+          tags: [],
+          deals: []
+        },
+        // Lazy loading: dados complementares removidos da carga inicial
+        channelInfo: undefined,
+        lastMessage: lastMsg?.content || '', // PRESERVADO: prévia da última mensagem
+        // PRESERVADO: Frontend espera messages[0] para prévia da mensagem
+        messages: lastMsg ? [{
+          id: lastMsg.id,
+          content: lastMsg.content,
+          sentAt: lastMsg.sentAt,
+          isFromContact: lastMsg.isFromContact,
+          messageType: lastMsg.messageType || 'text',
+          metadata: null
+        }] : [],
+        _count: { messages: row.unreadCount || 0 }
+      } as unknown as ConversationWithContact;
+    });
   }
 
   /**
