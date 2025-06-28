@@ -265,8 +265,12 @@ export function registerWebhookRoutes(app: Express) {
             isFromContact: false,
             messageType: 'image',
             sentAt: new Date(),
+            whatsappMessageId: data.messageId || data.id, // ID para exclusão
             metadata: {
-              zaapId: data.messageId || data.id,
+              phone: cleanPhone,
+              zaapId: data.zaapId || data.messageId || data.id,
+              messageId: data.messageId || data.id,
+              channel: 'padrão-env',
               imageSent: true,
               fileName: req.file.originalname,
               fileSize: req.file.size,
@@ -289,8 +293,10 @@ export function registerWebhookRoutes(app: Express) {
 
       // Retornar resposta com mensagem salva no banco para renderização imediata
       res.json({
-        ...data,
-        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+        success: true,
+        data: data,
+        message: 'Imagem enviada com sucesso via Z-API',
+        savedMessage: savedMessage // Mensagem com metadados Z-API para renderização e exclusão
       });
     } catch (error) {
       console.error('❌ Erro ao enviar imagem via Z-API:', error);
@@ -404,8 +410,12 @@ export function registerWebhookRoutes(app: Express) {
             isFromContact: false,
             messageType: 'audio',
             sentAt: new Date(),
+            whatsappMessageId: data.messageId || data.id, // ID para exclusão
             metadata: {
-              zaapId: data.messageId || data.id,
+              phone: cleanPhone,
+              zaapId: data.zaapId || data.messageId || data.id,
+              messageId: data.messageId || data.id,
+              channel: 'padrão-env',
               audioSent: true,
               duration: duration ? parseFloat(duration) : 0,
               mimeType: req.file.mimetype,
