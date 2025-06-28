@@ -114,9 +114,19 @@ export function useVideoMessage({ conversationId, contactPhone }: UseVideoMessag
         throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
       }
 
-      const data: SendVideoResponse = await response.json();
+      const data = await response.json();
       
-      // 3. SUBSTITUIÇÃO: Trocar placeholder pela mensagem real
+      // Se Z-API retornou savedMessage com metadados, usar esse ao invés do placeholder
+      if (data.savedMessage) {
+        console.log('🔄 USANDO MENSAGEM SALVA PELA Z-API COM METADADOS (VÍDEO):', data.savedMessage.id);
+        return {
+          ...data.savedMessage,
+          // @ts-ignore - Propriedade temporária para identificação do placeholder
+          _placeholderId: placeholderMessage.id
+        };
+      }
+      
+      // Fallback para compatibilidade
       return {
         ...data.message,
         // @ts-ignore - Propriedade temporária para identificação do placeholder

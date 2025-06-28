@@ -44,9 +44,17 @@ export function useAudioMessage({ conversationId, contactPhone }: UseAudioMessag
         throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
       }
 
-      const data: SendAudioResponse = await response.json();
+      const data = await response.json();
+      
+      // Se Z-API retornou savedMessage com metadados, usar esse ao invés do padrão
+      if (data.savedMessage) {
+        console.log('🔄 USANDO MENSAGEM SALVA PELA Z-API COM METADADOS (ÁUDIO):', data.savedMessage.id);
+        return data.savedMessage;
+      }
+      
       console.log('✅ Áudio enviado com sucesso:', data);
-
+      
+      // Fallback para compatibilidade
       return data.message;
     },
     onSuccess: (newMessage) => {

@@ -436,8 +436,10 @@ export function registerWebhookRoutes(app: Express) {
 
       // Retornar resposta com mensagem salva no banco para renderização imediata
       res.json({
-        ...data,
-        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+        success: true,
+        data: data,
+        message: 'Áudio enviado com sucesso via Z-API',
+        savedMessage: savedMessage // Mensagem com metadados Z-API para renderização e exclusão
       });
     } catch (error) {
       console.error('❌ Erro ao enviar áudio via Z-API:', error);
@@ -554,8 +556,12 @@ export function registerWebhookRoutes(app: Express) {
             isFromContact: false,
             messageType: 'video',
             sentAt: new Date(),
+            whatsappMessageId: data.messageId || data.id, // ID para exclusão
             metadata: {
-              zaapId: data.messageId || data.id,
+              phone: cleanPhone,
+              zaapId: data.zaapId || data.messageId || data.id,
+              messageId: data.messageId || data.id,
+              channel: 'padrão-env',
               videoSent: true,
               fileName: req.file.originalname,
               fileSize: req.file.size,
@@ -578,8 +584,10 @@ export function registerWebhookRoutes(app: Express) {
 
       // Retornar resposta com mensagem salva no banco para renderização imediata
       res.json({
-        ...data,
-        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+        success: true,
+        data: data,
+        message: 'Vídeo enviado com sucesso via Z-API',
+        savedMessage: savedMessage // Mensagem com metadados Z-API para renderização e exclusão
       });
     } catch (error) {
       console.error('❌ Erro ao enviar vídeo via Z-API:', error);
@@ -697,8 +705,12 @@ export function registerWebhookRoutes(app: Express) {
             isFromContact: false,
             messageType: 'file',
             sentAt: new Date(),
+            whatsappMessageId: data.messageId || data.id, // ID para exclusão
             metadata: {
-              zaapId: data.messageId || data.id,
+              phone: cleanPhone,
+              zaapId: data.zaapId || data.messageId || data.id,
+              messageId: data.messageId || data.id,
+              channel: 'padrão-env',
               fileSent: true,
               fileName: req.file.originalname,
               fileSize: req.file.size,
@@ -726,8 +738,10 @@ export function registerWebhookRoutes(app: Express) {
 
       // Retornar resposta com mensagem salva no banco para renderização imediata
       res.json({
-        ...data,
-        message: savedMessage // Adicionar mensagem salva no banco para o frontend
+        success: true,
+        data: data,
+        message: 'Arquivo enviado com sucesso via Z-API',
+        savedMessage: savedMessage // Mensagem com metadados Z-API para renderização e exclusão
       });
     } catch (error) {
       console.error('❌ Erro ao enviar arquivo via Z-API:', error);
