@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (05:09): SISTEMA DE AUTENTICAÇÃO COM PASSWORDS OBSOLETOS CORRIGIDO COMPLETAMENTE
+  - Removido código inseguro de comparação de senhas em texto plano (linha ~154 auth.ts)
+  - Implementada migração automática de senhas durante login: detecção → hash → atualização no banco
+  - Sistema agora verifica se senha começa com '$2b$' (bcrypt) ou é texto plano
+  - Se senha em texto plano coincidir, converte automaticamente para hash bcrypt e atualiza no banco
+  - Correção cirúrgica aplicada: apenas auth.ts modificado, demais funcionalidades preservadas
+  - Removidas referências obsoletas ao campo "macrosetores" que causavam erros LSP
+  - Logs informativos adicionados para rastreamento de migrações de senha
+  - Sistema mais seguro: todas as senhas são automaticamente convertidas para hash durante próximo login
+  - Aproveita funções existentes hashPassword() e updateSystemUser() evitando duplicação de código
 - June 28, 2025 (05:06): CONSOLIDAÇÃO COMPLETA DE CÓDIGO DUPLICADO FINALIZADA COM SUCESSO
   - Removidas 6 funções getStatusBadge duplicadas em diferentes componentes do sistema
   - Arquivos corrigidos: SalesCoaching.tsx, SalesCommissions.tsx, SalesTargets.tsx, InboxPage.tsx, ChannelsPage.tsx, FacebookIntegrationPage.tsx
