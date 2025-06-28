@@ -646,7 +646,7 @@ export function MessageBubble({
           </div>
         )}
         {displayContent ? (
-          <p className="text-sm">{displayContent}</p>
+          <p className="text-sm whitespace-pre-line">{displayContent}</p>
         ) : (
           <div className="text-sm text-gray-500 italic">
             <p>Mensagem sem conteúdo de texto</p>
