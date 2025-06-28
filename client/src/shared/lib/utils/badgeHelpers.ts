@@ -145,12 +145,12 @@ export const getChannelStatusBadge = (isActive: boolean, isConnected?: boolean):
   if (typeof isConnected === 'boolean') {
     if (!isActive) return { variant: 'secondary', text: 'Inativo', color: 'text-gray-600' };
     return isConnected 
-      ? { variant: 'default', text: 'Conectado', color: 'text-green-600' }
+      ? { variant: 'secondary', text: 'Conectado', color: 'bg-green-100 text-green-800 hover:bg-green-200' }
       : { variant: 'destructive', text: 'Desconectado', color: 'text-red-600' };
   }
   
   return isActive 
-    ? { variant: 'default', text: 'Ativo', color: 'text-green-600' }
+    ? { variant: 'secondary', text: 'Ativo', color: 'bg-green-100 text-green-800 hover:bg-green-200' }
     : { variant: 'secondary', text: 'Inativo', color: 'text-gray-600' };
 };
 
