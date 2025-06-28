@@ -162,17 +162,20 @@ export function DealsModule() {
       await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedTeamType] });
       
       // Snapshot the previous value
-      const previousDeals = queryClient.getQueryData(['/api/deals', selectedTeamType, page, limit]);
+      const previousDeals = queryClient.getQueryData(['/api/deals', selectedTeamType]);
       
       // Optimistically update to the new value
-      queryClient.setQueryData(['/api/deals', selectedTeamType, page, limit], (old: any) => {
-        if (!old?.data) return old;
+      queryClient.setQueryData(['/api/deals', selectedTeamType], (old: any) => {
+        if (!old?.pages) return old;
         
         return {
           ...old,
-          data: old.data.map((deal: any) => 
-            deal.id === dealId ? { ...deal, stage } : deal
-          )
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            deals: page.deals.map((deal: any) => 
+              deal.id === dealId ? { ...deal, stage } : deal
+            )
+          }))
         };
       });
       
@@ -182,14 +185,14 @@ export function DealsModule() {
     onError: (err, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousDeals) {
-        queryClient.setQueryData(['/api/deals', selectedTeamType, page, limit], context.previousDeals);
+        queryClient.setQueryData(['/api/deals', selectedTeamType], context.previousDeals);
       }
       console.error('Erro ao atualizar estágio do negócio:', err);
     },
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedTeamType, page, limit] 
+        queryKey: ['/api/deals', selectedTeamType] 
       });
     }
   });
@@ -566,37 +569,45 @@ export function DealsModule() {
           </div>
         )}
 
-        {/* Controles de Paginação - Sempre Visível */}
-        <div className="flex items-center justify-between px-6 py-4 border-t bg-white dark:bg-gray-800 sticky bottom-0">
-          <div className="text-sm text-muted-foreground">
-            {dealsResponse ? (
-              `Página ${currentPage} de ${totalPages} (${dealsResponse.total} negócios)`
-            ) : (
+        {/* SCROLL INFINITO: Indicador de status de carregamento */}
+        <div className="flex items-center justify-center px-6 py-4 border-t bg-white dark:bg-gray-800">
+          <div className="text-sm text-muted-foreground text-center">
+            {isLoading ? (
               'Carregando negócios...'
+            ) : isFetchingNextPage ? (
+              'Carregando mais negócios...'
+            ) : hasNextPage ? (
+              `${rawDeals.length} de ${totalDeals} negócios carregados • Role para carregar mais`
+            ) : (
+              `Todos os ${rawDeals.length} negócios carregados`
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setPage(prev => Math.max(1, prev - 1))}
-              disabled={!dealsResponse || currentPage === 1}
-            >
-              ← Anterior
-            </Button>
-            <span className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded">
-              {currentPage}
-            </span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={!dealsResponse || currentPage === totalPages}
-            >
-              Próxima →
-            </Button>
-          </div>
         </div>
+
+        {/* SCROLL INFINITO: Trigger para carregar próxima página */}
+        {hasNextPage && (
+          <div 
+            ref={(el) => {
+              if (el) {
+                const observer = new IntersectionObserver(
+                  (entries) => {
+                    if (entries[0].isIntersecting && !isFetchingNextPage) {
+                      fetchNextPage();
+                    }
+                  },
+                  { threshold: 0.1 }
+                );
+                observer.observe(el);
+                return () => observer.disconnect();
+              }
+            }}
+            className="h-10 w-full flex items-center justify-center"
+          >
+            {isFetchingNextPage && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
