@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
-import { getStatusBadge } from '@/shared/lib/utils/badgeHelpers';
+import { getCommissionStatusBadge } from '@/shared/lib/utils/badgeHelpers';
 import { formatCurrency, formatPercentage } from '@/shared/lib/utils/formatters';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { 
@@ -56,18 +56,7 @@ export function SalesCommissions() {
     }
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="text-blue-600 border-blue-600"><CheckCircle className="h-3 w-3 mr-1" />Aprovada</Badge>;
-      case 'paid':
-        return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle className="h-3 w-3 mr-1" />Paga</Badge>;
-      default:
-        return <Badge variant="outline"><XCircle className="h-3 w-3 mr-1" />Desconhecido</Badge>;
-    }
-  };
+
 
   const handleExportCSV = () => {
     if (!commissionsData?.commissions) return;
@@ -277,7 +266,18 @@ export function SalesCommissions() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(commission.status)}
+                      {(() => {
+                        const badgeConfig = getCommissionStatusBadge(commission.status);
+                        const IconComponent = commission.status === 'pending' ? Clock : 
+                                            commission.status === 'approved' ? CheckCircle : 
+                                            commission.status === 'paid' ? CheckCircle : XCircle;
+                        return (
+                          <Badge variant={badgeConfig.variant} className={badgeConfig.color}>
+                            <IconComponent className="h-3 w-3 mr-1" />
+                            {badgeConfig.text}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div>

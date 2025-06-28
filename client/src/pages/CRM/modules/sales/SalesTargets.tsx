@@ -108,19 +108,7 @@ export function SalesTargets() {
     });
   };
 
-  const getStatusBadge = (target: SalesTarget) => {
-    const achievement = (target.currentValue / target.targetValue) * 100;
-    
-    if (achievement >= 100) {
-      return <Badge className="bg-green-100 text-green-800">Atingida</Badge>;
-    } else if (achievement >= 80) {
-      return <Badge className="bg-yellow-100 text-yellow-800">Próximo</Badge>;
-    } else if (target.status === 'overdue') {
-      return <Badge className="bg-red-100 text-red-800">Atrasada</Badge>;
-    } else {
-      return <Badge className="bg-blue-100 text-blue-800">Em Andamento</Badge>;
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -340,7 +328,24 @@ export function SalesTargets() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(target)}
+                        {(() => {
+                          const achievement = (target.currentValue / target.targetValue) * 100;
+                          const badgeConfig = getProgressBadge(target.currentValue, target.targetValue);
+                          
+                          // Se está atrasada, usar badge vermelho
+                          if (target.status === 'overdue') {
+                            return <Badge className="bg-red-100 text-red-800">Atrasada</Badge>;
+                          }
+                          
+                          return (
+                            <Badge 
+                              variant={badgeConfig.variant}
+                              className={badgeConfig.color || badgeConfig.bgColor}
+                            >
+                              {badgeConfig.text}
+                            </Badge>
+                          );
+                        })()}
                         {canManageTargets && (
                           <Button
                             variant="ghost"
