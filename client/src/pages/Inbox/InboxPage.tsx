@@ -133,11 +133,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(15, apiFilters, { 
-    refetchInterval: false, // WebSocket cuida das atualizações - sem polling
-    staleTime: 60000, // Cache por 1 minuto para reduzir requisições
-    refetchOnWindowFocus: false // Evitar requisições ao trocar de aba
-  }); // Carregar apenas 15 conversas iniciais para carregamento mais rápido
+  } = useConversations(15, apiFilters, CACHE_CONFIG.CONVERSATIONS); // Carregar apenas 15 conversas iniciais para carregamento mais rápido
   
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(page => page || []) : [];

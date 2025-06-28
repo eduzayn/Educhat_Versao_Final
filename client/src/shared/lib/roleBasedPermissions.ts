@@ -136,11 +136,22 @@ import { useAuth } from './hooks/useAuth';
 export function useRoleBasedPermissions() {
   const { user } = useAuth();
   
+  // Função helper para extrair role com segurança
+  const getUserRole = (userData: unknown): string | undefined => {
+    if (!userData || typeof userData !== 'object') return undefined;
+    if ('role' in userData && typeof (userData as any).role === 'string') {
+      return (userData as any).role;
+    }
+    return undefined;
+  };
+  
+  const userRole = getUserRole(user);
+  
   return {
-    hasAccess: (pagePath: string) => hasRoleBasedAccess(user?.role, pagePath),
-    isAdmin: () => isAdminRole(user?.role),
-    isManagerOrAbove: () => isManagerOrAbove(user?.role),
-    allowedPages: getAllowedPagesForRole(user?.role),
-    userRole: user?.role
+    hasAccess: (pagePath: string) => hasRoleBasedAccess(userRole, pagePath),
+    isAdmin: () => isAdminRole(userRole),
+    isManagerOrAbove: () => isManagerOrAbove(userRole),
+    allowedPages: getAllowedPagesForRole(userRole),
+    userRole
   };
 }

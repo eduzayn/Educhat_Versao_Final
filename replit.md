@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (10:55): PADRONIZAÇÃO COMPLETA DE CONFIGURAÇÕES DE CACHE IMPLEMENTADA COM SUCESSO
+  - Criado arquivo cacheConfig.ts centralizado com tempos padronizados para todo o sistema
+  - Configurações organizadas por tipo: REALTIME (30s), CONVERSATIONS (60s), MESSAGES (120s), STATIC (600s)
+  - Todos os hooks críticos atualizados: useConversations, useMessages, useUnreadCount, useSearchConversations
+  - QueryClient global configurado para usar configurações STATIC por padrão
+  - InboxPage.tsx atualizado para usar configurações padronizadas ao invés de valores hardcoded
+  - Corrigidos erros LSP TypeScript: tipos unknown→number, pageParam null, user.role undefined
+  - Eliminadas configurações duplicadas e conflitantes entre diferentes hooks
+  - Sistema agora usa configuração única e consistente reduzindo race conditions de cache
+  - Performance otimizada: tempos de cache alinhados previnem requisições desnecessárias
+  - Manutenibilidade melhorada: alterações de cache centralizadas em um único arquivo
 - June 28, 2025 (10:35): AUDITORIA COMPLETA DE ROTAS E NAVEGAÇÃO FINALIZADA COM CORREÇÕES CRÍTICAS
   - Implementada rota /integrations/manychat faltante no App.tsx (corrigido erro 404)
   - Corrigida navegação no SettingsPage: substituído <a href> por componentes Link do wouter
