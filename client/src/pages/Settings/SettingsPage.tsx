@@ -2,6 +2,7 @@ import { SettingsModule } from '@/modules/Settings';
 import { Card } from '@/shared/ui/card';
 import { BackButton } from '@/shared/components/BackButton';
 import { useAuth } from '@/shared/lib/hooks/useAuth';
+import { Link } from 'wouter';
 
 const settingsCards = [
   {
@@ -61,7 +62,7 @@ function SettingsPage() {
   // Filtrar cards baseado nas permissões do usuário
   const filteredCards = settingsCards.filter(card => {
     if (card.adminOnly) {
-      return user?.role === 'admin' || user?.role === 'superadmin';
+      return (user as any)?.role === 'admin' || (user as any)?.role === 'superadmin';
     }
     return true;
   });
@@ -85,12 +86,11 @@ function SettingsPage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-lg mb-2">{card.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4">{card.description}</p>
-                  <a 
-                    href={card.href} 
-                    className="text-primary text-sm font-medium hover:underline"
-                  >
-                    Acessar configurações →
-                  </a>
+                  <Link href={card.href}>
+                    <span className="text-primary text-sm font-medium hover:underline cursor-pointer">
+                      Acessar configurações →
+                    </span>
+                  </Link>
                 </div>
               </div>
             </Card>

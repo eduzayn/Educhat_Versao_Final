@@ -27,6 +27,7 @@ import { AIDetectionSettingsPage } from "@/pages/Settings/AIDetection/AIDetectio
 // Removido: import PermissionsPanel from "@/pages/Admin/PermissionsPanel";
 import { ProfilePage } from "@/pages/Profile/ProfilePage";
 import TeamTransferPage from "@/pages/Teams/TeamTransferPage";
+import TeamsPage from "@/pages/Teams/TeamsPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 
 function Router() {
@@ -79,6 +80,14 @@ function Router() {
               <ProtectedRoute
                 requiredRole={["admin", "gerente", "superadmin"]}
                 component={FacebookIntegrationPage}
+              />
+            )}
+          </Route>
+          <Route path="/integrations/manychat">
+            {() => (
+              <ProtectedRoute
+                requiredRole={["admin", "gerente", "superadmin"]}
+                component={IntegrationsPage}
               />
             )}
           </Route>
