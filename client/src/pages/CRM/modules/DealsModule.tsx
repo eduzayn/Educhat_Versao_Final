@@ -33,8 +33,32 @@ import {
 // CORREÇÃO: Configuração movida para crmFunnels.ts centralizado - removida duplicação
 
 // Componente simplificado para coluna kanban
-function KanbanColumn({ stage, deals, onNewDeal }: { stage: any; deals: any[]; onNewDeal: (stageId: string) => void }) {
+function KanbanColumn({ 
+  stage, 
+  deals, 
+  onNewDeal, 
+  onLoadMore, 
+  hasNextPage, 
+  isFetchingNextPage 
+}: { 
+  stage: any; 
+  deals: any[]; 
+  onNewDeal: (stageId: string) => void;
+  onLoadMore?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+}) {
   const calculateStageValue = (deals: any[]) => deals.reduce((acc: number, deal: any) => acc + (deal.value || 0), 0);
+
+  // SCROLL INFINITO: Detectar quando usuário chega ao final da coluna
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px de margem
+    
+    if (isNearBottom && hasNextPage && !isFetchingNextPage && onLoadMore) {
+      onLoadMore();
+    }
+  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
 
   return (
     <div className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
@@ -57,6 +81,7 @@ function KanbanColumn({ stage, deals, onNewDeal }: { stage: any; deals: any[]; o
             className={`space-y-3 flex-1 overflow-y-auto min-h-[400px] max-h-[calc(100vh-300px)] pr-2 deals-column-scroll ${
               snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
             }`}
+            onScroll={handleScroll}
           >
             {deals.map((deal: any, index: number) => (
               <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
@@ -112,6 +137,14 @@ function KanbanColumn({ stage, deals, onNewDeal }: { stage: any; deals: any[]; o
               </Draggable>
             ))}
             {provided.placeholder}
+            
+            {/* SCROLL INFINITO: Indicador de carregamento */}
+            {isFetchingNextPage && (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin h-4 w-4 border-b-2 border-primary"></div>
+                <span className="ml-2 text-xs text-muted-foreground">Carregando mais...</span>
+              </div>
+            )}
           </div>
         )}
       </Droppable>
@@ -171,12 +204,19 @@ export function DealsModule() {
     return [...staticTypes, ...dynamicTypes];
   }, [teamsFromDB]);
 
-  // OTIMIZAÇÃO: Query padrão com limit 10 para carregamento inicial mais rápido
-  const { data: dealsResponse, isLoading } = useQuery({
+  // SCROLL INFINITO: useInfiniteQuery para carregar negócios sob demanda
+  const { 
+    data: dealsResponse, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useInfiniteQuery({
     queryKey: ['/api/deals', selectedTeamType],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
-        limit: '10', // REDUZIDO: 10 negócios iniciais por coluna para otimizar performance
+        limit: '20', // 20 negócios por página para scroll infinito
+        page: pageParam.toString(),
         teamType: selectedTeamType
       });
       
@@ -184,18 +224,24 @@ export function DealsModule() {
       if (!response.ok) throw new Error('Falha ao carregar negócios');
       return response.json();
     },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      // Backend retorna totalPages, usar isso para determinar se há mais páginas
+      return allPages.length < lastPage.totalPages ? allPages.length + 1 : undefined;
+    },
     enabled: !!selectedTeamType // Só busca se tipo de equipe estiver selecionado
   });
 
-  // Extrair dados da resposta padrão
-  const rawDeals = dealsResponse?.deals || [];
-  const totalDeals = dealsResponse?.totalDeals || 0;
+  // Extrair dados do infiniteQuery
+  const rawDeals = dealsResponse?.pages?.flatMap(page => page.deals) || [];
+  const totalDeals = dealsResponse?.pages?.[0]?.total || 0;
   
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
   // CORREÇÃO: Usar configuração dinâmica ao invés de estática
   const currentTeamCategory = getCategoryInfo(selectedTeamType) || 
-    getDynamicFunnelForTeamType(selectedTeamType);
+    getDynamicFunnelForTeamType(selectedTeamType) || 
+    { name: 'Funil Padrão', stages: [] };
   
   // OTIMIZAÇÃO: Resetar dados do infiniteQuery quando teamType muda
   useEffect(() => {
@@ -524,6 +570,9 @@ export function DealsModule() {
                       stage={stage}
                       deals={stageDeals}
                       onNewDeal={openNewDealDialog}
+                      onLoadMore={fetchNextPage}
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
                     />
                   );
                 })}
