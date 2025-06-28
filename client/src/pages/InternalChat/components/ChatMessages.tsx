@@ -5,6 +5,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { formatFileSize, formatMessageTime, formatDateSeparator } from '@/shared/lib/utils/formatters';
 import {
   Reply,
   Edit2,
@@ -38,13 +39,7 @@ function InternalFileDisplay({ message }: { message: any }) {
     link.click();
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+
 
   // Renderizar imagem
   if (metadata.fileType === "image") {
@@ -191,15 +186,7 @@ export function ChatMessages() {
     }
   }, [messages.length, activeChannel]);
 
-  const formatMessageTime = (date: Date) => {
-    return format(date, "HH:mm", { locale: ptBR });
-  };
 
-  const formatDateSeparator = (date: Date) => {
-    if (isToday(date)) return "Hoje";
-    if (isYesterday(date)) return "Ontem";
-    return format(date, "dd 'de' MMMM", { locale: ptBR });
-  };
 
   const groupMessagesByDate = (messages: InternalChatMessage[]) => {
     const groups: { date: Date; messages: InternalChatMessage[] }[] = [];

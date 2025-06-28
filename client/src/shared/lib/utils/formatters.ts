@@ -148,6 +148,32 @@ export const parseInputDate = (dateString: string): Date | undefined => {
   return isNaN(date.getTime()) ? undefined : date;
 };
 
+// Formatação de tamanho de arquivo
+export const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+// Formatação de tempo para mensagens do chat interno (HH:mm)
+export const formatMessageTime = (date: Date) => {
+  return date.toLocaleTimeString('pt-BR', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};
+
+// Formatação de separador de data para chat interno
+export const formatDateSeparator = (date: Date) => {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
 // Formatação de tempo relativo (minutes/hours/days ago)
 export const formatRelativeTime = (dateString: string) => {
   const date = new Date(dateString);

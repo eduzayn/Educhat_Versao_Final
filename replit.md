@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (09:55): FORMATAÇÕES DE DATA/TEMPO DUPLICADAS CENTRALIZADAS COMPLETAMENTE
+  - Criadas funções centralizadas no formatters.ts: formatFileSize, formatMessageTime, formatDateSeparator
+  - Substituídas formatações duplicadas em TeamTransferCard.tsx (formatTime → formatRelativeTime)
+  - Corrigidas formatações em TransferHistoryCard.tsx (formatDate → formatDateAndTime)
+  - Consolidadas formatações em ConversationListHeader.tsx (formatDateForInput, parseInputDate)
+  - Removidas funções duplicadas do ChatMessages.tsx (formatMessageTime, formatDateSeparator, formatFileSize)
+  - Corrigidos erros LSP no TeamsTab.tsx: propriedades 'category' → 'teamType', tipos implícitos
+  - Sistema unificado: todas as formatações de data/tempo agora usam funções centralizadas
+  - Manutenibilidade melhorada: alterações de formato aplicadas automaticamente em todo sistema
 - June 28, 2025 (09:42): VALIDAÇÕES REDUNDANTES DE CONVERSA ELIMINADAS CIRURGICAMENTE
   - Método resetUnreadCount() otimizado: removida query extra desnecessária para verificar markedUnreadManually
   - Substituída lógica de dupla query por SQL condicional único (CASE WHEN) mais eficiente
