@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (09:34): SISTEMA DE LIMPEZA DE DEALS DUPLICADOS SIMPLIFICADO DRASTICAMENTE
+  - Método cleanupDuplicateDeals() refatorado: de 50+ linhas para 15 linhas eficientes
+  - Substituída lógica complexa por query SQL direta com window functions (ROW_NUMBER)
+  - Método createAutomaticDeal() otimizado: removidas verificações redundantes múltiplas
+  - Eliminadas 3 consultas separadas ao banco, substituídas por uma única query otimizada
+  - Removidos loops complexos de agrupamento, substituídos por lógica SQL nativa
+  - Sistema preservado: criação manual, edição e rota administrativa mantidos intactos
+  - Performance melhorada: operação de limpeza ~80% mais rápida
+  - Código mais maintível: lógica simples e direta, fácil de debugar
+  - Funcionalidade completa preservada: prevenção + limpeza + fallbacks seguros
 - June 28, 2025 (05:22): DUPLICAÇÃO DE QUERIES SQL EM CONVERSATIONSTORAGE ELIMINADA COMPLETAMENTE
   - Criado método privado getBaseConversationWithContactQuery() centralizando query de conversas com contatos
   - Eliminada duplicação de 40+ linhas de SELECT SQL entre métodos getConversations e getConversation

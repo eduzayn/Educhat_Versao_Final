@@ -99,124 +99,70 @@ export class DealStorage extends BaseStorage {
   }
 
   async createAutomaticDeal(contactId: number, canalOrigem?: string, teamType?: string): Promise<Deal> {
-    console.log(`🔍 Iniciando verificação para criação de deal: contactId=${contactId}, canal=${canalOrigem}, teamType=${teamType}`);
+    console.log(`💼 Criando deal automático: contato=${contactId}, canal=${canalOrigem}, equipe=${teamType}`);
     
-    // Verificação robusta para evitar duplicação durante criação
-    const existingDeals = await this.getDealsByContact(contactId);
-    console.log(`📊 Deals existentes para contato ${contactId}: ${existingDeals.length} deals encontrados`);
-    
-    // Verificar se já existe qualquer deal ativo para este contato no mesmo canal
-    const activeDealsSameChannel = existingDeals.filter(deal => {
-      const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
-      const sameChannel = deal.canalOrigem === canalOrigem;
-      return isActive && sameChannel;
-    });
+    // Verificação única com SQL otimizada para deals ativos existentes
+    const [existingDeal] = await this.db
+      .select()
+      .from(deals)
+      .where(
+        and(
+          eq(deals.contactId, contactId),
+          eq(deals.canalOrigem, canalOrigem || 'automatic'),
+          sql`stage NOT IN ('closed', 'lost', 'closed_won', 'closed_lost')`
+        )
+      )
+      .limit(1);
 
-    if (activeDealsSameChannel.length > 0) {
-      console.log(`⚠️ BLOQUEIO: ${activeDealsSameChannel.length} deal(s) ativo(s) já existe(m) para contato ${contactId} no canal ${canalOrigem}`);
-      activeDealsSameChannel.forEach(deal => {
-        console.log(`   - Deal ID ${deal.id}: ${deal.name} (${deal.stage}) - criado em ${deal.createdAt}`);
-      });
-      return activeDealsSameChannel[0];
+    if (existingDeal) {
+      console.log(`⚠️ Deal ativo já existe: ID ${existingDeal.id} para contato ${contactId}`);
+      return existingDeal;
     }
 
-    // Verificar se já existe um deal muito recente (últimas 2 horas) para este contato/canal
-    const veryRecentDeals = existingDeals.filter(deal => {
-      if (!deal.createdAt) return false;
-      const dealDate = new Date(deal.createdAt!);
-      const now = new Date();
-      const hoursDiff = (now.getTime() - dealDate.getTime()) / (1000 * 60 * 60);
-      return hoursDiff < 2 && deal.canalOrigem === canalOrigem;
-    });
-
-    if (veryRecentDeals.length > 0) {
-      console.log(`⚠️ BLOQUEIO: ${veryRecentDeals.length} deal(s) muito recente(s) encontrado(s) para contato ${contactId} no canal ${canalOrigem}`);
-      veryRecentDeals.forEach(deal => {
-        const hoursAgo = Math.round(((new Date().getTime() - new Date(deal.createdAt!).getTime()) / (1000 * 60 * 60)) * 100) / 100;
-        console.log(`   - Deal ID ${deal.id}: ${deal.name} - criado há ${hoursAgo} horas`);
-      });
-      return veryRecentDeals[0];
-    }
-
-    // Get contact information
+    // Buscar dados do contato
     const [contact] = await this.db.select().from(contacts).where(eq(contacts.id, contactId));
     if (!contact) {
-      throw new Error(`Contact with ID ${contactId} not found`);
+      throw new Error(`Contato ${contactId} não encontrado`);
     }
 
-    // Find appropriate user based on team type
-    let assignedUserId = null;
-    if (teamType) {
-      // Buscar equipe por nome (mapeamento de teamType para nome da equipe)
-      const teamNames = {
-        'comercial': 'Equipe Comercial',
-        'suporte': 'Equipe Suporte',
-        'cobranca': 'Equipe Cobrança',
-        'tutoria': 'Equipe Tutoria',
-        'secretaria': 'Equipe Secretaria',
-        'geral': 'Equipe Geral'
-      };
-      const teamName = teamNames[teamType as keyof typeof teamNames] || 'Equipe Geral';
-      const [team] = await this.db.select().from(teams).where(eq(teams.name, teamName));
-      if (team) {
-        // Aqui poderia implementar lógica para encontrar usuário disponível da equipe
-        // assignedUserId = team.id;
-      }
-    }
-
-    // Gerar nome único para o deal baseado no timestamp
-    const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-    const dealName = `${contact.name} - ${teamType || 'Geral'}`;
-
-    // Verificação final antes da criação para evitar condições de corrida
-    const finalCheck = await this.getDealsByContact(contactId);
-    const lastMinuteActiveDeal = finalCheck.find(deal => {
-      const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
-      return isActive && deal.canalOrigem === canalOrigem;
-    });
-
-    if (lastMinuteActiveDeal) {
-      console.log(`⚠️ Deal ativo detectado na verificação final para contato ${contactId}, retornando deal existente`);
-      return lastMinuteActiveDeal;
-    }
-
-    // Create automatic deal
+    // Criar deal automático
     const dealData: InsertDeal = {
-      name: dealName,
+      name: `${contact.name} - ${teamType || 'Geral'}`,
       contactId: contactId,
       stage: 'prospecting',
       value: 0,
       probability: 50,
       owner: 'Sistema',
       canalOrigem: canalOrigem || 'automatic',
-
-      notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'} em ${timestamp}`,
+      notes: `Deal criado automaticamente via ${canalOrigem || 'sistema'}`,
       teamType: teamType || 'comercial',
       tags: {
         automatic: true,
         canalOrigem,
         teamType,
-        createdBy: 'system',
-        timestamp: timestamp
+        createdBy: 'system'
       }
     };
-
-    console.log(`💼 Criando deal automático: ${dealName} para ${contact.name}`);
     
     try {
       const newDeal = await this.createDeal(dealData);
-      console.log(`✅ Deal criado com sucesso: ID ${newDeal.id} para contato ${contactId}`);
+      console.log(`✅ Deal criado com sucesso: ID ${newDeal.id} para ${contact.name}`);
       return newDeal;
     } catch (error) {
       console.error(`❌ Erro ao criar deal para contato ${contactId}:`, error);
       
-      // Em caso de erro (possível duplicação por condição de corrida), 
-      // tentar retornar um deal existente
-      const fallbackDeals = await this.getDealsByContact(contactId);
-      const fallbackDeal = fallbackDeals.find(deal => {
-        const isActive = deal.stage !== 'closed' && deal.stage !== 'lost' && deal.stage !== 'closed_won' && deal.stage !== 'closed_lost';
-        return isActive && deal.canalOrigem === canalOrigem;
-      });
+      // Fallback simples: buscar deal existente
+      const [fallbackDeal] = await this.db
+        .select()
+        .from(deals)
+        .where(
+          and(
+            eq(deals.contactId, contactId),
+            eq(deals.canalOrigem, canalOrigem || 'automatic'),
+            sql`stage NOT IN ('closed', 'lost', 'closed_won', 'closed_lost')`
+          )
+        )
+        .limit(1);
       
       if (fallbackDeal) {
         console.log(`🔄 Retornando deal existente como fallback: ID ${fallbackDeal.id}`);
@@ -228,54 +174,44 @@ export class DealStorage extends BaseStorage {
   }
 
   async cleanupDuplicateDeals(): Promise<{ removed: number; details: any[] }> {
-    console.log('🧹 Iniciando limpeza de deals duplicados...');
+    console.log('🧹 Limpeza simplificada de deals duplicados...');
     
-    // Buscar todos os deals ativos
-    const allDeals = await this.db.select().from(deals).orderBy(deals.contactId, deals.createdAt);
+    // Query SQL direta para encontrar duplicatas: mesmo contato, canal e status ativo
+    const duplicatesQuery = sql`
+      WITH ranked_deals AS (
+        SELECT 
+          id,
+          contact_id,
+          canal_origem,
+          team_type,
+          stage,
+          created_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY contact_id, canal_origem, team_type 
+            ORDER BY created_at DESC
+          ) as rn
+        FROM deals 
+        WHERE stage NOT IN ('closed', 'lost', 'closed_won', 'closed_lost')
+      )
+      SELECT id FROM ranked_deals WHERE rn > 1
+    `;
     
-    // Agrupar deals por contato e teamType
-    const dealGroups = new Map();
+    const duplicateIds = await this.db.execute(duplicatesQuery);
+    const idsToRemove = duplicateIds.rows.map((row: any) => row.id);
     
-    for (const deal of allDeals) {
-      const key = `${deal.contactId}-${deal.teamType}-${deal.canalOrigem}`;
-      if (!dealGroups.has(key)) {
-        dealGroups.set(key, []);
-      }
-      dealGroups.get(key).push(deal);
+    if (idsToRemove.length === 0) {
+      console.log('✅ Nenhuma duplicata encontrada');
+      return { removed: 0, details: [] };
     }
     
-    // Identificar e remover duplicatas
-    const toRemove = [];
-    const details = [];
+    // Remover duplicatas em uma única operação
+    await this.db.delete(deals).where(sql`id = ANY(${idsToRemove})`);
     
-    for (const [key, deals] of dealGroups) {
-      if (deals.length > 1) {
-        // Manter apenas o deal mais recente
-        const sortedDeals = deals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        const keepDeal = sortedDeals[0];
-        const duplicates = sortedDeals.slice(1);
-        
-        for (const duplicate of duplicates) {
-          toRemove.push(duplicate.id);
-          details.push({
-            removed: duplicate,
-            kept: keepDeal,
-            reason: 'Duplicate deal for same contact/teamType/channel'
-          });
-        }
-      }
-    }
-    
-    // Executar remoção
-    for (const dealId of toRemove) {
-      await this.db.delete(deals).where(eq(deals.id, dealId));
-    }
-    
-    console.log(`🧹 Limpeza concluída: ${toRemove.length} deals duplicados removidos`);
+    console.log(`🧹 Limpeza concluída: ${idsToRemove.length} deals duplicados removidos`);
     
     return {
-      removed: toRemove.length,
-      details
+      removed: idsToRemove.length,
+      details: idsToRemove.map(id => ({ removed: { id }, reason: 'Duplicate active deal' }))
     };
   }
 }
