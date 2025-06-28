@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { Team } from '@shared/schema';
+import { formatDateAndTime } from '@/shared/lib/utils/formatters';
 
 // Função para obter a cor baseada na cor hex da equipe
 const getTeamColorClass = (color: string) => {
@@ -198,7 +199,7 @@ export const TeamsTab = () => {
     setEditTeamForm({
       name: team.name,
       description: team.description || '',
-      category: team.category || '',
+      category: team.teamType || '',
       isActive: team.isActive || true
     });
     setShowConfigDialog(true);
@@ -290,7 +291,7 @@ export const TeamsTab = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {teams.map(team => (
+          {teams.map((team: Team) => (
             <Card key={`team-${team.id}`} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -311,7 +312,7 @@ export const TeamsTab = () => {
                     <span className="text-sm font-medium">Categoria:</span>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {team.category || 'Não definido'}
+                        {team.teamType || 'Não definido'}
                       </Badge>
                     </div>
                   </div>
@@ -404,7 +405,7 @@ export const TeamsTab = () => {
               <Label htmlFor="team-macrosetor" className="text-right">
                 Macrosetor *
               </Label>
-              <Select value={newTeamForm.macrosetor} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, macrosetor: value }))}>
+              <Select value={newTeamForm.category} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o macrosetor" />
                 </SelectTrigger>
@@ -540,7 +541,7 @@ export const TeamsTab = () => {
               <Label htmlFor="config-macrosetor" className="text-right">
                 Macrosetor *
               </Label>
-              <Select value={editTeamForm.macrosetor} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, macrosetor: value }))}>
+              <Select value={editTeamForm.category} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o macrosetor" />
                 </SelectTrigger>
