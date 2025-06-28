@@ -754,10 +754,16 @@ export function registerWebhookRoutes(app: Express) {
   // Import Z-API contacts - REST: POST /api/zapi/import-contacts
   app.post('/api/zapi/import-contacts', async (req, res) => {
     try {
+      console.log('🔄 Iniciando importação de contatos Z-API...');
+      
       const credentials = validateZApiCredentials();
       if (!credentials.valid) {
+        console.error('❌ Credenciais Z-API inválidas:', credentials.error);
         return res.status(400).json({ error: credentials.error });
       }
+      
+      console.log('✅ Credenciais Z-API válidas, iniciando importação...');
+      console.log(`📋 Configuração Z-API: Instance=${credentials.instanceId?.substring(0, 8)}..., Token=${credentials.token?.substring(0, 8)}..., ClientToken=${credentials.clientToken ? 'configurado' : 'ausente'}`);
 
       const { instanceId, token, clientToken } = credentials;
 
@@ -778,6 +784,10 @@ export function registerWebhookRoutes(app: Express) {
         });
 
         if (!response.ok) {
+          console.error(`❌ Falha na requisição Z-API: ${response.status} - ${response.statusText}`);
+          console.error(`URL: ${url}`);
+          const responseText = await response.text();
+          console.error(`Resposta: ${responseText}`);
           throw new Error(`Erro na API Z-API: ${response.status} - ${response.statusText}`);
         }
 
@@ -853,8 +863,24 @@ export function registerWebhookRoutes(app: Express) {
       });
       
     } catch (error) {
-      console.error('Erro ao importar contatos:', error);
-      res.status(500).json({ error: 'Erro interno ao importar contatos' });
+      console.error('❌ Erro detalhado ao importar contatos:', error);
+      
+      // Log específico do tipo de erro
+      if (error instanceof Error) {
+        console.error(`❌ Tipo: ${error.constructor.name}`);
+        console.error(`❌ Mensagem: ${error.message}`);
+        console.error(`❌ Stack: ${error.stack}`);
+        
+        // Se for erro de validação Z-API, retornar 400
+        if (error.message.includes('Credenciais Z-API') || error.message.includes('Z-API')) {
+          return res.status(400).json({ error: error.message });
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'Erro interno ao importar contatos',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
     }
   });
 
