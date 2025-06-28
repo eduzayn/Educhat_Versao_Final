@@ -13,13 +13,13 @@ export function useConversations(initialLimit = 10, filters: ConversationFilters
   // OTIMIZAÇÃO: Reduzir limite inicial para carregamento mais rápido
   const optimizedInitialLimit = Math.min(initialLimit, 10); // Máximo 10 conversas iniciais
   
-  // Construir parâmetros de filtro para a URL
-  const buildFilterParams = (pageParam: number) => {
+  // Construir parâmetros de filtro para a URL - CORREÇÃO: usar offset ao invés de page
+  const buildFilterParams = (offset: number) => {
     const params = new URLSearchParams();
-    params.set('page', pageParam.toString());
     
-    const limit = pageParam === 1 ? optimizedInitialLimit : 15; // Páginas seguintes um pouco maiores
+    const limit = offset === 0 ? optimizedInitialLimit : 15; // Primeira carga menor, seguintes maiores
     params.set('limit', limit.toString());
+    params.set('offset', offset.toString()); // CORREÇÃO: Backend espera offset
     
     // Adicionar filtros específicos
     if (filters.userId) {
@@ -37,21 +37,34 @@ export function useConversations(initialLimit = 10, filters: ConversationFilters
 
   return useInfiniteQuery<ConversationWithContact[]>({
     queryKey: ['/api/conversations', filters], // Incluir filtros na chave de cache
-    queryFn: async ({ pageParam = 1 }) => {
-      const pageNumber = typeof pageParam === 'number' ? pageParam : 1;
-      const queryString = buildFilterParams(pageNumber);
+    queryFn: async ({ pageParam = 0 }) => {
+      const offset = typeof pageParam === 'number' ? pageParam : 0;
+      const queryString = buildFilterParams(offset);
       const response = await fetch(`/api/conversations?${queryString}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
       }
       return response.json();
     },
-    initialPageParam: 1, // Parâmetro obrigatório para TanStack Query v5
+    initialPageParam: 0, // CORREÇÃO: Começar do offset 0
     getNextPageParam: (lastPage, allPages) => {
       // Se a última página retornou menos que o limite, não há mais páginas
-      const pageLimit = allPages.length === 1 ? initialLimit : 20;
-      if (lastPage.length < pageLimit) return undefined;
-      return allPages.length + 1;
+      if (!lastPage || lastPage.length === 0) {
+        return undefined;
+      }
+      
+      // Calcular o limite da última página carregada
+      const isFirstPage = allPages.length === 1;
+      const lastPageLimit = isFirstPage ? optimizedInitialLimit : 15;
+      
+      // Se a última página não está cheia, chegamos ao fim
+      if (lastPage.length < lastPageLimit) {
+        return undefined;
+      }
+      
+      // Calcular próximo offset (total de conversas já carregadas)
+      const totalLoadedConversations = allPages.reduce((total, page) => total + page.length, 0);
+      return totalLoadedConversations;
     },
     ...CACHE_CONFIG.CONVERSATIONS, // Usar configuração padronizada
     ...options, // Permitir sobrescrever opções
