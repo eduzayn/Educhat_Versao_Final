@@ -7,6 +7,7 @@ export interface BadgeConfig {
   text: string;
   color?: string;
   bgColor?: string;
+  iconClass?: string;
 }
 
 // Helper para badges de status genéricos
@@ -102,6 +103,84 @@ export const getChannelBadge = (channelType: string): BadgeConfig => {
   };
   
   return configs[channelType] || { variant: 'outline', text: channelType, color: 'text-gray-600' };
+};
+
+// Helper para badges de status de coaching
+export const getCoachingStatusBadge = (status: string): BadgeConfig => {
+  const configs: Record<string, BadgeConfig> = {
+    pending: { 
+      variant: 'outline', 
+      text: 'Pendente', 
+      color: 'text-yellow-600 border-yellow-600',
+      icon: <Clock className="h-3 w-3 mr-1" />
+    },
+    in_progress: { 
+      variant: 'outline', 
+      text: 'Em Andamento', 
+      color: 'text-blue-600 border-blue-600',
+      icon: <AlertCircle className="h-3 w-3 mr-1" />
+    },
+    completed: { 
+      variant: 'outline', 
+      text: 'Concluído', 
+      color: 'text-green-600 border-green-600',
+      icon: <CheckCircle className="h-3 w-3 mr-1" />
+    }
+  };
+  
+  return configs[status] || { variant: 'outline', text: 'Desconhecido', color: 'text-gray-600' };
+};
+
+// Helper para badges de status de comissões
+export const getCommissionStatusBadge = (status: string): BadgeConfig => {
+  const configs: Record<string, BadgeConfig> = {
+    pending: { variant: 'outline', text: 'Pendente', color: 'text-yellow-600' },
+    approved: { variant: 'default', text: 'Aprovado', color: 'text-green-600' },
+    paid: { variant: 'default', text: 'Pago', color: 'text-blue-600' },
+    rejected: { variant: 'destructive', text: 'Rejeitado', color: 'text-red-600' }
+  };
+  
+  return configs[status] || { variant: 'outline', text: 'Desconhecido', color: 'text-gray-600' };
+};
+
+// Helper para badges de status de conversa
+export const getConversationStatusBadge = (status: string): BadgeConfig => {
+  const configs: Record<string, BadgeConfig> = {
+    open: { variant: 'default', text: 'Aberta', color: 'text-green-600' },
+    closed: { variant: 'secondary', text: 'Fechada', color: 'text-gray-600' },
+    pending: { variant: 'outline', text: 'Pendente', color: 'text-yellow-600' },
+    archived: { variant: 'outline', text: 'Arquivada', color: 'text-gray-500' }
+  };
+  
+  return configs[status] || { variant: 'outline', text: status, color: 'text-gray-600' };
+};
+
+// Helper para badges de status de canal
+export const getChannelStatusBadge = (isActive: boolean, isConnected?: boolean): BadgeConfig => {
+  if (typeof isConnected === 'boolean') {
+    if (!isActive) return { variant: 'secondary', text: 'Inativo', color: 'text-gray-600' };
+    return isConnected 
+      ? { variant: 'default', text: 'Conectado', color: 'text-green-600' }
+      : { variant: 'destructive', text: 'Desconectado', color: 'text-red-600' };
+  }
+  
+  return isActive 
+    ? { variant: 'default', text: 'Ativo', color: 'text-green-600' }
+    : { variant: 'secondary', text: 'Inativo', color: 'text-gray-600' };
+};
+
+// Helper para badges de status de integração Facebook
+export const getFacebookIntegrationStatusBadge = (status: string, isActive: boolean): BadgeConfig => {
+  if (!isActive) return { variant: 'secondary', text: 'Inativo', color: 'text-gray-600' };
+  
+  const configs: Record<string, BadgeConfig> = {
+    connected: { variant: 'default', text: 'Conectado', color: 'text-green-600' },
+    disconnected: { variant: 'destructive', text: 'Desconectado', color: 'text-red-600' },
+    error: { variant: 'destructive', text: 'Erro', color: 'text-red-600' },
+    pending: { variant: 'outline', text: 'Pendente', color: 'text-yellow-600' }
+  };
+  
+  return configs[status] || { variant: 'outline', text: status, color: 'text-gray-600' };
 };
 
 // Helper para renderizar múltiplos badges com limite
