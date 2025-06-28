@@ -610,92 +610,14 @@ export function DealsModule() {
                 {currentTeamCategory.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
-                    <div key={stage.id} className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${stage.color}`} />
-                          <h3 className="font-medium">{stage.name}</h3>
-                          <Badge variant="secondary">{stageDeals.length}</Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          R$ {calculateStageValue(stageDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                      <Droppable droppableId={stage.id} type="DEAL">
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`space-y-3 flex-1 overflow-y-auto min-h-[400px] max-h-[calc(100vh-300px)] pr-2 deals-column-scroll ${
-                              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
-                            }`}
-                          >
-                            {stageDeals.map((deal, index) => (
-                              <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
-                                {(provided, snapshot) => (
-                                  <Card
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab ${
-                                      snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50' : ''
-                                    }`}
-                                    style={{
-                                      ...provided.draggableProps.style,
-                                    }}
-                                  >
-                                    <CardContent className="p-2.5 space-y-1.5">
-                                      <div className="flex items-start justify-between">
-                                        <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
-                                          <MoreHorizontal className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <Building2 className="h-3 w-3 flex-shrink-0" />
-                                        <span className="truncate">{deal.company}</span>
-                                      </div>
-                                      <p className="text-sm text-green-600 font-semibold">
-                                        R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                      </p>
-                                      <div className="flex items-center justify-between">
-                                        <Badge variant="outline" className="text-xs py-0 px-1.5">
-                                          {deal.probability}%
-                                        </Badge>
-                                        <span className="text-xs text-muted-foreground truncate max-w-[60px]">{deal.owner}</span>
-                                      </div>
-                                      {deal.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 max-h-6 overflow-hidden">
-                                          {deal.tags.slice(0, 2).map((tag: string, i: number) => (
-                                            <Badge key={i} variant="outline" className="text-xs py-0 px-1">
-                                              {tag}
-                                            </Badge>
-                                          ))}
-                                          {deal.tags.length > 2 && (
-                                            <Badge variant="outline" className="text-xs py-0 px-1">
-                                              +{deal.tags.length - 2}
-                                            </Badge>
-                                          )}
-                                        </div>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full mt-3" 
-                        size="sm"
-                        onClick={() => openNewDealDialog(stage.id)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" /> Adicionar Negócio
-                      </Button>
-                    </div>
+                    <KanbanColumn
+                      key={stage.id}
+                      stage={stage}
+                      deals={stageDeals}
+                      teamType={selectedTeamType}
+                      onDragEnd={handleDragEnd}
+                      onNewDeal={openNewDealDialog}
+                    />
                   );
                 })}
               </div>
