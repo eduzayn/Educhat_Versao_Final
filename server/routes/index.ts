@@ -24,6 +24,7 @@ import { registerSalesRoutes } from "./sales/index";
 import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import notificationPreferencesRoutes from "./notification-preferences/index";
+import { registerLazyLoadingRoutes } from "./conversations/lazy-loading";
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -54,6 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSalesRoutes(app);
   registerCourseRoutes(app);
   registerIntegrationRoutes(app);
+  registerLazyLoadingRoutes(app);
 
   // Registrar rotas de preferências de notificação
   app.use('/api/notification-preferences', notificationPreferencesRoutes);

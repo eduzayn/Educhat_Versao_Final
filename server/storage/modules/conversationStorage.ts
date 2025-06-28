@@ -60,10 +60,10 @@ export class ConversationStorage extends BaseStorage {
     .innerJoin(contacts, eq(conversations.contactId, contacts.id));
   }
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // Query otimizada com LEFT JOIN para buscar última mensagem em uma única consulta
+    // LAZY LOADING: Query otimizada carregando APENAS dados essenciais iniciais
     const query = this.db
       .select({
-        // Conversation fields
+        // Conversation fields essenciais
         id: conversations.id,
         contactId: conversations.contactId,
         channel: conversations.channel,
@@ -73,45 +73,25 @@ export class ConversationStorage extends BaseStorage {
         unreadCount: conversations.unreadCount,
         assignedTeamId: conversations.assignedTeamId,
         assignedUserId: conversations.assignedUserId,
-        assignmentMethod: conversations.assignmentMethod,
-        assignedAt: conversations.assignedAt,
         isRead: conversations.isRead,
         markedUnreadManually: conversations.markedUnreadManually,
         priority: conversations.priority,
-        tags: conversations.tags,
-        metadata: conversations.metadata,
         createdAt: conversations.createdAt,
-        updatedAt: conversations.updatedAt,
         
-        // Contact fields
+        // Contact fields básicos apenas
         contact: {
           id: contacts.id,
-          userIdentity: contacts.userIdentity,
           name: contacts.name,
-          email: contacts.email,
           phone: contacts.phone,
           profileImageUrl: contacts.profileImageUrl,
-          location: contacts.location,
-          age: contacts.age,
-          isOnline: contacts.isOnline,
-          lastSeenAt: contacts.lastSeenAt,
-          canalOrigem: contacts.canalOrigem,
-          nomeCanal: contacts.nomeCanal,
-          idCanal: contacts.idCanal,
-          assignedUserId: contacts.assignedUserId,
-          tags: contacts.tags,
-          createdAt: contacts.createdAt,
-          updatedAt: contacts.updatedAt
+          isOnline: contacts.isOnline
         },
         
-        // Last message fields
+        // Última mensagem apenas preview
         lastMessage: {
-          id: messages.id,
           content: messages.content,
           sentAt: messages.sentAt,
-          isFromContact: messages.isFromContact,
-          messageType: messages.messageType,
-          metadata: messages.metadata
+          isFromContact: messages.isFromContact
         }
       })
       .from(conversations)
@@ -139,20 +119,63 @@ export class ConversationStorage extends BaseStorage {
 
     const results = await query;
 
-    // Processar resultados para o formato esperado
+    // Processar resultados para o formato esperado - DADOS MÍNIMOS
     return results.map(row => ({
       ...row,
       contact: {
         ...row.contact,
+        // Lazy loading: tags e deals carregados sob demanda
         tags: [],
         deals: []
       },
+      // Lazy loading: dados complementares removidos da carga inicial
       channelInfo: undefined,
-      // Converter lastMessage de objeto para string para compatibilidade com frontend
       lastMessage: row.lastMessage?.content || '',
-      messages: row.lastMessage?.id ? [row.lastMessage] : [],
+      messages: [], // Lazy loading: mensagens carregadas sob demanda
       _count: { messages: row.unreadCount || 0 }
     } as unknown as ConversationWithContact));
+  }
+
+  /**
+   * LAZY LOADING: Carregar dados complementares do contato sob demanda
+   */
+  async getContactDetails(contactId: number) {
+    const [contactTagsResult, contactDeals] = await Promise.allSettled([
+      // Tags do contato
+      this.db
+        .select({ tag: contactTags.tag })
+        .from(contactTags)
+        .where(eq(contactTags.contactId, contactId)),
+      
+      // Deals ativos do contato
+      this.db
+        .select()
+        .from(deals)
+        .where(and(
+          eq(deals.contactId, contactId),
+          eq(deals.isActive, true)
+        ))
+        .orderBy(desc(deals.createdAt))
+        .limit(10)
+    ]);
+
+    return {
+      tags: contactTagsResult.status === 'fulfilled' ? contactTagsResult.value.map((t: any) => t.tag) : [],
+      deals: contactDeals.status === 'fulfilled' ? contactDeals.value : []
+    };
+  }
+
+  /**
+   * LAZY LOADING: Carregar informações do canal sob demanda
+   */
+  async getChannelInfo(channelId: number) {
+    const [result] = await this.db
+      .select()
+      .from(channels)
+      .where(eq(channels.id, channelId))
+      .limit(1);
+    
+    return result || null;
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
