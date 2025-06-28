@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (11:10): BUG CRÍTICO DE PERMISSÕES ADMINISTRATIVAS CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: lógica `isAdmin` no endpoint `/api/admin/user-permissions` era muito restritiva (apenas 'admin')
+  - Usuários administrativos (Carla Diniz, Tamires Kele, Daniele Tovar) com roles 'Administrador' e 'superadmin' viam apenas permissões de atendente
+  - Corrigida verificação: `['admin', 'superadmin', 'Administrador'].includes(req.user.role || '')`
+  - Aplicado em duas ocorrências críticas (linhas 540 e 687) no arquivo server/routes/admin/index.ts
+  - Sistema agora reconhece corretamente todos os tipos de roles administrativos
+  - Usuários administrativos têm acesso completo às funcionalidades avançadas do sistema
+  - Correção cirúrgica: apenas lógica de verificação alterada, funcionalidades preservadas
 - June 28, 2025 (11:05): LAZY LOADING NO BACKEND IMPLEMENTADO PARA REDUZIR CARGA INICIAL
   - Otimizado método getConversations() carregando apenas dados essenciais: ID, nome, telefone, status, última mensagem
   - Removidos dados pesados da carga inicial: tags completas, deals, informações expandidas do contato

@@ -537,7 +537,7 @@ export function registerAdminRoutes(app: Express) {
           ));
 
         res.json({
-          isAdmin: req.user.role === 'admin',
+          isAdmin: ['admin', 'superadmin', 'Administrador'].includes(req.user.role || ''),
           rolePermissions: userRolePermissions,
           customPermissions,
           user: {
@@ -684,7 +684,7 @@ export function registerAdminRoutes(app: Express) {
         const customPermissions: any[] = [];
 
         res.json({
-          isAdmin: req.user.role === 'admin',
+          isAdmin: ['admin', 'superadmin', 'Administrador'].includes(req.user.role || ''),
           rolePermissions: userRolePermissions,
           customPermissions,
           user: {
