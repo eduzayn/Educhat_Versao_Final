@@ -7,6 +7,58 @@ import { eq, desc, and, count, sql } from "drizzle-orm";
  * Conversation storage module - manages conversations and assignments
  */
 export class ConversationStorage extends BaseStorage {
+  
+  /**
+   * Método privado para centralizar a query base de conversas com contatos
+   * Elimina duplicação de código SQL entre diferentes métodos
+   */
+  private getBaseConversationWithContactQuery() {
+    return this.db.select({
+      // Conversation fields
+      id: conversations.id,
+      contactId: conversations.contactId,
+      channel: conversations.channel,
+      channelId: conversations.channelId,
+      status: conversations.status,
+      lastMessageAt: conversations.lastMessageAt,
+      unreadCount: conversations.unreadCount,
+      assignedTeamId: conversations.assignedTeamId,
+      assignedUserId: conversations.assignedUserId,
+      assignmentMethod: conversations.assignmentMethod,
+      assignedAt: conversations.assignedAt,
+      isRead: conversations.isRead,
+      markedUnreadManually: conversations.markedUnreadManually,
+      priority: conversations.priority,
+      tags: conversations.tags,
+      metadata: conversations.metadata,
+      createdAt: conversations.createdAt,
+      updatedAt: conversations.updatedAt,
+      teamType: sql<string | null>`null`.as('teamType'), // Campo adicionado para compatibilidade
+      
+      // Contact fields
+      contact: {
+        id: contacts.id,
+        userIdentity: contacts.userIdentity,
+        name: contacts.name,
+        email: contacts.email,
+        phone: contacts.phone,
+        profileImageUrl: contacts.profileImageUrl,
+        location: contacts.location,
+        age: contacts.age,
+        isOnline: contacts.isOnline,
+        lastSeenAt: contacts.lastSeenAt,
+        canalOrigem: contacts.canalOrigem,
+        nomeCanal: contacts.nomeCanal,
+        idCanal: contacts.idCanal,
+        assignedUserId: contacts.assignedUserId,
+        tags: contacts.tags,
+        createdAt: contacts.createdAt,
+        updatedAt: contacts.updatedAt
+      }
+    })
+    .from(conversations)
+    .innerJoin(contacts, eq(conversations.contactId, contacts.id));
+  }
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
     // Query otimizada com LEFT JOIN para buscar última mensagem em uma única consulta
     const query = this.db
@@ -111,51 +163,7 @@ export class ConversationStorage extends BaseStorage {
         return undefined;
       }
 
-      const [result] = await this.db
-        .select({
-          id: conversations.id,
-          contactId: conversations.contactId,
-          channel: conversations.channel,
-          channelId: conversations.channelId,
-          status: conversations.status,
-          lastMessageAt: conversations.lastMessageAt,
-          unreadCount: conversations.unreadCount,
-
-          assignedTeamId: conversations.assignedTeamId,
-          assignedUserId: conversations.assignedUserId,
-          assignmentMethod: conversations.assignmentMethod,
-          assignedAt: conversations.assignedAt,
-          isRead: conversations.isRead,
-        markedUnreadManually: conversations.markedUnreadManually,
-          priority: conversations.priority,
-          tags: conversations.tags,
-          metadata: conversations.metadata,
-          createdAt: conversations.createdAt,
-          updatedAt: conversations.updatedAt,
-          
-          // Contact fields
-          contact: {
-            id: contacts.id,
-            userIdentity: contacts.userIdentity,
-            name: contacts.name,
-            email: contacts.email,
-            phone: contacts.phone,
-            profileImageUrl: contacts.profileImageUrl,
-            location: contacts.location,
-            age: contacts.age,
-            isOnline: contacts.isOnline,
-            lastSeenAt: contacts.lastSeenAt,
-            canalOrigem: contacts.canalOrigem,
-            nomeCanal: contacts.nomeCanal,
-            idCanal: contacts.idCanal,
-            assignedUserId: contacts.assignedUserId,
-            tags: contacts.tags,
-            createdAt: contacts.createdAt,
-            updatedAt: contacts.updatedAt
-          }
-        })
-        .from(conversations)
-        .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      const [result] = await this.getBaseConversationWithContactQuery()
         .where(eq(conversations.id, id))
         .limit(1);
 
