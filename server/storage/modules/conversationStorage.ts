@@ -472,12 +472,21 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async resetUnreadCount(conversationId: number): Promise<void> {
+    // Primeiro, verificar se a conversa foi marcada manualmente como não lida
+    const [conversation] = await this.db
+      .select({ markedUnreadManually: conversations.markedUnreadManually })
+      .from(conversations)
+      .where(eq(conversations.id, conversationId));
+
+    // Se foi marcada manualmente como não lida, não resetar o flag
+    const shouldResetManualFlag = !conversation?.markedUnreadManually;
+
     await this.db
       .update(conversations)
       .set({
         unreadCount: 0,
         isRead: true,
-        markedUnreadManually: false,
+        ...(shouldResetManualFlag && { markedUnreadManually: false }),
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));
