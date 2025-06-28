@@ -131,7 +131,15 @@ export class ConversationStorage extends BaseStorage {
       // Lazy loading: dados complementares removidos da carga inicial
       channelInfo: undefined,
       lastMessage: row.lastMessage?.content || '',
-      messages: [], // Lazy loading: mensagens carregadas sob demanda
+      // CORREÇÃO: Frontend espera messages[0] para prévia da mensagem
+      messages: row.lastMessage?.content ? [{
+        id: row.lastMessage.id || 0,
+        content: row.lastMessage.content,
+        sentAt: row.lastMessage.sentAt,
+        isFromContact: row.lastMessage.isFromContact || false,
+        messageType: 'text',
+        metadata: null
+      }] : [], // Lazy loading: mensagens completas carregadas sob demanda
       _count: { messages: row.unreadCount || 0 }
     } as unknown as ConversationWithContact));
   }

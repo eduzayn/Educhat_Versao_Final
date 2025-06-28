@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (11:15): PRÉVIAS DE MENSAGENS CORRIGIDAS DEFINITIVAMENTE PARA LAZY LOADING
+  - Identificado problema: frontend esperava `messages[0]` para exibir prévias, mas lazy loading retornava `messages: []`
+  - Incompatibilidade entre formato backend (após lazy loading) e frontend causava "Sem mensagens" em todas as conversas
+  - Corrigido método `getConversations()` para incluir objeto message com dados essenciais da última mensagem
+  - Prévia agora funciona corretamente: caixa de entrada, filtros, busca e todos os cenários
+  - Mantida performance do lazy loading: apenas dados essenciais para prévia incluídos inicialmente
+  - Correção cirúrgica: apenas conversationStorage.ts alterado, funcionalidades preservadas
+  - Sistema baseado na correção histórica documentada: mesmo princípio aplicado ao novo contexto lazy loading
 - June 28, 2025 (11:10): BUG CRÍTICO DE PERMISSÕES ADMINISTRATIVAS CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: lógica `isAdmin` no endpoint `/api/admin/user-permissions` era muito restritiva (apenas 'admin')
   - Usuários administrativos (Carla Diniz, Tamires Kele, Daniele Tovar) com roles 'Administrador' e 'superadmin' viam apenas permissões de atendente
