@@ -13,13 +13,11 @@ export class MessageStorage extends BaseStorage {
   async getMessages(conversationId: number, limit = 15, offset = 0): Promise<Message[]> {
     try {
       // Para scroll infinito invertido: buscar mensagens mais recentes primeiro
+      // Incluir mensagens deletadas para mostrar marca visual "Esta mensagem foi deletada"
       const result = await this.db
         .select()
         .from(messages)
-        .where(and(
-          eq(messages.conversationId, conversationId),
-          eq(messages.isDeleted, false)
-        ))
+        .where(eq(messages.conversationId, conversationId))
         .orderBy(desc(messages.sentAt)) // Ordem decrescente para scroll infinito invertido
         .limit(limit)
         .offset(offset);
