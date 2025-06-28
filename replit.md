@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (04:48): LIMPEZA COMPLETA DO REPOSITÓRIO EXECUTADA COM SUCESSO
+  - Removidas 6 arquivos de texto temporários (Pasted-*.txt) da pasta attached_assets
+  - Removidas dependências não utilizadas: memoizee, @types/memoizee, memorystore, react-window-infinite-loader, @types/react-window  
+  - Removida pasta scripts/ vazia desnecessária
+  - Removidas 10+ imagens antigas de teste (image_17495*, image_17507*, targeted_element_174957*)
+  - Sistema testado e funcionando corretamente após limpeza
+  - Todas as funcionalidades críticas preservadas: Z-API, autenticação, conversas, CRM
+  - Logs de debug Z-API mantidos intactos para rastreabilidade
+  - Performance melhorada: dependências reduzidas, repositório mais organizado
 - June 28, 2025 (03:04): CONFLITO ENTRE MARCAÇÃO AUTOMÁTICA E MANUAL DE "NÃO LIDA" CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: frontend forçava markedUnreadManually: false sempre que marcava como lida
   - Isso anulava a funcionalidade de "marcar como não lida" manual do usuário
