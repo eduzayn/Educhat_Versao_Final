@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (19:54): SCROLL INFINITO DA LISTA DE CONVERSAS CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema crítico: componente usava `filteredConversations` (filtro local) ao invés de `conversations` (dados paginados da API)
+  - Corrigido hook useConversations para usar offset ao invés de page number que o backend não suportava
+  - Ajustada lógica getNextPageParam para calcular offset correto baseado no total de conversas carregadas
+  - Sistema agora carrega 8 conversas iniciais, depois 15 por vez conforme usuário faz scroll
+  - Validado funcionamento: primeira página (offset=0) e segunda página (offset=5) retornando conversas diferentes
+  - Correção cirúrgica: apenas InboxPage.tsx e useConversations.ts alterados, todas funcionalidades preservadas
+  - Sistema agora permite visualizar TODAS as conversas através de scroll infinito automático
 - June 28, 2025 (11:17): BUG CRÍTICO DE CONVERSAS MARCADAS MANUALMENTE COMO "NÃO LIDA" CORRIGIDO DEFINITIVAMENTE
   - Identificado problema duplo: frontend e backend impediam que conversas marcadas manualmente como "não lida" fossem marcadas como lida ao reabrir
   - Frontend: removida condição `!conversation.markedUnreadManually` que impedia marcação como lida
