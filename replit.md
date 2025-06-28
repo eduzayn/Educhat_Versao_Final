@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (11:17): BUG CRÍTICO DE CONVERSAS MARCADAS MANUALMENTE COMO "NÃO LIDA" CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema duplo: frontend e backend impediam que conversas marcadas manualmente como "não lida" fossem marcadas como lida ao reabrir
+  - Frontend: removida condição `!conversation.markedUnreadManually` que impedia marcação como lida
+  - Backend: corrigido método `resetUnreadCount()` para sempre resetar `markedUnreadManually: false` ao marcar como lida
+  - Cache frontend atualizado: hook useMarkConversationRead agora sincroniza `markedUnreadManually: false` corretamente
+  - Fluxo corrigido: usuário marca "não lida" → reabre conversa → marca automaticamente como lida e reseta flag manual
+  - Correção cirúrgica: apenas InboxPage.tsx, conversationStorage.ts e useMarkConversationRead.ts alterados
+  - Sistema agora funciona corretamente: conversas realmente são marcadas como lida independente do histórico manual
 - June 28, 2025 (11:16): ERRO CRÍTICO DE KEYS DUPLICADAS NO CHAT INTERNO CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: componente InfoPanel tinha keys duplicadas "84" causando warning React crítico
   - Erro ocorria no mapeamento de membros do canal interno onde member.id podia ser duplicado

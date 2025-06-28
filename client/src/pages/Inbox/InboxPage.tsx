@@ -203,8 +203,7 @@ export function InboxPage() {
     // CONTROLE ANTI-429: Marcar como lida APENAS se necessário
     const needsMarkAsRead = 
       (conversation.unreadCount > 0 || !conversation.isRead) && // Tem mensagens não lidas OU não está marcada como lida
-      !markedAsReadIds.has(conversation.id) && // E não foi marcada nesta sessão
-      !conversation.markedUnreadManually; // E não foi marcada manualmente como não lida
+      !markedAsReadIds.has(conversation.id); // E não foi marcada nesta sessão
     
     if (needsMarkAsRead) {
       console.log(`📖 Marcando conversa ${conversation.id} como lida:`, {

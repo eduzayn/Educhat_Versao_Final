@@ -508,14 +508,14 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async resetUnreadCount(conversationId: number): Promise<void> {
-    // Query única otimizada que usa SQL condicional para evitar validação redundante
+    // Query única otimizada que marca conversa como lida e reseta flag manual
     await this.db
       .update(conversations)
       .set({
         unreadCount: 0,
         isRead: true,
-        // Só resetar markedUnreadManually se não foi marcada manualmente como não lida
-        markedUnreadManually: sql`CASE WHEN ${conversations.markedUnreadManually} = true THEN true ELSE false END`,
+        // Sempre resetar markedUnreadManually quando conversa é marcada como lida
+        markedUnreadManually: false,
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));
