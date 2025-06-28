@@ -211,6 +211,15 @@ export function InboxPage() {
       !conversation.markedUnreadManually; // E não foi marcada manualmente como não lida
     
     if (needsMarkAsRead) {
+      console.log(`📖 Marcando conversa ${conversation.id} como lida:`, {
+        conversationId: conversation.id,
+        contactName: conversation.contact?.name,
+        unreadCount: conversation.unreadCount,
+        isRead: conversation.isRead,
+        markedUnreadManually: conversation.markedUnreadManually,
+        alreadyMarkedInSession: markedAsReadIds.has(conversation.id)
+      });
+      
       // Adicionar ao set de IDs já processados ANTES da requisição
       setMarkedAsReadIds(prev => {
         const newSet = new Set(prev);
@@ -220,6 +229,15 @@ export function InboxPage() {
       
       // Fazer a requisição apenas uma vez
       markAsReadMutation.mutate(conversation.id);
+    } else {
+      console.log(`⏭️ Conversa ${conversation.id} não precisa ser marcada como lida:`, {
+        conversationId: conversation.id,
+        contactName: conversation.contact?.name,
+        unreadCount: conversation.unreadCount,
+        isRead: conversation.isRead,
+        markedUnreadManually: conversation.markedUnreadManually,
+        alreadyMarkedInSession: markedAsReadIds.has(conversation.id)
+      });
     }
     
     setShowMobileChat(true); // Show chat on mobile when conversation is selected
