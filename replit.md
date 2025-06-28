@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (05:06): CONSOLIDAÇÃO COMPLETA DE CÓDIGO DUPLICADO FINALIZADA COM SUCESSO
+  - Removidas 6 funções getStatusBadge duplicadas em diferentes componentes do sistema
+  - Arquivos corrigidos: SalesCoaching.tsx, SalesCommissions.tsx, SalesTargets.tsx, InboxPage.tsx, ChannelsPage.tsx, FacebookIntegrationPage.tsx
+  - Substituídas por funções centralizadas do badgeHelpers.ts: getCoachingStatusBadge, getCommissionStatusBadge, getProgressBadge, getChannelStatusBadge, getFacebookIntegrationStatusBadge
+  - ConversationList.tsx mantido com STATUS_CONFIG (abordagem centralizada adequada)
+  - Correções de tipos TypeScript aplicadas (Boolean() para campos nullable)
+  - Sistema funcionando corretamente após consolidação: redução significativa de código duplicado
+  - Manutenibilidade melhorada: alterações de badges agora centralizadas em um único arquivo
+  - Performance otimizada: redução de duplicação de código sem impacto nas funcionalidades
 - June 28, 2025 (04:48): LIMPEZA COMPLETA DO REPOSITÓRIO EXECUTADA COM SUCESSO
   - Removidas 6 arquivos de texto temporários (Pasted-*.txt) da pasta attached_assets
   - Removidas dependências não utilizadas: memoizee, @types/memoizee, memorystore, react-window-infinite-loader, @types/react-window  
