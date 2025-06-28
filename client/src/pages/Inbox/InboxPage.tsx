@@ -133,7 +133,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch 
-  } = useConversations(15, apiFilters, CACHE_CONFIG.CONVERSATIONS); // Carregar apenas 15 conversas iniciais para carregamento mais rápido
+  } = useConversations(8, apiFilters, CACHE_CONFIG.CONVERSATIONS); // OTIMIZAÇÃO: apenas 8 conversas iniciais para carregamento ultra-rápido
   
   // Flatten das páginas de conversas com verificação de segurança
   const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(page => page || []) : [];

@@ -60,7 +60,7 @@ export class ConversationStorage extends BaseStorage {
     .innerJoin(contacts, eq(conversations.contactId, contacts.id));
   }
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
-    // LAZY LOADING: Query otimizada carregando APENAS dados essenciais iniciais
+    // OTIMIZAÇÃO CRÍTICA: Query ultra-simplificada sem subqueries pesadas
     const query = this.db
       .select({
         // Conversation fields essenciais
@@ -85,62 +85,29 @@ export class ConversationStorage extends BaseStorage {
           phone: contacts.phone,
           profileImageUrl: contacts.profileImageUrl,
           isOnline: contacts.isOnline
-        },
-        
-        // Última mensagem apenas preview
-        lastMessage: {
-          id: messages.id,
-          content: messages.content,
-          sentAt: messages.sentAt,
-          isFromContact: messages.isFromContact
         }
       })
       .from(conversations)
       .innerJoin(contacts, eq(conversations.contactId, contacts.id))
-      .leftJoin(
-        messages,
-        and(
-          eq(messages.conversationId, conversations.id),
-          eq(messages.isDeleted, false),
-          eq(messages.id, 
-            sql`(
-              SELECT m.id 
-              FROM messages m 
-              WHERE m.conversation_id = ${conversations.id} 
-                AND m.is_deleted = false 
-              ORDER BY m.sent_at DESC 
-              LIMIT 1
-            )`
-          )
-        )
-      )
       .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
       .limit(limit)
       .offset(offset);
 
     const results = await query;
 
-    // Processar resultados para o formato esperado - DADOS MÍNIMOS
+    // OTIMIZAÇÃO: Processamento ultra-simplificado para performance máxima
     return results.map(row => ({
       ...row,
       contact: {
         ...row.contact,
-        // Lazy loading: tags e deals carregados sob demanda
+        // Lazy loading: dados complementares carregados sob demanda
         tags: [],
         deals: []
       },
-      // Lazy loading: dados complementares removidos da carga inicial
+      // LAZY LOADING: campos pesados removidos da carga inicial
       channelInfo: undefined,
-      lastMessage: row.lastMessage?.content || '',
-      // CORREÇÃO: Frontend espera messages[0] para prévia da mensagem
-      messages: row.lastMessage?.content ? [{
-        id: row.lastMessage?.id || 0,
-        content: row.lastMessage.content,
-        sentAt: row.lastMessage.sentAt,
-        isFromContact: row.lastMessage.isFromContact || false,
-        messageType: 'text',
-        metadata: null
-      }] : [], // Lazy loading: mensagens completas carregadas sob demanda
+      lastMessage: '', // Prévia será carregada sob demanda se necessário
+      messages: [], // Mensagens carregadas sob demanda ao abrir conversa
       _count: { messages: row.unreadCount || 0 }
     } as unknown as ConversationWithContact));
   }

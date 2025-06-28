@@ -521,6 +521,7 @@ export type InsertNotificationPreferences = z.infer<typeof insertNotificationPre
 export type ConversationWithContact = Conversation & {
   contact: Contact;
   channelInfo?: Channel;
+  lastMessage?: string; // Prévia da última mensagem
   messages: Message[];
   _count?: {
     messages: number;
