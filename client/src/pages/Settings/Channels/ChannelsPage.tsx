@@ -150,7 +150,14 @@ export default function ChannelsPage() {
     },
     onSuccess: (data: any) => {
       console.log('QR Code response:', data);
-      if (data?.qrCode) {
+      if (data?.connected === true) {
+        toast({
+          title: "WhatsApp já conectado",
+          description: "Este canal já está conectado ao WhatsApp",
+          variant: "default",
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
+      } else if (data?.qrCode) {
         setQrCodeData(data.qrCode);
         setIsQrDialogOpen(true);
         toast({
