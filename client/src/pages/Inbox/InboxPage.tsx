@@ -506,19 +506,7 @@ export function InboxPage() {
     return true;
   });
 
-  const getStatusBadge = (status: string) => {
-    const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
-    if (!config) return null;
-    
-    return (
-      <Badge 
-        variant="secondary" 
-        className={`${config.bgColor} ${config.color} text-xs`}
-      >
-        {config.label}
-      </Badge>
-    );
-  };
+
 
   const getChannelInfo = (channel: string) => {
     // Channel info now handled by backend data

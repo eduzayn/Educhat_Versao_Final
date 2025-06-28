@@ -9,6 +9,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { useToast } from "@/shared/lib/hooks/use-toast";
+import { getChannelStatusBadge } from '@/shared/lib/utils/badgeHelpers';
 import { ArrowLeft, Plus, Settings, Trash2, Edit, CheckCircle, XCircle, AlertCircle, Copy, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { QRCodeCanvas } from "qrcode.react";
@@ -227,15 +228,7 @@ export default function ChannelsPage() {
     }
   };
 
-  const getStatusBadge = (channel: Channel) => {
-    if (channel.isConnected) {
-      return <Badge className="bg-green-100 text-green-800">Conectado</Badge>;
-    } else if (channel.connectionStatus === 'error') {
-      return <Badge className="bg-red-100 text-red-800">Erro</Badge>;
-    } else {
-      return <Badge className="bg-yellow-100 text-yellow-800">Desconectado</Badge>;
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -370,7 +363,20 @@ export default function ChannelsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getStatusBadge(channel)}
+                    {(() => {
+                      const badgeConfig = getChannelStatusBadge(channel.isActive, channel.isConnected);
+                      const IconComponent = channel.isConnected ? CheckCircle : 
+                                          channel.connectionStatus === 'error' ? XCircle : AlertCircle;
+                      return (
+                        <Badge 
+                          variant={badgeConfig.variant}
+                          className={badgeConfig.color}
+                        >
+                          <IconComponent className="h-3 w-3 mr-1" />
+                          {badgeConfig.text}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </CardHeader>
