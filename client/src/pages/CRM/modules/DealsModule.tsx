@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/shared/ui/button';
@@ -43,10 +43,6 @@ export function DealsModule() {
   const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
   const [selectedStageForNewDeal, setSelectedStageForNewDeal] = useState<string | null>(null);
 
-  // State para paginação
-  const [page, setPage] = useState(1);
-  const limit = 50;
-
   // CORREÇÃO: Buscar equipes do banco para filtros dinâmicos
   const { data: teamsFromDB } = useQuery({
     queryKey: ['/api/teams'],
@@ -79,13 +75,19 @@ export function DealsModule() {
     return [...staticTypes, ...dynamicTypes];
   }, [teamsFromDB]);
 
-  // Fetch deals from database with pagination and filtering
-  const { data: dealsResponse, isLoading } = useQuery({
-    queryKey: ['/api/deals', selectedTeamType, page, limit],
-    queryFn: async () => {
+  // OTIMIZAÇÃO: Scroll infinito com carregamento inicial de 10 negócios + 10 por página
+  const {
+    data: dealsData,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage
+  } = useInfiniteQuery({
+    queryKey: ['/api/deals', selectedTeamType],
+    queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+        page: pageParam.toString(),
+        limit: '10', // REDUZIDO: 10 negócios por vez para otimizar performance
         teamType: selectedTeamType
       });
       
@@ -93,12 +95,18 @@ export function DealsModule() {
       if (!response.ok) throw new Error('Falha ao carregar negócios');
       return response.json();
     },
+    getNextPageParam: (lastPage) => {
+      // Continuar enquanto houver mais páginas
+      return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: !!selectedTeamType // Só busca se tipo de equipe estiver selecionado
   });
 
-  const rawDeals = dealsResponse?.deals || [];
-  const totalPages = dealsResponse?.totalPages || 1;
-  const currentPage = dealsResponse?.currentPage || 1;
+  // Consolidar dados de todas as páginas carregadas
+  const rawDeals = dealsData?.pages.flatMap(page => page.deals) || [];
+  const totalPages = dealsData?.pages[0]?.totalPages || 1;
+  const totalDeals = dealsData?.pages[0]?.totalDeals || 0;
   
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
@@ -106,10 +114,10 @@ export function DealsModule() {
   const currentTeamCategory = getCategoryInfo(selectedTeamType) || 
     getDynamicFunnelForTeamType(selectedTeamType);
   
-  // Reset page when team type changes
+  // OTIMIZAÇÃO: Resetar dados do infiniteQuery quando teamType muda
   useEffect(() => {
-    setPage(1);
-  }, [selectedTeamType]);
+    queryClient.invalidateQueries({ queryKey: ['/api/deals', selectedTeamType] });
+  }, [selectedTeamType, queryClient]);
 
   // Transform deals (already filtered by backend)
   const deals = rawDeals.map(deal => ({
@@ -132,7 +140,7 @@ export function DealsModule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/deals', selectedTeamType, page, limit] 
+        queryKey: ['/api/deals', selectedTeamType] 
       });
       queryClient.invalidateQueries({ 
         queryKey: ['/api/deals'] 
@@ -151,7 +159,7 @@ export function DealsModule() {
     },
     onMutate: async ({ dealId, stage }) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedTeamType, page, limit] });
+      await queryClient.cancelQueries({ queryKey: ['/api/deals', selectedTeamType] });
       
       // Snapshot the previous value
       const previousDeals = queryClient.getQueryData(['/api/deals', selectedTeamType, page, limit]);
