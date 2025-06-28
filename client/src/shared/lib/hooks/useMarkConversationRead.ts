@@ -33,7 +33,8 @@ export function useMarkConversationRead() {
       queryClient.setQueryData(['/api/conversations', conversationId], (oldData: any) => {
         if (oldData) {
           console.log(`✅ [CACHE] Cache individual atualizado para conversa ${conversationId}`);
-          return { ...oldData, isRead: true, unreadCount: 0, markedUnreadManually: false };
+          // NÃO forçar markedUnreadManually: false - deixar o backend decidir
+          return { ...oldData, isRead: true, unreadCount: 0 };
         }
         return oldData;
       });
@@ -60,7 +61,7 @@ export function useMarkConversationRead() {
               pages: oldData.pages.map((page: any[]) => 
                 page.map((conversation: any) => 
                   conversation.id === conversationId
-                    ? { ...conversation, isRead: true, unreadCount: 0, markedUnreadManually: false }
+                    ? { ...conversation, isRead: true, unreadCount: 0 }
                     : conversation
                 )
               )

@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (03:04): CONFLITO ENTRE MARCAÇÃO AUTOMÁTICA E MANUAL DE "NÃO LIDA" CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: frontend forçava markedUnreadManually: false sempre que marcava como lida
+  - Isso anulava a funcionalidade de "marcar como não lida" manual do usuário
+  - Corrigido useMarkConversationRead.ts para não forçar reset do flag markedUnreadManually
+  - Removido markedUnreadManually: false das atualizações de cache (linhas 36 e 64)
+  - Backend preserva corretamente o flag através do método resetUnreadCount melhorado
+  - Agora distingue entre: novas mensagens (marca automaticamente) vs marcação manual (preserva estado)
+  - Funcionalidade "marcar como não lida" mantém estado até que usuário leia de fato
+  - Correção cirúrgica: apenas useMarkConversationRead.ts alterado, preserva todas outras funcionalidades
 - June 28, 2025 (00:48): BUG CRÍTICO DE DUPLICAÇÃO DE MENSAGENS CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: hook useSendMessage salvava mensagem localmente E via Z-API, criando duplicatas
   - Duas mensagens apareciam na interface: uma sem metadados Z-API e outra com metadados completos
