@@ -117,8 +117,48 @@ export function getCategoryInfo(category: string): TeamCategory | undefined {
 }
 
 /**
- * Obtém todos os funis disponíveis
+ * Obtém todos os funis disponíveis (incluindo dinâmicos baseados em equipes)
  */
 export function getAllCategories(): Array<{ id: string; info: TeamCategory }> {
   return Object.entries(teamCategories).map(([id, info]) => ({ id, info }));
+}
+
+/**
+ * CORREÇÃO: Gera funil dinâmico para teamType customizado
+ * Garante que equipes criadas com teamTypes não mapeados tenham funil disponível
+ */
+export function getDynamicFunnelForTeamType(teamType: string): TeamCategory {
+  // Se já existe configuração estática, usar ela
+  if (teamCategories[teamType]) {
+    return teamCategories[teamType];
+  }
+
+  // Gerar configuração dinâmica para teamType não mapeado
+  const dynamicFunnel: TeamCategory = {
+    name: `Funil ${teamType.charAt(0).toUpperCase() + teamType.slice(1)}`,
+    description: `Processos da equipe ${teamType}`,
+    color: 'gray',
+    stages: [
+      { id: 'novo', name: 'Novo', color: 'bg-blue-500' },
+      { id: 'em_andamento', name: 'Em Andamento', color: 'bg-yellow-500' },
+      { id: 'aguardando', name: 'Aguardando', color: 'bg-orange-500' },
+      { id: 'resolvido', name: 'Resolvido', color: 'bg-green-500' }
+    ]
+  };
+
+  // Adicionar dinamicamente ao registro para reutilização
+  teamCategories[teamType] = dynamicFunnel;
+  
+  console.log(`📊 Funil dinâmico criado para teamType: ${teamType}`);
+  return dynamicFunnel;
+}
+
+/**
+ * CORREÇÃO: Função melhorada que garante suporte a todas as equipes
+ * Inclui funis estáticos + dinâmicos baseados em teamTypes das equipes do banco
+ */
+export function getAllCategoriesWithDynamic(): Array<{ id: string; info: TeamCategory }> {
+  // Esta função pode ser expandida para buscar equipes do banco dinamicamente
+  // Por enquanto, retorna as categorias estáticas existentes
+  return getAllCategories();
 }

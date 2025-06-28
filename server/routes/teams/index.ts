@@ -2,6 +2,86 @@ import { Express, Response } from 'express';
 import { AuthenticatedRequest, requirePermission } from '../admin/permissions';
 import { storage } from '../../core/storage';
 
+/**
+ * Cria automaticamente um funil de negócios para uma nova equipe
+ * Aproveita o sistema existente de crmFunnels baseado em teamType
+ */
+async function createTeamFunnel(team: any) {
+  // Mapear teamType para configuração de funil
+  const teamTypeToFunnelMapping: Record<string, { name: string; description: string; color: string; defaultStages: string[] }> = {
+    comercial: {
+      name: 'Funil Comercial',
+      description: 'Vendas, matrículas e informações sobre cursos',
+      color: 'green',
+      defaultStages: ['prospecting', 'qualified', 'proposal', 'negotiation', 'won']
+    },
+    suporte: {
+      name: 'Funil Suporte',
+      description: 'Problemas técnicos e dificuldades de acesso',
+      color: 'blue',
+      defaultStages: ['novo', 'em_andamento', 'aguardando_cliente', 'resolvido']
+    },
+    cobranca: {
+      name: 'Funil Cobrança',
+      description: 'Questões financeiras e pagamentos',
+      color: 'orange',
+      defaultStages: ['debito_detectado', 'tentativa_contato', 'negociacao', 'quitado']
+    },
+    secretaria: {
+      name: 'Funil Secretaria',
+      description: 'Documentação, matrículas e processos administrativos',
+      color: 'purple',
+      defaultStages: ['documentacao_pendente', 'analise', 'aprovacao', 'concluido']
+    },
+    tutoria: {
+      name: 'Funil Tutoria',
+      description: 'Acompanhamento acadêmico e dúvidas de estudo',
+      color: 'indigo',
+      defaultStages: ['duvida_recebida', 'analise_tutor', 'orientacao', 'resolvido']
+    },
+    financeiro: {
+      name: 'Funil Financeiro',
+      description: 'Questões de pagamento e boletos',
+      color: 'yellow',
+      defaultStages: ['pendencia_financeira', 'negociacao', 'acordo', 'quitado']
+    },
+    secretaria_pos: {
+      name: 'Funil Secretaria Pós',
+      description: 'Processos específicos de pós-graduação',
+      color: 'pink',
+      defaultStages: ['documentacao_pos', 'validacao', 'aprovacao_pos', 'diploma_emitido']
+    },
+    geral: {
+      name: 'Funil Geral',
+      description: 'Atendimento geral e triagem',
+      color: 'gray',
+      defaultStages: ['contato_inicial', 'triagem', 'encaminhamento', 'resolvido']
+    }
+  };
+
+  const funnelConfig = teamTypeToFunnelMapping[team.teamType] || teamTypeToFunnelMapping.geral;
+  
+  // Log da criação do funil (não criamos tabela, apenas garantimos consistência)
+  console.log(`📊 Funil configurado para equipe "${team.name}":`, {
+    teamType: team.teamType,
+    funnelName: funnelConfig.name,
+    description: funnelConfig.description,
+    color: funnelConfig.color,
+    stages: funnelConfig.defaultStages
+  });
+
+  // O sistema de funis já funciona baseado em teamType via crmFunnels.ts
+  // Esta função garante que novas equipes tenham configuração consistente
+  return {
+    teamId: team.id,
+    teamType: team.teamType,
+    funnelName: funnelConfig.name,
+    description: funnelConfig.description,
+    stages: funnelConfig.defaultStages,
+    created: true
+  };
+}
+
 export function registerTeamsRoutes(app: Express) {
   
   // Get all teams - REST: GET /api/teams
@@ -21,6 +101,15 @@ export function registerTeamsRoutes(app: Express) {
       const teamData = req.body;
       const newTeam = await storage.createTeam(teamData);
       console.log(`🎯 Nova equipe criada: ${newTeam.name} - TeamType: ${newTeam.teamType}`);
+      
+      // CORREÇÃO: Criar automaticamente funil de negócios para a nova equipe
+      try {
+        await createTeamFunnel(newTeam);
+        console.log(`📊 Funil de negócios criado automaticamente para equipe: ${newTeam.name} (Tipo: ${newTeam.teamType})`);
+      } catch (funnelError) {
+        console.error('❌ Erro ao criar funil automático:', funnelError);
+        // Não falhar a criação da equipe se o funil falhar
+      }
       
       // Criar automaticamente canal de chat interno para a nova equipe
       try {

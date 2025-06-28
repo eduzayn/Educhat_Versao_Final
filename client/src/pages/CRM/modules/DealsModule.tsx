@@ -13,6 +13,8 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import type { Deal } from '@shared/schema';
+// CORREÇÃO: Importar sistema dinâmico de funis
+import { getAllCategories, getDynamicFunnelForTeamType, getCategoryInfo, getStagesForCategory } from '@/shared/lib/crmFunnels';
 import {
   Search,
   Filter,
@@ -121,6 +123,38 @@ export function DealsModule() {
   // State para paginação
   const [page, setPage] = useState(1);
   const limit = 50;
+
+  // CORREÇÃO: Buscar equipes do banco para filtros dinâmicos
+  const { data: teamsFromDB } = useQuery({
+    queryKey: ['/api/teams'],
+    queryFn: async () => {
+      const response = await fetch('/api/teams', { credentials: 'include' });
+      if (!response.ok) throw new Error('Erro ao carregar equipes');
+      return response.json();
+    }
+  });
+
+  // CORREÇÃO: Criar filtros de equipe dinâmicos baseados no banco + sistema estático
+  const availableTeamTypes = useMemo(() => {
+    const staticTypes = getAllCategories();
+    const dynamicTypes: Array<{ id: string; info: any }> = [];
+
+    // Adicionar teamTypes das equipes do banco que não estão no sistema estático
+    if (teamsFromDB && Array.isArray(teamsFromDB)) {
+      teamsFromDB.forEach((team: any) => {
+        if (team.teamType && !staticTypes.find(st => st.id === team.teamType)) {
+          // Criar funil dinâmico para teamType não mapeado
+          const dynamicFunnel = getDynamicFunnelForTeamType(team.teamType);
+          dynamicTypes.push({
+            id: team.teamType,
+            info: dynamicFunnel
+          });
+        }
+      });
+    }
+
+    return [...staticTypes, ...dynamicTypes];
+  }, [teamsFromDB]);
 
   // Fetch deals from database with pagination and filtering
   const { data: dealsResponse, isLoading } = useQuery({
