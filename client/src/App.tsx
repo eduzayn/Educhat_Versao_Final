@@ -147,7 +147,7 @@ function Router() {
             {() => (
               <ProtectedRoute
                 requiredRole={["admin", "gerente"]}
-                component={() => <div className="min-h-screen bg-educhat-light flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-educhat-dark mb-4">Gestão de Equipes</h1><p className="text-educhat-medium">Funcionalidade em desenvolvimento.</p></div></div>}
+                component={TeamsPage}
               />
             )}
           </Route>

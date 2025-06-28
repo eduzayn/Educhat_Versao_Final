@@ -68,18 +68,27 @@ export default function TeamsPage() {
   const { data: teams, isLoading } = useQuery({
     queryKey: ['/api/teams'],
     queryFn: async () => {
-      const response = await apiRequest('/api/teams');
-      return response as Team[];
+      const response = await fetch('/api/teams', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Erro ao carregar equipes');
+      return response.json() as Promise<Team[]>;
     }
   });
 
   // Mutation para criar nova equipe
   const createTeamMutation = useMutation({
     mutationFn: async (teamData: TeamFormData) => {
-      return await apiRequest('/api/teams', {
+      const response = await fetch('/api/teams', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify(teamData)
       });
+      if (!response.ok) throw new Error('Erro ao criar equipe');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });

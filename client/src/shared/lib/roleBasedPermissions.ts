@@ -27,6 +27,7 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     '/integrations',
     '/integrations/facebook',
     '/integrations/manychat',
+    '/teams',
     '/teams/transfer'
   ],
   
@@ -50,6 +51,7 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     '/integrations',
     '/integrations/facebook',
     '/integrations/manychat',
+    '/teams',
     '/teams/transfer'
   ],
   
@@ -65,6 +67,7 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     '/profile',
     '/settings/quick-replies',
     '/settings/channels',
+    '/teams',
     '/teams/transfer'
   ],
   
