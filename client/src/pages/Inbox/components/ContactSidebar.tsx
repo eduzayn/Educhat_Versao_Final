@@ -31,7 +31,7 @@ import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/lib/crmFunnels';
+import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/shared/lib/crmFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {
@@ -171,67 +171,15 @@ export function ContactSidebar({
   const [dealFormData, setDealFormData] = useState({
     name: '',
     value: '',
-    category: '',
+    category: '', // Agora representa o funil CRM
     stage: '',
     course: ''
   });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [courses, setCourses] = useState<string[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<string[]>([]);
   
   const queryClient = useQueryClient();
 
-  // Buscar categorias e cursos quando o componente monta
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/courses/categories');
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-        }
-      } catch (error) {
-        // Categorias falharão silenciosamente se API não estiver disponível
-      }
-    };
-
-    const fetchAllCourses = async () => {
-      try {
-        const response = await fetch('/api/courses');
-        if (response.ok) {
-          const data = await response.json();
-          setCourses(data);
-          setFilteredCourses(data);
-        }
-      } catch (error) {
-        // Cursos falharão silenciosamente se API não estiver disponível
-      }
-    };
-
-    fetchCategories();
-    fetchAllCourses();
-  }, []);
-
-  // Filtrar cursos por categoria selecionada
-  useEffect(() => {
-    if (dealFormData.category && dealFormData.category !== '') {
-      const fetchCoursesByCategory = async () => {
-        try {
-          const response = await fetch(`/api/courses/by-category/${encodeURIComponent(dealFormData.category)}`);
-          if (response.ok) {
-            const data = await response.json();
-            setFilteredCourses(data);
-          }
-        } catch (error) {
-          console.error('Erro ao buscar cursos por categoria:', error);
-          setFilteredCourses(courses);
-        }
-      };
-      fetchCoursesByCategory();
-    } else {
-      setFilteredCourses(courses);
-    }
-  }, [dealFormData.category, courses]);
+  // Sistema unificado usando funis CRM dinâmicos
+  // Não precisa mais buscar categorias/cursos - usa getAllCategories() e getStagesForCategory()
 
   // Mutation para criar deal
   const createDealMutation = useMutation({
@@ -536,52 +484,16 @@ export function ContactSidebar({
                     </Select>
                   </div>
 
-                  {/* Categoria do Curso */}
+                  {/* Observações */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      Categoria do Curso
-                    </label>
-                    <Select 
-                      value={dealFormData.category} 
-                      onValueChange={(value) => {
-                        setDealFormData({...dealFormData, category: value, course: ''});
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as categorias</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Curso de Interesse */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      Curso de Interesse
-                    </label>
-                    <Select 
-                      value={dealFormData.course} 
-                      onValueChange={(value) => setDealFormData({...dealFormData, course: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o curso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum curso específico</SelectItem>
-                        {filteredCourses.map((course) => (
-                          <SelectItem key={course} value={course}>
-                            {course}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="deal-notes">Observações</Label>
+                    <Textarea
+                      id="deal-notes"
+                      placeholder="Detalhes adicionais sobre o negócio..."
+                      rows={2}
+                      value={dealFormData.course}
+                      onChange={(e) => setDealFormData(prev => ({ ...prev, course: e.target.value }))}
+                    />
                   </div>
 
                   <div className="bg-gray-50 p-3 rounded-lg">
