@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { CACHE_CONFIG } from '@/lib/cacheConfig';
 
 /**
  * Hook para buscar conversas no banco de dados completo
@@ -20,7 +21,6 @@ export function useSearchConversations(searchTerm: string) {
       return response.json();
     },
     enabled: !!searchTerm && searchTerm.trim().length > 0,
-    staleTime: 30000, // Cache por 30 segundos
-    refetchOnWindowFocus: false
+    ...CACHE_CONFIG.REALTIME, // Usar configuração para dados em tempo real
   });
 }

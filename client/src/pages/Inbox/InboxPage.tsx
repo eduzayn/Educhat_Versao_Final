@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { CACHE_CONFIG } from '@/lib/cacheConfig';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
@@ -171,9 +172,7 @@ export function InboxPage() {
       return response.json();
     },
     enabled: !!activeConversation?.id,
-    staleTime: 120000, // Cache por 2 minutos - WebSocket atualiza quando necessário
-    refetchInterval: false, // Sem polling - WebSocket cuida das atualizações
-    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
+    ...CACHE_CONFIG.CONVERSATIONS, // Usar configuração padronizada
     retry: (failureCount, error: any) => {
       // Não tentar novamente para erros 404 ou 400
       if (error?.message?.includes('404') || error?.message?.includes('400')) {
