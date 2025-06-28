@@ -190,11 +190,6 @@ export function useWebSocket() {
                 pages: updatedPages
               };
             });
-            
-            // Invalidar também como backup
-            queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}/messages`] 
-            });
           }
           break;
         case 'course_detected':
@@ -238,9 +233,39 @@ export function useWebSocket() {
               method: data.method
             });
             
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-            queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+            // Atualizar cache diretamente ao invés de invalidar
+            queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+              if (!oldData?.pages) return oldData;
+              
+              const updatedPages = oldData.pages.map((page: any[]) => 
+                page.map((conv: any) => {
+                  if (conv.id === data.conversationId) {
+                    return {
+                      ...conv,
+                      assignedTeamId: data.teamId,
+                      assignedTeamName: data.teamName,
+                      assignedUserId: data.userId,
+                      assignedUserName: data.userName
+                    };
+                  }
+                  return conv;
+                })
+              );
+              
+              return { ...oldData, pages: updatedPages };
+            });
+            
+            // Atualizar conversa específica
+            queryClient.setQueryData([`/api/conversations/${data.conversationId}`], (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              return {
+                ...oldData,
+                assignedTeamId: data.teamId,
+                assignedTeamName: data.teamName,
+                assignedUserId: data.userId,
+                assignedUserName: data.userName
+              };
             });
           }
           break;
@@ -252,10 +277,35 @@ export function useWebSocket() {
               action: data.action
             });
             
-            queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-            queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
-            queryClient.invalidateQueries({ 
-              queryKey: [`/api/conversations/${data.conversationId}`] 
+            // Atualizar cache diretamente
+            queryClient.setQueryData(['/api/conversations'], (oldData: any) => {
+              if (!oldData?.pages) return oldData;
+              
+              const updatedPages = oldData.pages.map((page: any[]) => 
+                page.map((conv: any) => {
+                  if (conv.id === data.conversationId) {
+                    return {
+                      ...conv,
+                      unreadCount: data.unreadCount,
+                      isRead: data.unreadCount === 0
+                    };
+                  }
+                  return conv;
+                })
+              );
+              
+              return { ...oldData, pages: updatedPages };
+            });
+            
+            // Atualizar conversa específica
+            queryClient.setQueryData([`/api/conversations/${data.conversationId}`], (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              return {
+                ...oldData,
+                unreadCount: data.unreadCount,
+                isRead: data.unreadCount === 0
+              };
             });
           }
           break;

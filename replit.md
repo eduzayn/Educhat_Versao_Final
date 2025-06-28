@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (11:00): REDUNDÂNCIAS WEBSOCKET ELIMINADAS CIRURGICAMENTE COM SETQUERYDATA OTIMIZADO
+  - Removida redundância invalidateQueries após setQueryData em message_deleted (WebSocket)
+  - Substituído invalidateQueries por setQueryData em conversation_assigned para atualizações diretas
+  - Otimizado conversation_unread_status: setQueryData ao invés de invalidateQueries + refetchQueries
+  - Cache atualizado diretamente: assignedTeamId, assignedUserId, unreadCount, isRead
+  - Eliminadas 5+ chamadas redundantes de invalidateQueries que causavam requisições desnecessárias
+  - Performance melhorada: atualizações instantâneas sem refetch do servidor
+  - Correção cirúrgica: apenas useWebSocket.ts modificado, todas funcionalidades preservadas
+  - Sistema mais eficiente: uma única fonte de verdade (setQueryData) ao invés de múltiplos invalidates
 - June 28, 2025 (10:55): PADRONIZAÇÃO COMPLETA DE CONFIGURAÇÕES DE CACHE IMPLEMENTADA COM SUCESSO
   - Criado arquivo cacheConfig.ts centralizado com tempos padronizados para todo o sistema
   - Configurações organizadas por tipo: REALTIME (30s), CONVERSATIONS (60s), MESSAGES (120s), STATIC (600s)
