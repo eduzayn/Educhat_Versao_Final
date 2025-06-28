@@ -417,10 +417,55 @@ export function registerInboxRoutes(app: Express) {
   }), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      console.log(`📖 [API] Marcando conversa ${id} como lida - INÍCIO`, {
+        conversationId: id,
+        userId: req.user?.id,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Verificar conversa antes de marcar como lida
+      const conversationBefore = await storage.getConversation(id);
+      console.log(`📖 [API] Estado da conversa ANTES:`, {
+        conversationId: id,
+        unreadCount: conversationBefore?.unreadCount,
+        isRead: conversationBefore?.isRead,
+        markedUnreadManually: conversationBefore?.markedUnreadManually
+      });
+      
       await storage.markConversationAsRead(id);
+      
+      // Verificar conversa depois de marcar como lida
+      const conversationAfter = await storage.getConversation(id);
+      console.log(`📖 [API] Estado da conversa DEPOIS:`, {
+        conversationId: id,
+        unreadCount: conversationAfter?.unreadCount,
+        isRead: conversationAfter?.isRead,
+        markedUnreadManually: conversationAfter?.markedUnreadManually
+      });
+      
+      // Broadcast para atualizar UI em tempo real
+      try {
+        const { broadcast } = await import('../realtime');
+        broadcast(id, {
+          type: 'read_update',
+          conversationId: id,
+          isRead: true,
+          unreadCount: 0
+        });
+        console.log(`📖 [API] Broadcast enviado para conversa ${id}`);
+      } catch (broadcastError) {
+        console.warn('Erro no broadcast de conversa lida:', broadcastError);
+      }
+      
+      console.log(`📖 [API] Conversa ${id} marcada como lida - SUCESSO`);
       res.json({ message: 'Conversation marked as read' });
     } catch (error) {
-      console.error('Error marking conversation as read:', error);
+      console.error(`❌ [API] Erro ao marcar conversa como lida:`, {
+        conversationId: req.params.id,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({ message: 'Failed to mark conversation as read' });
     }
   });
