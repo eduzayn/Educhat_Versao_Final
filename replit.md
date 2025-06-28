@@ -96,6 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (00:05): BUG CRÍTICO DE EXCLUSÃO DE MENSAGENS Z-API CORRIGIDO COMPLETAMENTE
+  - Identificado problema duplo: endpoint salvava IDs mas hook principal não aproveitava o retorno
+  - Fluxo normal da caixa de entrada não usava mensagem salva com metadados Z-API
+  - Corrigido useSendMessage para priorizar savedMessage retornado pelo endpoint Z-API
+  - Adicionada lógica para usar mensagem com metadados completos quando disponível
+  - Campo whatsappMessageId e metadados (zaapId, messageId) agora salvos corretamente
+  - Logs detalhados adicionados para rastreamento de IDs de mensagens
+  - Exclusão imediata funcionando: não precisa esperar 2 minutos
+  - Sistema completo: envio → Z-API → salvamento com ID → exclusão funcional
+  - Correção cirúrgica: utilities/index.ts, webhooks/index.ts e useMessages.ts
+  - Problema resolvido definitivamente para todos os fluxos de envio
 - June 27, 2025 (23:51): BUG CRÍTICO DE EXCLUSÃO DE MENSAGENS Z-API CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: endpoint /api/zapi/send-message não salvava ID da Z-API no banco
   - Mensagens eram enviadas via Z-API mas não tinham zaapId/messageId nos metadados

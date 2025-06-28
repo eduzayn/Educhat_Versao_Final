@@ -95,6 +95,7 @@ export function useSendMessage() {
             phone: phoneNumber,
             content: message.content.substring(0, 50),
             conversationId: conversationId,
+            messageId: savedMessage.id,
             endpoint: '/api/zapi/send-message'
           });
           
@@ -105,17 +106,24 @@ export function useSendMessage() {
           });
           
           console.log('✅ SUCESSO Z-API:', {
-            messageId: zapiResponse?.messageId || zapiResponse?.id,
+            messageId: zapiResponse?.data?.messageId || zapiResponse?.data?.id,
             phone: phoneNumber,
             response: zapiResponse
           });
+          
+          // Se Z-API retornou savedMessage com metadados, usar esse ao invés do local
+          if (zapiResponse?.savedMessage) {
+            console.log('🔄 USANDO MENSAGEM SALVA PELA Z-API COM METADADOS:', zapiResponse.savedMessage.id);
+            return zapiResponse.savedMessage;
+          }
           
           // Não propagar erro se Z-API falhar - mensagem já foi salva localmente
         } catch (error) {
           console.error('❌ FALHA Z-API (não crítica):', {
             phone: phoneNumber,
             error: error instanceof Error ? error.message : String(error),
-            content: message.content.substring(0, 50)
+            content: message.content.substring(0, 50),
+            savedMessageId: savedMessage.id
           });
           
           // Não propagar erro - UX contínua: mensagem aparece mesmo se Z-API falhar
