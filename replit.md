@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (05:22): DUPLICAÇÃO DE QUERIES SQL EM CONVERSATIONSTORAGE ELIMINADA COMPLETAMENTE
+  - Criado método privado getBaseConversationWithContactQuery() centralizando query de conversas com contatos
+  - Eliminada duplicação de 40+ linhas de SELECT SQL entre métodos getConversations e getConversation
+  - Método getConversation refatorado para usar query base centralizada (.where(eq(conversations.id, id)))
+  - Corrigidos erros LSP TypeScript com cast apropriado (as unknown as ConversationWithContact)
+  - Sistema mais maintível: mudanças na query base afetam todos os métodos automaticamente
+  - Performance preservada: mesma lógica SQL, apenas centralizada para evitar duplicação
+  - Correção cirúrgica: apenas conversationStorage.ts alterado, todas funcionalidades preservadas
 - June 28, 2025 (05:09): SISTEMA DE AUTENTICAÇÃO COM PASSWORDS OBSOLETOS CORRIGIDO COMPLETAMENTE
   - Removido código inseguro de comparação de senhas em texto plano (linha ~154 auth.ts)
   - Implementada migração automática de senhas durante login: detecção → hash → atualização no banco

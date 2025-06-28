@@ -152,7 +152,7 @@ export class ConversationStorage extends BaseStorage {
       lastMessage: row.lastMessage?.content || '',
       messages: row.lastMessage?.id ? [row.lastMessage] : [],
       _count: { messages: row.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
@@ -251,7 +251,7 @@ export class ConversationStorage extends BaseStorage {
         channelInfo: finalChannelInfo || undefined,
         messages: finalMessages,
         _count: { messages: result.unreadCount || 0 }
-      } as ConversationWithContact;
+      } as unknown as ConversationWithContact;
 
     } catch (error) {
       console.error(`getConversation: Erro crítico ao buscar conversa ${id}:`, error);
@@ -343,7 +343,7 @@ export class ConversationStorage extends BaseStorage {
       channelInfo: undefined,
       messages: [],
       _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async getConversationsByContactId(contactId: number): Promise<ConversationWithContact[]> {
@@ -399,7 +399,7 @@ export class ConversationStorage extends BaseStorage {
       channelInfo: undefined,
       messages: [],
       _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async getConversationsByStatus(status: string): Promise<ConversationWithContact[]> {
@@ -460,7 +460,7 @@ export class ConversationStorage extends BaseStorage {
       channelInfo: undefined,
       messages: [],
       _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async updateLastMessage(conversationId: number, messageId: number): Promise<void> {
@@ -732,7 +732,7 @@ export class ConversationStorage extends BaseStorage {
       lastMessage: conv.lastMessage?.content || '',
       messages: conv.lastMessage?.id ? [conv.lastMessage] : [],
       _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async getConversationsByUser(userId: number): Promise<ConversationWithContact[]> {
@@ -825,7 +825,7 @@ export class ConversationStorage extends BaseStorage {
       lastMessage: conv.lastMessage?.content || '',
       messages: conv.lastMessage?.id ? [conv.lastMessage] : [],
       _count: { messages: conv.unreadCount || 0 }
-    } as ConversationWithContact));
+    } as unknown as ConversationWithContact));
   }
 
   async getConversationByContactAndChannel(contactId: number, channel: string): Promise<ConversationWithContact | undefined> {
@@ -891,7 +891,7 @@ export class ConversationStorage extends BaseStorage {
       channelInfo: undefined,
       messages: [],
       _count: { messages: result.unreadCount || 0 }
-    } as ConversationWithContact;
+    } as unknown as ConversationWithContact;
   }
 
   /**
@@ -999,6 +999,6 @@ export class ConversationStorage extends BaseStorage {
       lastMessage: result.lastMessage?.content || '',
       messages: result.lastMessage?.id ? [result.lastMessage] : [],
       _count: { messages: result.unreadCount || 0 }
-    } as unknown)) as ConversationWithContact[];
+    } as unknown)) as unknown as ConversationWithContact[];
   }
 }
