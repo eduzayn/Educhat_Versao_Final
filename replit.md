@@ -96,6 +96,23 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (00:48): BUG CRÍTICO DE DUPLICAÇÃO DE MENSAGENS CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: hook useSendMessage salvava mensagem localmente E via Z-API, criando duplicatas
+  - Duas mensagens apareciam na interface: uma sem metadados Z-API e outra com metadados completos
+  - Corrigido fluxo para usar APENAS mensagem salva pela Z-API quando disponível
+  - Eliminado salvamento duplo: agora envia direto via Z-API e usa savedMessage retornado
+  - Fallback seguro: se Z-API falhar, salva apenas uma mensagem local
+  - Sistema completamente funcional: uma única mensagem por envio, sem duplicação
+  - Preservada funcionalidade de exclusão e marca visual "Esta mensagem foi deletada"
+  - Correção cirúrgica: apenas useMessages.ts alterado, demais funcionalidades intactas
+- June 28, 2025 (00:35): MARCA VISUAL DE MENSAGENS DELETADAS IMPLEMENTADA COMPLETAMENTE
+  - Corrigido método getMessages no messageStorage.ts para incluir mensagens deletadas
+  - Removido filtro isDeleted=false que ocultava mensagens deletadas da API
+  - Mensagens deletadas agora aparecem com marca "Esta mensagem foi deletada" ao invés de desaparecer
+  - Sistema de exclusão via Z-API funcionando com resposta success:true
+  - WebSocket enviando broadcasts corretos para atualização em tempo real
+  - Formatação de mensagens preservada com whitespace-pre-line
+  - Correção cirúrgica: apenas messageStorage.ts alterado, funcionalidades preservadas
 - June 28, 2025 (00:18): BUG CRÍTICO DE EXCLUSÃO Z-API FINALIZADO PARA TODOS OS TIPOS DE MENSAGEM
   - Correção aplicada aos endpoints de vídeo e arquivo com metadados Z-API completos
   - Hook useVideoMessage atualizado para usar mensagem salva retornada pela Z-API
