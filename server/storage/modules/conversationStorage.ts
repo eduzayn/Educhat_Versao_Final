@@ -157,25 +157,17 @@ export class ConversationStorage extends BaseStorage {
 
   async getConversation(id: number): Promise<ConversationWithContact | undefined> {
     try {
-      // Validação básica do ID
-      if (!id || isNaN(id) || id <= 0) {
-        console.warn(`getConversation: ID inválido fornecido: ${id}`);
-        return undefined;
-      }
-
+      // Query otimizada com validação incorporada no WHERE (usando SQL para garantir integridade)
       const [result] = await this.getBaseConversationWithContactQuery()
-        .where(eq(conversations.id, id))
+        .where(and(
+          eq(conversations.id, id),
+          sql`${conversations.contactId} IS NOT NULL`,  // Garantir integridade na query
+          sql`${contacts.id} IS NOT NULL`               // Garantir contato válido
+        ))
         .limit(1);
 
       if (!result) {
-        console.info(`getConversation: Conversa ${id} não encontrada`);
-        return undefined;
-      }
-
-      // Validação de integridade dos dados principais
-      if (!result.contact?.id || !result.contactId) {
-        console.error(`getConversation: Dados corrompidos na conversa ${id} - contato ausente`);
-        return undefined;
+        return undefined; // Silencioso - ID inválido ou dados corrompidos
       }
 
       // Executar todas as queries secundárias em paralelo para otimizar performance
@@ -484,21 +476,14 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async resetUnreadCount(conversationId: number): Promise<void> {
-    // Primeiro, verificar se a conversa foi marcada manualmente como não lida
-    const [conversation] = await this.db
-      .select({ markedUnreadManually: conversations.markedUnreadManually })
-      .from(conversations)
-      .where(eq(conversations.id, conversationId));
-
-    // Se foi marcada manualmente como não lida, não resetar o flag
-    const shouldResetManualFlag = !conversation?.markedUnreadManually;
-
+    // Query única otimizada que usa SQL condicional para evitar validação redundante
     await this.db
       .update(conversations)
       .set({
         unreadCount: 0,
         isRead: true,
-        ...(shouldResetManualFlag && { markedUnreadManually: false }),
+        // Só resetar markedUnreadManually se não foi marcada manualmente como não lida
+        markedUnreadManually: sql`CASE WHEN ${conversations.markedUnreadManually} = true THEN true ELSE false END`,
         updatedAt: new Date()
       })
       .where(eq(conversations.id, conversationId));
@@ -522,7 +507,8 @@ export class ConversationStorage extends BaseStorage {
   }
 
   async assignConversation(conversationId: number, userId: number, teamId?: number): Promise<void> {
-    await this.db
+    // Query otimizada única que incorpora validações via SQL para evitar redundância
+    const result = await this.db
       .update(conversations)
       .set({
         assignedUserId: userId,
@@ -531,7 +517,15 @@ export class ConversationStorage extends BaseStorage {
         assignmentMethod: 'manual',
         updatedAt: new Date()
       })
-      .where(eq(conversations.id, conversationId));
+      .where(and(
+        eq(conversations.id, conversationId),
+        sql`${conversations.contactId} IS NOT NULL`  // Garantir integridade
+      ))
+      .returning({ id: conversations.id });
+
+    if (result.length === 0) {
+      throw new Error('Conversa não encontrada ou dados inconsistentes');
+    }
   }
 
   async unassignConversation(conversationId: number): Promise<void> {
