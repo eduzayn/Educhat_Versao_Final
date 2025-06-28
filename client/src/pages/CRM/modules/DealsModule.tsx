@@ -215,7 +215,7 @@ export function DealsModule() {
     queryKey: ['/api/deals', selectedTeamType],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
-        limit: '20', // 20 negócios por página para scroll infinito
+        limit: '10', // GLOBAL: 10 negócios iniciais conforme padrão solicitado
         page: pageParam.toString(),
         teamType: selectedTeamType
       });

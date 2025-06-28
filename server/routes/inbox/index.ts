@@ -281,16 +281,31 @@ export function registerInboxRoutes(app: Express) {
             if (validatedData.assignedTeamId) {
               const team = await storage.getTeam(validatedData.assignedTeamId);
               if (team) {
-                // Mapear nome da equipe para teamType
+                // CORREÇÃO GLOBAL: Mapear TODAS as equipes para teamTypes padronizados
                 const teamTypeMap: { [key: string]: string } = {
                   'Equipe Comercial': 'comercial',
                   'Equipe Suporte': 'suporte', 
                   'Equipe Cobrança': 'cobranca',
                   'Equipe Tutoria': 'tutoria',
                   'Equipe Secretaria': 'secretaria',
+                  'Secretaria': 'secretaria',
+                  'Secretaria Pós': 'secretaria_pos',
+                  'Secretaria Pos': 'secretaria_pos',
+                  'Pós-Graduação': 'secretaria_pos',
+                  'Pós Graduação': 'secretaria_pos',
+                  'Pos Graduacao': 'secretaria_pos',
+                  'Financeiro': 'financeiro',
+                  'Financeiro Aluno': 'financeiro',
+                  'Equipe Financeiro': 'financeiro',
+                  'Cobrança': 'cobranca',
+                  'Cobranca': 'cobranca',
                   'Equipe Geral': 'geral'
                 };
-                teamType = teamTypeMap[team.name] || 'geral';
+                
+                // GLOBAL: Usar nome exato da equipe ou gerar teamType baseado no nome
+                teamType = teamTypeMap[team.name] || 
+                          teamTypeMap[team.name.toLowerCase()] || 
+                          team.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
               }
             }
             

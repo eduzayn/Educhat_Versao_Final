@@ -126,11 +126,26 @@ export class DealStorage extends BaseStorage {
       throw new Error(`Contato ${contactId} não encontrado`);
     }
 
-    // Criar deal automático
+    // CORREÇÃO GLOBAL: Determinar estágio inicial baseado no tipo de equipe
+    const getInitialStageForTeamType = (teamType: string): string => {
+      const stageMapping: { [key: string]: string } = {
+        'comercial': 'prospecting',
+        'suporte': 'prospecting', 
+        'cobranca': 'debito_detectado',
+        'secretaria': 'solicitacao',
+        'secretaria_pos': 'solicitacao_certificado',
+        'tutoria': 'duvida_recebida',
+        'financeiro': 'solicitacao_recebida',
+        'geral': 'prospecting'
+      };
+      return stageMapping[teamType] || 'novo'; // fallback para funis dinâmicos
+    };
+
+    // Criar deal automático com estágio correto
     const dealData: InsertDeal = {
       name: `${contact.name} - ${teamType || 'Geral'}`,
       contactId: contactId,
-      stage: 'prospecting',
+      stage: getInitialStageForTeamType(teamType || 'comercial'),
       value: 0,
       probability: 50,
       owner: 'Sistema',
