@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { CACHE_CONFIG } from "./cacheConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -100,9 +101,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutos em vez de infinito
+      ...CACHE_CONFIG.STATIC, // Usar configuração padrão para dados estáticos
       retry: false,
     },
     mutations: {

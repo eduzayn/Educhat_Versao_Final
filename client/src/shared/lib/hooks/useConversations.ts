@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { CACHE_CONFIG } from '@/lib/cacheConfig';
 import type { ConversationWithContact, InsertConversation } from '@shared/schema';
 
 interface ConversationFilters {
