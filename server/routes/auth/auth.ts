@@ -18,7 +18,7 @@ declare global {
       roleId: number;
       dataKey?: string;
       channels: string[];
-      macrosetores: string[];
+
       teamId?: number | null;
       team?: string | null;
     }
@@ -150,8 +150,20 @@ export function setupAuth(app: Express) {
             // Hashed password - use bcrypt comparison
             isMatch = await comparePasswords(password, systemUser.password);
           } else {
-            // Plain text password - direct comparison (temporary for migration)
+            // Plain text password - migrate to hashed password automatically
             isMatch = password === systemUser.password;
+            
+            // If password matches, hash it and update in database for security
+            if (isMatch) {
+              try {
+                const hashedPassword = await hashPassword(password);
+                await storage.updateSystemUser(systemUser.id, { password: hashedPassword });
+                console.log(`🔒 Senha do usuário ${systemUser.email} migrada para hash bcrypt com sucesso`);
+              } catch (error) {
+                console.error(`❌ Erro ao migrar senha do usuário ${systemUser.email}:`, error);
+                // Continue with authentication even if migration fails
+              }
+            }
           }
           
           if (!isMatch) {
@@ -173,7 +185,7 @@ export function setupAuth(app: Express) {
             roleId: systemUser.roleId || 1,
             dataKey: systemUser.dataKey || undefined,
             channels: Array.isArray(systemUser.channels) ? systemUser.channels : [],
-            macrosetores: Array.isArray(systemUser.macrosetores) ? systemUser.macrosetores : [],
+
             teamId: systemUser.teamId || undefined,
             team: teamInfo?.name || undefined,
           };
@@ -213,7 +225,7 @@ export function setupAuth(app: Express) {
         roleId: user.roleId || 1,
         dataKey: user.dataKey || undefined,
         channels: user.channels || [],
-        macrosetores: user.macrosetores || [],
+
         teamId: user.teamId,
         team: teamInfo?.name || null,
       };
