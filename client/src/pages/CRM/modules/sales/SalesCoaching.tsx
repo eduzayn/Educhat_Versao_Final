@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/shared/lib/hooks/useAuth';
 import { useFormSubmission, formatCoachingData } from '@/shared/lib/utils/formHelpers';
+import { getCoachingStatusBadge } from '@/shared/lib/utils/badgeHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -127,18 +128,7 @@ export function SalesCoaching() {
     });
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
-      case 'in_progress':
-        return <Badge variant="outline" className="text-blue-600 border-blue-600"><AlertCircle className="h-3 w-3 mr-1" />Em Andamento</Badge>;
-      case 'completed':
-        return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle className="h-3 w-3 mr-1" />Concluído</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
-    }
-  };
+
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -433,7 +423,18 @@ export function SalesCoaching() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {getStatusBadge(record.status)}
+                      {(() => {
+                        const badgeConfig = getCoachingStatusBadge(record.status);
+                        const IconComponent = record.status === 'pending' ? Clock : 
+                                            record.status === 'in_progress' ? AlertCircle : 
+                                            CheckCircle;
+                        return (
+                          <Badge variant={badgeConfig.variant} className={badgeConfig.color}>
+                            <IconComponent className="h-3 w-3 mr-1" />
+                            {badgeConfig.text}
+                          </Badge>
+                        );
+                      })()}
                       {canCreateRecords && (
                         <Button
                           variant="ghost"

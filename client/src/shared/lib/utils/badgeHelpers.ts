@@ -108,24 +108,9 @@ export const getChannelBadge = (channelType: string): BadgeConfig => {
 // Helper para badges de status de coaching
 export const getCoachingStatusBadge = (status: string): BadgeConfig => {
   const configs: Record<string, BadgeConfig> = {
-    pending: { 
-      variant: 'outline', 
-      text: 'Pendente', 
-      color: 'text-yellow-600 border-yellow-600',
-      icon: <Clock className="h-3 w-3 mr-1" />
-    },
-    in_progress: { 
-      variant: 'outline', 
-      text: 'Em Andamento', 
-      color: 'text-blue-600 border-blue-600',
-      icon: <AlertCircle className="h-3 w-3 mr-1" />
-    },
-    completed: { 
-      variant: 'outline', 
-      text: 'Concluído', 
-      color: 'text-green-600 border-green-600',
-      icon: <CheckCircle className="h-3 w-3 mr-1" />
-    }
+    pending: { variant: 'outline', text: 'Pendente', color: 'text-yellow-600 border-yellow-600' },
+    in_progress: { variant: 'outline', text: 'Em Andamento', color: 'text-blue-600 border-blue-600' },
+    completed: { variant: 'outline', text: 'Concluído', color: 'text-green-600 border-green-600' }
   };
   
   return configs[status] || { variant: 'outline', text: 'Desconhecido', color: 'text-gray-600' };
