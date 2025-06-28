@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { CACHE_CONFIG } from '@/lib/cacheConfig';
 import type { Message, InsertMessage } from '@shared/schema';
 
 export function useMessages(conversationId: number | null, initialLimit = 15) {
@@ -20,7 +21,9 @@ export function useMessages(conversationId: number | null, initialLimit = 15) {
       } else {
         // Páginas seguintes: 10 mensagens anteriores à última carregada
         params.append('limit', '10');
-        params.append('before', pageParam.toString());
+        if (pageParam && typeof pageParam === 'number') {
+          params.append('before', pageParam.toString());
+        }
         params.append('order', 'desc');
       }
       
@@ -51,9 +54,7 @@ export function useMessages(conversationId: number | null, initialLimit = 15) {
       return oldestMessage?.id;
     },
     enabled: !!conversationId,
-    refetchInterval: false,
-    refetchIntervalInBackground: false,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    ...CACHE_CONFIG.MESSAGES, // Usar configuração padronizada
   });
 }
 

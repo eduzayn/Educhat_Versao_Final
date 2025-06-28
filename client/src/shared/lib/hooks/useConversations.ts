@@ -35,7 +35,8 @@ export function useConversations(initialLimit = 20, filters: ConversationFilters
   return useInfiniteQuery<ConversationWithContact[]>({
     queryKey: ['/api/conversations', filters], // Incluir filtros na chave de cache
     queryFn: async ({ pageParam = 1 }) => {
-      const queryString = buildFilterParams(pageParam);
+      const pageNumber = typeof pageParam === 'number' ? pageParam : 1;
+      const queryString = buildFilterParams(pageNumber);
       const response = await fetch(`/api/conversations?${queryString}`);
       if (!response.ok) {
         throw new Error('Failed to fetch conversations');
@@ -49,10 +50,7 @@ export function useConversations(initialLimit = 20, filters: ConversationFilters
       if (lastPage.length < pageLimit) return undefined;
       return allPages.length + 1;
     },
-    staleTime: 30000, // Cache válido por 30 segundos para reduzir requisições
-    gcTime: 300000, // Cache mantido por 5 minutos
-    refetchOnWindowFocus: false, // Evitar recarregamentos desnecessários
-    refetchInterval: false, // WebSocket cuida das atualizações em tempo real
+    ...CACHE_CONFIG.CONVERSATIONS, // Usar configuração padronizada
     ...options, // Permitir sobrescrever opções
   });
 }
@@ -61,10 +59,7 @@ export function useConversation(id: number | null) {
   return useQuery<ConversationWithContact>({
     queryKey: ['/api/conversations', id],
     enabled: !!id,
-    staleTime: 120000, // Cache por 2 minutos
-    refetchInterval: false, // Sem polling - WebSocket atualiza
-    refetchOnWindowFocus: false, // Evitar requisições ao trocar de aba
-    gcTime: 300000, // Manter cache por 5 minutos
+    ...CACHE_CONFIG.CONVERSATIONS, // Usar configuração padronizada
   });
 }
 
