@@ -1,0 +1,25 @@
+eruda.js:2 Warning: Encountered two children with the same key, `84`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at div
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=7a25f145:42:13
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…e/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=7a25f145:116:13
+    at div
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=7a25f145:42:13
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=7a25f145:38:15)
+    at https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…ace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=7a25f145:54:7
+    at _c (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/shared/ui/scroll-area.tsx:21:11)
+    at div
+    at InfoPanel (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/pages/InternalChat/components/InfoPanel.tsx:38:71)
+    at div
+    at div
+    at InternalChatPage (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/pages/InternalChat/InternalChatPage.tsx:31:45)
+    at Route (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7a25f145:265:16)
+    at Switch (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=7a25f145:321:17)
+    at Router (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.dev/src/App.tsx?v=YIIdConaPz_rX999y1mSJ:48:42)
+    at Provider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=7a25f145:38:15)
+    at TooltipProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=7a25f145:64:5)
+    at QueryClientProvider (https://24df23a6-4c36-4bba-9bde-863f20db5290-00-220357sbu278p.kirk.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=7a25f145:2805:3)
+    at App

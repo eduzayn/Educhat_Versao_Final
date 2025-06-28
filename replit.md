@@ -96,6 +96,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (11:16): ERRO CRÍTICO DE KEYS DUPLICADAS NO CHAT INTERNO CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: componente InfoPanel tinha keys duplicadas "84" causando warning React crítico
+  - Erro ocorria no mapeamento de membros do canal interno onde member.id podia ser duplicado
+  - Corrigido key único composto: `member-${member.id}-${member.username}-${index}` garante unicidade absoluta
+  - Eliminado warning "Encountered two children with the same key" que quebrava renderização
+  - Correção cirúrgica: apenas InfoPanel.tsx alterado, funcionalidade preservada
+  - Sistema chat interno agora funciona sem erros React no console
 - June 28, 2025 (11:15): PRÉVIAS DE MENSAGENS CORRIGIDAS DEFINITIVAMENTE PARA LAZY LOADING
   - Identificado problema: frontend esperava `messages[0]` para exibir prévias, mas lazy loading retornava `messages: []`
   - Incompatibilidade entre formato backend (após lazy loading) e frontend causava "Sem mensagens" em todas as conversas
