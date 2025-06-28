@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { AlertCircle, CheckCircle, Facebook, Instagram, MessageSquare, Settings, Webhook } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { getFacebookIntegrationStatusBadge } from '@/shared/lib/utils/badgeHelpers';
 
 interface FacebookIntegration {
   id: number;
@@ -185,22 +186,7 @@ export default function FacebookIntegrationPage() {
     }
   };
 
-  const getStatusBadge = (status: string, isActive: boolean) => {
-    if (!isActive) {
-      return <Badge variant="secondary">Inativa</Badge>;
-    }
-    
-    switch (status) {
-      case 'connected':
-        return <Badge variant="default" className="bg-green-600">Conectada</Badge>;
-      case 'error':
-        return <Badge variant="destructive">Erro</Badge>;
-      case 'pending':
-        return <Badge variant="outline">Pendente</Badge>;
-      default:
-        return <Badge variant="secondary">Desconhecida</Badge>;
-    }
-  };
+
 
   const generateWebhookUrl = () => {
     const baseUrl = process.env.NODE_ENV === 'production' 
@@ -261,7 +247,19 @@ export default function FacebookIntegrationPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(integration.connectionStatus, integration.isActive)}
+                        {(() => {
+                          const badgeConfig = getFacebookIntegrationStatusBadge(integration.connectionStatus, integration.isActive);
+                          const IconComponent = integration.isActive && integration.connectionStatus === 'connected' ? CheckCircle : AlertCircle;
+                          return (
+                            <Badge 
+                              variant={badgeConfig.variant}
+                              className={badgeConfig.color}
+                            >
+                              <IconComponent className="h-3 w-3 mr-1" />
+                              {badgeConfig.text}
+                            </Badge>
+                          );
+                        })()}
                         <Switch
                           checked={integration.isActive}
                           onCheckedChange={(checked: boolean) =>

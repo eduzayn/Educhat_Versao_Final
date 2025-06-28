@@ -364,7 +364,7 @@ export default function ChannelsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const badgeConfig = getChannelStatusBadge(channel.isActive, channel.isConnected);
+                      const badgeConfig = getChannelStatusBadge(Boolean(channel.isActive), Boolean(channel.isConnected));
                       const IconComponent = channel.isConnected ? CheckCircle : 
                                           channel.connectionStatus === 'error' ? XCircle : AlertCircle;
                       return (
