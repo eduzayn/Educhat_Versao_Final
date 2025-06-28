@@ -75,19 +75,12 @@ export function DealsModule() {
     return [...staticTypes, ...dynamicTypes];
   }, [teamsFromDB]);
 
-  // OTIMIZAÇÃO: Scroll infinito com carregamento inicial de 10 negócios + 10 por página
-  const {
-    data: dealsData,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage
-  } = useInfiniteQuery({
+  // OTIMIZAÇÃO: Query padrão com limit 10 para carregamento inicial mais rápido
+  const { data: dealsResponse, isLoading } = useQuery({
     queryKey: ['/api/deals', selectedTeamType],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async () => {
       const params = new URLSearchParams({
-        page: pageParam.toString(),
-        limit: '10', // REDUZIDO: 10 negócios por vez para otimizar performance
+        limit: '10', // REDUZIDO: 10 negócios iniciais por coluna para otimizar performance
         teamType: selectedTeamType
       });
       
@@ -95,18 +88,12 @@ export function DealsModule() {
       if (!response.ok) throw new Error('Falha ao carregar negócios');
       return response.json();
     },
-    getNextPageParam: (lastPage) => {
-      // Continuar enquanto houver mais páginas
-      return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
-    },
-    initialPageParam: 1,
     enabled: !!selectedTeamType // Só busca se tipo de equipe estiver selecionado
   });
 
-  // Consolidar dados de todas as páginas carregadas
-  const rawDeals = dealsData?.pages.flatMap(page => page.deals) || [];
-  const totalPages = dealsData?.pages[0]?.totalPages || 1;
-  const totalDeals = dealsData?.pages[0]?.totalDeals || 0;
+  // Extrair dados da resposta padrão
+  const rawDeals = dealsResponse?.deals || [];
+  const totalDeals = dealsResponse?.totalDeals || 0;
   
   // Debug logs para paginação removidos para evitar erro de JSON parsing
 
@@ -432,7 +419,7 @@ export function DealsModule() {
         {viewMode === 'kanban' ? (
           <DragDropContext onDragEnd={handleDragEnd} enableDefaultSensors={false}>
             <div className="h-full">
-              <div className="flex gap-4 h-full overflow-x-auto pb-4 deals-kanban-container">
+              <div className="flex gap-4 h-full pb-4 deals-kanban-container">
                 {currentTeamCategory.stages.map((stage: any) => {
                   const stageDeals = getDealsForStage(stage.id);
                   return (
@@ -569,45 +556,16 @@ export function DealsModule() {
           </div>
         )}
 
-        {/* SCROLL INFINITO: Indicador de status de carregamento */}
+        {/* Indicador de status de carregamento simplificado */}
         <div className="flex items-center justify-center px-6 py-4 border-t bg-white dark:bg-gray-800">
           <div className="text-sm text-muted-foreground text-center">
             {isLoading ? (
               'Carregando negócios...'
-            ) : isFetchingNextPage ? (
-              'Carregando mais negócios...'
-            ) : hasNextPage ? (
-              `${rawDeals.length} de ${totalDeals} negócios carregados • Role para carregar mais`
             ) : (
-              `Todos os ${rawDeals.length} negócios carregados`
+              `${rawDeals.length} negócios carregados (mostrando os 10 mais recentes por coluna)`
             )}
           </div>
         </div>
-
-        {/* SCROLL INFINITO: Trigger para carregar próxima página */}
-        {hasNextPage && (
-          <div 
-            ref={(el) => {
-              if (el) {
-                const observer = new IntersectionObserver(
-                  (entries) => {
-                    if (entries[0].isIntersecting && !isFetchingNextPage) {
-                      fetchNextPage();
-                    }
-                  },
-                  { threshold: 0.1 }
-                );
-                observer.observe(el);
-                return () => observer.disconnect();
-              }
-            }}
-            className="h-10 w-full flex items-center justify-center"
-          >
-            {isFetchingNextPage && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
