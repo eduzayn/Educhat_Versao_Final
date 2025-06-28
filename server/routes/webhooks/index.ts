@@ -2302,15 +2302,16 @@ export function registerZApiRoutes(app: Express) {
 
         if (messageToDelete) {
           await storage.markMessageAsDeleted(messageToDelete.id);
+          
+          const { broadcast } = await import('../realtime');
+          broadcast(parseInt(conversationId), {
+            type: 'message_deleted',
+            messageId: messageToDelete.id,
+            whatsappMessageId: messageId.toString(),
+            deletedAt: new Date().toISOString(),
+            conversationId: parseInt(conversationId)
+          });
         }
-
-        const { broadcast } = await import('../realtime');
-        broadcast(parseInt(conversationId), {
-          type: 'message_deleted',
-          messageId: messageId.toString(),
-          deletedAt: new Date().toISOString(),
-          conversationId: parseInt(conversationId)
-        });
       }
 
       console.log('✅ Mensagem deletada com sucesso via Z-API:', data);
