@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 28, 2025 (00:18): BUG CRÍTICO DE EXCLUSÃO Z-API FINALIZADO PARA TODOS OS TIPOS DE MENSAGEM
+  - Correção aplicada aos endpoints de vídeo e arquivo com metadados Z-API completos
+  - Hook useVideoMessage atualizado para usar mensagem salva retornada pela Z-API
+  - Hook useFileMessage atualizado para usar mensagem salva retornada pela Z-API 
+  - Sistema completo: texto, áudio, imagem, vídeo e arquivo salvam whatsappMessageId corretamente
+  - Exclusão imediata funcionando para 100% dos tipos de mensagem enviados
+  - Solução definitiva: mensagens com metadados Z-API podem ser excluídas em até 7 minutos
+  - Correção cirúrgica: funcionalidades do sistema preservadas completamente
 - June 28, 2025 (00:05): BUG CRÍTICO DE EXCLUSÃO DE MENSAGENS Z-API CORRIGIDO COMPLETAMENTE
   - Identificado problema duplo: endpoint salvava IDs mas hook principal não aproveitava o retorno
   - Fluxo normal da caixa de entrada não usava mensagem salva com metadados Z-API
