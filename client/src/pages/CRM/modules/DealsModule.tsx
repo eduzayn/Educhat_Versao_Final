@@ -32,79 +32,9 @@ import {
 
 // CORREÇÃO: Configuração movida para crmFunnels.ts centralizado - removida duplicação
 
-// Componente para coluna individual com scroll infinito vertical
-interface KanbanColumnProps {
-  stage: any;
-  deals: any[];
-  teamType: string;
-  onDragEnd: (result: DropResult) => void;
-  onNewDeal: (stageId: string) => void;
-}
-
-function KanbanColumn({ stage, deals: initialDeals, teamType, onNewDeal }: { stage: any; deals: any[]; teamType: string; onNewDeal: (stageId: string) => void }) {
-  // Hook para scroll infinito específico desta coluna
-  const {
-    data: columnData,
-    isLoading: isColumnLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage
-  } = useInfiniteQuery({
-    queryKey: ['/api/deals', teamType, stage.id],
-    queryFn: async ({ pageParam = 1 }) => {
-      const params = new URLSearchParams({
-        page: pageParam.toString(),
-        limit: '10', // 10 negócios por vez
-        teamType: teamType,
-        stage: stage.id
-      });
-      
-      const response = await fetch(`/api/deals?${params}`);
-      if (!response.ok) throw new Error('Falha ao carregar negócios da coluna');
-      return response.json();
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
-    },
-    initialPageParam: 1,
-    enabled: !!teamType && !!stage.id
-  });
-
-  // Consolidar dados de todas as páginas carregadas para esta coluna
-  const columnDeals = columnData?.pages.flatMap(page => page.deals) || initialDeals;
-
-  // Transform deals específicos desta coluna
-  const transformedDeals = columnDeals.map((deal: any) => ({
-    ...deal,
-    id: deal.id.toString(),
-    stage: deal.stage,
-    tags: deal.tags ? (Array.isArray(deal.tags) ? deal.tags : (typeof deal.tags === 'string' ? JSON.parse(deal.tags || '[]') : [])) : [],
-    company: 'Empresa não definida',
-    owner: deal.owner || 'Sistema',
-    value: deal.value || 0,
-    probability: deal.probability || 0
-  }));
-
+// Componente simplificado para coluna kanban
+function KanbanColumn({ stage, deals, onNewDeal }: { stage: any; deals: any[]; onNewDeal: (stageId: string) => void }) {
   const calculateStageValue = (deals: any[]) => deals.reduce((acc: number, deal: any) => acc + (deal.value || 0), 0);
-
-  // Callback para detectar scroll e carregar mais
-  const scrollTriggerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node || !hasNextPage || isFetchingNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(node);
-    
-    // Cleanup no retorno
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="min-w-72 max-w-80 flex-1 bg-muted/30 rounded-lg p-4 flex flex-col deals-column">
@@ -112,10 +42,10 @@ function KanbanColumn({ stage, deals: initialDeals, teamType, onNewDeal }: { sta
         <div className="flex items-center gap-2">
           <div className={`w-3 h-3 rounded-full ${stage.color}`} />
           <h3 className="font-medium">{stage.name}</h3>
-          <Badge variant="secondary">{transformedDeals.length}</Badge>
+          <Badge variant="secondary">{deals.length}</Badge>
         </div>
         <div className="text-sm text-muted-foreground">
-          R$ {calculateStageValue(transformedDeals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          R$ {calculateStageValue(deals).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
         </div>
       </div>
       
@@ -128,7 +58,7 @@ function KanbanColumn({ stage, deals: initialDeals, teamType, onNewDeal }: { sta
               snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950' : ''
             }`}
           >
-            {transformedDeals.map((deal: any, index: number) => (
+            {deals.map((deal: any, index: number) => (
               <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
                 {(provided, snapshot) => (
                   <Card
@@ -182,27 +112,6 @@ function KanbanColumn({ stage, deals: initialDeals, teamType, onNewDeal }: { sta
               </Draggable>
             ))}
             {provided.placeholder}
-            
-            {/* Scroll infinito: elemento trigger */}
-            {hasNextPage && (
-              <div 
-                ref={scrollTriggerRef}
-                className="h-10 w-full flex items-center justify-center"
-              >
-                {isFetchingNextPage && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                )}
-              </div>
-            )}
-            
-            {/* Status da coluna */}
-            {!isColumnLoading && !hasNextPage && transformedDeals.length > 10 && (
-              <div className="text-center py-2">
-                <span className="text-xs text-muted-foreground">
-                  Todos os {transformedDeals.length} negócios carregados
-                </span>
-              </div>
-            )}
           </div>
         )}
       </Droppable>
@@ -614,8 +523,6 @@ export function DealsModule() {
                       key={stage.id}
                       stage={stage}
                       deals={stageDeals}
-                      teamType={selectedTeamType}
-                      onDragEnd={handleDragEnd}
                       onNewDeal={openNewDealDialog}
                     />
                   );

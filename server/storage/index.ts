@@ -307,7 +307,7 @@ export class DatabaseStorage implements IStorage {
     return this.deal.getDeals();
   }
 
-  async getDealsWithPagination(params: { page: number; limit: number; macrosetor?: string; stage?: string; search?: string; }) {
+  async getDealsWithPagination(params: { page: number; limit: number; macrosetor?: string; teamType?: string; stage?: string; search?: string; }) {
     return this.deal.getDealsWithPagination(params);
   }
 
