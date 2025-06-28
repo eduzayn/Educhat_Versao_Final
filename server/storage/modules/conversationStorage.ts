@@ -335,6 +335,62 @@ export class ConversationStorage extends BaseStorage {
     } as ConversationWithContact));
   }
 
+  async getConversationsByContactId(contactId: number): Promise<ConversationWithContact[]> {
+    const conversationsWithContacts = await this.db
+      .select({
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        priority: conversations.priority,
+        teamType: conversations.teamType,
+        markedUnreadManually: conversations.markedUnreadManually,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        metadata: conversations.metadata,
+        contact: {
+          id: contacts.id,
+          userIdentity: contacts.userIdentity,
+          name: contacts.name,
+          email: contacts.email,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          location: contacts.location,
+          age: contacts.age,
+          isOnline: contacts.isOnline,
+          lastSeenAt: contacts.lastSeenAt,
+          canalOrigem: contacts.canalOrigem,
+          nomeCanal: contacts.nomeCanal,
+          idCanal: contacts.idCanal,
+          assignedUserId: contacts.assignedUserId,
+          tags: contacts.tags,
+          createdAt: contacts.createdAt,
+          updatedAt: contacts.updatedAt
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id))
+      .where(eq(conversations.contactId, contactId))
+      .orderBy(desc(conversations.lastMessageAt));
+
+    return conversationsWithContacts.map(conv => ({
+      ...conv,
+      contact: {
+        ...conv.contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      messages: [],
+      _count: { messages: conv.unreadCount || 0 }
+    } as ConversationWithContact));
+  }
+
   async getConversationsByStatus(status: string): Promise<ConversationWithContact[]> {
     const conversationsWithContacts = await this.db
       .select({

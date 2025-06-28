@@ -131,6 +131,10 @@ export class DatabaseStorage implements IStorage {
     return this.contact.searchContacts(query);
   }
 
+  async findContactByPhone(phone: string) {
+    return this.contact.findContactByPhone(phone);
+  }
+
   async updateContactOnlineStatus(id: number, isOnline: boolean) {
     return this.contact.updateContactOnlineStatus(id, isOnline);
   }
@@ -174,6 +178,10 @@ export class DatabaseStorage implements IStorage {
 
   async getConversationByContactAndChannel(contactId: number, channel: string) {
     return this.conversation.getConversationByContactAndChannel(contactId, channel);
+  }
+
+  async getConversationsByContactId(contactId: number) {
+    return this.conversation.getConversationsByContactId(contactId);
   }
 
   async assignConversationToTeam(conversationId: number, teamId: number | null, method: 'automatic' | 'manual') {
