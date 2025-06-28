@@ -43,6 +43,7 @@ import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
 import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
 import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
 import { useSystemUsers } from '@/shared/lib/hooks/useSystemUsers';
+import { formatTimeOnly } from '@/shared/lib/utils/formatters';
 
 import { STATUS_CONFIG } from '@/types/chat';
 import { useQuery } from '@tanstack/react-query';
@@ -577,14 +578,7 @@ export function InboxPage() {
     return 'bg-gray-100 text-gray-600';
   };
 
-  const formatTime = (date: string | Date) => {
-    const dateObj = new Date(date);
-    return new Intl.DateTimeFormat('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Sao_Paulo'
-    }).format(dateObj);
-  };
+
 
   // Função para alterar status da conversa
   const handleStatusChange = async (conversationId: number, newStatus: string) => {
@@ -699,7 +693,7 @@ export function InboxPage() {
               index={index}
               isActive={activeConversation?.id === conversation.id}
               onSelect={handleSelectConversation}
-              formatTime={formatTime}
+              formatTime={formatTimeOnly}
               getChannelStyle={getChannelStyle}
               getSpecificChannelName={getSpecificChannelName}
             />

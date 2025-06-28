@@ -125,3 +125,48 @@ export const formatAudioTime = (seconds: number) => {
   
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
+
+// Formatação de horário apenas (HH:MM) para mensagens/eventos
+export const formatTimeOnly = (date: string | Date) => {
+  const dateObj = new Date(date);
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Sao_Paulo'
+  }).format(dateObj);
+};
+
+// Formatação de data para inputs HTML (YYYY-MM-DD)
+export const formatDateForInput = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+// Converter string de input para Date
+export const parseInputDate = (dateString: string): Date | undefined => {
+  if (!dateString) return undefined;
+  const date = new Date(dateString + 'T00:00:00');
+  return isNaN(date.getTime()) ? undefined : date;
+};
+
+// Formatação de tempo relativo (minutes/hours/days ago)
+export const formatRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  return `${days}d`;
+};
+
+// Formatação de data e hora separadas
+export const formatDateAndTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return {
+    date: date.toLocaleDateString('pt-BR'),
+    time: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  };
+};

@@ -24,6 +24,7 @@ import {
   type InternalChatMessage,
 } from "../store/internalChatStore";
 import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { formatAudioTime } from '@/shared/lib/utils/formatters';
 
 // Componente para exibir arquivos no chat interno
 function InternalFileDisplay({ message }: { message: any }) {
@@ -134,11 +135,7 @@ function InternalAudioPlayer({
     setCurrentTime(0);
   };
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
+
 
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg max-w-xs bg-black bg-opacity-10">
