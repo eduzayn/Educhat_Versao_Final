@@ -71,10 +71,6 @@ export function useSendMessage() {
         return await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
       }
 
-      // PRIMEIRO: Sempre salvar mensagem no banco local para aparecer imediatamente no chat
-      const savedMessage = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
-
-      // SEGUNDO: SEMPRE tentar envio Z-API se não for nota interna
       const phoneNumber = contact?.phone;
       const shouldAttemptZapi = phoneNumber && phoneNumber.trim() && !message.isInternalNote;
       
@@ -91,11 +87,10 @@ export function useSendMessage() {
 
       if (shouldAttemptZapi) {
         try {
-          console.log('📤 INICIANDO ENVIO Z-API:', {
+          console.log('📤 ENVIANDO DIRETO VIA Z-API:', {
             phone: phoneNumber,
             content: message.content.substring(0, 50),
             conversationId: conversationId,
-            messageId: savedMessage.id,
             endpoint: '/api/zapi/send-message'
           });
           
@@ -111,23 +106,24 @@ export function useSendMessage() {
             response: zapiResponse
           });
           
-          // Se Z-API retornou savedMessage com metadados, usar esse ao invés do local
+          // Z-API já salva mensagem com metadados completos - usar essa
           if (zapiResponse?.savedMessage) {
             console.log('🔄 USANDO MENSAGEM SALVA PELA Z-API COM METADADOS:', zapiResponse.savedMessage.id);
             return zapiResponse.savedMessage;
           }
           
-          // Não propagar erro se Z-API falhar - mensagem já foi salva localmente
+          // Fallback: se Z-API não retornou savedMessage, salvar localmente
+          return await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
+          
         } catch (error) {
-          console.error('❌ FALHA Z-API (não crítica):', {
+          console.error('❌ FALHA Z-API - SALVANDO LOCALMENTE:', {
             phone: phoneNumber,
             error: error instanceof Error ? error.message : String(error),
-            content: message.content.substring(0, 50),
-            savedMessageId: savedMessage.id
+            content: message.content.substring(0, 50)
           });
           
-          // Não propagar erro - UX contínua: mensagem aparece mesmo se Z-API falhar
-          // O usuário vê a mensagem instantaneamente e o webhook pode confirmar entrega
+          // Fallback: salvar mensagem localmente se Z-API falhar
+          return await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
         }
       } else {
         const reason = !phoneNumber ? 'telefone não disponível' : 
@@ -140,9 +136,10 @@ export function useSendMessage() {
           providedPhone: phoneNumber,
           reason
         });
+        
+        // Salvar apenas localmente
+        return await apiRequest('POST', `/api/conversations/${conversationId}/messages`, message);
       }
-
-      return savedMessage;
     },
     onSuccess: (data, { conversationId }) => {
       // ATUALIZAÇÃO IMEDIATA: Inserir mensagem no cache para renderização instantânea
