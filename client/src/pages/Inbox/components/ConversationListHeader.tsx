@@ -12,17 +12,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
-
-// Funções utilitárias para formatação de datas
-const formatDateForInput = (date: Date): string => {
-  return date.toISOString().split('T')[0];
-};
-
-const parseInputDate = (dateString: string): Date | undefined => {
-  if (!dateString) return undefined;
-  const date = new Date(dateString + 'T00:00:00');
-  return isNaN(date.getTime()) ? undefined : date;
-};
+import { formatDateForInput, parseInputDate } from '@/shared/lib/utils/formatters';
 
 interface ConversationListHeaderProps {
   activeTab: string;

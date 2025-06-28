@@ -155,7 +155,7 @@ function InternalAudioPlayer({
       <div className="flex items-center gap-2 flex-1">
         <Volume2 className="h-4 w-4 opacity-75" />
         <span className="text-sm opacity-90">
-          {formatTime(currentTime)} / {formatTime(duration)}
+          {formatAudioTime(currentTime)} / {formatAudioTime(duration)}
         </span>
       </div>
 

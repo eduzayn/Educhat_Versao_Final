@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { ArrowRight, Clock, User } from 'lucide-react';
+import { formatDateAndTime } from '@/shared/lib/utils/formatters';
 
 interface TransferHistory {
   id: number;
@@ -20,15 +21,7 @@ interface TransferHistoryCardProps {
 }
 
 export function TransferHistoryCard({ transfer }: TransferHistoryCardProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      date: date.toLocaleDateString('pt-BR'),
-      time: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    };
-  };
-
-  const { date, time } = formatDate(transfer.transferredAt);
+  const { date, time } = formatDateAndTime(transfer.transferredAt);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
