@@ -19,7 +19,7 @@ async function createTeamFunnel(team: any) {
       name: 'Funil Suporte',
       description: 'Problemas técnicos e dificuldades de acesso',
       color: 'blue',
-      defaultStages: ['novo', 'em_andamento', 'aguardando_cliente', 'resolvido']
+      defaultStages: ['prospecting', 'solicitacao', 'em_andamento', 'resolvido']
     },
     cobranca: {
       name: 'Funil Cobrança',

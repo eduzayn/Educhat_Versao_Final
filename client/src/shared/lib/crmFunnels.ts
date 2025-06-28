@@ -34,9 +34,9 @@ export const teamCategories: Record<string, TeamCategory> = {
     description: 'Problemas técnicos e dificuldades de acesso',
     color: 'blue',
     stages: [
-      { id: 'novo', name: 'Novo', color: 'bg-red-500' },
-      { id: 'em_andamento', name: 'Em Andamento', color: 'bg-orange-500' },
-      { id: 'aguardando_cliente', name: 'Aguardando Cliente', color: 'bg-yellow-500' },
+      { id: 'prospecting', name: 'Prospecção', color: 'bg-blue-500' },
+      { id: 'solicitacao', name: 'Solicitação', color: 'bg-orange-500' },
+      { id: 'em_andamento', name: 'Em Andamento', color: 'bg-yellow-500' },
       { id: 'resolvido', name: 'Resolvido', color: 'bg-green-500' }
     ]
   },
