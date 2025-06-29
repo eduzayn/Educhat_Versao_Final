@@ -14,7 +14,7 @@ export function useSearchConversations(searchTerm: string) {
       }
       
       console.log(`🔍 Fazendo busca por: "${searchTerm}"`);
-      const result = await apiRequest(`/api/conversations/search?q=${encodeURIComponent(searchTerm)}`);
+      const result = await apiRequest('GET', `/api/conversations/search?q=${encodeURIComponent(searchTerm)}`);
       console.log(`✅ Busca retornou:`, result?.length || 0, 'resultados');
       return result;
     },
