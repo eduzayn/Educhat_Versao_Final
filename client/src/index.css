@@ -35,6 +35,25 @@
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Placeholder alinhado na parte inferior para textarea */
+.textarea-bottom-placeholder {
+  display: flex;
+  align-items: flex-end;
+  line-height: 1.5;
+  padding-top: 60px; /* Força o texto a começar na parte inferior */
+}
+
+.textarea-bottom-placeholder:focus,
+.textarea-bottom-placeholder:not(:placeholder-shown) {
+  padding-top: 12px; /* Volta ao normal quando há texto */
+  align-items: flex-start;
+}
+
+.textarea-bottom-placeholder::placeholder {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
 /* Animações elegantes para emoji picker */
 @keyframes emoji-fadeIn {
   from {

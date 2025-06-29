@@ -404,7 +404,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               onChange={(e) => handleMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem... (/* para respostas rápidas)"
-              className="min-h-[100px] max-h-[240px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-12 overflow-y-auto"
+              className="min-h-[100px] max-h-[240px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-12 overflow-y-auto textarea-bottom-placeholder"
               rows={1}
               id="inbox-message-input"
               autoComplete="off"

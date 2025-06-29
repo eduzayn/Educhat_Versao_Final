@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (22:40): POSICIONAMENTO DO PLACEHOLDER DO TEXTAREA CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: placeholder "Digite sua mensagem..." flutuava no centro do textarea
+  - Implementado CSS customizado (.textarea-bottom-placeholder) para forçar alinhamento na base
+  - Placeholder agora aparece na parte inferior usando padding-top: 60px quando vazio
+  - Retorna ao comportamento normal (padding-top: 12px) quando há texto ou foco
+  - Interface consistente: placeholder alinhado com botões emoji/microfone na parte inferior
 - June 29, 2025 (22:36): POSICIONAMENTO DOS BOTÕES EMOJI E MICROFONE CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: botões emoji e microfone flutuavam no centro (top-1/2 transform -translate-y-1/2)
   - Corrigido posicionamento para alinhamento na parte inferior como demais componentes (bottom-3)
