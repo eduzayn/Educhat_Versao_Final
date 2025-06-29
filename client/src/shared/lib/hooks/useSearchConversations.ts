@@ -7,7 +7,7 @@ import { CACHE_CONFIG } from '@/lib/cacheConfig';
  */
 export function useSearchConversations(searchTerm: string) {
   return useQuery({
-    queryKey: ['/api/conversations/search', searchTerm, Date.now()], // Força query única
+    queryKey: ['/api/conversations/search', searchTerm], // Key única por termo
     queryFn: async () => {
       if (!searchTerm || searchTerm.trim().length < 1) {
         return [];
