@@ -87,6 +87,19 @@ export function InputArea({ activeConversation }: InputAreaProps) {
     return () => window.removeEventListener('replyToMessage', handleReplyEvent as EventListener);
   }, []);
 
+  // Auto-resize do textarea baseado no conteúdo
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Reset altura para calcular nova altura baseada no conteúdo
+      textarea.style.height = '60px'; // min-height
+      
+      // Calcular nova altura baseada no scrollHeight
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // min: 60px, max: 200px
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [message]);
+
   const handleSendMessage = () => {
     if (!message.trim() || !activeConversation?.id) return;
 
@@ -394,7 +407,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               onChange={(e) => handleMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem... (/* para respostas rápidas)"
-              className="min-h-[36px] max-h-32 resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-2 pr-16"
+              className="min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-16 overflow-y-auto"
               rows={1}
               id="inbox-message-input"
               autoComplete="off"
@@ -406,8 +419,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               data-enable-grammarly="false"
             />
             
-            {/* Botões dentro do textarea */}
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            {/* Botões dentro do textarea - alinhados ao final */}
+            <div className="absolute right-2 bottom-3 flex items-center gap-1">
               {/* Botão de emoji */}
               <Button
                 variant="ghost"
