@@ -812,6 +812,11 @@ export function InboxPage() {
         contactDeals={contactDeals}
         contactInterests={contactInterests}
         onAddNote={handleAddNote}
+        onDealUpdated={() => {
+          if (activeConversation?.contactId) {
+            fetchContactDeals(activeConversation.contactId);
+          }
+        }}
       />
       
       <ContactDialog 
