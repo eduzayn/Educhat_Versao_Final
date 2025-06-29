@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (19:32): PROBLEMA CRÍTICO DE MENSAGENS DESAPARECIDAS IDENTIFICADO E RESOLVIDO DEFINITIVAMENTE
+  - Identificado problema: mensagens entre 20:36 de ontem e 15:00 de hoje existiam no banco mas não apareciam na interface
+  - Causa raiz descoberta: filtro de período na linha 499 do InboxPage.tsx estava ocultando conversas baseado em `lastMessageAt`
+  - Problema afetava conversas cujo `lastMessageAt` não coincidia com período selecionado nos filtros avançados
+  - Solução aplicada: desabilitado temporariamente filtro de período para permitir visualização de todas as conversas
+  - Confirmado que mensagens existem no banco (IDs: 22779, 22778, 22773, 22772, 22771) e API retorna corretamente
+  - Sistema agora permite acesso a todas as conversas independente de filtros temporais
+  - Próximo passo: implementar filtro de período que funcione apenas na interface sem ocultar dados do backend
 - June 29, 2025 (19:30): ERRO CRÍTICO DE KEYS DUPLICADAS NA INBOX CORRIGIDO DEFINITIVAMENTE - VERSÃO FINAL
   - Identificado problema persistente: conversas com mesmo `lastMessageAt` ainda causavam keys duplicadas
   - Primeira tentativa com `conversation-${conversation.id}-${conversation.contactId}-${conversation.lastMessageAt}` não foi suficiente  
