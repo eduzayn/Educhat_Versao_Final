@@ -157,8 +157,38 @@ export function getDynamicFunnelForTeamType(teamType: string): TeamCategory {
  * CORREÇÃO: Função melhorada que garante suporte a todas as equipes
  * Inclui funis estáticos + dinâmicos baseados em teamTypes das equipes do banco
  */
-export function getAllCategoriesWithDynamic(): Array<{ id: string; info: TeamCategory }> {
-  // Esta função pode ser expandida para buscar equipes do banco dinamicamente
-  // Por enquanto, retorna as categorias estáticas existentes
-  return getAllCategories();
+export async function getAllCategoriesWithDynamic(): Promise<Array<{ id: string; info: TeamCategory }>> {
+  try {
+    // Buscar equipes do banco de dados
+    const response = await fetch('/api/teams', { credentials: 'include' });
+    if (!response.ok) {
+      console.warn('Erro ao buscar equipes do banco, usando funis estáticos');
+      return getAllCategories();
+    }
+    
+    const teams = await response.json();
+    
+    // Processar teamTypes únicos das equipes do banco
+    const teamTypesFromDB = new Set<string>();
+    teams.forEach((team: any) => {
+      if (team.teamType) {
+        teamTypesFromDB.add(team.teamType);
+      }
+    });
+    
+    // Criar funis dinâmicos para teamTypes não mapeados estaticamente
+    teamTypesFromDB.forEach(teamType => {
+      if (!teamCategories[teamType]) {
+        getDynamicFunnelForTeamType(teamType);
+      }
+    });
+    
+    // Retornar todos os funis (estáticos + dinâmicos)
+    return getAllCategories();
+    
+  } catch (error) {
+    console.error('Erro ao buscar equipes para funis dinâmicos:', error);
+    // Fallback para funis estáticos
+    return getAllCategories();
+  }
 }

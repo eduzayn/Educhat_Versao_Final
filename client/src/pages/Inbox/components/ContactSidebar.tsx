@@ -32,6 +32,7 @@ import { QuickDealEdit } from './QuickDealEdit';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/shared/lib/crmFunnels';
+import { useDynamicFunnels } from '@/hooks/useDynamicFunnels';
 
 // Helper functions
 const formatCurrency = (value: number) => {
@@ -94,6 +95,9 @@ export function ContactSidebar({
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [showDealDialog, setShowDealDialog] = useState(false);
+
+  // Buscar funis dinâmicos (estáticos + baseados em equipes do banco)
+  const { data: dynamicFunnels = [], isLoading: funnelsLoading } = useDynamicFunnels();
 
   // Buscar canais para determinar canal de origem
   const { data: channels = [] } = useQuery({
