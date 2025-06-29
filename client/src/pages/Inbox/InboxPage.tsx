@@ -369,6 +369,17 @@ export function InboxPage() {
   // Busca no banco de dados completo quando há termo de busca
   const { data: searchResults, isLoading: isSearching } = useSearchConversations(searchTerm);
 
+  // Log para debug da busca
+  useEffect(() => {
+    if (searchTerm && searchTerm.trim()) {
+      console.log(`🔍 [InboxPage] Busca ativa por: "${searchTerm}"`, {
+        searchResults: searchResults?.length || 0,
+        isSearching,
+        filtrosAtivos: { statusFilter, channelFilter, userFilter, teamFilter }
+      });
+    }
+  }, [searchTerm, searchResults, isSearching]);
+
   // Determinar quais conversas usar: busca no banco ou lista local
   const conversationsToFilter = searchTerm && searchTerm.trim() 
     ? (searchResults || []) 
