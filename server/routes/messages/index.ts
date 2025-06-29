@@ -175,4 +175,113 @@ export function registerMessageRoutes(app: Express) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
+
+  // ========== ENDPOINTS DE VERIFICAÇÃO DE MÍDIA DUPLICADA ==========
+
+  // Verificar se mensagem existe por WhatsApp Message ID
+  app.get('/api/messages/check-by-whatsapp-id/:messageId', async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      
+      if (!messageId) {
+        return res.status(400).json({ error: 'MessageId obrigatório' });
+      }
+
+      const existingMessage = await storage.messages.findByWhatsappMessageId(messageId);
+      
+      if (existingMessage) {
+        const metadata = existingMessage.metadata as any;
+        res.json({
+          exists: true,
+          messageId: existingMessage.id,
+          mediaUrl: metadata?.mediaUrl || metadata?.imageUrl || metadata?.videoUrl || metadata?.fileUrl
+        });
+      } else {
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao verificar mensagem por WhatsApp ID:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Verificar se mídia existe por URL
+  app.post('/api/messages/check-by-media-url', async (req, res) => {
+    try {
+      const { mediaUrl, conversationId } = req.body;
+      
+      if (!mediaUrl) {
+        return res.status(400).json({ error: 'MediaUrl obrigatória' });
+      }
+
+      const existingMessage = await storage.messages.findByMediaUrl(mediaUrl);
+      
+      if (existingMessage) {
+        res.json({
+          exists: true,
+          messageId: existingMessage.id,
+          mediaUrl: mediaUrl
+        });
+      } else {
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao verificar mensagem por URL da mídia:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Verificar se arquivo existe por hash
+  app.post('/api/messages/check-by-file-hash', async (req, res) => {
+    try {
+      const { fileHash, conversationId, fileName, fileSize } = req.body;
+      
+      if (!fileHash) {
+        return res.status(400).json({ error: 'FileHash obrigatório' });
+      }
+
+      const existingMessage = await storage.messages.findByFileHash(fileHash, conversationId);
+      
+      if (existingMessage) {
+        const metadata = existingMessage.metadata as any;
+        res.json({
+          exists: true,
+          messageId: existingMessage.id,
+          mediaUrl: metadata?.mediaUrl || metadata?.imageUrl || metadata?.videoUrl || metadata?.fileUrl
+        });
+      } else {
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao verificar mensagem por hash do arquivo:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Verificar se arquivo existe por nome e tamanho
+  app.post('/api/messages/check-by-file-info', async (req, res) => {
+    try {
+      const { fileName, fileSize, conversationId } = req.body;
+      
+      if (!fileName || !fileSize) {
+        return res.status(400).json({ error: 'Nome e tamanho do arquivo obrigatórios' });
+      }
+
+      const existingMessage = await storage.messages.findByFileNameAndSize(fileName, fileSize, conversationId);
+      
+      if (existingMessage) {
+        const metadata = existingMessage.metadata as any;
+        res.json({
+          exists: true,
+          messageId: existingMessage.id,
+          mediaUrl: metadata?.mediaUrl || metadata?.imageUrl || metadata?.videoUrl || metadata?.fileUrl
+        });
+      } else {
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao verificar mensagem por nome e tamanho:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
 }

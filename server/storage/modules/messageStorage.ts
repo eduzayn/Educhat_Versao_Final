@@ -1,6 +1,7 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { messages, conversations, type Message, type InsertMessage } from "../../../shared/schema";
-import { eq, desc, and, isNull, lt } from "drizzle-orm";
+import { eq, desc, and, isNull, lt, like, sql } from "drizzle-orm";
+import crypto from 'crypto';
 
 /**
  * Message storage module - manages messages and media handling
@@ -238,5 +239,174 @@ export class MessageStorage extends BaseStorage {
     };
 
     return this.createMessage(noteData);
+  }
+
+  // ========== MÉTODOS DE VERIFICAÇÃO DE MÍDIA DUPLICADA ==========
+
+  /**
+   * Verifica se existe mensagem por WhatsApp Message ID
+   */
+  async findByWhatsappMessageId(whatsappMessageId: string): Promise<Message | null> {
+    try {
+      const [message] = await this.db
+        .select()
+        .from(messages)
+        .where(eq(messages.whatsappMessageId, whatsappMessageId))
+        .limit(1);
+      
+      return message || null;
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagem por WhatsApp ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica se existe mensagem por URL da mídia
+   */
+  async findByMediaUrl(mediaUrl: string): Promise<Message | null> {
+    try {
+      const allMessages = await this.db
+        .select()
+        .from(messages)
+        .where(sql`metadata::text LIKE ${'%' + mediaUrl + '%'}`);
+      
+      const messageWithUrl = allMessages.find(msg => {
+        if (!msg.metadata || typeof msg.metadata !== 'object') return false;
+        const metadata = msg.metadata as any;
+        return metadata.mediaUrl === mediaUrl || 
+               metadata.imageUrl === mediaUrl ||
+               metadata.videoUrl === mediaUrl ||
+               metadata.fileUrl === mediaUrl;
+      });
+      
+      return messageWithUrl || null;
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagem por URL da mídia:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Gera hash SHA-256 de um buffer
+   */
+  private generateFileHash(fileBuffer: Buffer): string {
+    return crypto.createHash('sha256').update(fileBuffer).digest('hex');
+  }
+
+  /**
+   * Verifica se existe mensagem por hash do arquivo
+   */
+  async findByFileHash(fileHash: string, conversationId?: number): Promise<Message | null> {
+    try {
+      let query = this.db
+        .select()
+        .from(messages)
+        .where(sql`metadata::text LIKE ${'%' + fileHash + '%'}`);
+      
+      if (conversationId) {
+        query = query.where(eq(messages.conversationId, conversationId));
+      }
+      
+      const allMessages = await query;
+      
+      const messageWithHash = allMessages.find(msg => {
+        if (!msg.metadata || typeof msg.metadata !== 'object') return false;
+        const metadata = msg.metadata as any;
+        return metadata.fileHash === fileHash ||
+               metadata.verification?.checkHash === fileHash;
+      });
+      
+      return messageWithHash || null;
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagem por hash do arquivo:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica se existe mensagem por nome e tamanho do arquivo
+   */
+  async findByFileNameAndSize(fileName: string, fileSize: number, conversationId?: number): Promise<Message | null> {
+    try {
+      let query = this.db
+        .select()
+        .from(messages)
+        .where(sql`metadata::text LIKE ${'%' + fileName + '%'}`);
+      
+      if (conversationId) {
+        query = query.where(eq(messages.conversationId, conversationId));
+      }
+      
+      const allMessages = await query;
+      
+      const messageWithFile = allMessages.find(msg => {
+        if (!msg.metadata || typeof msg.metadata !== 'object') return false;
+        const metadata = msg.metadata as any;
+        
+        // Verificar nas diferentes estruturas de metadados
+        const originalFile = metadata.originalFile;
+        const fileData = metadata.fileData;
+        
+        if (originalFile) {
+          return originalFile.name === fileName && originalFile.size === fileSize;
+        }
+        
+        if (fileData) {
+          return fileData.originalName === fileName && fileData.size === fileSize;
+        }
+        
+        // Verificar na estrutura direta
+        return (metadata.fileName === fileName && metadata.fileSize === fileSize) ||
+               (metadata.originalName === fileName && metadata.size === fileSize);
+      });
+      
+      return messageWithFile || null;
+    } catch (error) {
+      console.error('❌ Erro ao buscar mensagem por nome e tamanho:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Atualiza mensagem com hash do arquivo para verificações futuras
+   */
+  async updateMessageWithFileHash(messageId: number, fileHash: string, fileName?: string, fileSize?: number): Promise<void> {
+    try {
+      const [message] = await this.db
+        .select()
+        .from(messages)
+        .where(eq(messages.id, messageId))
+        .limit(1);
+      
+      if (!message) return;
+      
+      const currentMetadata = (message.metadata as any) || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        fileHash,
+        verification: {
+          ...currentMetadata.verification,
+          checkHash: fileHash,
+          checkDate: new Date().toISOString()
+        }
+      };
+      
+      if (fileName && fileSize) {
+        updatedMetadata.originalFile = {
+          name: fileName,
+          size: fileSize,
+          hash: fileHash
+        };
+      }
+      
+      await this.db
+        .update(messages)
+        .set({ metadata: updatedMetadata })
+        .where(eq(messages.id, messageId));
+        
+    } catch (error) {
+      console.error('❌ Erro ao atualizar mensagem com hash:', error);
+    }
   }
 }
