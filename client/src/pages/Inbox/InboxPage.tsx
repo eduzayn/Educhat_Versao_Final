@@ -84,6 +84,9 @@ export function InboxPage() {
   // Toast para notificações
   const { toast } = useToast();
   
+  // QueryClient para invalidação de cache
+  const queryClient = useQueryClient();
+  
   // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
     queryKey: ['/api/teams'],
@@ -576,6 +579,43 @@ export function InboxPage() {
 
 
 
+  // Função para sincronização urgente de conversas
+  const handleForceSync = useCallback(async () => {
+    try {
+      console.log('🔄 SINCRONIZAÇÃO URGENTE: Forçando atualização de mensagens não exibidas...');
+      toast({
+        title: "🔄 Sincronizando...",
+        description: "Buscando mensagens não exibidas no banco de dados",
+      });
+      
+      // Forçar atualização completa do cache React Query
+      await queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+      
+      // Também invalidar cache de mensagens se houver conversa ativa
+      if (activeConversation) {
+        await queryClient.invalidateQueries({ 
+          queryKey: ['/api/conversations', activeConversation.id, 'messages'] 
+        });
+      }
+      
+      toast({
+        title: "✅ Sincronização Concluída",
+        description: "Mensagens não exibidas devem aparecer agora. Se o problema persistir, recarregue a página.",
+      });
+      
+      console.log('✅ SINCRONIZAÇÃO URGENTE: Cache invalidado e atualizado');
+      
+    } catch (error) {
+      console.error('❌ ERRO na sincronização urgente:', error);
+      toast({
+        title: "❌ Erro na Sincronização",
+        description: "Erro ao sincronizar mensagens. Tente recarregar a página.",
+        variant: "destructive",
+      });
+    }
+  }, [queryClient, toast, activeConversation]);
+
   // Função para alterar status da conversa
   const handleStatusChange = async (conversationId: number, newStatus: string) => {
     try {
@@ -641,35 +681,7 @@ export function InboxPage() {
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
-          onForceSync={async () => {
-            try {
-              console.log('🔄 SINCRONIZAÇÃO URGENTE: Forçando atualização de mensagens não exibidas...');
-              toast({
-                title: "🔄 Sincronizando...",
-                description: "Buscando mensagens não exibidas no banco de dados",
-              });
-              
-              // Forçar atualização do cache React Query
-              const queryClient = useQueryClient();
-              await queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
-              await queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
-              
-              toast({
-                title: "✅ Sincronização Concluída",
-                description: "Mensagens não exibidas devem aparecer agora. Se o problema persistir, recarregue a página.",
-              });
-              
-              console.log('✅ SINCRONIZAÇÃO URGENTE: Cache invalidado e atualizado');
-              
-            } catch (error) {
-              console.error('❌ ERRO na sincronização urgente:', error);
-              toast({
-                title: "❌ Erro na Sincronização",
-                description: "Erro ao sincronizar mensagens. Tente recarregar a página.",
-                variant: "destructive",
-              });
-            }
-          }}
+          onForceSync={handleForceSync}
           onPeriodFilterChange={setPeriodFilter}
           onCustomDateChange={handleCustomDateChange}
         />
