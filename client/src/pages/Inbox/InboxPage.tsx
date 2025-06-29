@@ -495,8 +495,8 @@ export function InboxPage() {
       }
     }
     
-    // Filtro por período - TEMPORARIAMENTE DESABILITADO PARA DEBUG
-    // if (!isConversationInPeriod(conversation)) return false;
+    // Filtro por período
+    if (!isConversationInPeriod(conversation)) return false;
     
     return true;
   });
@@ -671,22 +671,19 @@ export function InboxPage() {
         <div 
           className="flex-1 overflow-y-auto"
           onScroll={(e) => {
-            // Scroll infinito só funciona quando não há busca ativa
-            if (!searchTerm || !searchTerm.trim()) {
-              const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-              // Carregar mais quando estiver próximo ao final (100px antes do fim)
-              if (scrollHeight - scrollTop <= clientHeight + 100) {
-                if (hasNextPage && !isFetchingNextPage) {
-                  fetchNextPage();
-                }
+            const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+            // Carregar mais quando estiver próximo ao final (100px antes do fim)
+            if (scrollHeight - scrollTop <= clientHeight + 100) {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
               }
             }
           }}
         >
-          {/* Usar filteredConversations que inclui resultados da busca */}
-          {filteredConversations.map((conversation: any, index: number) => (
+          {/* CORREÇÃO: Usar 'conversations' (dados da API com paginação) ao invés de 'filteredConversations' (filtro local) */}
+          {conversations.map((conversation: any, index: number) => (
             <ConversationItem
-              key={`conv-${conversation.id}-${index}-${conversation.contactId || 'na'}-${conversation.channel || 'ch'}`}
+              key={`conversation-${conversation.id}-${index}`}
               conversation={conversation}
               index={index}
               isActive={activeConversation?.id === conversation.id}
@@ -697,24 +694,16 @@ export function InboxPage() {
             />
           ))}
           
-          {/* Loading para busca */}
-          {isSearching && searchTerm && searchTerm.trim() && (
-            <div className="p-4 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto mb-2"></div>
-              <p className="text-xs">Buscando conversas...</p>
-            </div>
-          )}
-
-          {/* Loading para mais conversas (só quando não há busca) */}
-          {!searchTerm && isFetchingNextPage && (
+          {/* Loading para mais conversas */}
+          {isFetchingNextPage && (
             <div className="p-4 text-center text-gray-500">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto mb-2"></div>
               <p className="text-xs">Carregando mais conversas...</p>
             </div>
           )}
           
-          {/* Indicador de fim (só quando não há busca) */}
-          {!searchTerm && !hasNextPage && conversations.length > 0 && (
+          {/* Indicador de fim */}
+          {!hasNextPage && conversations.length > 0 && (
             <div className="p-4 text-center text-gray-400">
               <p className="text-xs">Todas as conversas foram carregadas</p>
             </div>
@@ -823,6 +812,11 @@ export function InboxPage() {
         contactDeals={contactDeals}
         contactInterests={contactInterests}
         onAddNote={handleAddNote}
+        onDealUpdated={() => {
+          if (activeConversation?.contactId) {
+            fetchContactDeals(activeConversation.contactId);
+          }
+        }}
       />
       
       <ContactDialog 
