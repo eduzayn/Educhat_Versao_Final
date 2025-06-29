@@ -102,6 +102,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (23:09): ALINHAMENTO VISUAL PERFEITO DOS BOTÕES CONCLUÍDO DEFINITIVAMENTE
+  - Botões emoji e microfone corrigidos de h-6 w-6 para h-8 w-8 (igual aos demais)
+  - Todos os botões agora têm altura consistente (h-8 w-8) eliminando desalinhamento visual
+  - Interface final: alinhamento perfeito seguindo exatamente o padrão WhatsApp
+  - Resultado: área de digitação com todos os elementos nivelados na base
 - June 29, 2025 (23:07): TODOS OS ELEMENTOS ALINHADOS NA BASE DA ÁREA DE DIGITAÇÃO CORRIGIDO COMPLETAMENTE
   - Container principal alterado de items-center para items-end para alinhamento consistente na base
   - Botões emoji e microfone (internos) com bottom-2 para ficar no limite inferior do textarea

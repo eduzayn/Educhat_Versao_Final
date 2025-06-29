@@ -423,7 +423,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsEmojiOpen(!isEmojiOpen)}
-                className="emoji-button h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                className="emoji-button h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
               >
                 <Smile className="w-4 h-4" />
               </Button>
@@ -436,7 +436,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
                   setIsRecording(!isRecording);
                 }}
-                className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
                 title="Clique para gravar áudio"
               >
                 <Mic className={`w-4 h-4 ${isRecording ? 'text-red-500' : ''}`} />
