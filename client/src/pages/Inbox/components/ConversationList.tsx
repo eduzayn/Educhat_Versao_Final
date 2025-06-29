@@ -35,54 +35,37 @@ export function ConversationList({
 }: ConversationListProps) {
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filtrar conversas
-  const filteredConversations = conversations?.filter(conversation => {
-    const matchesSearch = !searchTerm || 
+  const filteredConversations = conversations.filter((conversation) => {
+    const matchSearch =
+      !searchTerm ||
       conversation.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conversation.contact?.phone?.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === 'all' || conversation.status === statusFilter;
-    const matchesChannel = channelFilter === 'all' || conversation.channel === channelFilter;
-    
-    return matchesSearch && matchesStatus && matchesChannel;
-  }) || [];
+    const matchStatus = statusFilter === 'all' || conversation.status === statusFilter;
+    const matchChannel = channelFilter === 'all' || conversation.channel === channelFilter;
+    return matchSearch && matchStatus && matchChannel;
+  });
 
-  const getChannelIcon = (channel: string) => {
-    // Channel icons now handled by backend data
-    return '💬';
+  const formatLastMessageTime = (date: Date | null) => {
+    if (!date) return '';
+    const now = new Date();
+    const d = new Date(date);
+    const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60);
+    return diff < 24
+      ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
   const getStatusBadge = (status: string) => {
     const config = STATUS_CONFIG[status as ConversationStatus] || STATUS_CONFIG.open;
     return (
-      <Badge 
-        variant="secondary" 
-        className={`text-xs ${config.bgColor} ${config.color}`}
-      >
+      <Badge variant="secondary" className={`text-xs ${config.bgColor} ${config.color}`}>
         {config.label}
       </Badge>
     );
   };
 
-  const formatLastMessageTime = (date: Date | null) => {
-    if (!date) return '';
-    
-    const now = new Date();
-    const messageDate = new Date(date);
-    const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return messageDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 168) { // 7 dias
-      return messageDate.toLocaleDateString('pt-BR', { weekday: 'short' });
-    } else {
-      return messageDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    }
-  };
-
   return (
     <div className="flex flex-col h-full">
-      {/* Barra de busca e filtros */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-2 mb-3">
           <div className="relative flex-1">
@@ -104,7 +87,6 @@ export function ConversationList({
           </Button>
         </div>
 
-        {/* Filtros expandidos */}
         {showFilters && (
           <div className="flex gap-2 text-sm">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -126,7 +108,7 @@ export function ConversationList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {/* Channels loaded dynamically from API */}
+                {/* canais dinamicamente se necessário */}
               </SelectContent>
             </Select>
 
@@ -148,161 +130,50 @@ export function ConversationList({
         )}
       </div>
 
-      {/* Lista de conversas */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-500">Carregando conversas...</p>
-          </div>
+          <div className="p-6 text-center text-sm text-gray-500">Carregando...</div>
         ) : filteredConversations.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <p>Nenhuma conversa encontrada</p>
-          </div>
+          <div className="p-6 text-center text-gray-500">Nenhuma conversa encontrada</div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {filteredConversations.map((conversation) => (
+            {filteredConversations.map((c) => (
               <div
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation)}
+                key={c.id}
+                onClick={() => onSelectConversation(c)}
                 className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  activeConversation?.id === conversation.id ? 'bg-gray-50 border-r-2 border-gray-500' : ''
+                  activeConversation?.id === c.id ? 'bg-gray-50 border-r-2 border-gray-500' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {/* Avatar do contato */}
-                  <div className="relative flex-shrink-0">
-                    <SafeAvatar
-                      src={conversation.contact?.profileImageUrl}
-                      alt={conversation.contact?.name || 'Contato'}
-                      fallbackText={conversation.contact?.name || 'C'}
-                      className="w-12 h-12"
-                      fallbackClassName="bg-gray-100 text-gray-700"
-                    />
-                    
-                    {/* Indicador de canal */}
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-gray-200 text-xs">
-                      {getChannelIcon(conversation.channel)}
-                    </div>
-                  </div>
-
+                  <SafeAvatar
+                    src={c.contact?.profileImageUrl}
+                    alt={c.contact?.name || 'Contato'}
+                    fallbackText={c.contact?.name || 'C'}
+                    className="w-12 h-12"
+                    fallbackClassName="bg-gray-100 text-gray-700"
+                  />
                   <div className="flex-1 min-w-0">
-                    {/* Nome e timestamp */}
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-medium text-gray-900 truncate">
-                        {conversation.contact?.name || `+${conversation.contact?.phone}` || 'Contato sem nome'}
+                        {c.contact?.name || `+${c.contact?.phone}` || 'Contato sem nome'}
                       </h3>
-                      <span className="text-xs text-gray-500 flex-shrink-0">
-                        {formatLastMessageTime(conversation.lastMessageAt)}
+                      <span className="text-xs text-gray-500">
+                        {formatLastMessageTime(c.lastMessageAt)}
                       </span>
                     </div>
-
-                    {/* Status e última mensagem */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {getStatusBadge(conversation.status || 'open')}
-
-                        {(conversation.unreadCount || 0) > 0 && (
-                          <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center p-0 min-w-[20px] font-semibold">
-                            {(conversation.unreadCount || 0) > 99 ? '99+' : conversation.unreadCount}
+                        {getStatusBadge(c.status || 'open')}
+                        {(c.unreadCount || 0) > 0 && (
+                          <Badge className="bg-red-500 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center">
+                            {(c.unreadCount || 0) > 99 ? '99+' : c.unreadCount}
                           </Badge>
                         )}
                       </div>
                     </div>
-
-                    {/* Preview da última mensagem */}
                     <p className="text-sm text-gray-500 truncate mt-1">
-                      {conversation.messages?.[0] ? (
-                        <>
-                          {conversation.messages[0].isFromContact ? '' : 'Você: '}
-                          {(() => {
-                            const lastMessage = conversation.messages[0];
-                            
-                            // Filtrar mensagens genéricas inadequadas primeiro
-                            const isGenericMessage = lastMessage.content && (
-                              lastMessage.content === 'Mensagem recebida' ||
-                              lastMessage.content === 'Mensagem não identificada' ||
-                              lastMessage.content === 'Mensagem em processamento'
-                            );
-                            
-                            // Se for mensagem genérica, tentar extrair conteúdo real dos metadados
-                            if (isGenericMessage && lastMessage.metadata) {
-                              const metadata = lastMessage.metadata as any;
-                              
-                              // Tentar extrair texto real dos metadados
-                              if (metadata.text && metadata.text.message) {
-                                return metadata.text.message;
-                              }
-                              
-                              // Para outros tipos de mídia, mostrar descrição apropriada
-                              if (metadata.image) {
-                                const caption = metadata.image.caption;
-                                return caption && caption.trim() ? caption : '📷 Imagem';
-                              }
-                              
-                              if (metadata.audio) {
-                                return '🎵 Áudio';
-                              }
-                              
-                              if (metadata.video) {
-                                const caption = metadata.video.caption;
-                                return caption && caption.trim() ? caption : '🎥 Vídeo';
-                              }
-                              
-                              if (metadata.document) {
-                                const fileName = metadata.document.fileName || metadata.fileName;
-                                return fileName ? `📄 ${fileName}` : '📄 Documento';
-                              }
-                            }
-                            
-                            // Para mensagens de texto válidas, sempre mostrar o conteúdo real
-                            if (lastMessage.messageType === 'text' && lastMessage.content && !isGenericMessage) {
-                              return lastMessage.content;
-                            }
-                            
-                            // Para imagens, mostrar caption se existir
-                            if (lastMessage.messageType === 'image') {
-                              const caption = (lastMessage.metadata as any)?.image?.caption;
-                              if (caption && caption.trim()) {
-                                return caption;
-                              }
-                              return '📷 Imagem';
-                            }
-                            
-                            // Para áudios
-                            if (lastMessage.messageType === 'audio') {
-                              return '🎵 Áudio';
-                            }
-                            
-                            // Para vídeos, mostrar caption se existir
-                            if (lastMessage.messageType === 'video') {
-                              const caption = (lastMessage.metadata as any)?.video?.caption;
-                              if (caption && caption.trim()) {
-                                return caption;
-                              }
-                              return '🎥 Vídeo';
-                            }
-                            
-                            // Para documentos
-                            if (lastMessage.messageType === 'document') {
-                              const fileName = (lastMessage.metadata as any)?.document?.fileName || (lastMessage.metadata as any)?.fileName;
-                              if (fileName) {
-                                return `📄 ${fileName}`;
-                              }
-                              return '📄 Documento';
-                            }
-                            
-                            // Fallback final - só usar se realmente não tiver conteúdo
-                            if (lastMessage.content && !isGenericMessage) {
-                              return lastMessage.content;
-                            }
-                            
-                            return 'Nova mensagem';
-                          })()}
-                        </>
-                      ) : (
-                        'Sem mensagens'
-                      )}
+                      {c.messages?.[0]?.content || 'Sem mensagens'}
                     </p>
                   </div>
                 </div>
