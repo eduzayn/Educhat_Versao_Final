@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (21:26): ALINHAMENTO DE COMPONENTES NA ÁREA DE DIGITAÇÃO CORRIGIDO COMPLETAMENTE
+  - Modificado layout do InputArea para usar `items-end` ao invés de `items-center` para alinhamento na base
+  - Componentes de upload de mídia (ImageUpload, VideoUpload, FileText) alinhados na parte inferior com `pb-3`
+  - Botão de nota interna (StickyNote) reposicionado na base com div wrapper e `pb-3`
+  - Botão de envio (Send) alinhado na base com div wrapper e `pb-3`
+  - Textarea mantido com altura mínima 60px e máxima 200px com auto-resize
+  - Botões emoji e microfone já estavam corretamente posicionados na base via `bottom-3`
+  - Todos os elementos da interface agora alinhados consistentemente na parte inferior
+  - Layout mais elegante seguindo padrões do WhatsApp com elementos organizados na base
 - June 29, 2025 (21:10): PREVENÇÃO DE CONTATOS DUPLICADOS NO MESMO CANAL IMPLEMENTADA COMPLETAMENTE
   - Criado método `findContactByPhoneAndChannel()` no ContactStorage para verificação de unicidade por canal
   - Modificado método `findOrCreateContact()` para priorizar verificação por telefone + canal antes de criar novos contatos

@@ -367,12 +367,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         </div>
       )}
 
-      {/* Layout WhatsApp-like com componentes dentro do textarea */}
+      {/* Layout WhatsApp-like com componentes alinhados na base */}
       <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-1">
-        <div className="flex items-center gap-1">
+        <div className="flex items-end gap-1">
           
-          {/* Componentes de upload com renderização imediata */}
-          <div className="flex items-center gap-1">
+          {/* Componentes de upload com renderização imediata - alinhados na base */}
+          <div className="flex items-end gap-1 pb-3">
             {/* ImageUpload com placeholder instantâneo */}
             <ImageUpload 
               conversationId={activeConversation.id}
@@ -447,18 +447,19 @@ export function InputArea({ activeConversation }: InputAreaProps) {
             </div>
           </div>
 
-          {/* Botão de nota interna - visível para atendentes */}
-          <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-full"
-                title="Adicionar nota interna"
-              >
-                <StickyNote className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
+          {/* Botão de nota interna - visível para atendentes - alinhado na base */}
+          <div className="pb-3">
+            <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-full"
+                  title="Adicionar nota interna"
+                >
+                  <StickyNote className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Adicionar Nota Interna</DialogTitle>
@@ -491,25 +492,28 @@ export function InputArea({ activeConversation }: InputAreaProps) {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
 
-          {/* Botão de enviar - estilo WhatsApp */}
-          <Button
-            onClick={() => {
-              console.log('🖱️ Clique no botão enviar:', { 
-                hasMessage: !!message.trim(),
-                hasConversation: !!activeConversation?.id,
-                isPending: sendMessageMutation.isPending
-              });
-              handleSendMessage();
-            }}
-            disabled={!message.trim() || sendMessageMutation.isPending || !activeConversation?.id}
-            size="sm"
-            className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ pointerEvents: 'auto' }}
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+          {/* Botão de enviar - estilo WhatsApp - alinhado na base */}
+          <div className="pb-3">
+            <Button
+              onClick={() => {
+                console.log('🖱️ Clique no botão enviar:', { 
+                  hasMessage: !!message.trim(),
+                  hasConversation: !!activeConversation?.id,
+                  isPending: sendMessageMutation.isPending
+                });
+                handleSendMessage();
+              }}
+              disabled={!message.trim() || sendMessageMutation.isPending || !activeConversation?.id}
+              size="sm"
+              className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ pointerEvents: 'auto' }}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Menu de emoji - reposicionado */}
