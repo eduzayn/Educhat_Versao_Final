@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (22:34): MELHORIAS VISUAIS EXPANDIDAS PARA MAIOR CONFORTO DE DIGITAÇÃO
+  - Altura do textarea expandida de 60px-200px para 100px-240px seguindo nova proposta do usuário
+  - Padding do container principal otimizado: px-4 pt-2 pb-3 para melhor respiração visual
+  - Container interno com padding reduzido para p-2 e gap-2 entre elementos
+  - Layout items-end mantido com espaçamento aprimorado (gap-2) para alinhamento mais natural
+  - Classes min-h e max-h do textarea atualizadas para refletir nova faixa de altura
+  - Padding right do textarea ajustado de pr-16 para pr-12 para melhor proporção
+  - Interface mais confortável para digitação de mensagens longas mantendo funcionalidade completa
 - June 29, 2025 (22:31): APROVEITAMENTO DE SUGESTÃO PONTUAL PARA ALTURA DO TEXTAREA IMPLEMENTADO
   - Arquivo anexado com sugestão pontual foi analisado e aproveitado completamente
   - Comentários do useEffect de auto-resize melhorados seguindo padrão sugerido: "altura mínima como no original" e "range ajustado"

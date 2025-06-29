@@ -1,0 +1,128 @@
+import { useState, useRef, useEffect } from "react";
+import { Send, Paperclip, Smile, Mic, MicOff, X, Image as ImageIcon, Video, FileText, StickyNote, Plus } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AudioRecorder } from "./AudioRecorder";
+import { ImageUpload } from "./ImageUpload";
+import { VideoUpload } from "./VideoUpload";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
+import { Badge } from "@/shared/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
+import { useSendMessage } from "@/shared/lib/hooks/useMessages";
+import { useAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
+import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
+import { useFileMessage } from "@/shared/lib/hooks/useFileMessage";
+import { useVideoMessage } from "@/shared/lib/hooks/useVideoMessage";
+import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
+import { useToast } from "@/shared/lib/hooks/use-toast";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { QuickReply } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { QuickReplyAutocomplete } from "@/components/QuickReplyAutocomplete";
+
+interface InputAreaProps {
+  activeConversation: any;
+}
+
+export function InputArea({ activeConversation }: InputAreaProps) {
+  if (!activeConversation) {
+    return (
+      <div className="border-t bg-white p-4">
+        <div className="text-center text-gray-500">
+          Selecione uma conversa para enviar mensagens
+        </div>
+      </div>
+    );
+  }
+
+  const [message, setMessage] = useState("");
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string } | null>(null);
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [noteContent, setNoteContent] = useState("");
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [quickReplySearchTerm, setQuickReplySearchTerm] = useState("");
+  const [quickReplyPosition, setQuickReplyPosition] = useState({ top: 0, left: 0 });
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = '100px';
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 100), 240);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [message]);
+
+  return (
+    <div className="border-t bg-white px-4 pt-2 pb-3 sticky bottom-0 z-10">
+      <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2">
+        <div className="flex items-end gap-2">
+          <ImageUpload 
+            conversationId={activeConversation.id} 
+            contactPhone={activeConversation.contact.phone} 
+            disabled={false} 
+          />
+
+          <VideoUpload 
+            conversationId={activeConversation.id} 
+            contactPhone={activeConversation.contact.phone} 
+            disabled={false} 
+          />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {}}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <FileText className="w-5 h-5" />
+          </Button>
+
+          <div className="flex-1 relative">
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Digite sua mensagem..."
+              className="min-h-[100px] max-h-[240px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 p-3 pr-12 overflow-y-auto"
+            />
+            <div className="absolute right-3 bottom-3 flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsEmojiOpen(!isEmojiOpen)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <Smile className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsRecording(!isRecording)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <Mic className={`w-5 h-5 ${isRecording ? 'text-red-500' : ''}`} />
+              </Button>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => {}}
+            size="icon"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

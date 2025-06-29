@@ -91,8 +91,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = '60px'; // <-- altura mínima como no original
-      const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // <-- range ajustado
+      textarea.style.height = '100px'; // <-- altura mínima aumentada para melhor UX
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 100), 240); // <-- range expandido
       textarea.style.height = `${newHeight}px`;
     }
   }, [message]);
@@ -344,7 +344,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   }, []);
 
   return (
-    <div className="border-t bg-white p-4 sticky bottom-0 z-10">
+    <div className="border-t bg-white px-4 pt-2 pb-3 sticky bottom-0 z-10">
       {/* Indicador de resposta */}
       {replyingTo && (
         <div className="mb-3 p-2 bg-gray-50 rounded-lg border-l-4 border-purple-500">
@@ -365,8 +365,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
       )}
 
       {/* Layout WhatsApp-like com componentes centralizados verticalmente */}
-      <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-1">
-        <div className="flex items-center gap-1">
+      <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2">
+        <div className="flex items-end gap-2">
           
           {/* Componentes de upload com renderização imediata - centralizados */}
           <div className="flex items-center gap-1">
@@ -404,7 +404,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               onChange={(e) => handleMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem... (/* para respostas rápidas)"
-              className="min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-16 overflow-y-auto"
+              className="min-h-[100px] max-h-[240px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-12 overflow-y-auto"
               rows={1}
               id="inbox-message-input"
               autoComplete="off"
