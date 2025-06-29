@@ -347,7 +347,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   }, []);
 
   return (
-    <div className="border-t bg-white p-4">
+    <div className="border-t bg-white p-4 sticky bottom-0 z-10">
       {/* Indicador de resposta */}
       {replyingTo && (
         <div className="mb-3 p-2 bg-gray-50 rounded-lg border-l-4 border-purple-500">
@@ -367,12 +367,12 @@ export function InputArea({ activeConversation }: InputAreaProps) {
         </div>
       )}
 
-      {/* Layout WhatsApp-like com componentes alinhados na base */}
+      {/* Layout WhatsApp-like com componentes centralizados verticalmente */}
       <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-1">
-        <div className="flex items-end gap-1">
+        <div className="flex items-center gap-1">
           
-          {/* Componentes de upload com renderização imediata - alinhados na base */}
-          <div className="flex items-end gap-1 pb-3">
+          {/* Componentes de upload com renderização imediata - centralizados */}
+          <div className="flex items-center gap-1">
             {/* ImageUpload com placeholder instantâneo */}
             <ImageUpload 
               conversationId={activeConversation.id}
@@ -419,8 +419,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               data-enable-grammarly="false"
             />
             
-            {/* Botões dentro do textarea - alinhados ao final */}
-            <div className="absolute right-2 bottom-3 flex items-center gap-1">
+            {/* Botões dentro do textarea - centralizados verticalmente */}
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
               {/* Botão de emoji */}
               <Button
                 variant="ghost"
@@ -447,8 +447,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
             </div>
           </div>
 
-          {/* Botão de nota interna - visível para atendentes - alinhado na base */}
-          <div className="pb-3">
+          {/* Botão de nota interna - visível para atendentes - centralizado */}
+          <div>
             <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
               <DialogTrigger asChild>
                 <Button
@@ -495,8 +495,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
             </Dialog>
           </div>
 
-          {/* Botão de enviar - estilo WhatsApp - alinhado na base */}
-          <div className="pb-3">
+          {/* Botão de enviar - estilo WhatsApp - centralizado */}
+          <div>
             <Button
               onClick={() => {
                 console.log('🖱️ Clique no botão enviar:', { 

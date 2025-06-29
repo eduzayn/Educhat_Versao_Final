@@ -96,6 +96,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (21:54): ALINHAMENTO VERTICAL DA ÁREA DE DIGITAÇÃO CORRIGIDO DEFINITIVAMENTE
+  - Problema identificado: após ajuste da altura do textarea (60px-200px), elementos ficaram desalinhados verticalmente
+  - Layout principal alterado de `items-end` para `items-center` para centralização vertical adequada
+  - Botões de upload de mídia (📎, 🎬, 📄) centralizados removendo `pb-3` desnecessário
+  - Botões internos do textarea (😊, 🎤) reposicionados para `top-1/2 transform -translate-y-1/2`
+  - Botão de nota interna (📝) e envio (✈️) centralizados removendo alinhamento na base
+  - Container principal fixado ao rodapé com `sticky bottom-0 z-10` para aderência à viewport
+  - Todos os elementos agora alinhados no centro vertical da área de digitação
+  - Interface polida seguindo padrões WhatsApp com posicionamento responsivo
 - June 29, 2025 (21:26): ALINHAMENTO DE COMPONENTES NA ÁREA DE DIGITAÇÃO CORRIGIDO COMPLETAMENTE
   - Modificado layout do InputArea para usar `items-end` ao invés de `items-center` para alinhamento na base
   - Componentes de upload de mídia (ImageUpload, VideoUpload, FileText) alinhados na parte inferior com `pb-3`
