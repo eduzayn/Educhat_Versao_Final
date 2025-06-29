@@ -952,12 +952,13 @@ export class ConversationStorage extends BaseStorage {
 
   /**
    * Busca conversas no banco de dados completo baseado em nome, telefone ou email do contato
+   * Inclui TODOS os contatos (com e sem conversas existentes)
    */
   async searchConversations(searchTerm: string): Promise<ConversationWithContact[]> {
     const searchLower = searchTerm.toLowerCase().trim();
     
-    // Query otimizada que busca em todo o banco de dados incluindo a última mensagem
-    const results = await this.db
+    // 1. Buscar conversas existentes
+    const existingConversations = await this.db
       .select({
         // Conversation fields
         id: conversations.id,
@@ -1030,7 +1031,6 @@ export class ConversationStorage extends BaseStorage {
         )
       )
       .where(
-        // Busca flexível em nome, telefone e email
         sql`(
           LOWER(${contacts.name}) LIKE ${'%' + searchLower + '%'} OR
           ${contacts.phone} LIKE ${'%' + searchTerm + '%'} OR
@@ -1038,10 +1038,31 @@ export class ConversationStorage extends BaseStorage {
         )`
       )
       .orderBy(desc(conversations.lastMessageAt))
-      .limit(100); // Limitar para evitar sobrecarga
+      .limit(50); // Limitar conversas existentes
 
-    // Transformar resultados no formato esperado com mensagens incluídas
-    return results.map(result => ({
+    // 2. Buscar contatos SEM conversas que correspondem à busca
+    const contactsWithoutConversations = await this.db
+      .select()
+      .from(contacts)
+      .where(
+        and(
+          sql`(
+            LOWER(${contacts.name}) LIKE ${'%' + searchLower + '%'} OR
+            ${contacts.phone} LIKE ${'%' + searchTerm + '%'} OR
+            LOWER(${contacts.email}) LIKE ${'%' + searchLower + '%'}
+          )`,
+          // Excluir contatos que já têm conversas
+          sql`${contacts.id} NOT IN (
+            SELECT DISTINCT contact_id FROM conversations 
+            WHERE contact_id IS NOT NULL
+          )`
+        )
+      )
+      .orderBy(desc(contacts.createdAt))
+      .limit(50); // Limitar contatos sem conversas
+
+    // 3. Transformar conversas existentes
+    const formattedExistingConversations = existingConversations.map(result => ({
       ...result,
       contact: {
         ...result.contact,
@@ -1051,10 +1072,44 @@ export class ConversationStorage extends BaseStorage {
       channelInfo: undefined,
       teamType: null,
       markedUnreadManually: false,
-      // Converter lastMessage de objeto para string para compatibilidade com frontend
       lastMessage: result.lastMessage?.content || '',
       messages: result.lastMessage?.id ? [result.lastMessage] : [],
       _count: { messages: result.unreadCount || 0 }
-    } as unknown)) as unknown as ConversationWithContact[];
+    }));
+
+    // 4. Transformar contatos sem conversas em "conversas virtuais"
+    const virtualConversations = contactsWithoutConversations.map(contact => ({
+      id: 0, // ID virtual indicando que não é uma conversa real
+      contactId: contact.id,
+      channel: 'virtual', 
+      channelId: null,
+      status: 'pending',
+      lastMessageAt: contact.createdAt,
+      unreadCount: 0,
+      assignedTeamId: null,
+      assignedUserId: null,
+      assignmentMethod: null,
+      assignedAt: null,
+      isRead: true,
+      markedUnreadManually: false,
+      priority: 'medium',
+      tags: [],
+      metadata: {},
+      createdAt: contact.createdAt,
+      updatedAt: contact.updatedAt,
+      contact: {
+        ...contact,
+        tags: [],
+        deals: []
+      },
+      channelInfo: undefined,
+      teamType: null,
+      lastMessage: 'Contato sem conversas',
+      messages: [],
+      _count: { messages: 0 }
+    }));
+
+    // 5. Combinar e retornar (conversas reais primeiro, depois contatos sem conversas)
+    return [...formattedExistingConversations, ...virtualConversations] as ConversationWithContact[];
   }
 }
