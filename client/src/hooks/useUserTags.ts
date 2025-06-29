@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { UserTag, InsertUserTag } from '../../../shared/schema';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/lib/hooks/use-toast';
 
 // Hook para buscar todas as tags do usuário
 export function useUserTags() {
@@ -38,10 +38,7 @@ export function useCreateUserTag() {
 
   return useMutation({
     mutationFn: (data: Omit<InsertUserTag, 'createdBy'>) => 
-      apiRequest('/api/user-tags', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('POST', '/api/user-tags', data),
     onSuccess: (newTag: UserTag) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/stats'] });
@@ -67,10 +64,7 @@ export function useUpdateUserTag() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<InsertUserTag> }) =>
-      apiRequest(`/api/user-tags/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('PUT', `/api/user-tags/${id}`, data),
     onSuccess: (updatedTag: UserTag) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/stats'] });
@@ -96,9 +90,7 @@ export function useDeleteUserTag() {
 
   return useMutation({
     mutationFn: (tagId: number) =>
-      apiRequest(`/api/user-tags/${tagId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest('DELETE', `/api/user-tags/${tagId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/stats'] });
@@ -126,9 +118,7 @@ export function useApplyTagToContact() {
 
   return useMutation({
     mutationFn: ({ tagId, contactId }: { tagId: number; contactId: number }) =>
-      apiRequest(`/api/user-tags/${tagId}/contacts/${contactId}`, {
-        method: 'POST',
-      }),
+      apiRequest('POST', `/api/user-tags/${tagId}/contacts/${contactId}`),
     onSuccess: (_, { contactId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/contacts', contactId] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/stats'] });
@@ -154,9 +144,7 @@ export function useRemoveTagFromContact() {
 
   return useMutation({
     mutationFn: ({ tagId, contactId }: { tagId: number; contactId: number }) =>
-      apiRequest(`/api/user-tags/${tagId}/contacts/${contactId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest('DELETE', `/api/user-tags/${tagId}/contacts/${contactId}`),
     onSuccess: (_, { contactId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/contacts', contactId] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-tags/stats'] });
