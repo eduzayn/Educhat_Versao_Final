@@ -100,7 +100,31 @@ export function registerContactRoutes(app: Express) {
   app.post("/api/contacts", async (req, res) => {
     try {
       const validatedData = insertContactSchema.parse(req.body);
+      
+      // ✅ VERIFICAÇÃO DE UNICIDADE POR CANAL
+      if (validatedData.phone && validatedData.canalOrigem) {
+        const existingContact = await storage.findContactByPhoneAndChannel(
+          validatedData.phone,
+          validatedData.canalOrigem
+        );
+        
+        if (existingContact) {
+          console.log(`🔄 Contato já existe no canal ${validatedData.canalOrigem}: ${existingContact.name} (${existingContact.phone})`);
+          return res.status(409).json({ 
+            message: "Contato já existe neste canal",
+            details: `Telefone ${validatedData.phone} já cadastrado no canal ${validatedData.canalOrigem}`,
+            existingContact: {
+              id: existingContact.id,
+              name: existingContact.name,
+              phone: existingContact.phone,
+              canalOrigem: existingContact.canalOrigem
+            }
+          });
+        }
+      }
+      
       const contact = await storage.createContact(validatedData);
+      console.log(`✅ Novo contato criado no canal ${validatedData.canalOrigem}: ${contact.name} (${contact.phone})`);
 
       if (contact.phone) {
         try {

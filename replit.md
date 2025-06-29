@@ -96,6 +96,16 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (21:10): PREVENÇÃO DE CONTATOS DUPLICADOS NO MESMO CANAL IMPLEMENTADA COMPLETAMENTE
+  - Criado método `findContactByPhoneAndChannel()` no ContactStorage para verificação de unicidade por canal
+  - Modificado método `findOrCreateContact()` para priorizar verificação por telefone + canal antes de criar novos contatos
+  - Implementada validação na API `/api/contacts` (POST) retornando erro 409 para contatos duplicados no mesmo canal
+  - Frontend atualizado para incluir `canalOrigem` e `nomeCanal` na criação de contatos baseado no canal selecionado
+  - Tratamento de erro específico no frontend para exibir mensagens detalhadas sobre contatos duplicados
+  - Regra de negócio implementada: mesmo telefone pode existir em canais diferentes, mas não duplicar dentro do mesmo canal
+  - Logs detalhados adicionados para rastreamento de reutilização vs criação de contatos
+  - Sistema completo: UI → API → Storage → Validação → Feedback visual para usuário
+  - Pontos protegidos: criação manual via modal, webhooks Z-API, integrações Manychat, todas APIs de contatos
 - June 29, 2025 (20:50): CAMPO DE BUSCA NA INBOX CORRIGIDO DEFINITIVAMENTE
   - Identificado problema crítico no fluxo de dados da UI: componente renderizava `conversations` (dados paginados) ao invés de `filteredConversations` (resultados da busca)
   - Problema raiz: linha 715 do InboxPage.tsx usava `conversations.map()` que continha apenas dados da paginação normal, ignorando completamente os resultados de busca

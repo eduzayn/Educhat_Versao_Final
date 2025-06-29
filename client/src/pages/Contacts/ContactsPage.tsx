@@ -279,15 +279,31 @@ export function ContactsPage() {
         return;
       }
 
-      // 1. Criar contato no banco primeiro
+      // 1. Determinar canal de origem baseado na seleção
+      let canalOrigem = 'manual'; // Padrão para contatos criados manualmente
+      let nomeCanal = 'Criação Manual';
+      
+      if (createForm.selectedChannelId && createForm.selectedChannelId !== 'none') {
+        const selectedChannel = safeChannels.find((c: any) => c.id === parseInt(createForm.selectedChannelId));
+        if (selectedChannel) {
+          canalOrigem = selectedChannel.name?.toLowerCase() === 'comercial' ? 'comercial' : 
+                       selectedChannel.name?.toLowerCase() === 'suporte' ? 'suporte' : 'whatsapp';
+          nomeCanal = selectedChannel.name || 'WhatsApp';
+        }
+      }
+
+      // 2. Criar contato no banco primeiro com verificação de canal
       const newContact = await createContact.mutateAsync({
         name: createForm.name,
         email: createForm.email,
         phone: createForm.phone,
-        assignedUserId: createForm.owner ? parseInt(createForm.owner) : null
+        assignedUserId: createForm.owner ? parseInt(createForm.owner) : null,
+        canalOrigem: canalOrigem,
+        nomeCanal: nomeCanal,
+        userIdentity: createForm.phone || createForm.email || createForm.name.toLowerCase().replace(/\s+/g, '_')
       });
 
-      // 2. Se tiver mensagem ativa, enviar via Z-API e criar conversa
+      // 3. Se tiver mensagem ativa, enviar via Z-API e criar conversa
       if (createForm.selectedChannelId && createForm.selectedChannelId !== 'none' && createForm.activeMessage.trim() && createForm.phone) {
         try {
           // Validações adicionais para evitar erro 400
@@ -403,12 +419,28 @@ export function ContactsPage() {
         selectedChannelId: '',
         activeMessage: ''
       });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível criar o contato.",
-        variant: "destructive"
-      });
+    } catch (error: any) {
+      console.error('❌ ERRO DETALHADO CRIAÇÃO CONTATO:', error);
+      
+      // Verificar se é erro de contato duplicado (409)
+      if (error?.status === 409 || error?.message?.includes('já existe neste canal')) {
+        const errorData = error?.data || error;
+        const existingContact = errorData?.existingContact;
+        
+        toast({
+          title: "Contato já existe",
+          description: existingContact 
+            ? `Telefone ${existingContact.phone} já cadastrado no canal ${existingContact.canalOrigem} para ${existingContact.name}`
+            : error?.details || "Este telefone já está cadastrado no canal selecionado",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: error?.message || "Não foi possível criar o contato.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
