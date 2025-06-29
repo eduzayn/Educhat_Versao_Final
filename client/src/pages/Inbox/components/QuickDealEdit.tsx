@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { getAllCategories, getStagesForCategory } from '@/shared/lib/crmFunnels';
+import { useDynamicFunnels } from '@/hooks/useDynamicFunnels';
 
 interface QuickDealEditProps {
   deal: any;
@@ -30,7 +31,8 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const allCategories = getAllCategories();
+  // Buscar funis dinâmicos (estáticos + baseados em equipes do banco)
+  const { data: dynamicFunnels = [], isLoading: funnelsLoading } = useDynamicFunnels();
   const availableStages = formData.category ? getStagesForCategory(formData.category) : [];
 
   useEffect(() => {
@@ -209,11 +211,17 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
                 <SelectValue placeholder="Selecione o funil" />
               </SelectTrigger>
               <SelectContent>
-                {allCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.info.name.toUpperCase()}
+                {funnelsLoading ? (
+                  <SelectItem value="loading" disabled>
+                    Carregando funis...
                   </SelectItem>
-                ))}
+                ) : (
+                  dynamicFunnels.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.info.name.toUpperCase()}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -454,11 +454,17 @@ export function ContactSidebar({
                         <SelectValue placeholder="Selecione o funil" />
                       </SelectTrigger>
                       <SelectContent>
-                        {getAllCategories().map(({ id, info }) => (
-                          <SelectItem key={id} value={id}>
-                            {info.name.toUpperCase()}
+                        {funnelsLoading ? (
+                          <SelectItem value="loading" disabled>
+                            Carregando funis...
                           </SelectItem>
-                        ))}
+                        ) : (
+                          dynamicFunnels.map(({ id, info }) => (
+                            <SelectItem key={id} value={id}>
+                              {info.name.toUpperCase()}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     {dealFormData.category && (
