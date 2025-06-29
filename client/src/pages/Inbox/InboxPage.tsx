@@ -1,7 +1,67 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { CACHE_CONFIG } from '@/lib/cacheConfig';
+import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Input } from '@/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { Separator } from '@/shared/ui/separator';
+import { BackButton } from '@/shared/components/BackButton';
+import { ContactDialog } from '@/shared/components/ContactDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { Link } from 'wouter';
+import { 
+  Search, 
+  Filter,
+  X, 
+  MoreVertical, 
+  Send, 
+  Paperclip, 
+  Smile,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Tag,
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  User,
+  Plus,
+  Zap
+} from 'lucide-react';
 import { useConversations } from '@/shared/lib/hooks/useConversations';
+import { useMessages } from '@/shared/lib/hooks/useMessages';
+import { useSearchConversations } from '@/shared/lib/hooks/useSearchConversations';
+
+import { useZApiStore } from '@/shared/store/zapiStore';
+import { useGlobalZApiMonitor } from '@/shared/lib/hooks/useGlobalZApiMonitor';
+import { useCreateContact } from '@/shared/lib/hooks/useContacts';
 import { useToast } from '@/shared/lib/hooks/use-toast';
+import { useWebSocket } from '@/shared/lib/hooks/useWebSocket';
+import { useMarkConversationRead } from '@/shared/lib/hooks/useMarkConversationRead';
+import { useChannels, Channel } from '@/shared/lib/hooks/useChannels';
+import { useSystemUsers } from '@/shared/lib/hooks/useSystemUsers';
+import { formatTimeOnly } from '@/shared/lib/utils/formatters';
+
+import { STATUS_CONFIG } from '@/types/chat';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
+import { InputArea } from '@/modules/Messages/components/InputArea';
+import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
+import { ConversationActionsDropdown } from './components/ConversationActionsDropdown';
+import { ConversationAssignmentDropdown } from './components/ConversationAssignmentDropdown';
+import { ContactSidebar } from './components/ContactSidebar';
+import { ConversationFilters } from './components/ConversationFilters';
+import { AdvancedFiltersPanel } from './components/AdvancedFiltersPanel';
+import { ConversationListHeader } from './components/ConversationListHeader';
+import { ConversationItem } from './components/ConversationItem';
+import { ChatHeader } from './components/ChatHeader';
+import { MessagesArea } from './components/MessagesArea';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 export function InboxPage() {
   const [userFilter, setUserFilter] = useState('all');
@@ -30,7 +90,7 @@ export function InboxPage() {
     fetchNextPage,
     isFetchingNextPage,
     refetch
-  } = useConversations(50, apiFilters); // Corrigido: carregamento inicial aumentado para 50
+  } = useConversations(50, apiFilters, CACHE_CONFIG.CONVERSATIONS);
 
   const conversations = conversationsData?.pages ? conversationsData.pages.flatMap(p => p || []) : [];
 
@@ -53,7 +113,6 @@ export function InboxPage() {
       <button onClick={handleForceSync} className="bg-blue-600 text-white rounded p-2 text-sm">
         Sincronizar Conversas
       </button>
-
       <div className="mt-4">
         {conversations.map((c) => (
           <div key={c.id} className="p-2 border-b border-gray-200">
@@ -61,10 +120,8 @@ export function InboxPage() {
             <p className="text-xs text-gray-500">{new Date(c.lastMessageAt).toLocaleString()}</p>
           </div>
         ))}
-
         {isFetchingNextPage && <p>Carregando mais...</p>}
       </div>
-
       {!hasNextPage && conversations.length > 0 && (
         <p className="text-center text-gray-400 mt-4">Todas as conversas foram carregadas</p>
       )}
