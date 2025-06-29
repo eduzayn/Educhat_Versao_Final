@@ -57,6 +57,25 @@ export class ContactStorage extends BaseStorage {
     return contact;
   }
 
+  /**
+   * Busca contato por telefone e canal específico para evitar duplicação no mesmo canal
+   */
+  async findContactByPhoneAndChannel(phone: string, canalOrigem: string): Promise<Contact | undefined> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const [contact] = await this.db.select().from(contacts)
+      .where(
+        and(
+          or(
+            eq(contacts.phone, phone),
+            eq(contacts.phone, cleanPhone),
+            ilike(contacts.phone, `%${cleanPhone}%`)
+          ),
+          eq(contacts.canalOrigem, canalOrigem)
+        )
+      );
+    return contact;
+  }
+
   async updateContactOnlineStatus(id: number, isOnline: boolean): Promise<void> {
     await this.db.update(contacts)
       .set({ 
@@ -68,19 +87,36 @@ export class ContactStorage extends BaseStorage {
   }
 
   async findOrCreateContact(userIdentity: string, contactData: Partial<InsertContact>): Promise<Contact> {
-    // Try to find existing contact by userIdentity
+    // 1. Verificação de unicidade por canal (se phone e canalOrigem fornecidos)
+    if (contactData.phone && contactData.canalOrigem) {
+      const existingContactByChannel = await this.findContactByPhoneAndChannel(
+        contactData.phone, 
+        contactData.canalOrigem
+      );
+      
+      if (existingContactByChannel) {
+        console.log(`🔄 Reutilizando contato existente no canal ${contactData.canalOrigem}: ${existingContactByChannel.name} (${existingContactByChannel.phone})`);
+        
+        // Atualizar contato existente com novos dados se fornecidos
+        if (Object.keys(contactData).length > 0) {
+          return this.updateContact(existingContactByChannel.id, contactData);
+        }
+        return existingContactByChannel;
+      }
+    }
+
+    // 2. Fallback: busca por userIdentity (método antigo para compatibilidade)
     const [existingContact] = await this.db.select().from(contacts)
       .where(eq(contacts.userIdentity, userIdentity));
 
     if (existingContact) {
-      // Update existing contact with new data if provided
-      if (Object.keys(contactData).length > 0) {
-        return this.updateContact(existingContact.id, contactData);
-      }
-      return existingContact;
+      // Se encontrado por userIdentity mas não por canal, significa que é outro canal
+      console.log(`📱 Contato existente em outro canal, criando novo para canal ${contactData.canalOrigem}: ${contactData.name}`);
+      
+      // Continue para criar novo contato (não retorna aqui)
     }
 
-    // Create new contact
+    // 3. Criar novo contato
     const newContactData: InsertContact = {
       userIdentity,
       name: contactData.name || 'Contato Sem Nome',
@@ -92,6 +128,7 @@ export class ContactStorage extends BaseStorage {
       ...contactData
     };
 
+    console.log(`✅ Criando novo contato no canal ${contactData.canalOrigem}: ${newContactData.name} (${newContactData.phone})`);
     return this.createContact(newContactData);
   }
 

@@ -135,6 +135,10 @@ export class DatabaseStorage implements IStorage {
     return this.contact.findContactByPhone(phone);
   }
 
+  async findContactByPhoneAndChannel(phone: string, canalOrigem: string) {
+    return this.contact.findContactByPhoneAndChannel(phone, canalOrigem);
+  }
+
   async updateContactOnlineStatus(id: number, isOnline: boolean) {
     return this.contact.updateContactOnlineStatus(id, isOnline);
   }
