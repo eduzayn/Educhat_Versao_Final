@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CACHE_CONFIG } from '@/lib/cacheConfig';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
@@ -47,7 +47,7 @@ import { useSystemUsers } from '@/shared/lib/hooks/useSystemUsers';
 import { formatTimeOnly } from '@/shared/lib/utils/formatters';
 
 import { STATUS_CONFIG } from '@/types/chat';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageBubble } from '@/modules/Messages/components/MessageBubble';
 import { InputArea } from '@/modules/Messages/components/InputArea';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
@@ -80,6 +80,9 @@ export function InboxPage() {
   const { data: channels = [] } = useChannels();
   const { data: systemUsers = [] } = useSystemUsers();
   const [showMobileChat, setShowMobileChat] = useState(false);
+  
+  // Toast para notificações
+  const { toast } = useToast();
   
   // Carregar equipes para identificação de canais
   const { data: teams = [] } = useQuery({
@@ -245,7 +248,6 @@ export function InboxPage() {
       )
     : [];
 
-  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contactNotes, setContactNotes] = useState<any[]>([]);
   const [contactDeals, setContactDeals] = useState<any[]>([]);
