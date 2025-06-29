@@ -91,11 +91,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      // Reset altura para calcular nova altura baseada no conteúdo
-      textarea.style.height = '60px'; // min-height
-      
-      // Calcular nova altura baseada no scrollHeight
-      const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // min: 60px, max: 200px
+      textarea.style.height = '60px'; // <-- altura mínima como no original
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // <-- range ajustado
       textarea.style.height = `${newHeight}px`;
     }
   }, [message]);

@@ -96,6 +96,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (22:31): APROVEITAMENTO DE SUGESTÃO PONTUAL PARA ALTURA DO TEXTAREA IMPLEMENTADO
+  - Arquivo anexado com sugestão pontual foi analisado e aproveitado completamente
+  - Comentários do useEffect de auto-resize melhorados seguindo padrão sugerido: "altura mínima como no original" e "range ajustado"
+  - Confirmado que implementação atual já estava correta: 60px-200px com auto-resize baseado em scrollHeight
+  - Mantido alinhamento vertical perfeito dos elementos da área de digitação
+  - Abordagem cirúrgica: apenas melhoria de comentários sem quebrar funcionalidades existentes
 - June 29, 2025 (21:54): ALINHAMENTO VERTICAL DA ÁREA DE DIGITAÇÃO CORRIGIDO DEFINITIVAMENTE
   - Problema identificado: após ajuste da altura do textarea (60px-200px), elementos ficaram desalinhados verticalmente
   - Layout principal alterado de `items-end` para `items-center` para centralização vertical adequada

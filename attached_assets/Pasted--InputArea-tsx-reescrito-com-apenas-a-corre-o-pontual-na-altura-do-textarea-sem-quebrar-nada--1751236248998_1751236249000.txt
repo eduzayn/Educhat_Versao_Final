@@ -1,0 +1,56 @@
+// InputArea.tsx reescrito com apenas a correção pontual na altura do textarea, sem quebrar nada
+
+import { useState, useRef, useEffect } from "react";
+import { Send, Paperclip, Smile, Mic, MicOff, X, Image as ImageIcon, Video, FileText, StickyNote, Plus } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AudioRecorder } from "./AudioRecorder";
+import { ImageUpload } from "./ImageUpload";
+import { VideoUpload } from "./VideoUpload";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
+import { Badge } from "@/shared/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
+import { useSendMessage } from "@/shared/lib/hooks/useMessages";
+import { useAudioMessage } from "@/shared/lib/hooks/useAudioMessage";
+import { useImageMessage } from "@/shared/lib/hooks/useImageMessage";
+import { useFileMessage } from "@/shared/lib/hooks/useFileMessage";
+import { useVideoMessage } from "@/shared/lib/hooks/useVideoMessage";
+import { useWebSocket } from "@/shared/lib/hooks/useWebSocket";
+import { useToast } from "@/shared/lib/hooks/use-toast";
+import { useAuth } from "@/shared/lib/hooks/useAuth";
+import { QuickReply } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { QuickReplyAutocomplete } from "@/components/QuickReplyAutocomplete";
+
+// (...restante do código inalterado...)
+
+useEffect(() => {
+  const textarea = textareaRef.current;
+  if (textarea) {
+    textarea.style.height = '60px'; // <-- altura mínima como no original
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // <-- range ajustado
+    textarea.style.height = `${newHeight}px`;
+  }
+}, [message]);
+
+// (...restante do código inalterado...)
+
+<Textarea
+  ref={textareaRef}
+  value={message}
+  onChange={(e) => handleMessageChange(e.target.value)}
+  onKeyDown={handleKeyDown}
+  placeholder="Digite sua mensagem... (/* para respostas rápidas)"
+  className="min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-16 overflow-y-auto"
+  rows={1}
+  id="inbox-message-input"
+  autoComplete="off"
+  autoCorrect="off"
+  autoCapitalize="off"
+  spellCheck="false"
+  data-gramm="false"
+  data-gramm_editor="false"
+  data-enable-grammarly="false"
+/>
+
+// (...restante do código inalterado...)
