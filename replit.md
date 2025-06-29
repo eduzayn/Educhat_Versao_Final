@@ -96,6 +96,11 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (22:36): POSICIONAMENTO DOS BOTÕES EMOJI E MICROFONE CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: botões emoji e microfone flutuavam no centro (top-1/2 transform -translate-y-1/2)
+  - Corrigido posicionamento para alinhamento na parte inferior como demais componentes (bottom-3)
+  - Botões agora seguem padrão visual consistente com layout items-end do container principal
+  - Interface alinhada uniformemente com todos os elementos na base da área de digitação
 - June 29, 2025 (22:34): MELHORIAS VISUAIS EXPANDIDAS PARA MAIOR CONFORTO DE DIGITAÇÃO
   - Altura do textarea expandida de 60px-200px para 100px-240px seguindo nova proposta do usuário
   - Padding do container principal otimizado: px-4 pt-2 pb-3 para melhor respiração visual

@@ -416,8 +416,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               data-enable-grammarly="false"
             />
             
-            {/* Botões dentro do textarea - centralizados verticalmente */}
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            {/* Botões dentro do textarea - alinhados na parte inferior */}
+            <div className="absolute right-2 bottom-3 flex items-center gap-1">
               {/* Botão de emoji */}
               <Button
                 variant="ghost"
