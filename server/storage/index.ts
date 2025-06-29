@@ -14,6 +14,7 @@ export { TeamStorage } from './modules/teamStorage';
 export { MessageStorage } from './modules/messageStorage';
 export { ManychatStorage } from './modules/manychatStorage';
 export { FacebookStorage } from './modules/facebookStorage';
+export { UserTagStorage } from './modules/userTagStorage';
 
 export { KeywordRoutingStorage } from './modules/keywordRoutingStorage';
 
@@ -36,6 +37,7 @@ import { TeamStorage } from './modules/teamStorage';
 import { MessageStorage } from './modules/messageStorage';
 import { ManychatStorage } from './modules/manychatStorage';
 import { FacebookStorage } from './modules/facebookStorage';
+import { UserTagStorage } from './modules/userTagStorage';
 
 import { KeywordRoutingStorage } from './modules/keywordRoutingStorage';
 import { SystemStorage } from './modules/systemStorage';
@@ -54,6 +56,7 @@ export class DatabaseStorage implements IStorage {
   private system: SystemStorage;
   public manychat: ManychatStorage;
   public facebook: FacebookStorage;
+  public userTag: UserTagStorage;
 
 
   constructor() {
@@ -70,6 +73,7 @@ export class DatabaseStorage implements IStorage {
     this.system = new SystemStorage();
     this.manychat = new ManychatStorage();
     this.facebook = new FacebookStorage();
+    this.userTag = new UserTagStorage();
 
   }
 

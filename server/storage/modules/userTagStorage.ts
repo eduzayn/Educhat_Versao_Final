@@ -1,5 +1,5 @@
 import { eq, and, desc, sql } from "drizzle-orm";
-import { BaseStorage } from "../BaseStorage";
+import { BaseStorage } from "../base/BaseStorage";
 import { userTags, contactUserTags, type UserTag, type InsertUserTag, type ContactUserTag, type InsertContactUserTag } from "../../../shared/schema";
 
 export class UserTagStorage extends BaseStorage {
