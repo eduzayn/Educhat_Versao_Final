@@ -255,6 +255,24 @@ export const contactNotes = pgTable("contact_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User custom tags table for contact organization
+export const userTags = pgTable("user_tags", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull(), // formato #RRGGBB
+  createdBy: integer("created_by").references(() => systemUsers.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Many-to-many relationship between contacts and user tags
+export const contactUserTags = pgTable("contact_user_tags", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").references(() => contacts.id).notNull(),
+  tagId: integer("tag_id").references(() => userTags.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Notification Preferences table - Controle personalizado de notificações
 export const notificationPreferences = pgTable("notification_preferences", {
   id: serial("id").primaryKey(),
@@ -308,6 +326,26 @@ export const contactsRelations = relations(contacts, ({ many }) => ({
   tags: many(contactTags),
   notes: many(contactNotes),
   deals: many(deals),
+  userTags: many(contactUserTags),
+}));
+
+export const userTagsRelations = relations(userTags, ({ one, many }) => ({
+  creator: one(systemUsers, {
+    fields: [userTags.createdBy],
+    references: [systemUsers.id],
+  }),
+  contactTags: many(contactUserTags),
+}));
+
+export const contactUserTagsRelations = relations(contactUserTags, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [contactUserTags.contactId],
+    references: [contacts.id],
+  }),
+  tag: one(userTags, {
+    fields: [contactUserTags.tagId],
+    references: [userTags.id],
+  }),
 }));
 
 export const dealsRelations = relations(deals, ({ one }) => ({
@@ -465,6 +503,17 @@ export const insertContactNoteSchema = createInsertSchema(contactNotes).omit({
   updatedAt: true,
 });
 
+export const insertUserTagSchema = createInsertSchema(userTags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContactUserTagSchema = createInsertSchema(contactUserTags).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertDealSchema = createInsertSchema(deals).omit({
   id: true,
   createdAt: true,
@@ -512,6 +561,10 @@ export type Channel = typeof channels.$inferSelect;
 export type InsertChannel = z.infer<typeof insertChannelSchema>;
 export type ContactNote = typeof contactNotes.$inferSelect;
 export type InsertContactNote = z.infer<typeof insertContactNoteSchema>;
+export type UserTag = typeof userTags.$inferSelect;
+export type InsertUserTag = z.infer<typeof insertUserTagSchema>;
+export type ContactUserTag = typeof contactUserTags.$inferSelect;
+export type InsertContactUserTag = z.infer<typeof insertContactUserTagSchema>;
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
