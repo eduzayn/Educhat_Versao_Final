@@ -70,7 +70,7 @@ export class UserTagStorage extends BaseStorage {
         eq(userTags.createdBy, userId) // Apenas criador pode deletar
       ));
 
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Aplicar tag a um contato
@@ -109,7 +109,7 @@ export class UserTagStorage extends BaseStorage {
         eq(contactUserTags.tagId, tagId)
       ));
 
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Buscar tags de um contato específico

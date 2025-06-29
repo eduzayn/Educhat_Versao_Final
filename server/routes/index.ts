@@ -25,6 +25,7 @@ import { registerCourseRoutes } from "./courses/index";
 import { registerIntegrationRoutes } from "./integrations/index";
 import notificationPreferencesRoutes from "./notification-preferences/index";
 import { registerLazyLoadingRoutes } from "./conversations/lazy-loading";
+import userTagsRoutes from "./user-tags/index";
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -60,6 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas de preferências de notificação
   app.use('/api/notification-preferences', notificationPreferencesRoutes);
 
+  // Registrar rotas de tags de usuário
+  app.use('/api/user-tags', userTagsRoutes);
 
   // Registrar rotas de keyword routing
   app.use('/api/keyword-routing', (await import('./keywordRouting/index.js')).default);
