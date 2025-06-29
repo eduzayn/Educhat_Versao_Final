@@ -380,6 +380,22 @@ export function InboxPage() {
     }
   }, [searchTerm, searchResults, isSearching]);
 
+  // Log para debug da filtragem
+  useEffect(() => {
+    if (searchTerm && searchTerm.trim() && searchResults) {
+      console.log(`🔍 [InboxPage] Filtragem final:`, {
+        termo: searchTerm,
+        conversasRecebidas: searchResults.length,
+        conversasFiltradas: filteredConversations.length,
+        primeiraConversa: searchResults[0] ? {
+          id: searchResults[0].id,
+          nome: searchResults[0].contact?.name,
+          telefone: searchResults[0].contact?.phone
+        } : null
+      });
+    }
+  }, [searchTerm, searchResults, filteredConversations]);
+
   // Determinar quais conversas usar: busca no banco ou lista local
   const conversationsToFilter = searchTerm && searchTerm.trim() 
     ? (searchResults || []) 
@@ -451,9 +467,9 @@ export function InboxPage() {
     // Validação básica de segurança
     if (!conversation || !conversation.contact) return false;
     
-    // CORREÇÃO: Se há busca ativa, pular filtros de status/aba para mostrar todos os resultados
+    // CORREÇÃO CRÍTICA: Se há busca ativa, mostrar TODOS os resultados sem aplicar nenhum filtro
     if (searchTerm && searchTerm.trim()) {
-      return true; // Mostrar todos os resultados de busca sem filtrar por status/aba
+      return true; // Mostrar todos os resultados de busca sem filtros
     }
     
     // Filtro por aba - conversas reabertas devem aparecer na inbox
