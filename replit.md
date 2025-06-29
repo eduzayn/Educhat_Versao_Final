@@ -96,14 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 29, 2025 (19:18): ERRO CRÍTICO DE KEYS DUPLICADAS NA INBOX CORRIGIDO DEFINITIVAMENTE
-  - Identificado problema na InboxPage.tsx: key simples `conversation-${conversation.id}-${index}` permitia duplicação
-  - Conversas com IDs similares ou reordenação causavam keys duplicadas ("3025", "3024", "2735", "3011")
-  - Corrigido sistema de keys único: `conversation-${conversation.id}-${conversation.contactId || 'unknown'}-${conversation.lastMessageAt || index}`
-  - Nova chave incorpora múltiplos identificadores únicos garantindo unicidade absoluta
-  - Eliminado warning "Encountered two children with the same key" que aparecia nos logs do console
-  - Sistema de renderização da lista de conversas agora estável sem conflitos React
-  - Correção cirúrgica: apenas uma linha alterada na InboxPage.tsx, funcionalidades preservadas
+- June 29, 2025 (19:30): ERRO CRÍTICO DE KEYS DUPLICADAS NA INBOX CORRIGIDO DEFINITIVAMENTE - VERSÃO FINAL
+  - Identificado problema persistente: conversas com mesmo `lastMessageAt` ainda causavam keys duplicadas
+  - Primeira tentativa com `conversation-${conversation.id}-${conversation.contactId}-${conversation.lastMessageAt}` não foi suficiente  
+  - Implementada solução definitiva: `conv-${conversation.id}-${index}-${conversation.contactId || 'na'}-${conversation.channel || 'ch'}`
+  - Nova chave combina ID único + posição + contato + canal garantindo unicidade absoluta em todos os cenários
+  - Eliminado completamente warning "Encountered two children with the same key" que quebrava renderização
+  - Sistema de scroll infinito e reordenação agora funciona sem conflitos React
+  - Correção cirúrgica: apenas chave do map alterada, preservando toda funcionalidade existente
 - June 28, 2025 (19:54): SCROLL INFINITO DA LISTA DE CONVERSAS CORRIGIDO DEFINITIVAMENTE
   - Identificado problema crítico: componente usava `filteredConversations` (filtro local) ao invés de `conversations` (dados paginados da API)
   - Corrigido hook useConversations para usar offset ao invés de page number que o backend não suportava

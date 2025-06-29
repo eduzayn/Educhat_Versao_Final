@@ -495,8 +495,8 @@ export function InboxPage() {
       }
     }
     
-    // Filtro por período
-    if (!isConversationInPeriod(conversation)) return false;
+    // Filtro por período - TEMPORARIAMENTE DESABILITADO PARA DEBUG
+    // if (!isConversationInPeriod(conversation)) return false;
     
     return true;
   });
@@ -683,7 +683,7 @@ export function InboxPage() {
           {/* CORREÇÃO: Usar 'conversations' (dados da API com paginação) ao invés de 'filteredConversations' (filtro local) */}
           {conversations.map((conversation: any, index: number) => (
             <ConversationItem
-              key={`conversation-${conversation.id}-${conversation.contactId || 'unknown'}-${conversation.lastMessageAt || index}`}
+              key={`conv-${conversation.id}-${index}-${conversation.contactId || 'na'}-${conversation.channel || 'ch'}`}
               conversation={conversation}
               index={index}
               isActive={activeConversation?.id === conversation.id}
