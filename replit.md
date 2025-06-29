@@ -96,6 +96,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (19:37): PROBLEMA DE BUSCA DE CONVERSAS CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: campo de busca não funcionava porque a renderização usava dados errados
+  - Causa raiz: linha 684 usava `conversations` (dados paginados) ao invés de `filteredConversations` (inclui busca)
+  - Hook useSearchConversations funcionava corretamente, mas resultados não eram exibidos na interface
+  - Correção aplicada: renderização agora usa `filteredConversations` que inclui resultados da busca
+  - Melhorias adicionais: loading específico para busca e scroll infinito desabilitado durante busca
+  - Sistema de busca agora funciona corretamente: digita nome/telefone/email → exibe resultados instantaneamente
+  - Correção cirúrgica: apenas InboxPage.tsx alterado, preservando todas outras funcionalidades
 - June 29, 2025 (19:32): PROBLEMA CRÍTICO DE MENSAGENS DESAPARECIDAS IDENTIFICADO E RESOLVIDO DEFINITIVAMENTE
   - Identificado problema: mensagens entre 20:36 de ontem e 15:00 de hoje existiam no banco mas não apareciam na interface
   - Causa raiz descoberta: filtro de período na linha 499 do InboxPage.tsx estava ocultando conversas baseado em `lastMessageAt`
