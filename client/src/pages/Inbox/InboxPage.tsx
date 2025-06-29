@@ -711,8 +711,8 @@ export function InboxPage() {
             }
           }}
         >
-          {/* CORREÇÃO: Usar 'conversations' (dados da API com paginação) ao invés de 'filteredConversations' (filtro local) */}
-          {conversations.map((conversation: any, index: number) => (
+          {/* CORREÇÃO: Usar 'filteredConversations' que inclui resultados de busca */}
+          {filteredConversations.map((conversation: any, index: number) => (
             <ConversationItem
               key={`conv-${conversation.id}-${conversation.contactId}-${index}`}
               conversation={conversation}

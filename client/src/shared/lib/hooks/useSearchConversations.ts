@@ -19,9 +19,9 @@ export function useSearchConversations(searchTerm: string) {
       return result;
     },
     enabled: !!searchTerm && searchTerm.trim().length > 0,
-    staleTime: 0, // Sempre buscar dados frescos
-    gcTime: 0, // Sem cache para debug (TanStack Query v5)
-    refetchOnMount: true,
+    staleTime: 1000, // Cache por 1 segundo para evitar requisições excessivas
+    gcTime: 5000, // Manter no cache por 5 segundos
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 }
