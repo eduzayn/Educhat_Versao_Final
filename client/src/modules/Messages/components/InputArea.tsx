@@ -91,8 +91,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = '100px'; // <-- altura mínima aumentada para melhor UX
-      const newHeight = Math.min(Math.max(textarea.scrollHeight, 100), 240); // <-- range expandido
+      textarea.style.height = '60px'; // altura mínima como no original
+      const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200); // range ajustado
       textarea.style.height = `${newHeight}px`;
     }
   }, [message]);
@@ -366,7 +366,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
 
       {/* Layout WhatsApp-like com componentes centralizados verticalmente */}
       <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2">
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-2">
           
           {/* Componentes de upload com renderização imediata - centralizados */}
           <div className="flex items-center gap-1">
@@ -404,7 +404,7 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               onChange={(e) => handleMessageChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem... (/* para respostas rápidas)"
-              className="min-h-[100px] max-h-[240px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-12 overflow-y-auto textarea-bottom-placeholder"
+              className="min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent focus:ring-0 focus:border-0 focus-visible:ring-0 p-3 pr-12 overflow-y-auto textarea-bottom-placeholder"
               rows={1}
               id="inbox-message-input"
               autoComplete="off"
@@ -416,8 +416,8 @@ export function InputArea({ activeConversation }: InputAreaProps) {
               data-enable-grammarly="false"
             />
             
-            {/* Botões dentro do textarea - alinhados na parte inferior */}
-            <div className="absolute right-2 bottom-3 flex items-center gap-1">
+            {/* Botões dentro do textarea - centralizados verticalmente */}
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
               {/* Botão de emoji */}
               <Button
                 variant="ghost"
