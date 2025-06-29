@@ -440,6 +440,11 @@ export function InboxPage() {
     // Validação básica de segurança
     if (!conversation || !conversation.contact) return false;
     
+    // CORREÇÃO: Se há busca ativa, pular filtros de status/aba para mostrar todos os resultados
+    if (searchTerm && searchTerm.trim()) {
+      return true; // Mostrar todos os resultados de busca sem filtrar por status/aba
+    }
+    
     // Filtro por aba - conversas reabertas devem aparecer na inbox
     if (activeTab === 'inbox') {
       const activeStatuses = ['open', 'pending', 'unread'];

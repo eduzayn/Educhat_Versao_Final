@@ -96,6 +96,20 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (20:15): CAMPO DE BUSCA NA INBOX CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema crítico: sistema de busca funcionava no backend mas resultados eram filtrados pelos filtros ativos
+  - Problema: busca por "1933" encontrava conversas mas filtros de aba/status ocultavam os resultados
+  - Correção cirúrgica: lógica modificada para pular filtros quando há busca ativa (`if (searchTerm && searchTerm.trim()) return true`)
+  - Sistema agora mostra TODOS os resultados de busca independente de status, aba ou canal
+  - Funcionalidade de busca 100% operacional: digitar qualquer termo mostra conversas correspondentes
+  - Mantida funcionalidade completa dos filtros quando não há busca ativa
+- June 29, 2025 (20:07): BUG CRÍTICO DE KEYS DUPLICADAS NO REACT CORRIGIDO COMPLETAMENTE  
+  - Identificado problema: keys duplicadas na lista de conversas causando warnings React
+  - Keys antigas: `conversation-${conversation.id}-${index}` geravam duplicatas com timestamps similares
+  - Correção aplicada: key melhorada para `conv-${conversation.id}-${conversation.contactId}-${index}`
+  - Sistema de deduplicação em mensagens já funcionando corretamente
+  - Eliminado erro React: "Encountered two children with the same key"
+  - Interface agora renderiza sem warnings React no console
 - June 28, 2025 (19:54): SCROLL INFINITO DA LISTA DE CONVERSAS CORRIGIDO DEFINITIVAMENTE
   - Identificado problema crítico: componente usava `filteredConversations` (filtro local) ao invés de `conversations` (dados paginados da API)
   - Corrigido hook useConversations para usar offset ao invés de page number que o backend não suportava
