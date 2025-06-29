@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
 import { Edit2, DollarSign } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/shared/lib/hooks/use-toast';
-import { getAllCategories, getStagesForCategory } from '@/lib/crmFunnels';
+import { getAllCategories, getStagesForCategory } from '@/shared/lib/crmFunnels';
 
 interface QuickDealEditProps {
   deal: any;
@@ -19,8 +21,10 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
   const [formData, setFormData] = useState({
     name: deal?.name || '',
     value: deal?.value ? (deal.value / 100).toString() : '0',
-    category: deal?.category || '',
-    stage: deal?.stage || ''
+    category: deal?.category || deal?.teamType || '',
+    stage: deal?.stage || '',
+    course: deal?.course || '',
+    notes: deal?.notes || ''
   });
 
   const { toast } = useToast();
@@ -34,8 +38,10 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
       setFormData({
         name: deal.name || '',
         value: deal.value ? (deal.value / 100).toString() : '0',
-        category: deal.category || '',
-        stage: deal.stage || ''
+        category: deal.category || deal.teamType || '',
+        stage: deal.stage || '',
+        course: deal.course || '',
+        notes: deal.notes || ''
       });
     }
   }, [deal]);
@@ -75,7 +81,10 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
       name: formData.name.trim(),
       value: Math.round(parseFloat(formData.value || '0') * 100),
       category: formData.category,
-      stage: formData.stage
+      teamType: formData.category, // Para compatibilidade
+      stage: formData.stage,
+      course: formData.course,
+      notes: formData.notes
     };
 
     updateDealMutation.mutate(updates);
@@ -202,7 +211,7 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
               <SelectContent>
                 {allCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
-                    {category.name}
+                    {category.info.name.toUpperCase()}
                   </SelectItem>
                 ))}
               </SelectContent>
