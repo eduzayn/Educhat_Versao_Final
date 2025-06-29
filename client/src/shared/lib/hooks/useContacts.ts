@@ -11,11 +11,10 @@ export function useContacts(search?: string, page: number = 1, limit: number = 2
       if (search) params.append('search', search);
       params.append('page', page.toString());
       params.append('limit', limit.toString());
-      
+
       const url = `/api/contacts?${params.toString()}`;
       const data = await apiRequest('GET', url);
-      
-      // Retornar objeto com dados de paginação
+
       return {
         data: Array.isArray(data.data) ? data.data : [],
         total: data.total || 0,
@@ -24,8 +23,8 @@ export function useContacts(search?: string, page: number = 1, limit: number = 2
         totalPages: data.totalPages || 1
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
-    gcTime: 10 * 60 * 1000, // 10 minutos no garbage collector
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: 3,
     refetchOnWindowFocus: false,
     refetchOnMount: true
@@ -47,7 +46,7 @@ export function useContact(id: number | null) {
 
 export function useCreateContact() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (contact: InsertContact) => {
       const response = await apiRequest('POST', '/api/contacts', contact);
@@ -61,7 +60,7 @@ export function useCreateContact() {
 
 export function useUpdateContact() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ id, contact }: { id: number; contact: Partial<InsertContact> }) => {
       const response = await apiRequest('PUT', `/api/contacts/${id}`, contact);
@@ -76,7 +75,7 @@ export function useUpdateContact() {
 
 export function useDeleteContact() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('DELETE', `/api/contacts/${id}`);
@@ -88,7 +87,6 @@ export function useDeleteContact() {
   });
 }
 
-// Z-API specific hooks (mantidas para configurações avançadas)
 export function useZApiContacts(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ['/api/zapi/contacts', { page, pageSize }],
@@ -98,7 +96,7 @@ export function useZApiContacts(page = 1, pageSize = 20) {
       return response.json();
     },
     retry: 2,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -123,7 +121,7 @@ export function useBlockContact() {
 export function useImportZApiContacts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/zapi/import-contacts');
@@ -146,10 +144,9 @@ export function useImportZApiContacts() {
   });
 }
 
-// Hook para sincronizar mensagens perdidas da Z-API
 export function useSyncZApiMessages() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async ({ since, phone }: { since?: string; phone?: string } = {}) => {
       const response = await apiRequest('POST', '/api/zapi/sync-messages', { since, phone });
@@ -171,13 +168,12 @@ export function useSyncZApiMessages() {
   });
 }
 
-// Hook to get contact metadata from Z-API
 export function useZApiContactMetadata(phone: string | null) {
   return useQuery({
     queryKey: ['/api/zapi/contacts', phone],
     queryFn: async () => {
       if (!phone) throw new Error('Phone number is required');
-      
+
       const response = await fetch(`/api/zapi/contacts/${phone}`);
       if (!response.ok) {
         throw new Error('Failed to fetch contact metadata');
@@ -185,18 +181,17 @@ export function useZApiContactMetadata(phone: string | null) {
       return response.json();
     },
     enabled: !!phone,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 2
   });
 }
 
-// Hook to get updated profile picture from Z-API
 export function useZApiProfilePicture(phone: string | null) {
   return useQuery({
     queryKey: ['/api/zapi/profile-picture', phone],
     queryFn: async () => {
       if (!phone) throw new Error('Phone number is required');
-      
+
       const response = await fetch(`/api/zapi/profile-picture?phone=${encodeURIComponent(phone)}`);
       if (!response.ok) {
         throw new Error('Failed to fetch profile picture');
@@ -204,7 +199,7 @@ export function useZApiProfilePicture(phone: string | null) {
       return response.json();
     },
     enabled: !!phone,
-    staleTime: 30 * 60 * 1000, // Cache for 30 minutes since pictures don't change often
+    staleTime: 30 * 60 * 1000,
     retry: 2
   });
 }
