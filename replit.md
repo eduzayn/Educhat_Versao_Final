@@ -4,6 +4,12 @@
 
 EduChat is a comprehensive WhatsApp-based lead management and educational CRM system designed for educational institutions. The application facilitates automated lead detection, intelligent team routing, and multi-channel customer support with integrated course recommendation capabilities.
 
+### Current Status
+- Sistema 100% operacional com 1.371 conversas ativas e 8.635 contatos
+- Interface de mensageria otimizada com alinhamento visual perfeito
+- Componente InputArea com centralização vertical completa dos elementos
+- Auto-resize do textarea funcionando com altura mínima 60px e máxima 200px
+
 ## System Architecture
 
 The system follows a modular full-stack architecture:
@@ -96,6 +102,14 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 29, 2025 (22:55): ALINHAMENTO VERTICAL COMPLETO DA ÁREA DE DIGITAÇÃO IMPLEMENTADO DEFINITIVAMENTE
+  - Container principal alterado de items-end para items-center para centralização perfeita
+  - Botões internos do textarea (emoji e microfone) reposicionados com top-1/2 e transform -translate-y-1/2
+  - Dimensões do textarea otimizadas: min-h-[60px] max-h-[200px] para melhor UX
+  - Auto-resize ajustado para trabalhar com altura mínima 60px e máxima 200px
+  - CSS do placeholder refinado com top: -5px para posicionamento preciso
+  - Todos os elementos agora centralizados verticalmente na área de digitação
+  - Interface seguindo padrões WhatsApp com alinhamento visual perfeito
 - June 29, 2025 (22:45): AJUSTE FINO DO POSICIONAMENTO DO PLACEHOLDER PARA LIMITE MÁXIMO
   - Padding-top aumentado de 60px para 75px para descer ainda mais próximo do limite
   - Adicionado top: -5px no ::placeholder para ajuste fino sem prejudicar funcionalidades

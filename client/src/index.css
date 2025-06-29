@@ -40,7 +40,12 @@
   display: flex;
   align-items: flex-end;
   line-height: 1.5;
-  padding-top: 75px; /* Força o texto a descer mais próximo do limite */
+  padding-top: 75px; /* Posicionamento otimizado no limite máximo inferior */
+}
+
+.textarea-bottom-placeholder::placeholder {
+  position: relative;
+  top: -5px; /* Ajuste fino para posicionamento preciso */
 }
 
 .textarea-bottom-placeholder:focus,
