@@ -9,9 +9,9 @@ interface ConversationFilters {
   unassigned?: boolean;
 }
 
-export function useConversations(initialLimit = 10, filters: ConversationFilters = {}, options = {}) {
-  // OTIMIZAÇÃO: Reduzir limite inicial para carregamento mais rápido
-  const optimizedInitialLimit = Math.min(initialLimit, 10); // Máximo 10 conversas iniciais
+export function useConversations(initialLimit = 20, filters: ConversationFilters = {}, options = {}) {
+  // OTIMIZAÇÃO: Usar limite solicitado respeitando máximo razoável
+  const optimizedInitialLimit = Math.min(initialLimit, 50); // Máximo 50 conversas iniciais para flexibilidade
   
   // Construir parâmetros de filtro para a URL - CORREÇÃO: usar offset ao invés de page
   const buildFilterParams = (offset: number) => {
