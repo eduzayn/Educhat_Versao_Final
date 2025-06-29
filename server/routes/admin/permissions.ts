@@ -14,7 +14,6 @@ export interface AuthenticatedRequest extends Request {
     roleId: number;
     dataKey?: string;
     channels: string[];
-    macrosetores: string[];
     teamId?: number | null;
     team?: string | null;
   } | undefined;
