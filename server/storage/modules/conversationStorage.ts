@@ -1061,6 +1061,8 @@ export class ConversationStorage extends BaseStorage {
       .orderBy(desc(contacts.createdAt))
       .limit(50); // Limitar contatos sem conversas
 
+
+
     // 3. Transformar conversas existentes
     const formattedExistingConversations = existingConversations.map(result => ({
       ...result,
