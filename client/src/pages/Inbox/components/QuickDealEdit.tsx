@@ -242,6 +242,29 @@ export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
             </div>
           )}
 
+          <div>
+            <Label htmlFor="course">Curso de Interesse</Label>
+            <Input
+              id="course"
+              value={formData.course}
+              onChange={(e) => setFormData(prev => ({ ...prev, course: e.target.value }))}
+              placeholder="Ex: MBA em Gestão Empresarial"
+              disabled={updateDealMutation.isPending}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Observações sobre o negócio..."
+              className="min-h-[80px]"
+              disabled={updateDealMutation.isPending}
+            />
+          </div>
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               variant="outline"
