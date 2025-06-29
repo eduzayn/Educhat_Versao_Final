@@ -380,22 +380,6 @@ export function InboxPage() {
     }
   }, [searchTerm, searchResults, isSearching]);
 
-  // Log para debug da filtragem
-  useEffect(() => {
-    if (searchTerm && searchTerm.trim() && searchResults) {
-      console.log(`🔍 [InboxPage] Filtragem final:`, {
-        termo: searchTerm,
-        conversasRecebidas: searchResults.length,
-        conversasFiltradas: filteredConversations.length,
-        primeiraConversa: searchResults[0] ? {
-          id: searchResults[0].id,
-          nome: searchResults[0].contact?.name,
-          telefone: searchResults[0].contact?.phone
-        } : null
-      });
-    }
-  }, [searchTerm, searchResults, filteredConversations]);
-
   // Determinar quais conversas usar: busca no banco ou lista local
   const conversationsToFilter = searchTerm && searchTerm.trim() 
     ? (searchResults || []) 
@@ -533,6 +517,21 @@ export function InboxPage() {
     return true;
   });
 
+  // Log para debug da filtragem final
+  useEffect(() => {
+    if (searchTerm && searchTerm.trim() && searchResults) {
+      console.log(`🔍 [InboxPage] Filtragem final:`, {
+        termo: searchTerm,
+        conversasRecebidas: searchResults.length,
+        conversasFiltradas: filteredConversations.length,
+        primeiraConversa: searchResults[0] ? {
+          id: searchResults[0].id,
+          nome: searchResults[0].contact?.name,
+          telefone: searchResults[0].contact?.phone
+        } : null
+      });
+    }
+  }, [searchTerm, searchResults, filteredConversations]);
 
 
   const getChannelInfo = (channel: string) => {
