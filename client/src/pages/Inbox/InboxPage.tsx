@@ -641,6 +641,35 @@ export function InboxPage() {
           onSearchChange={setSearchTerm}
           onNewContactClick={() => setIsModalOpen(true)}
           onRefresh={() => refetch()}
+          onForceSync={async () => {
+            try {
+              console.log('🔄 SINCRONIZAÇÃO URGENTE: Forçando atualização de mensagens não exibidas...');
+              toast({
+                title: "🔄 Sincronizando...",
+                description: "Buscando mensagens não exibidas no banco de dados",
+              });
+              
+              // Forçar atualização do cache React Query
+              const queryClient = useQueryClient();
+              await queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+              await queryClient.refetchQueries({ queryKey: ['/api/conversations'] });
+              
+              toast({
+                title: "✅ Sincronização Concluída",
+                description: "Mensagens não exibidas devem aparecer agora. Se o problema persistir, recarregue a página.",
+              });
+              
+              console.log('✅ SINCRONIZAÇÃO URGENTE: Cache invalidado e atualizado');
+              
+            } catch (error) {
+              console.error('❌ ERRO na sincronização urgente:', error);
+              toast({
+                title: "❌ Erro na Sincronização",
+                description: "Erro ao sincronizar mensagens. Tente recarregar a página.",
+                variant: "destructive",
+              });
+            }
+          }}
           onPeriodFilterChange={setPeriodFilter}
           onCustomDateChange={handleCustomDateChange}
         />
