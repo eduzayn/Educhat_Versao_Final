@@ -29,6 +29,7 @@ import { InlineEditField } from './InlineEditField';
 
 import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
+import { ContactTagsManager } from '@/components/ContactTagsManager';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/shared/lib/crmFunnels';
@@ -383,6 +384,11 @@ export function ContactSidebar({
             })()
           ) : null}
         </div>
+
+        {/* 🏷️ Sistema de Tags */}
+        {activeConversation.contact?.id && (
+          <ContactTagsManager contactId={activeConversation.contact.id} />
+        )}
 
         {/* 💼 Negócios */}
         <div className="space-y-3">
