@@ -7,7 +7,6 @@ import { useToast } from '@/shared/lib/hooks/use-toast';
 export function useUserTags() {
   return useQuery({
     queryKey: ['/api/user-tags'],
-    queryFn: () => apiRequest('/api/user-tags'),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }
@@ -16,7 +15,6 @@ export function useUserTags() {
 export function useUserTagStats() {
   return useQuery({
     queryKey: ['/api/user-tags/stats'],
-    queryFn: () => apiRequest('/api/user-tags/stats'),
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 }
@@ -25,7 +23,6 @@ export function useUserTagStats() {
 export function useContactTags(contactId: number) {
   return useQuery({
     queryKey: ['/api/user-tags/contacts', contactId],
-    queryFn: () => apiRequest(`/api/user-tags/contacts/${contactId}`),
     enabled: !!contactId,
     staleTime: 30 * 1000, // 30 segundos
   });
