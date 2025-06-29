@@ -40,7 +40,7 @@
   display: flex;
   align-items: flex-end;
   line-height: 1.5;
-  padding-top: 60px; /* Força o texto a começar na parte inferior */
+  padding-top: 75px; /* Força o texto a descer mais próximo do limite */
 }
 
 .textarea-bottom-placeholder:focus,
@@ -52,6 +52,8 @@
 .textarea-bottom-placeholder::placeholder {
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
+  position: relative;
+  top: -5px; /* Ajuste fino para descer mais sem cortar o texto */
 }
 
 /* Animações elegantes para emoji picker */
