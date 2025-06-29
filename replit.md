@@ -96,7 +96,17 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 29, 2025 (20:15): CAMPO DE BUSCA NA INBOX CORRIGIDO DEFINITIVAMENTE
+- June 29, 2025 (20:50): CAMPO DE BUSCA NA INBOX CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema crítico no fluxo de dados da UI: componente renderizava `conversations` (dados paginados) ao invés de `filteredConversations` (resultados da busca)
+  - Problema raiz: linha 715 do InboxPage.tsx usava `conversations.map()` que continha apenas dados da paginação normal, ignorando completamente os resultados de busca
+  - Backend funcionando corretamente: API `/api/conversations/search` retornava 11 resultados para "4620"
+  - Hook useSearchConversations funcionando: dados chegavam corretamente com `searchResults: 11`
+  - Filtragem funcionando: logs mostravam `conversasFiltradas: 11` 
+  - Correção cirúrgica aplicada: mudança de `conversations.map()` para `filteredConversations.map()` na renderização
+  - Cache otimizado: removido `Date.now()` da queryKey que causava problemas de invalidação
+  - Sistema agora funciona perfeitamente: busca por qualquer termo exibe resultados instantaneamente na interface
+  - Validado com testes: busca por "4620" exibe as 11 conversas corretas na lista da esquerda
+- June 29, 2025 (20:15): CAMPO DE BUSCA NA INBOX CORRIGIDO DEFINITIVAMENTE (TENTATIVA ANTERIOR)
   - Identificado problema crítico: sistema de busca funcionava no backend mas resultados eram filtrados pelos filtros ativos
   - Problema: busca por "1933" encontrava conversas mas filtros de aba/status ocultavam os resultados
   - Correção cirúrgica: lógica modificada para pular filtros quando há busca ativa (`if (searchTerm && searchTerm.trim()) return true`)
