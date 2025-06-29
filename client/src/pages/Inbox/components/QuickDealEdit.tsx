@@ -15,10 +15,9 @@ import { useDynamicFunnels } from '@/hooks/useDynamicFunnels';
 interface QuickDealEditProps {
   deal: any;
   contactId: number;
-  onDealUpdated?: () => void; // Callback para recarregar deals
 }
 
-export function QuickDealEdit({ deal, contactId, onDealUpdated }: QuickDealEditProps) {
+export function QuickDealEdit({ deal, contactId }: QuickDealEditProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: deal?.name || '',
@@ -59,12 +58,6 @@ export function QuickDealEdit({ deal, contactId, onDealUpdated }: QuickDealEditP
       });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       queryClient.invalidateQueries({ queryKey: [`/api/contacts/${contactId}/deals`] });
-      
-      // Chamar callback para recarregar deals no estado local do InboxPage
-      if (onDealUpdated) {
-        onDealUpdated();
-      }
-      
       setIsOpen(false);
     },
     onError: () => {

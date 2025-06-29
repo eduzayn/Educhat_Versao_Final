@@ -9,8 +9,7 @@ import {
   Plus,
   AlertCircle,
   RefreshCw,
-  Calendar,
-  Zap
+  Calendar
 } from 'lucide-react';
 import { ZApiStatusIndicator } from '@/modules/Settings/ChannelsSettings/components/ZApiStatusIndicator';
 import { formatDateForInput, parseInputDate } from '@/shared/lib/utils/formatters';
@@ -26,7 +25,6 @@ interface ConversationListHeaderProps {
   onSearchChange: (value: string) => void;
   onNewContactClick: () => void;
   onRefresh?: () => void;
-  onForceSync?: () => void;
   onPeriodFilterChange: (value: string) => void;
   onCustomDateChange: (from?: Date, to?: Date) => void;
 }
@@ -42,7 +40,6 @@ export function ConversationListHeader({
   onSearchChange,
   onNewContactClick,
   onRefresh,
-  onForceSync,
   onPeriodFilterChange,
   onCustomDateChange
 }: ConversationListHeaderProps) {
@@ -63,17 +60,6 @@ export function ConversationListHeader({
               onClick={onRefresh}
             >
               <RefreshCw className="w-4 h-4" />
-            </Button>
-          )}
-          {onForceSync && (
-            <Button 
-              size="sm" 
-              variant="outline"
-              title="🔄 EMERGÊNCIA: Sincronizar mensagens não exibidas"
-              onClick={onForceSync}
-              className="border-orange-500 text-orange-600 hover:bg-orange-50"
-            >
-              <Zap className="w-4 h-4" />
             </Button>
           )}
           <Button 

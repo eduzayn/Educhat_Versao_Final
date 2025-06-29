@@ -83,7 +83,6 @@ interface ContactSidebarProps {
   contactDeals: any[];
   contactInterests: any[];
   onAddNote: (note: string) => void;
-  onDealUpdated?: () => void; // Callback para recarregar deals
 }
 
 export function ContactSidebar({ 
@@ -91,8 +90,7 @@ export function ContactSidebar({
   contactNotes, 
   contactDeals, 
   contactInterests, 
-  onAddNote,
-  onDealUpdated
+  onAddNote 
 }: ContactSidebarProps) {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [newNote, setNewNote] = useState('');
@@ -548,7 +546,6 @@ export function ContactSidebar({
                   key={deal.id}
                   deal={deal}
                   contactId={activeConversation.contact?.id}
-                  onDealUpdated={onDealUpdated}
                 />
               ))}
             </div>
