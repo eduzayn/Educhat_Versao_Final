@@ -102,11 +102,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
-- June 29, 2025 (23:03): ALINHAMENTO DOS BOTÕES NO LIMITE INFERIOR DO TEXTAREA CORRIGIDO DEFINITIVAMENTE
-  - Botões emoji e microfone reposicionados de top-1/2 transform -translate-y-1/2 para bottom-2
-  - Ícones agora ficam "apoiados" no limite inferior do textarea seguindo padrão WhatsApp
-  - Posicionamento visual perfeito: botões sempre na base independente da altura do textarea
-  - Interface final: todos os elementos alinhados corretamente como solicitado pelo usuário
+- June 29, 2025 (23:07): TODOS OS ELEMENTOS ALINHADOS NA BASE DA ÁREA DE DIGITAÇÃO CORRIGIDO COMPLETAMENTE
+  - Container principal alterado de items-center para items-end para alinhamento consistente na base
+  - Botões emoji e microfone (internos) com bottom-2 para ficar no limite inferior do textarea
+  - Botões nota interna e envio (externos) alinhados na base junto com demais elementos
+  - Resultado final: todos os componentes (upload, textarea, botões) alinhados na parte inferior
+  - Interface seguindo exatamente o padrão WhatsApp com elementos apoiados na base
 - June 29, 2025 (22:55): ALINHAMENTO VERTICAL COMPLETO DA ÁREA DE DIGITAÇÃO IMPLEMENTADO DEFINITIVAMENTE
   - Container principal alterado de items-end para items-center para centralização perfeita
   - Botões internos do textarea (emoji e microfone) reposicionados com top-1/2 e transform -translate-y-1/2
