@@ -110,6 +110,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:07): ORDENAÇÃO ALFABÉTICA DOS CARDS DE EQUIPES IMPLEMENTADA COMPLETAMENTE
+  - Aplicada ordenação alfabética em todas as listas de cards de equipes do sistema
+  - TeamsTab.tsx: ordenação usando localeCompare('pt-BR') para respeitar acentuação portuguesa
+  - TeamsPage.tsx: cards principais ordenados alfabeticamente na grade de exibição
+  - TeamTransferPage.tsx: colunas de transferência organizadas em ordem alfabética
+  - Correção cirúrgica: apenas adicionado .sort() antes do .map() em cada componente
+  - Interface mais organizada: usuário encontra equipes rapidamente em ordem alfabética
 - June 30, 2025 (03:01): LIMPEZA SEGURA DE CÓDIGO REDUNDANTE EXECUTADA COM SUCESSO
   - Removidos endpoints duplicados PUT e DELETE /api/teams/:id do utilities/index.ts
   - Mantidos apenas endpoints especializados em teams/index.ts com validações e logs adequados

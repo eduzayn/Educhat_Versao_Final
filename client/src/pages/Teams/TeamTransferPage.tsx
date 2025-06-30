@@ -554,7 +554,7 @@ export default function TeamTransferPage() {
           </Droppable>
 
           {/* Colunas para cada equipe */}
-          {teams.map((team: Team) => (
+          {teams.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map((team: Team) => (
             <Droppable key={team.id} droppableId={team.id.toString()}>
               {(provided) => (
                 <Card className="h-fit min-h-[400px]" ref={provided.innerRef} {...provided.droppableProps}>

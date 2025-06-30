@@ -269,7 +269,7 @@ export default function TeamsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {teams?.map((team) => (
+              {teams?.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map((team) => (
                 <Card key={team.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">

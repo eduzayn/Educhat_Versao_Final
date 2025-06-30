@@ -299,7 +299,7 @@ export const TeamsTab = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {teams.map((team: Team) => (
+          {teams.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map((team: Team) => (
             <Card key={`team-${team.id}`} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
