@@ -110,6 +110,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:33): TABELA HANDOFFS REMOVIDA COMPLETAMENTE DO BANCO DE DADOS
+  - Executado DROP TABLE handoffs CASCADE para eliminar sistema obsoleto
+  - Correção definitiva do erro 500 de exclusão de equipes implementada no teamStorage.ts
+  - Método deleteTeam atualizado para limpar todas as dependências FK: conversas, transferências, membros, quick replies, usuários
+  - Sistema de exclusão de equipes agora funciona sem conflitos de foreign key
+  - Logs detalhados adicionados para rastreamento de exclusões
 - June 30, 2025 (03:28): ORDENAÇÃO ALFABÉTICA COMPLETA EM TODOS OS MÓDULOS BI IMPLEMENTADA DEFINITIVAMENTE
   - Aplicada ordenação alfabética nos 3 módulos BI restantes: TeamPerformanceModule, ProductivityModule, SatisfactionModule
   - Todas as listas de equipes nos selects de filtros agora usam .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
