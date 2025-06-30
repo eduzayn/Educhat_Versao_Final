@@ -140,7 +140,7 @@ export function AdvancedFiltersPanel({
             >
               <option value="all">Todas as equipes</option>
               <option value="unassigned">Sem equipe</option>
-              {(teams || []).filter(t => t.isActive).map(team => (
+              {(teams || []).filter(t => t.isActive).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(team => (
                 <option key={team.id} value={team.id.toString()}>
                   {team.name}
                 </option>

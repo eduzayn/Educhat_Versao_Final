@@ -863,7 +863,7 @@ export default function QuickRepliesSettingsPage() {
                             Nenhuma equipe disponível
                           </p>
                         ) : (
-                          teams.map((team: any) => (
+                          teams.sort((a: any, b: any) => a.name.localeCompare(b.name, 'pt-BR')).map((team: any) => (
                             <div key={team.id} className="flex items-center space-x-2 py-1">
                               <input
                                 type="checkbox"
