@@ -136,7 +136,7 @@ export function InfoPanel() {
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((member, index) => (
                   <div
-                    key={`member-${member.id}-${member.username}-${index}`}
+                    key={`member-${member.id}-${member.username}-${member.displayName}-${index}-${Math.random().toString(36).substr(2, 9)}`}
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
                   >
                     <div className="relative flex-shrink-0">

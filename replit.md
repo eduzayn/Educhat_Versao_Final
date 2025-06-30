@@ -110,6 +110,15 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (02:46): CORREÇÃO CRÍTICA DO SISTEMA DE FILTROS DA CAIXA DE ENTRADA IMPLEMENTADA DEFINITIVAMENTE
+  - Identificado problema crítico: dupla filtragem (backend parcial + frontend completo) causando inconsistências
+  - Implementado novo método getConversationsWithFilters() no backend com TODOS os filtros: userId, teamId, status, channel, channelId, tagId, dateFrom, dateTo
+  - Frontend simplificado: removida toda filtragem local exceto validação de segurança e filtro de aba (inbox vs resolved)
+  - Hook useConversations atualizado para enviar todos os filtros ativos como apiFilters para o backend
+  - Sistema agora processa TODOS os filtros no backend eliminando inconsistências entre UI e dados
+  - Correção de erro "member-84" keys duplicadas no InfoPanel do chat interno com keys únicos compostos
+  - Filtros testados e funcionando: usuário atribuído (Tati Corsi 118 conversas), equipe, status, canal, tags, período
+  - Sistema unificado: uma única fonte de verdade para filtragem de conversas
 - June 30, 2025 (00:42): CORREÇÃO CRÍTICA SISTEMA PERMISSÕES PARA ADMINISTRADORES E GERENTES
   - Identificado problema: roles "Administrador" e "Gerente" não reconhecidos pelo sistema de permissões
   - Corrigido roleBasedPermissions.ts para incluir roles com maiúscula do banco de dados

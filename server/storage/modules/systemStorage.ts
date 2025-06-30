@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { systemUsers, systemSettings, roles, type SystemUser, type InsertSystemUser, type SystemSetting, type InsertSystemSetting, type Role, type InsertRole } from "../../../shared/schema";
-import { eq, desc, ilike, or } from "drizzle-orm";
+import { eq, desc, ilike, or, asc, sql } from "drizzle-orm";
 
 /**
  * System storage module - manages system users, settings and roles
@@ -8,7 +8,9 @@ import { eq, desc, ilike, or } from "drizzle-orm";
 export class SystemStorage extends BaseStorage {
   // ==================== SYSTEM USERS ====================
   async getSystemUsers(): Promise<SystemUser[]> {
-    return this.db.select().from(systemUsers).orderBy(desc(systemUsers.createdAt));
+    return this.db.select().from(systemUsers).orderBy(
+      asc(sql`COALESCE(${systemUsers.displayName}, ${systemUsers.username})`)
+    );
   }
 
   async getSystemUser(id: number): Promise<SystemUser | undefined> {
