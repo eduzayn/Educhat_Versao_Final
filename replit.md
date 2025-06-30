@@ -110,6 +110,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:40): LIMPEZA DE CÓDIGO DUPLICADO DO CRM E CORREÇÕES DE DRAG & DROP IMPLEMENTADAS
+  - Removido arquivo duplicado client/src/lib/crmFunnels.ts (mantido apenas shared/lib/crmFunnels.ts)
+  - Corrigido DragDropContext removendo enableDefaultSensors={false} que impedia funcionamento do drag & drop
+  - Melhorado cursor visual dos cards: cursor-grab e cursor-grabbing para feedback adequado
+  - Sistema drag & drop do CRM kanban agora funciona corretamente para movimentação de cards entre colunas
+  - Eliminada duplicação de código sem comprometer funcionalidades existentes
 - June 30, 2025 (03:33): TABELA HANDOFFS REMOVIDA COMPLETAMENTE DO BANCO DE DADOS
   - Executado DROP TABLE handoffs CASCADE para eliminar sistema obsoleto
   - Correção definitiva do erro 500 de exclusão de equipes implementada no teamStorage.ts

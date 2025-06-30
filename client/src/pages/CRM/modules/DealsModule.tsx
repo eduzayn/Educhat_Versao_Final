@@ -90,8 +90,8 @@ function KanbanColumn({
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab ${
-                      snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50' : ''
+                    className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${
+                      snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50 cursor-grabbing' : ''
                     }`}
                     style={{
                       ...provided.draggableProps.style,
@@ -559,7 +559,7 @@ export function DealsModule() {
 
       <div className="overflow-hidden">
         {viewMode === 'kanban' ? (
-          <DragDropContext onDragEnd={handleDragEnd} enableDefaultSensors={false}>
+          <DragDropContext onDragEnd={handleDragEnd}>
             <div className="h-full">
               <div className="flex gap-4 h-full pb-4 deals-kanban-container">
                 {currentTeamCategory.stages.map((stage: any) => {
