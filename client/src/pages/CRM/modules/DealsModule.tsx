@@ -423,6 +423,26 @@ export function DealsModule() {
     }
   };
 
+  // Handle edit deal form submission
+  const handleEditDealSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const dealData = {
+      id: editingDeal.id,
+      name: formData.get('name') as string,
+      value: Math.round((parseFloat(formData.get('value') as string) || 0) * 100),
+      company: formData.get('company') as string,
+      probability: parseInt(formData.get('probability') as string) || 50,
+      expectedCloseDate: formData.get('expectedCloseDate') as string || null,
+      description: formData.get('description') as string,
+    };
+
+    editDealMutation.mutate(dealData);
+  };
+
+
+
   const filtered = deals.filter((deal: any) =>
     deal.name.toLowerCase().includes(search.toLowerCase()) ||
     deal.company.toLowerCase().includes(search.toLowerCase())
@@ -620,6 +640,87 @@ export function DealsModule() {
                     </Button>
                     <Button type="submit" disabled={createDealMutation.isPending}>
                       {createDealMutation.isPending ? 'Criando...' : 'Criar Negócio'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Modal de Edição de Negócio */}
+            <Dialog open={isEditDealDialogOpen} onOpenChange={setIsEditDealDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Editar Negócio</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleEditDealSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Nome do Negócio</Label>
+                    <Input
+                      name="name"
+                      defaultValue={editingDeal?.name || ''}
+                      placeholder="Ex: Venda de Curso de Marketing"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="value">Valor (R$)</Label>
+                    <Input
+                      name="value"
+                      type="number"
+                      step="0.01"
+                      defaultValue={editingDeal?.value ? (editingDeal.value / 100).toString() : ''}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="company">Empresa</Label>
+                    <Input
+                      name="company"
+                      defaultValue={editingDeal?.company || ''}
+                      placeholder="Nome da empresa"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="probability">Probabilidade (%)</Label>
+                    <Input
+                      name="probability"
+                      type="number"
+                      min="0"
+                      max="100"
+                      defaultValue={editingDeal?.probability || 50}
+                      placeholder="50"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="expectedCloseDate">Data Prevista de Fechamento</Label>
+                    <Input
+                      name="expectedCloseDate"
+                      type="date"
+                      defaultValue={editingDeal?.expectedCloseDate ? new Date(editingDeal.expectedCloseDate).toISOString().split('T')[0] : ''}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Descrição</Label>
+                    <Textarea
+                      name="description"
+                      defaultValue={editingDeal?.description || ''}
+                      placeholder="Detalhes sobre o negócio..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditDealDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={editDealMutation.isPending}>
+                      {editDealMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                     </Button>
                   </div>
                 </form>
