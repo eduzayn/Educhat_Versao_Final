@@ -1,0 +1,62 @@
+Verificação e Correção do Recurso de Arrastar Negócios no CRM (Drag & Drop)
+📌 Problema
+O recurso de arrastar e soltar os cards de negócios (drag and drop) no Kanban do CRM não está funcionando. Ao tentar mover um card de uma etapa (ex: “Prospecção”) para outra (ex: “Em Andamento” ou “Resolvido”), nada acontece visualmente e a etapa do negócio permanece a mesma.
+
+Esse problema prejudica a operação da equipe de vendas e suporte, que depende desse recurso para avançar os negócios nos funis de atendimento.
+
+✅ O que precisa ser feito
+1. Verificar o funcionamento do drag and drop no CRM
+Identificar o componente responsável pela interface de arraste (ex: react-beautiful-dnd, dnd-kit, sortablejs, etc.).
+
+Verificar se o evento onDragEnd está sendo corretamente disparado ao soltar um card.
+
+Confirmar se o sistema está fazendo a requisição de atualização de etapa (stageId) corretamente após o arraste.
+
+2. Checar se a requisição está indo para o backend
+A API para atualização da etapa de um negócio deve ser chamada com o novo stageId e dealId.
+
+Verificar via dev tools ou console se a chamada está:
+
+Sendo feita corretamente;
+
+Retornando erro ou sucesso;
+
+Sendo ignorada silenciosamente.
+
+3. Verificar permissões e regras
+Certificar-se de que o usuário logado tem permissão para mover o negócio de etapa.
+
+Validar se há alguma regra de bloqueio (por exemplo, campos obrigatórios ou status que impeçam movimentação sem aviso claro ao usuário).
+
+4. Garantir atualização visual após sucesso
+Após o sucesso da requisição, o frontend deve:
+
+Atualizar o deal.stage localmente;
+
+Atualizar o cache da listagem (react-query, Zustand ou equivalente);
+
+Renderizar corretamente o card na nova coluna.
+
+5. Verificar conflitos com outras partes do sistema
+Validar se o evento de drag ou drop não está sendo bloqueado por outro handler ou listener global (ex: modais, tooltips, camadas acima).
+
+Confirmar se os dados do negócio não estão sendo sobrescritos por revalidações visuais automáticas (revalidação de cache ou efeito de polling).
+
+🔒 Requisitos de segurança
+⚠️ IMPORTANTE: Nenhuma parte do CRM pode ser afetada negativamente pela correção, especialmente:
+
+A criação manual e automática de negócios;
+
+Os relatórios de vendas;
+
+A interface da etapa atual;
+
+A sincronização com a caixa de entrada (quando o negócio vem de uma conversa).
+
+✅ Resultado esperado
+O usuário deve conseguir arrastar qualquer card de uma etapa para outra e ver a mudança acontecer em tempo real.
+
+A alteração deve ser salva no banco de dados e refletida imediatamente na interface.
+
+Se algo impedir a ação (ex: falta de permissão, etapa inválida), o sistema deve apresentar um aviso claro.
+
