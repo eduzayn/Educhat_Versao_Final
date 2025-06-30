@@ -426,16 +426,22 @@ Bruno Sousa;bruno.sousa@educhat.com;gerente;Operações`;
     });
   };
 
-  const filteredUsers = users.filter((user: any) => {
-    const matchesSearch = user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.username?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = selectedRole === "all" || user.role === selectedRole;
-    const userStatus = user.isActive ? 'active' : 'inactive';
-    const matchesStatus = selectedStatus === "all" || userStatus === selectedStatus;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  const filteredUsers = users
+    .filter((user: any) => {
+      const matchesSearch = user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           user.username?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRole = selectedRole === "all" || user.role === selectedRole;
+      const userStatus = user.isActive ? 'active' : 'inactive';
+      const matchesStatus = selectedStatus === "all" || userStatus === selectedStatus;
+      
+      return matchesSearch && matchesRole && matchesStatus;
+    })
+    .sort((a: any, b: any) => {
+      const nameA = (a.displayName || a.username || '').toLowerCase();
+      const nameB = (b.displayName || b.username || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
 
   return (
     <div className="space-y-6">

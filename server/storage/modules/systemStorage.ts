@@ -46,7 +46,9 @@ export class SystemStorage extends BaseStorage {
           ilike(systemUsers.email, `%${query}%`)
         )
       )
-      .orderBy(desc(systemUsers.createdAt));
+      .orderBy(
+        asc(sql`COALESCE(${systemUsers.displayName}, ${systemUsers.username})`)
+      );
   }
 
   // ==================== SYSTEM SETTINGS ====================

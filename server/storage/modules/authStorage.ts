@@ -1,6 +1,6 @@
 import { BaseStorage } from "../base/BaseStorage";
 import { systemUsers, userTeams, conversations, messages, deals, contacts, type User, type UpsertUser, type SystemUser, type InsertSystemUser } from "../../../shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc, sql } from "drizzle-orm";
 
 /**
  * Auth storage module - manages user authentication operations
@@ -110,7 +110,9 @@ export class AuthStorage extends BaseStorage {
 
   // System User operations
   async getSystemUsers(): Promise<SystemUser[]> {
-    return this.db.select().from(systemUsers);
+    return this.db.select().from(systemUsers).orderBy(
+      asc(sql`COALESCE(${systemUsers.displayName}, ${systemUsers.username})`)
+    );
   }
 
   async getSystemUser(id: number): Promise<SystemUser | undefined> {
