@@ -59,13 +59,27 @@ export function ContactTagsManager({ contactId }: ContactTagsManagerProps) {
   };
 
   const handleApplyTag = async (tagId: number) => {
-    await applyTagMutation.mutateAsync({ tagId, contactId });
-    refetchContactTags();
+    // Verificar se já está aplicada para evitar duplicação
+    if (contactHasTag(tagId)) {
+      console.log('Tag já aplicada ao contato');
+      return;
+    }
+    
+    try {
+      await applyTagMutation.mutateAsync({ tagId, contactId });
+      refetchContactTags();
+    } catch (error) {
+      console.error('Erro ao aplicar tag:', error);
+    }
   };
 
   const handleRemoveTag = async (tagId: number) => {
-    await removeTagMutation.mutateAsync({ tagId, contactId });
-    refetchContactTags();
+    try {
+      await removeTagMutation.mutateAsync({ tagId, contactId });
+      refetchContactTags();
+    } catch (error) {
+      console.error('Erro ao remover tag:', error);
+    }
   };
 
   if (userTagsLoading || contactTagsLoading) {

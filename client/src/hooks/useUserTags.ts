@@ -23,6 +23,7 @@ export function useUserTagStats() {
 export function useContactTags(contactId: number) {
   return useQuery({
     queryKey: ['/api/user-tags/contacts', contactId],
+    queryFn: () => apiRequest('GET', `/api/user-tags/contacts/${contactId}`),
     enabled: !!contactId,
     staleTime: 30 * 1000, // 30 segundos
   });
