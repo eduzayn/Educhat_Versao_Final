@@ -3,7 +3,7 @@
  */
 
 import { BaseStorage } from '../base/BaseStorage';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { 
   teams, 
   type Team, 
@@ -151,7 +151,10 @@ export class TeamStorage extends BaseStorage {
       })
       .from(userTeams)
       .innerJoin(systemUsers, eq(userTeams.userId, systemUsers.id))
-      .where(eq(userTeams.teamId, teamId));
+      .where(eq(userTeams.teamId, teamId))
+      .orderBy(
+        asc(sql`COALESCE(${systemUsers.displayName}, ${systemUsers.username})`)
+      );
 
     return members;
   }

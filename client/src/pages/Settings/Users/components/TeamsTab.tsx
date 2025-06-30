@@ -212,7 +212,13 @@ export const TeamsTab = () => {
       const response = await fetch(`/api/teams/${teamId}/members`);
       if (response.ok) {
         const members = await response.json();
-        setTeamMembers(members);
+        // Garantir ordenação alfabética no frontend também
+        const sortedMembers = members.sort((a: any, b: any) => {
+          const nameA = (a.user?.displayName || a.user?.username || '').toLowerCase();
+          const nameB = (b.user?.displayName || b.user?.username || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setTeamMembers(sortedMembers);
       }
     } catch (error) {
       console.error('Erro ao carregar membros:', error);

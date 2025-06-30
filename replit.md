@@ -110,6 +110,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (02:54): ORDENAÇÃO ALFABÉTICA DOS MEMBROS DAS EQUIPES IMPLEMENTADA COMPLETAMENTE
+  - Adicionada ordenação alfabética no backend (teamStorage.ts) usando COALESCE para priorizar displayName
+  - Sistema usa SQL ORDER BY com fallback para username quando displayName não disponível
+  - Garantia adicional no frontend (TeamsTab.tsx) para manter ordenação após carregamento
+  - Correção cirúrgica aplicada apenas aos arquivos relacionados aos membros das equipes
+  - Importações SQL necessárias (asc, sql) adicionadas ao teamStorage.ts
+  - Modal de membros das equipes agora exibe usuários em ordem alfabética consistente
 - June 30, 2025 (02:46): CORREÇÃO CRÍTICA DO SISTEMA DE FILTROS DA CAIXA DE ENTRADA IMPLEMENTADA DEFINITIVAMENTE
   - Identificado problema crítico: dupla filtragem (backend parcial + frontend completo) causando inconsistências
   - Implementado novo método getConversationsWithFilters() no backend com TODOS os filtros: userId, teamId, status, channel, channelId, tagId, dateFrom, dateTo
