@@ -37,6 +37,7 @@ export function AdvancedFiltersPanel({
 
   // Buscar tags disponíveis
   const { data: userTags = [] } = useUserTags();
+  const tagsArray = Array.isArray(userTags) ? userTags : [];
 
   // Contar filtros ativos
   const activeFiltersCount = [
@@ -158,7 +159,7 @@ export function AdvancedFiltersPanel({
               className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
             >
               <option value="all">Todas as tags</option>
-              {(userTags || []).map(tag => (
+              {tagsArray.map((tag: any) => (
                 <option key={tag.id} value={tag.id.toString()}>
                   {tag.name}
                 </option>

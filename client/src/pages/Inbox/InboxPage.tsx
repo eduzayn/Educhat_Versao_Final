@@ -74,6 +74,7 @@ export function InboxPage() {
   const [userFilter, setUserFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('all');
+  const [tagFilter, setTagFilter] = useState('all');
   const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
   const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
   
@@ -511,6 +512,20 @@ export function InboxPage() {
       }
     }
     
+    // Filtro por tags - implementação simplificada usando contactTags se disponível
+    if (tagFilter !== 'all') {
+      const tagId = parseInt(tagFilter);
+      // Verifica se a conversa tem tags do contato carregadas e se contém a tag selecionada
+      if (conversation.contactTags && Array.isArray(conversation.contactTags)) {
+        const hasTag = conversation.contactTags.some((tag: any) => tag.id === tagId);
+        if (!hasTag) return false;
+      } else {
+        // Se não tem informações de tags carregadas, não filtrar por enquanto
+        // Em uma implementação mais robusta, poderia fazer uma consulta à API aqui
+        return true;
+      }
+    }
+    
     // Filtro por período
     if (!isConversationInPeriod(conversation)) return false;
     
@@ -688,11 +703,13 @@ export function InboxPage() {
           userFilter={userFilter}
           teamFilter={teamFilter}
           periodFilter={periodFilter}
+          tagFilter={tagFilter}
           customDateFrom={customDateFrom}
           customDateTo={customDateTo}
           onUserFilterChange={setUserFilter}
           onTeamFilterChange={setTeamFilter}
           onPeriodFilterChange={setPeriodFilter}
+          onTagFilterChange={setTagFilter}
           onCustomDateChange={handleCustomDateChange}
           teams={teams || []}
           users={systemUsers || []}
