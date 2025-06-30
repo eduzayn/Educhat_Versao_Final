@@ -110,6 +110,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:13): LIMPEZA FINAL DE REFERÊNCIAS OBSOLETAS "MACROSETOR" EXECUTADA COMPLETAMENTE
+  - Removida exibição teamType duplicada do ConversationAssignmentDropdown que causava nomes em caixa baixa
+  - Labels "Macrosetor" alterados para "Categoria" nos modais de criação e configuração de equipes
+  - Método getTeamByMacrosetor substituído por getTeamByCategory em webhooks e rotas
+  - Rota /api/teams/macrosetor/:macrosetor renomeada para /api/teams/category/:category
+  - Sistema completamente migrado: nenhuma referência a "macrosetor" permanece no frontend
+  - Interface unificada: dropdowns e formulários usam apenas "Categoria" como nomenclatura
 - June 30, 2025 (03:07): ORDENAÇÃO ALFABÉTICA DOS CARDS DE EQUIPES IMPLEMENTADA COMPLETAMENTE
   - Aplicada ordenação alfabética em todas as listas de cards de equipes do sistema
   - TeamsTab.tsx: ordenação usando localeCompare('pt-BR') para respeitar acentuação portuguesa
