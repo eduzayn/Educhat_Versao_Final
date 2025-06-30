@@ -47,7 +47,7 @@ async function assignTeamIntelligently(conversationId: number, messageText: stri
     const detectedTeam = detectTeamFromMessage(messageText, canalOrigem);
     if (!detectedTeam) return;
     
-    const newTeam = await storage.getTeamByMacrosetor(detectedTeam);
+    const newTeam = await storage.getTeamByCategory(detectedTeam);
     
     if (newTeam) {
       // Verificar se a conversa já está atribuída a uma equipe diferente

@@ -410,12 +410,12 @@ export const TeamsTab = () => {
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="team-macrosetor" className="text-right">
-                Macrosetor *
+              <Label htmlFor="team-category" className="text-right">
+                Categoria *
               </Label>
               <Select value={newTeamForm.category} onValueChange={(value) => setNewTeamForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o macrosetor" />
+                  <SelectValue placeholder="Selecione a categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comercial">Comercial</SelectItem>
@@ -546,12 +546,12 @@ export const TeamsTab = () => {
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="config-macrosetor" className="text-right">
-                Macrosetor *
+              <Label htmlFor="config-category" className="text-right">
+                Categoria *
               </Label>
               <Select value={editTeamForm.category} onValueChange={(value) => setEditTeamForm(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o macrosetor" />
+                  <SelectValue placeholder="Selecione a categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="comercial">Comercial</SelectItem>
