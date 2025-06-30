@@ -608,28 +608,6 @@ export function registerUtilitiesRoutes(app: Express) {
     }
   });
 
-  app.put('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const team = await storage.updateTeam(id, req.body);
-      res.json(team);
-    } catch (error) {
-      console.error('Error updating team:', error);
-      res.status(500).json({ message: 'Failed to update team' });
-    }
-  });
-
-  app.delete('/api/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteTeam(id);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting team:', error);
-      res.status(500).json({ message: 'Failed to delete team' });
-    }
-  });
-
   // Roles API endpoints - REST: CRUD operations  
   app.get('/api/roles', async (req: Request, res: Response) => {
     try {

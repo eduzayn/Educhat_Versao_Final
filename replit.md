@@ -110,6 +110,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:01): LIMPEZA SEGURA DE CÓDIGO REDUNDANTE EXECUTADA COM SUCESSO
+  - Removidos endpoints duplicados PUT e DELETE /api/teams/:id do utilities/index.ts
+  - Mantidos apenas endpoints especializados em teams/index.ts com validações e logs adequados
+  - Removido window.location.reload() desnecessário do TeamsTab.tsx por solução mais elegante
+  - Garantida integridade: todas as funcionalidades de equipes permanecem intactas
+  - Código mais limpo e organizado sem duplicações ou reload forçado
 - June 30, 2025 (03:00): BUG CRÍTICO DE ALTERAÇÃO DE NOME DE EQUIPE CORRIGIDO DEFINITIVAMENTE
   - Identificado problema: frontend enviava PATCH mas backend só tinha endpoint PUT
   - Adicionado endpoint PATCH /api/teams/:id com mesma funcionalidade do PUT
