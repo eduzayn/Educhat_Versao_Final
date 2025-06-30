@@ -61,7 +61,7 @@ function Router() {
           <Route path="/bi">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente"]}
+                requiredRole={["admin", "gerente", "Administrador", "Gerente"]}
                 component={BIPage}
               />
             )}
@@ -70,7 +70,7 @@ function Router() {
           <Route path="/integrations">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={IntegrationsPage}
               />
             )}
@@ -78,7 +78,7 @@ function Router() {
           <Route path="/integrations/facebook">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={FacebookIntegrationPage}
               />
             )}
@@ -86,7 +86,7 @@ function Router() {
           <Route path="/integrations/manychat">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={IntegrationsPage}
               />
             )}

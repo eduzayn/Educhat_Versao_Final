@@ -110,6 +110,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (00:42): CORREÇÃO CRÍTICA SISTEMA PERMISSÕES PARA ADMINISTRADORES E GERENTES
+  - Identificado problema: roles "Administrador" e "Gerente" não reconhecidos pelo sistema de permissões
+  - Corrigido roleBasedPermissions.ts para incluir roles com maiúscula do banco de dados
+  - Atualizadas todas as rotas protegidas do App.tsx para incluir "Administrador" e "Gerente"
+  - Corrigidas funções auxiliares isAdminRole() e isManagerOrAbove() para reconhecer novos roles
+  - Sistema agora reconhece: admin, superadmin, Administrador (acesso total) + gerente, Gerente (acesso gerencial)
+  - Administradores e gerentes agora têm acesso às páginas administrativas: Settings, Teams, BI, Integrations
 - June 30, 2025 (00:34): FILTRO POR TAGS IMPLEMENTADO NA INBOX COM INTERFACE COMPLETA
   - Filtro de tags adicionado na seção de filtros avançados do painel AdvancedFiltersPanel
   - Estado tagFilter integrado com InboxPage.tsx e lógica de filtragem implementada
