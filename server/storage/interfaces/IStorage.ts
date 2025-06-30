@@ -58,6 +58,7 @@ export interface IStorage {
 
   // ==================== CONVERSATION OPERATIONS ====================
   getConversations(limit?: number, offset?: number): Promise<ConversationWithContact[]>;
+  getConversationsWithFilters(filters: any, limit?: number, offset?: number): Promise<ConversationWithContact[]>;
   getConversation(id: number): Promise<ConversationWithContact | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: number, conversation: Partial<InsertConversation>): Promise<Conversation>;

@@ -29,37 +29,30 @@ export function registerInboxRoutes(app: Express) {
   app.get('/api/conversations', conversationsRateLimit, async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20; // Limite padrão reduzido para 20
-      const offset = (page - 1) * limit;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || (page - 1) * limit;
       
-      // Novos filtros para usuário e equipe
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-      const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : undefined;
-      const unassignedOnly = req.query.unassigned === 'true';
+      // CORREÇÃO CRÍTICA: Extrair TODOS os filtros da query string
+      const filters = {
+        userId: req.query.userId ? parseInt(req.query.userId as string) : undefined,
+        teamId: req.query.teamId ? parseInt(req.query.teamId as string) : undefined,
+        status: req.query.status as string || undefined,
+        channel: req.query.channel as string || undefined,
+        channelId: req.query.channelId ? parseInt(req.query.channelId as string) : undefined,
+        tagId: req.query.tagId ? parseInt(req.query.tagId as string) : undefined,
+        unassignedOnly: req.query.unassigned === 'true',
+        // Filtros de período
+        dateFrom: req.query.dateFrom as string || undefined,
+        dateTo: req.query.dateTo as string || undefined,
+        period: req.query.period as string || undefined
+      };
       
       // Validar limite máximo para evitar sobrecarga
       const maxLimit = 100;
       const safeLimit = Math.min(limit, maxLimit);
       
-      let conversations;
-      
-      // Aplicar filtros específicos no backend
-      if (userId) {
-        conversations = await storage.getConversationsByUser(userId);
-        // Aplicar paginação após filtro
-        conversations = conversations.slice(offset, offset + safeLimit);
-      } else if (teamId) {
-        conversations = await storage.getConversationsByTeam(teamId);
-        // Aplicar paginação após filtro
-        conversations = conversations.slice(offset, offset + safeLimit);
-      } else if (unassignedOnly) {
-        const allConversations = await storage.getConversations(1000, 0); // Buscar mais conversas para filtrar
-        conversations = allConversations.filter(conv => !conv.assignedUserId && !conv.assignedTeamId);
-        // Aplicar paginação após filtro
-        conversations = conversations.slice(offset, offset + safeLimit);
-      } else {
-        conversations = await storage.getConversations(safeLimit, offset);
-      }
+      // CORREÇÃO: Aplicar filtros no backend usando novo método
+      const conversations = await storage.getConversationsWithFilters(filters, safeLimit, offset);
       
       res.json(conversations);
     } catch (error) {

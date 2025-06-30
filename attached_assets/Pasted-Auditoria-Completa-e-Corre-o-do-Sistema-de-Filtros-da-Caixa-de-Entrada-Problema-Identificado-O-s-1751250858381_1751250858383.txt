@@ -1,0 +1,80 @@
+Auditoria Completa e Correção do Sistema de Filtros da Caixa de Entrada
+🎯 Problema Identificado
+O sistema de filtros avançados da caixa de entrada aparenta estar retornando quantidades incorretas de atendimentos quando qualquer filtro é aplicado individualmente (ex: por usuário, equipe ou tags). O comportamento observado é que:
+
+A quantidade de conversas exibidas não condiz com a quantidade real no banco de dados, mesmo quando apenas um filtro simples (como “usuário atribuído”) está selecionado.
+
+Esse comportamento foi identificado com diferentes usuários, sem filtros combinados.
+
+Pode estar relacionado a um erro de backend, paginação incompleta, cache desatualizado ou scroll infinito mal implementado.
+
+📸 Evidência Visual
+A imagem anexa mostra que o filtro aplicado para a usuária Tati Corsi está retornando menos conversas do que o esperado, considerando o número real de atribuições feitas no banco de dados.
+
+O problema não está restrito a esse usuário.
+
+✅ O que precisa ser feito (Checklist Replit)
+1. Auditoria Técnica Completa do Sistema de Filtros
+Reavaliar toda a lógica de aplicação dos filtros no frontend e backend.
+
+Verificar se todos os filtros avançados (usuário, equipe, tags, canal, status, período) estão sendo corretamente combinados e enviados para a API.
+
+Testar filtros simples e combinados, e validar se o resultado é fiel ao banco de dados.
+
+2. Checagem de Backend
+Verificar se a API /api/conversations (ou equivalente) está aplicando os filtros corretamente em nível de banco de dados.
+
+Garantir que filtros por assignedUserId, teamId, channel, tag, status, createdAt, etc., não estejam sendo sobrescritos, ignorados ou mal formatados na query final.
+
+Verificar se há LIMIT, OFFSET ou JOINs que estejam impedindo o retorno completo de resultados.
+
+3. Scroll Infinito e Paginação
+Verificar se o scroll infinito da listagem de conversas está:
+
+Chamando novas páginas corretamente;
+
+Somando resultados e não sobrescrevendo;
+
+Parando prematuramente de buscar dados.
+
+Conferir se existe erro de paginação visual, onde o sistema acredita que já carregou todas as conversas mesmo quando não carregou.
+
+4. Cache ou Estado Local
+Garantir que a listagem de conversas não esteja usando cache desatualizado da React Query, Zustand ou outro sistema de estado.
+
+Conferir se ao aplicar filtros, as conversas estão sendo realmente reconsultadas no servidor e não apenas filtradas no frontend com base em um subconjunto anterior.
+
+5. Validação Cruzada com o Banco
+Fazer query SQL/Mongo direta para validar os resultados esperados, por exemplo:
+
+sql
+Copiar
+Editar
+SELECT COUNT(*) FROM conversations WHERE assignedUserId = 'xxx' AND status = 'open';
+O número exibido na interface precisa bater exatamente com o número do banco após filtros aplicados.
+
+📈 Recomendação Adicional
+Adicionar um contador total de conversas retornadas pela busca atual (ex: "Mostrando 23 conversas").
+
+Mostrar um alerta visual ou aviso se a quantidade renderizada for inferior à quantidade real esperada, como por exemplo:
+
+“Nem todas as conversas foram carregadas. Verifique sua conexão ou recarregue a página.”
+
+🧪 Resultado Esperado
+Todos os filtros devem retornar resultados precisos e completos com base no banco de dados.
+
+O sistema de scroll infinito deve garantir que todas as conversas sejam carregadas conforme o usuário desce a lista.
+
+A filtragem precisa funcionar com 100% de confiabilidade, inclusive em casos combinados (ex: usuário + equipe + canal + tag).
+
+🟢 Status Desejado: Correção definitiva com validação cruzada
+Quando corrigirem, pedimos que:
+
+Mostrem os testes feitos por filtro.
+
+Confirmem a causa raiz do problema.
+
+Implementem uma solução estável e validada.
+
+Sugiram melhorias estruturais se houver risco de repetição.
+

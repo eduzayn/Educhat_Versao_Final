@@ -59,6 +59,170 @@ export class ConversationStorage extends BaseStorage {
     .from(conversations)
     .innerJoin(contacts, eq(conversations.contactId, contacts.id));
   }
+  /**
+   * CORREÇÃO CRÍTICA: Método para buscar conversas com filtros aplicados no backend
+   * Resolve problema de filtragem incompleta identificado na auditoria
+   */
+  async getConversationsWithFilters(filters: any = {}, limit = 50, offset = 0): Promise<ConversationWithContact[]> {
+    const whereConditions = [];
+    
+    // Filtro por usuário atribuído
+    if (filters.userId) {
+      whereConditions.push(eq(conversations.assignedUserId, filters.userId));
+    }
+    
+    // Filtro por equipe atribuída
+    if (filters.teamId) {
+      whereConditions.push(eq(conversations.assignedTeamId, filters.teamId));
+    }
+    
+    // Filtro por conversas não atribuídas
+    if (filters.unassignedOnly) {
+      whereConditions.push(sql`${conversations.assignedUserId} IS NULL AND ${conversations.assignedTeamId} IS NULL`);
+    }
+    
+    // Filtro por status
+    if (filters.status) {
+      whereConditions.push(eq(conversations.status, filters.status));
+    }
+    
+    // Filtro por canal
+    if (filters.channel) {
+      whereConditions.push(eq(conversations.channel, filters.channel));
+    }
+    
+    // Filtro por ID do canal específico
+    if (filters.channelId) {
+      whereConditions.push(eq(conversations.channelId, filters.channelId));
+    }
+    
+    // Filtro por período de data
+    if (filters.dateFrom) {
+      whereConditions.push(sql`${conversations.createdAt} >= ${filters.dateFrom}`);
+    }
+    if (filters.dateTo) {
+      whereConditions.push(sql`${conversations.createdAt} <= ${filters.dateTo}`);
+    }
+    
+    // Construir query com filtros
+    const query = this.db
+      .select({
+        // Conversation fields essenciais
+        id: conversations.id,
+        contactId: conversations.contactId,
+        channel: conversations.channel,
+        channelId: conversations.channelId,
+        status: conversations.status,
+        lastMessageAt: conversations.lastMessageAt,
+        unreadCount: conversations.unreadCount,
+        assignedTeamId: conversations.assignedTeamId,
+        assignedUserId: conversations.assignedUserId,
+        isRead: conversations.isRead,
+        markedUnreadManually: conversations.markedUnreadManually,
+        priority: conversations.priority,
+        createdAt: conversations.createdAt,
+        
+        // Contact fields básicos
+        contact: {
+          id: contacts.id,
+          name: contacts.name,
+          phone: contacts.phone,
+          profileImageUrl: contacts.profileImageUrl,
+          isOnline: contacts.isOnline
+        }
+      })
+      .from(conversations)
+      .innerJoin(contacts, eq(conversations.contactId, contacts.id));
+    
+    // Aplicar condições WHERE se existirem
+    if (whereConditions.length > 0) {
+      query.where(and(...whereConditions));
+    }
+    
+    // Ordenação e paginação
+    const conversationsResult = await query
+      .orderBy(desc(conversations.lastMessageAt), desc(conversations.updatedAt))
+      .limit(limit)
+      .offset(offset);
+
+    if (conversationsResult.length === 0) {
+      return [];
+    }
+
+    // Buscar últimas mensagens usando Promise.allSettled para evitar falhas
+    const lastMessagesPromises = conversationsResult.map(async (conv) => {
+      try {
+        const [lastMessage] = await this.db
+          .select({
+            id: messages.id,
+            content: messages.content,
+            sentAt: messages.sentAt,
+            isFromContact: messages.isFromContact,
+            messageType: messages.messageType
+          })
+          .from(messages)
+          .where(and(
+            eq(messages.conversationId, conv.id),
+            eq(messages.isDeleted, false)
+          ))
+          .orderBy(desc(messages.sentAt))
+          .limit(1);
+        
+        return { conversationId: conv.id, message: lastMessage };
+      } catch (error) {
+        console.warn(`Erro ao buscar última mensagem da conversa ${conv.id}:`, error);
+        return { conversationId: conv.id, message: null };
+      }
+    });
+
+    const lastMessagesResults = await Promise.allSettled(lastMessagesPromises);
+    
+    // Criar mapa de últimas mensagens
+    const lastMessageMap = new Map();
+    lastMessagesResults.forEach((result) => {
+      if (result.status === 'fulfilled' && result.value.message) {
+        lastMessageMap.set(result.value.conversationId, result.value.message);
+      }
+    });
+
+    // RESULTADO: Conversas filtradas com prévias das mensagens
+    return conversationsResult.map(row => {
+      const lastMsg = lastMessageMap.get(row.id);
+      
+      return {
+        ...row,
+        contact: {
+          ...row.contact,
+          // Lazy loading: dados complementares carregados sob demanda
+          tags: [],
+          deals: []
+        },
+        // Lazy loading: dados complementares removidos da carga inicial
+        channelInfo: undefined,
+        lastMessage: lastMsg?.content || '',
+        // Frontend espera messages[0] para prévia da mensagem
+        messages: lastMsg ? [{
+          id: lastMsg.id,
+          conversationId: row.id,
+          content: lastMsg.content,
+          sentAt: lastMsg.sentAt,
+          isFromContact: lastMsg.isFromContact,
+          messageType: lastMsg.messageType || 'text',
+          metadata: null,
+          isDeleted: false,
+          deliveredAt: null,
+          readAt: null,
+          createdAt: lastMsg.sentAt,
+          updatedAt: lastMsg.sentAt,
+          authorId: null,
+          replyToId: null,
+          isHiddenForUser: null
+        }] : [],
+        _count: { messages: row.unreadCount || 0 }
+      } as unknown as ConversationWithContact;
+    });
+  }
+
   async getConversations(limit = 50, offset = 0): Promise<ConversationWithContact[]> {
     // ABORDAGEM SIMPLIFICADA: Buscar conversas e depois suas últimas mensagens individualmente
     const conversationsResult = await this.db
