@@ -110,6 +110,13 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:00): BUG CRÍTICO DE ALTERAÇÃO DE NOME DE EQUIPE CORRIGIDO DEFINITIVAMENTE
+  - Identificado problema: frontend enviava PATCH mas backend só tinha endpoint PUT
+  - Adicionado endpoint PATCH /api/teams/:id com mesma funcionalidade do PUT
+  - Alteração de nome "Equipe Comercial" para "COMERCIAL" agora salva corretamente no banco
+  - Forçado reload da página após atualização para garantir atualização da interface
+  - Correção cirúrgica aplicada apenas ao arquivo teams/index.ts e TeamsTab.tsx
+  - Sistema de edição de equipes funcionando completamente
 - June 30, 2025 (02:54): ORDENAÇÃO ALFABÉTICA DOS MEMBROS DAS EQUIPES IMPLEMENTADA COMPLETAMENTE
   - Adicionada ordenação alfabética no backend (teamStorage.ts) usando COALESCE para priorizar displayName
   - Sistema usa SQL ORDER BY com fallback para username quando displayName não disponível
