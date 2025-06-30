@@ -709,6 +709,43 @@ export const TeamsTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de confirmação para exclusão */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir a equipe "{selectedTeam?.name}"?
+              <br /><br />
+              <strong className="text-red-600">Esta ação não pode ser desfeita.</strong>
+              <br />
+              Todos os dados relacionados a esta equipe serão removidos permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleteTeamMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteTeam}
+              disabled={deleteTeamMutation.isPending}
+            >
+              {deleteTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir Permanentemente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
