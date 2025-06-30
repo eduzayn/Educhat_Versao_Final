@@ -30,6 +30,7 @@ import { InlineEditField } from './InlineEditField';
 import { InlineContactNameEdit } from './InlineContactNameEdit';
 import { QuickDealEdit } from './QuickDealEdit';
 import { ContactTagsManager } from '@/components/ContactTagsManager';
+import { DealModal } from '@/shared/components/DealModal';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAllCategories, getStagesForCategory, getCategoryInfo } from '@/shared/lib/crmFunnels';
@@ -398,7 +399,23 @@ export function ContactSidebar({
               Negócios
             </h4>
             
-            <Dialog open={showDealDialog} onOpenChange={setShowDealDialog}>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowDealDialog(true)}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+            
+            <DealModal
+              mode="create"
+              isOpen={showDealDialog}
+              onOpenChange={setShowDealDialog}
+              contactId={activeConversation.contact?.id}
+              onSuccess={onDealUpdated}
+            />
+            
+            <Dialog style={{display: 'none'}}>
               <DialogTrigger asChild>
                 <Button 
                   variant="outline" 

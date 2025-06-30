@@ -6,9 +6,9 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useDynamicFunnels } from '@/hooks/useDynamicFunnels';
+import { useToast } from '../lib/hooks/use-toast';
+import { apiRequest } from '../lib/queryClient';
+import { useDynamicFunnels } from '../../hooks/useDynamicFunnels';
 import { getStagesForCategory } from '@/shared/lib/crmFunnels';
 
 interface DealModalProps {
