@@ -5,6 +5,7 @@ import { Users, User } from 'lucide-react';
 import { useToast } from '@/shared/lib/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { getUserColor } from '@/shared/lib/utils/userColors';
 import type { Team, SystemUser } from '@/shared/schema';
 
 interface ConversationAssignmentDropdownProps {
@@ -293,9 +294,15 @@ export function ConversationAssignmentDropdown({
           <SelectTrigger className="h-7 min-w-[120px] text-xs border-gray-300">
             <SelectValue>
               {currentUser ? (
-                <Badge variant="outline" className="text-xs px-2 py-0.5">
-                  {currentUser.displayName}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: getUserColor(currentUser.id, currentUser.color) }}
+                  />
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    {currentUser.displayName}
+                  </Badge>
+                </div>
               ) : (
                 <span className="text-gray-500">Não atribuído</span>
               )}
@@ -305,17 +312,23 @@ export function ConversationAssignmentDropdown({
             <SelectItem value="none">
               <span className="text-gray-500">Não atribuído</span>
             </SelectItem>
-            {users.filter(user => user.isActive).map(user => (
-              <SelectItem key={user.id} value={user.id.toString()}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  {user.displayName}
-                  <span className="text-xs text-gray-500">
-                    ({user.username})
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
+            {users.filter(user => user.isActive).map(user => {
+              const userColor = getUserColor(user.id, user.color);
+              return (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: userColor }}
+                    />
+                    {user.displayName}
+                    <span className="text-xs text-gray-500">
+                      ({user.username})
+                    </span>
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

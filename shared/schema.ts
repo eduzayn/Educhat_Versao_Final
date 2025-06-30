@@ -239,6 +239,7 @@ export const systemUsers = pgTable("system_users", {
   lastActivityAt: timestamp("last_activity_at"),
   avatar: text("avatar"),
   initials: varchar("initials", { length: 5 }),
+  color: varchar("color", { length: 7 }), // formato #RRGGBB para bolinha colorida
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
