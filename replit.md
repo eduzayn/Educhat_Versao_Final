@@ -101,8 +101,21 @@ The application supports multiple deployment platforms with automatic environmen
 3. Bundle backend with `esbuild`
 4. Start production server with optimized settings
 
+## Usuários Administrativos (Consulta 30/06/2025)
+
+**ADMINISTRADORES (Role: "Administrador")**: Ana Lúcia, Marco Antônio, Rian Moreira, Tamires Kele, Érick Moreira
+**GERENTES (Role: "Gerente")**: Elaine Cristina, Rodrigo Magaiver, Tutoria
+**ADMINS SISTEMA (Role: "admin")**: Administrador EduChat, Carla Diniz, Daniela Tovar
+**Total**: 11 usuários com permissões administrativas/gerenciais
+
 ## Changelog
 
+- June 30, 2025 (00:34): FILTRO POR TAGS IMPLEMENTADO NA INBOX COM INTERFACE COMPLETA
+  - Filtro de tags adicionado na seção de filtros avançados do painel AdvancedFiltersPanel
+  - Estado tagFilter integrado com InboxPage.tsx e lógica de filtragem implementada
+  - Interface permite selecionar tags específicas para filtrar conversas na Inbox
+  - Contador de filtros ativos atualizado para incluir seleção de tags
+  - Sistema utiliza dados de contactTags das conversas para filtragem eficiente
 - June 30, 2025 (00:11): SISTEMA DE TAGS COM CORES IMPLEMENTADO E TESTADO COM SUCESSO
   - Backend completo: schema UserTag e ContactUserTag, storage módulo userTagStorage.ts
   - API robusta: CRUD completo de tags (/api/user-tags) com permissões adequadas
