@@ -121,7 +121,11 @@ export const TeamsTab = () => {
     mutationFn: ({ teamId, teamData }: { teamId: number; teamData: any }) => 
       apiRequest('PATCH', `/api/teams/${teamId}`, teamData),
     onSuccess: () => {
+      // Força invalidação completa do cache de equipes
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      queryClient.refetchQueries({ queryKey: ['/api/teams'] });
+      // Força recarregamento da lista de equipes
+      window.location.reload();
       toast({
         title: "Equipe atualizada!",
         description: "As configurações da equipe foram salvas com sucesso.",

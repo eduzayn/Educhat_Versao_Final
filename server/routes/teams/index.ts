@@ -144,6 +144,20 @@ export function registerTeamsRoutes(app: Express) {
     }
   });
 
+  // Update existing team - REST: PATCH /api/teams/:id (frontend compatibility)
+  app.patch('/api/teams/:id', requirePermission('teams:update'), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const teamData = req.body;
+      const updatedTeam = await storage.updateTeam(id, teamData);
+      console.log(`✏️ Equipe atualizada: ${updatedTeam.name}`);
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error('Erro ao atualizar equipe:', error);
+      res.status(500).json({ message: 'Erro ao atualizar equipe' });
+    }
+  });
+
   // Delete team - REST: DELETE /api/teams/:id
   app.delete('/api/teams/:id', requirePermission('teams:delete'), async (req: AuthenticatedRequest, res: Response) => {
     try {
