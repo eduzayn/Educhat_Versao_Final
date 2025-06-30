@@ -268,7 +268,7 @@ export function ConversationAssignmentDropdown({
             <SelectItem value="none">
               <span className="text-gray-500">Sem grupo (Fila neutra)</span>
             </SelectItem>
-            {teams.map(team => (
+            {teams.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(team => (
               <SelectItem key={team.id} value={team.id.toString()}>
                 <div className="flex items-center gap-2">
                   <div 

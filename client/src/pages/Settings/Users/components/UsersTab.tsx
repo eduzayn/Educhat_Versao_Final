@@ -1055,7 +1055,7 @@ Maria Costa;maria.costa@educhat.com;atendente;Suporte"
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Nenhuma equipe específica</SelectItem>
-                        {teams.map((team: any) => (
+                        {teams.sort((a: any, b: any) => a.name.localeCompare(b.name, 'pt-BR')).map((team: any) => (
                           <SelectItem key={team.id} value={team.id.toString()}>
                             {team.name}
                           </SelectItem>
