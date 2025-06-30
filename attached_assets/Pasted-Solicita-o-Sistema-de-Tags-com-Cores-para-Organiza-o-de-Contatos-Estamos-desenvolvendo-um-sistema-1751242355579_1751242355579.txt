@@ -1,0 +1,84 @@
+Solicitação: Sistema de Tags com Cores para Organização de Contatos
+Estamos desenvolvendo um sistema de tags customizáveis para que os usuários possam organizar melhor seus contatos e conversas dentro da caixa de entrada.
+
+🎯 Objetivo
+Permitir que os usuários adicionem, editem e filtrem contatos com base em tags coloridas, substituindo o bloco “Resumo” no painel lateral direito da conversa.
+
+🧱 Requisitos Funcionais
+Criação de Tags
+
+Todo usuário logado poderá criar tags diretamente no painel lateral de uma conversa.
+
+O botão “+ Nova Tag” abrirá um mini-formulário com:
+
+Campo para nome da tag
+
+Campo para selecionar cor (via color picker ou input hexadecimal #RRGGBB)
+
+Botões de Salvar e Cancelar
+
+Aplicação de Tags
+
+As tags criadas poderão ser aplicadas a qualquer contato (individualmente).
+
+O usuário poderá aplicar várias tags a um mesmo contato.
+
+As tags aparecerão listadas com sua respectiva cor no painel lateral direito.
+
+Visualização
+
+Cada tag deverá aparecer com:
+
+Nome da tag
+
+Cor definida pelo usuário (fundo ou borda colorida com texto visível)
+
+O visual deve ser limpo, moderno, e alinhado com o design atual do sistema.
+
+Edição de Tags
+
+As tags poderão ser editadas (nome e cor), desde que criadas pelo mesmo usuário.
+
+Não é necessário um sistema global de tags por agora (uso individual/local por usuário já é suficiente).
+
+Substituição do bloco “Resumo”
+
+O bloco “Resumo” do painel lateral direito será removido.
+
+Em seu lugar, ficará o campo de tags.
+
+Isso garantirá que a interface continue leve e objetiva, sem carregar a caixa de entrada.
+
+Filtros por Tags
+
+Incluir no painel de filtros avançados (lado esquerdo) um novo filtro chamado “Tags”.
+
+O filtro permitirá selecionar uma ou mais tags e listar apenas os contatos/conversas que possuírem aquelas tags.
+
+📦 Estrutura esperada da tag no banco de dados
+ts
+Copiar
+Editar
+{
+  id: string;
+  name: string;
+  color: string; // Exemplo: "#3B82F6"
+  created_by: string; // ID do usuário que criou a tag
+  created_at: string;
+}
+🧪 Considerações Técnicas
+A cor poderá ser escolhida livremente pelo usuário no momento da criação da tag (usar input[type=color] ou color picker equivalente).
+
+Evitar cores com contraste ruim (sugestão: usar Tailwind text-white em tags com fundo escuro).
+
+Tags devem ser indexadas para permitir filtros rápidos.
+
+Os filtros por tags não devem interferir ou prejudicar os filtros já existentes da caixa de entrada.
+
+✅ Resultado Esperado
+Sistema visualmente limpo, útil e intuitivo.
+
+Aumento da organização dos atendimentos.
+
+Facilidade para identificar atendimentos por tema, urgência ou categoria usando cores.
+

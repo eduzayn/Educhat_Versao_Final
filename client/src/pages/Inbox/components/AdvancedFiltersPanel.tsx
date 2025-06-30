@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
+import { useUserTags } from '@/hooks/useUserTags';
 
 interface AdvancedFiltersPanelProps {
   userFilter: string;
   teamFilter: string;
   periodFilter: string;
+  tagFilter: string;
   customDateFrom?: Date;
   customDateTo?: Date;
   onUserFilterChange: (value: string) => void;
   onTeamFilterChange: (value: string) => void;
   onPeriodFilterChange: (value: string) => void;
+  onTagFilterChange: (value: string) => void;
   onCustomDateChange: (from?: Date, to?: Date) => void;
   teams: any[];
   users: any[];
@@ -19,22 +22,28 @@ export function AdvancedFiltersPanel({
   userFilter,
   teamFilter,
   periodFilter,
+  tagFilter,
   customDateFrom,
   customDateTo,
   onUserFilterChange,
   onTeamFilterChange,
   onPeriodFilterChange,
+  onTagFilterChange,
   onCustomDateChange,
   teams,
   users
 }: AdvancedFiltersPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Buscar tags disponíveis
+  const { data: userTags = [] } = useUserTags();
+
   // Contar filtros ativos
   const activeFiltersCount = [
     userFilter !== 'all',
     teamFilter !== 'all',
     periodFilter !== 'all',
+    tagFilter !== 'all',
     customDateFrom || customDateTo
   ].filter(Boolean).length;
 
@@ -43,6 +52,7 @@ export function AdvancedFiltersPanel({
     onUserFilterChange('all');
     onTeamFilterChange('all');
     onPeriodFilterChange('all');
+    onTagFilterChange('all');
     onCustomDateChange(undefined, undefined);
   };
 
@@ -137,6 +147,24 @@ export function AdvancedFiltersPanel({
             </select>
           </div>
 
+          {/* Filtro por tags */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              🏷️ Tags
+            </label>
+            <select
+              value={tagFilter}
+              onChange={(e) => onTagFilterChange(e.target.value)}
+              className="w-full h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
+            >
+              <option value="all">Todas as tags</option>
+              {(userTags || []).map(tag => (
+                <option key={tag.id} value={tag.id.toString()}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
         </div>
 
