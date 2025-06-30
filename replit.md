@@ -110,6 +110,12 @@ The application supports multiple deployment platforms with automatic environmen
 
 ## Changelog
 
+- June 30, 2025 (03:28): ORDENAÇÃO ALFABÉTICA COMPLETA EM TODOS OS MÓDULOS BI IMPLEMENTADA DEFINITIVAMENTE
+  - Aplicada ordenação alfabética nos 3 módulos BI restantes: TeamPerformanceModule, ProductivityModule, SatisfactionModule
+  - Todas as listas de equipes nos selects de filtros agora usam .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+  - Sistema completamente unificado: 100% dos componentes com listas de equipes seguem ordenação alfabética
+  - Implementação cirúrgica: apenas adição do .sort() antes do .map() em cada dropdown
+  - Interface BI com organização consistente: usuário encontra equipes em ordem alfabética em todos os relatórios
 - June 30, 2025 (03:13): LIMPEZA FINAL DE REFERÊNCIAS OBSOLETAS "MACROSETOR" EXECUTADA COMPLETAMENTE
   - Removida exibição teamType duplicada do ConversationAssignmentDropdown que causava nomes em caixa baixa
   - Labels "Macrosetor" alterados para "Categoria" nos modais de criação e configuração de equipes

@@ -124,7 +124,7 @@ export function SatisfactionModule() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as equipes</SelectItem>
-              {teams?.map((team: any) => (
+              {teams?.sort((a: any, b: any) => a.name.localeCompare(b.name, 'pt-BR')).map((team: any) => (
                 <SelectItem key={team.id} value={team.id.toString()}>
                   {team.name}
                 </SelectItem>

@@ -177,7 +177,7 @@ export function TeamPerformanceModule() {
       {/* Performance por Equipe */}
       <div className="space-y-4">
         {defaultData.teams?.length > 0 ? (
-          defaultData.teams.map((team: any) => (
+          defaultData.teams.sort((a: any, b: any) => a.name.localeCompare(b.name, 'pt-BR')).map((team: any) => (
             <Card key={team.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
