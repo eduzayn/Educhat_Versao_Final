@@ -7,6 +7,13 @@ interface ConversationFilters {
   userId?: number;
   teamId?: number;
   unassigned?: boolean;
+  status?: string;
+  channel?: string;
+  channelId?: number;
+  tagId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  period?: string;
 }
 
 export function useConversations(initialLimit = 10, filters: ConversationFilters = {}, options = {}) {
@@ -21,7 +28,7 @@ export function useConversations(initialLimit = 10, filters: ConversationFilters
     params.set('limit', limit.toString());
     params.set('offset', offset.toString()); // CORREÇÃO: Backend espera offset
     
-    // Adicionar filtros específicos
+    // CORREÇÃO CRÍTICA: Adicionar TODOS os filtros específicos
     if (filters.userId) {
       params.set('userId', filters.userId.toString());
     }
@@ -30,6 +37,27 @@ export function useConversations(initialLimit = 10, filters: ConversationFilters
     }
     if (filters.unassigned) {
       params.set('unassigned', 'true');
+    }
+    if (filters.status) {
+      params.set('status', filters.status);
+    }
+    if (filters.channel) {
+      params.set('channel', filters.channel);
+    }
+    if (filters.channelId) {
+      params.set('channelId', filters.channelId.toString());
+    }
+    if (filters.tagId) {
+      params.set('tagId', filters.tagId.toString());
+    }
+    if (filters.dateFrom) {
+      params.set('dateFrom', filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      params.set('dateTo', filters.dateTo);
+    }
+    if (filters.period) {
+      params.set('period', filters.period);
     }
     
     return params.toString();

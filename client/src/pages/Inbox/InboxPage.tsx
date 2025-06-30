@@ -102,7 +102,7 @@ export function InboxPage() {
   // Inicializar WebSocket para mensagens em tempo real com notificações
   useWebSocket();
   
-  // Construir filtros para a API backend baseado nos filtros avançados
+  // CORREÇÃO CRÍTICA: Construir TODOS os filtros para a API backend
   const apiFilters = useMemo(() => {
     const filters: any = {};
     
@@ -124,8 +124,39 @@ export function InboxPage() {
       }
     }
     
+    // NOVOS FILTROS: Status, canal, tag, período
+    if (statusFilter !== 'all') {
+      filters.status = statusFilter;
+    }
+    
+    // Filtro por canal
+    if (channelFilter !== 'all') {
+      if (channelFilter.startsWith('whatsapp-')) {
+        // Canal WhatsApp específico
+        filters.channelId = parseInt(channelFilter.replace('whatsapp-', ''));
+      } else {
+        // Tipo de canal genérico
+        filters.channel = channelFilter;
+      }
+    }
+    
+    // Filtro por tag
+    if (tagFilter !== 'all') {
+      filters.tagId = parseInt(tagFilter);
+    }
+    
+    // Filtro por período
+    if (periodFilter !== 'all') {
+      if (periodFilter === 'custom' && customDateFrom && customDateTo) {
+        filters.dateFrom = customDateFrom.toISOString();
+        filters.dateTo = customDateTo.toISOString();
+      } else {
+        filters.period = periodFilter;
+      }
+    }
+    
     return filters;
-  }, [userFilter, teamFilter]);
+  }, [userFilter, teamFilter, statusFilter, channelFilter, tagFilter, periodFilter, customDateFrom, customDateTo]);
 
   const { 
     data: conversationsData, 
@@ -447,17 +478,17 @@ export function InboxPage() {
     setCustomDateTo(to);
   };
 
-  // Filtrar conversas baseado na aba ativa e filtros (incluindo filtros avançados)
+  // CORREÇÃO CRÍTICA: Remover filtragem local - TUDO agora é feito no backend
   const filteredConversations = conversationsToFilter.filter((conversation: any) => {
-    // Validação básica de segurança
+    // Validação básica de segurança APENAS
     if (!conversation || !conversation.contact) return false;
     
-    // CORREÇÃO CRÍTICA: Se há busca ativa, mostrar TODOS os resultados sem aplicar nenhum filtro
+    // ÚNICO FILTRO LOCAL: Se há busca ativa, mostrar TODOS os resultados de busca
     if (searchTerm && searchTerm.trim()) {
-      return true; // Mostrar todos os resultados de busca sem filtros
+      return true; // Busca tem prioridade sobre filtros
     }
     
-    // Filtro por aba - conversas reabertas devem aparecer na inbox
+    // ÚNICO FILTRO LOCAL: Filtro por aba (inbox vs resolved)
     if (activeTab === 'inbox') {
       const activeStatuses = ['open', 'pending', 'unread'];
       if (!conversation.status || !activeStatuses.includes(conversation.status)) return false;
@@ -467,67 +498,9 @@ export function InboxPage() {
       if (!conversation.status || !resolvedStatuses.includes(conversation.status)) return false;
     }
     
-    // Filtro por status (filtros básicos)
-    if (statusFilter !== 'all' && conversation.status !== statusFilter) return false;
-    
-    // Filtro por canal (filtros básicos)
-    if (channelFilter !== 'all') {
-      if (channelFilter === conversation.channel) {
-        // Corresponde ao tipo de canal
-      } else if (channelFilter === 'whatsapp') {
-        // Filtro "WhatsApp (Todos)" - inclui todos os canais WhatsApp
-        if (!['whatsapp', 'comercial', 'suporte'].includes(conversation.channel)) {
-          return false;
-        }
-      } else if (channelFilter.startsWith('whatsapp-')) {
-        // Filtro específico de canal WhatsApp
-        const specificChannelId = parseInt(channelFilter.replace('whatsapp-', ''));
-        if (conversation.channelId !== specificChannelId) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-    
-    // FILTROS AVANÇADOS
-    
-    // Filtro por usuário atribuído
-    if (userFilter !== 'all') {
-      if (userFilter === 'unassigned') {
-        if (conversation.assignedUserId) return false;
-      } else {
-        const userId = parseInt(userFilter);
-        if (conversation.assignedUserId !== userId) return false;
-      }
-    }
-    
-    // Filtro por equipe
-    if (teamFilter !== 'all') {
-      if (teamFilter === 'unassigned') {
-        if (conversation.assignedTeamId) return false;
-      } else {
-        const teamId = parseInt(teamFilter);
-        if (conversation.assignedTeamId !== teamId) return false;
-      }
-    }
-    
-    // Filtro por tags - implementação simplificada usando contactTags se disponível
-    if (tagFilter !== 'all') {
-      const tagId = parseInt(tagFilter);
-      // Verifica se a conversa tem tags do contato carregadas e se contém a tag selecionada
-      if (conversation.contactTags && Array.isArray(conversation.contactTags)) {
-        const hasTag = conversation.contactTags.some((tag: any) => tag.id === tagId);
-        if (!hasTag) return false;
-      } else {
-        // Se não tem informações de tags carregadas, não filtrar por enquanto
-        // Em uma implementação mais robusta, poderia fazer uma consulta à API aqui
-        return true;
-      }
-    }
-    
-    // Filtro por período
-    if (!isConversationInPeriod(conversation)) return false;
+    // TODOS OS OUTROS FILTROS AGORA SÃO APLICADOS NO BACKEND
+    // Removidos: status, canal, usuário, equipe, tags, período
+    // Estes agora são enviados via apiFilters para o backend
     
     return true;
   });
