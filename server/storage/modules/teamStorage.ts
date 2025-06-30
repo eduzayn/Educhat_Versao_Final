@@ -15,6 +15,9 @@ import {
   type SystemUser,
   conversations,
   teamTransferHistory,
+  quickReplies,
+  quickReplyShares,
+  keywordResponses,
   type InsertTeamTransferHistory
 } from '../../../shared/schema';
 
@@ -54,6 +57,42 @@ export class TeamStorage extends BaseStorage {
    * Delete team
    */
   async deleteTeam(id: number): Promise<void> {
+    // Primeiro, limpar todas as dependências da equipe
+    
+    // 1. Remover atribuições de conversas para esta equipe
+    await this.db.update(conversations)
+      .set({ assignedTeamId: null })
+      .where(eq(conversations.assignedTeamId, id));
+    
+    // 2. Limpar transferências que referenciam esta equipe
+    await this.db.delete(teamTransfers)
+      .where(eq(teamTransfers.toTeamId, id));
+    
+    await this.db.delete(teamTransfers)
+      .where(eq(teamTransfers.fromTeamId, id));
+    
+    // 3. Remover membros da equipe
+    await this.db.delete(userTeams)
+      .where(eq(userTeams.teamId, id));
+    
+    // 4. Limpar quick replies da equipe
+    await this.db.delete(quickReplyShares)
+      .where(eq(quickReplyShares.teamId, id));
+    
+    await this.db.update(quickReplies)
+      .set({ teamId: null })
+      .where(eq(quickReplies.teamId, id));
+    
+    // 5. Remover atribuição de usuários para esta equipe
+    await this.db.update(systemUsers)
+      .set({ teamId: null })
+      .where(eq(systemUsers.teamId, id));
+    
+    // 6. Remover keywords da equipe
+    await this.db.delete(keywords)
+      .where(eq(keywords.teamId, id));
+    
+    // 7. Finalmente, excluir a equipe
     await this.db.delete(teams).where(eq(teams.id, id));
   }
 
