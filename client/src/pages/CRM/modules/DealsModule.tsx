@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/shared/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
@@ -89,7 +90,6 @@ function KanbanColumn({
                   <Card
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    {...provided.dragHandleProps}
                     className={`bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${
                       snapshot.isDragging ? 'shadow-lg rotate-3 bg-blue-50 cursor-grabbing' : ''
                     }`}
@@ -99,10 +99,29 @@ function KanbanColumn({
                   >
                     <CardContent className="p-2.5 space-y-1.5">
                       <div className="flex items-start justify-between">
-                        <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
-                        <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5">
-                          <MoreHorizontal className="h-3 w-3" />
-                        </Button>
+                        <div {...provided.dragHandleProps} className="flex-1 cursor-grab">
+                          <p className="text-sm font-medium leading-tight line-clamp-2">{deal.name}</p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-5 w-5 -mt-0.5 flex-shrink-0">
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => openEditDealDialog(deal)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteDeal(deal.id)}
+                              className="text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Building2 className="h-3 w-3 flex-shrink-0" />
@@ -171,6 +190,8 @@ export function DealsModule() {
   // Estado para modal de novo negócio
   const [isNewDealDialogOpen, setIsNewDealDialogOpen] = useState(false);
   const [selectedStageForNewDeal, setSelectedStageForNewDeal] = useState<string | null>(null);
+  const [editingDeal, setEditingDeal] = useState<any | null>(null);
+  const [isEditDealDialogOpen, setIsEditDealDialogOpen] = useState(false);
 
   // CORREÇÃO: Buscar equipes do banco para filtros dinâmicos
   const { data: teamsFromDB } = useQuery({
@@ -281,6 +302,44 @@ export function DealsModule() {
     }
   });
 
+  // Edit deal mutation
+  const editDealMutation = useMutation({
+    mutationFn: async (dealData: any) => {
+      return await apiRequest('PATCH', `/api/deals/${dealData.id}`, dealData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals', selectedTeamType] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals'] 
+      });
+      setIsEditDealDialogOpen(false);
+      setEditingDeal(null);
+    },
+    onError: (error) => {
+      console.error('Erro ao editar negócio:', error);
+    }
+  });
+
+  // Delete deal mutation
+  const deleteDealMutation = useMutation({
+    mutationFn: async (dealId: number) => {
+      return await apiRequest('DELETE', `/api/deals/${dealId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals', selectedTeamType] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals'] 
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar negócio:', error);
+    }
+  });
+
   // Update deal stage mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, stage }: { dealId: number; stage: string }) => {
@@ -349,6 +408,19 @@ export function DealsModule() {
   const openNewDealDialog = (stageId?: string) => {
     setSelectedStageForNewDeal(stageId || null);
     setIsNewDealDialogOpen(true);
+  };
+
+  // Function to open edit dialog
+  const openEditDealDialog = (deal: any) => {
+    setEditingDeal(deal);
+    setIsEditDealDialogOpen(true);
+  };
+
+  // Function to handle deal deletion
+  const handleDeleteDeal = (dealId: number) => {
+    if (confirm('Tem certeza que deseja excluir este negócio?')) {
+      deleteDealMutation.mutate(dealId);
+    }
   };
 
   const filtered = deals.filter((deal: any) =>
