@@ -33,6 +33,7 @@ export const TeamsTab = () => {
   const [showTeamDialog, setShowTeamDialog] = useState(false);
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   
   // Estados do formulário de nova equipe
@@ -139,6 +140,29 @@ export const TeamsTab = () => {
     }
   });
 
+  // Mutação para excluir equipe
+  const deleteTeamMutation = useMutation({
+    mutationFn: (teamId: number) => 
+      apiRequest('DELETE', `/api/teams/${teamId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      queryClient.refetchQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Equipe excluída!",
+        description: "A equipe foi excluída permanentemente do sistema.",
+      });
+      setShowConfigDialog(false);
+      setShowDeleteDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a equipe. Verifique se não há dependências.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleCreateTeam = () => {
     if (!newTeamForm.name || !newTeamForm.category) {
       toast({
@@ -193,6 +217,11 @@ export const TeamsTab = () => {
         isActive: editTeamForm.isActive
       }
     });
+  };
+
+  const handleDeleteTeam = () => {
+    if (!selectedTeam) return;
+    deleteTeamMutation.mutate(selectedTeam.id);
   };
 
   // Atualizar formulário quando uma equipe for selecionada para configuração
@@ -581,17 +610,27 @@ export const TeamsTab = () => {
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
-              Cancelar
-            </Button>
+          <DialogFooter className="flex justify-between">
             <Button 
-              onClick={handleUpdateTeam}
-              disabled={updateTeamMutation.isPending}
+              variant="destructive"
+              onClick={() => setShowDeleteDialog(true)}
+              className="mr-auto"
             >
-              {updateTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Configurações
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir Equipe
             </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleUpdateTeam}
+                disabled={updateTeamMutation.isPending}
+              >
+                {updateTeamMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar Configurações
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
