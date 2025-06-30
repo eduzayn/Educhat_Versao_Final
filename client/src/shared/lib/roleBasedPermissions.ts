@@ -3,7 +3,7 @@
  * Implementação paralela ao sistema granular existente
  */
 
-export type UserRole = 'admin' | 'superadmin' | 'gerente' | 'atendente';
+export type UserRole = 'admin' | 'superadmin' | 'gerente' | 'atendente' | 'Administrador' | 'Gerente';
 
 // Páginas que cada perfil pode acessar
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
@@ -80,6 +80,46 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     '/chat-interno',
     '/profile',
     '/settings/quick-replies'
+  ],
+
+  // Administrador (com maiúscula): Acesso total igual admin
+  'Administrador': [
+    '/',
+    '/inbox',
+    '/contacts',
+    '/crm',
+    '/reports',
+    '/bi',
+    '/chat-interno',
+    '/profile',
+    '/settings',
+    '/settings/users',
+    '/settings/channels',
+    '/settings/quick-replies',
+    '/settings/webhooks',
+    '/settings/ai-detection',
+    '/admin/permissions',
+    '/integrations',
+    '/integrations/facebook',
+    '/integrations/manychat',
+    '/teams',
+    '/teams/transfer'
+  ],
+
+  // Gerente (com maiúscula): Páginas operacionais + relatórios + configurações básicas
+  'Gerente': [
+    '/',
+    '/inbox',
+    '/contacts',
+    '/crm',
+    '/reports',
+    '/bi',
+    '/chat-interno',
+    '/profile',
+    '/settings/quick-replies',
+    '/settings/channels',
+    '/teams',
+    '/teams/transfer'
   ]
 };
 
@@ -89,8 +129,17 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
 export function hasRoleBasedAccess(userRole: string | undefined, pagePath: string): boolean {
   if (!userRole) return false;
   
-  const role = userRole.toLowerCase() as UserRole;
-  const allowedPaths = ROLE_PERMISSIONS[role] || [];
+  // Primeiro tenta usar o role exato como está no banco
+  let allowedPaths = ROLE_PERMISSIONS[userRole as UserRole];
+  
+  // Se não encontrou, tenta com minúscula (compatibilidade com sistema antigo)
+  if (!allowedPaths) {
+    const roleLowerCase = userRole.toLowerCase() as UserRole;
+    allowedPaths = ROLE_PERMISSIONS[roleLowerCase];
+  }
+  
+  // Se ainda não encontrou, não tem permissões
+  if (!allowedPaths) return false;
   
   // Verifica acesso exato
   if (allowedPaths.includes(pagePath)) return true;
@@ -108,16 +157,24 @@ export function hasRoleBasedAccess(userRole: string | undefined, pagePath: strin
 export function getAllowedPagesForRole(userRole: string | undefined): string[] {
   if (!userRole) return [];
   
-  const role = userRole.toLowerCase() as UserRole;
-  return ROLE_PERMISSIONS[role] || [];
+  // Primeiro tenta usar o role exato como está no banco
+  let allowedPaths = ROLE_PERMISSIONS[userRole as UserRole];
+  
+  // Se não encontrou, tenta com minúscula (compatibilidade com sistema antigo)
+  if (!allowedPaths) {
+    const roleLowerCase = userRole.toLowerCase() as UserRole;
+    allowedPaths = ROLE_PERMISSIONS[roleLowerCase];
+  }
+  
+  return allowedPaths || [];
 }
 
 /**
- * Verifica se o usuário é administrador (admin ou superadmin)
+ * Verifica se o usuário é administrador (admin, superadmin ou Administrador)
  */
 export function isAdminRole(userRole: string | undefined): boolean {
   if (!userRole) return false;
-  return ['admin', 'superadmin'].includes(userRole.toLowerCase());
+  return ['admin', 'superadmin', 'Administrador'].includes(userRole);
 }
 
 /**
@@ -125,7 +182,7 @@ export function isAdminRole(userRole: string | undefined): boolean {
  */
 export function isManagerOrAbove(userRole: string | undefined): boolean {
   if (!userRole) return false;
-  return ['admin', 'superadmin', 'gerente'].includes(userRole.toLowerCase());
+  return ['admin', 'superadmin', 'gerente', 'Administrador', 'Gerente'].includes(userRole);
 }
 
 /**

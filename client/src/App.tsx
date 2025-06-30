@@ -97,7 +97,7 @@ function Router() {
           <Route path="/settings/channels">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={ChannelsPage}
               />
             )}
@@ -105,7 +105,7 @@ function Router() {
           <Route path="/settings/users">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={UsersSettingsPage}
               />
             )}
@@ -116,7 +116,7 @@ function Router() {
           <Route path="/settings/webhooks">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={WebhookConfigPage}
               />
             )}
@@ -124,7 +124,7 @@ function Router() {
           <Route path="/settings/ai-detection">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente", "superadmin"]}
+                requiredRole={["admin", "gerente", "superadmin", "Administrador", "Gerente"]}
                 component={AIDetectionSettingsPage}
               />
             )}
@@ -146,7 +146,7 @@ function Router() {
           <Route path="/teams">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente"]}
+                requiredRole={["admin", "gerente", "Administrador", "Gerente"]}
                 component={TeamsPage}
               />
             )}
@@ -154,7 +154,7 @@ function Router() {
           <Route path="/teams/transfer">
             {() => (
               <ProtectedRoute
-                requiredRole={["admin", "gerente"]}
+                requiredRole={["admin", "gerente", "Administrador", "Gerente"]}
                 component={TeamTransferPage}
               />
             )}
